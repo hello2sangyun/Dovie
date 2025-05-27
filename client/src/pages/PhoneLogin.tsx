@@ -100,20 +100,31 @@ export default function PhoneLogin() {
     },
     onSuccess: (data) => {
       console.log("SMS 인증 성공:", data);
-      if (data.nextStep === "profile_setup") {
+      console.log("nextStep:", data.nextStep);
+      console.log("user:", data.user);
+      
+      if (data.nextStep === "profile_setup" && data.user) {
         setUser(data.user);
         toast({
           title: "전화번호 인증 완료",
           description: "프로필을 설정해주세요.",
         });
+        console.log("프로필 설정 페이지로 이동");
         window.location.href = "/profile-setup";
-      } else {
+      } else if (data.user) {
         setUser(data.user);
         toast({
           title: "로그인 성공",
           description: "Dovie Messenger에 오신 것을 환영합니다!",
         });
         window.location.href = "/";
+      } else {
+        console.error("사용자 정보가 없습니다:", data);
+        toast({
+          title: "오류",
+          description: "인증 오류가 발생했습니다. 다시 시도해주세요.",
+          variant: "destructive",
+        });
       }
     },
     onError: (error: any) => {

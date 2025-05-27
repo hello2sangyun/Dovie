@@ -17,6 +17,7 @@ export default function ProfileSetup() {
   const [, setLocation] = useLocation();
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [isCompleting, setIsCompleting] = useState(false);
   const [profilePicture, setProfilePicture] = useState<string>("");
   const [profilePreview, setProfilePreview] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
