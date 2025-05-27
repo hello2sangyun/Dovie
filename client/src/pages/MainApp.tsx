@@ -225,8 +225,8 @@ export default function MainApp() {
             />
           )}
           {showMobileChat && selectedChatRoom && (
-            <div className="h-full flex flex-col">
-              <div className="bg-white border-b border-gray-200 p-4 flex items-center">
+            <div className="h-full flex flex-col overflow-hidden">
+              <div className="bg-white border-b border-gray-200 p-4 flex items-center flex-shrink-0">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -237,7 +237,7 @@ export default function MainApp() {
                 </Button>
                 <h3 className="font-semibold">채팅</h3>
               </div>
-              <div className="flex-1">
+              <div className="flex-1 min-h-0">
                 <ChatArea 
                   chatRoomId={selectedChatRoom}
                   onCreateCommand={(fileData) => openModal("command", fileData)}

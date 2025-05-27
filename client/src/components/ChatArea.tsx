@@ -237,7 +237,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand }: ChatAreaProps)
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0 overscroll-behavior-y-contain">
         {messages.length === 0 ? (
           <div className="text-center text-gray-500 mt-8">
             대화를 시작해보세요!
@@ -260,17 +260,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand }: ChatAreaProps)
                 
                 <div className={cn(
                   "flex items-start space-x-3",
-                  isMe ? "justify-end" : ""
+                  isMe ? "flex-row-reverse space-x-reverse" : ""
                 )}>
-                  {!isMe && (
-                    <div className="w-8 h-8 purple-gradient rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                      {getInitials(msg.sender.displayName)}
-                    </div>
-                  )}
+                  <div className="w-8 h-8 purple-gradient rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                    {getInitials(isMe ? (user?.displayName || "Me") : msg.sender.displayName)}
+                  </div>
                   
                   <div className={cn(
-                    "max-w-xs",
-                    isMe ? "flex flex-col items-end" : "flex-1"
+                    "max-w-xs lg:max-w-md flex flex-col",
+                    isMe ? "items-end" : "items-start"
                   )}>
                     {!isMe && (
                       <div className="flex items-center space-x-2 mb-1">
