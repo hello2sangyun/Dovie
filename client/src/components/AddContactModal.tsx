@@ -25,6 +25,8 @@ export default function AddContactModal({ open, onClose }: AddContactModalProps)
   const [nickname, setNickname] = useState("");
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [myQRCode, setMyQRCode] = useState<string>("");
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const addContactMutation = useMutation({
@@ -108,6 +110,56 @@ export default function AddContactModal({ open, onClose }: AddContactModalProps)
       generateQRCode();
     }
   }, [open, user?.id]);
+
+  // 모바일 환경 감지 및 키보드 이벤트 처리
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024); // lg breakpoint
+    };
+
+    const handleResize = () => {
+      if (isMobile) {
+        const currentHeight = window.innerHeight;
+        const screenHeight = window.screen.height;
+        const keyboardThreshold = screenHeight * 0.75; // 화면의 75% 이하일 때 키보드가 올라온 것으로 판단
+        
+        if (currentHeight < keyboardThreshold) {
+          setKeyboardHeight(screenHeight - currentHeight);
+        } else {
+          setKeyboardHeight(0);
+        }
+      }
+    };
+
+    checkMobile();
+    handleResize();
+
+    window.addEventListener('resize', checkMobile);
+    window.addEventListener('resize', handleResize);
+    
+    // iOS Safari를 위한 visualViewport API 사용
+    if (window.visualViewport) {
+      const handleViewportChange = () => {
+        if (isMobile) {
+          const heightDiff = window.screen.height - window.visualViewport.height;
+          setKeyboardHeight(heightDiff > 150 ? heightDiff : 0); // 150px 이상 차이날 때만 키보드로 판단
+        }
+      };
+      
+      window.visualViewport.addEventListener('resize', handleViewportChange);
+      
+      return () => {
+        window.removeEventListener('resize', checkMobile);
+        window.removeEventListener('resize', handleResize);
+        window.visualViewport?.removeEventListener('resize', handleViewportChange);
+      };
+    }
+
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [open, isMobile]);
 
   const generateQRCode = async () => {
     if (!user?.id) return;
@@ -194,7 +246,16 @@ export default function AddContactModal({ open, onClose }: AddContactModalProps)
   return (
     <>
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="w-full max-w-md max-h-[80vh] overflow-y-auto sm:max-h-none">
+      <DialogContent 
+        className="w-full max-w-md max-h-[80vh] overflow-y-auto sm:max-h-none"
+        style={isMobile && keyboardHeight > 0 ? {
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: `translate(-50%, calc(-50% - ${keyboardHeight / 2}px))`,
+          maxHeight: `${window.innerHeight - keyboardHeight - 40}px`
+        } : {}}
+      >
         <DialogHeader>
           <DialogTitle>친구 추가</DialogTitle>
         </DialogHeader>
