@@ -220,6 +220,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // 임시 데이터에 이메일 추가
+      tempData.email = email;
+      tempVerificationData.set(tempId, tempData);
+
       res.json({ 
         success: true, 
         message: "인증 코드를 이메일로 전송했습니다.",
