@@ -49,6 +49,12 @@ export interface IStorage {
   getPhoneVerification(phoneNumber: string, verificationCode: string): Promise<PhoneVerification | undefined>;
   markPhoneVerificationAsUsed(id: number): Promise<void>;
   cleanupExpiredVerifications(): Promise<void>;
+
+  // Email verification operations
+  createEmailVerification(verification: InsertEmailVerification): Promise<EmailVerification>;
+  getEmailVerification(email: string, verificationCode: string): Promise<EmailVerification | undefined>;
+  markEmailVerificationAsUsed(id: number): Promise<void>;
+  cleanupExpiredEmailVerifications(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
