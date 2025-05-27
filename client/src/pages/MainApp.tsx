@@ -24,12 +24,12 @@ export default function MainApp() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("contacts");
   const [activeMobileTab, setActiveMobileTab] = useState("contacts");
+  const [showSettings, setShowSettings] = useState(false);
   const [selectedChatRoom, setSelectedChatRoom] = useState<number | null>(null);
   const [showMobileChat, setShowMobileChat] = useState(false);
   const [modals, setModals] = useState({
     addContact: false,
     command: false,
-    settings: false,
   });
   const [commandModalData, setCommandModalData] = useState<any>(null);
 
@@ -102,7 +102,7 @@ export default function MainApp() {
                 variant="ghost"
                 size="sm"
                 className="text-white hover:text-purple-200 hover:bg-white/10"
-                onClick={() => openModal("settings")}
+                onClick={() => setShowSettings(true)}
               >
                 <Settings className="h-5 w-5" />
               </Button>
@@ -175,9 +175,24 @@ export default function MainApp() {
           </Tabs>
         </div>
 
-        {/* Main Chat Area */}
+        {/* Main Chat Area or Settings */}
         <div className="flex-1 flex flex-col">
-          {selectedChatRoom ? (
+          {showSettings ? (
+            <div className="flex-1 bg-gray-50 overflow-y-auto">
+              <div className="max-w-4xl mx-auto p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h1 className="text-2xl font-bold text-gray-900">설정</h1>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowSettings(false)}
+                  >
+                    뒤로 가기
+                  </Button>
+                </div>
+                <SettingsPage isMobile={false} />
+              </div>
+            </div>
+          ) : selectedChatRoom ? (
             <ChatArea 
               chatRoomId={selectedChatRoom}
               onCreateCommand={(fileData) => openModal("command", fileData)}
