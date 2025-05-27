@@ -584,7 +584,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   
                   <div className={cn(
                     "flex flex-col",
-                    msg.replyToMessageId ? "max-w-sm lg:max-w-lg" : "max-w-xs lg:max-w-md",
+                    msg.replyToMessageId ? "max-w-md lg:max-w-xl" : "max-w-xs lg:max-w-md",
                     isMe ? "items-end" : "items-start"
                   )}>
                     {!isMe && (

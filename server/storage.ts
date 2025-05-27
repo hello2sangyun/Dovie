@@ -42,6 +42,12 @@ export interface IStorage {
   // Message read tracking
   markMessagesAsRead(userId: number, chatRoomId: number, lastMessageId: number): Promise<void>;
   getUnreadCounts(userId: number): Promise<{ chatRoomId: number; unreadCount: number }[]>;
+
+  // Phone verification operations
+  createPhoneVerification(verification: InsertPhoneVerification): Promise<PhoneVerification>;
+  getPhoneVerification(phoneNumber: string, verificationCode: string): Promise<PhoneVerification | undefined>;
+  markPhoneVerificationAsUsed(id: number): Promise<void>;
+  cleanupExpiredVerifications(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
