@@ -362,10 +362,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("POST /api/commands - Request body:", req.body);
       console.log("POST /api/commands - User ID from header:", userId);
       
-      const commandData = insertCommandSchema.parse({
+      // Prepare command data with proper type conversion
+      const rawData = {
         userId: Number(userId),
         ...req.body,
-      });
+      };
+      
+      // Convert originalTimestamp if it exists
+      if (rawData.originalTimestamp) {
+        rawData.originalTimestamp = new Date(rawData.originalTimestamp);
+      }
+      
+      console.log("POST /api/commands - Raw data before parsing:", rawData);
+      
+      const commandData = insertCommandSchema.parse(rawData);
 
       console.log("POST /api/commands - Parsed command data:", commandData);
 
