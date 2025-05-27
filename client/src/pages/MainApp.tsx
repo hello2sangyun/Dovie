@@ -122,19 +122,9 @@ export default function MainApp() {
         <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
           {/* Header */}
           <div className="p-4 border-b border-gray-200 purple-gradient">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <VaultLogo size="sm" />
-                <h1 className="text-xl font-bold text-white">Vault Messenger</h1>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-white hover:text-purple-200 hover:bg-white/10"
-                onClick={() => setShowSettings(true)}
-              >
-                <Settings className="h-5 w-5" />
-              </Button>
+            <div className="flex items-center space-x-3">
+              <VaultLogo size="sm" />
+              <h1 className="text-xl font-bold text-white">Vault Messenger</h1>
             </div>
           </div>
 
@@ -171,6 +161,16 @@ export default function MainApp() {
                 <Archive className="mr-2 h-4 w-4" />
                 저장소
               </TabsTrigger>
+              <TabsTrigger 
+                value="settings"
+                className={cn(
+                  "py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent",
+                  "data-[state=active]:border-purple-600 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-600"
+                )}
+              >
+                <Settings className="mr-2 h-4 w-4" />
+                설정
+              </TabsTrigger>
             </TabsList>
 
             <div className="flex-1 overflow-hidden">
@@ -196,6 +196,10 @@ export default function MainApp() {
               
               <TabsContent value="archive" className="h-full m-0">
                 <ArchiveList />
+              </TabsContent>
+              
+              <TabsContent value="settings" className="h-full m-0">
+                <SettingsPage />
               </TabsContent>
             </div>
           </Tabs>
