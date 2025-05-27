@@ -250,13 +250,17 @@ export default function AddContactModal({ open, onClose }: AddContactModalProps)
         className="w-full max-w-md"
         style={isMobile && keyboardHeight > 0 ? {
           position: 'fixed',
-          top: '20px',
+          top: '10px',
           left: '50%',
           transform: 'translateX(-50%)',
           width: '90vw',
-          maxWidth: '400px',
-          height: `${window.innerHeight - keyboardHeight - 40}px`,
-          minHeight: '300px'
+          maxWidth: '380px',
+          height: `${Math.min(window.innerHeight - keyboardHeight - 20, 420)}px`,
+          minHeight: '280px'
+        } : isMobile ? {
+          width: '90vw',
+          maxWidth: '380px',
+          maxHeight: '70vh'
         } : {
           maxHeight: '80vh'
         }}
@@ -267,60 +271,62 @@ export default function AddContactModal({ open, onClose }: AddContactModalProps)
           </DialogHeader>
           
           <div className={`${isMobile && keyboardHeight > 0 ? 'flex-1 overflow-y-auto' : ''}`}>
-            <form onSubmit={handleSubmit} className={`${isMobile && keyboardHeight > 0 ? 'space-y-2 p-1' : 'space-y-4'}`}>
-          <div>
-            <Label htmlFor="contactUsername" className="text-sm font-medium text-gray-700">
-              사용자 ID
-            </Label>
-            <Input
-              id="contactUsername"
-              type="text"
-              placeholder="@username"
-              value={contactUsername}
-              onChange={(e) => setContactUsername(e.target.value)}
-              className="mt-1"
-              disabled={addContactMutation.isPending}
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="nickname" className="text-sm font-medium text-gray-700">
-              표시될 닉네임 (선택사항)
-            </Label>
-            <Input
-              id="nickname"
-              type="text"
-              placeholder="닉네임을 입력하세요"
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              className="mt-1"
-              disabled={addContactMutation.isPending}
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              입력하지 않으면 사용자 ID가 표시됩니다
-            </p>
-          </div>
-          
-          <div className="border-t border-gray-200 pt-4 space-y-3">
-            <Button
-              type="submit"
-              className="w-full purple-gradient hover:purple-gradient-hover"
-              disabled={addContactMutation.isPending}
-            >
-              <UserPlus className="mr-2 h-4 w-4" />
-              {addContactMutation.isPending ? "추가 중..." : "친구 추가"}
-            </Button>
-            
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={() => setShowQRScanner(true)}
-            >
-              <Camera className="mr-2 h-4 w-4" />
-              QR 코드 스캔
-            </Button>
-          </div>
+            <form onSubmit={handleSubmit} className={`${isMobile ? 'space-y-3' : 'space-y-4'}`}>
+              <div className={isMobile ? 'space-y-2' : 'space-y-3'}>
+                <div>
+                  <Label htmlFor="contactUsername" className={`font-medium text-gray-700 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                    사용자 ID
+                  </Label>
+                  <Input
+                    id="contactUsername"
+                    type="text"
+                    placeholder="@username"
+                    value={contactUsername}
+                    onChange={(e) => setContactUsername(e.target.value)}
+                    className={`${isMobile ? 'mt-0.5 h-9' : 'mt-1'}`}
+                    disabled={addContactMutation.isPending}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="nickname" className={`font-medium text-gray-700 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                    표시될 닉네임 (선택사항)
+                  </Label>
+                  <Input
+                    id="nickname"
+                    type="text"
+                    placeholder="닉네임을 입력하세요"
+                    value={nickname}
+                    onChange={(e) => setNickname(e.target.value)}
+                    className={`${isMobile ? 'mt-0.5 h-9' : 'mt-1'}`}
+                    disabled={addContactMutation.isPending}
+                  />
+                  <p className={`text-gray-500 ${isMobile ? 'text-xs mt-0.5' : 'text-xs mt-1'}`}>
+                    입력하지 않으면 사용자 ID가 표시됩니다
+                  </p>
+                </div>
+              </div>
+              
+              <div className={`border-t border-gray-200 ${isMobile ? 'pt-2 space-y-2' : 'pt-4 space-y-3'}`}>
+                <Button
+                  type="submit"
+                  className={`w-full purple-gradient hover:purple-gradient-hover ${isMobile ? 'h-9 text-sm' : ''}`}
+                  disabled={addContactMutation.isPending}
+                >
+                  <UserPlus className={`mr-2 ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                  {addContactMutation.isPending ? "추가 중..." : "친구 추가"}
+                </Button>
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={`w-full ${isMobile ? 'h-9 text-sm' : ''}`}
+                  onClick={() => setShowQRScanner(true)}
+                >
+                  <Camera className={`mr-2 ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                  QR 코드 스캔
+                </Button>
+              </div>
             </form>
           </div>
         </div>
