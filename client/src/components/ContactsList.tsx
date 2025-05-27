@@ -131,9 +131,15 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
               onClick={() => onSelectContact(contact.contactUserId)}
             >
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 purple-gradient rounded-full flex items-center justify-center text-white font-semibold">
-                  {getInitials(contact.nickname || contact.contactUser.displayName)}
-                </div>
+                <Avatar className="w-12 h-12">
+                  <AvatarImage 
+                    src={contact.contactUser.profilePicture || undefined} 
+                    alt={contact.nickname || contact.contactUser.displayName} 
+                  />
+                  <AvatarFallback className="purple-gradient text-white font-semibold">
+                    {getInitials(contact.nickname || contact.contactUser.displayName)}
+                  </AvatarFallback>
+                </Avatar>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-gray-900 truncate">
                     {contact.nickname || contact.contactUser.displayName}

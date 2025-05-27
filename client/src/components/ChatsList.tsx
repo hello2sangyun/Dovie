@@ -197,9 +197,15 @@ function ChatRoomItem({
       )}
       
       <div className="flex items-center space-x-3">
-        <div className="w-12 h-12 purple-gradient rounded-full flex items-center justify-center text-white font-semibold">
-          {getInitials(chatRoom.name)}
-        </div>
+        <Avatar className="w-12 h-12">
+          <AvatarImage 
+            src={chatRoom.participants?.[0]?.profilePicture || undefined} 
+            alt={chatRoom.name} 
+          />
+          <AvatarFallback className="purple-gradient text-white font-semibold">
+            {getInitials(chatRoom.name)}
+          </AvatarFallback>
+        </Avatar>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
             <p className="font-medium text-gray-900 truncate">{chatRoom.name}</p>
