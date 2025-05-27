@@ -82,6 +82,8 @@ export default function CommandModal({
         
         // FormData를 위한 특별한 fetch 요청 (apiRequest 대신 직접 fetch 사용)
         const userId = localStorage.getItem("userId");
+        console.log("Uploading file with userId:", userId);
+        
         const uploadResponse = await fetch("/api/upload", {
           method: "POST",
           headers: {
@@ -90,6 +92,15 @@ export default function CommandModal({
           body: formData,
           credentials: "include",
         });
+        
+        console.log("Upload response status:", uploadResponse.status);
+        
+        if (!uploadResponse.ok) {
+          const errorText = await uploadResponse.text();
+          console.error("Upload failed:", errorText);
+          throw new Error(`Upload failed: ${errorText}`);
+        }
+        
         const uploadResult = await uploadResponse.json();
         
         console.log("File upload result:", uploadResult);
