@@ -134,42 +134,42 @@ export default function MainApp() {
               <TabsTrigger 
                 value="contacts" 
                 className={cn(
-                  "py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent flex-col gap-1",
+                  "py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent",
                   "data-[state=active]:border-purple-600 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-600"
                 )}
               >
-                <Users className="h-5 w-5" />
-                <span className="text-xs">연락처</span>
+                <BookUser className="mr-2 h-4 w-4" />
+                연락처
               </TabsTrigger>
               <TabsTrigger 
                 value="chats"
                 className={cn(
-                  "py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent flex-col gap-1",
+                  "py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent",
                   "data-[state=active]:border-purple-600 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-600"
                 )}
               >
-                <MessageSquare className="h-5 w-5" />
-                <span className="text-xs">채팅방</span>
+                <MessageCircle className="mr-2 h-4 w-4" />
+                채팅방
               </TabsTrigger>
               <TabsTrigger 
                 value="archive"
                 className={cn(
-                  "py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent flex-col gap-1",
+                  "py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent",
                   "data-[state=active]:border-purple-600 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-600"
                 )}
               >
-                <Archive className="h-5 w-5" />
-                <span className="text-xs">저장소</span>
+                <Archive className="mr-2 h-4 w-4" />
+                저장소
               </TabsTrigger>
               <TabsTrigger 
                 value="settings"
                 className={cn(
-                  "py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent flex-col gap-1",
+                  "py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent",
                   "data-[state=active]:border-purple-600 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-600"
                 )}
               >
-                <Settings className="h-5 w-5" />
-                <span className="text-xs">설정</span>
+                <Settings className="mr-2 h-4 w-4" />
+                설정
               </TabsTrigger>
             </TabsList>
 
