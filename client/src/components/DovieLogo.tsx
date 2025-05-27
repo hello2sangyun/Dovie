@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import dovieLogoPath from "@assets/dovie-logo.png";
+import dovieLogoPath from "../assets/dovie-logo.png";
 
 interface DovieLogoProps {
   size?: "sm" | "md" | "lg" | "xl";

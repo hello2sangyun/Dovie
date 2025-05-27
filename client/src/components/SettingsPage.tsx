@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera, User, LogOut } from "lucide-react";
 import { getInitials } from "@/lib/utils";
-import VaultLogo from "./VaultLogo";
+import DovieLogo from "./DovieLogo";
 
 interface SettingsPageProps {
   isMobile?: boolean;

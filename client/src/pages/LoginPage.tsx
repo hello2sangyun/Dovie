@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
-import VaultLogo from "@/components/VaultLogo";
+import DovieLogo from "@/components/DovieLogo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Phone, Play } from "lucide-react";
@@ -42,8 +42,8 @@ export default function LoginPage() {
     <div className="fixed inset-0 bg-white flex items-center justify-center">
       <div className="w-full max-w-md p-8 animate-slide-up">
         <div className="text-center mb-8">
-          <VaultLogo size="lg" className="mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Vault Messenger</h2>
+          <DovieLogo size="lg" className="mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Dovie</h2>
           <p className="text-gray-600">로그인하여 시작하세요</p>
         </div>
 

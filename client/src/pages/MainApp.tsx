@@ -252,8 +252,8 @@ export default function MainApp() {
         <div className="purple-gradient p-4 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <VaultLogo size="sm" />
-              <h1 className="text-lg font-bold">Vault Messenger</h1>
+              <DovieLogo size="sm" />
+              <h1 className="text-lg font-bold">Dovie</h1>
             </div>
             <Button variant="ghost" size="sm" className="text-white">
               <Search className="h-5 w-5" />
