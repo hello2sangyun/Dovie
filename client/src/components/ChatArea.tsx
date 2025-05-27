@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Paperclip, Hash, Send, Video, Phone, Info, Download } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -274,9 +275,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   "flex items-start space-x-3",
                   isMe ? "flex-row-reverse space-x-reverse" : ""
                 )}>
-                  <div className="w-8 h-8 purple-gradient rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                    {getInitials(isMe ? (user?.displayName || "Me") : msg.sender.displayName)}
-                  </div>
+                  <Avatar className="w-8 h-8">
+                    <AvatarImage 
+                      src={isMe ? (user?.profilePicture || undefined) : (msg.sender.profilePicture || undefined)} 
+                      alt={isMe ? (user?.displayName || "Me") : msg.sender.displayName} 
+                    />
+                    <AvatarFallback className="purple-gradient text-white text-sm font-semibold">
+                      {getInitials(isMe ? (user?.displayName || "Me") : msg.sender.displayName)}
+                    </AvatarFallback>
+                  </Avatar>
                   
                   <div className={cn(
                     "max-w-xs lg:max-w-md flex flex-col",
