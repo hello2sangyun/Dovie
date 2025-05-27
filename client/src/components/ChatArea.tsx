@@ -154,7 +154,18 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     },
   });
 
-  const messages = messagesData?.messages || [];
+  // 서버 메시지와 로컬 메시지 합치기
+  const serverMessages = messagesData?.messages || [];
+  const localMessages = JSON.parse(localStorage.getItem(`localMessages_${chatRoomId}`) || '[]');
+  
+  // 중복 제거하고 시간순 정렬
+  const allMessages = [...serverMessages, ...localMessages]
+    .filter((msg, index, arr) => 
+      arr.findIndex(m => m.id === msg.id || (m.isLocalOnly && msg.isLocalOnly && m.content === msg.content)) === index
+    )
+    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  
+  const messages = allMessages;
   const commands = commandsData?.commands || [];
   const contacts = contactsData?.contacts || [];
 
@@ -217,14 +228,39 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           }
         };
         
-        // QueryClient 캐시에 임시로 추가
+        // QueryClient 캐시에 영구적으로 추가 (무효화되지 않도록)
         queryClient.setQueryData(["/api/chat-rooms", chatRoomId, "messages"], (oldData: any) => {
           if (!oldData) return { messages: [tempMessage] };
+          
+          // 기존에 같은 임시 메시지가 있는지 확인
+          const existingTempMessage = oldData.messages.find((msg: any) => 
+            msg.isLocalOnly && msg.content === tempMessage.content
+          );
+          
+          if (existingTempMessage) {
+            return oldData; // 이미 있으면 추가하지 않음
+          }
+          
           return {
             ...oldData,
             messages: [...oldData.messages, tempMessage]
           };
         });
+        
+        // 캐시 무효화 방지를 위해 별도 저장
+        const cacheKey = `localMessages_${chatRoomId}`;
+        const existingLocalMessages = JSON.parse(localStorage.getItem(cacheKey) || '[]');
+        
+        // 중복 체크
+        const isDuplicate = existingLocalMessages.some((msg: any) => 
+          msg.content === tempMessage.content && 
+          Math.abs(new Date(msg.createdAt).getTime() - new Date(tempMessage.createdAt).getTime()) < 5000
+        );
+        
+        if (!isDuplicate) {
+          existingLocalMessages.push(tempMessage);
+          localStorage.setItem(cacheKey, JSON.stringify(existingLocalMessages));
+        }
         
         setMessage("");
         setShowCommandSuggestions(false);
