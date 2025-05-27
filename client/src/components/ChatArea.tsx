@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload } from "lucide-react";
+import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -98,6 +98,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
       setMessage("");
       setShowCommandSuggestions(false);
+      setReplyToMessage(null); // 회신 상태 초기화
     },
     onError: (error) => {
       toast({
@@ -233,10 +234,19 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       }
     }
 
-    sendMessageMutation.mutate({
+    // 회신 메시지인 경우 회신 데이터 포함
+    const messageData: any = {
       content: message,
       messageType: "text",
-    });
+    };
+
+    if (replyToMessage) {
+      messageData.replyToMessageId = replyToMessage.id;
+      messageData.replyToContent = replyToMessage.content;
+      messageData.replyToSender = replyToMessage.sender.displayName;
+    }
+
+    sendMessageMutation.mutate(messageData);
   };
 
   const handleFileUpload = () => {
@@ -667,8 +677,36 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       </div>
 
       {/* Chat Input - Fixed position */}
-      <div className="bg-white border-t border-gray-200 p-3 flex-shrink-0 sticky bottom-0 z-10">
-        <div className="flex items-end space-x-2">
+      <div className="bg-white border-t border-gray-200 flex-shrink-0 sticky bottom-0 z-10">
+        {/* Reply Preview */}
+        {replyToMessage && (
+          <div className="p-3 border-b border-gray-200 bg-gray-50">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-1">
+                  <Reply className="h-4 w-4 text-purple-600" />
+                  <span className="text-sm font-medium text-purple-600">
+                    {replyToMessage.sender.displayName}님에게 회신
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600 truncate">
+                  {replyToMessage.content}
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-gray-400 hover:text-gray-600 p-1"
+                onClick={() => setReplyToMessage(null)}
+              >
+                ✕
+              </Button>
+            </div>
+          </div>
+        )}
+        
+        <div className="p-3">
+          <div className="flex items-end space-x-2">
           <Button
             variant="ghost"
             size="sm"
@@ -740,6 +778,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           >
             <Send className="h-4 w-4" />
           </Button>
+          </div>
         </div>
       </div>
 
