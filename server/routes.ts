@@ -352,10 +352,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
+      console.log("POST /api/commands - Request body:", req.body);
+      console.log("POST /api/commands - User ID from header:", userId);
+      
       const commandData = insertCommandSchema.parse({
         userId: Number(userId),
         ...req.body,
       });
+
+      console.log("POST /api/commands - Parsed command data:", commandData);
 
       // Check for duplicate command name in the same chat room
       const existingCommand = await storage.getCommandByName(
@@ -371,6 +376,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const command = await storage.createCommand(commandData);
       res.json({ command });
     } catch (error) {
+      console.error("POST /api/commands - Error:", error);
       res.status(500).json({ message: "Failed to create command" });
     }
   });
