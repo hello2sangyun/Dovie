@@ -58,9 +58,12 @@ export default function CommandModal({
     mutationFn: async () => {
       if (!chatRoomId) throw new Error("Chat room ID required");
       
+      // 영문자를 소문자로 변환
+      const processedCommandName = commandName.toLowerCase();
+      
       const commandData: any = {
         chatRoomId,
-        commandName,
+        commandName: processedCommandName,
       };
 
       if (fileData) {
@@ -76,13 +79,13 @@ export default function CommandModal({
       }
 
       const response = await apiRequest("POST", "/api/commands", commandData);
-      return response.json();
+      return { ...response.json(), processedCommandName };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/commands"] });
       toast({
         title: "명령어 등록 완료",
-        description: `#${commandName} 명령어가 등록되었습니다.`,
+        description: `#${commandName.toLowerCase()} 명령어가 등록되었습니다.`,
       });
       handleClose();
     },
@@ -119,10 +122,10 @@ export default function CommandModal({
       return { isValid: false, error: "태그에는 띄어쓰기를 사용할 수 없습니다." };
     }
 
-    // 허용된 문자만 사용하는지 체크 (한글, 영문 대문자, 숫자, _, .)
-    const validPattern = /^[가-힣A-Z0-9_.]+$/;
+    // 허용된 문자만 사용하는지 체크 (한글, 영문, 숫자, _, .)
+    const validPattern = /^[가-힣a-zA-Z0-9_.]+$/;
     if (!validPattern.test(tagName)) {
-      return { isValid: false, error: "한글, 영문 대문자, 숫자, 언더바(_), 점(.)만 사용 가능합니다." };
+      return { isValid: false, error: "한글, 영문, 숫자, 언더바(_), 점(.)만 사용 가능합니다." };
     }
 
     return { isValid: true };
@@ -198,7 +201,7 @@ export default function CommandModal({
               채팅에서 #명령어로 {fileData ? "파일" : "메시지"}을 다시 불러올 수 있습니다
             </p>
             <p className="text-xs text-amber-600 mt-1">
-              💡 한글, 영문 대문자, 숫자, 언더바(_), 점(.)만 사용 가능 (띄어쓰기 X)
+              💡 한글, 영문, 숫자, 언더바(_), 점(.)만 사용 가능 (띄어쓰기 X, 영문은 자동으로 소문자 변환)
             </p>
           </div>
           
