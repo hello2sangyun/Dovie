@@ -20,12 +20,13 @@ export default function PhoneLogin() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [fullPhoneNumber, setFullPhoneNumber] = useState("");
+  const [tempId, setTempId] = useState("");
 
-  // SMS 전송 요청 (로그인용)
+  // SMS 전송 요청
   const sendSMSMutation = useMutation({
     mutationFn: async (data: { phoneNumber: string; countryCode: string }) => {
       try {
-        const response = await fetch("/api/auth/send-sms-login", {
+        const response = await fetch("/api/auth/send-sms", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

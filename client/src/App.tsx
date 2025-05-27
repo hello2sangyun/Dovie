@@ -6,9 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import LandingPage from "@/pages/LandingPage";
 import LoginPage from "@/pages/LoginPage";
-import LoginChoice from "@/pages/LoginChoice";
 import PhoneLogin from "@/pages/PhoneLogin";
-import Signup from "@/pages/Signup";
 import EmailVerification from "@/pages/EmailVerification";
 import ProfileSetup from "@/pages/ProfileSetup";
 import MainApp from "@/pages/MainApp";
@@ -18,10 +16,9 @@ import { useEffect } from "react";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={LoginChoice} />
+      <Route path="/" component={LandingPage} />
       <Route path="/login" component={LoginPage} />
       <Route path="/phone-login" component={PhoneLogin} />
-      <Route path="/signup" component={Signup} />
       <Route path="/email-verification" component={EmailVerification} />
       <Route path="/profile-setup" component={ProfileSetup} />
       <Route path="/app" component={MainApp} />
