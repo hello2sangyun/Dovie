@@ -142,14 +142,38 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       const command = commands.find((cmd: any) => cmd.commandName === commandName);
       
       if (command) {
-        sendMessageMutation.mutate({
+        // 명령어 호출은 로컬에서만 처리 (다른 사용자에게 보이지 않음)
+        const tempMessage = {
+          id: Date.now(), // 임시 ID
+          chatRoomId: chatRoomId,
+          senderId: user?.id || 0,
           content: message,
           messageType: command.fileUrl ? "file" : "text",
           fileUrl: command.fileUrl,
           fileName: command.fileName,
+          fileSize: command.fileSize,
           isCommandRecall: true,
-          originalMessageId: command.messageId,
+          isLocalOnly: true, // 로컬 전용 메시지 표시
+          createdAt: new Date().toISOString(),
+          sender: {
+            id: user?.id || 0,
+            username: user?.username || '',
+            displayName: user?.displayName || '',
+            profilePicture: user?.profilePicture
+          }
+        };
+        
+        // QueryClient 캐시에 임시로 추가
+        queryClient.setQueryData(["/api/chat-rooms", chatRoomId, "messages"], (oldData: any) => {
+          if (!oldData) return { messages: [tempMessage] };
+          return {
+            ...oldData,
+            messages: [...oldData.messages, tempMessage]
+          };
         });
+        
+        setMessage("");
+        setShowCommandSuggestions(false);
         return;
       }
     }
@@ -389,32 +413,44 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
                     <div className={cn(
                       "rounded-lg p-3 shadow-sm",
-                      isMe 
-                        ? "chat-bubble-me rounded-tr-none" 
-                        : "chat-bubble-other rounded-tl-none"
+                      msg.isCommandRecall && msg.isLocalOnly
+                        ? isMe 
+                          ? "bg-teal-500 text-white rounded-tr-none border border-teal-400" 
+                          : "bg-teal-50 text-teal-900 rounded-tl-none border border-teal-200"
+                        : isMe 
+                          ? "chat-bubble-me rounded-tr-none" 
+                          : "chat-bubble-other rounded-tl-none"
                     )}>
                       {msg.messageType === "file" ? (
                         <div>
                           <div className="flex items-center space-x-3">
                             <div className={cn(
                               "w-10 h-10 rounded-lg flex items-center justify-center",
-                              isMe ? "bg-white/20" : "bg-blue-100"
+                              msg.isCommandRecall && msg.isLocalOnly
+                                ? isMe ? "bg-white/20" : "bg-teal-200"
+                                : isMe ? "bg-white/20" : "bg-blue-100"
                             )}>
                               <Paperclip className={cn(
                                 "h-5 w-5",
-                                isMe ? "text-white" : "text-blue-600"
+                                msg.isCommandRecall && msg.isLocalOnly
+                                  ? isMe ? "text-white" : "text-teal-700"
+                                  : isMe ? "text-white" : "text-blue-600"
                               )} />
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className={cn(
                                 "text-sm font-medium truncate",
-                                isMe ? "text-white" : "text-gray-900"
+                                msg.isCommandRecall && msg.isLocalOnly
+                                  ? isMe ? "text-white" : "text-teal-900"
+                                  : isMe ? "text-white" : "text-gray-900"
                               )}>
                                 {msg.fileName}
                               </p>
                               <p className={cn(
                                 "text-xs",
-                                isMe ? "text-white/70" : "text-gray-500"
+                                msg.isCommandRecall && msg.isLocalOnly
+                                  ? isMe ? "text-white/70" : "text-teal-600"
+                                  : isMe ? "text-white/70" : "text-gray-500"
                               )}>
                                 {msg.fileSize ? `${(msg.fileSize / 1024).toFixed(1)} KB` : ""}
                               </p>
@@ -422,7 +458,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                             <Button
                               variant="ghost"
                               size="sm"
-                              className={isMe ? "text-white hover:bg-white/10" : "text-purple-600 hover:text-purple-700"}
+                              className={cn(
+                                msg.isCommandRecall && msg.isLocalOnly
+                                  ? isMe ? "text-white hover:bg-white/10" : "text-teal-700 hover:text-teal-800 hover:bg-teal-100"
+                                  : isMe ? "text-white hover:bg-white/10" : "text-purple-600 hover:text-purple-700"
+                              )}
                               onClick={() => window.open(msg.fileUrl, '_blank')}
                             >
                               <Download className="h-4 w-4" />
@@ -432,21 +472,29 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           {msg.isCommandRecall && (
                             <div className={cn(
                               "mt-2 pt-2 border-t",
-                              isMe ? "border-white/20" : "border-gray-100"
+                              msg.isLocalOnly
+                                ? isMe ? "border-white/20" : "border-teal-300"
+                                : isMe ? "border-white/20" : "border-gray-100"
                             )}>
                               <span className={cn(
                                 "px-2 py-1 rounded text-xs font-medium",
-                                isMe 
-                                  ? "bg-white/20 text-white" 
-                                  : "bg-purple-100 text-purple-700"
+                                msg.isLocalOnly
+                                  ? isMe 
+                                    ? "bg-white/20 text-white" 
+                                    : "bg-teal-200 text-teal-800"
+                                  : isMe 
+                                    ? "bg-white/20 text-white" 
+                                    : "bg-purple-100 text-purple-700"
                               )}>
                                 {msg.content}
                               </span>
                               <p className={cn(
                                 "text-xs mt-1",
-                                isMe ? "text-white/70" : "text-gray-500"
+                                msg.isLocalOnly
+                                  ? isMe ? "text-white/70" : "text-teal-600"
+                                  : isMe ? "text-white/70" : "text-gray-500"
                               )}>
-                                명령어로 불러옴
+                                {msg.isLocalOnly ? "태그로 불러옴 (나만 보임)" : "명령어로 불러옴"}
                               </p>
                             </div>
                           )}
