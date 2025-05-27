@@ -235,11 +235,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 이메일 인증 코드 확인
   app.post("/api/auth/verify-email", async (req, res) => {
     try {
-      const { email, verificationCode, userId } = req.body;
+      const { email, verificationCode, tempId } = req.body;
       
-      if (!email || !verificationCode || !userId) {
-        return res.status(400).json({ message: "Email, verification code, and user ID are required" });
+      if (!email || !verificationCode || !tempId) {
+        return res.status(400).json({ message: "Email, verification code, and tempId are required" });
       }
+
+      // 임시 데이터 확인
+      if (!tempVerificationData.has(tempId)) {
+        return res.status(400).json({ message: "Invalid session. Please start over." });
+      }
+
+      const tempData = tempVerificationData.get(tempId)!;
 
       // 인증 코드 확인
       const verification = await storage.getEmailVerification(email, verificationCode);
@@ -251,16 +258,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 인증 코드를 사용됨으로 표시
       await storage.markEmailVerificationAsUsed(verification.id);
 
-      // 사용자 이메일 정보 업데이트
-      const updatedUser = await storage.updateUser(userId, { 
+      // 이제 사용자 생성 - 전화번호와 이메일 인증이 모두 완료됨
+      const phoneDigits = tempData.phoneNumber.replace(/[^\d]/g, '');
+      const timestamp = Date.now();
+      const userData = insertUserSchema.parse({
+        username: `user_${phoneDigits.slice(-8)}_${timestamp}`,
+        displayName: `사용자 ${tempData.phoneNumber.slice(-4)}`,
+        phoneNumber: tempData.phoneNumber,
         email: email,
-        isEmailVerified: true 
+        isEmailVerified: true
       });
+
+      const newUser = await storage.createUser(userData);
+
+      // 임시 데이터 삭제
+      tempVerificationData.delete(tempId);
+
+      // 사용자 온라인 상태 업데이트
+      await storage.updateUser(newUser.id, { isOnline: true });
 
       res.json({ 
         success: true,
         nextStep: "profile_setup",
-        user: updatedUser,
+        user: newUser,
         message: "이메일 인증이 완료되었습니다. 프로필을 설정해주세요."
       });
     } catch (error) {

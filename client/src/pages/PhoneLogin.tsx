@@ -20,6 +20,7 @@ export default function PhoneLogin() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [fullPhoneNumber, setFullPhoneNumber] = useState("");
+  const [tempId, setTempId] = useState("");
 
   // SMS 전송 요청
   const sendSMSMutation = useMutation({
@@ -33,11 +34,12 @@ export default function PhoneLogin() {
           body: JSON.stringify(data),
         });
         
+        const result = await response.json();
+        
         if (!response.ok) {
-          throw new Error("SMS 전송 실패");
+          throw new Error(result.message || "SMS 전송 실패");
         }
         
-        const result = await response.json();
         return result;
       } catch (error) {
         console.error("SMS 전송 오류:", error);
@@ -55,11 +57,21 @@ export default function PhoneLogin() {
     },
     onError: (error: any) => {
       console.error("SMS 전송 실패:", error);
-      toast({
-        title: "오류",
-        description: "인증 코드 전송에 실패했습니다. 다시 시도해주세요.",
-        variant: "destructive",
-      });
+      
+      // 중복 전화번호 에러 처리
+      if (error.message?.includes("이미 가입되어 있는 전화번호")) {
+        toast({
+          title: "이미 가입된 전화번호",
+          description: "이미 가입되어 있는 전화번호입니다. 다른 번호를 사용해주세요.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "오류",
+          description: "인증 코드 전송에 실패했습니다. 다시 시도해주세요.",
+          variant: "destructive",
+        });
+      }
     },
   });
 
@@ -88,14 +100,16 @@ export default function PhoneLogin() {
     },
     onSuccess: (data) => {
       console.log("SMS 인증 성공:", data);
-      setUser(data.user);
       if (data.nextStep === "email_verification") {
+        setTempId(data.tempId);
         toast({
           title: "전화번호 인증 완료",
           description: "이메일 인증을 진행해주세요.",
         });
-        window.location.href = "/email-verification";
+        // tempId를 URL 파라미터로 전달
+        window.location.href = `/email-verification?tempId=${data.tempId}`;
       } else {
+        setUser(data.user);
         toast({
           title: "로그인 성공",
           description: "Dovie Messenger에 오신 것을 환영합니다!",

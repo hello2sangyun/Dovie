@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,16 @@ export default function EmailVerification() {
   const [email, setEmail] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [step, setStep] = useState<"email" | "verification">("email");
+  const [tempId, setTempId] = useState("");
+
+  // URL에서 tempId 가져오기
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tempIdFromUrl = urlParams.get('tempId');
+    if (tempIdFromUrl) {
+      setTempId(tempIdFromUrl);
+    }
+  }, []);
 
   // 이메일 인증 코드 전송
   const sendEmailMutation = useMutation({
