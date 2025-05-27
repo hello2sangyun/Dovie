@@ -8,9 +8,6 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   displayName: text("display_name").notNull(),
   phoneNumber: text("phone_number"),
-  email: text("email"),
-  isEmailVerified: boolean("is_email_verified").default(false),
-  isProfileComplete: boolean("is_profile_complete").default(false),
   birthday: text("birthday"),
   profilePicture: text("profile_picture"),
   qrCode: text("qr_code"),
@@ -89,15 +86,6 @@ export const phoneVerifications = pgTable("phone_verifications", {
   id: serial("id").primaryKey(),
   phoneNumber: text("phone_number").notNull(),
   countryCode: text("country_code").notNull(),
-  verificationCode: text("verification_code").notNull(),
-  isVerified: boolean("is_verified").default(false),
-  expiresAt: timestamp("expires_at").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-export const emailVerifications = pgTable("email_verifications", {
-  id: serial("id").primaryKey(),
-  email: text("email").notNull(),
   verificationCode: text("verification_code").notNull(),
   isVerified: boolean("is_verified").default(false),
   expiresAt: timestamp("expires_at").notNull(),
@@ -231,11 +219,6 @@ export const insertPhoneVerificationSchema = createInsertSchema(phoneVerificatio
   createdAt: true,
 });
 
-export const insertEmailVerificationSchema = createInsertSchema(emailVerifications).omit({
-  id: true,
-  createdAt: true,
-});
-
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Contact = typeof contacts.$inferSelect;
@@ -250,5 +233,3 @@ export type Command = typeof commands.$inferSelect;
 export type InsertCommand = z.infer<typeof insertCommandSchema>;
 export type PhoneVerification = typeof phoneVerifications.$inferSelect;
 export type InsertPhoneVerification = z.infer<typeof insertPhoneVerificationSchema>;
-export type EmailVerification = typeof emailVerifications.$inferSelect;
-export type InsertEmailVerification = z.infer<typeof insertEmailVerificationSchema>;
