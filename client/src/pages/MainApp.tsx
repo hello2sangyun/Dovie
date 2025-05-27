@@ -24,6 +24,7 @@ export default function MainApp() {
   const [activeTab, setActiveTab] = useState("contacts");
   const [activeMobileTab, setActiveMobileTab] = useState("contacts");
   const [selectedChatRoom, setSelectedChatRoom] = useState<number | null>(null);
+  const [showMobileChat, setShowMobileChat] = useState(false);
   const [modals, setModals] = useState({
     addContact: false,
     command: false,
@@ -209,11 +210,35 @@ export default function MainApp() {
               onSelectContact={() => {}}
             />
           )}
-          {activeMobileTab === "chats" && (
+          {activeMobileTab === "chats" && !showMobileChat && (
             <ChatsList 
-              onSelectChat={setSelectedChatRoom}
+              onSelectChat={(chatId) => {
+                setSelectedChatRoom(chatId);
+                setShowMobileChat(true);
+              }}
               selectedChatId={selectedChatRoom}
             />
+          )}
+          {showMobileChat && selectedChatRoom && (
+            <div className="h-full flex flex-col">
+              <div className="bg-white border-b border-gray-200 p-4 flex items-center">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowMobileChat(false)}
+                  className="mr-3"
+                >
+                  ←
+                </Button>
+                <h3 className="font-semibold">채팅</h3>
+              </div>
+              <div className="flex-1">
+                <ChatArea 
+                  chatRoomId={selectedChatRoom}
+                  onCreateCommand={() => openModal("command")}
+                />
+              </div>
+            </div>
           )}
           {activeMobileTab === "archive" && <ArchiveList />}
           {activeMobileTab === "settings" && (
