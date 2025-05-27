@@ -325,6 +325,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   return (
     <div 
       ref={chatAreaRef}
+      data-chat-area="true"
       className={`h-full flex flex-col bg-gray-50 relative ${isDragOver ? 'bg-purple-50' : ''}`}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}

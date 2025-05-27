@@ -137,6 +137,16 @@ export default function AddContactModal({ open, onClose }: AddContactModalProps)
 
   // QR 스캔 결과 처리
   const handleQRScanResult = async (userId: number, userData: any) => {
+    // 자기 자신을 스캔한 경우 방지
+    if (userId === user?.id) {
+      toast({
+        title: "친구 추가 불가",
+        description: "자기 자신을 친구로 추가할 수 없습니다.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const response = await apiRequest("POST", "/api/contacts", {
         contactUserId: userId,
