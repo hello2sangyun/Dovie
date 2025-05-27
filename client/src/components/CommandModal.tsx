@@ -9,6 +9,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FileText } from "lucide-react";
 
+// 파일명을 적절한 길이로 단축하는 함수
+function truncateFileName(fileName: string, maxLength: number): string {
+  if (fileName.length <= maxLength) return fileName;
+  
+  const extension = fileName.split('.').pop() || '';
+  const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
+  
+  if (extension) {
+    const maxNameLength = maxLength - extension.length - 4; // "..." + "." 를 위한 여유공간
+    if (maxNameLength > 0) {
+      return `${nameWithoutExt.substring(0, maxNameLength)}...${extension}`;
+    }
+  }
+  
+  return `${fileName.substring(0, maxLength - 3)}...`;
+}
+
 interface CommandModalProps {
   open: boolean;
   onClose: () => void;
@@ -118,8 +135,11 @@ export default function CommandModal({
                 <FileText className="text-blue-600 h-5 w-5" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-900 truncate">
-                  {fileData?.fileName || "저장된 메시지"}
+                <p className="font-medium text-gray-900">
+                  {fileData?.fileName 
+                    ? truncateFileName(fileData.fileName, 25)
+                    : "저장된 메시지"
+                  }
                 </p>
                 <p className="text-sm text-gray-500">
                   {fileData 
