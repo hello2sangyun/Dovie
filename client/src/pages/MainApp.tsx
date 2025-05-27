@@ -30,6 +30,7 @@ export default function MainApp() {
     command: false,
     settings: false,
   });
+  const [commandModalData, setCommandModalData] = useState<any>(null);
 
   useWebSocket(user?.id);
 

@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 interface ChatAreaProps {
   chatRoomId: number;
-  onCreateCommand: () => void;
+  onCreateCommand: (fileData?: any) => void;
 }
 
 export default function ChatArea({ chatRoomId, onCreateCommand }: ChatAreaProps) {
@@ -19,6 +19,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand }: ChatAreaProps)
   const queryClient = useQueryClient();
   const [message, setMessage] = useState("");
   const [showCommandSuggestions, setShowCommandSuggestions] = useState(false);
+  const [fileDataForCommand, setFileDataForCommand] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -96,6 +97,17 @@ export default function ChatArea({ chatRoomId, onCreateCommand }: ChatAreaProps)
         fileName: uploadData.fileName,
         fileSize: uploadData.fileSize,
         content: `📎 ${uploadData.fileName}`,
+      }, {
+        onSuccess: (messageData) => {
+          // 파일 업로드 후 자동으로 태그하기 모달 열기
+          setFileDataForCommand({
+            fileUrl: uploadData.fileUrl,
+            fileName: uploadData.fileName,
+            fileSize: uploadData.fileSize,
+            messageId: messageData.message.id
+          });
+          onCreateCommand();
+        }
       });
     },
   });
@@ -196,8 +208,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand }: ChatAreaProps)
 
   return (
     <div className="h-full flex flex-col bg-gray-50">
-      {/* Chat Header */}
-      <div className="bg-white border-b border-gray-200 p-4 flex-shrink-0">
+      {/* Chat Header - Fixed position */}
+      <div className="bg-white border-b border-gray-200 p-4 flex-shrink-0 sticky top-0 z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 purple-gradient rounded-full flex items-center justify-center text-white font-semibold">
@@ -361,13 +373,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand }: ChatAreaProps)
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Chat Input */}
-      <div className="bg-white border-t border-gray-200 p-4 flex-shrink-0">
-        <div className="flex items-end space-x-3">
+      {/* Chat Input - Fixed position */}
+      <div className="bg-white border-t border-gray-200 p-3 flex-shrink-0 sticky bottom-0 z-10">
+        <div className="flex items-end space-x-2">
           <Button
             variant="ghost"
             size="sm"
-            className="text-gray-400 hover:text-purple-600"
+            className="text-gray-400 hover:text-purple-600 p-2"
             onClick={handleFileUpload}
             disabled={uploadFileMutation.isPending}
           >
@@ -377,13 +389,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand }: ChatAreaProps)
           <Button
             variant="ghost"
             size="sm"
-            className="text-gray-400 hover:text-purple-600"
+            className="text-gray-400 hover:text-purple-600 p-2"
             onClick={insertHashtag}
           >
             <Hash className="h-5 w-5" />
           </Button>
           
-          <div className="flex-1 relative">
+          <div className="flex-1 relative mx-1">
             <Input
               type="text"
               placeholder="메시지를 입력하세요..."
