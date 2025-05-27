@@ -245,28 +245,29 @@ export default function AddContactModal({ open, onClose }: AddContactModalProps)
 
   return (
     <>
-    <Dialog open={open} onOpenChange={handleClose}>
+      <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent 
-        className={`w-full max-w-md sm:max-h-none ${
-          isMobile && keyboardHeight > 0 
-            ? 'max-h-none overflow-visible' 
-            : 'max-h-[80vh] overflow-y-auto'
-        }`}
+        className="w-full max-w-md"
         style={isMobile && keyboardHeight > 0 ? {
           position: 'fixed',
           top: '20px',
           left: '50%',
           transform: 'translateX(-50%)',
-          height: 'auto',
-          maxHeight: `${window.innerHeight - keyboardHeight - 40}px`,
-          overflowY: 'auto'
-        } : {}}
+          width: '90vw',
+          maxWidth: '400px',
+          height: `${window.innerHeight - keyboardHeight - 40}px`,
+          minHeight: '300px'
+        } : {
+          maxHeight: '80vh'
+        }}
       >
-        <DialogHeader>
-          <DialogTitle>친구 추가</DialogTitle>
-        </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className={`flex flex-col ${isMobile && keyboardHeight > 0 ? 'h-full' : ''}`}>
+          <DialogHeader className={isMobile && keyboardHeight > 0 ? 'flex-shrink-0' : ''}>
+            <DialogTitle>친구 추가</DialogTitle>
+          </DialogHeader>
+          
+          <div className={`${isMobile && keyboardHeight > 0 ? 'flex-1 overflow-y-auto' : ''}`}>
+            <form onSubmit={handleSubmit} className={`${isMobile && keyboardHeight > 0 ? 'space-y-2 p-1' : 'space-y-4'}`}>
           <div>
             <Label htmlFor="contactUsername" className="text-sm font-medium text-gray-700">
               사용자 ID
@@ -320,7 +321,9 @@ export default function AddContactModal({ open, onClose }: AddContactModalProps)
               QR 코드 스캔
             </Button>
           </div>
-        </form>
+            </form>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
 
