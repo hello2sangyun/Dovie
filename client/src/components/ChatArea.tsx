@@ -497,10 +497,28 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   </div>
                 )}
                 
-                <div className={cn(
-                  "flex items-start space-x-3",
-                  isMe ? "flex-row-reverse space-x-reverse" : ""
-                )}>
+                <div 
+                  className={cn(
+                    "flex items-start space-x-3",
+                    isMe ? "flex-row-reverse space-x-reverse" : ""
+                  )}
+                  onContextMenu={(e) => handleMessageRightClick(e, msg)}
+                  onTouchStart={(e) => {
+                    let pressTimer: NodeJS.Timeout;
+                    const handleTouchStart = () => {
+                      pressTimer = setTimeout(() => {
+                        handleMessageLongPress(e, msg);
+                      }, 500);
+                    };
+                    const handleTouchEnd = () => {
+                      clearTimeout(pressTimer);
+                    };
+                    
+                    handleTouchStart();
+                    e.currentTarget.addEventListener('touchend', handleTouchEnd, { once: true });
+                    e.currentTarget.addEventListener('touchmove', handleTouchEnd, { once: true });
+                  }}
+                >
                   <Avatar className="w-8 h-8">
                     <AvatarImage 
                       src={isMe ? (user?.profilePicture || undefined) : (msg.sender.profilePicture || undefined)} 
@@ -737,6 +755,26 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           user={nonFriendUser}
         />
       )}
+
+      {/* Message Context Menu */}
+      <MessageContextMenu
+        visible={contextMenu.visible}
+        x={contextMenu.x}
+        y={contextMenu.y}
+        onClose={() => setContextMenu({ ...contextMenu, visible: false })}
+        onSaveMessage={handleSaveMessage}
+      />
+
+      {/* Command Modal for Message Saving */}
+      <CommandModal
+        open={showCommandModal}
+        onClose={() => {
+          setShowCommandModal(false);
+          setMessageDataForCommand(null);
+        }}
+        messageData={messageDataForCommand}
+        chatRoomId={chatRoomId}
+      />
     </div>
   );
 }

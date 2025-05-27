@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Plus, Search, Pin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -41,8 +42,28 @@ export default function ChatsList({ onSelectChat, selectedChatId }: ChatsListPro
     },
   });
 
+  // 읽지 않은 메시지 수 가져오기
+  const { data: unreadCountsData } = useQuery({
+    queryKey: ["/api/unread-counts"],
+    enabled: !!user,
+    queryFn: async () => {
+      const response = await fetch("/api/unread-counts", {
+        headers: { "x-user-id": user!.id.toString() },
+      });
+      if (!response.ok) throw new Error("Failed to fetch unread counts");
+      return response.json();
+    },
+  });
+
   const chatRooms = chatRoomsData?.chatRooms || [];
   const contacts = contactsData?.contacts || [];
+  const unreadCounts = unreadCountsData?.unreadCounts || [];
+
+  // 특정 채팅방의 읽지 않은 메시지 수 가져오기
+  const getUnreadCount = (chatRoomId: number) => {
+    const unreadData = unreadCounts.find((item: any) => item.chatRoomId === chatRoomId);
+    return unreadData ? unreadData.unreadCount : 0;
+  };
 
   // 채팅방 이름을 상대방의 닉네임으로 표시하는 함수
   const getChatRoomDisplayName = (chatRoom: any) => {
@@ -194,13 +215,15 @@ function ChatRoomItem({
   displayName,
   isSelected, 
   onClick, 
-  isPinned = false 
+  isPinned = false,
+  unreadCount = 0
 }: {
   chatRoom: any;
   displayName: string;
   isSelected: boolean;
   onClick: () => void;
   isPinned?: boolean;
+  unreadCount?: number;
 }) {
   const getInitials = (name: string) => {
     return name.split(' ').map(word => word.charAt(0).toUpperCase()).join('').slice(0, 2);
