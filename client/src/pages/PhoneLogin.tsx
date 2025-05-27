@@ -24,10 +24,28 @@ export default function PhoneLogin() {
   // SMS 전송 요청
   const sendSMSMutation = useMutation({
     mutationFn: async (data: { phoneNumber: string; countryCode: string }) => {
-      const response = await apiRequest("/api/auth/send-sms", "POST", data);
-      return response;
+      try {
+        const response = await fetch("/api/auth/send-sms", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
+        
+        if (!response.ok) {
+          throw new Error("SMS 전송 실패");
+        }
+        
+        const result = await response.json();
+        return result;
+      } catch (error) {
+        console.error("SMS 전송 오류:", error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
+      console.log("SMS 전송 성공:", data);
       setFullPhoneNumber(`${selectedCountry.dialCode}${phoneNumber}`);
       setStep("verification");
       toast({
@@ -36,6 +54,7 @@ export default function PhoneLogin() {
       });
     },
     onError: (error: any) => {
+      console.error("SMS 전송 실패:", error);
       toast({
         title: "오류",
         description: "인증 코드 전송에 실패했습니다. 다시 시도해주세요.",
