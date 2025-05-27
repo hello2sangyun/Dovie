@@ -94,109 +94,117 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
   if (!user) return null;
 
   return (
-    <div className={`${isMobile ? 'p-4' : 'max-w-2xl mx-auto p-6'} space-y-6`}>
-      {/* Header */}
-      <div className="flex items-center space-x-3">
-        <VaultLogo size="sm" />
-        <h1 className="text-2xl font-bold text-gray-900">설정</h1>
-      </div>
+    <div className={`${isMobile ? 'h-full flex flex-col' : 'h-full'} overflow-hidden`}>
+      {/* Scrollable Content */}
+      <div className={`${isMobile ? 'flex-1 overflow-y-auto p-4' : 'h-full overflow-y-auto max-w-xl mx-auto p-4'} space-y-4`}>
+        {/* Header */}
+        <div className="flex items-center space-x-3 mb-4">
+          <VaultLogo size="sm" />
+          <h1 className="text-xl font-bold text-gray-900">설정</h1>
+        </div>
 
-      {/* Profile Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <User className="h-5 w-5" />
-            <span>프로필</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Profile Image */}
-          <div className="flex flex-col items-center space-y-4">
-            <div className="relative">
-              <Avatar className="w-24 h-24">
-                <AvatarImage 
-                  src={previewUrl || user.profilePicture || undefined} 
-                  alt={user.displayName} 
+        {/* Profile Section */}
+        <Card className="w-full">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center space-x-2 text-base">
+              <User className="h-4 w-4" />
+              <span>프로필</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Profile Image - Compact */}
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <Avatar className="w-16 h-16">
+                  <AvatarImage 
+                    src={previewUrl || user.profilePicture || undefined} 
+                    alt={user.displayName} 
+                  />
+                  <AvatarFallback className="text-lg purple-gradient text-white">
+                    {getInitials(user.displayName)}
+                  </AvatarFallback>
+                </Avatar>
+                <button
+                  onClick={() => document.getElementById('profile-image-input')?.click()}
+                  className="absolute -bottom-1 -right-1 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center hover:bg-purple-700 transition-colors"
+                >
+                  <Camera className="h-3 w-3" />
+                </button>
+                <input
+                  id="profile-image-input"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                  className="hidden"
                 />
-                <AvatarFallback className="text-2xl purple-gradient text-white">
-                  {getInitials(user.displayName)}
-                </AvatarFallback>
-              </Avatar>
-              <button
-                onClick={() => document.getElementById('profile-image-input')?.click()}
-                className="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center hover:bg-purple-700 transition-colors"
-              >
-                <Camera className="h-4 w-4" />
-              </button>
-              <input
-                id="profile-image-input"
-                type="file"
-                accept="image/*"
-                onChange={handleImageSelect}
-                className="hidden"
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">{user.displayName}</p>
+                <p className="text-xs text-gray-500">@{user.username}</p>
+              </div>
+            </div>
+
+            {/* Display Name */}
+            <div className="space-y-1">
+              <Label htmlFor="displayName" className="text-sm">표시 이름</Label>
+              <Input
+                id="displayName"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="표시 이름을 입력하세요"
+                className="h-9"
               />
             </div>
-            <p className="text-sm text-gray-500 text-center">
-              프로필 사진을 변경하려면 카메라 아이콘을 클릭하세요
-            </p>
-          </div>
 
-          {/* Display Name */}
-          <div className="space-y-2">
-            <Label htmlFor="displayName">표시 이름</Label>
-            <Input
-              id="displayName"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="표시 이름을 입력하세요"
-            />
-          </div>
+            {/* Username (Read-only) */}
+            <div className="space-y-1">
+              <Label htmlFor="username" className="text-sm">사용자명</Label>
+              <Input
+                id="username"
+                value={user.username}
+                disabled
+                className="bg-gray-100 h-9"
+              />
+            </div>
 
-          {/* Username (Read-only) */}
-          <div className="space-y-2">
-            <Label htmlFor="username">사용자명</Label>
-            <Input
-              id="username"
-              value={user.username}
-              disabled
-              className="bg-gray-100"
-            />
-          </div>
+            {/* Save Button */}
+            <Button
+              onClick={handleSaveProfile}
+              disabled={updateProfileMutation.isPending || uploadImageMutation.isPending}
+              className="w-full purple-gradient h-9"
+              size="sm"
+            >
+              {updateProfileMutation.isPending || uploadImageMutation.isPending
+                ? "저장 중..."
+                : "프로필 저장"
+              }
+            </Button>
+          </CardContent>
+        </Card>
 
-          {/* Save Button */}
-          <Button
-            onClick={handleSaveProfile}
-            disabled={updateProfileMutation.isPending || uploadImageMutation.isPending}
-            className="w-full purple-gradient"
-          >
-            {updateProfileMutation.isPending || uploadImageMutation.isPending
-              ? "저장 중..."
-              : "프로필 저장"
-            }
-          </Button>
-        </CardContent>
-      </Card>
+        {/* App Info */}
+        <Card className="w-full">
+          <CardContent className="pt-4 pb-4">
+            <div className="text-center space-y-1">
+              <VaultLogo size="sm" className="mx-auto" />
+              <p className="text-sm text-gray-500">Vault Messenger</p>
+              <p className="text-xs text-gray-400">보안 메신저 v1.0.0</p>
+              <p className="text-xs text-gray-400">모든 메시지와 파일이 암호화됩니다</p>
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* App Info */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="text-center space-y-2">
-            <VaultLogo size="md" className="mx-auto" />
-            <p className="text-sm text-gray-500">Vault Messenger</p>
-            <p className="text-xs text-gray-400">Version 1.0.0</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Logout */}
-      <Button
-        onClick={handleLogout}
-        variant="outline"
-        className="w-full text-red-600 border-red-200 hover:bg-red-50"
-      >
-        <LogOut className="h-4 w-4 mr-2" />
-        로그아웃
-      </Button>
+        {/* Logout */}
+        <Button
+          onClick={handleLogout}
+          variant="outline"
+          className="w-full text-red-600 border-red-200 hover:bg-red-50 h-9"
+          size="sm"
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          로그아웃
+        </Button>
+      </div>
     </div>
   );
 }
