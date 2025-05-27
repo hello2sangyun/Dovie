@@ -108,16 +108,39 @@ export default function CommandModal({
     onClose();
   };
 
+  // 태그 유효성 검사 함수
+  const validateTagName = (tagName: string): { isValid: boolean; error?: string } => {
+    if (!tagName.trim()) {
+      return { isValid: false, error: "명령어를 입력해주세요." };
+    }
+
+    // 띄어쓰기 체크
+    if (tagName.includes(' ')) {
+      return { isValid: false, error: "태그에는 띄어쓰기를 사용할 수 없습니다." };
+    }
+
+    // 허용된 문자만 사용하는지 체크 (한글, 영문 대문자, 숫자, _, .)
+    const validPattern = /^[가-힣A-Z0-9_.]+$/;
+    if (!validPattern.test(tagName)) {
+      return { isValid: false, error: "한글, 영문 대문자, 숫자, 언더바(_), 점(.)만 사용 가능합니다." };
+    }
+
+    return { isValid: true };
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!commandName.trim()) {
+    
+    const validation = validateTagName(commandName);
+    if (!validation.isValid) {
       toast({
         variant: "destructive",
         title: "입력 오류",
-        description: "명령어를 입력해주세요.",
+        description: validation.error,
       });
       return;
     }
+    
     createCommandMutation.mutate();
   };
 
@@ -173,6 +196,9 @@ export default function CommandModal({
             </div>
             <p className="text-xs text-gray-500 mt-1">
               채팅에서 #명령어로 {fileData ? "파일" : "메시지"}을 다시 불러올 수 있습니다
+            </p>
+            <p className="text-xs text-amber-600 mt-1">
+              💡 한글, 영문 대문자, 숫자, 언더바(_), 점(.)만 사용 가능 (띄어쓰기 X)
             </p>
           </div>
           
