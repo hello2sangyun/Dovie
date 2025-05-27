@@ -111,7 +111,7 @@ export default function PhoneLogin() {
         });
         console.log("프로필 설정 페이지로 이동");
         window.location.href = "/profile-setup";
-      } else if (data.user) {
+      } else if (data.nextStep === "login_complete" && data.user) {
         setUser(data.user);
         toast({
           title: "로그인 성공",

@@ -141,26 +141,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 인증 코드를 사용됨으로 표시
       await storage.markPhoneVerificationAsUsed(verification.id);
 
-      // 전화번호 인증 완료, 바로 사용자 생성하고 프로필 설정으로 이동
-      const phoneDigits = phoneNumber.replace(/[^\d]/g, '');
-      const timestamp = Date.now();
-      const userData = insertUserSchema.parse({
-        username: `user_${phoneDigits.slice(-8)}_${timestamp}`,
-        displayName: `사용자 ${phoneNumber.slice(-4)}`,
-        phoneNumber: phoneNumber,
-      });
-
-      const newUser = await storage.createUser(userData);
-
-      // 사용자 온라인 상태 업데이트
-      await storage.updateUser(newUser.id, { isOnline: true });
+      // 기존 사용자가 있는지 확인
+      const existingUser = await storage.getUserByPhoneNumber(phoneNumber);
       
-      res.json({ 
-        success: true,
-        nextStep: "profile_setup",
-        user: newUser,
-        message: "전화번호 인증이 완료되었습니다. 프로필을 설정해주세요."
-      });
+      if (existingUser) {
+        // 기존 사용자 로그인
+        await storage.updateUser(existingUser.id, { isOnline: true });
+        res.json({ 
+          success: true,
+          nextStep: "login_complete",
+          user: existingUser,
+          message: "로그인이 완료되었습니다."
+        });
+      } else {
+        // 새 사용자 생성 및 프로필 설정으로 이동
+        const phoneDigits = phoneNumber.replace(/[^\d]/g, '');
+        const timestamp = Date.now();
+        const userData = insertUserSchema.parse({
+          username: `user_${phoneDigits.slice(-8)}_${timestamp}`,
+          displayName: `사용자 ${phoneNumber.slice(-4)}`,
+          phoneNumber: phoneNumber,
+        });
+
+        const newUser = await storage.createUser(userData);
+
+        // 사용자 온라인 상태 업데이트
+        await storage.updateUser(newUser.id, { isOnline: true });
+        
+        res.json({ 
+          success: true,
+          nextStep: "profile_setup",
+          user: newUser,
+          message: "전화번호 인증이 완료되었습니다. 프로필을 설정해주세요."
+        });
+      }
     } catch (error) {
       console.error("SMS verify error:", error);
       res.status(500).json({ message: "인증에 실패했습니다." });

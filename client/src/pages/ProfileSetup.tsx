@@ -28,7 +28,7 @@ export default function ProfileSetup() {
       const formData = new FormData();
       formData.append('file', file);
       const response = await apiRequest("/api/upload", "POST", formData);
-      return response;
+      return response as { fileUrl: string; fileName: string; fileSize: number };
     },
     onSuccess: (data) => {
       setProfilePicture(data.fileUrl);
@@ -51,7 +51,7 @@ export default function ProfileSetup() {
   const completeProfileMutation = useMutation({
     mutationFn: async (data: { userId: number; username: string; displayName: string; profilePicture?: string }) => {
       const response = await apiRequest("/api/auth/complete-profile", "POST", data);
-      return response;
+      return response as { success: boolean; user: any; message: string };
     },
     onSuccess: (data) => {
       setUser(data.user);
