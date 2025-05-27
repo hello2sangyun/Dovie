@@ -249,6 +249,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
 
     sendMessageMutation.mutate(messageData);
+    setReplyToMessage(null); // 회신 모드 해제
   };
 
   const handleFileUpload = () => {
