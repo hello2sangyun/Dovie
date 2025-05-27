@@ -100,13 +100,24 @@ export default function PhoneLogin() {
     },
     onSuccess: (data) => {
       console.log("SMS 인증 성공:", data);
+      console.log("받은 tempId:", data.tempId);
       if (data.nextStep === "email_verification") {
+        if (!data.tempId) {
+          console.error("tempId가 없습니다!");
+          toast({
+            title: "오류",
+            description: "인증 세션 오류가 발생했습니다. 다시 시도해주세요.",
+            variant: "destructive",
+          });
+          return;
+        }
         setTempId(data.tempId);
         toast({
           title: "전화번호 인증 완료",
           description: "이메일 인증을 진행해주세요.",
         });
         // tempId를 URL 파라미터로 전달
+        console.log("이동할 URL:", `/email-verification?tempId=${data.tempId}`);
         window.location.href = `/email-verification?tempId=${data.tempId}`;
       } else {
         setUser(data.user);
