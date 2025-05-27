@@ -24,8 +24,13 @@ export default function EmailVerification() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const tempIdFromUrl = urlParams.get('tempId');
+    console.log("URL에서 가져온 tempId:", tempIdFromUrl);
+    console.log("현재 URL:", window.location.href);
     if (tempIdFromUrl) {
       setTempId(tempIdFromUrl);
+      console.log("tempId 설정됨:", tempIdFromUrl);
+    } else {
+      console.log("tempId를 찾을 수 없습니다.");
     }
   }, []);
 
