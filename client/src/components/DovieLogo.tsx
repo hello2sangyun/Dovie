@@ -30,7 +30,7 @@ export default function DovieLogo({ size = "md", className, animated = false, wi
       <img 
         src={logoSrc} 
         alt="Dovie Logo" 
-        className={withText ? "h-80 w-auto object-contain" : "w-full h-full object-contain"}
+        className={withText ? "h-36 w-auto object-contain" : "w-full h-full object-contain"}
       />
     </div>
   );
