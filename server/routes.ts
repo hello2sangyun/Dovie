@@ -346,40 +346,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/commands", async (req, res) => {
-    console.log("POST /api/commands - Route hit");
-    console.log("POST /api/commands - Headers:", req.headers);
-    console.log("POST /api/commands - Raw body:", req.body);
+    console.log("=== POST /api/commands - START ===");
+    console.log("Headers:", JSON.stringify(req.headers, null, 2));
+    console.log("Body:", JSON.stringify(req.body, null, 2));
     
-    const userId = req.headers["x-user-id"];
-    console.log("POST /api/commands - Extracted userId:", userId);
-    
-    if (!userId) {
-      console.log("POST /api/commands - No userId found, returning 401");
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
     try {
-      console.log("POST /api/commands - Request body:", req.body);
-      console.log("POST /api/commands - User ID from header:", userId);
+      const userId = req.headers["x-user-id"];
+      console.log("Extracted userId:", userId);
       
-      // Prepare command data with proper type conversion
-      const rawData = {
-        userId: Number(userId),
-        ...req.body,
-      };
-      
-      // Convert originalTimestamp if it exists
-      if (rawData.originalTimestamp) {
-        rawData.originalTimestamp = new Date(rawData.originalTimestamp);
+      if (!userId) {
+        console.log("No userId found, returning 401");
+        return res.status(401).json({ message: "Not authenticated" });
       }
-      
-      console.log("POST /api/commands - Raw data before parsing:", rawData);
-      
-      const commandData = insertCommandSchema.parse(rawData);
 
-      console.log("POST /api/commands - Parsed command data:", commandData);
+      // Manually construct command data without strict schema validation first
+      const commandData: any = {
+        userId: Number(userId),
+        chatRoomId: req.body.chatRoomId,
+        commandName: req.body.commandName,
+      };
 
-      // Check for duplicate command name in the same chat room
+      // Add optional fields only if they exist
+      if (req.body.fileUrl) commandData.fileUrl = req.body.fileUrl;
+      if (req.body.fileName) commandData.fileName = req.body.fileName;
+      if (req.body.fileSize) commandData.fileSize = req.body.fileSize;
+      if (req.body.savedText) commandData.savedText = req.body.savedText;
+      if (req.body.originalSenderId) commandData.originalSenderId = req.body.originalSenderId;
+      if (req.body.originalTimestamp) commandData.originalTimestamp = new Date(req.body.originalTimestamp);
+      if (req.body.messageId) commandData.messageId = req.body.messageId;
+
+      console.log("Constructed commandData:", JSON.stringify(commandData, null, 2));
+
+      // Check for duplicate command name
       const existingCommand = await storage.getCommandByName(
         Number(userId),
         commandData.chatRoomId,
@@ -387,15 +385,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       if (existingCommand) {
+        console.log("Command name already exists");
         return res.status(409).json({ message: "Command name already exists in this chat room" });
       }
 
+      // Create command directly
       const command = await storage.createCommand(commandData);
+      console.log("Command created successfully:", command);
+      
       res.json({ command });
-    } catch (error) {
-      console.error("POST /api/commands - Error:", error);
-      res.status(500).json({ message: "Failed to create command" });
+    } catch (error: any) {
+      console.error("POST /api/commands - Full Error:", error);
+      console.error("Error stack:", error?.stack);
+      res.status(500).json({ message: "Failed to create command", error: error?.message || "Unknown error" });
     }
+    console.log("=== POST /api/commands - END ===");
   });
 
   app.delete("/api/commands/:commandId", async (req, res) => {

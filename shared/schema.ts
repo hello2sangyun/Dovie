@@ -198,10 +198,16 @@ export const insertMessageReadSchema = createInsertSchema(messageReads).omit({
   lastReadAt: true,
 });
 
-export const insertCommandSchema = createInsertSchema(commands).omit({
-  id: true,
-  createdAt: true,
-});
+export const insertCommandSchema = createInsertSchema(commands)
+  .omit({
+    id: true,
+    createdAt: true,
+  })
+  .extend({
+    originalTimestamp: z.string().datetime().optional().or(z.date().optional()),
+    originalSenderId: z.number().optional(),
+    fileSize: z.number().optional(),
+  });
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;

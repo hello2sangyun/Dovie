@@ -253,10 +253,17 @@ export class DatabaseStorage implements IStorage {
     }));
   }
 
-  async createCommand(command: InsertCommand): Promise<Command> {
+  async createCommand(command: any): Promise<Command> {
+    // Clean the command data to remove undefined values
+    const cleanCommand = Object.fromEntries(
+      Object.entries(command).filter(([_, value]) => value !== undefined)
+    );
+    
+    console.log("Storage createCommand - Clean command data:", cleanCommand);
+    
     const [newCommand] = await db
       .insert(commands)
-      .values(command)
+      .values(cleanCommand as any)
       .returning();
     return newCommand;
   }
