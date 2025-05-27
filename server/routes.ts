@@ -272,25 +272,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // File upload route
+  // File upload route with encryption
   app.post("/api/upload", upload.single("file"), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
       }
 
-      const fileUrl = `/uploads/${req.file.filename}`;
+      // 파일 내용을 읽어서 암호화
+      const fileBuffer = fs.readFileSync(req.file.path);
+      const encryptedData = encryptFileData(fileBuffer);
+      
+      // 암호화된 파일명 생성
+      const encryptedFileName = hashFileName(req.file.originalname);
+      const encryptedFilePath = path.join(uploadDir, encryptedFileName);
+      
+      // 암호화된 데이터를 파일로 저장
+      fs.writeFileSync(encryptedFilePath, encryptedData, 'utf8');
+      
+      // 원본 임시 파일 삭제
+      fs.unlinkSync(req.file.path);
+
+      const fileUrl = `/uploads/${encryptedFileName}`;
       res.json({
         fileUrl,
         fileName: req.file.originalname,
         fileSize: req.file.size,
       });
     } catch (error) {
+      console.error("File upload error:", error);
       res.status(500).json({ message: "File upload failed" });
     }
   });
 
-  // Text file creation endpoint for message saving
+  // Text file creation endpoint for message saving with encryption
   app.post("/api/create-text-file", async (req, res) => {
     const userId = req.headers["x-user-id"];
     if (!userId) {
@@ -303,20 +318,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Content and fileName are required" });
       }
 
-      // 안전한 파일명 생성
-      const safeFileName = fileName.replace(/[^a-zA-Z0-9가-힣._-]/g, '_') + '.txt';
-      const filePath = path.join(uploadDir, `${Date.now()}_${safeFileName}`);
+      // 텍스트 내용을 Buffer로 변환 후 암호화
+      const contentBuffer = Buffer.from(content, 'utf8');
+      const encryptedData = encryptFileData(contentBuffer);
       
-      // 텍스트 파일 생성
-      await fs.promises.writeFile(filePath, content, 'utf8');
+      // 암호화된 파일명 생성
+      const safeFileName = fileName.replace(/[^a-zA-Z0-9가-힣._-]/g, '_') + '.txt';
+      const encryptedFileName = hashFileName(safeFileName);
+      const filePath = path.join(uploadDir, encryptedFileName);
+      
+      // 암호화된 데이터를 파일로 저장
+      await fs.promises.writeFile(filePath, encryptedData, 'utf8');
       
       const fileStats = await fs.promises.stat(filePath);
-      const fileUrl = `/uploads/${path.basename(filePath)}`;
+      const fileUrl = `/uploads/${encryptedFileName}`;
 
       res.json({
         fileUrl,
         fileName: safeFileName,
-        fileSize: fileStats.size,
+        fileSize: contentBuffer.length, // 원본 크기 반환
       });
     } catch (error) {
       console.error('Text file creation error:', error);
@@ -324,8 +344,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Serve uploaded files
-  app.use("/uploads", express.static(uploadDir));
+  // Serve encrypted files with decryption
+  app.get("/uploads/:filename", async (req, res) => {
+    try {
+      const filename = req.params.filename;
+      const filePath = path.join(uploadDir, filename);
+      
+      // 파일이 존재하는지 확인
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ message: "File not found" });
+      }
+      
+      // 암호화된 파일 읽기
+      const encryptedData = fs.readFileSync(filePath, 'utf8');
+      
+      // 파일 복호화
+      const decryptedBuffer = decryptFileData(encryptedData);
+      
+      // 파일 확장자에 따른 Content-Type 설정
+      const ext = path.extname(filename).toLowerCase();
+      let contentType = 'application/octet-stream';
+      
+      if (ext === '.txt') contentType = 'text/plain; charset=utf-8';
+      else if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
+      else if (ext === '.png') contentType = 'image/png';
+      else if (ext === '.gif') contentType = 'image/gif';
+      else if (ext === '.pdf') contentType = 'application/pdf';
+      
+      res.set({
+        'Content-Type': contentType,
+        'Content-Length': decryptedBuffer.length,
+      });
+      
+      res.send(decryptedBuffer);
+    } catch (error) {
+      console.error('File serving error:', error);
+      res.status(500).json({ message: "Failed to serve file" });
+    }
+  });
 
   // Message read tracking routes
   app.post("/api/chat-rooms/:chatRoomId/mark-read", async (req, res) => {
