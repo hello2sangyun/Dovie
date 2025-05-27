@@ -181,8 +181,8 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
       <Card>
         <CardContent className="pt-6">
           <div className="text-center space-y-2">
-            <VaultLogo size="md" className="mx-auto" />
-            <p className="text-sm text-gray-500">Vault Messenger</p>
+            <DovieLogo size="md" className="mx-auto" />
+            <p className="text-sm text-gray-500">Dovie</p>
             <p className="text-xs text-gray-400">Version 1.0.0</p>
           </div>
         </CardContent>
