@@ -52,10 +52,19 @@ export default function PhoneLogin() {
     },
     onSuccess: (data) => {
       setUser(data.user);
-      toast({
-        title: "로그인 성공",
-        description: "Dovie Messenger에 오신 것을 환영합니다!",
-      });
+      if (data.nextStep === "email_verification") {
+        toast({
+          title: "전화번호 인증 완료",
+          description: "이메일 인증을 진행해주세요.",
+        });
+        setLocation("/email-verification");
+      } else {
+        toast({
+          title: "로그인 성공",
+          description: "Dovie Messenger에 오신 것을 환영합니다!",
+        });
+        setLocation("/");
+      }
     },
     onError: (error: any) => {
       toast({

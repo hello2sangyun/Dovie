@@ -137,10 +137,138 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 사용자 온라인 상태 업데이트
       await storage.updateUser(user.id, { isOnline: true, phoneNumber });
 
-      res.json({ user });
+      // 전화번호 인증 완료, 다음 단계는 이메일 인증
+      res.json({ 
+        success: true,
+        nextStep: "email_verification",
+        user,
+        message: "전화번호 인증이 완료되었습니다. 이메일 인증을 진행해주세요."
+      });
     } catch (error) {
       console.error("SMS verify error:", error);
       res.status(500).json({ message: "인증에 실패했습니다." });
+    }
+  });
+
+  // 이메일 인증 코드 전송
+  app.post("/api/auth/send-email", async (req, res) => {
+    try {
+      const { email, userId } = req.body;
+      
+      if (!email || !userId) {
+        return res.status(400).json({ message: "Email and user ID are required" });
+      }
+
+      // 6자리 인증 코드 생성
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // 만료 시간 설정 (10분)
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+      // 기존 미인증 코드 정리
+      await storage.cleanupExpiredEmailVerifications();
+
+      // 새 인증 코드 저장
+      const verification = await storage.createEmailVerification({
+        email,
+        verificationCode,
+        expiresAt,
+        isVerified: false,
+      });
+
+      // 실제 이메일 전송 (SendGrid 사용)
+      try {
+        const { sendEmailVerification } = await import('./email');
+        await sendEmailVerification(email, verificationCode);
+        console.log(`이메일 전송 성공: ${email}`);
+      } catch (emailError) {
+        console.error("이메일 전송 실패:", emailError);
+        // 이메일 전송 실패시에도 개발 환경에서는 계속 진행
+        if (process.env.NODE_ENV !== 'development') {
+          throw emailError;
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        message: "인증 코드를 이메일로 전송했습니다.",
+        // 개발용으로만 포함 (프로덕션에서는 제거)
+        ...(process.env.NODE_ENV === 'development' && { verificationCode })
+      });
+    } catch (error) {
+      console.error("Email send error:", error);
+      res.status(500).json({ message: "이메일 전송에 실패했습니다." });
+    }
+  });
+
+  // 이메일 인증 코드 확인
+  app.post("/api/auth/verify-email", async (req, res) => {
+    try {
+      const { email, verificationCode, userId } = req.body;
+      
+      if (!email || !verificationCode || !userId) {
+        return res.status(400).json({ message: "Email, verification code, and user ID are required" });
+      }
+
+      // 인증 코드 확인
+      const verification = await storage.getEmailVerification(email, verificationCode);
+      
+      if (!verification) {
+        return res.status(400).json({ message: "Invalid or expired verification code" });
+      }
+
+      // 인증 코드를 사용됨으로 표시
+      await storage.markEmailVerificationAsUsed(verification.id);
+
+      // 사용자 이메일 정보 업데이트
+      const updatedUser = await storage.updateUser(userId, { 
+        email: email,
+        isEmailVerified: true 
+      });
+
+      res.json({ 
+        success: true,
+        nextStep: "profile_setup",
+        user: updatedUser,
+        message: "이메일 인증이 완료되었습니다. 프로필을 설정해주세요."
+      });
+    } catch (error) {
+      console.error("Email verify error:", error);
+      res.status(500).json({ message: "이메일 인증에 실패했습니다." });
+    }
+  });
+
+  // 프로필 설정 완료
+  app.post("/api/auth/complete-profile", async (req, res) => {
+    try {
+      const { userId, username, displayName, profilePicture } = req.body;
+      
+      if (!userId || !username || !displayName) {
+        return res.status(400).json({ message: "User ID, username, and display name are required" });
+      }
+
+      // 사용자명 중복 확인
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser && existingUser.id !== userId) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+
+      // 프로필 정보 업데이트
+      const updatedUser = await storage.updateUser(userId, { 
+        username,
+        displayName,
+        profilePicture,
+        isProfileComplete: true
+      });
+
+      res.json({ 
+        success: true,
+        user: updatedUser,
+        message: "프로필 설정이 완료되었습니다."
+      });
+    } catch (error) {
+      console.error("Profile setup error:", error);
+      res.status(500).json({ message: "프로필 설정에 실패했습니다." });
     }
   });
 

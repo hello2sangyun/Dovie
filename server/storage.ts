@@ -1,9 +1,10 @@
 import { 
-  users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications,
+  users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications, emailVerifications,
   type User, type InsertUser, type Contact, type InsertContact,
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
   type Command, type InsertCommand, type MessageRead, type InsertMessageRead,
-  type PhoneVerification, type InsertPhoneVerification
+  type PhoneVerification, type InsertPhoneVerification,
+  type EmailVerification, type InsertEmailVerification
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, or, count, gt, lt } from "drizzle-orm";
@@ -456,6 +457,39 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(phoneVerifications)
       .where(lt(phoneVerifications.expiresAt, new Date()));
+  }
+
+  async createEmailVerification(verification: InsertEmailVerification): Promise<EmailVerification> {
+    const [created] = await db.insert(emailVerifications).values(verification).returning();
+    return created;
+  }
+
+  async getEmailVerification(email: string, verificationCode: string): Promise<EmailVerification | undefined> {
+    const [verification] = await db
+      .select()
+      .from(emailVerifications)
+      .where(
+        and(
+          eq(emailVerifications.email, email),
+          eq(emailVerifications.verificationCode, verificationCode),
+          eq(emailVerifications.isVerified, false),
+          gt(emailVerifications.expiresAt, new Date())
+        )
+      );
+    return verification;
+  }
+
+  async markEmailVerificationAsUsed(id: number): Promise<void> {
+    await db
+      .update(emailVerifications)
+      .set({ isVerified: true })
+      .where(eq(emailVerifications.id, id));
+  }
+
+  async cleanupExpiredEmailVerifications(): Promise<void> {
+    await db.delete(emailVerifications).where(
+      lt(emailVerifications.expiresAt, new Date())
+    );
   }
 }
 
