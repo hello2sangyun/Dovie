@@ -20,34 +20,14 @@ export default function PhoneLogin() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [fullPhoneNumber, setFullPhoneNumber] = useState("");
-  const [tempId, setTempId] = useState("");
 
   // SMS 전송 요청
   const sendSMSMutation = useMutation({
     mutationFn: async (data: { phoneNumber: string; countryCode: string }) => {
-      try {
-        const response = await fetch("/api/auth/send-sms", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        });
-        
-        const result = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(result.message || "SMS 전송 실패");
-        }
-        
-        return result;
-      } catch (error) {
-        console.error("SMS 전송 오류:", error);
-        throw error;
-      }
+      const response = await apiRequest("/api/auth/send-sms", "POST", data);
+      return response;
     },
     onSuccess: (data) => {
-      console.log("SMS 전송 성공:", data);
       setFullPhoneNumber(`${selectedCountry.dialCode}${phoneNumber}`);
       setStep("verification");
       toast({
@@ -56,79 +36,28 @@ export default function PhoneLogin() {
       });
     },
     onError: (error: any) => {
-      console.error("SMS 전송 실패:", error);
-      
-      // 중복 전화번호 에러 처리
-      if (error.message?.includes("이미 가입되어 있는 전화번호")) {
-        toast({
-          title: "이미 가입된 전화번호",
-          description: "이 전화번호로 이미 가입된 계정이 있습니다. 다른 번호를 사용하거나 기존 계정으로 로그인해주세요.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "오류",
-          description: "인증 코드 전송에 실패했습니다. 다시 시도해주세요.",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "오류",
+        description: "인증 코드 전송에 실패했습니다. 다시 시도해주세요.",
+        variant: "destructive",
+      });
     },
   });
 
   // SMS 인증 확인
   const verifySMSMutation = useMutation({
     mutationFn: async (data: { phoneNumber: string; verificationCode: string }) => {
-      try {
-        const response = await fetch("/api/auth/verify-sms", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        });
-        
-        if (!response.ok) {
-          throw new Error("SMS 인증 실패");
-        }
-        
-        const result = await response.json();
-        return result;
-      } catch (error) {
-        console.error("SMS 인증 오류:", error);
-        throw error;
-      }
+      const response = await apiRequest("/api/auth/verify-sms", "POST", data);
+      return response;
     },
     onSuccess: (data) => {
-      console.log("SMS 인증 성공:", data);
-      console.log("nextStep:", data.nextStep);
-      console.log("user:", data.user);
-      
-      if (data.nextStep === "profile_setup" && data.user) {
-        setUser(data.user);
-        toast({
-          title: "전화번호 인증 완료",
-          description: "프로필을 설정해주세요.",
-        });
-        console.log("프로필 설정 페이지로 이동");
-        window.location.href = "/profile-setup";
-      } else if (data.nextStep === "login_complete" && data.user) {
-        setUser(data.user);
-        toast({
-          title: "로그인 성공",
-          description: "Dovie Messenger에 오신 것을 환영합니다!",
-        });
-        window.location.href = "/";
-      } else {
-        console.error("사용자 정보가 없습니다:", data);
-        toast({
-          title: "오류",
-          description: "인증 오류가 발생했습니다. 다시 시도해주세요.",
-          variant: "destructive",
-        });
-      }
+      setUser(data.user);
+      toast({
+        title: "로그인 성공",
+        description: "Dovie Messenger에 오신 것을 환영합니다!",
+      });
     },
     onError: (error: any) => {
-      console.error("SMS 인증 실패:", error);
       toast({
         title: "인증 실패",
         description: "인증 코드가 올바르지 않습니다. 다시 확인해주세요.",
