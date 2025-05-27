@@ -56,12 +56,205 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // SMS 인증 코드 전송
-  app.post("/api/auth/send-sms", async (req, res) => {
+  // 전화번호 가용성 확인 (회원가입용)
+  app.post("/api/auth/check-phone", async (req, res) => {
+    try {
+      const { phoneNumber } = req.body;
+      
+      if (!phoneNumber) {
+        return res.status(400).json({ message: "Phone number is required" });
+      }
+
+      const existingUser = await storage.getUserByPhoneNumber(phoneNumber);
+      
+      res.json({ 
+        available: !existingUser,
+        message: existingUser ? "이미 가입된 번호입니다" : "사용 가능한 번호입니다"
+      });
+    } catch (error) {
+      console.error("Phone check error:", error);
+      res.status(500).json({ message: "전화번호 확인에 실패했습니다." });
+    }
+  });
+
+  // SMS 인증 코드 전송 (로그인용)
+  app.post("/api/auth/send-sms-login", async (req, res) => {
     try {
       const { phoneNumber, countryCode } = req.body;
       
       if (!phoneNumber || !countryCode) {
+        return res.status(400).json({ message: "Phone number and country code are required" });
+      }
+
+      const fullPhoneNumber = `${countryCode}${phoneNumber}`;
+
+      // 기존 사용자 확인 - 가입된 사용자만 로그인 가능
+      const existingUser = await storage.getUserByPhoneNumber(fullPhoneNumber);
+      if (!existingUser) {
+        return res.status(404).json({ 
+          message: "가입되지 않은 전화번호입니다. 회원가입을 먼저 진행해주세요.",
+          error: "USER_NOT_FOUND"
+        });
+      }
+
+      // 6자리 인증 코드 생성
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // 만료 시간 설정 (5분)
+      const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+      // 기존 미인증 코드 정리
+      await storage.cleanupExpiredVerifications();
+
+      // 새 인증 코드 저장
+      const verification = await storage.createPhoneVerification({
+        phoneNumber,
+        countryCode,
+        verificationCode,
+        expiresAt,
+        isVerified: false,
+      });
+
+      // 개발 환경에서는 SMS 전송 없이 콘솔에서만 확인
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🔐 [개발용] SMS 인증 코드: ${verificationCode} (${fullPhoneNumber})`);
+        console.log(`📱 위 코드를 인증 화면에 입력하세요!`);
+      } else {
+        // 프로덕션에서는 실제 SMS 전송
+        try {
+          const { sendSMSVerification } = await import('./sms');
+          await sendSMSVerification(fullPhoneNumber, verificationCode);
+          console.log(`SMS 전송 성공: ${fullPhoneNumber}`);
+        } catch (smsError) {
+          console.error("SMS 전송 실패:", smsError);
+          throw smsError;
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        message: "인증 코드를 전송했습니다.",
+        // 개발용으로만 포함 (프로덕션에서는 제거)
+        ...(process.env.NODE_ENV === 'development' && { verificationCode })
+      });
+    } catch (error) {
+      console.error("SMS send error:", error);
+      res.status(500).json({ message: "인증 코드 전송에 실패했습니다." });
+    }
+  });
+
+  // SMS 인증 코드 전송 (회원가입용)
+  app.post("/api/auth/send-sms-signup", async (req, res) => {
+    try {
+      const { phoneNumber, countryCode } = req.body;
+      
+      if (!phoneNumber || !countryCode) {
+        return res.status(400).json({ message: "Phone number and country code are required" });
+      }
+
+      const fullPhoneNumber = `${countryCode}${phoneNumber}`;
+
+      // 기존 사용자 확인 - 이미 가입된 사용자는 회원가입 불가
+      const existingUser = await storage.getUserByPhoneNumber(fullPhoneNumber);
+      if (existingUser) {
+        return res.status(409).json({ 
+          message: "이미 가입된 전화번호입니다.",
+          error: "PHONE_ALREADY_EXISTS"
+        });
+      }
+
+      // 6자리 인증 코드 생성
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // 만료 시간 설정 (5분)
+      const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+      // 기존 미인증 코드 정리
+      await storage.cleanupExpiredVerifications();
+
+      // 새 인증 코드 저장
+      const verification = await storage.createPhoneVerification({
+        phoneNumber,
+        countryCode,
+        verificationCode,
+        expiresAt,
+        isVerified: false,
+      });
+
+      // 개발 환경에서는 SMS 전송 없이 콘솔에서만 확인
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🔐 [개발용] SMS 인증 코드: ${verificationCode} (${fullPhoneNumber})`);
+        console.log(`📱 위 코드를 인증 화면에 입력하세요!`);
+      } else {
+        // 프로덕션에서는 실제 SMS 전송
+        try {
+          const { sendSMSVerification } = await import('./sms');
+          await sendSMSVerification(fullPhoneNumber, verificationCode);
+          console.log(`SMS 전송 성공: ${fullPhoneNumber}`);
+        } catch (smsError) {
+          console.error("SMS 전송 실패:", smsError);
+          throw smsError;
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        message: "인증 코드를 전송했습니다.",
+        // 개발용으로만 포함 (프로덕션에서는 제거)
+        ...(process.env.NODE_ENV === 'development' && { verificationCode })
+      });
+    } catch (error) {
+      console.error("SMS send error:", error);
+      res.status(500).json({ message: "인증 코드 전송에 실패했습니다." });
+    }
+  });
+
+  // SMS 인증 확인 (로그인용)
+  app.post("/api/auth/verify-sms-login", async (req, res) => {
+    try {
+      const { phoneNumber, verificationCode } = req.body;
+      
+      if (!phoneNumber || !verificationCode) {
+        return res.status(400).json({ message: "Phone number and verification code are required" });
+      }
+
+      // 인증 코드 확인
+      const verification = await storage.getPhoneVerification(phoneNumber, verificationCode);
+      
+      if (!verification) {
+        return res.status(400).json({ message: "Invalid or expired verification code" });
+      }
+
+      // 인증 코드를 사용됨으로 표시
+      await storage.markPhoneVerificationAsUsed(verification.id);
+
+      // 기존 사용자 로그인
+      const existingUser = await storage.getUserByPhoneNumber(phoneNumber);
+      
+      if (!existingUser) {
+        return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+      }
+
+      // 사용자 온라인 상태 업데이트
+      await storage.updateUser(existingUser.id, { isOnline: true });
+      
+      res.json({ 
+        success: true,
+        user: existingUser,
+        message: "로그인이 완료되었습니다."
+      });
+    } catch (error) {
+      console.error("SMS verify error:", error);
+      res.status(500).json({ message: "인증에 실패했습니다." });
+    }
+  });
+
+  // SMS 인증 확인 (회원가입용)
+  app.post("/api/auth/verify-sms-signup", async (req, res) => {
+    try {
+      const { phoneNumber, verificationCode } = req.body;
+      
+      if (!phoneNumber || !verificationCode) {
         return res.status(400).json({ message: "Phone number and country code are required" });
       }
 
