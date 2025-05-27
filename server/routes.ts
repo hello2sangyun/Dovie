@@ -101,8 +101,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const { contactUsername, nickname } = req.body;
-      const contactUser = await storage.getUserByUsername(contactUsername);
+      const { contactUsername, contactUserId, nickname } = req.body;
+      let contactUser;
+
+      // Support both username and userId for adding contacts
+      if (contactUserId) {
+        contactUser = await storage.getUser(Number(contactUserId));
+      } else if (contactUsername) {
+        contactUser = await storage.getUserByUsername(contactUsername);
+      } else {
+        return res.status(400).json({ message: "Either contactUsername or contactUserId is required" });
+      }
+
       if (!contactUser) {
         return res.status(404).json({ message: "User not found" });
       }
