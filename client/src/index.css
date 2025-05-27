@@ -110,6 +110,29 @@
     animation: slideUp 0.3s ease-out;
   }
 
+  /* 드래그 앤 드롭 깜빡임 방지 */
+  html, body {
+    overflow-anchor: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 기본 드래그 동작 방지 (이미지, 링크 등) */
+  img, a {
+    -webkit-user-drag: none;
+    -moz-user-drag: none;
+    user-drag: none;
+  }
+
+  /* 드래그 중 선택 방지 */
+  .dragging,
+  .dragging * {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    pointer-events: none;
+  }
+
   .animate-pulse-purple {
     animation: pulsePurple 2s ease-in-out infinite;
   }

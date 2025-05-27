@@ -133,35 +133,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // 브라우저 기본 드래그 앤 드롭 동작 방지
-  useEffect(() => {
-    const preventDefaults = (e: DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-    };
 
-    const handleDocumentDragOver = (e: DragEvent) => {
-      e.preventDefault();
-      e.dataTransfer!.dropEffect = "none";
-    };
-
-    const handleDocumentDrop = (e: DragEvent) => {
-      e.preventDefault();
-    };
-
-    // 문서 전체에 드래그 이벤트 리스너 추가
-    document.addEventListener('dragenter', preventDefaults, false);
-    document.addEventListener('dragleave', preventDefaults, false);
-    document.addEventListener('dragover', handleDocumentDragOver, false);
-    document.addEventListener('drop', handleDocumentDrop, false);
-
-    return () => {
-      document.removeEventListener('dragenter', preventDefaults, false);
-      document.removeEventListener('dragleave', preventDefaults, false);
-      document.removeEventListener('dragover', handleDocumentDragOver, false);
-      document.removeEventListener('drop', handleDocumentDrop, false);
-    };
-  }, []);
 
   const handleSendMessage = () => {
     if (!message.trim()) return;
@@ -218,14 +190,19 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     fileInputRef.current?.click();
   };
 
-  // Drag and drop handlers for chat area
+  // Optimized drag and drop handlers for chat area
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
     // 파일이 포함된 경우에만 드래그 오버 상태 활성화
-    if (e.dataTransfer.types.includes('Files')) {
-      setIsDragOver(true);
+    if (e.dataTransfer.types && e.dataTransfer.types.length > 0) {
+      const hasFiles = Array.from(e.dataTransfer.types).some(type => 
+        type === 'Files' || type === 'application/x-moz-file'
+      );
+      if (hasFiles) {
+        setIsDragOver(true);
+      }
     }
   };
 
@@ -234,8 +211,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     e.stopPropagation();
     
     // 채팅 영역을 완전히 벗어날 때만 드래그 오버 상태 해제
-    if (chatAreaRef.current && !chatAreaRef.current.contains(e.relatedTarget as Node)) {
-      setIsDragOver(false);
+    const rect = chatAreaRef.current?.getBoundingClientRect();
+    if (rect) {
+      const x = e.clientX;
+      const y = e.clientY;
+      if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+        setIsDragOver(false);
+      }
     }
   };
 
@@ -244,8 +226,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     e.stopPropagation();
     
     // 파일 드래그인 경우 복사 효과 설정
-    if (e.dataTransfer.types.includes('Files')) {
-      e.dataTransfer.dropEffect = "copy";
+    if (e.dataTransfer.types && e.dataTransfer.types.length > 0) {
+      const hasFiles = Array.from(e.dataTransfer.types).some(type => 
+        type === 'Files' || type === 'application/x-moz-file'
+      );
+      if (hasFiles) {
+        e.dataTransfer.dropEffect = "copy";
+      } else {
+        e.dataTransfer.dropEffect = "none";
+      }
     }
   };
 
