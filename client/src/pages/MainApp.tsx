@@ -248,8 +248,8 @@ export default function MainApp() {
 
       {/* Mobile Layout */}
       <div className="lg:hidden h-full flex flex-col">
-        {/* Mobile Header */}
-        <div className="purple-gradient p-4 text-white">
+        {/* Fixed Mobile Header */}
+        <div className="flex-shrink-0 purple-gradient p-4 text-white fixed top-0 left-0 right-0 z-50 lg:hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <VaultLogo size="sm" />
@@ -261,8 +261,8 @@ export default function MainApp() {
           </div>
         </div>
 
-        {/* Mobile Content */}
-        <div className="flex-1 overflow-hidden">
+        {/* Mobile Content with padding for fixed header and footer */}
+        <div className="flex-1 overflow-hidden pt-20 pb-20">
           {activeMobileTab === "contacts" && (
             <ContactsList 
               onAddContact={() => openModal("addContact")}
@@ -304,9 +304,9 @@ export default function MainApp() {
           )}
         </div>
 
-        {/* Mobile Bottom Navigation - Hide when in chat */}
+        {/* Fixed Mobile Bottom Navigation - Hide when in chat */}
         {!showMobileChat && (
-          <div className="bg-white border-t border-gray-200 p-2">
+          <div className="bg-white border-t border-gray-200 p-2 fixed bottom-0 left-0 right-0 z-40 lg:hidden">
             <div className="flex justify-around">
               <Button
                 variant="ghost"

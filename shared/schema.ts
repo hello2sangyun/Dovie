@@ -49,12 +49,13 @@ export const messages = pgTable("messages", {
   chatRoomId: integer("chat_room_id").references(() => chatRooms.id).notNull(),
   senderId: integer("sender_id").references(() => users.id).notNull(),
   content: text("content"),
-  messageType: text("message_type").notNull().default("text"), // text, file, command
+  messageType: text("message_type").notNull().default("text"), // text, file, command, reply
   fileUrl: text("file_url"),
   fileName: text("file_name"),
   fileSize: integer("file_size"),
   isCommandRecall: boolean("is_command_recall").default(false),
   originalMessageId: integer("original_message_id").references(() => messages.id),
+  replyToMessageId: integer("reply_to_message_id").references(() => messages.id),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
