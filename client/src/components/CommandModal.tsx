@@ -84,8 +84,16 @@ export default function CommandModal({
 
       console.log("Final command data being sent:", commandData);
 
-      const response = await apiRequest("POST", "/api/commands", commandData);
-      return { ...response.json(), processedCommandName };
+      try {
+        const response = await apiRequest("POST", "/api/commands", commandData);
+        console.log("API response:", response);
+        const result = await response.json();
+        console.log("Parsed API result:", result);
+        return { command: result.command, processedCommandName };
+      } catch (error) {
+        console.error("API request failed:", error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/commands"] });
