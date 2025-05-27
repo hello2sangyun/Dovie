@@ -6,6 +6,9 @@ import { storage } from "./storage";
 import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, users } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
+
+// 임시 인증 데이터 저장소 (실제로는 Redis 등을 사용해야 함)
+const tempVerificationData = new Map<string, { phoneNumber: string; email?: string; timestamp: number }>();
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -60,6 +63,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!phoneNumber || !countryCode) {
         return res.status(400).json({ message: "Phone number and country code are required" });
+      }
+
+      const fullPhoneNumber = `${countryCode}${phoneNumber}`;
+
+      // 기존 사용자 확인 - 이미 가입된 전화번호인지 체크
+      const existingUser = await storage.getUserByPhoneNumber(fullPhoneNumber);
+      if (existingUser) {
+        return res.status(409).json({ 
+          message: "이미 가입되어 있는 전화번호입니다.",
+          error: "PHONE_ALREADY_EXISTS"
+        });
       }
 
       // 6자리 인증 코드 생성
@@ -127,41 +141,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 인증 코드를 사용됨으로 표시
       await storage.markPhoneVerificationAsUsed(verification.id);
 
-      // 사용자 찾기 또는 생성 - 중복 오류 방지
-      const phoneDigits = phoneNumber.replace(/[^\d]/g, '');
-      let user;
-      
-      // 먼저 다양한 방법으로 기존 사용자 찾기
-      const possibleUsernames = [
-        `user_${phoneDigits.slice(-8)}`,
-        phoneDigits.slice(-8),
-        phoneNumber.replace(/[^\d]/g, '')
-      ];
-      
-      for (const username of possibleUsernames) {
-        user = await storage.getUserByUsername(username);
-        if (user) break;
-      }
-      
-      if (!user) {
-        // 새 사용자 생성 - 고유한 사용자명 생성
-        const timestamp = Date.now();
-        const userData = insertUserSchema.parse({
-          username: `user_${phoneDigits.slice(-8)}_${timestamp}`,
-          displayName: `사용자 ${phoneNumber.slice(-4)}`,
-          phoneNumber: phoneNumber,
-        });
-        user = await storage.createUser(userData);
-      }
-
-      // 사용자 온라인 상태 업데이트
-      await storage.updateUser(user.id, { isOnline: true, phoneNumber });
-
       // 전화번호 인증 완료, 다음 단계는 이메일 인증
+      // 임시 데이터에 전화번호 저장 (사용자는 아직 생성하지 않음)
+      const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      tempVerificationData.set(tempId, {
+        phoneNumber,
+        timestamp: Date.now()
+      });
+      
       res.json({ 
         success: true,
         nextStep: "email_verification",
-        user,
+        tempId,
         message: "전화번호 인증이 완료되었습니다. 이메일 인증을 진행해주세요."
       });
     } catch (error) {
@@ -173,10 +164,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 이메일 인증 코드 전송
   app.post("/api/auth/send-email", async (req, res) => {
     try {
-      const { email, userId } = req.body;
+      const { email } = req.body;
       
-      if (!email || !userId) {
-        return res.status(400).json({ message: "Email and user ID are required" });
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      // 임시 데이터에서 전화번호 확인
+      const { tempId } = req.body;
+      if (!tempId || !tempVerificationData.has(tempId)) {
+        return res.status(400).json({ message: "Phone verification required first" });
+      }
+
+      const tempData = tempVerificationData.get(tempId)!;
+
+      // 기존 사용자 확인 - 이미 가입된 이메일인지 체크
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(409).json({ 
+          message: "이미 가입되어 있는 이메일 주소입니다.",
+          error: "EMAIL_ALREADY_EXISTS"
+        });
       }
 
       // 6자리 인증 코드 생성
