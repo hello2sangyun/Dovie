@@ -323,6 +323,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Command routes
+  // Simple test endpoint to verify routing works
+  app.get("/api/commands/test", async (req, res) => {
+    console.log("TEST ENDPOINT HIT - /api/commands/test");
+    res.json({ status: "OK", message: "Test endpoint working" });
+  });
+
   app.get("/api/commands", async (req, res) => {
     const userId = req.headers["x-user-id"];
     if (!userId) {
