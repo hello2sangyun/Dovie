@@ -37,6 +37,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   const currentChatRoom = chatRoomsData?.chatRooms?.find((room: any) => room.id === chatRoomId);
 
+  // Get contacts to check if other participants are friends
+  const { data: contactsData } = useQuery({
+    queryKey: ["/api/contacts"],
+    enabled: !!user,
+  });
+
   // Get messages
   const { data: messagesData, isLoading } = useQuery({
     queryKey: ["/api/chat-rooms", chatRoomId, "messages"],
@@ -187,6 +193,23 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const getInitials = (name: string) => {
     return name.split(' ').map(word => word.charAt(0).toUpperCase()).join('').slice(0, 2);
   };
+
+  // Check if other participants are friends when entering chat room
+  useEffect(() => {
+    if (currentChatRoom && contactsData && user) {
+      const otherParticipants = currentChatRoom.participants?.filter((p: any) => p.id !== user.id) || [];
+      const contacts = contactsData.contacts || [];
+      
+      for (const participant of otherParticipants) {
+        const isContact = contacts.some((contact: any) => contact.contactUserId === participant.id);
+        if (!isContact) {
+          setNonFriendUser(participant);
+          setShowAddFriendModal(true);
+          break; // Show modal for first non-friend found
+        }
+      }
+    }
+  }, [currentChatRoom, contactsData, user]);
 
   const formatTime = (dateString: string) => {
     return new Date(dateString).toLocaleTimeString('ko-KR', { 
@@ -478,6 +501,18 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         className="hidden"
         multiple={false}
       />
+
+      {/* Add Friend Confirmation Modal */}
+      {nonFriendUser && (
+        <AddFriendConfirmModal
+          open={showAddFriendModal}
+          onClose={() => {
+            setShowAddFriendModal(false);
+            setNonFriendUser(null);
+          }}
+          user={nonFriendUser}
+        />
+      )}
     </div>
   );
 }
