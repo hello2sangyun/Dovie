@@ -24,6 +24,7 @@ export default function AddFriendConfirmModal({ open, onClose, user }: AddFriend
 
   const addContactMutation = useMutation({
     mutationFn: async () => {
+      console.log("Adding contact with data:", { contactUserId: user.id, nickname: user.displayName });
       const response = await apiRequest("POST", "/api/contacts", {
         contactUserId: user.id,
         nickname: user.displayName,

@@ -102,18 +102,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const { contactUsername, contactUserId, nickname } = req.body;
+      console.log("POST /api/contacts - Request body:", { contactUsername, contactUserId, nickname });
+      console.log("POST /api/contacts - User ID from header:", userId);
+      
       let contactUser;
 
       // Support both username and userId for adding contacts
       if (contactUserId) {
+        console.log("Looking up user by ID:", contactUserId);
         contactUser = await storage.getUser(Number(contactUserId));
+        console.log("Found user by ID:", contactUser ? { id: contactUser.id, username: contactUser.username } : null);
       } else if (contactUsername) {
+        console.log("Looking up user by username:", contactUsername);
         contactUser = await storage.getUserByUsername(contactUsername);
+        console.log("Found user by username:", contactUser ? { id: contactUser.id, username: contactUser.username } : null);
       } else {
         return res.status(400).json({ message: "Either contactUsername or contactUserId is required" });
       }
 
       if (!contactUser) {
+        console.log("User not found - contactUserId:", contactUserId, "contactUsername:", contactUsername);
         return res.status(404).json({ message: "User not found" });
       }
 
@@ -123,9 +131,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         nickname,
       });
 
+      console.log("Creating contact with data:", contactData);
       const contact = await storage.addContact(contactData);
+      console.log("Contact created successfully:", contact);
       res.json({ contact });
     } catch (error) {
+      console.error("Error adding contact:", error);
       res.status(500).json({ message: "Failed to add contact" });
     }
   });

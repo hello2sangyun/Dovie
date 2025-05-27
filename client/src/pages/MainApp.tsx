@@ -41,6 +41,35 @@ export default function MainApp() {
     enabled: !!user,
   });
 
+  // Get chat rooms data
+  const { data: chatRoomsData } = useQuery({
+    queryKey: ["/api/chat-rooms"],
+    enabled: !!user,
+  });
+
+  // Create or find existing chat room
+  const createOrFindChatRoom = (contactUserId: number, contactUser: any) => {
+    // Check if chat room already exists with this contact
+    const existingChatRoom = chatRoomsData?.chatRooms?.find((room: any) => {
+      return !room.isGroup && 
+             room.participants?.some((p: any) => p.id === contactUserId) &&
+             room.participants?.some((p: any) => p.id === user?.id);
+    });
+
+    if (existingChatRoom) {
+      // Go to existing chat room
+      setSelectedChatRoom(existingChatRoom.id);
+      setActiveTab("chats");
+      toast({
+        title: "기존 채팅방으로 이동",
+        description: `${contactUser.nickname || contactUser.displayName}님과의 채팅방으로 이동했습니다.`,
+      });
+    } else {
+      // Create new chat room
+      createChatRoomMutation.mutate({ contactUserId, contactUser });
+    }
+  };
+
   // Create chat room mutation
   const createChatRoomMutation = useMutation({
     mutationFn: async ({ contactUserId, contactUser }: { contactUserId: number, contactUser: any }) => {
@@ -152,10 +181,7 @@ export default function MainApp() {
                     // Find the contact user data
                     const contact = contactsData?.contacts?.find((c: any) => c.contactUserId === contactUserId);
                     if (contact) {
-                      createChatRoomMutation.mutate({
-                        contactUserId,
-                        contactUser: contact.contactUser
-                      });
+                      createOrFindChatRoom(contactUserId, contact.contactUser);
                     }
                   }}
                 />
