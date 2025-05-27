@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, unique } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -56,6 +56,14 @@ export const messages = pgTable("messages", {
   isCommandRecall: boolean("is_command_recall").default(false),
   originalMessageId: integer("original_message_id").references(() => messages.id),
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const messageReads = pgTable("message_reads", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  chatRoomId: integer("chat_room_id").references(() => chatRooms.id).notNull(),
+  lastReadMessageId: integer("last_read_message_id").references(() => messages.id),
+  lastReadAt: timestamp("last_read_at").defaultNow().notNull(),
 });
 
 export const commands = pgTable("commands", {
@@ -131,6 +139,21 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   }),
 }));
 
+export const messageReadsRelations = relations(messageReads, ({ one }) => ({
+  user: one(users, {
+    fields: [messageReads.userId],
+    references: [users.id],
+  }),
+  chatRoom: one(chatRooms, {
+    fields: [messageReads.chatRoomId],
+    references: [chatRooms.id],
+  }),
+  lastReadMessage: one(messages, {
+    fields: [messageReads.lastReadMessageId],
+    references: [messages.id],
+  }),
+}));
+
 export const commandsRelations = relations(commands, ({ one }) => ({
   user: one(users, {
     fields: [commands.userId],
@@ -170,6 +193,11 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
   createdAt: true,
 });
 
+export const insertMessageReadSchema = createInsertSchema(messageReads).omit({
+  id: true,
+  lastReadAt: true,
+});
+
 export const insertCommandSchema = createInsertSchema(commands).omit({
   id: true,
   createdAt: true,
@@ -183,5 +211,7 @@ export type ChatRoom = typeof chatRooms.$inferSelect;
 export type InsertChatRoom = z.infer<typeof insertChatRoomSchema>;
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export type MessageRead = typeof messageReads.$inferSelect;
+export type InsertMessageRead = z.infer<typeof insertMessageReadSchema>;
 export type Command = typeof commands.$inferSelect;
 export type InsertCommand = z.infer<typeof insertCommandSchema>;

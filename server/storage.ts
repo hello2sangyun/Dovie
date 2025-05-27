@@ -1,8 +1,8 @@
 import { 
-  users, contacts, chatRooms, chatParticipants, messages, commands,
+  users, contacts, chatRooms, chatParticipants, messages, commands, messageReads,
   type User, type InsertUser, type Contact, type InsertContact,
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
-  type Command, type InsertCommand
+  type Command, type InsertCommand, type MessageRead, type InsertMessageRead
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, or } from "drizzle-orm";
