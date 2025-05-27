@@ -596,6 +596,35 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           ? "chat-bubble-me rounded-tr-none" 
                           : "chat-bubble-other rounded-tl-none"
                     )}>
+                      {/* 회신 메시지 표시 */}
+                      {msg.replyToMessageId && (
+                        <div className={cn(
+                          "mb-2 pb-2 border-l-4 pl-3 rounded-l",
+                          isMe 
+                            ? "border-white/40 bg-white/10" 
+                            : "border-purple-400 bg-purple-50"
+                        )}>
+                          <div className="flex items-center space-x-1 mb-1">
+                            <Reply className={cn(
+                              "h-3 w-3",
+                              isMe ? "text-white/70" : "text-purple-600"
+                            )} />
+                            <span className={cn(
+                              "text-xs font-medium",
+                              isMe ? "text-white/70" : "text-purple-600"
+                            )}>
+                              {msg.replyToSender || "사용자"}
+                            </span>
+                          </div>
+                          <p className={cn(
+                            "text-xs truncate",
+                            isMe ? "text-white/90" : "text-gray-700"
+                          )}>
+                            {msg.replyToContent || "원본 메시지"}
+                          </p>
+                        </div>
+                      )}
+                      
                       {msg.messageType === "file" ? (
                         <div>
                           <div className="flex items-center space-x-3">
