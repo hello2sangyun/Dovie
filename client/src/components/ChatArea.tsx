@@ -270,7 +270,26 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   }
 
   return (
-    <div className="h-full flex flex-col bg-gray-50">
+    <div 
+      ref={chatAreaRef}
+      className={`h-full flex flex-col bg-gray-50 relative ${isDragOver ? 'bg-purple-50' : ''}`}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      {/* Drag Overlay */}
+      {isDragOver && (
+        <div className="absolute inset-0 bg-purple-100 bg-opacity-80 border-2 border-dashed border-purple-400 z-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-purple-500 rounded-full flex items-center justify-center">
+              <Upload className="h-8 w-8 text-white" />
+            </div>
+            <p className="text-lg font-medium text-purple-600">파일을 여기에 드롭하세요</p>
+            <p className="text-sm text-purple-500 mt-1">파일을 놓으면 자동으로 업로드됩니다</p>
+          </div>
+        </div>
+      )}
       {/* Chat Header - Fixed position with Mobile Integration */}
       <div className="bg-white border-b border-gray-200 p-4 flex-shrink-0 sticky top-0 z-10">
         <div className="flex items-center justify-between">
