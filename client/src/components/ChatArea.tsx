@@ -133,6 +133,36 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // 브라우저 기본 드래그 앤 드롭 동작 방지
+  useEffect(() => {
+    const preventDefaults = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    const handleDocumentDragOver = (e: DragEvent) => {
+      e.preventDefault();
+      e.dataTransfer!.dropEffect = "none";
+    };
+
+    const handleDocumentDrop = (e: DragEvent) => {
+      e.preventDefault();
+    };
+
+    // 문서 전체에 드래그 이벤트 리스너 추가
+    document.addEventListener('dragenter', preventDefaults, false);
+    document.addEventListener('dragleave', preventDefaults, false);
+    document.addEventListener('dragover', handleDocumentDragOver, false);
+    document.addEventListener('drop', handleDocumentDrop, false);
+
+    return () => {
+      document.removeEventListener('dragenter', preventDefaults, false);
+      document.removeEventListener('dragleave', preventDefaults, false);
+      document.removeEventListener('dragover', handleDocumentDragOver, false);
+      document.removeEventListener('drop', handleDocumentDrop, false);
+    };
+  }, []);
+
   const handleSendMessage = () => {
     if (!message.trim()) return;
 
@@ -188,17 +218,22 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     fileInputRef.current?.click();
   };
 
-  // Drag and drop handlers
+  // Drag and drop handlers for chat area
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragOver(true);
+    
+    // 파일이 포함된 경우에만 드래그 오버 상태 활성화
+    if (e.dataTransfer.types.includes('Files')) {
+      setIsDragOver(true);
+    }
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    // Only set to false if leaving the chat area completely
+    
+    // 채팅 영역을 완전히 벗어날 때만 드래그 오버 상태 해제
     if (chatAreaRef.current && !chatAreaRef.current.contains(e.relatedTarget as Node)) {
       setIsDragOver(false);
     }
@@ -207,6 +242,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // 파일 드래그인 경우 복사 효과 설정
+    if (e.dataTransfer.types.includes('Files')) {
+      e.dataTransfer.dropEffect = "copy";
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {

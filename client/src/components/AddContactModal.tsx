@@ -72,7 +72,7 @@ export default function AddContactModal({ open, onClose }: AddContactModalProps)
     onClose();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!contactUsername.trim()) {
       toast({
@@ -82,6 +82,23 @@ export default function AddContactModal({ open, onClose }: AddContactModalProps)
       });
       return;
     }
+
+    // 닉네임이 비어있으면 사용자 정보를 가져와서 표시 이름을 자동 입력
+    if (!nickname.trim()) {
+      try {
+        const response = await fetch(`/api/users/by-username/${contactUsername}`);
+        if (response.ok) {
+          const userData = await response.json();
+          if (userData.user?.displayName) {
+            setNickname(userData.user.displayName);
+          }
+        }
+      } catch (error) {
+        // 사용자 정보 가져오기 실패해도 계속 진행
+        console.log('사용자 정보 가져오기 실패:', error);
+      }
+    }
+
     addContactMutation.mutate();
   };
 

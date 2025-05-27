@@ -79,6 +79,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/users/by-username/:username", async (req, res) => {
+    try {
+      const user = await storage.getUserByUsername(req.params.username);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // 사용자 정보 반환
+      res.json({ user });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get user" });
+    }
+  });
+
   // Contact routes
   app.get("/api/contacts", async (req, res) => {
     const userId = req.headers["x-user-id"];
