@@ -130,7 +130,7 @@ export default function MainApp() {
 
           {/* Navigation Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-            <TabsList className="grid w-full grid-cols-3 border-b border-gray-200 rounded-none bg-transparent h-auto">
+            <TabsList className="grid w-full grid-cols-4 border-b border-gray-200 rounded-none bg-transparent h-auto">
               <TabsTrigger 
                 value="contacts" 
                 className={cn(
