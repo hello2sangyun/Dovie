@@ -14,7 +14,7 @@ import CommandModal from "./CommandModal";
 
 interface ChatAreaProps {
   chatRoomId: number;
-  onCreateCommand: (fileData?: any) => void;
+  onCreateCommand: (fileData?: any, messageData?: any) => void;
   showMobileHeader?: boolean;
   onBackClick?: () => void;
 }
@@ -348,13 +348,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   const handleSaveMessage = () => {
     if (contextMenu.message) {
-      // 메시지 데이터를 CommandModal로 전달
-      setMessageDataForCommand({
+      // 메시지 데이터를 MainApp으로 전달
+      const messageData = {
         content: contextMenu.message.content,
         senderId: contextMenu.message.senderId,
         timestamp: contextMenu.message.createdAt,
-      });
-      onCreateCommand(); // 파일 데이터 없이 CommandModal 열기
+      };
+      onCreateCommand(null, messageData); // 파일 데이터 없이 메시지 데이터만 전달
     }
   };
 

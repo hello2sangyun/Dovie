@@ -106,9 +106,16 @@ export default function MainApp() {
     }
   };
 
+  const handleCreateCommand = (fileData?: any, messageData?: any) => {
+    setCommandModalData(fileData);
+    setMessageDataForCommand(messageData);
+    setModals({ ...modals, command: true });
+  };
+
   const closeModals = () => {
     setModals({ addContact: false, command: false, settings: false });
     setCommandModalData(null);
+    setMessageDataForCommand(null);
   };
 
   if (!user) {
@@ -226,7 +233,7 @@ export default function MainApp() {
           ) : selectedChatRoom ? (
             <ChatArea 
               chatRoomId={selectedChatRoom}
-              onCreateCommand={(fileData) => openModal("command", fileData)}
+              onCreateCommand={handleCreateCommand}
             />
           ) : (
             <div className="flex-1 flex items-center justify-center bg-gray-50">
@@ -284,7 +291,7 @@ export default function MainApp() {
               <div className="flex-1 min-h-0">
                 <ChatArea 
                   chatRoomId={selectedChatRoom}
-                  onCreateCommand={(fileData) => openModal("command", fileData)}
+                  onCreateCommand={handleCreateCommand}
                   showMobileHeader={true}
                   onBackClick={() => setShowMobileChat(false)}
                 />
@@ -360,6 +367,7 @@ export default function MainApp() {
         onClose={closeModals}
         chatRoomId={selectedChatRoom}
         fileData={commandModalData}
+        messageData={messageDataForCommand}
       />
 
     </div>
