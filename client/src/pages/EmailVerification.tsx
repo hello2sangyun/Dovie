@@ -22,10 +22,28 @@ export default function EmailVerification() {
   // 이메일 인증 코드 전송
   const sendEmailMutation = useMutation({
     mutationFn: async (data: { email: string; userId: number }) => {
-      const response = await apiRequest("/api/auth/send-email", "POST", data);
-      return response;
+      try {
+        const response = await fetch("/api/auth/send-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
+        
+        if (!response.ok) {
+          throw new Error("이메일 전송 실패");
+        }
+        
+        const result = await response.json();
+        return result;
+      } catch (error) {
+        console.error("이메일 전송 오류:", error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
+      console.log("이메일 전송 성공:", data);
       setStep("verification");
       toast({
         title: "인증 코드 전송",
@@ -33,6 +51,7 @@ export default function EmailVerification() {
       });
     },
     onError: (error: any) => {
+      console.error("이메일 전송 실패:", error);
       toast({
         title: "오류",
         description: "인증 코드 전송에 실패했습니다. 다시 시도해주세요.",
@@ -44,18 +63,37 @@ export default function EmailVerification() {
   // 이메일 인증 확인
   const verifyEmailMutation = useMutation({
     mutationFn: async (data: { email: string; verificationCode: string; userId: number }) => {
-      const response = await apiRequest("/api/auth/verify-email", "POST", data);
-      return response;
+      try {
+        const response = await fetch("/api/auth/verify-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
+        
+        if (!response.ok) {
+          throw new Error("이메일 인증 실패");
+        }
+        
+        const result = await response.json();
+        return result;
+      } catch (error) {
+        console.error("이메일 인증 오류:", error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
+      console.log("이메일 인증 성공:", data);
       setUser(data.user);
       toast({
         title: "이메일 인증 완료",
         description: "이메일 인증이 완료되었습니다. 프로필을 설정해주세요.",
       });
-      setLocation("/profile-setup");
+      window.location.href = "/profile-setup";
     },
     onError: (error: any) => {
+      console.error("이메일 인증 실패:", error);
       toast({
         title: "인증 실패",
         description: "인증 코드가 올바르지 않습니다. 다시 확인해주세요.",
@@ -75,18 +113,34 @@ export default function EmailVerification() {
       return;
     }
 
-    if (!user?.id) {
+    console.log("현재 사용자 정보:", user);
+    
+    // localStorage에서 사용자 정보 확인
+    const storedUser = localStorage.getItem('user');
+    let currentUser = user;
+    
+    if (!currentUser && storedUser) {
+      try {
+        currentUser = JSON.parse(storedUser);
+        console.log("localStorage에서 사용자 정보 복원:", currentUser);
+      } catch (error) {
+        console.error("사용자 정보 파싱 오류:", error);
+      }
+    }
+
+    if (!currentUser?.id) {
       toast({
         title: "오류",
-        description: "사용자 정보를 찾을 수 없습니다.",
+        description: "사용자 정보를 찾을 수 없습니다. 전화번호 인증부터 다시 진행해주세요.",
         variant: "destructive",
       });
+      window.location.href = "/phone-login";
       return;
     }
 
     sendEmailMutation.mutate({
       email,
-      userId: user.id,
+      userId: currentUser.id,
     });
   };
 
