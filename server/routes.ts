@@ -346,8 +346,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/commands", async (req, res) => {
+    console.log("POST /api/commands - Route hit");
+    console.log("POST /api/commands - Headers:", req.headers);
+    console.log("POST /api/commands - Raw body:", req.body);
+    
     const userId = req.headers["x-user-id"];
+    console.log("POST /api/commands - Extracted userId:", userId);
+    
     if (!userId) {
+      console.log("POST /api/commands - No userId found, returning 401");
       return res.status(401).json({ message: "Not authenticated" });
     }
 
