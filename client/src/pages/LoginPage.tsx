@@ -39,11 +39,16 @@ export default function LoginPage() {
   });
 
   return (
-    <div className="fixed inset-0 bg-white flex items-center justify-center">
+    <div className="fixed inset-0 bg-white flex flex-col justify-center items-center">
       <div className="w-full max-w-md p-8 animate-slide-up">
-        <div className="text-center mb-4">
-          <DovieLogo withText={true} className="mx-auto mb-1 -ml-4" />
-          <p className="text-gray-600 mb-6">로그인하여 시작하세요</p>
+        {/* 로고를 상단 중앙에 크게 배치 */}
+        <div className="text-center mb-16">
+          <DovieLogo withText={true} className="mx-auto" />
+        </div>
+
+        {/* 로그인 텍스트와 옵션들을 아래쪽에 배치 */}
+        <div className="text-center mb-8">
+          <p className="text-gray-600">로그인하여 시작하세요</p>
         </div>
 
         <div className="space-y-4">
