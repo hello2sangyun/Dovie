@@ -61,15 +61,36 @@ export default function CommandModal({
       // 영문자를 소문자로 변환
       const processedCommandName = commandName.toLowerCase();
       
+      let finalFileData = fileData;
+
+      // 메시지 데이터가 있는 경우 사용자가 입력한 태그명으로 텍스트 파일 생성
+      if (messageData) {
+        const textFileResponse = await fetch("/api/create-text-file", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-user-id": (window as any).currentUserId?.toString() || "1",
+          },
+          body: JSON.stringify({
+            content: messageData.content,
+            fileName: processedCommandName
+          }),
+        });
+
+        if (!textFileResponse.ok) throw new Error("Failed to create text file");
+        
+        finalFileData = await textFileResponse.json();
+      }
+
       const commandData: any = {
         chatRoomId,
         commandName: processedCommandName,
       };
 
-      if (fileData) {
-        commandData.fileUrl = fileData.fileUrl;
-        commandData.fileName = fileData.fileName;
-        commandData.fileSize = fileData.fileSize;
+      if (finalFileData) {
+        commandData.fileUrl = finalFileData.fileUrl;
+        commandData.fileName = finalFileData.fileName;
+        commandData.fileSize = finalFileData.fileSize;
       }
 
       if (messageData) {

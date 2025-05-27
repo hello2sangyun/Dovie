@@ -36,6 +36,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     message: any;
   }>({ visible: false, x: 0, y: 0, message: null });
 
+  const [messageDataForCommand, setMessageDataForCommand] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatAreaRef = useRef<HTMLDivElement>(null);
@@ -345,36 +346,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     });
   };
 
-  const handleSaveMessage = async () => {
+  const handleSaveMessage = () => {
     if (contextMenu.message) {
-      try {
-        // 텍스트 파일 생성
-        const response = await fetch("/api/create-text-file", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-user-id": user!.id.toString(),
-          },
-          body: JSON.stringify({
-            content: contextMenu.message.content,
-            fileName: `message_${Date.now()}`
-          }),
-        });
-
-        if (!response.ok) throw new Error("Failed to create text file");
-        
-        const fileData = await response.json();
-        
-        // 기존 파일 업로드 플로우로 연결
-        setFileDataForCommand(fileData);
-        onCreateCommand(fileData);
-      } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "오류",
-          description: "메시지 저장에 실패했습니다.",
-        });
-      }
+      // 메시지 데이터를 CommandModal로 전달
+      setMessageDataForCommand({
+        content: contextMenu.message.content,
+        senderId: contextMenu.message.senderId,
+        timestamp: contextMenu.message.createdAt,
+      });
+      onCreateCommand(); // 파일 데이터 없이 CommandModal 열기
     }
   };
 
