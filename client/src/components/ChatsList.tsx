@@ -28,11 +28,45 @@ export default function ChatsList({ onSelectChat, selectedChatId }: ChatsListPro
     },
   });
 
-  const chatRooms = chatRoomsData?.chatRooms || [];
+  // 연락처 정보 가져오기
+  const { data: contactsData } = useQuery({
+    queryKey: ["/api/contacts"],
+    enabled: !!user,
+    queryFn: async () => {
+      const response = await fetch("/api/contacts", {
+        headers: { "x-user-id": user!.id.toString() },
+      });
+      if (!response.ok) throw new Error("Failed to fetch contacts");
+      return response.json();
+    },
+  });
 
-  const filteredChatRooms = chatRooms.filter((chatRoom: any) =>
-    chatRoom.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const chatRooms = chatRoomsData?.chatRooms || [];
+  const contacts = contactsData?.contacts || [];
+
+  // 채팅방 이름을 상대방의 닉네임으로 표시하는 함수
+  const getChatRoomDisplayName = (chatRoom: any) => {
+    // 상대방 찾기 (본인이 아닌 참가자)
+    const otherParticipant = chatRoom.participants?.find((p: any) => p.id !== user?.id);
+    
+    if (!otherParticipant) {
+      return chatRoom.name; // 기본 이름
+    }
+
+    // 연락처에서 해당 사용자의 닉네임 찾기
+    const contact = contacts.find((c: any) => c.contactUserId === otherParticipant.id);
+    
+    if (contact && contact.nickname) {
+      return contact.nickname; // 설정된 닉네임
+    }
+    
+    return otherParticipant.displayName || otherParticipant.username; // 표시 이름 또는 사용자명
+  };
+
+  const filteredChatRooms = chatRooms.filter((chatRoom: any) => {
+    const displayName = getChatRoomDisplayName(chatRoom);
+    return displayName.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   const pinnedChats = filteredChatRooms.filter((chat: any) => chat.isPinned);
   const regularChats = filteredChatRooms.filter((chat: any) => !chat.isPinned);
@@ -110,6 +144,7 @@ export default function ChatsList({ onSelectChat, selectedChatId }: ChatsListPro
               <ChatRoomItem
                 key={chatRoom.id}
                 chatRoom={chatRoom}
+                displayName={getChatRoomDisplayName(chatRoom)}
                 isSelected={selectedChatId === chatRoom.id}
                 onClick={() => onSelectChat(chatRoom.id)}
                 isPinned
@@ -129,6 +164,7 @@ export default function ChatsList({ onSelectChat, selectedChatId }: ChatsListPro
               <ChatRoomItem
                 key={chatRoom.id}
                 chatRoom={chatRoom}
+                displayName={getChatRoomDisplayName(chatRoom)}
                 isSelected={selectedChatId === chatRoom.id}
                 onClick={() => onSelectChat(chatRoom.id)}
               />
@@ -148,11 +184,13 @@ export default function ChatsList({ onSelectChat, selectedChatId }: ChatsListPro
 
 function ChatRoomItem({ 
   chatRoom, 
+  displayName,
   isSelected, 
   onClick, 
   isPinned = false 
 }: {
   chatRoom: any;
+  displayName: string;
   isSelected: boolean;
   onClick: () => void;
   isPinned?: boolean;
@@ -203,12 +241,12 @@ function ChatRoomItem({
             alt={chatRoom.name} 
           />
           <AvatarFallback className="purple-gradient text-white font-semibold">
-            {getInitials(chatRoom.name)}
+            {getInitials(displayName)}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
-            <p className="font-medium text-gray-900 truncate">{chatRoom.name}</p>
+            <p className="font-medium text-gray-900 truncate">{displayName}</p>
             {chatRoom.lastMessage && (
               <span className="text-xs text-gray-500">
                 {formatTime(chatRoom.lastMessage.createdAt)}

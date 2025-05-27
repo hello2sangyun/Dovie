@@ -43,6 +43,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const { data: contactsData } = useQuery({
     queryKey: ["/api/contacts"],
     enabled: !!user,
+    queryFn: async () => {
+      const response = await fetch("/api/contacts", {
+        headers: { "x-user-id": user!.id.toString() },
+      });
+      if (!response.ok) throw new Error("Failed to fetch contacts");
+      return response.json();
+    },
   });
 
   // Get messages
