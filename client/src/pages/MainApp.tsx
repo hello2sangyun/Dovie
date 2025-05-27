@@ -258,7 +258,15 @@ export default function MainApp() {
           {activeMobileTab === "contacts" && (
             <ContactsList 
               onAddContact={() => openModal("addContact")}
-              onSelectContact={() => {}}
+              onSelectContact={(contactUserId) => {
+                // Find the contact user data
+                const contact = contactsData?.contacts?.find((c: any) => c.contactUserId === contactUserId);
+                if (contact) {
+                  createOrFindChatRoom(contactUserId, contact.contactUser);
+                  setActiveMobileTab("chats");
+                  setShowMobileChat(true);
+                }
+              }}
             />
           )}
           {activeMobileTab === "chats" && !showMobileChat && (

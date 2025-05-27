@@ -125,6 +125,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
+      // 자기 자신을 친구로 추가하려는 경우 방지
+      if (contactUser.id === Number(userId)) {
+        return res.status(400).json({ message: "Cannot add yourself as a contact" });
+      }
+
+      // 이미 친구로 추가된 사용자인지 확인
+      const existingContacts = await storage.getContacts(Number(userId));
+      const isDuplicate = existingContacts.some((contact: any) => contact.contactUserId === contactUser.id);
+      
+      if (isDuplicate) {
+        return res.status(409).json({ message: "This user is already in your contacts" });
+      }
+
       const contactData = insertContactSchema.parse({
         userId: Number(userId),
         contactUserId: contactUser.id,

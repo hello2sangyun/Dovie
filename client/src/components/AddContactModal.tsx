@@ -44,10 +44,24 @@ export default function AddContactModal({ open, onClose }: AddContactModalProps)
       handleClose();
     },
     onError: (error: any) => {
+      let errorMessage = "다시 시도해주세요.";
+      
+      if (error.message) {
+        if (error.message.includes("already in your contacts")) {
+          errorMessage = "이미 친구 목록에 있는 사용자입니다.";
+        } else if (error.message.includes("Cannot add yourself")) {
+          errorMessage = "자기 자신을 친구로 추가할 수 없습니다.";
+        } else if (error.message.includes("User not found")) {
+          errorMessage = "해당 사용자를 찾을 수 없습니다.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         variant: "destructive",
         title: "친구 추가 실패",
-        description: error.message || "다시 시도해주세요.",
+        description: errorMessage,
       });
     },
   });
@@ -119,10 +133,22 @@ export default function AddContactModal({ open, onClose }: AddContactModalProps)
       });
       
       onClose();
-    } catch (error) {
+    } catch (error: any) {
+      let errorMessage = "오류가 발생했습니다.";
+      
+      if (error.message) {
+        if (error.message.includes("already in your contacts")) {
+          errorMessage = "이미 친구 목록에 있는 사용자입니다.";
+        } else if (error.message.includes("Cannot add yourself")) {
+          errorMessage = "자기 자신을 친구로 추가할 수 없습니다.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: "친구 추가 실패",
-        description: "이미 추가된 친구이거나 오류가 발생했습니다.",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -141,7 +167,7 @@ export default function AddContactModal({ open, onClose }: AddContactModalProps)
   return (
     <>
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="w-full max-w-md">
+      <DialogContent className="w-full max-w-md max-h-[80vh] overflow-y-auto sm:max-h-none">
         <DialogHeader>
           <DialogTitle>친구 추가</DialogTitle>
         </DialogHeader>
