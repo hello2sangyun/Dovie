@@ -307,9 +307,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const filePath = path.join(uploadDir, `${Date.now()}_${safeFileName}`);
       
       // 텍스트 파일 생성
-      await fs.writeFile(filePath, content, 'utf8');
+      await fs.promises.writeFile(filePath, content, 'utf8');
       
-      const fileStats = await fs.stat(filePath);
+      const fileStats = await fs.promises.stat(filePath);
       const fileUrl = `/uploads/${path.basename(filePath)}`;
 
       res.json({
