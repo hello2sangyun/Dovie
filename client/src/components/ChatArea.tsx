@@ -9,6 +9,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import AddFriendConfirmModal from "./AddFriendConfirmModal";
+import MessageContextMenu from "./MessageContextMenu";
+import CommandModal from "./CommandModal";
 
 interface ChatAreaProps {
   chatRoomId: number;

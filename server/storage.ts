@@ -5,7 +5,7 @@ import {
   type Command, type InsertCommand, type MessageRead, type InsertMessageRead
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, like, or } from "drizzle-orm";
+import { eq, and, desc, asc, like, or, count, gt } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -37,6 +37,10 @@ export interface IStorage {
   deleteCommand(commandId: number, userId: number): Promise<void>;
   getCommandByName(userId: number, chatRoomId: number, commandName: string): Promise<Command | undefined>;
   searchCommands(userId: number, searchTerm: string): Promise<(Command & { originalSender?: User })[]>;
+
+  // Message read tracking
+  markMessagesAsRead(userId: number, chatRoomId: number, lastMessageId: number): Promise<void>;
+  getUnreadCounts(userId: number): Promise<{ chatRoomId: number; unreadCount: number }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -297,6 +301,75 @@ export class DatabaseStorage implements IStorage {
       ...row.commands,
       originalSender: row.users || undefined
     }));
+  }
+
+  async markMessagesAsRead(userId: number, chatRoomId: number, lastMessageId: number): Promise<void> {
+    await db
+      .insert(messageReads)
+      .values({
+        userId,
+        chatRoomId,
+        lastReadMessageId: lastMessageId,
+      })
+      .onConflictDoUpdate({
+        target: [messageReads.userId, messageReads.chatRoomId],
+        set: {
+          lastReadMessageId: lastMessageId,
+          lastReadAt: new Date(),
+        },
+      });
+  }
+
+  async getUnreadCounts(userId: number): Promise<{ chatRoomId: number; unreadCount: number }[]> {
+    // Get all chat rooms the user participates in
+    const userChatRooms = await db
+      .select({
+        chatRoomId: chatParticipants.chatRoomId,
+      })
+      .from(chatParticipants)
+      .where(eq(chatParticipants.userId, userId));
+
+    const unreadCounts = [];
+
+    for (const room of userChatRooms) {
+      // Get the last read message for this chat room
+      const [readRecord] = await db
+        .select()
+        .from(messageReads)
+        .where(and(
+          eq(messageReads.userId, userId),
+          eq(messageReads.chatRoomId, room.chatRoomId)
+        ));
+
+      let unreadCount = 0;
+      if (!readRecord) {
+        // No read record exists, count all messages
+        const [countResult] = await db
+          .select({ count: count(messages.id) })
+          .from(messages)
+          .where(eq(messages.chatRoomId, room.chatRoomId));
+        unreadCount = countResult.count;
+      } else {
+        // Count messages after the last read message
+        const [countResult] = await db
+          .select({ count: count(messages.id) })
+          .from(messages)
+          .where(and(
+            eq(messages.chatRoomId, room.chatRoomId),
+            gt(messages.id, readRecord.lastReadMessageId || 0)
+          ));
+        unreadCount = countResult.count;
+      }
+
+      if (unreadCount > 0) {
+        unreadCounts.push({
+          chatRoomId: room.chatRoomId,
+          unreadCount,
+        });
+      }
+    }
+
+    return unreadCounts;
   }
 }
 

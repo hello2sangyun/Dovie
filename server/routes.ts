@@ -292,6 +292,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve uploaded files
   app.use("/uploads", express.static(uploadDir));
 
+  // Message read tracking routes
+  app.post("/api/chat-rooms/:chatRoomId/mark-read", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { lastMessageId } = req.body;
+      await storage.markMessagesAsRead(Number(userId), Number(req.params.chatRoomId), lastMessageId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to mark messages as read" });
+    }
+  });
+
+  app.get("/api/unread-counts", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const unreadCounts = await storage.getUnreadCounts(Number(userId));
+      res.json({ unreadCounts });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get unread counts" });
+    }
+  });
+
   // Command routes
   app.get("/api/commands", async (req, res) => {
     const userId = req.headers["x-user-id"];
