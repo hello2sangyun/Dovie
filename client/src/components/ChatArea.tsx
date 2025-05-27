@@ -29,6 +29,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [showAddFriendModal, setShowAddFriendModal] = useState(false);
   const [nonFriendUser, setNonFriendUser] = useState<any>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [contextMenu, setContextMenu] = useState<{
+    visible: boolean;
+    x: number;
+    y: number;
+    message: any;
+  }>({ visible: false, x: 0, y: 0, message: null });
+  const [showCommandModal, setShowCommandModal] = useState(false);
+  const [messageDataForCommand, setMessageDataForCommand] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatAreaRef = useRef<HTMLDivElement>(null);
@@ -96,6 +104,17 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         title: "메시지 전송 실패",
         description: "다시 시도해주세요.",
       });
+    },
+  });
+
+  // Mark messages as read mutation
+  const markAsReadMutation = useMutation({
+    mutationFn: async (lastMessageId: number) => {
+      return apiRequest("POST", `/api/chat-rooms/${chatRoomId}/mark-read`, { lastMessageId });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/unread-counts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
     },
   });
 
@@ -304,6 +323,47 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     setMessage(prev => prev + '#');
     setShowCommandSuggestions(true);
   };
+
+  // Message context menu handlers
+  const handleMessageRightClick = (e: React.MouseEvent, message: any) => {
+    e.preventDefault();
+    setContextMenu({
+      visible: true,
+      x: e.clientX,
+      y: e.clientY,
+      message,
+    });
+  };
+
+  const handleMessageLongPress = (e: React.TouchEvent, message: any) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    setContextMenu({
+      visible: true,
+      x: touch.clientX,
+      y: touch.clientY,
+      message,
+    });
+  };
+
+  const handleSaveMessage = () => {
+    if (contextMenu.message) {
+      setMessageDataForCommand({
+        content: contextMenu.message.content,
+        senderId: contextMenu.message.senderId,
+        timestamp: contextMenu.message.createdAt,
+      });
+      setShowCommandModal(true);
+    }
+  };
+
+  // Mark messages as read when viewing chat
+  useEffect(() => {
+    if (messages.length > 0) {
+      const latestMessage = messages[messages.length - 1];
+      markAsReadMutation.mutate(latestMessage.id);
+    }
+  }, [messages, chatRoomId]);;
 
   const selectCommand = (commandName: string) => {
     setMessage(`#${commandName}`);
