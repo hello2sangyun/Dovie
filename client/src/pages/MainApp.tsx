@@ -253,7 +253,7 @@ export default function MainApp() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <VaultLogo size="sm" />
-              <h1 className="text-lg font-bold">Vault Messenger</h1>
+              <h1 className="text-lg font-bold">Dovie Messenger</h1>
             </div>
             <Button variant="ghost" size="sm" className="text-white">
               <Search className="h-5 w-5" />
@@ -306,51 +306,51 @@ export default function MainApp() {
 
         {/* Fixed Mobile Bottom Navigation - Hide when in chat */}
         {!showMobileChat && (
-          <div className="bg-white border-t border-gray-200 p-2 fixed bottom-0 left-0 right-0 z-40 lg:hidden">
+          <div className="bg-white border-t border-gray-200 py-1 px-2 fixed bottom-0 left-0 right-0 z-40 lg:hidden">
             <div className="flex justify-around">
               <Button
                 variant="ghost"
                 className={cn(
-                  "flex flex-col items-center p-2",
+                  "flex flex-col items-center py-1 px-2",
                   activeMobileTab === "contacts" ? "text-purple-600" : "text-gray-400"
                 )}
                 onClick={() => setActiveMobileTab("contacts")}
               >
-                <BookUser className="h-5 w-5 mb-1" />
-                <span className="text-xs">연락처</span>
+                <BookUser className="h-4 w-4" />
+                <span className="text-xs mt-0.5">연락처</span>
               </Button>
               <Button
                 variant="ghost"
                 className={cn(
-                  "flex flex-col items-center p-2",
+                  "flex flex-col items-center py-1 px-2",
                   activeMobileTab === "chats" ? "text-purple-600" : "text-gray-400"
                 )}
                 onClick={() => setActiveMobileTab("chats")}
               >
-                <MessageCircle className="h-5 w-5 mb-1" />
-                <span className="text-xs">채팅방</span>
+                <MessageCircle className="h-4 w-4" />
+                <span className="text-xs mt-0.5">채팅방</span>
               </Button>
               <Button
                 variant="ghost"
                 className={cn(
-                  "flex flex-col items-center p-2",
+                  "flex flex-col items-center py-1 px-2",
                   activeMobileTab === "archive" ? "text-purple-600" : "text-gray-400"
                 )}
                 onClick={() => setActiveMobileTab("archive")}
               >
-                <Archive className="h-5 w-5 mb-1" />
-                <span className="text-xs">저장소</span>
+                <Archive className="h-4 w-4" />
+                <span className="text-xs mt-0.5">저장소</span>
               </Button>
               <Button
                 variant="ghost"
                 className={cn(
-                  "flex flex-col items-center p-2",
+                  "flex flex-col items-center py-1 px-2",
                   activeMobileTab === "settings" ? "text-purple-600" : "text-gray-400"
                 )}
                 onClick={() => setActiveMobileTab("settings")}
               >
-                <Settings className="h-5 w-5 mb-1" />
-                <span className="text-xs">설정</span>
+                <Settings className="h-4 w-4" />
+                <span className="text-xs mt-0.5">설정</span>
               </Button>
             </div>
           </div>
