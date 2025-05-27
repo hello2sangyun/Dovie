@@ -15,7 +15,7 @@ import CommandModal from "@/components/CommandModal";
 import SettingsPage from "@/components/SettingsPage";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookUser, MessageCircle, Archive, Settings, Search } from "lucide-react";
+import { MessageSquare, Users, Archive, Settings, Plus, Menu, X, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function MainApp() {
