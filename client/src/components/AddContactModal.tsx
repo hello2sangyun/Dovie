@@ -210,5 +210,6 @@ export default function AddContactModal({ open, onClose }: AddContactModalProps)
       onClose={() => setShowQRScanner(false)}
       onScanResult={handleQRScanResult}
     />
-    </>;
+    </>
+  );
 }
