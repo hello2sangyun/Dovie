@@ -61,33 +61,15 @@ export default function CommandModal({
       // 영문자를 소문자로 변환
       const processedCommandName = commandName.toLowerCase();
       
-      let finalFileData = fileData;
-
-      // 메시지 데이터가 있는 경우 텍스트 파일로 변환
-      if (messageData) {
-        const textFileResponse = await apiRequest("POST", "/api/create-text-file", {
-          content: messageData.content,
-          fileName: processedCommandName
-        });
-        
-        const textFileData = await textFileResponse.json();
-        
-        finalFileData = {
-          fileUrl: textFileData.fileUrl,
-          fileName: textFileData.fileName,
-          fileSize: textFileData.fileSize
-        };
-      }
-      
       const commandData: any = {
         chatRoomId,
         commandName: processedCommandName,
       };
 
-      if (finalFileData) {
-        commandData.fileUrl = finalFileData.fileUrl;
-        commandData.fileName = finalFileData.fileName;
-        commandData.fileSize = finalFileData.fileSize;
+      if (fileData) {
+        commandData.fileUrl = fileData.fileUrl;
+        commandData.fileName = fileData.fileName;
+        commandData.fileSize = fileData.fileSize;
       }
 
       if (messageData) {
