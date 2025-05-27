@@ -11,9 +11,11 @@ import { cn } from "@/lib/utils";
 interface ChatAreaProps {
   chatRoomId: number;
   onCreateCommand: (fileData?: any) => void;
+  showMobileHeader?: boolean;
+  onBackClick?: () => void;
 }
 
-export default function ChatArea({ chatRoomId, onCreateCommand }: ChatAreaProps) {
+export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader, onBackClick }: ChatAreaProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -208,10 +210,20 @@ export default function ChatArea({ chatRoomId, onCreateCommand }: ChatAreaProps)
 
   return (
     <div className="h-full flex flex-col bg-gray-50">
-      {/* Chat Header - Fixed position */}
+      {/* Chat Header - Fixed position with Mobile Integration */}
       <div className="bg-white border-b border-gray-200 p-4 flex-shrink-0 sticky top-0 z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
+            {showMobileHeader && onBackClick && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onBackClick}
+                className="p-2 -ml-2 lg:hidden"
+              >
+                ←
+              </Button>
+            )}
             <div className="w-10 h-10 purple-gradient rounded-full flex items-center justify-center text-white font-semibold">
               {getInitials(currentChatRoom.name)}
             </div>
