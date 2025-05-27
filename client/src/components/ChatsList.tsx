@@ -68,8 +68,15 @@ export default function ChatsList({ onSelectChat, selectedChatId }: ChatsListPro
     return displayName.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
-  const pinnedChats = filteredChatRooms.filter((chat: any) => chat.isPinned);
-  const regularChats = filteredChatRooms.filter((chat: any) => !chat.isPinned);
+  // 최근 메시지 시간순으로 정렬 (최신순)
+  const sortedChatRooms = [...filteredChatRooms].sort((a: any, b: any) => {
+    const aTime = a.lastMessage ? new Date(a.lastMessage.createdAt).getTime() : 0;
+    const bTime = b.lastMessage ? new Date(b.lastMessage.createdAt).getTime() : 0;
+    return bTime - aTime; // 최신순 정렬
+  });
+
+  const pinnedChats = sortedChatRooms.filter((chat: any) => chat.isPinned);
+  const regularChats = sortedChatRooms.filter((chat: any) => !chat.isPinned);
 
   const getInitials = (name: string) => {
     return name.split(' ').map(word => word.charAt(0).toUpperCase()).join('').slice(0, 2);
