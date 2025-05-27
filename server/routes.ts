@@ -141,19 +141,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 인증 코드를 사용됨으로 표시
       await storage.markPhoneVerificationAsUsed(verification.id);
 
-      // 전화번호 인증 완료, 다음 단계는 이메일 인증
-      // 임시 데이터에 전화번호 저장 (사용자는 아직 생성하지 않음)
-      const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      tempVerificationData.set(tempId, {
-        phoneNumber,
-        timestamp: Date.now()
+      // 전화번호 인증 완료, 바로 사용자 생성하고 프로필 설정으로 이동
+      const phoneDigits = phoneNumber.replace(/[^\d]/g, '');
+      const timestamp = Date.now();
+      const userData = insertUserSchema.parse({
+        username: `user_${phoneDigits.slice(-8)}_${timestamp}`,
+        displayName: `사용자 ${phoneNumber.slice(-4)}`,
+        phoneNumber: phoneNumber,
       });
+
+      const newUser = await storage.createUser(userData);
+
+      // 사용자 온라인 상태 업데이트
+      await storage.updateUser(newUser.id, { isOnline: true });
       
       res.json({ 
         success: true,
-        nextStep: "email_verification",
-        tempId,
-        message: "전화번호 인증이 완료되었습니다. 이메일 인증을 진행해주세요."
+        nextStep: "profile_setup",
+        user: newUser,
+        message: "전화번호 인증이 완료되었습니다. 프로필을 설정해주세요."
       });
     } catch (error) {
       console.error("SMS verify error:", error);
