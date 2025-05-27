@@ -37,6 +37,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   }>({ visible: false, x: 0, y: 0, message: null });
 
   const [messageDataForCommand, setMessageDataForCommand] = useState<any>(null);
+  const [replyToMessage, setReplyToMessage] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatAreaRef = useRef<HTMLDivElement>(null);
@@ -355,6 +356,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         timestamp: contextMenu.message.createdAt,
       };
       onCreateCommand(null, messageData); // 파일 데이터 없이 메시지 데이터만 전달
+    }
+  };
+
+  const handleReplyMessage = () => {
+    if (contextMenu.message) {
+      setReplyToMessage(contextMenu.message);
     }
   };
 
@@ -764,6 +771,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         y={contextMenu.y}
         onClose={() => setContextMenu({ ...contextMenu, visible: false })}
         onSaveMessage={handleSaveMessage}
+        onReplyMessage={handleReplyMessage}
       />
 
 

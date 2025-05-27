@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Save } from "lucide-react";
+import { Save, Reply } from "lucide-react";
 
 interface MessageContextMenuProps {
   x: number;
   y: number;
   onClose: () => void;
   onSaveMessage: () => void;
+  onReplyMessage: () => void;
   visible: boolean;
 }
 
@@ -14,7 +15,8 @@ export default function MessageContextMenu({
   x, 
   y, 
   onClose, 
-  onSaveMessage, 
+  onSaveMessage,
+  onReplyMessage, 
   visible 
 }: MessageContextMenuProps) {
   useEffect(() => {
@@ -42,6 +44,12 @@ export default function MessageContextMenu({
     onClose();
   };
 
+  const handleReplyClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onReplyMessage();
+    onClose();
+  };
+
   return (
     <>
       {/* Backdrop */}
@@ -57,6 +65,15 @@ export default function MessageContextMenu({
                    animate-in fade-in-0 zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start px-3 py-2 h-auto text-left"
+          onClick={handleReplyClick}
+        >
+          <Reply className="w-4 h-4 mr-2" />
+          회신
+        </Button>
         <Button
           variant="ghost"
           size="sm"
