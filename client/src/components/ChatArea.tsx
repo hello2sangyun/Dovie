@@ -38,9 +38,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   const [messageDataForCommand, setMessageDataForCommand] = useState<any>(null);
   const [replyToMessage, setReplyToMessage] = useState<any>(null);
+  const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatAreaRef = useRef<HTMLDivElement>(null);
+  const messageRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
 
   // Get chat room details
   const { data: chatRoomsData } = useQuery({
@@ -375,6 +377,20 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
   };
 
+  // 회신 메시지 클릭 시 원본 메시지로 이동
+  const scrollToMessage = (messageId: number) => {
+    const messageElement = messageRefs.current[messageId];
+    if (messageElement) {
+      messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      // 메시지 강조 효과
+      setHighlightedMessageId(messageId);
+      setTimeout(() => {
+        setHighlightedMessageId(null);
+      }, 2000);
+    }
+  };
+
   // Mark messages as read when viewing chat
   useEffect(() => {
     if (messages.length > 0) {
@@ -506,7 +522,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse shadow-sm"></div>
             </div>
             <p className="text-xs text-yellow-700 text-center mt-1 opacity-90 font-medium">
-              Vault Messenger에서만 확인할 수 있습니다
+              Dovie Messenger에서만 확인할 수 있습니다
             </p>
           </div>
         </div>
@@ -532,9 +548,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                 )}
                 
                 <div 
+                  ref={(el) => messageRefs.current[msg.id] = el}
                   className={cn(
-                    "flex items-start space-x-3",
-                    isMe ? "flex-row-reverse space-x-reverse" : ""
+                    "flex items-start space-x-3 transition-all duration-500",
+                    isMe ? "flex-row-reverse space-x-reverse" : "",
+                    highlightedMessageId === msg.id && "bg-yellow-100 rounded-lg p-2 -mx-2"
                   )}
                   onContextMenu={(e) => handleMessageRightClick(e, msg)}
                   onTouchStart={(e) => {
@@ -564,7 +582,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   </Avatar>
                   
                   <div className={cn(
-                    "max-w-xs lg:max-w-md flex flex-col",
+                    "flex flex-col",
+                    msg.replyToMessageId ? "max-w-sm lg:max-w-lg" : "max-w-xs lg:max-w-md",
                     isMe ? "items-end" : "items-start"
                   )}>
                     {!isMe && (
@@ -598,12 +617,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     )}>
                       {/* 회신 메시지 표시 */}
                       {msg.replyToMessageId && (
-                        <div className={cn(
-                          "mb-2 pb-2 border-l-4 pl-3 rounded-l",
-                          isMe 
-                            ? "border-white/40 bg-white/10" 
-                            : "border-purple-400 bg-purple-50"
-                        )}>
+                        <div 
+                          className={cn(
+                            "mb-2 pb-2 border-l-4 pl-3 rounded-l cursor-pointer hover:opacity-80 transition-opacity",
+                            isMe 
+                              ? "border-white/40 bg-white/10" 
+                              : "border-purple-400 bg-purple-50"
+                          )}
+                          onClick={() => scrollToMessage(msg.replyToMessageId)}
+                        >
                           <div className="flex items-center space-x-1 mb-1">
                             <Reply className={cn(
                               "h-3 w-3",

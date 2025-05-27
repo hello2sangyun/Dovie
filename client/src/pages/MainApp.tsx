@@ -262,7 +262,7 @@ export default function MainApp() {
         </div>
 
         {/* Mobile Content with padding for fixed header and footer */}
-        <div className="flex-1 overflow-hidden pt-20 pb-20">
+        <div className="flex-1 overflow-hidden pt-20 pb-14">
           {activeMobileTab === "contacts" && (
             <ContactsList 
               onAddContact={() => openModal("addContact")}
