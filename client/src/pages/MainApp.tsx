@@ -170,14 +170,14 @@ export default function MainApp() {
         </div>
 
         {/* Main Chat Area */}
-        <div className="flex-1">
+        <div className="flex-1 flex flex-col">
           {selectedChatRoom ? (
             <ChatArea 
               chatRoomId={selectedChatRoom}
               onCreateCommand={() => openModal("command")}
             />
           ) : (
-            <div className="h-full flex items-center justify-center bg-gray-50">
+            <div className="flex-1 flex items-center justify-center bg-gray-50">
               <div className="text-center">
                 <VaultLogo size="lg" className="mx-auto mb-4 opacity-50" />
                 <p className="text-gray-500 text-lg">채팅방을 선택하여 대화를 시작하세요</p>
@@ -253,55 +253,57 @@ export default function MainApp() {
           )}
         </div>
 
-        {/* Mobile Bottom Navigation */}
-        <div className="bg-white border-t border-gray-200 p-2">
-          <div className="flex justify-around">
-            <Button
-              variant="ghost"
-              className={cn(
-                "flex flex-col items-center p-2",
-                activeMobileTab === "contacts" ? "text-purple-600" : "text-gray-400"
-              )}
-              onClick={() => setActiveMobileTab("contacts")}
-            >
-              <BookUser className="h-5 w-5 mb-1" />
-              <span className="text-xs">연락처</span>
-            </Button>
-            <Button
-              variant="ghost"
-              className={cn(
-                "flex flex-col items-center p-2",
-                activeMobileTab === "chats" ? "text-purple-600" : "text-gray-400"
-              )}
-              onClick={() => setActiveMobileTab("chats")}
-            >
-              <MessageCircle className="h-5 w-5 mb-1" />
-              <span className="text-xs">채팅방</span>
-            </Button>
-            <Button
-              variant="ghost"
-              className={cn(
-                "flex flex-col items-center p-2",
-                activeMobileTab === "archive" ? "text-purple-600" : "text-gray-400"
-              )}
-              onClick={() => setActiveMobileTab("archive")}
-            >
-              <Archive className="h-5 w-5 mb-1" />
-              <span className="text-xs">저장소</span>
-            </Button>
-            <Button
-              variant="ghost"
-              className={cn(
-                "flex flex-col items-center p-2",
-                activeMobileTab === "settings" ? "text-purple-600" : "text-gray-400"
-              )}
-              onClick={() => setActiveMobileTab("settings")}
-            >
-              <Settings className="h-5 w-5 mb-1" />
-              <span className="text-xs">설정</span>
-            </Button>
+        {/* Mobile Bottom Navigation - Hide when in chat */}
+        {!showMobileChat && (
+          <div className="bg-white border-t border-gray-200 p-2">
+            <div className="flex justify-around">
+              <Button
+                variant="ghost"
+                className={cn(
+                  "flex flex-col items-center p-2",
+                  activeMobileTab === "contacts" ? "text-purple-600" : "text-gray-400"
+                )}
+                onClick={() => setActiveMobileTab("contacts")}
+              >
+                <BookUser className="h-5 w-5 mb-1" />
+                <span className="text-xs">연락처</span>
+              </Button>
+              <Button
+                variant="ghost"
+                className={cn(
+                  "flex flex-col items-center p-2",
+                  activeMobileTab === "chats" ? "text-purple-600" : "text-gray-400"
+                )}
+                onClick={() => setActiveMobileTab("chats")}
+              >
+                <MessageCircle className="h-5 w-5 mb-1" />
+                <span className="text-xs">채팅방</span>
+              </Button>
+              <Button
+                variant="ghost"
+                className={cn(
+                  "flex flex-col items-center p-2",
+                  activeMobileTab === "archive" ? "text-purple-600" : "text-gray-400"
+                )}
+                onClick={() => setActiveMobileTab("archive")}
+              >
+                <Archive className="h-5 w-5 mb-1" />
+                <span className="text-xs">저장소</span>
+              </Button>
+              <Button
+                variant="ghost"
+                className={cn(
+                  "flex flex-col items-center p-2",
+                  activeMobileTab === "settings" ? "text-purple-600" : "text-gray-400"
+                )}
+                onClick={() => setActiveMobileTab("settings")}
+              >
+                <Settings className="h-5 w-5 mb-1" />
+                <span className="text-xs">설정</span>
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Modals */}
