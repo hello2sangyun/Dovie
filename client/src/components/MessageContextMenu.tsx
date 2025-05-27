@@ -42,46 +42,12 @@ export default function MessageContextMenu({
     onClose();
   };
 
-  // 화면 경계 내에서 위치 조정
-  const adjustPosition = () => {
-    const menuWidth = 150;
-    const menuHeight = 50;
-    const margin = 10;
-    
-    let adjustedX = x;
-    let adjustedY = y;
-    
-    // 오른쪽 경계 체크
-    if (x + menuWidth > window.innerWidth) {
-      adjustedX = window.innerWidth - menuWidth - margin;
-    }
-    
-    // 왼쪽 경계 체크
-    if (adjustedX < margin) {
-      adjustedX = margin;
-    }
-    
-    // 아래쪽 경계 체크
-    if (y + menuHeight > window.innerHeight) {
-      adjustedY = y - menuHeight - margin;
-    }
-    
-    // 위쪽 경계 체크
-    if (adjustedY < margin) {
-      adjustedY = margin;
-    }
-    
-    return { x: adjustedX, y: adjustedY };
-  };
-
-  const position = adjustPosition();
-
   return (
     <div
       className="fixed z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-2 min-w-[150px]"
       style={{
-        left: position.x,
-        top: position.y,
+        left: x,
+        top: y,
       }}
       onClick={(e) => e.stopPropagation()}
     >

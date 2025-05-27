@@ -323,12 +323,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Command routes
-  // Simple test endpoint to verify routing works
-  app.get("/api/commands/test", async (req, res) => {
-    console.log("TEST ENDPOINT HIT - /api/commands/test");
-    res.json({ status: "OK", message: "Test endpoint working" });
-  });
-
   app.get("/api/commands", async (req, res) => {
     const userId = req.headers["x-user-id"];
     if (!userId) {
@@ -352,38 +346,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/commands", async (req, res) => {
-    console.log("=== POST /api/commands - START ===");
-    console.log("Headers:", JSON.stringify(req.headers, null, 2));
-    console.log("Body:", JSON.stringify(req.body, null, 2));
-    
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
     try {
-      const userId = req.headers["x-user-id"];
-      console.log("Extracted userId:", userId);
-      
-      if (!userId) {
-        console.log("No userId found, returning 401");
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-
-      // Manually construct command data without strict schema validation first
-      const commandData: any = {
+      const commandData = insertCommandSchema.parse({
         userId: Number(userId),
-        chatRoomId: req.body.chatRoomId,
-        commandName: req.body.commandName,
-      };
+        ...req.body,
+      });
 
-      // Add optional fields only if they exist
-      if (req.body.fileUrl) commandData.fileUrl = req.body.fileUrl;
-      if (req.body.fileName) commandData.fileName = req.body.fileName;
-      if (req.body.fileSize) commandData.fileSize = req.body.fileSize;
-      if (req.body.savedText) commandData.savedText = req.body.savedText;
-      if (req.body.originalSenderId) commandData.originalSenderId = req.body.originalSenderId;
-      if (req.body.originalTimestamp) commandData.originalTimestamp = new Date(req.body.originalTimestamp);
-      if (req.body.messageId) commandData.messageId = req.body.messageId;
-
-      console.log("Constructed commandData:", JSON.stringify(commandData, null, 2));
-
-      // Check for duplicate command name
+      // Check for duplicate command name in the same chat room
       const existingCommand = await storage.getCommandByName(
         Number(userId),
         commandData.chatRoomId,
@@ -391,21 +365,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       if (existingCommand) {
-        console.log("Command name already exists");
         return res.status(409).json({ message: "Command name already exists in this chat room" });
       }
 
-      // Create command directly
       const command = await storage.createCommand(commandData);
-      console.log("Command created successfully:", command);
-      
       res.json({ command });
-    } catch (error: any) {
-      console.error("POST /api/commands - Full Error:", error);
-      console.error("Error stack:", error?.stack);
-      res.status(500).json({ message: "Failed to create command", error: error?.message || "Unknown error" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create command" });
     }
-    console.log("=== POST /api/commands - END ===");
   });
 
   app.delete("/api/commands/:commandId", async (req, res) => {

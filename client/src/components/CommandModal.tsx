@@ -56,87 +56,30 @@ export default function CommandModal({
 
   const createCommandMutation = useMutation({
     mutationFn: async () => {
-      console.log("Creating command with:", { chatRoomId, commandName, fileData, messageData });
-      
       if (!chatRoomId) throw new Error("Chat room ID required");
       
       // 영문자를 소문자로 변환
       const processedCommandName = commandName.toLowerCase();
       
-      let finalFileData = fileData;
-      
-      // 메시지 데이터가 있으면 텍스트 파일로 변환
+      const commandData: any = {
+        chatRoomId,
+        commandName: processedCommandName,
+      };
+
+      if (fileData) {
+        commandData.fileUrl = fileData.fileUrl;
+        commandData.fileName = fileData.fileName;
+        commandData.fileSize = fileData.fileSize;
+      }
+
       if (messageData) {
-        console.log("Converting message to text file:", messageData);
-        
-        // 메시지 내용을 텍스트 파일로 생성
-        const messageContent = `메시지 내용: ${messageData.content}\n발신자 ID: ${messageData.senderId}\n시간: ${messageData.timestamp}`;
-        const blob = new Blob([messageContent], { type: 'text/plain' });
-        const file = new File([blob], `message_${Date.now()}.txt`, { type: 'text/plain' });
-        
-        console.log("Created text file:", file.name, file.size);
-        
-        // 파일 업로드
-        const formData = new FormData();
-        formData.append('file', file);
-        
-        // FormData를 위한 특별한 fetch 요청 (apiRequest 대신 직접 fetch 사용)
-        const userId = localStorage.getItem("userId");
-        console.log("Uploading file with userId:", userId);
-        
-        const uploadResponse = await fetch("/api/upload", {
-          method: "POST",
-          headers: {
-            ...(userId ? { "x-user-id": userId } : {})
-          },
-          body: formData,
-          credentials: "include",
-        });
-        
-        console.log("Upload response status:", uploadResponse.status);
-        
-        if (!uploadResponse.ok) {
-          const errorText = await uploadResponse.text();
-          console.error("Upload failed:", errorText);
-          throw new Error(`Upload failed: ${errorText}`);
-        }
-        
-        const uploadResult = await uploadResponse.json();
-        
-        console.log("File upload result:", uploadResult);
-        
-        finalFileData = {
-          fileUrl: uploadResult.fileUrl,
-          fileName: file.name,
-          fileSize: file.size
-        };
+        commandData.savedText = messageData.content;
+        commandData.originalSenderId = messageData.senderId;
+        commandData.originalTimestamp = messageData.timestamp;
       }
-      
-      // 파일 데이터로 명령어 생성 (기존 방식 활용)
-      if (finalFileData) {
-        const commandData = {
-          chatRoomId,
-          commandName: processedCommandName,
-          fileUrl: finalFileData.fileUrl,
-          fileName: finalFileData.fileName,
-          fileSize: finalFileData.fileSize,
-        };
 
-        console.log("Final command data being sent:", commandData);
-
-        try {
-          const response = await apiRequest("POST", "/api/commands", commandData);
-          console.log("API response:", response);
-          const result = await response.json();
-          console.log("Parsed API result:", result);
-          return { command: result.command, processedCommandName };
-        } catch (error) {
-          console.error("API request failed:", error);
-          throw error;
-        }
-      } else {
-        throw new Error("No file or message data provided");
-      }
+      const response = await apiRequest("POST", "/api/commands", commandData);
+      return { ...response.json(), processedCommandName };
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/commands"] });

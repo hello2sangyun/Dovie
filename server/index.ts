@@ -3,24 +3,8 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
-
-// Add request logging middleware
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path} - Start processing request`);
-  console.log("Request headers:", req.headers);
-  next();
-});
-
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: false, limit: '50mb' }));
-
-// Add body logging middleware
-app.use((req, res, next) => {
-  if (req.path.includes('/api/commands')) {
-    console.log("POST /api/commands middleware - Request body:", req.body);
-  }
-  next();
-});
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -53,17 +37,9 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // First register all API routes before Vite middleware
   const server = await registerRoutes(app);
 
-  // Add error handler AFTER API routes but BEFORE Vite
-  app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
-    console.error("Global error handler caught:", err);
-    console.error("Request method:", req.method);
-    console.error("Request path:", req.path);
-    console.error("Request body:", req.body);
-    console.error("Request headers:", req.headers);
-    
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
@@ -71,7 +47,9 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // Setup Vite LAST so it doesn't interfere with API routes
+  // importantly only setup vite in development and after
+  // setting up all the other routes so the catch-all route
+  // doesn't interfere with the other routes
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
