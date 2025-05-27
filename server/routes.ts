@@ -3,7 +3,12 @@ import express from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema } from "@shared/schema";
+import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, users } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
+
+// 임시 인증 데이터 저장소 (실제로는 Redis 등을 사용해야 함)
+const tempVerificationData = new Map<string, { phoneNumber: string; email?: string; timestamp: number }>();
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -60,6 +65,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Phone number and country code are required" });
       }
 
+      const fullPhoneNumber = `${countryCode}${phoneNumber}`;
+
+      // 기존 사용자가 있어도 인증 코드는 전송 (로그인 목적)
+
       // 6자리 인증 코드 생성
       const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
       
@@ -78,9 +87,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isVerified: false,
       });
 
-      // 실제 SMS 전송은 여기에 구현 (Twilio, AWS SNS 등)
-      // 개발 환경에서는 콘솔에 로그
-      console.log(`SMS 인증 코드: ${verificationCode} (${phoneNumber})`);
+      // 개발 환경에서는 SMS 전송 없이 콘솔에서만 확인
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🔐 [개발용] SMS 인증 코드: ${verificationCode} (${phoneNumber})`);
+        console.log(`📱 위 코드를 인증 화면에 입력하세요!`);
+      } else {
+        // 프로덕션에서는 실제 SMS 전송
+        try {
+          const { sendSMSVerification } = await import('./sms');
+          await sendSMSVerification(phoneNumber, verificationCode);
+          console.log(`SMS 전송 성공: ${phoneNumber}`);
+        } catch (smsError) {
+          console.error("SMS 전송 실패:", smsError);
+          throw smsError;
+        }
+      }
 
       res.json({ 
         success: true, 
@@ -113,25 +134,444 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 인증 코드를 사용됨으로 표시
       await storage.markPhoneVerificationAsUsed(verification.id);
 
-      // 사용자 찾기 또는 생성
-      let user = await storage.getUserByUsername(phoneNumber.replace(/[^\d]/g, ''));
+      // 기존 사용자가 있는지 확인
+      const existingUser = await storage.getUserByPhoneNumber(phoneNumber);
       
-      if (!user) {
+      if (existingUser) {
+        // 기존 사용자 로그인
+        await storage.updateUser(existingUser.id, { isOnline: true });
+        res.json({ 
+          success: true,
+          nextStep: "login_complete",
+          user: existingUser,
+          message: "로그인이 완료되었습니다."
+        });
+      } else {
+        // 새 사용자 생성 및 프로필 설정으로 이동
+        const phoneDigits = phoneNumber.replace(/[^\d]/g, '');
+        const timestamp = Date.now();
         const userData = insertUserSchema.parse({
-          username: `user_${phoneNumber.replace(/[^\d]/g, '').slice(-8)}`,
+          username: `user_${phoneDigits.slice(-8)}_${timestamp}`,
           displayName: `사용자 ${phoneNumber.slice(-4)}`,
           phoneNumber: phoneNumber,
         });
-        user = await storage.createUser(userData);
+
+        const newUser = await storage.createUser(userData);
+
+        // 사용자 온라인 상태 업데이트
+        await storage.updateUser(newUser.id, { isOnline: true });
+        
+        res.json({ 
+          success: true,
+          nextStep: "profile_setup",
+          user: newUser,
+          message: "전화번호 인증이 완료되었습니다. 프로필을 설정해주세요."
+        });
       }
-
-      // 사용자 온라인 상태 업데이트
-      await storage.updateUser(user.id, { isOnline: true, phoneNumber });
-
-      res.json({ user });
     } catch (error) {
       console.error("SMS verify error:", error);
       res.status(500).json({ message: "인증에 실패했습니다." });
+    }
+  });
+
+  // 전화번호 중복 체크 (회원가입용)
+  app.post("/api/auth/check-phone", async (req, res) => {
+    try {
+      const { phoneNumber } = req.body;
+      
+      if (!phoneNumber) {
+        return res.status(400).json({ message: "Phone number is required" });
+      }
+
+      const existingUser = await storage.getUserByPhoneNumber(phoneNumber);
+      res.json({ 
+        available: !existingUser,
+        message: existingUser ? "이미 가입된 번호입니다" : "사용 가능한 번호입니다"
+      });
+    } catch (error) {
+      console.error("Phone check error:", error);
+      res.status(500).json({ message: "전화번호 확인에 실패했습니다." });
+    }
+  });
+
+  // 회원가입용 SMS 전송
+  app.post("/api/auth/signup-sms", async (req, res) => {
+    try {
+      const { phoneNumber, countryCode } = req.body;
+      
+      if (!phoneNumber || !countryCode) {
+        return res.status(400).json({ message: "Phone number and country code are required" });
+      }
+
+      const fullPhoneNumber = `${countryCode}${phoneNumber}`;
+
+      // 이미 가입된 번호인지 확인
+      const existingUser = await storage.getUserByPhoneNumber(fullPhoneNumber);
+      if (existingUser) {
+        return res.status(409).json({ 
+          message: "이미 가입된 전화번호입니다.",
+          error: "PHONE_ALREADY_EXISTS"
+        });
+      }
+
+      // 6자리 인증 코드 생성
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // 만료 시간 설정 (5분)
+      const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+      // 기존 미인증 코드 정리
+      await storage.cleanupExpiredVerifications();
+
+      // 새 인증 코드 저장
+      const verification = await storage.createPhoneVerification({
+        phoneNumber,
+        countryCode,
+        verificationCode,
+        expiresAt,
+        isVerified: false,
+      });
+
+      // 개발 환경에서는 SMS 전송 없이 콘솔에서만 확인
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🔐 [개발용] SMS 인증 코드: ${verificationCode} (${fullPhoneNumber})`);
+        console.log(`📱 위 코드를 인증 화면에 입력하세요!`);
+      } else {
+        // 프로덕션에서는 실제 SMS 전송
+        try {
+          const { sendSMSVerification } = await import('./sms');
+          await sendSMSVerification(fullPhoneNumber, verificationCode);
+          console.log(`SMS 전송 성공: ${fullPhoneNumber}`);
+        } catch (smsError) {
+          console.error("SMS 전송 실패:", smsError);
+          throw smsError;
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        message: "인증 코드를 전송했습니다.",
+        // 개발용으로만 포함 (프로덕션에서는 제거)
+        ...(process.env.NODE_ENV === 'development' && { verificationCode })
+      });
+    } catch (error) {
+      console.error("SMS send error:", error);
+      res.status(500).json({ message: "인증 코드 전송에 실패했습니다." });
+    }
+  });
+
+  // 회원가입용 SMS 인증
+  app.post("/api/auth/signup-verify-sms", async (req, res) => {
+    try {
+      const { phoneNumber, verificationCode } = req.body;
+      
+      if (!phoneNumber || !verificationCode) {
+        return res.status(400).json({ message: "Phone number and verification code are required" });
+      }
+
+      // 인증 코드 확인
+      const verification = await storage.getPhoneVerification(phoneNumber, verificationCode);
+      
+      if (!verification) {
+        return res.status(400).json({ message: "Invalid or expired verification code" });
+      }
+
+      // 인증 코드를 사용됨으로 표시
+      await storage.markPhoneVerificationAsUsed(verification.id);
+
+      // 새 사용자 생성
+      const phoneDigits = phoneNumber.replace(/[^\d]/g, '');
+      const timestamp = Date.now();
+      const userData = insertUserSchema.parse({
+        username: `user_${phoneDigits.slice(-8)}_${timestamp}`,
+        displayName: `사용자 ${phoneNumber.slice(-4)}`,
+        phoneNumber: phoneNumber,
+      });
+
+      const newUser = await storage.createUser(userData);
+
+      // 사용자 온라인 상태 업데이트
+      await storage.updateUser(newUser.id, { isOnline: true });
+      
+      res.json({ 
+        success: true,
+        user: newUser,
+        message: "전화번호 인증이 완료되었습니다. 프로필을 설정해주세요."
+      });
+    } catch (error) {
+      console.error("SMS verify error:", error);
+      res.status(500).json({ message: "인증에 실패했습니다." });
+    }
+  });
+
+  // 로그인용 SMS 전송
+  app.post("/api/auth/login-sms", async (req, res) => {
+    try {
+      const { phoneNumber, countryCode } = req.body;
+      
+      if (!phoneNumber || !countryCode) {
+        return res.status(400).json({ message: "Phone number and country code are required" });
+      }
+
+      const fullPhoneNumber = `${countryCode}${phoneNumber}`;
+
+      // 가입된 사용자인지 확인
+      const existingUser = await storage.getUserByPhoneNumber(fullPhoneNumber);
+      if (!existingUser) {
+        return res.status(404).json({ 
+          message: "가입되지 않은 전화번호입니다. 회원가입을 먼저 진행해주세요.",
+          error: "USER_NOT_FOUND"
+        });
+      }
+
+      // 6자리 인증 코드 생성
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // 만료 시간 설정 (5분)
+      const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+      // 기존 미인증 코드 정리
+      await storage.cleanupExpiredVerifications();
+
+      // 새 인증 코드 저장
+      const verification = await storage.createPhoneVerification({
+        phoneNumber,
+        countryCode,
+        verificationCode,
+        expiresAt,
+        isVerified: false,
+      });
+
+      // 개발 환경에서는 SMS 전송 없이 콘솔에서만 확인
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🔐 [개발용] SMS 인증 코드: ${verificationCode} (${fullPhoneNumber})`);
+        console.log(`📱 위 코드를 인증 화면에 입력하세요!`);
+      } else {
+        // 프로덕션에서는 실제 SMS 전송
+        try {
+          const { sendSMSVerification } = await import('./sms');
+          await sendSMSVerification(fullPhoneNumber, verificationCode);
+          console.log(`SMS 전송 성공: ${fullPhoneNumber}`);
+        } catch (smsError) {
+          console.error("SMS 전송 실패:", smsError);
+          throw smsError;
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        message: "인증 코드를 전송했습니다.",
+        // 개발용으로만 포함 (프로덕션에서는 제거)
+        ...(process.env.NODE_ENV === 'development' && { verificationCode })
+      });
+    } catch (error) {
+      console.error("SMS send error:", error);
+      res.status(500).json({ message: "인증 코드 전송에 실패했습니다." });
+    }
+  });
+
+  // 로그인용 SMS 인증
+  app.post("/api/auth/login-verify-sms", async (req, res) => {
+    try {
+      const { phoneNumber, verificationCode } = req.body;
+      
+      if (!phoneNumber || !verificationCode) {
+        return res.status(400).json({ message: "Phone number and verification code are required" });
+      }
+
+      // 인증 코드 확인
+      const verification = await storage.getPhoneVerification(phoneNumber, verificationCode);
+      
+      if (!verification) {
+        return res.status(400).json({ message: "Invalid or expired verification code" });
+      }
+
+      // 인증 코드를 사용됨으로 표시
+      await storage.markPhoneVerificationAsUsed(verification.id);
+
+      // 기존 사용자 로그인
+      const existingUser = await storage.getUserByPhoneNumber(phoneNumber);
+      if (!existingUser) {
+        return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+      }
+
+      // 사용자 온라인 상태 업데이트
+      await storage.updateUser(existingUser.id, { isOnline: true });
+      
+      res.json({ 
+        success: true,
+        user: existingUser,
+        message: "로그인이 완료되었습니다."
+      });
+    } catch (error) {
+      console.error("SMS verify error:", error);
+      res.status(500).json({ message: "인증에 실패했습니다." });
+    }
+  });
+
+  // 이메일 인증 코드 전송
+  app.post("/api/auth/send-email", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      // 임시 데이터에서 전화번호 확인
+      const { tempId } = req.body;
+      if (!tempId || !tempVerificationData.has(tempId)) {
+        return res.status(400).json({ message: "Phone verification required first" });
+      }
+
+      const tempData = tempVerificationData.get(tempId)!;
+
+      // 기존 사용자 확인 - 이미 가입된 이메일인지 체크
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(409).json({ 
+          message: "이미 가입되어 있는 이메일 주소입니다.",
+          error: "EMAIL_ALREADY_EXISTS"
+        });
+      }
+
+      // 6자리 인증 코드 생성
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // 만료 시간 설정 (10분)
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+      // 기존 미인증 코드 정리
+      await storage.cleanupExpiredEmailVerifications();
+
+      // 새 인증 코드 저장
+      const verification = await storage.createEmailVerification({
+        email,
+        verificationCode,
+        expiresAt,
+        isVerified: false,
+      });
+
+      // 개발 환경에서는 이메일 전송 없이 콘솔에서만 확인
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`📧 [개발용] 이메일 인증 코드: ${verificationCode} (${email})`);
+        console.log(`✉️ 위 코드를 이메일 인증 화면에 입력하세요!`);
+      } else {
+        // 프로덕션에서는 실제 이메일 전송
+        try {
+          const { sendEmailVerification } = await import('./email');
+          await sendEmailVerification(email, verificationCode);
+          console.log(`이메일 전송 성공: ${email}`);
+        } catch (emailError) {
+          console.error("이메일 전송 실패:", emailError);
+          throw emailError;
+        }
+      }
+
+      // 임시 데이터에 이메일 추가
+      tempData.email = email;
+      tempVerificationData.set(tempId, tempData);
+
+      res.json({ 
+        success: true, 
+        message: "인증 코드를 이메일로 전송했습니다.",
+        // 개발용으로만 포함 (프로덕션에서는 제거)
+        ...(process.env.NODE_ENV === 'development' && { verificationCode })
+      });
+    } catch (error) {
+      console.error("Email send error:", error);
+      res.status(500).json({ message: "이메일 전송에 실패했습니다." });
+    }
+  });
+
+  // 이메일 인증 코드 확인
+  app.post("/api/auth/verify-email", async (req, res) => {
+    try {
+      const { email, verificationCode, tempId } = req.body;
+      
+      if (!email || !verificationCode || !tempId) {
+        return res.status(400).json({ message: "Email, verification code, and tempId are required" });
+      }
+
+      // 임시 데이터 확인
+      if (!tempVerificationData.has(tempId)) {
+        return res.status(400).json({ message: "Invalid session. Please start over." });
+      }
+
+      const tempData = tempVerificationData.get(tempId)!;
+
+      // 인증 코드 확인
+      const verification = await storage.getEmailVerification(email, verificationCode);
+      
+      if (!verification) {
+        return res.status(400).json({ message: "Invalid or expired verification code" });
+      }
+
+      // 인증 코드를 사용됨으로 표시
+      await storage.markEmailVerificationAsUsed(verification.id);
+
+      // 이제 사용자 생성 - 전화번호와 이메일 인증이 모두 완료됨
+      const phoneDigits = tempData.phoneNumber.replace(/[^\d]/g, '');
+      const timestamp = Date.now();
+      const userData = insertUserSchema.parse({
+        username: `user_${phoneDigits.slice(-8)}_${timestamp}`,
+        displayName: `사용자 ${tempData.phoneNumber.slice(-4)}`,
+        phoneNumber: tempData.phoneNumber,
+        email: email,
+        isEmailVerified: true
+      });
+
+      const newUser = await storage.createUser(userData);
+
+      // 임시 데이터 삭제
+      tempVerificationData.delete(tempId);
+
+      // 사용자 온라인 상태 업데이트
+      await storage.updateUser(newUser.id, { isOnline: true });
+
+      res.json({ 
+        success: true,
+        nextStep: "profile_setup",
+        user: newUser,
+        message: "이메일 인증이 완료되었습니다. 프로필을 설정해주세요."
+      });
+    } catch (error) {
+      console.error("Email verify error:", error);
+      res.status(500).json({ message: "이메일 인증에 실패했습니다." });
+    }
+  });
+
+  // 프로필 설정 완료
+  app.post("/api/auth/complete-profile", async (req, res) => {
+    try {
+      const { userId, username, displayName, profilePicture } = req.body;
+      
+      if (!userId || !username || !displayName) {
+        return res.status(400).json({ message: "User ID, username, and display name are required" });
+      }
+
+      // 사용자명 중복 확인
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser && existingUser.id !== userId) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+
+      // 프로필 정보 업데이트
+      const updatedUser = await storage.updateUser(userId, { 
+        username,
+        displayName,
+        profilePicture,
+        isProfileComplete: true
+      });
+
+      res.json({ 
+        success: true,
+        user: updatedUser,
+        message: "프로필 설정이 완료되었습니다."
+      });
+    } catch (error) {
+      console.error("Profile setup error:", error);
+      res.status(500).json({ message: "프로필 설정에 실패했습니다." });
     }
   });
 

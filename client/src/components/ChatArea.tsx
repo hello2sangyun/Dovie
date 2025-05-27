@@ -10,7 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import AddFriendConfirmModal from "./AddFriendConfirmModal";
 import MessageContextMenu from "./MessageContextMenu";
-import PreviewModal from "./PreviewModal";
 import CommandModal from "./CommandModal";
 
 interface ChatAreaProps {
@@ -40,10 +39,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [messageDataForCommand, setMessageDataForCommand] = useState<any>(null);
   const [replyToMessage, setReplyToMessage] = useState<any>(null);
   const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
-  const [previewModal, setPreviewModal] = useState<{
-    open: boolean;
-    command: any;
-  }>({ open: false, command: null });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatAreaRef = useRef<HTMLDivElement>(null);
@@ -383,28 +378,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
   };
 
-  // 태그 명령어로 소환한 자료 클릭 시 PreviewModal 열기
-  const handleCommandRecallClick = (message: any) => {
-    if (message.isCommandRecall && message.isLocalOnly) {
-      // 명령어 데이터를 PreviewModal 형식으로 변환
-      const commandData = {
-        id: message.id,
-        commandName: message.content.slice(1), // # 제거
-        savedText: message.messageType === "text" ? message.content : undefined,
-        fileName: message.fileName,
-        fileUrl: message.fileUrl,
-        fileSize: message.fileSize,
-        createdAt: message.createdAt,
-        originalSender: message.sender
-      };
-      
-      setPreviewModal({
-        open: true,
-        command: commandData
-      });
-    }
-  };
-
   // 회신 메시지 클릭 시 원본 메시지로 이동
   const scrollToMessage = (messageId: number) => {
     const messageElement = messageRefs.current[messageId];
@@ -677,13 +650,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       
                       {msg.messageType === "file" ? (
                         <div>
-                          <div 
-                            className={cn(
-                              "flex items-center space-x-3",
-                              msg.isCommandRecall && msg.isLocalOnly && "cursor-pointer hover:opacity-80 transition-opacity"
-                            )}
-                            onClick={() => msg.isCommandRecall && msg.isLocalOnly ? handleCommandRecallClick(msg) : undefined}
-                          >
+                          <div className="flex items-center space-x-3">
                             <div className={cn(
                               "w-10 h-10 rounded-lg flex items-center justify-center",
                               msg.isCommandRecall && msg.isLocalOnly
@@ -715,21 +682,18 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                                 {msg.fileSize ? `${(msg.fileSize / 1024).toFixed(1)} KB` : ""}
                               </p>
                             </div>
-                            {!(msg.isCommandRecall && msg.isLocalOnly) && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className={cn(
-                                  isMe ? "text-white hover:bg-white/10" : "text-purple-600 hover:text-purple-700"
-                                )}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  window.open(msg.fileUrl, '_blank');
-                                }}
-                              >
-                                <Download className="h-4 w-4" />
-                              </Button>
-                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className={cn(
+                                msg.isCommandRecall && msg.isLocalOnly
+                                  ? isMe ? "text-white hover:bg-white/10" : "text-teal-700 hover:text-teal-800 hover:bg-teal-100"
+                                  : isMe ? "text-white hover:bg-white/10" : "text-purple-600 hover:text-purple-700"
+                              )}
+                              onClick={() => window.open(msg.fileUrl, '_blank')}
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
                           </div>
                           
                           {msg.isCommandRecall && (
@@ -917,12 +881,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         onReplyMessage={handleReplyMessage}
       />
 
-      {/* Preview Modal for Command Recall */}
-      <PreviewModal
-        open={previewModal.open}
-        onClose={() => setPreviewModal({ open: false, command: null })}
-        command={previewModal.command}
-      />
 
     </div>
   );

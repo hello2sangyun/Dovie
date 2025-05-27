@@ -1,55 +1,66 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import VaultLogo from "@/components/VaultLogo";
+import { MessageSquare, Check, X } from "lucide-react";
 import { countries } from "@/data/countries";
-import { Phone, MessageSquare } from "lucide-react";
 
-export default function PhoneLogin() {
+export default function Signup() {
   const { setUser } = useAuth();
   const { toast } = useToast();
   const [step, setStep] = useState<"phone" | "verification">("phone");
-  const [selectedCountry, setSelectedCountry] = useState(countries.find(c => c.code === "KR") || countries[0]);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState(countries[0]);
   const [fullPhoneNumber, setFullPhoneNumber] = useState("");
-  const [tempId, setTempId] = useState("");
+  const [phoneStatus, setPhoneStatus] = useState<"checking" | "available" | "taken" | "">("");
 
-  // SMS 전송 요청
+  // 전화번호 중복 체크
+  const checkPhoneMutation = useMutation({
+    mutationFn: async (phoneNumber: string) => {
+      const response = await apiRequest("/api/auth/check-phone", "POST", { phoneNumber });
+      return response;
+    },
+    onSuccess: (data: any) => {
+      setPhoneStatus(data.available ? "available" : "taken");
+    },
+    onError: () => {
+      setPhoneStatus("");
+    },
+  });
+
+  // 전화번호 입력 시 실시간 체크
+  useEffect(() => {
+    if (phoneNumber.length >= 8) {
+      const fullPhone = `${selectedCountry.dialCode}${phoneNumber}`;
+      setPhoneStatus("checking");
+      const timer = setTimeout(() => {
+        checkPhoneMutation.mutate(fullPhone);
+      }, 500); // 0.5초 디바운스
+
+      return () => clearTimeout(timer);
+    } else {
+      setPhoneStatus("");
+    }
+  }, [phoneNumber, selectedCountry.dialCode]);
+
+  // SMS 인증 코드 전송 (회원가입용)
   const sendSMSMutation = useMutation({
     mutationFn: async (data: { phoneNumber: string; countryCode: string }) => {
-      try {
-        const response = await fetch("/api/auth/send-sms", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        });
-        
-        const result = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(result.message || "SMS 전송 실패");
-        }
-        
-        return result;
-      } catch (error) {
-        console.error("SMS 전송 오류:", error);
-        throw error;
-      }
+      const response = await apiRequest("/api/auth/signup-sms", "POST", data);
+      return response;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       console.log("SMS 전송 성공:", data);
-      setFullPhoneNumber(`${selectedCountry.dialCode}${phoneNumber}`);
       setStep("verification");
+      setFullPhoneNumber(`${selectedCountry.dialCode}${phoneNumber}`);
       toast({
         title: "인증 코드 전송",
         description: `${selectedCountry.dialCode}${phoneNumber}로 인증 코드를 전송했습니다.`,
@@ -57,81 +68,34 @@ export default function PhoneLogin() {
     },
     onError: (error: any) => {
       console.error("SMS 전송 실패:", error);
-      
-      // 중복 전화번호 에러 처리
-      if (error.message?.includes("이미 가입되어 있는 전화번호")) {
-        toast({
-          title: "이미 가입된 전화번호",
-          description: "이 전화번호로 이미 가입된 계정이 있습니다. 다른 번호를 사용하거나 기존 계정으로 로그인해주세요.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "오류",
-          description: "인증 코드 전송에 실패했습니다. 다시 시도해주세요.",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "전송 실패",
+        description: error.message || "인증 코드 전송에 실패했습니다.",
+        variant: "destructive",
+      });
     },
   });
 
-  // SMS 인증 확인
+  // SMS 인증 코드 확인 (회원가입용)
   const verifySMSMutation = useMutation({
     mutationFn: async (data: { phoneNumber: string; verificationCode: string }) => {
-      try {
-        const response = await fetch("/api/auth/verify-sms", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        });
-        
-        if (!response.ok) {
-          throw new Error("SMS 인증 실패");
-        }
-        
-        const result = await response.json();
-        return result;
-      } catch (error) {
-        console.error("SMS 인증 오류:", error);
-        throw error;
-      }
+      const response = await apiRequest("/api/auth/signup-verify-sms", "POST", data);
+      return response;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       console.log("SMS 인증 성공:", data);
-      console.log("nextStep:", data.nextStep);
-      console.log("user:", data.user);
-      
-      if (data.nextStep === "profile_setup" && data.user) {
-        setUser(data.user);
-        toast({
-          title: "전화번호 인증 완료",
-          description: "프로필을 설정해주세요.",
-        });
-        console.log("프로필 설정 페이지로 이동");
-        window.location.href = "/profile-setup";
-      } else if (data.nextStep === "login_complete" && data.user) {
-        setUser(data.user);
-        toast({
-          title: "로그인 성공",
-          description: "Dovie Messenger에 오신 것을 환영합니다!",
-        });
-        window.location.href = "/";
-      } else {
-        console.error("사용자 정보가 없습니다:", data);
-        toast({
-          title: "오류",
-          description: "인증 오류가 발생했습니다. 다시 시도해주세요.",
-          variant: "destructive",
-        });
-      }
+      setUser(data.user);
+      toast({
+        title: "전화번호 인증 완료",
+        description: "프로필을 설정해주세요.",
+      });
+      window.location.href = "/profile-setup";
     },
     onError: (error: any) => {
       console.error("SMS 인증 실패:", error);
       toast({
         title: "인증 실패",
-        description: "인증 코드가 올바르지 않습니다. 다시 확인해주세요.",
+        description: error.message || "인증 코드가 올바르지 않습니다.",
         variant: "destructive",
       });
     },
@@ -143,6 +107,15 @@ export default function PhoneLogin() {
       toast({
         title: "오류",
         description: "전화번호를 입력해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (phoneStatus !== "available") {
+      toast({
+        title: "오류",
+        description: "사용 가능한 전화번호를 입력해주세요.",
         variant: "destructive",
       });
       return;
@@ -171,6 +144,29 @@ export default function PhoneLogin() {
     });
   };
 
+  const getPhoneStatusMessage = () => {
+    switch (phoneStatus) {
+      case "checking":
+        return <span className="text-xs text-gray-500">확인 중...</span>;
+      case "available":
+        return (
+          <div className="flex items-center space-x-1 text-xs text-green-600">
+            <Check className="w-3 h-3" />
+            <span>사용 가능한 번호입니다</span>
+          </div>
+        );
+      case "taken":
+        return (
+          <div className="flex items-center space-x-1 text-xs text-red-600">
+            <X className="w-3 h-3" />
+            <span>이미 가입된 번호입니다</span>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-xl">
@@ -182,7 +178,7 @@ export default function PhoneLogin() {
             Dovie Messenger
           </CardTitle>
           <CardDescription>
-            {step === "phone" ? "전화번호로 빠르게 시작하세요" : "인증 코드를 입력해주세요"}
+            {step === "phone" ? "전화번호로 회원가입하세요" : "인증 코드를 입력해주세요"}
           </CardDescription>
         </CardHeader>
 
@@ -230,30 +226,41 @@ export default function PhoneLogin() {
                     className="flex-1"
                   />
                 </div>
+                {getPhoneStatusMessage()}
               </div>
 
-              <Button 
-                type="submit" 
-                className="w-full purple-gradient text-white"
-                disabled={sendSMSMutation.isPending}
-              >
-                {sendSMSMutation.isPending ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>인증 코드 전송 중...</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center space-x-2">
-                    <MessageSquare className="w-4 h-4" />
-                    <span>인증 코드 받기</span>
-                  </div>
-                )}
-              </Button>
+              <div className="flex space-x-2">
+                <Button 
+                  type="button"
+                  variant="outline"
+                  onClick={() => window.location.href = "/login"}
+                  className="flex-1"
+                >
+                  로그인하기
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="flex-1 purple-gradient text-white"
+                  disabled={sendSMSMutation.isPending || phoneStatus !== "available"}
+                >
+                  {sendSMSMutation.isPending ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>전송 중...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <MessageSquare className="w-4 h-4" />
+                      <span>인증 코드 받기</span>
+                    </div>
+                  )}
+                </Button>
+              </div>
             </form>
           ) : (
             <form onSubmit={handleVerifySMS} className="space-y-4">
               <div className="text-center space-y-2">
-                <Phone className="w-12 h-12 mx-auto text-purple-600" />
+                <MessageSquare className="w-12 h-12 mx-auto text-purple-600" />
                 <p className="text-sm text-gray-600">
                   <span className="font-medium">{fullPhoneNumber}</span>로<br />
                   인증 코드를 전송했습니다
@@ -273,43 +280,36 @@ export default function PhoneLogin() {
                 />
               </div>
 
-              <Button 
-                type="submit" 
-                className="w-full purple-gradient text-white"
-                disabled={verifySMSMutation.isPending || verificationCode.length !== 6}
-              >
-                {verifySMSMutation.isPending ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>인증 중...</span>
-                  </div>
-                ) : (
-                  "로그인"
-                )}
-              </Button>
-
-              <Button 
-                type="button" 
-                variant="ghost" 
-                className="w-full"
-                onClick={() => {
-                  setStep("phone");
-                  setVerificationCode("");
-                }}
-              >
-                전화번호 다시 입력
-              </Button>
+              <div className="flex space-x-2">
+                <Button 
+                  type="button"
+                  variant="outline"
+                  onClick={() => setStep("phone")}
+                  className="flex-1"
+                >
+                  뒤로
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="flex-1 purple-gradient text-white"
+                  disabled={verifySMSMutation.isPending}
+                >
+                  {verifySMSMutation.isPending ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>인증 중...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <MessageSquare className="w-4 h-4" />
+                      <span>회원가입</span>
+                    </div>
+                  )}
+                </Button>
+              </div>
             </form>
           )}
         </CardContent>
-
-        <CardFooter className="text-center">
-          <p className="text-xs text-gray-500 mx-auto">
-            계속 진행하면 Dovie Messenger의{" "}
-            <span className="text-purple-600 underline cursor-pointer">이용약관</span> 및{" "}
-            <span className="text-purple-600 underline cursor-pointer">개인정보처리방침</span>에 동의하는 것으로 간주됩니다.
-          </p>
-        </CardFooter>
       </Card>
     </div>
   );
