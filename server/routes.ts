@@ -78,9 +78,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isVerified: false,
       });
 
-      // 실제 SMS 전송은 여기에 구현 (Twilio, AWS SNS 등)
-      // 개발 환경에서는 콘솔에 로그
-      console.log(`SMS 인증 코드: ${verificationCode} (${phoneNumber})`);
+      // 실제 SMS 전송 (Twilio 사용)
+      try {
+        const { sendSMSVerification } = await import('./sms');
+        await sendSMSVerification(phoneNumber, verificationCode);
+        console.log(`SMS 전송 성공: ${phoneNumber}`);
+      } catch (smsError) {
+        console.error("SMS 전송 실패:", smsError);
+        // SMS 전송 실패시에도 개발 환경에서는 계속 진행
+        if (process.env.NODE_ENV !== 'development') {
+          throw smsError;
+        }
+      }
 
       res.json({ 
         success: true, 
