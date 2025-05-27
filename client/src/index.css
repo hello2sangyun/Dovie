@@ -110,6 +110,18 @@
     animation: slideUp 0.3s ease-out;
   }
 
+  .animate-wing-left {
+    animation: wingBeatLeft 0.8s ease-in-out infinite;
+  }
+
+  .animate-wing-right {
+    animation: wingBeatRight 0.8s ease-in-out infinite;
+  }
+
+  .animate-pulse-dot {
+    animation: pulseDot 1.5s ease-in-out infinite;
+  }
+
   /* 드래그 앤 드롭 깜빡임 방지 */
   html, body {
     overflow-anchor: none;
@@ -156,6 +168,35 @@
   @keyframes pulsePurple {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.7; }
+  }
+
+  @keyframes wingBeatLeft {
+    0%, 100% { 
+      transform: rotate(-20deg) scaleY(1);
+    }
+    50% { 
+      transform: rotate(-45deg) scaleY(0.8);
+    }
+  }
+
+  @keyframes wingBeatRight {
+    0%, 100% { 
+      transform: rotate(20deg) scaleY(1);
+    }
+    50% { 
+      transform: rotate(45deg) scaleY(0.8);
+    }
+  }
+
+  @keyframes pulseDot {
+    0%, 60%, 100% { 
+      opacity: 0.3;
+      transform: scale(1);
+    }
+    30% { 
+      opacity: 1;
+      transform: scale(1.2);
+    }
   }
 }
 

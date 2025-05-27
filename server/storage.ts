@@ -153,6 +153,7 @@ export class DatabaseStorage implements IStorage {
 
       const lastMessage = lastMessageData ? {
         ...lastMessageData.messages,
+        content: lastMessageData.messages.content ? decryptText(lastMessageData.messages.content) : lastMessageData.messages.content,
         sender: lastMessageData.users
       } : undefined;
 

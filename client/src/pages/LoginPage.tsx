@@ -55,10 +55,10 @@ export default function LoginPage() {
               <Button 
                 className="w-full" 
                 variant="secondary" 
-                disabled
+                onClick={() => setLocation("/phone-login")}
               >
                 <Phone className="mr-2 h-4 w-4" />
-                준비중
+                전화번호로 로그인
               </Button>
             </CardContent>
           </Card>
