@@ -255,65 +255,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { phoneNumber, verificationCode } = req.body;
       
       if (!phoneNumber || !verificationCode) {
-        return res.status(400).json({ message: "Phone number and country code are required" });
-      }
-
-      const fullPhoneNumber = `${countryCode}${phoneNumber}`;
-
-      // 기존 사용자가 있어도 인증 코드는 전송 (로그인 목적)
-
-      // 6자리 인증 코드 생성
-      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-      
-      // 만료 시간 설정 (5분)
-      const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
-
-      // 기존 미인증 코드 정리
-      await storage.cleanupExpiredVerifications();
-
-      // 새 인증 코드 저장
-      const verification = await storage.createPhoneVerification({
-        phoneNumber,
-        countryCode,
-        verificationCode,
-        expiresAt,
-        isVerified: false,
-      });
-
-      // 개발 환경에서는 SMS 전송 없이 콘솔에서만 확인
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`🔐 [개발용] SMS 인증 코드: ${verificationCode} (${phoneNumber})`);
-        console.log(`📱 위 코드를 인증 화면에 입력하세요!`);
-      } else {
-        // 프로덕션에서는 실제 SMS 전송
-        try {
-          const { sendSMSVerification } = await import('./sms');
-          await sendSMSVerification(phoneNumber, verificationCode);
-          console.log(`SMS 전송 성공: ${phoneNumber}`);
-        } catch (smsError) {
-          console.error("SMS 전송 실패:", smsError);
-          throw smsError;
-        }
-      }
-
-      res.json({ 
-        success: true, 
-        message: "인증 코드를 전송했습니다.",
-        // 개발용으로만 포함 (프로덕션에서는 제거)
-        ...(process.env.NODE_ENV === 'development' && { verificationCode })
-      });
-    } catch (error) {
-      console.error("SMS send error:", error);
-      res.status(500).json({ message: "인증 코드 전송에 실패했습니다." });
-    }
-  });
-
-  // SMS 인증 코드 확인
-  app.post("/api/auth/verify-sms", async (req, res) => {
-    try {
-      const { phoneNumber, verificationCode } = req.body;
-      
-      if (!phoneNumber || !verificationCode) {
         return res.status(400).json({ message: "Phone number and verification code are required" });
       }
 
@@ -327,15 +268,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 인증 코드를 사용됨으로 표시
       await storage.markPhoneVerificationAsUsed(verification.id);
 
-      // 기존 사용자가 있는지 확인
-      const existingUser = await storage.getUserByPhoneNumber(phoneNumber);
+      // 새 사용자 생성
+      const phoneDigits = phoneNumber.replace(/[^\d]/g, '');
+      const timestamp = Date.now();
+      const userData = insertUserSchema.parse({
+        username: `user_${phoneDigits.slice(-8)}_${timestamp}`,
+        displayName: `사용자 ${phoneNumber.slice(-4)}`,
+        phoneNumber: phoneNumber,
+      });
+
+      const newUser = await storage.createUser(userData);
+
+      // 사용자 온라인 상태 업데이트
+      await storage.updateUser(newUser.id, { isOnline: true });
       
-      if (existingUser) {
-        // 기존 사용자 로그인
-        await storage.updateUser(existingUser.id, { isOnline: true });
-        res.json({ 
-          success: true,
-          nextStep: "login_complete",
+      res.json({ 
+        success: true,
+        user: newUser,
+        message: "회원가입이 완료되었습니다. 프로필을 설정해주세요."
+      });
+    } catch (error) {
+      console.error("SMS verify signup error:", error);
+      res.status(500).json({ message: "회원가입에 실패했습니다." });
+    }
+  });
+
+  // 기존 SMS 인증 코드 (호환성 유지)
+  app.post("/api/auth/send-sms", async (req, res) => {
+    res.status(404).json({ message: "Deprecated endpoint. Use /api/auth/send-sms-login or /api/auth/send-sms-signup" });
+  });
+
+  // 기존 SMS 인증 코드 확인 (호환성 유지)
+  app.post("/api/auth/verify-sms", async (req, res) => {
+    res.status(404).json({ message: "Deprecated endpoint. Use /api/auth/verify-sms-login or /api/auth/verify-sms-signup" });
+  });
           user: existingUser,
           message: "로그인이 완료되었습니다."
         });
