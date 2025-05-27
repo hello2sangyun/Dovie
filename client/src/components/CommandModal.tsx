@@ -56,6 +56,8 @@ export default function CommandModal({
 
   const createCommandMutation = useMutation({
     mutationFn: async () => {
+      console.log("Creating command with:", { chatRoomId, commandName, fileData, messageData });
+      
       if (!chatRoomId) throw new Error("Chat room ID required");
       
       // 영문자를 소문자로 변환
@@ -70,13 +72,17 @@ export default function CommandModal({
         commandData.fileUrl = fileData.fileUrl;
         commandData.fileName = fileData.fileName;
         commandData.fileSize = fileData.fileSize;
+        console.log("Adding file data to command:", commandData);
       }
 
       if (messageData) {
         commandData.savedText = messageData.content;
         commandData.originalSenderId = messageData.senderId;
-        commandData.originalTimestamp = messageData.timestamp;
+        commandData.originalTimestamp = new Date(messageData.timestamp).toISOString();
+        console.log("Adding message data to command:", commandData);
       }
+
+      console.log("Final command data being sent:", commandData);
 
       const response = await apiRequest("POST", "/api/commands", commandData);
       return { ...response.json(), processedCommandName };

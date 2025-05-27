@@ -348,11 +348,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   const handleSaveMessage = () => {
     if (contextMenu.message) {
-      setMessageDataForCommand({
+      console.log("Saving message:", contextMenu.message);
+      const messageData = {
         content: contextMenu.message.content,
         senderId: contextMenu.message.senderId,
         timestamp: contextMenu.message.createdAt,
-      });
+      };
+      console.log("Message data for command:", messageData);
+      setMessageDataForCommand(messageData);
       setShowCommandModal(true);
     }
   };
