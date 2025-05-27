@@ -12,6 +12,7 @@ import ChatArea from "@/components/ChatArea";
 import AddContactModal from "@/components/AddContactModal";
 import CommandModal from "@/components/CommandModal";
 import SettingsModal from "@/components/SettingsModal";
+import SettingsPage from "@/components/SettingsPage";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookUser, MessageCircle, Archive, Settings, Search } from "lucide-react";
@@ -238,14 +239,7 @@ export default function MainApp() {
           )}
           {activeMobileTab === "archive" && <ArchiveList />}
           {activeMobileTab === "settings" && (
-            <div className="p-4">
-              <Button 
-                onClick={() => openModal("settings")}
-                className="w-full purple-gradient"
-              >
-                설정 열기
-              </Button>
-            </div>
+            <SettingsPage isMobile={true} />
           )}
         </div>
 
