@@ -253,28 +253,30 @@ export default function AddContactModal({ open, onClose }: AddContactModalProps)
           top: '10px',
           left: '50%',
           transform: 'translateX(-50%)',
-          width: '90vw',
-          maxWidth: '380px',
-          height: `${Math.min(window.innerHeight - keyboardHeight - 20, 420)}px`,
-          minHeight: '280px'
+          width: '85vw',
+          maxWidth: '320px',
+          height: `${Math.min(window.innerHeight - keyboardHeight - 20, 350)}px`,
+          minHeight: '260px',
+          padding: '12px'
         } : isMobile ? {
-          width: '90vw',
-          maxWidth: '380px',
-          maxHeight: '70vh'
+          width: '85vw',
+          maxWidth: '320px',
+          maxHeight: '60vh',
+          padding: '12px'
         } : {
           maxHeight: '80vh'
         }}
       >
         <div className={`flex flex-col ${isMobile && keyboardHeight > 0 ? 'h-full' : ''}`}>
-          <DialogHeader className={isMobile && keyboardHeight > 0 ? 'flex-shrink-0' : ''}>
-            <DialogTitle>친구 추가</DialogTitle>
+          <DialogHeader className={`${isMobile && keyboardHeight > 0 ? 'flex-shrink-0' : ''} ${isMobile ? 'pb-2' : ''}`}>
+            <DialogTitle className={isMobile ? 'text-base' : ''}>친구 추가</DialogTitle>
           </DialogHeader>
           
-          <div className={`${isMobile && keyboardHeight > 0 ? 'flex-1 overflow-y-auto' : ''}`}>
-            <form onSubmit={handleSubmit} className={`${isMobile ? 'space-y-3' : 'space-y-4'}`}>
-              <div className={isMobile ? 'space-y-2' : 'space-y-3'}>
+          <div className={`${isMobile && keyboardHeight > 0 ? 'flex-1 overflow-y-auto' : ''} ${isMobile ? '-mt-2' : ''}`}>
+            <form onSubmit={handleSubmit} className={`${isMobile ? 'space-y-2' : 'space-y-4'}`}>
+              <div className={isMobile ? 'space-y-1.5' : 'space-y-3'}>
                 <div>
-                  <Label htmlFor="contactUsername" className={`font-medium text-gray-700 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                  <Label htmlFor="contactUsername" className={`font-medium text-gray-700 ${isMobile ? 'text-xs mb-1' : 'text-sm'}`}>
                     사용자 ID
                   </Label>
                   <Input
@@ -283,48 +285,50 @@ export default function AddContactModal({ open, onClose }: AddContactModalProps)
                     placeholder="@username"
                     value={contactUsername}
                     onChange={(e) => setContactUsername(e.target.value)}
-                    className={`${isMobile ? 'mt-0.5 h-9' : 'mt-1'}`}
+                    className={`${isMobile ? 'h-8 text-sm px-2' : 'mt-1'}`}
                     disabled={addContactMutation.isPending}
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="nickname" className={`font-medium text-gray-700 ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                    표시될 닉네임 (선택사항)
+                  <Label htmlFor="nickname" className={`font-medium text-gray-700 ${isMobile ? 'text-xs mb-1' : 'text-sm'}`}>
+                    닉네임 (선택)
                   </Label>
                   <Input
                     id="nickname"
                     type="text"
-                    placeholder="닉네임을 입력하세요"
+                    placeholder="닉네임"
                     value={nickname}
                     onChange={(e) => setNickname(e.target.value)}
-                    className={`${isMobile ? 'mt-0.5 h-9' : 'mt-1'}`}
+                    className={`${isMobile ? 'h-8 text-sm px-2' : 'mt-1'}`}
                     disabled={addContactMutation.isPending}
                   />
-                  <p className={`text-gray-500 ${isMobile ? 'text-xs mt-0.5' : 'text-xs mt-1'}`}>
-                    입력하지 않으면 사용자 ID가 표시됩니다
-                  </p>
+                  {!isMobile && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      입력하지 않으면 사용자 ID가 표시됩니다
+                    </p>
+                  )}
                 </div>
               </div>
               
-              <div className={`border-t border-gray-200 ${isMobile ? 'pt-2 space-y-2' : 'pt-4 space-y-3'}`}>
+              <div className={`border-t border-gray-200 ${isMobile ? 'pt-1.5 space-y-1.5' : 'pt-4 space-y-3'}`}>
                 <Button
                   type="submit"
-                  className={`w-full purple-gradient hover:purple-gradient-hover ${isMobile ? 'h-9 text-sm' : ''}`}
+                  className={`w-full purple-gradient hover:purple-gradient-hover ${isMobile ? 'h-8 text-xs px-2' : ''}`}
                   disabled={addContactMutation.isPending}
                 >
-                  <UserPlus className={`mr-2 ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                  <UserPlus className={`${isMobile ? 'h-3 w-3 mr-1' : 'mr-2 h-4 w-4'}`} />
                   {addContactMutation.isPending ? "추가 중..." : "친구 추가"}
                 </Button>
                 
                 <Button
                   type="button"
                   variant="outline"
-                  className={`w-full ${isMobile ? 'h-9 text-sm' : ''}`}
+                  className={`w-full ${isMobile ? 'h-8 text-xs px-2' : ''}`}
                   onClick={() => setShowQRScanner(true)}
                 >
-                  <Camera className={`mr-2 ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
-                  QR 코드 스캔
+                  <Camera className={`${isMobile ? 'h-3 w-3 mr-1' : 'mr-2 h-4 w-4'}`} />
+                  QR 스캔
                 </Button>
               </div>
             </form>
