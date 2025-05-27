@@ -78,15 +78,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isVerified: false,
       });
 
-      // 실제 SMS 전송 (Twilio 사용)
-      try {
-        const { sendSMSVerification } = await import('./sms');
-        await sendSMSVerification(phoneNumber, verificationCode);
-        console.log(`SMS 전송 성공: ${phoneNumber}`);
-      } catch (smsError) {
-        console.error("SMS 전송 실패:", smsError);
-        // SMS 전송 실패시에도 개발 환경에서는 계속 진행
-        if (process.env.NODE_ENV !== 'development') {
+      // 개발 환경에서는 SMS 전송 없이 콘솔에서만 확인
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🔐 [개발용] SMS 인증 코드: ${verificationCode} (${phoneNumber})`);
+        console.log(`📱 위 코드를 인증 화면에 입력하세요!`);
+      } else {
+        // 프로덕션에서는 실제 SMS 전송
+        try {
+          const { sendSMSVerification } = await import('./sms');
+          await sendSMSVerification(phoneNumber, verificationCode);
+          console.log(`SMS 전송 성공: ${phoneNumber}`);
+        } catch (smsError) {
+          console.error("SMS 전송 실패:", smsError);
           throw smsError;
         }
       }
@@ -176,15 +179,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isVerified: false,
       });
 
-      // 실제 이메일 전송 (SendGrid 사용)
-      try {
-        const { sendEmailVerification } = await import('./email');
-        await sendEmailVerification(email, verificationCode);
-        console.log(`이메일 전송 성공: ${email}`);
-      } catch (emailError) {
-        console.error("이메일 전송 실패:", emailError);
-        // 이메일 전송 실패시에도 개발 환경에서는 계속 진행
-        if (process.env.NODE_ENV !== 'development') {
+      // 개발 환경에서는 이메일 전송 없이 콘솔에서만 확인
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`📧 [개발용] 이메일 인증 코드: ${verificationCode} (${email})`);
+        console.log(`✉️ 위 코드를 이메일 인증 화면에 입력하세요!`);
+      } else {
+        // 프로덕션에서는 실제 이메일 전송
+        try {
+          const { sendEmailVerification } = await import('./email');
+          await sendEmailVerification(email, verificationCode);
+          console.log(`이메일 전송 성공: ${email}`);
+        } catch (emailError) {
+          console.error("이메일 전송 실패:", emailError);
           throw emailError;
         }
       }
