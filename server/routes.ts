@@ -67,14 +67,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const fullPhoneNumber = `${countryCode}${phoneNumber}`;
 
-      // 기존 사용자 확인 - 이미 가입된 전화번호인지 체크
-      const existingUser = await storage.getUserByPhoneNumber(fullPhoneNumber);
-      if (existingUser) {
-        return res.status(409).json({ 
-          message: "이미 가입되어 있는 전화번호입니다. 다른 번호를 사용해주세요.",
-          error: "PHONE_ALREADY_EXISTS"
-        });
-      }
+      // 기존 사용자가 있어도 인증 코드는 전송 (로그인 목적)
 
       // 6자리 인증 코드 생성
       const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
