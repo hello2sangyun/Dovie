@@ -62,7 +62,7 @@ export default function PhoneLogin() {
       if (error.message?.includes("이미 가입되어 있는 전화번호")) {
         toast({
           title: "이미 가입된 전화번호",
-          description: "이미 가입되어 있는 전화번호입니다. 다른 번호를 사용해주세요.",
+          description: "이 전화번호로 이미 가입된 계정이 있습니다. 다른 번호를 사용하거나 기존 계정으로 로그인해주세요.",
           variant: "destructive",
         });
       } else {

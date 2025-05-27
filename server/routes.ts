@@ -71,7 +71,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const existingUser = await storage.getUserByPhoneNumber(fullPhoneNumber);
       if (existingUser) {
         return res.status(409).json({ 
-          message: "이미 가입되어 있는 전화번호입니다.",
+          message: "이미 가입되어 있는 전화번호입니다. 다른 번호를 사용해주세요.",
           error: "PHONE_ALREADY_EXISTS"
         });
       }
