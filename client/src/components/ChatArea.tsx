@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import AddFriendConfirmModal from "./AddFriendConfirmModal";
 import MessageContextMenu from "./MessageContextMenu";
+import PreviewModal from "./PreviewModal";
 import CommandModal from "./CommandModal";
 
 interface ChatAreaProps {
@@ -39,6 +40,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [messageDataForCommand, setMessageDataForCommand] = useState<any>(null);
   const [replyToMessage, setReplyToMessage] = useState<any>(null);
   const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
+  const [previewModal, setPreviewModal] = useState<{
+    open: boolean;
+    command: any;
+  }>({ open: false, command: null });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatAreaRef = useRef<HTMLDivElement>(null);
