@@ -304,20 +304,37 @@ export class DatabaseStorage implements IStorage {
   }
 
   async markMessagesAsRead(userId: number, chatRoomId: number, lastMessageId: number): Promise<void> {
-    await db
-      .insert(messageReads)
-      .values({
-        userId,
-        chatRoomId,
-        lastReadMessageId: lastMessageId,
-      })
-      .onConflictDoUpdate({
-        target: [messageReads.userId, messageReads.chatRoomId],
-        set: {
+    // 기존 레코드가 있는지 확인
+    const [existingRecord] = await db
+      .select()
+      .from(messageReads)
+      .where(and(
+        eq(messageReads.userId, userId),
+        eq(messageReads.chatRoomId, chatRoomId)
+      ));
+
+    if (existingRecord) {
+      // 업데이트
+      await db
+        .update(messageReads)
+        .set({
           lastReadMessageId: lastMessageId,
           lastReadAt: new Date(),
-        },
-      });
+        })
+        .where(and(
+          eq(messageReads.userId, userId),
+          eq(messageReads.chatRoomId, chatRoomId)
+        ));
+    } else {
+      // 새로 삽입
+      await db
+        .insert(messageReads)
+        .values({
+          userId,
+          chatRoomId,
+          lastReadMessageId: lastMessageId,
+        });
+    }
   }
 
   async getUnreadCounts(userId: number): Promise<{ chatRoomId: number; unreadCount: number }[]> {

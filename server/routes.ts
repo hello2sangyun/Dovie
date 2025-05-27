@@ -289,6 +289,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Text file creation endpoint for message saving
+  app.post("/api/create-text-file", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { content, fileName } = req.body;
+      if (!content || !fileName) {
+        return res.status(400).json({ message: "Content and fileName are required" });
+      }
+
+      // 안전한 파일명 생성
+      const safeFileName = fileName.replace(/[^a-zA-Z0-9가-힣._-]/g, '_') + '.txt';
+      const filePath = path.join(uploadDir, `${Date.now()}_${safeFileName}`);
+      
+      // 텍스트 파일 생성
+      await fs.writeFile(filePath, content, 'utf8');
+      
+      const fileStats = await fs.stat(filePath);
+      const fileUrl = `/uploads/${path.basename(filePath)}`;
+
+      res.json({
+        fileUrl,
+        fileName: safeFileName,
+        fileSize: fileStats.size,
+      });
+    } catch (error) {
+      console.error('Text file creation error:', error);
+      res.status(500).json({ message: "Text file creation failed" });
+    }
+  });
+
   // Serve uploaded files
   app.use("/uploads", express.static(uploadDir));
 
