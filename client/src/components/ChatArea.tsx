@@ -135,6 +135,30 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   const messages = messagesData?.messages || [];
   const commands = commandsData?.commands || [];
+  const contacts = contactsData?.contacts || [];
+
+  // 채팅방 이름을 상대방의 닉네임으로 표시하는 함수
+  const getChatRoomDisplayName = (chatRoom: any) => {
+    if (!chatRoom) return "";
+    
+    // 상대방 찾기 (본인이 아닌 참가자)
+    const otherParticipant = chatRoom.participants?.find((p: any) => p.id !== user?.id);
+    
+    if (!otherParticipant) {
+      return chatRoom.name; // 기본 이름
+    }
+
+    // 연락처에서 해당 사용자의 닉네임 찾기
+    const contact = contacts.find((c: any) => c.contactUserId === otherParticipant.id);
+    
+    if (contact && contact.nickname) {
+      return contact.nickname; // 설정된 닉네임
+    }
+    
+    return otherParticipant.displayName || otherParticipant.username; // 표시 이름 또는 사용자명
+  };
+
+  const chatRoomDisplayName = getChatRoomDisplayName(currentChatRoom);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -366,10 +390,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               </Button>
             )}
             <div className="w-10 h-10 purple-gradient rounded-full flex items-center justify-center text-white font-semibold">
-              {getInitials(currentChatRoom.name)}
+              {getInitials(chatRoomDisplayName)}
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">{currentChatRoom.name}</h3>
+              <h3 className="font-semibold text-gray-900">{chatRoomDisplayName}</h3>
               <p className="text-sm text-gray-500">
                 {currentChatRoom.participants?.length}명 참여
               </p>
