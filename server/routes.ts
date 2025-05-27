@@ -332,6 +332,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user by ID for QR scanning
+  app.get("/api/users/:id", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const { id } = req.params;
+    if (!id || isNaN(Number(id))) {
+      return res.status(400).json({ error: "Valid user ID is required" });
+    }
+
+    try {
+      const user = await storage.getUser(Number(id));
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Don't return sensitive information
+      const { password, ...userInfo } = user as any;
+      res.json({ user: userInfo });
+    } catch (error) {
+      console.error("Error getting user:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // WebSocket setup

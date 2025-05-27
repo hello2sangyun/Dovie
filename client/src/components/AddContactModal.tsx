@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,7 +7,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, QrCode } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UserPlus, QrCode, Camera, Download } from "lucide-react";
+import QrCode from 'qrcode';
+import QRScannerModal from "./QRScannerModal";
 
 interface AddContactModalProps {
   open: boolean;
@@ -20,6 +23,9 @@ export default function AddContactModal({ open, onClose }: AddContactModalProps)
   const queryClient = useQueryClient();
   const [contactUsername, setContactUsername] = useState("");
   const [nickname, setNickname] = useState("");
+  const [showQRScanner, setShowQRScanner] = useState(false);
+  const [myQRCode, setMyQRCode] = useState<string>("");
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const addContactMutation = useMutation({
     mutationFn: async () => {
