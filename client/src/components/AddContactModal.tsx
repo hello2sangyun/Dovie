@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserPlus, QrCode, Camera, Download } from "lucide-react";
+import { UserPlus, QrCode as QrCodeIcon, Camera, Download } from "lucide-react";
 import QrCode from 'qrcode';
 import QRScannerModal from "./QRScannerModal";
 
@@ -71,7 +71,75 @@ export default function AddContactModal({ open, onClose }: AddContactModalProps)
     addContactMutation.mutate();
   };
 
+  // QR 코드 생성
+  useEffect(() => {
+    if (open && user?.id) {
+      generateQRCode();
+    }
+  }, [open, user?.id]);
+
+  const generateQRCode = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const qrData = JSON.stringify({
+        type: 'vault_user',
+        userId: user.id,
+        username: user.username,
+        displayName: user.displayName
+      });
+      
+      const qrCodeDataUrl = await QrCode.toDataURL(qrData, {
+        width: 256,
+        margin: 2,
+        color: {
+          dark: '#7C3AED', // 보라색
+          light: '#FFFFFF'
+        }
+      });
+      
+      setMyQRCode(qrCodeDataUrl);
+    } catch (error) {
+      console.error('QR 코드 생성 실패:', error);
+    }
+  };
+
+  // QR 스캔 결과 처리
+  const handleQRScanResult = async (userId: number, userData: any) => {
+    try {
+      const response = await apiRequest("POST", "/api/contacts", {
+        contactUserId: userId,
+        nickname: userData.displayName || userData.username,
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
+      toast({
+        title: "친구 추가 완료",
+        description: `${userData.displayName || userData.username}님이 친구로 추가되었습니다.`,
+      });
+      
+      onClose();
+    } catch (error) {
+      toast({
+        title: "친구 추가 실패",
+        description: "이미 추가된 친구이거나 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // QR 코드 다운로드
+  const downloadQRCode = () => {
+    if (!myQRCode) return;
+    
+    const link = document.createElement('a');
+    link.download = `vault-qr-${user?.username}.png`;
+    link.href = myQRCode;
+    link.click();
+  };
+
   return (
+    <>
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="w-full max-w-md">
         <DialogHeader>
@@ -126,14 +194,21 @@ export default function AddContactModal({ open, onClose }: AddContactModalProps)
               type="button"
               variant="outline"
               className="w-full"
-              disabled
+              onClick={() => setShowQRScanner(true)}
             >
-              <QrCode className="mr-2 h-4 w-4" />
-              QR 코드 스캔 (준비중)
+              <Camera className="mr-2 h-4 w-4" />
+              QR 코드 스캔
             </Button>
           </div>
         </form>
       </DialogContent>
     </Dialog>
-  );
+
+    {/* QR Scanner Modal */}
+    <QRScannerModal
+      open={showQRScanner}
+      onClose={() => setShowQRScanner(false)}
+      onScanResult={handleQRScanResult}
+    />
+    </>;
 }
