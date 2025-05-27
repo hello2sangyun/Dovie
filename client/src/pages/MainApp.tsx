@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWebSocket } from "@/hooks/useWebSocket";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import VaultLogo from "@/components/VaultLogo";
 import ContactsList from "@/components/ContactsList";
 import ChatsList from "@/components/ChatsList";
@@ -16,6 +19,8 @@ import { cn } from "@/lib/utils";
 
 export default function MainApp() {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("contacts");
   const [activeMobileTab, setActiveMobileTab] = useState("contacts");
   const [selectedChatRoom, setSelectedChatRoom] = useState<number | null>(null);
@@ -26,6 +31,40 @@ export default function MainApp() {
   });
 
   useWebSocket(user?.id);
+
+  // Get contacts to find contact user data
+  const { data: contactsData } = useQuery({
+    queryKey: ["/api/contacts"],
+    enabled: !!user,
+  });
+
+  // Create chat room mutation
+  const createChatRoomMutation = useMutation({
+    mutationFn: async ({ contactUserId, contactUser }: { contactUserId: number, contactUser: any }) => {
+      const response = await apiRequest("POST", "/api/chat-rooms", {
+        name: contactUser.nickname || contactUser.displayName,
+        participantIds: [contactUserId],
+        isGroup: false,
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      setSelectedChatRoom(data.chatRoom.id);
+      setActiveTab("chats");
+      toast({
+        title: "채팅방 생성 완료",
+        description: "새로운 채팅방이 생성되었습니다.",
+      });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "채팅방 생성 실패",
+        description: "다시 시도해주세요.",
+      });
+    },
+  });
 
   const openModal = (modal: keyof typeof modals) => {
     setModals(prev => ({ ...prev, [modal]: true }));
@@ -102,9 +141,15 @@ export default function MainApp() {
               <TabsContent value="contacts" className="h-full m-0">
                 <ContactsList 
                   onAddContact={() => openModal("addContact")}
-                  onSelectContact={(contactId) => {
-                    setActiveTab("chats");
-                    // Create or select chat room logic would go here
+                  onSelectContact={(contactUserId) => {
+                    // Find the contact user data
+                    const contact = contactsData?.contacts?.find((c: any) => c.contactUserId === contactUserId);
+                    if (contact) {
+                      createChatRoomMutation.mutate({
+                        contactUserId,
+                        contactUser: contact.contactUser
+                      });
+                    }
                   }}
                 />
               </TabsContent>
