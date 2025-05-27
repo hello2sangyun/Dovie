@@ -24,11 +24,8 @@ export default function PhoneLogin() {
   // SMS 전송 요청
   const sendSMSMutation = useMutation({
     mutationFn: async (data: { phoneNumber: string; countryCode: string }) => {
-      const response = await apiRequest("/api/auth/send-sms", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
-      return response.json();
+      const response = await apiRequest("/api/auth/send-sms", "POST", data);
+      return response;
     },
     onSuccess: (data) => {
       setFullPhoneNumber(`${selectedCountry.dialCode}${phoneNumber}`);

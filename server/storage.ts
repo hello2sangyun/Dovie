@@ -1,11 +1,12 @@
 import { 
-  users, contacts, chatRooms, chatParticipants, messages, commands, messageReads,
+  users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications,
   type User, type InsertUser, type Contact, type InsertContact,
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
-  type Command, type InsertCommand, type MessageRead, type InsertMessageRead
+  type Command, type InsertCommand, type MessageRead, type InsertMessageRead,
+  type PhoneVerification, type InsertPhoneVerification
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, like, or, count, gt } from "drizzle-orm";
+import { eq, and, desc, asc, like, or, count, gt, lt } from "drizzle-orm";
 import { encryptText, decryptText } from "./crypto";
 
 export interface IStorage {
@@ -417,6 +418,37 @@ export class DatabaseStorage implements IStorage {
     }
 
     return unreadCounts;
+  }
+
+  async createPhoneVerification(verification: InsertPhoneVerification): Promise<PhoneVerification> {
+    const [newVerification] = await db.insert(phoneVerifications).values(verification).returning();
+    return newVerification;
+  }
+
+  async getPhoneVerification(phoneNumber: string, verificationCode: string): Promise<PhoneVerification | undefined> {
+    const [verification] = await db
+      .select()
+      .from(phoneVerifications)
+      .where(and(
+        eq(phoneVerifications.phoneNumber, phoneNumber),
+        eq(phoneVerifications.verificationCode, verificationCode),
+        eq(phoneVerifications.isVerified, false),
+        gt(phoneVerifications.expiresAt, new Date())
+      ));
+    return verification;
+  }
+
+  async markPhoneVerificationAsUsed(id: number): Promise<void> {
+    await db
+      .update(phoneVerifications)
+      .set({ isVerified: true })
+      .where(eq(phoneVerifications.id, id));
+  }
+
+  async cleanupExpiredVerifications(): Promise<void> {
+    await db
+      .delete(phoneVerifications)
+      .where(lt(phoneVerifications.expiresAt, new Date()));
   }
 }
 
