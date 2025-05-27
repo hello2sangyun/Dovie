@@ -15,12 +15,13 @@ export default function LandingPage() {
   }, [setLocation]);
 
   return (
-    <div className="fixed inset-0 bg-white flex items-center justify-center z-50">
+    <div className="fixed inset-0 purple-gradient flex items-center justify-center z-50">
       <div className="text-center animate-fade-in">
-        <DovieLogo withText={true} className="mx-auto mb-6" animated />
-        <p className="text-gray-600 text-lg mb-8">스마트한 메시지 관리 솔루션</p>
+        <DovieLogo size="xl" className="mx-auto mb-6" animated />
+        <h1 className="text-4xl font-bold text-white mb-2">Dovie</h1>
+        <p className="text-purple-100 text-lg mb-8">스마트한 메시지 관리 솔루션</p>
         <div className="flex justify-center">
-          <Loader2 className="w-8 h-8 text-purple-600 animate-spin" />
+          <Loader2 className="w-8 h-8 text-white animate-spin" />
         </div>
       </div>
     </div>

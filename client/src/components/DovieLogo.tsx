@@ -1,36 +1,31 @@
 import { cn } from "@/lib/utils";
 import dovieLogoPath from "../assets/dovie-logo.png";
-import dovieLogoTextPath from "../assets/dovie-logo-text.png";
 
 interface DovieLogoProps {
-  size?: "sm" | "md" | "lg" | "xl" | "2xl";
+  size?: "sm" | "md" | "lg" | "xl";
   className?: string;
   animated?: boolean;
-  withText?: boolean;
 }
 
-export default function DovieLogo({ size = "md", className, animated = false, withText = false }: DovieLogoProps) {
+export default function DovieLogo({ size = "md", className, animated = false }: DovieLogoProps) {
   const sizeClasses = {
     sm: "w-8 h-8",
     md: "w-12 h-12", 
     lg: "w-16 h-16",
-    xl: "w-24 h-24",
-    "2xl": "w-32 h-32"
+    xl: "w-24 h-24"
   };
-
-  const logoSrc = withText ? dovieLogoTextPath : dovieLogoPath;
 
   return (
     <div className={cn(
       "flex items-center justify-center",
-      withText ? "w-auto h-auto" : sizeClasses[size],
+      sizeClasses[size],
       animated && "animate-pulse",
       className
     )}>
       <img 
-        src={logoSrc} 
+        src={dovieLogoPath} 
         alt="Dovie Logo" 
-        className={withText ? "h-32 w-auto object-contain" : "w-full h-full object-contain"}
+        className="w-full h-full object-contain"
       />
     </div>
   );
