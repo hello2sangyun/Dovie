@@ -5,12 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter, Download, FileText, Code, Quote } from "lucide-react";
+import PreviewModal from "./PreviewModal";
 
 export default function ArchiveList() {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
+  const [selectedCommand, setSelectedCommand] = useState<any>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   const { data: commandsData, isLoading } = useQuery({
     queryKey: ["/api/commands", { search: searchTerm }],
@@ -90,6 +93,11 @@ export default function ArchiveList() {
     return `${truncatedName}...${extension}`;
   };
 
+  const handleCommandClick = (command: any) => {
+    setSelectedCommand(command);
+    setShowPreview(true);
+  };
+
   if (isLoading) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -166,6 +174,7 @@ export default function ArchiveList() {
               <div
                 key={command.id}
                 className="p-3 hover:bg-purple-50 cursor-pointer border-b border-gray-100 transition-colors"
+                onClick={() => handleCommandClick(command)}
               >
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -213,6 +222,18 @@ export default function ArchiveList() {
           </>
         )}
       </div>
+
+      {/* Preview Modal */}
+      {selectedCommand && (
+        <PreviewModal
+          open={showPreview}
+          onClose={() => {
+            setShowPreview(false);
+            setSelectedCommand(null);
+          }}
+          command={selectedCommand}
+        />
+      )}
     </div>
   );
 }
