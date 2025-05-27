@@ -39,11 +39,11 @@ export default function LoginPage() {
   });
 
   return (
-    <div className="fixed inset-0 bg-white flex items-center justify-center">
+    <div className="fixed inset-0 bg-white flex items-end justify-center pb-32">
       <div className="w-full max-w-md p-8 animate-slide-up">
         <div className="text-center mb-8">
-          <DovieLogo withText={true} className="mx-auto mb-6" />
-          <p className="text-gray-600">로그인하여 시작하세요</p>
+          <DovieLogo withText={true} className="mx-auto mb-8" />
+          <p className="text-gray-600 text-lg">로그인하여 시작하세요</p>
         </div>
 
         <div className="space-y-4">
