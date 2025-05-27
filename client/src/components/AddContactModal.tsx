@@ -247,13 +247,19 @@ export default function AddContactModal({ open, onClose }: AddContactModalProps)
     <>
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent 
-        className="w-full max-w-md max-h-[80vh] overflow-y-auto sm:max-h-none"
+        className={`w-full max-w-md sm:max-h-none ${
+          isMobile && keyboardHeight > 0 
+            ? 'max-h-none overflow-visible' 
+            : 'max-h-[80vh] overflow-y-auto'
+        }`}
         style={isMobile && keyboardHeight > 0 ? {
           position: 'fixed',
-          top: '50%',
+          top: '20px',
           left: '50%',
-          transform: `translate(-50%, calc(-50% - ${keyboardHeight / 2}px))`,
-          maxHeight: `${window.innerHeight - keyboardHeight - 40}px`
+          transform: 'translateX(-50%)',
+          height: 'auto',
+          maxHeight: `${window.innerHeight - keyboardHeight - 40}px`,
+          overflowY: 'auto'
         } : {}}
       >
         <DialogHeader>
