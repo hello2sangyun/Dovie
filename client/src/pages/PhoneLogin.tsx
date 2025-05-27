@@ -66,26 +66,45 @@ export default function PhoneLogin() {
   // SMS 인증 확인
   const verifySMSMutation = useMutation({
     mutationFn: async (data: { phoneNumber: string; verificationCode: string }) => {
-      const response = await apiRequest("/api/auth/verify-sms", "POST", data);
-      return response;
+      try {
+        const response = await fetch("/api/auth/verify-sms", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
+        
+        if (!response.ok) {
+          throw new Error("SMS 인증 실패");
+        }
+        
+        const result = await response.json();
+        return result;
+      } catch (error) {
+        console.error("SMS 인증 오류:", error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
+      console.log("SMS 인증 성공:", data);
       setUser(data.user);
       if (data.nextStep === "email_verification") {
         toast({
           title: "전화번호 인증 완료",
           description: "이메일 인증을 진행해주세요.",
         });
-        setLocation("/email-verification");
+        window.location.href = "/email-verification";
       } else {
         toast({
           title: "로그인 성공",
           description: "Dovie Messenger에 오신 것을 환영합니다!",
         });
-        setLocation("/");
+        window.location.href = "/";
       }
     },
     onError: (error: any) => {
+      console.error("SMS 인증 실패:", error);
       toast({
         title: "인증 실패",
         description: "인증 코드가 올바르지 않습니다. 다시 확인해주세요.",
