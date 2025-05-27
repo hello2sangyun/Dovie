@@ -3,7 +3,9 @@ import express from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema } from "@shared/schema";
+import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, users } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -125,12 +127,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 인증 코드를 사용됨으로 표시
       await storage.markPhoneVerificationAsUsed(verification.id);
 
-      // 사용자 찾기 또는 생성
-      let user = await storage.getUserByUsername(phoneNumber.replace(/[^\d]/g, ''));
+      // 사용자 찾기 또는 생성 - 중복 오류 방지
+      const phoneDigits = phoneNumber.replace(/[^\d]/g, '');
+      let user;
+      
+      // 먼저 다양한 방법으로 기존 사용자 찾기
+      const possibleUsernames = [
+        `user_${phoneDigits.slice(-8)}`,
+        phoneDigits.slice(-8),
+        phoneNumber.replace(/[^\d]/g, '')
+      ];
+      
+      for (const username of possibleUsernames) {
+        user = await storage.getUserByUsername(username);
+        if (user) break;
+      }
       
       if (!user) {
+        // 새 사용자 생성 - 고유한 사용자명 생성
+        const timestamp = Date.now();
         const userData = insertUserSchema.parse({
-          username: `user_${phoneNumber.replace(/[^\d]/g, '').slice(-8)}`,
+          username: `user_${phoneDigits.slice(-8)}_${timestamp}`,
           displayName: `사용자 ${phoneNumber.slice(-4)}`,
           phoneNumber: phoneNumber,
         });
