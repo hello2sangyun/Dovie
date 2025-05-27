@@ -495,6 +495,22 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
       {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0 overscroll-behavior-y-contain">
+        {/* Security Notice - WhatsApp Style */}
+        <div className="flex justify-center mb-6 px-4">
+          <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-xl px-4 py-3 max-w-sm mx-auto shadow-lg transform hover:scale-105 transition-all duration-200 backdrop-blur-sm">
+            <div className="flex items-center justify-center space-x-2">
+              <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse shadow-sm"></div>
+              <p className="text-xs text-yellow-800 text-center font-semibold">
+                🔒 메시지와 파일이 종단간 암호화됩니다
+              </p>
+              <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse shadow-sm"></div>
+            </div>
+            <p className="text-xs text-yellow-700 text-center mt-1 opacity-90 font-medium">
+              Vault Messenger에서만 확인할 수 있습니다
+            </p>
+          </div>
+        </div>
+
         {messages.length === 0 ? (
           <div className="text-center text-gray-500 mt-8">
             대화를 시작해보세요!
