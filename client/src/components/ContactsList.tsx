@@ -34,6 +34,11 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
 
   const filteredAndSortedContacts = contacts
     .filter((contact: any) => {
+      // 본인 계정 제외
+      if (contact.contactUser.id === user?.id) {
+        return false;
+      }
+      
       const searchLower = searchTerm.toLowerCase();
       const nickname = contact.nickname || contact.contactUser.displayName;
       return nickname.toLowerCase().includes(searchLower) ||
