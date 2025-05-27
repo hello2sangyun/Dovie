@@ -39,6 +39,13 @@ export default function QRScannerModal({ open, onClose, onScanResult }: QRScanne
       setCameraError("");
       setIsScanning(true);
 
+      // 먼저 카메라 권한을 요청
+      try {
+        await navigator.mediaDevices.getUserMedia({ video: true });
+      } catch (permissionError) {
+        throw new Error("카메라 권한이 필요합니다. 브라우저에서 카메라 접근을 허용해주세요.");
+      }
+
       // QR 스캐너 초기화
       qrScannerRef.current = new QrScanner(
         videoRef.current,
@@ -47,18 +54,38 @@ export default function QRScannerModal({ open, onClose, onScanResult }: QRScanne
           highlightScanRegion: true,
           highlightCodeOutline: true,
           preferredCamera: 'environment', // 후면 카메라 우선
+          maxScansPerSecond: 5,
         }
       );
 
       await qrScannerRef.current.start();
 
       // 플래시라이트 지원 확인
-      const hasFlash = await qrScannerRef.current.hasFlash();
-      setHasFlashlight(hasFlash);
+      try {
+        const hasFlash = await qrScannerRef.current.hasFlash();
+        setHasFlashlight(hasFlash);
+      } catch (flashError) {
+        console.log("플래시라이트 지원 안됨");
+        setHasFlashlight(false);
+      }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("카메라 시작 실패:", error);
-      setCameraError("카메라에 접근할 수 없습니다. 카메라 권한을 확인해주세요.");
+      let errorMessage = "카메라에 접근할 수 없습니다.";
+      
+      if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.name === 'NotAllowedError') {
+        errorMessage = "카메라 권한이 거부되었습니다. 브라우저 설정에서 카메라 접근을 허용해주세요.";
+      } else if (error?.name === 'NotFoundError') {
+        errorMessage = "카메라를 찾을 수 없습니다. 디바이스에 카메라가 연결되어 있는지 확인해주세요.";
+      } else if (error?.name === 'NotSupportedError') {
+        errorMessage = "이 브라우저에서는 카메라 기능이 지원되지 않습니다.";
+      } else if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+        errorMessage = "보안상의 이유로 HTTPS 연결에서만 카메라를 사용할 수 있습니다.";
+      }
+      
+      setCameraError(errorMessage);
       setIsScanning(false);
     }
   };
@@ -139,10 +166,16 @@ export default function QRScannerModal({ open, onClose, onScanResult }: QRScanne
         <div className="space-y-4">
           {cameraError ? (
             <div className="text-center py-8">
-              <div className="text-red-600 mb-4">{cameraError}</div>
-              <Button onClick={startScanning} variant="outline">
-                다시 시도
-              </Button>
+              <div className="text-red-600 mb-4 text-sm">{cameraError}</div>
+              <div className="space-y-2">
+                <Button onClick={startScanning} variant="outline" className="w-full">
+                  <Camera className="h-4 w-4 mr-2" />
+                  다시 시도
+                </Button>
+                <div className="text-xs text-gray-500">
+                  브라우저에서 카메라 권한을 허용해주세요
+                </div>
+              </div>
             </div>
           ) : (
             <div className="relative">
