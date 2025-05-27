@@ -100,13 +100,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand }: ChatAreaProps)
       }, {
         onSuccess: (messageData) => {
           // 파일 업로드 후 자동으로 태그하기 모달 열기
-          setFileDataForCommand({
+          const fileData = {
             fileUrl: uploadData.fileUrl,
             fileName: uploadData.fileName,
             fileSize: uploadData.fileSize,
             messageId: messageData.message.id
-          });
-          onCreateCommand();
+          };
+          onCreateCommand(fileData);
         }
       });
     },
