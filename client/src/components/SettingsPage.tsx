@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera, User, LogOut } from "lucide-react";
 import { getInitials } from "@/lib/utils";
-import DovieLogo from "./DovieLogo";
+import VaultLogo from "./VaultLogo";
 
 interface SettingsPageProps {
   isMobile?: boolean;
@@ -181,8 +181,8 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
       <Card>
         <CardContent className="pt-6">
           <div className="text-center space-y-2">
-            <DovieLogo size="md" className="mx-auto" />
-            <p className="text-sm text-gray-500">Dovie</p>
+            <VaultLogo size="md" className="mx-auto" />
+            <p className="text-sm text-gray-500">Vault Messenger</p>
             <p className="text-xs text-gray-400">Version 1.0.0</p>
           </div>
         </CardContent>

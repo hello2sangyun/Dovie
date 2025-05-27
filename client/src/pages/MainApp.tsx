@@ -4,7 +4,7 @@ import { useWebSocket } from "@/hooks/useWebSocket";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import DovieLogo from "@/components/DovieLogo";
+import VaultLogo from "@/components/VaultLogo";
 import ContactsList from "@/components/ContactsList";
 import ChatsList from "@/components/ChatsList";
 import ArchiveList from "@/components/ArchiveList";
@@ -131,8 +131,8 @@ export default function MainApp() {
           {/* Header */}
           <div className="p-4 border-b border-gray-200 purple-gradient">
             <div className="flex items-center justify-center space-x-3">
-              <DovieLogo size="sm" />
-              <h1 className="text-xl font-bold text-white">Dovie</h1>
+              <VaultLogo size="sm" />
+              <h1 className="text-xl font-bold text-white">Vault Messenger</h1>
             </div>
           </div>
 
@@ -238,7 +238,7 @@ export default function MainApp() {
           ) : (
             <div className="flex-1 flex items-center justify-center bg-gray-50">
               <div className="text-center">
-                <DovieLogo size="lg" className="mx-auto mb-4 opacity-50" />
+                <VaultLogo size="lg" className="mx-auto mb-4 opacity-50" />
                 <p className="text-gray-500 text-lg">채팅방을 선택하여 대화를 시작하세요</p>
               </div>
             </div>
@@ -252,8 +252,8 @@ export default function MainApp() {
         <div className="purple-gradient p-4 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <DovieLogo size="sm" />
-              <h1 className="text-lg font-bold">Dovie</h1>
+              <VaultLogo size="sm" />
+              <h1 className="text-lg font-bold">Vault Messenger</h1>
             </div>
             <Button variant="ghost" size="sm" className="text-white">
               <Search className="h-5 w-5" />
