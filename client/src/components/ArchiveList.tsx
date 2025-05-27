@@ -82,6 +82,14 @@ export default function ArchiveList() {
     });
   };
 
+  const truncateFileName = (fileName: string, maxLength: number) => {
+    if (fileName.length <= maxLength) return fileName;
+    const extension = fileName.lastIndexOf('.') > 0 ? fileName.substring(fileName.lastIndexOf('.')) : '';
+    const name = fileName.substring(0, fileName.lastIndexOf('.') > 0 ? fileName.lastIndexOf('.') : fileName.length);
+    const truncatedName = name.substring(0, maxLength - extension.length - 3);
+    return `${truncatedName}...${extension}`;
+  };
+
   if (isLoading) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -157,31 +165,30 @@ export default function ArchiveList() {
             {filteredAndSortedCommands.map((command: any) => (
               <div
                 key={command.id}
-                className="p-4 hover:bg-purple-50 cursor-pointer border-b border-gray-100 transition-colors"
+                className="p-3 hover:bg-purple-50 cursor-pointer border-b border-gray-100 transition-colors"
               >
-                <div className="flex items-start space-x-3">
-                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
                     {getCommandIcon(command)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2 mb-1">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${getCommandBadgeColor(command)}`}>
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${getCommandBadgeColor(command)}`}>
                         #{command.commandName}
                       </span>
                       <span className="text-xs text-gray-500">
-                        {/* Chat room name would come from joined data */}
                         채팅방
                       </span>
                     </div>
-                    <p className="font-medium text-gray-900 text-sm">
-                      {command.fileName || command.savedText || "저장된 메시지"}
+                    <p className="font-medium text-gray-900 text-sm truncate" title={command.fileName || command.savedText || "저장된 메시지"}>
+                      {truncateFileName(command.fileName || command.savedText || "저장된 메시지", 40)}
                     </p>
-                    <div className="flex items-center justify-between mt-1">
+                    <div className="flex items-center justify-between">
                       <p className="text-xs text-gray-500">
                         {formatDate(command.createdAt)}
                       </p>
                       {command.originalSender && (
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 truncate max-w-20" title={command.originalSender.displayName}>
                           {command.originalSender.displayName}
                         </p>
                       )}
@@ -191,7 +198,7 @@ export default function ArchiveList() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-gray-400 hover:text-purple-600"
+                      className="text-gray-400 hover:text-purple-600 flex-shrink-0"
                       onClick={(e) => {
                         e.stopPropagation();
                         window.open(command.fileUrl, '_blank');

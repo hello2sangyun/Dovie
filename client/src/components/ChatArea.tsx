@@ -8,6 +8,7 @@ import { Paperclip, Hash, Send, Video, Phone, Info, Download } from "lucide-reac
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import AddFriendConfirmModal from "./AddFriendConfirmModal";
 
 interface ChatAreaProps {
   chatRoomId: number;
@@ -23,6 +24,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [message, setMessage] = useState("");
   const [showCommandSuggestions, setShowCommandSuggestions] = useState(false);
   const [fileDataForCommand, setFileDataForCommand] = useState<any>(null);
+  const [showAddFriendModal, setShowAddFriendModal] = useState(false);
+  const [nonFriendUser, setNonFriendUser] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 

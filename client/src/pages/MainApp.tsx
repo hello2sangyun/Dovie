@@ -11,7 +11,7 @@ import ArchiveList from "@/components/ArchiveList";
 import ChatArea from "@/components/ChatArea";
 import AddContactModal from "@/components/AddContactModal";
 import CommandModal from "@/components/CommandModal";
-import SettingsModal from "@/components/SettingsModal";
+
 import SettingsPage from "@/components/SettingsPage";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -322,10 +322,7 @@ export default function MainApp() {
         chatRoomId={selectedChatRoom}
         fileData={commandModalData}
       />
-      <SettingsModal 
-        open={modals.settings}
-        onClose={closeModals}
-      />
+
     </div>
   );
 }
