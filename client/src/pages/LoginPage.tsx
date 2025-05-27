@@ -17,25 +17,19 @@ export default function LoginPage() {
 
   const testLoginMutation = useMutation({
     mutationFn: async () => {
-      console.log("로그인 시도 시작:", username);
       const response = await apiRequest("POST", "/api/auth/test-login", { username });
-      const data = await response.json();
-      console.log("로그인 응답:", data);
-      return data;
+      return response.json();
     },
     onSuccess: (data) => {
-      console.log("로그인 성공:", data);
       setUser(data.user);
       localStorage.setItem("userId", data.user.id.toString());
-      console.log("페이지 이동 시도");
       setLocation("/app");
       toast({
         title: "로그인 성공",
         description: `${data.user.displayName}님 환영합니다!`,
       });
     },
-    onError: (error) => {
-      console.error("로그인 실패:", error);
+    onError: () => {
       toast({
         variant: "destructive",
         title: "로그인 실패",
