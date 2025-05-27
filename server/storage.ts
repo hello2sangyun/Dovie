@@ -6,6 +6,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, or, count, gt } from "drizzle-orm";
+import { encryptText, decryptText } from "./crypto";
 
 export interface IStorage {
   // User operations
@@ -205,16 +206,28 @@ export class DatabaseStorage implements IStorage {
 
     return result.map(row => ({
       ...row.messages,
+      content: decryptText(row.messages.content), // 메시지 내용 복호화
       sender: row.users
     })).reverse();
   }
 
   async createMessage(message: InsertMessage): Promise<Message> {
+    // 메시지 내용 암호화
+    const encryptedMessage = {
+      ...message,
+      content: encryptText(message.content)
+    };
+    
     const [newMessage] = await db
       .insert(messages)
-      .values(message)
+      .values(encryptedMessage)
       .returning();
-    return newMessage;
+    
+    // 반환할 때는 복호화해서 반환
+    return {
+      ...newMessage,
+      content: decryptText(newMessage.content)
+    };
   }
 
   async getMessageById(messageId: number): Promise<(Message & { sender: User }) | undefined> {
@@ -254,11 +267,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCommand(command: InsertCommand): Promise<Command> {
+    // 저장된 텍스트가 있으면 암호화
+    const encryptedCommand = {
+      ...command,
+      savedText: command.savedText ? encryptText(command.savedText) : command.savedText
+    };
+    
     const [newCommand] = await db
       .insert(commands)
-      .values(command)
+      .values(encryptedCommand)
       .returning();
-    return newCommand;
+    
+    // 반환할 때는 복호화해서 반환
+    return {
+      ...newCommand,
+      savedText: newCommand.savedText ? decryptText(newCommand.savedText) : newCommand.savedText
+    };
   }
 
   async deleteCommand(commandId: number, userId: number): Promise<void> {

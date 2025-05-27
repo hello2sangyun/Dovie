@@ -7,6 +7,7 @@ import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertConta
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { encryptFileData, decryptFileData, hashFileName } from "./crypto";
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
