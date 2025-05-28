@@ -9,6 +9,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { encryptFileData, decryptFileData, hashFileName } from "./crypto";
+import { processCommand } from "./openai";
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -726,6 +727,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete command" });
+    }
+  });
+
+  // Process chat commands
+  app.post("/api/commands/process", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { commandText } = req.body;
+      if (!commandText || !commandText.startsWith('/')) {
+        return res.status(400).json({ message: "Invalid command format" });
+      }
+
+      const result = await processCommand(commandText);
+      res.json(result);
+    } catch (error) {
+      console.error("Command processing error:", error);
+      res.status(500).json({ 
+        success: false,
+        content: "Command processing failed. Please check if OpenAI API key is configured.",
+        type: 'text'
+      });
     }
   });
 

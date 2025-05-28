@@ -1,0 +1,225 @@
+import OpenAI from "openai";
+
+// the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+export interface CommandResponse {
+  success: boolean;
+  content: string;
+  type: 'text' | 'json';
+}
+
+// /translate command - translate text to specified language
+export async function translateText(text: string, targetLanguage: string = 'English'): Promise<CommandResponse> {
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `You are a professional translator. Translate the following text to ${targetLanguage}. Only return the translated text, nothing else.`
+        },
+        {
+          role: "user",
+          content: text
+        }
+      ],
+      max_tokens: 1000,
+    });
+
+    return {
+      success: true,
+      content: response.choices[0].message.content || "Translation failed",
+      type: 'text'
+    };
+  } catch (error) {
+    return {
+      success: false,
+      content: "Translation service unavailable",
+      type: 'text'
+    };
+  }
+}
+
+// /calculate command - perform mathematical calculations
+export async function calculateExpression(expression: string): Promise<CommandResponse> {
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are a calculator. Solve the mathematical expression and return only the result with a brief explanation if needed. Keep it concise."
+        },
+        {
+          role: "user",
+          content: expression
+        }
+      ],
+      max_tokens: 200,
+    });
+
+    return {
+      success: true,
+      content: response.choices[0].message.content || "Calculation failed",
+      type: 'text'
+    };
+  } catch (error) {
+    return {
+      success: false,
+      content: "Calculator service unavailable",
+      type: 'text'
+    };
+  }
+}
+
+// /summarize command - summarize text
+export async function summarizeText(text: string): Promise<CommandResponse> {
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are a text summarizer. Provide a concise summary of the following text. Keep it brief and capture the main points."
+        },
+        {
+          role: "user",
+          content: text
+        }
+      ],
+      max_tokens: 300,
+    });
+
+    return {
+      success: true,
+      content: response.choices[0].message.content || "Summarization failed",
+      type: 'text'
+    };
+  } catch (error) {
+    return {
+      success: false,
+      content: "Summarization service unavailable",
+      type: 'text'
+    };
+  }
+}
+
+// /vibe command - analyze sentiment/vibe of text
+export async function analyzeVibe(text: string): Promise<CommandResponse> {
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are a sentiment analyzer. Analyze the vibe/sentiment of the text and provide a rating from 1-5 stars and describe the emotional tone. Respond with JSON in this format: { 'rating': number, 'emotion': string, 'description': string }"
+        },
+        {
+          role: "user",
+          content: text
+        }
+      ],
+      response_format: { type: "json_object" },
+      max_tokens: 200,
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || '{}');
+    const stars = '⭐'.repeat(Math.max(1, Math.min(5, result.rating || 3)));
+    
+    return {
+      success: true,
+      content: `${stars} ${result.emotion || 'Neutral'}\n${result.description || 'Unable to analyze sentiment'}`,
+      type: 'text'
+    };
+  } catch (error) {
+    return {
+      success: false,
+      content: "Vibe analysis service unavailable",
+      type: 'text'
+    };
+  }
+}
+
+// /poll command - create a poll
+export async function createPoll(question: string, options: string[]): Promise<CommandResponse> {
+  try {
+    if (options.length < 2) {
+      return {
+        success: false,
+        content: "Poll needs at least 2 options. Format: /poll Question? Option1,Option2,Option3",
+        type: 'text'
+      };
+    }
+
+    const pollData = {
+      question: question.trim(),
+      options: options.map((opt, index) => ({
+        id: index + 1,
+        text: opt.trim(),
+        votes: 0
+      })),
+      totalVotes: 0,
+      createdAt: new Date().toISOString()
+    };
+
+    return {
+      success: true,
+      content: JSON.stringify(pollData),
+      type: 'json'
+    };
+  } catch (error) {
+    return {
+      success: false,
+      content: "Failed to create poll",
+      type: 'text'
+    };
+  }
+}
+
+// Command parser to handle different command types
+export async function processCommand(commandText: string): Promise<CommandResponse> {
+  const parts = commandText.trim().split(' ');
+  const command = parts[0].toLowerCase();
+  const args = parts.slice(1).join(' ');
+
+  switch (command) {
+    case '/translate':
+      const translateParts = args.split(' to ');
+      if (translateParts.length === 2) {
+        return translateText(translateParts[0], translateParts[1]);
+      }
+      return translateText(args);
+
+    case '/calculate':
+    case '/calc':
+      return calculateExpression(args);
+
+    case '/summarize':
+    case '/summary':
+      return summarizeText(args);
+
+    case '/vibe':
+      return analyzeVibe(args);
+
+    case '/poll':
+      const pollParts = args.split('?');
+      if (pollParts.length !== 2) {
+        return {
+          success: false,
+          content: "Poll format: /poll Question? Option1,Option2,Option3",
+          type: 'text'
+        };
+      }
+      const question = pollParts[0] + '?';
+      const options = pollParts[1].split(',').map(opt => opt.trim()).filter(opt => opt.length > 0);
+      return createPoll(question, options);
+
+    default:
+      return {
+        success: false,
+        content: `Unknown command: ${command}\n\nAvailable commands:\n/translate [text] (to [language])\n/calculate [expression]\n/summarize [text]\n/vibe [text]\n/poll [question]? [option1,option2,option3]`,
+        type: 'text'
+      };
+  }
+}

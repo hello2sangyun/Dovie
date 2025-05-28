@@ -176,6 +176,23 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
             className="pl-10"
           />
         </div>
+        
+        {/* 연락처 필터 표시 */}
+        {contactFilter && (
+          <div className="mt-3 p-2 bg-purple-50 rounded-lg flex items-center justify-between">
+            <span className="text-sm text-purple-700">
+              연락처별 채팅방 필터링 중
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClearFilter}
+              className="h-6 w-6 p-0 text-purple-600 hover:text-purple-700"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto">

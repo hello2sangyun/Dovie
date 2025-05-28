@@ -131,6 +131,56 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     },
   });
 
+  // Process command mutation
+  const processCommandMutation = useMutation({
+    mutationFn: async (commandText: string) => {
+      const response = await apiRequest("/api/commands/process", "POST", { commandText });
+      return response.json();
+    },
+    onSuccess: (result, commandText) => {
+      if (result.success) {
+        // Send the command result as a message
+        if (result.type === 'json') {
+          // Handle poll or other JSON responses
+          try {
+            const pollData = JSON.parse(result.content);
+            sendMessageMutation.mutate({
+              content: `Poll: ${pollData.question}`,
+              messageType: "poll",
+              pollData: result.content,
+              replyToMessageId: replyToMessage?.id
+            });
+          } catch {
+            sendMessageMutation.mutate({
+              content: result.content,
+              messageType: "text",
+              replyToMessageId: replyToMessage?.id
+            });
+          }
+        } else {
+          sendMessageMutation.mutate({
+            content: `${commandText}\n\n${result.content}`,
+            messageType: "text",
+            replyToMessageId: replyToMessage?.id
+          });
+        }
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Command failed",
+          description: result.content,
+        });
+      }
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Command processing failed",
+        description: "Please check if AI services are available.",
+      });
+    },
+  });
+
   // File upload mutation
   const uploadFileMutation = useMutation({
     mutationFn: async (file: File) => {
