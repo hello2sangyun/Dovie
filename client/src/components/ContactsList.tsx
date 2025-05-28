@@ -141,7 +141,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                     src={contact.contactUser.profilePicture || undefined} 
                     alt={contact.nickname || contact.contactUser.displayName} 
                   />
-                  <AvatarFallback className="purple-gradient text-white font-semibold">
+                  <AvatarFallback className={`bg-gradient-to-br ${getAvatarColor(contact.nickname || contact.contactUser.displayName)} text-white font-semibold`}>
                     {getInitials(contact.nickname || contact.contactUser.displayName)}
                   </AvatarFallback>
                 </Avatar>
