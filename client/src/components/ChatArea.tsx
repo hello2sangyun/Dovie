@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X } from "lucide-react";
+import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -43,6 +43,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [showChatSettings, setShowChatSettings] = useState(false);
   const [showMentions, setShowMentions] = useState(false);
   const [mentionPosition, setMentionPosition] = useState(0);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatAreaRef = useRef<HTMLDivElement>(null);
@@ -413,7 +417,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       setHighlightedMessageId(messageId);
       setTimeout(() => {
         setHighlightedMessageId(null);
-      }, 2000);
+      }, 3000);
     }
   };
 
@@ -433,6 +437,80 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const getInitials = (name: string) => {
     return name.split(' ').map(word => word.charAt(0).toUpperCase()).join('').slice(0, 2);
   };
+
+  // 파일 타입별 아이콘 반환 함수
+  const getFileIcon = (fileName: string) => {
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    switch (extension) {
+      case 'pdf':
+        return <FileText className="h-8 w-8 text-red-500" />;
+      case 'doc':
+      case 'docx':
+        return <FileText className="h-8 w-8 text-blue-600" />;
+      case 'xls':
+      case 'xlsx':
+        return <FileSpreadsheet className="h-8 w-8 text-green-600" />;
+      case 'ppt':
+      case 'pptx':
+        return <FileText className="h-8 w-8 text-orange-500" />;
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+      case 'bmp':
+      case 'webp':
+        return <FileImage className="h-8 w-8 text-purple-500" />;
+      case 'mp4':
+      case 'avi':
+      case 'mov':
+      case 'wmv':
+        return <Video className="h-8 w-8 text-pink-500" />;
+      default:
+        return <File className="h-8 w-8 text-gray-500" />;
+    }
+  };
+
+  // 링크 감지 및 클릭 가능하게 만드는 함수
+  const renderMessageWithLinks = (content: string) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = content.split(urlRegex);
+    
+    return parts.map((part, index) => {
+      if (urlRegex.test(part)) {
+        return (
+          <a
+            key={index}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:text-blue-700 underline break-all"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {part}
+          </a>
+        );
+      }
+      return part;
+    });
+  };
+
+  // 검색 기능
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    const results = messages.filter((message: any) => 
+      message.content?.toLowerCase().includes(query.toLowerCase()) ||
+      message.fileName?.toLowerCase().includes(query.toLowerCase())
+    );
+    setSearchResults(results);
+    setCurrentSearchIndex(0);
+  };
+
+
 
   // Check if other participants are friends when entering chat room
   useEffect(() => {
@@ -580,6 +658,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             </div>
           </div>
           <div className="flex items-center space-x-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-gray-400 hover:text-purple-600"
+              onClick={() => setShowSearch(!showSearch)}
+            >
+              <Search className="h-4 w-4" />
+            </Button>
             <Button variant="ghost" size="sm" className="text-gray-400 hover:text-purple-600">
               <Video className="h-4 w-4" />
             </Button>
@@ -591,6 +677,61 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             </Button>
           </div>
         </div>
+        
+        {/* Search Bar */}
+        {showSearch && (
+          <div className="px-4 py-2 border-b border-gray-200 bg-gray-50">
+            <div className="flex items-center space-x-2">
+              <Input
+                type="text"
+                placeholder="메시지 검색..."
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="flex-1"
+              />
+              {searchResults.length > 0 && (
+                <div className="flex items-center space-x-1 text-sm text-gray-500">
+                  <span>{currentSearchIndex + 1}/{searchResults.length}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const newIndex = Math.max(0, currentSearchIndex - 1);
+                      setCurrentSearchIndex(newIndex);
+                      scrollToMessage(searchResults[newIndex].id);
+                    }}
+                    disabled={currentSearchIndex === 0}
+                  >
+                    ↑
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const newIndex = Math.min(searchResults.length - 1, currentSearchIndex + 1);
+                      setCurrentSearchIndex(newIndex);
+                      scrollToMessage(searchResults[newIndex].id);
+                    }}
+                    disabled={currentSearchIndex === searchResults.length - 1}
+                  >
+                    ↓
+                  </Button>
+                </div>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowSearch(false);
+                  setSearchQuery("");
+                  setSearchResults([]);
+                }}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Chat Messages */}
