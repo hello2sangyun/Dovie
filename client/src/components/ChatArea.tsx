@@ -472,6 +472,117 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           return;
         }
       }
+
+      // SendBack 명령어 처리
+      if (message.startsWith('/sendback ')) {
+        const parts = message.replace('/sendback ', '').trim().split(' ');
+        const messageId = parseInt(parts[0]);
+        const feedback = parts.slice(1).join(' ');
+        
+        if (messageId && feedback) {
+          const targetMessage = messages.find((msg: any) => msg.id === messageId);
+          if (targetMessage) {
+            // 피드백 메시지 전송 (작성자에게만 보임)
+            sendMessageMutation.mutate({
+              content: `↩️ 피드백: ${feedback}`,
+              messageType: "sendback",
+              targetUserId: targetMessage.senderId,
+              replyToMessageId: messageId
+            });
+            
+            toast({
+              title: "피드백 전송 완료",
+              description: `메시지 작성자에게만 피드백이 전송되었습니다.`,
+            });
+          } else {
+            toast({
+              variant: "destructive",
+              title: "메시지를 찾을 수 없습니다",
+              description: "올바른 메시지 번호를 입력해주세요.",
+            });
+          }
+          setMessage("");
+          setShowChatCommands(false);
+          return;
+        }
+      }
+
+      // Spotlight 명령어 처리
+      if (message.startsWith('/spotlight ')) {
+        const parts = message.replace('/spotlight ', '').trim().split(' ');
+        const messageId = parseInt(parts[0]);
+        const duration = parts[1] || '5분간';
+        
+        if (messageId) {
+          const targetMessage = messages.find((msg: any) => msg.id === messageId);
+          if (targetMessage) {
+            // 스포트라이트 메시지 전송
+            sendMessageMutation.mutate({
+              content: `📌 주목: "${targetMessage.content}" (${duration} 고정)`,
+              messageType: "spotlight",
+              spotlightMessageId: messageId,
+              spotlightDuration: duration
+            });
+            
+            toast({
+              title: "메시지 고정 완료",
+              description: `메시지가 ${duration} 상단에 고정되었습니다.`,
+            });
+          } else {
+            toast({
+              variant: "destructive",
+              title: "메시지를 찾을 수 없습니다",
+              description: "올바른 메시지 번호를 입력해주세요.",
+            });
+          }
+          setMessage("");
+          setShowChatCommands(false);
+          return;
+        }
+      }
+
+      // Boom 명령어 처리 (시한폭탄 메시지)
+      if (message.startsWith('/boom ')) {
+        const parts = message.replace('/boom ', '').trim().split(' ');
+        const timeStr = parts[0];
+        const boomMessage = parts.slice(1).join(' ');
+        
+        if (timeStr && boomMessage) {
+          // 시간 파싱 (예: 10s, 5m, 1h)
+          let seconds = 0;
+          if (timeStr.endsWith('s')) {
+            seconds = parseInt(timeStr.slice(0, -1));
+          } else if (timeStr.endsWith('m')) {
+            seconds = parseInt(timeStr.slice(0, -1)) * 60;
+          } else if (timeStr.endsWith('h')) {
+            seconds = parseInt(timeStr.slice(0, -1)) * 3600;
+          }
+          
+          if (seconds > 0) {
+            // 폭탄 메시지 전송
+            sendMessageMutation.mutate({
+              content: `💣 ${boomMessage}`,
+              messageType: "boom",
+              boomTimer: seconds,
+              expiresAt: new Date(Date.now() + seconds * 1000).toISOString()
+            });
+            
+            toast({
+              title: "시한폭탄 메시지 전송!",
+              description: `${seconds}초 후에 메시지가 폭발합니다.`,
+            });
+          } else {
+            toast({
+              variant: "destructive",
+              title: "잘못된 시간 형식",
+              description: "예: 10s (초), 5m (분), 1h (시간)",
+            });
+          }
+          setMessage("");
+          setShowChatCommands(false);
+          return;
+        }
+      }
       
       processCommandMutation.mutate(message);
       setMessage("");
@@ -1450,6 +1561,24 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                         desc: '투표 생성', 
                         example: '/poll 점심 뭐 먹을까?',
                         icon: '📊'
+                      },
+                      { 
+                        cmd: '/sendback', 
+                        desc: '작성자에게 피드백', 
+                        example: '/sendback 34 다시 확인해주세요',
+                        icon: '↩️'
+                      },
+                      { 
+                        cmd: '/spotlight', 
+                        desc: '메시지 상단 고정', 
+                        example: '/spotlight 56 5분간',
+                        icon: '📌'
+                      },
+                      { 
+                        cmd: '/boom', 
+                        desc: '시한폭탄 메시지', 
+                        example: '/boom 10s 비밀 메시지',
+                        icon: '💣'
                       }
                     ]
                       .filter(item => 
