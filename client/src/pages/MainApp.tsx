@@ -74,7 +74,7 @@ export default function MainApp() {
   // Create chat room mutation
   const createChatRoomMutation = useMutation({
     mutationFn: async ({ contactUserId, contactUser }: { contactUserId: number, contactUser: any }) => {
-      const response = await apiRequest("POST", "/api/chat-rooms", {
+      const response = await apiRequest("/api/chat-rooms", "POST", {
         name: contactUser.nickname || contactUser.displayName,
         participantIds: [contactUserId],
         isGroup: false,
