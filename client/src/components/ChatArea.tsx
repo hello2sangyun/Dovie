@@ -27,7 +27,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [showCommandSuggestions, setShowCommandSuggestions] = useState(false);
   const [fileDataForCommand, setFileDataForCommand] = useState<any>(null);
   const [showAddFriendModal, setShowAddFriendModal] = useState(false);
-  const [nonFriendUser, setNonFriendUser] = useState<any>(null);
+  const [nonFriendUsers, setNonFriendUsers] = useState<any[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const [contextMenu, setContextMenu] = useState<{
     visible: boolean;
@@ -1112,14 +1112,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       />
 
       {/* Add Friend Confirmation Modal */}
-      {nonFriendUser && (
+      {nonFriendUsers.length > 0 && (
         <AddFriendConfirmModal
           open={showAddFriendModal}
           onClose={() => {
             setShowAddFriendModal(false);
-            setNonFriendUser(null);
+            setNonFriendUsers([]);
           }}
-          user={nonFriendUser}
+          users={nonFriendUsers}
         />
       )}
 
