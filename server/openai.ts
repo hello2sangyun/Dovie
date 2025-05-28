@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import fs from "fs";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ 
@@ -274,7 +275,6 @@ export async function transcribeAudio(filePath: string): Promise<{
     console.log("Audio file path:", filePath);
     
     // Create file stream for OpenAI API
-    import fs from 'fs';
     const audioFile = fs.createReadStream(filePath);
     
     // Use verbose_json format to get language detection info
