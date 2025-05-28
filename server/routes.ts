@@ -804,6 +804,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Audio transcription endpoint for voice messages
+  app.post("/api/transcribe", upload.single("audio"), async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: "No audio file uploaded"
+        });
+      }
+
+      console.log("Processing audio file:", req.file.originalname, req.file.size, "bytes");
+
+      // Create a file stream for OpenAI Whisper API
+      const audioBuffer = fs.readFileSync(req.file.path);
+      const audioFile = new Blob([audioBuffer], { type: req.file.mimetype });
+      
+      // Add filename property for OpenAI API
+      Object.defineProperty(audioFile, 'name', {
+        value: req.file.originalname || 'voice_message.webm',
+        writable: false
+      });
+
+      const result = await transcribeAudio(audioFile);
+
+      // Clean up temporary file
+      fs.unlinkSync(req.file.path);
+
+      if (result.success) {
+        // Save the audio file (optional - you might want to store it)
+        const audioUrl = `/uploads/${req.file.filename}`;
+        
+        res.json({
+          success: true,
+          transcription: result.transcription,
+          duration: result.duration,
+          audioUrl: audioUrl
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          message: result.error || "음성 변환에 실패했습니다."
+        });
+      }
+    } catch (error) {
+      console.error("Audio transcription error:", error);
+      
+      // Clean up temporary file if it exists
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      
+      res.status(500).json({
+        success: false,
+        message: "음성 처리 중 오류가 발생했습니다."
+      });
+    }
+  });
+
   // Get user by ID for QR scanning
   app.get("/api/users/:id", async (req, res) => {
     const userId = req.headers["x-user-id"];
