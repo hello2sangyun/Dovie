@@ -1151,16 +1151,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                               {renderMessageWithLinks(msg.content)}
                             </div>
                             {msg.isTranslated && (
-                              <Languages className={cn(
-                                "h-3 w-3 flex-shrink-0 mt-0.5",
-                                isMe ? "text-white/70" : "text-gray-500"
-                              )} />
+                              <div className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/30 flex-shrink-0 mt-0.5">
+                                <Languages className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                              </div>
                             )}
                             {msg.isCalculated && (
-                              <Calculator className={cn(
-                                "h-3 w-3 flex-shrink-0 mt-0.5",
-                                isMe ? "text-white/70" : "text-gray-500"
-                              )} />
+                              <div className="flex items-center justify-center w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 flex-shrink-0 mt-0.5">
+                                <Calculator className="h-3 w-3 text-green-600 dark:text-green-400" />
+                              </div>
                             )}
                           </div>
                         </div>
