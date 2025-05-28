@@ -236,12 +236,7 @@ export async function processCommand(commandText: string): Promise<CommandRespon
     case '/calc':
       return calculateExpression(args);
 
-    case '/summarize':
-    case '/summary':
-      return summarizeText(args);
 
-    case '/vibe':
-      return analyzeVibe(args);
 
     case '/poll':
       const pollParts = args.split('?');

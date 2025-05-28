@@ -1356,9 +1356,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   {[
                     { cmd: '/translate', desc: 'Translate text with language selection', example: '/translate 안녕하세요' },
                     { cmd: '/calculate', desc: 'Perform mathematical calculations', example: '/calculate 15 * 8 + 42' },
-                    { cmd: '/summarize', desc: 'Summarize long text', example: '/summarize [your text]' },
-                    { cmd: '/vibe', desc: 'Analyze emotional tone', example: '/vibe I love this app!' },
-                    { cmd: '/poll', desc: 'Create interactive polls', example: '/poll What should we eat? Pizza,Sushi,Tacos' }
+                    { cmd: '/poll', desc: 'Create interactive polls', example: '/poll 점심 뭐 먹을까?' }
                   ]
                     .filter(item => 
                       message.length <= 1 || 
