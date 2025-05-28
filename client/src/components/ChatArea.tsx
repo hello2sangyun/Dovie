@@ -157,6 +157,56 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     },
   });
 
+  // Translate message mutation
+  const translateMessageMutation = useMutation({
+    mutationFn: async ({ text, targetLanguage }: { text: string; targetLanguage: string }) => {
+      const response = await apiRequest("/api/translate", "POST", { text, targetLanguage });
+      return response.json();
+    },
+    onSuccess: (result, variables) => {
+      if (result.success && messageToTranslate) {
+        setTranslatedMessages(prev => ({
+          ...prev,
+          [messageToTranslate.id]: {
+            text: result.translatedText,
+            language: variables.targetLanguage
+          }
+        }));
+        
+        setTranslatingMessages(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(messageToTranslate.id);
+          return newSet;
+        });
+        
+        toast({
+          title: "번역 완료!",
+          description: "메시지가 성공적으로 번역되었습니다.",
+        });
+      }
+      setIsTranslating(false);
+      setShowTranslateModal(false);
+      setMessageToTranslate(null);
+    },
+    onError: () => {
+      setIsTranslating(false);
+      setShowTranslateModal(false);
+      if (messageToTranslate) {
+        setTranslatingMessages(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(messageToTranslate.id);
+          return newSet;
+        });
+      }
+      
+      toast({
+        variant: "destructive",
+        title: "번역 실패",
+        description: "번역 중 오류가 발생했습니다. 다시 시도해주세요.",
+      });
+    },
+  });
+
   // Process command mutation
   const processCommandMutation = useMutation({
     mutationFn: async (commandText: string) => {
@@ -207,8 +257,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     },
   });
 
-  // 번역 처리 함수
-  const handleTranslate = async (text: string, targetLanguage: string) => {
+  // 명령어용 번역 처리 함수
+  const handleCommandTranslate = async (text: string, targetLanguage: string) => {
     try {
       const response = await apiRequest("/api/commands/process", "POST", { 
         commandText: `/translate ${text} to ${targetLanguage}` 
@@ -790,6 +840,24 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     if (files.length > 0) {
       uploadFileMutation.mutate(files[0]); // Upload the first file
     }
+  };
+
+  // 번역 관련 핸들러들
+  const handleTranslateMessage = (message: any) => {
+    setMessageToTranslate(message);
+    setShowTranslateModal(true);
+  };
+
+  const handleTranslate = (targetLanguage: string) => {
+    if (!messageToTranslate) return;
+    
+    setIsTranslating(true);
+    setTranslatingMessages(prev => new Set(prev).add(messageToTranslate.id));
+    
+    translateMessageMutation.mutate({
+      text: messageToTranslate.content,
+      targetLanguage
+    });
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -1804,6 +1872,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         onClose={() => setContextMenu({ ...contextMenu, visible: false })}
         onSaveMessage={handleSaveMessage}
         onReplyMessage={handleReplyMessage}
+        onTranslateMessage={() => handleTranslateMessage(contextMenu.message)}
       />
 
       {/* Language Selection Modal */}
