@@ -5,16 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Pin, Users } from "lucide-react";
+import { Plus, Search, Pin, Users, X } from "lucide-react";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 
 interface ChatsListProps {
   onSelectChat: (chatId: number) => void;
   selectedChatId: number | null;
   onCreateGroup?: () => void;
+  contactFilter?: number | null;
+  onClearFilter?: () => void;
 }
 
-export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup }: ChatsListProps) {
+export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup, contactFilter, onClearFilter }: ChatsListProps) {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -92,7 +94,15 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup 
 
   const filteredChatRooms = chatRooms.filter((chatRoom: any) => {
     const displayName = getChatRoomDisplayName(chatRoom);
-    return displayName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = displayName.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // 연락처 필터가 활성화된 경우, 해당 연락처가 포함된 채팅방만 표시
+    if (contactFilter) {
+      const hasContact = chatRoom.participants?.some((p: any) => p.id === contactFilter);
+      return matchesSearch && hasContact;
+    }
+    
+    return matchesSearch;
   });
 
   // 최근 메시지 시간순으로 정렬 (최신순)

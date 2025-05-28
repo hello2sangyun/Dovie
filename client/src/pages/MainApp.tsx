@@ -35,6 +35,7 @@ export default function MainApp() {
   });
   const [commandModalData, setCommandModalData] = useState<any>(null);
   const [messageDataForCommand, setMessageDataForCommand] = useState<any>(null);
+  const [contactFilter, setContactFilter] = useState<number | null>(null);
 
   useWebSocket(user?.id);
 
@@ -275,13 +276,9 @@ export default function MainApp() {
             <ContactsList 
               onAddContact={() => openModal("addContact")}
               onSelectContact={(contactUserId) => {
-                // Find the contact user data
-                const contact = contactsData?.contacts?.find((c: any) => c.contactUserId === contactUserId);
-                if (contact) {
-                  createOrFindChatRoom(contactUserId, contact.contactUser);
-                  setActiveMobileTab("chats");
-                  setShowMobileChat(true);
-                }
+                // 해당 친구가 포함된 채팅방들을 찾아서 채팅방 리스트로 이동
+                setContactFilter(contactUserId);
+                setActiveMobileTab("chats");
               }}
             />
           )}
