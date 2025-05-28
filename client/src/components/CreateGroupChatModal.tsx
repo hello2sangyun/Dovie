@@ -138,7 +138,7 @@ export default function CreateGroupChatModal({ open, onClose, onSuccess }: Creat
                     >
                       <Checkbox
                         checked={selectedContacts.includes(contact.contactUserId)}
-                        onChange={() => handleContactToggle(contact.contactUserId)}
+                        onCheckedChange={() => handleContactToggle(contact.contactUserId)}
                       />
                       <Avatar className="w-10 h-10">
                         <AvatarImage 
