@@ -821,15 +821,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Processing audio file:", req.file.originalname, req.file.size, "bytes");
 
-      // Create proper file object for OpenAI Whisper API
-      const audioBuffer = fs.readFileSync(req.file.path);
-      
-      // Create a File-like object for OpenAI API
-      const audioFile = new File([audioBuffer], req.file.originalname || 'voice_message.webm', {
-        type: req.file.mimetype || 'audio/webm'
-      });
-
-      const result = await transcribeAudio(audioFile);
+      // Pass the file path directly to transcribeAudio
+      const result = await transcribeAudio(req.file.path);
 
       // Clean up temporary file
       fs.unlinkSync(req.file.path);

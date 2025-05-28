@@ -261,7 +261,7 @@ export async function processCommand(commandText: string): Promise<CommandRespon
 }
 
 // Audio transcription for voice messages with language detection
-export async function transcribeAudio(audioFile: any): Promise<{ 
+export async function transcribeAudio(filePath: string): Promise<{ 
   success: boolean, 
   transcription?: string, 
   duration?: number, 
@@ -271,6 +271,11 @@ export async function transcribeAudio(audioFile: any): Promise<{
 }> {
   try {
     console.log("Starting audio transcription with language detection...");
+    console.log("Audio file path:", filePath);
+    
+    // Create file stream for OpenAI API
+    import fs from 'fs';
+    const audioFile = fs.createReadStream(filePath);
     
     // Use verbose_json format to get language detection info
     const transcription = await openai.audio.transcriptions.create({
