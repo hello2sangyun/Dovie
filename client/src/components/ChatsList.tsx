@@ -227,8 +227,15 @@ function ChatRoomItem({
   isPinned?: boolean;
   unreadCount?: number;
 }) {
+  const { user } = useAuth();
+  
   const getInitials = (name: string) => {
     return name.split(' ').map(word => word.charAt(0).toUpperCase()).join('').slice(0, 2);
+  };
+
+  const getOtherParticipant = (chatRoom: any) => {
+    if (!chatRoom.participants || !user) return null;
+    return chatRoom.participants.find((p: any) => p.id !== user.id);
   };
 
   const formatTime = (dateString: string) => {
@@ -269,7 +276,7 @@ function ChatRoomItem({
       <div className="flex items-center space-x-3">
         <Avatar className="w-12 h-12">
           <AvatarImage 
-            src={chatRoom.participants?.[0]?.profilePicture || undefined} 
+            src={getOtherParticipant(chatRoom)?.profilePicture || undefined} 
             alt={chatRoom.name} 
           />
           <AvatarFallback className="purple-gradient text-white font-semibold">
