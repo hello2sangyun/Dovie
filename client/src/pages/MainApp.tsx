@@ -11,6 +11,7 @@ import ArchiveList from "@/components/ArchiveList";
 import ChatArea from "@/components/ChatArea";
 import AddContactModal from "@/components/AddContactModal";
 import CommandModal from "@/components/CommandModal";
+import CreateGroupChatModal from "@/components/CreateGroupChatModal";
 
 import SettingsPage from "@/components/SettingsPage";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ export default function MainApp() {
   const [modals, setModals] = useState({
     addContact: false,
     command: false,
+    createGroup: false,
   });
   const [commandModalData, setCommandModalData] = useState<any>(null);
   const [messageDataForCommand, setMessageDataForCommand] = useState<any>(null);
@@ -113,9 +115,14 @@ export default function MainApp() {
   };
 
   const closeModals = () => {
-    setModals({ addContact: false, command: false, settings: false });
+    setModals({ addContact: false, command: false, createGroup: false });
     setCommandModalData(null);
     setMessageDataForCommand(null);
+  };
+
+  const handleGroupChatSuccess = (chatRoomId: number) => {
+    setSelectedChatRoom(chatRoomId);
+    setActiveTab("chats");
   };
 
   if (!user) {

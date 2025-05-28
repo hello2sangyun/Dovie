@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 interface ChatsListProps {
   onSelectChat: (chatId: number) => void;
   selectedChatId: number | null;
+  onCreateGroup?: () => void;
 }
 
 export default function ChatsList({ onSelectChat, selectedChatId }: ChatsListProps) {
