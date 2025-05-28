@@ -20,7 +20,7 @@ export default function VoiceRecorder({ onRecordingComplete, disabled }: VoiceRe
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
 
-  // 마이크 권한 확인
+  // 마이크 권한 확인 - 기본적으로 활성화
   useEffect(() => {
     const checkMicrophonePermission = async () => {
       try {
@@ -39,6 +39,8 @@ export default function VoiceRecorder({ onRecordingComplete, disabled }: VoiceRe
       }
     };
 
+    // 기본적으로 마이크 접근을 허용으로 설정
+    setMicrophoneAccess(true);
     checkMicrophonePermission();
   }, []);
 
@@ -147,15 +149,24 @@ export default function VoiceRecorder({ onRecordingComplete, disabled }: VoiceRe
     }
   };
 
-  // 마이크 권한이 없는 경우
+  // 마이크 권한이 없는 경우에도 클릭할 수 있도록 수정
+  const handlePermissionRequest = async () => {
+    try {
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      setMicrophoneAccess(true);
+    } catch (error) {
+      console.error('Microphone permission denied:', error);
+    }
+  };
+
   if (microphoneAccess === false) {
     return (
       <Button
         variant="outline"
         size="sm"
-        disabled
-        className="text-gray-400"
-        title="마이크 권한이 필요합니다"
+        onClick={handlePermissionRequest}
+        className="text-gray-400 hover:text-purple-600"
+        title="마이크 권한을 요청하려면 클릭하세요"
       >
         <MicOff className="h-4 w-4" />
       </Button>
