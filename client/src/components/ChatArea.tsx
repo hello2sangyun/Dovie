@@ -1496,6 +1496,26 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         onCreatePoll={handleCreatePoll}
       />
 
+      {/* Poll Detail Modal */}
+      {activePoll && (
+        <PollDetailModal
+          open={showPollDetailModal}
+          onClose={() => setShowPollDetailModal(false)}
+          pollData={activePoll}
+          userVote={null} // TODO: 사용자 투표 상태
+          voteResults={pollVotes}
+          totalParticipants={currentChatRoom?.participants?.length || 1}
+          onVote={(optionIndex) => {
+            console.log('Vote submitted:', optionIndex);
+            // TODO: 투표 처리 로직 구현
+            setPollVotes(prev => ({
+              ...prev,
+              [optionIndex]: (prev[optionIndex] || 0) + 1
+            }));
+          }}
+        />
+      )}
+
     </div>
   );
 }
