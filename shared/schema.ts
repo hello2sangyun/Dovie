@@ -60,6 +60,7 @@ export const messages = pgTable("messages", {
   isCommandRecall: boolean("is_command_recall").default(false),
   isTranslated: boolean("is_translated").default(false),
   isCalculated: boolean("is_calculated").default(false),
+  pollData: text("poll_data"), // JSON string containing poll information
   originalMessageId: integer("original_message_id").references(() => messages.id),
   replyToMessageId: integer("reply_to_message_id").references(() => messages.id),
   createdAt: timestamp("created_at").defaultNow(),

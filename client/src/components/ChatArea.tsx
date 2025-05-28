@@ -1186,6 +1186,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                             </div>
                           )}
                         </div>
+                      ) : msg.messageType === "poll" ? (
+                        <PollMessage
+                          pollData={JSON.parse(msg.pollData || '{}')}
+                          isMe={isMe}
+                          onVote={(optionIndex) => {
+                            // TODO: 투표 처리 로직
+                            console.log('Vote for option:', optionIndex);
+                          }}
+                        />
                       ) : (
                         <div className={cn(
                           "text-sm",
