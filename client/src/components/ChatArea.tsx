@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File } from "lucide-react";
+import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
@@ -194,10 +194,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       const result = await response.json();
       
       if (result.success) {
-        // 번역 결과만 깔끔하게 표시
+        // 번역 결과만 깔끔하게 표시 (번역 마크 추가)
         sendMessageMutation.mutate({
           content: result.content,
           messageType: "text",
+          isTranslated: true,
           replyToMessageId: replyToMessage?.id
         });
       } else {
@@ -1091,7 +1092,17 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           "text-sm",
                           isMe ? "text-white" : "text-gray-900"
                         )}>
-                          {renderMessageWithLinks(msg.content)}
+                          <div className="flex items-start space-x-1">
+                            <div className="flex-1">
+                              {renderMessageWithLinks(msg.content)}
+                            </div>
+                            {msg.isTranslated && (
+                              <Languages className={cn(
+                                "h-3 w-3 flex-shrink-0 mt-0.5",
+                                isMe ? "text-white/70" : "text-gray-500"
+                              )} />
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
