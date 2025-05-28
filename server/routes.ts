@@ -811,64 +811,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ message: "Not authenticated" });
     }
 
-    try {
-      if (!req.file) {
-        return res.status(400).json({
-          success: false,
-          message: "No audio file uploaded"
-        });
-      }
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No audio file uploaded"
+      });
+    }
 
-      console.log("Processing audio file:", req.file.originalname, req.file.size, "bytes");
-      console.log("Original file path:", req.file.path);
+    console.log("Processing audio file:", req.file.originalname, req.file.size, "bytes");
 
-      // Create a new file with .webm extension that OpenAI can recognize
-      const webmFilePath = req.file.path + '.webm';
-      console.log("Target WebM file path:", webmFilePath);
-      
-      // Read the original file and write it with proper extension
-      const fileBuffer = fs.readFileSync(req.file.path);
-      fs.writeFileSync(webmFilePath, fileBuffer);
-      console.log("File written with extension:", webmFilePath, "Size:", fileBuffer.length, "bytes");
-      
-      // Verify the new file exists
-      if (fs.existsSync(webmFilePath)) {
-        console.log("WebM file successfully created and verified");
-      } else {
-        console.error("WebM file creation failed");
-        throw new Error("Failed to create WebM file");
-      }
-      
-      // Pass the properly named file to transcribeAudio
-      const result = await transcribeAudio(webmFilePath);
-      
-      // Clean up temporary files
-      fs.unlinkSync(req.file.path);
-      fs.unlinkSync(webmFilePath);
+    // Pass the file directly to transcribeAudio function
+    const result = await transcribeAudio(req.file.path);
+    
+    // Clean up temporary file
+    fs.unlinkSync(req.file.path);
 
-      if (result.success) {
-        // Save the audio file (optional - you might want to store it)
-        const audioUrl = `/uploads/${req.file.filename}`;
-        
-        res.json({
-          success: true,
-          transcription: result.transcription,
-          duration: result.duration,
-          detectedLanguage: result.detectedLanguage,
-          confidence: result.confidence,
-          audioUrl: audioUrl
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          message: result.error || "음성 변환에 실패했습니다."
-        });
-      }
-    } catch (error) {
-      console.error("Audio transcription error:", error);
+    if (result.success) {
+      res.json({
+        success: true,
+        transcription: result.transcription,
+        duration: result.duration,
+        detectedLanguage: result.detectedLanguage,
+        confidence: result.confidence
+      });
+    } else {
       res.status(500).json({
         success: false,
-        message: "음성 처리 중 오류가 발생했습니다."
+        message: result.error || "음성 변환에 실패했습니다."
       });
     }
   });
