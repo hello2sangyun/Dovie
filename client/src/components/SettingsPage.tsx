@@ -27,7 +27,7 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
   // Profile update mutation
   const updateProfileMutation = useMutation({
     mutationFn: async (data: { displayName?: string; profilePicture?: string }) => {
-      const response = await apiRequest("PUT", `/api/users/${user?.id}`, data);
+      const response = await apiRequest(`/api/users/${user?.id}`, "PATCH", data);
       return response.json();
     },
     onSuccess: (data) => {
