@@ -17,6 +17,7 @@ import PollCreationModal from "./PollCreationModal";
 import PollMessage from "./PollMessage";
 import PollBanner from "./PollBanner";
 import PollDetailModal from "./PollDetailModal";
+import TranslateModal from "./TranslateModal";
 
 interface ChatAreaProps {
   chatRoomId: number;
@@ -48,6 +49,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [fileDataForCommand, setFileDataForCommand] = useState<any>(null);
   const [showAddFriendModal, setShowAddFriendModal] = useState(false);
   const [nonFriendUsers, setNonFriendUsers] = useState<any[]>([]);
+  const [showTranslateModal, setShowTranslateModal] = useState(false);
+  const [messageToTranslate, setMessageToTranslate] = useState<any>(null);
+  const [translatedMessages, setTranslatedMessages] = useState<{[key: number]: {text: string, language: string}}>({});
+  const [translatingMessages, setTranslatingMessages] = useState<Set<number>>(new Set());
+  const [isTranslating, setIsTranslating] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [contextMenu, setContextMenu] = useState<{
     visible: boolean;

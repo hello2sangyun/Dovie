@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Save, Reply } from "lucide-react";
+import { Save, Reply, Languages } from "lucide-react";
 
 interface MessageContextMenuProps {
   x: number;
@@ -8,6 +8,7 @@ interface MessageContextMenuProps {
   onClose: () => void;
   onSaveMessage: () => void;
   onReplyMessage: () => void;
+  onTranslateMessage: () => void;
   visible: boolean;
 }
 
@@ -16,7 +17,8 @@ export default function MessageContextMenu({
   y, 
   onClose, 
   onSaveMessage,
-  onReplyMessage, 
+  onReplyMessage,
+  onTranslateMessage, 
   visible 
 }: MessageContextMenuProps) {
   useEffect(() => {
@@ -50,6 +52,12 @@ export default function MessageContextMenu({
     onClose();
   };
 
+  const handleTranslateClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onTranslateMessage();
+    onClose();
+  };
+
   return (
     <>
       {/* Backdrop */}
@@ -73,6 +81,15 @@ export default function MessageContextMenu({
         >
           <Reply className="w-4 h-4 mr-2" />
           회신
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start px-3 py-2 h-auto text-left"
+          onClick={handleTranslateClick}
+        >
+          <Languages className="w-4 h-4 mr-2" />
+          번역하기
         </Button>
         <Button
           variant="ghost"
