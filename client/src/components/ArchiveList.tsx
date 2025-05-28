@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, Download, FileText, Code, Quote } from "lucide-react";
+import { Search, Filter, Download, FileText, Code, Quote, FileImage, FileSpreadsheet, File, Video } from "lucide-react";
 import PreviewModal from "./PreviewModal";
 
 export default function ArchiveList() {
@@ -54,12 +54,44 @@ export default function ArchiveList() {
     });
 
   const getCommandIcon = (command: any) => {
-    if (command.fileUrl) {
-      const extension = command.fileName?.split('.').pop()?.toLowerCase();
-      if (['js', 'ts', 'py', 'java', 'cpp', 'c', 'html', 'css'].includes(extension || '')) {
-        return <Code className="text-purple-600" />;
+    if (command.fileUrl && command.fileName) {
+      const extension = command.fileName.split('.').pop()?.toLowerCase();
+      switch (extension) {
+        case 'pdf':
+          return <FileText className="text-red-500" />;
+        case 'doc':
+        case 'docx':
+          return <FileText className="text-blue-600" />;
+        case 'xls':
+        case 'xlsx':
+          return <FileSpreadsheet className="text-green-600" />;
+        case 'ppt':
+        case 'pptx':
+          return <FileText className="text-orange-500" />;
+        case 'jpg':
+        case 'jpeg':
+        case 'png':
+        case 'gif':
+        case 'bmp':
+        case 'webp':
+          return <FileImage className="text-purple-500" />;
+        case 'mp4':
+        case 'avi':
+        case 'mov':
+        case 'wmv':
+          return <Video className="text-pink-500" />;
+        case 'js':
+        case 'ts':
+        case 'py':
+        case 'java':
+        case 'cpp':
+        case 'c':
+        case 'html':
+        case 'css':
+          return <Code className="text-purple-600" />;
+        default:
+          return <File className="text-gray-500" />;
       }
-      return <FileText className="text-green-600" />;
     }
     return <Quote className="text-blue-600" />;
   };
