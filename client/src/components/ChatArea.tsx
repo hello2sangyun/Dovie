@@ -1367,36 +1367,35 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           >
             <Hash className="h-5 w-5" />
           </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-gray-400 hover:text-purple-600 p-2"
+            onClick={() => {
+              setMessage('/');
+              setShowChatCommands(true);
+              messageInputRef.current?.focus();
+            }}
+          >
+            <span className="text-lg font-bold">/</span>
+          </Button>
           
           <div className="flex-1 relative mx-1">
-            <div className="relative">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 text-gray-400 hover:text-purple-600 p-1 h-6 w-6"
-                onClick={() => {
-                  setMessage('/');
-                  setShowChatCommands(true);
-                  messageInputRef.current?.focus();
-                }}
-              >
-                <span className="text-sm font-bold">/</span>
-              </Button>
-              <Input
-                ref={messageInputRef}
-                type="text"
-                placeholder="메시지를 입력하세요..."
-                value={message}
-                onChange={(e) => handleMessageChange(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
-                className="resize-none pl-8"
-              />
-            </div>
+            <Input
+              ref={messageInputRef}
+              type="text"
+              placeholder="메시지를 입력하세요..."
+              value={message}
+              onChange={(e) => handleMessageChange(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+              className="resize-none"
+            />
             
             {/* Command suggestions dropdown */}
             {showCommandSuggestions && commands.length > 0 && (
