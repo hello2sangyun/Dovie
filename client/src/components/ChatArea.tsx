@@ -14,6 +14,7 @@ import CommandModal from "./CommandModal";
 import LanguageSelectionModal from "./LanguageSelectionModal";
 import CalculatorPreviewModal from "./CalculatorPreviewModal";
 import PollCreationModal from "./PollCreationModal";
+import PollMessage from "./PollMessage";
 
 interface ChatAreaProps {
   chatRoomId: number;
@@ -265,13 +266,22 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   };
 
   // 폴 생성 핸들러
-  const handleCreatePoll = async (question: string, options: string[]) => {
+  const handleCreatePoll = async (question: string, options: string[], duration: number) => {
     try {
-      // 투표를 직접 아이콘과 함께 표시 (서버 호출 없이)
-      const pollContent = `📊 ${question}\n\n${options.map((option, index) => `${index + 1}. ${option}`).join('\n')}`;
+      // 투표 데이터 생성
+      const pollData = {
+        question,
+        options,
+        duration,
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + duration * 60 * 60 * 1000).toISOString()
+      };
+
+      // 투표 메시지 전송
       sendMessageMutation.mutate({
-        content: pollContent,
-        messageType: "text",
+        content: `📊 ${question}`,
+        messageType: "poll",
+        pollData: JSON.stringify(pollData),
         replyToMessageId: replyToMessage?.id
       });
     } catch (error) {

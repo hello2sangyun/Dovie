@@ -10,7 +10,7 @@ interface PollCreationModalProps {
   open: boolean;
   onClose: () => void;
   question: string;
-  onCreatePoll: (question: string, options: string[]) => void;
+  onCreatePoll: (question: string, options: string[], duration: number) => void;
 }
 
 export default function PollCreationModal({ 
@@ -21,6 +21,7 @@ export default function PollCreationModal({
 }: PollCreationModalProps) {
   const [pollQuestion, setPollQuestion] = useState(question);
   const [options, setOptions] = useState<string[]>(["", ""]);
+  const [selectedDuration, setSelectedDuration] = useState<number>(24); // Default 1 day
 
   const handleAddOption = () => {
     if (options.length < 5) {
@@ -43,13 +44,20 @@ export default function PollCreationModal({
   const handleCreatePoll = () => {
     const validOptions = options.filter(option => option.trim() !== "");
     if (pollQuestion.trim() && validOptions.length >= 2) {
-      onCreatePoll(pollQuestion.trim(), validOptions);
+      onCreatePoll(pollQuestion.trim(), validOptions, selectedDuration);
       onClose();
       // 초기화
       setPollQuestion("");
       setOptions(["", ""]);
+      setSelectedDuration(24);
     }
   };
+
+  const durationOptions = [
+    { label: "1시간", value: 1 },
+    { label: "1일", value: 24 },
+    { label: "1주일", value: 168 }
+  ];
 
   const canCreatePoll = pollQuestion.trim() && options.filter(option => option.trim() !== "").length >= 2;
 
@@ -108,6 +116,26 @@ export default function PollCreationModal({
                 선택지 추가
               </Button>
             )}
+          </div>
+
+          <div className="space-y-2">
+            <Label>투표 기간</Label>
+            <div className="flex space-x-2">
+              {durationOptions.map((option) => (
+                <Button
+                  key={option.value}
+                  variant={selectedDuration === option.value ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedDuration(option.value)}
+                  className={cn(
+                    "flex-1",
+                    selectedDuration === option.value && "bg-purple-600 hover:bg-purple-700 text-white"
+                  )}
+                >
+                  {option.label}
+                </Button>
+              ))}
+            </div>
           </div>
         </div>
 

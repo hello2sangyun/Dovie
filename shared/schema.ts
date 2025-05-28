@@ -98,6 +98,26 @@ export const phoneVerifications = pgTable("phone_verifications", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const polls = pgTable("polls", {
+  id: serial("id").primaryKey(),
+  chatRoomId: integer("chat_room_id").references(() => chatRooms.id).notNull(),
+  createdBy: integer("created_by").references(() => users.id).notNull(),
+  question: text("question").notNull(),
+  options: text("options").array().notNull(),
+  duration: integer("duration").notNull(), // Duration in hours
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at").notNull(),
+});
+
+export const pollVotes = pgTable("poll_votes", {
+  id: serial("id").primaryKey(),
+  pollId: integer("poll_id").references(() => polls.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  optionIndex: integer("option_index").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const usersRelations = relations(users, ({ many }) => ({
   contacts: many(contacts, { relationName: "userContacts" }),
   contactOf: many(contacts, { relationName: "contactUser" }),
