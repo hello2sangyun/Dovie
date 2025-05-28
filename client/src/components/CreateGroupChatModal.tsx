@@ -108,7 +108,11 @@ export default function CreateGroupChatModal({ open, onClose, onSuccess }: Creat
           </DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          handleSubmit(e);
+        }} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="groupName">그룹 이름</Label>
             <Input
@@ -135,24 +139,18 @@ export default function CreateGroupChatModal({ open, onClose, onSuccess }: Creat
                       key={contact.id}
                       className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg"
                     >
-                      <div 
-                        className="cursor-pointer"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleContactToggle(contact.contactUserId);
-                        }}
-                      >
+                      <div className="cursor-pointer">
                         <Checkbox
                           checked={selectedContacts.includes(contact.contactUserId)}
                           onCheckedChange={(checked) => {
+                            console.log('Checkbox clicked for user:', contact.contactUserId);
                             handleContactToggle(contact.contactUserId);
                           }}
                         />
                       </div>
                       <div 
                         className="flex items-center space-x-3 flex-1 cursor-pointer"
-                        onClick={(e) => {
+                        onMouseDown={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
                           handleContactToggle(contact.contactUserId);
@@ -188,7 +186,12 @@ export default function CreateGroupChatModal({ open, onClose, onSuccess }: Creat
               취소
             </Button>
             <Button 
-              type="submit" 
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleSubmit(e);
+              }}
               disabled={createGroupChatMutation.isPending || selectedContacts.length < 2 || !groupName.trim()}
               className="bg-purple-600 hover:bg-purple-700"
             >
