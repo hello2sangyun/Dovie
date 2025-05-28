@@ -1414,38 +1414,58 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             
             {/* AI Chat Commands dropdown */}
             {showChatCommands && (
-              <div className="absolute bottom-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mb-1 max-h-60 overflow-y-auto">
-                <div className="p-2">
-                  <div className="text-xs font-medium text-gray-500 mb-2 px-2">AI Commands</div>
-                  {[
-                    { cmd: '/translate', desc: 'Translate text with language selection', example: '/translate 안녕하세요' },
-                    { cmd: '/calculate', desc: 'Perform mathematical calculations', example: '/calculate 15 * 8 + 42' },
-                    { cmd: '/poll', desc: 'Create interactive polls', example: '/poll 점심 뭐 먹을까?' }
-                  ]
-                    .filter(item => 
-                      message.length <= 1 || 
-                      item.cmd.toLowerCase().includes(message.toLowerCase())
-                    )
-                    .map((item) => (
-                      <div
-                        key={item.cmd}
-                        className="p-2 hover:bg-blue-50 rounded cursor-pointer"
-                        onClick={() => {
-                          setMessage(item.cmd + ' ');
-                          setShowChatCommands(false);
-                        }}
-                      >
-                        <div className="flex items-start space-x-2">
-                          <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium">
-                            {item.cmd}
-                          </span>
-                          <div className="flex-1">
-                            <div className="text-sm text-gray-700">{item.desc}</div>
-                            <div className="text-xs text-gray-500 mt-1">{item.example}</div>
+              <div className="absolute bottom-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-xl mb-2 max-h-64 overflow-y-auto z-50">
+                <div className="p-3">
+                  <div className="text-xs font-semibold text-gray-600 mb-3 px-1 uppercase tracking-wide">사용 가능한 명령어</div>
+                  <div className="space-y-2">
+                    {[
+                      { 
+                        cmd: '/translate', 
+                        desc: '텍스트를 다른 언어로 번역', 
+                        example: '/translate 안녕하세요',
+                        icon: '🌐'
+                      },
+                      { 
+                        cmd: '/calculate', 
+                        desc: '수학 계산 수행', 
+                        example: '/calculate 15 * 8 + 42',
+                        icon: '🧮'
+                      },
+                      { 
+                        cmd: '/poll', 
+                        desc: '투표 생성 및 관리', 
+                        example: '/poll 점심 뭐 먹을까?',
+                        icon: '📊'
+                      }
+                    ]
+                      .filter(item => 
+                        message.length <= 1 || 
+                        item.cmd.toLowerCase().includes(message.toLowerCase())
+                      )
+                      .map((item) => (
+                        <div
+                          key={item.cmd}
+                          className="p-3 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 rounded-lg cursor-pointer transition-all duration-200 border border-transparent hover:border-blue-200"
+                          onClick={() => {
+                            setMessage(item.cmd + ' ');
+                            setShowChatCommands(false);
+                          }}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="flex items-center space-x-2 min-w-0 flex-1">
+                              <span className="text-lg">{item.icon}</span>
+                              <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-3 py-1.5 rounded-md text-sm font-medium min-w-max shadow-sm">
+                                {item.cmd}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="mt-2 ml-8">
+                            <div className="text-sm text-gray-700 font-medium mb-1">{item.desc}</div>
+                            <div className="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded font-mono">{item.example}</div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                  </div>
                 </div>
               </div>
             )}
