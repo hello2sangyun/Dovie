@@ -821,11 +821,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Processing audio file:", req.file.originalname, req.file.size, "bytes");
 
-      // Pass the file path directly to transcribeAudio
-      const result = await transcribeAudio(req.file.path);
+      // Create a new file with proper .webm extension for OpenAI API
+      const newFilePath = req.file.path + '.webm';
+      fs.renameSync(req.file.path, newFilePath);
+      
+      // Pass the file path with extension to transcribeAudio
+      const result = await transcribeAudio(newFilePath);
 
       // Clean up temporary file
-      fs.unlinkSync(req.file.path);
+      fs.unlinkSync(newFilePath);
 
       if (result.success) {
         // Save the audio file (optional - you might want to store it)
