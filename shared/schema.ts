@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, unique, decimal } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -57,6 +57,9 @@ export const messages = pgTable("messages", {
   fileUrl: text("file_url"),
   fileName: text("file_name"),
   fileSize: integer("file_size"),
+  voiceDuration: integer("voice_duration"), // in seconds for voice messages
+  detectedLanguage: text("detected_language"), // detected language for voice messages
+  confidence: decimal("confidence", { precision: 3, scale: 2 }), // transcription confidence score
   isCommandRecall: boolean("is_command_recall").default(false),
   isTranslated: boolean("is_translated").default(false),
   isCalculated: boolean("is_calculated").default(false),
