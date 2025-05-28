@@ -837,6 +837,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           success: true,
           transcription: result.transcription,
           duration: result.duration,
+          detectedLanguage: result.detectedLanguage,
+          confidence: result.confidence,
           audioUrl: audioUrl
         });
       } else {

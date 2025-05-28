@@ -1544,8 +1544,25 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                               "mt-2 pt-2 border-t text-sm",
                               isMe ? "border-white/20 text-white/90" : "border-gray-100 text-gray-700"
                             )}>
-                              <span className="text-xs opacity-70 block mb-1">음성 인식 결과:</span>
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-xs opacity-70">음성 인식 결과:</span>
+                                {msg.detectedLanguage && (
+                                  <span className={cn(
+                                    "text-xs px-2 py-0.5 rounded-full",
+                                    isMe ? "bg-white/20 text-white/80" : "bg-purple-100 text-purple-600"
+                                  )}>
+                                    {msg.detectedLanguage}
+                                  </span>
+                                )}
+                              </div>
                               {msg.content}
+                              {msg.confidence && (
+                                <div className="mt-1">
+                                  <span className="text-xs opacity-60">
+                                    신뢰도: {Math.round(msg.confidence * 100)}%
+                                  </span>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>

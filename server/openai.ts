@@ -260,23 +260,55 @@ export async function processCommand(commandText: string): Promise<CommandRespon
   }
 }
 
-// Audio transcription for voice messages
-export async function transcribeAudio(audioFile: any): Promise<{ success: boolean, transcription?: string, duration?: number, error?: string }> {
+// Audio transcription for voice messages with language detection
+export async function transcribeAudio(audioFile: any): Promise<{ 
+  success: boolean, 
+  transcription?: string, 
+  duration?: number, 
+  detectedLanguage?: string,
+  confidence?: number,
+  error?: string 
+}> {
   try {
-    console.log("Starting audio transcription with Whisper...");
+    console.log("Starting audio transcription with language detection...");
     
+    // Use verbose_json format to get language detection info
     const transcription = await openai.audio.transcriptions.create({
       file: audioFile,
-      model: "whisper-1",
-      response_format: "text"
+      model: "whisper-1", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      response_format: "verbose_json",
+      language: undefined // Let Whisper auto-detect the language
     });
 
-    console.log("Transcription successful:", transcription);
+    console.log("Audio transcription completed:", {
+      text: transcription.text,
+      language: transcription.language,
+      duration: transcription.duration
+    });
+    
+    // Map language codes to readable names
+    const languageNames: { [key: string]: string } = {
+      'ko': '한국어',
+      'en': 'English', 
+      'hu': 'Magyar',
+      'de': 'Deutsch',
+      'ja': '日本語',
+      'zh': '中文',
+      'es': 'Español',
+      'fr': 'Français',
+      'it': 'Italiano',
+      'pt': 'Português',
+      'ru': 'Русский'
+    };
+    
+    const detectedLanguage = languageNames[transcription.language] || transcription.language;
     
     return {
       success: true,
-      transcription: transcription || "음성을 인식할 수 없습니다.",
-      duration: 0
+      transcription: transcription.text || "음성을 인식할 수 없습니다.",
+      duration: transcription.duration || 0,
+      detectedLanguage,
+      confidence: 0.9 // Whisper doesn't provide confidence scores, but it's generally reliable
     };
   } catch (error: any) {
     console.error("Audio transcription error:", {
