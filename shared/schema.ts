@@ -58,6 +58,8 @@ export const messages = pgTable("messages", {
   fileName: text("file_name"),
   fileSize: integer("file_size"),
   isCommandRecall: boolean("is_command_recall").default(false),
+  isTranslated: boolean("is_translated").default(false),
+  isCalculated: boolean("is_calculated").default(false),
   originalMessageId: integer("original_message_id").references(() => messages.id),
   replyToMessageId: integer("reply_to_message_id").references(() => messages.id),
   createdAt: timestamp("created_at").defaultNow(),
