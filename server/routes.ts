@@ -821,20 +821,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Processing audio file:", req.file.originalname, req.file.size, "bytes");
 
-      // Create a new file with proper .webm extension for OpenAI API
-      const newFilePath = req.file.path + '.webm';
+      // Convert WebM to WAV using FFmpeg for better OpenAI compatibility
+      const wavFilePath = req.file.path + '.wav';
+      const { exec } = require('child_process');
       
       try {
-        // Copy the file with proper extension
-        fs.copyFileSync(req.file.path, newFilePath);
-        console.log("File copied to:", newFilePath);
+        // Convert WebM to WAV using FFmpeg
+        await new Promise((resolve, reject) => {
+          exec(`ffmpeg -i "${req.file.path}" -ar 16000 -ac 1 "${wavFilePath}"`, (error: any, stdout: any, stderr: any) => {
+            if (error) {
+              console.error("FFmpeg conversion error:", error);
+              reject(error);
+            } else {
+              console.log("Audio converted to WAV:", wavFilePath);
+              resolve(stdout);
+            }
+          });
+        });
         
-        // Pass the file path with extension to transcribeAudio
-        const result = await transcribeAudio(newFilePath);
+        // Pass the WAV file to transcribeAudio
+        const result = await transcribeAudio(wavFilePath);
         
         // Clean up temporary files
         fs.unlinkSync(req.file.path);
-        fs.unlinkSync(newFilePath);
+        fs.unlinkSync(wavFilePath);
 
         if (result.success) {
           // Save the audio file (optional - you might want to store it)
@@ -861,9 +871,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (req.file && fs.existsSync(req.file.path)) {
           fs.unlinkSync(req.file.path);
         }
-        const newFilePath = req.file?.path + '.webm';
-        if (fs.existsSync(newFilePath)) {
-          fs.unlinkSync(newFilePath);
+        const wavFilePath = req.file?.path + '.wav';
+        if (wavFilePath && fs.existsSync(wavFilePath)) {
+          fs.unlinkSync(wavFilePath);
         }
         
         res.status(500).json({
