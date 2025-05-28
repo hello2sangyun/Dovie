@@ -62,33 +62,53 @@ export async function translateText(text: string, targetLanguage: string = 'Engl
   }
 }
 
-// /calculate command - perform mathematical calculations
+// /calculate command - perform mathematical calculations using JavaScript eval
 export async function calculateExpression(expression: string): Promise<CommandResponse> {
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "system",
-          content: "You are a calculator. Solve the mathematical expression and return only the result with a brief explanation if needed. Keep it concise."
-        },
-        {
-          role: "user",
-          content: expression
-        }
-      ],
-      max_tokens: 200,
-    });
+    // 보안을 위해 허용된 문자만 필터링
+    const sanitizedExpression = expression.replace(/[^0-9+\-*/.() ]/g, '');
+    
+    if (sanitizedExpression !== expression) {
+      return {
+        success: false,
+        content: "Invalid characters in expression. Only numbers, +, -, *, /, (, ), and spaces are allowed.",
+        type: 'text'
+      };
+    }
+
+    // 빈 표현식 체크
+    if (!sanitizedExpression.trim()) {
+      return {
+        success: false,
+        content: "Please provide a mathematical expression to calculate.",
+        type: 'text'
+      };
+    }
+
+    // JavaScript의 eval을 사용하여 계산 (보안상 sanitized된 입력만 사용)
+    const result = eval(sanitizedExpression);
+    
+    // 결과가 유효한 숫자인지 확인
+    if (typeof result !== 'number' || isNaN(result)) {
+      return {
+        success: false,
+        content: "Invalid mathematical expression.",
+        type: 'text'
+      };
+    }
+
+    // 숫자 포맷팅 (큰 숫자는 콤마 추가)
+    const formattedResult = result.toLocaleString();
 
     return {
       success: true,
-      content: response.choices[0].message.content || "Calculation failed",
+      content: formattedResult,
       type: 'text'
     };
   } catch (error) {
     return {
       success: false,
-      content: "Calculator service unavailable",
+      content: "Error calculating expression. Please check your syntax.",
       type: 'text'
     };
   }
