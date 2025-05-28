@@ -178,11 +178,16 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const commands = commandsData?.commands || [];
   const contacts = contactsData?.contacts || [];
 
-  // 채팅방 이름을 상대방의 닉네임으로 표시하는 함수
+  // 채팅방 이름을 올바르게 표시하는 함수
   const getChatRoomDisplayName = (chatRoom: any) => {
     if (!chatRoom) return "";
     
-    // 상대방 찾기 (본인이 아닌 참가자)
+    // 그룹 채팅인 경우 그룹 이름 사용
+    if (chatRoom.isGroup) {
+      return chatRoom.name;
+    }
+    
+    // 개인 채팅인 경우 상대방의 닉네임으로 표시
     const otherParticipant = chatRoom.participants?.find((p: any) => p.id !== user?.id);
     
     if (!otherParticipant) {

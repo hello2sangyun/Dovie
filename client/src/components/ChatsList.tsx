@@ -14,7 +14,7 @@ interface ChatsListProps {
   onCreateGroup?: () => void;
 }
 
-export default function ChatsList({ onSelectChat, selectedChatId }: ChatsListProps) {
+export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup }: ChatsListProps) {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -144,6 +144,8 @@ export default function ChatsList({ onSelectChat, selectedChatId }: ChatsListPro
             variant="ghost"
             size="sm"
             className="text-purple-600 hover:text-purple-700"
+            onClick={onCreateGroup}
+            title="그룹 채팅 만들기"
           >
             <Plus className="h-5 w-5" />
           </Button>

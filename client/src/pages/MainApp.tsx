@@ -206,6 +206,7 @@ export default function MainApp() {
                 <ChatsList 
                   onSelectChat={setSelectedChatRoom}
                   selectedChatId={selectedChatRoom}
+                  onCreateGroup={() => setModals({ ...modals, createGroup: true })}
                 />
               </TabsContent>
               
@@ -375,6 +376,11 @@ export default function MainApp() {
         chatRoomId={selectedChatRoom}
         fileData={commandModalData}
         messageData={messageDataForCommand}
+      />
+      <CreateGroupChatModal 
+        open={modals.createGroup}
+        onClose={closeModals}
+        onSuccess={handleGroupChatSuccess}
       />
 
     </div>
