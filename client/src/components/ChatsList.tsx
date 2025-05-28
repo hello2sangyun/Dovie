@@ -282,15 +282,69 @@ function ChatRoomItem({
       )}
       
       <div className="flex items-center space-x-3">
-        <Avatar className="w-12 h-12">
-          <AvatarImage 
-            src={getOtherParticipant(chatRoom)?.profilePicture || undefined} 
-            alt={chatRoom.name} 
-          />
-          <AvatarFallback className="purple-gradient text-white font-semibold">
-            {getInitials(displayName)}
-          </AvatarFallback>
-        </Avatar>
+        {chatRoom.isGroup ? (
+          <div className="relative w-12 h-12 flex items-center justify-center">
+            {chatRoom.participants.slice(0, Math.min(5, chatRoom.participants.length)).map((participant: any, index: number) => {
+              const totalAvatars = Math.min(5, chatRoom.participants.length);
+              const isStackLayout = totalAvatars <= 3;
+              
+              if (isStackLayout) {
+                // 3명 이하일 때: 겹치는 스택 레이아웃
+                return (
+                  <Avatar 
+                    key={participant.id}
+                    className={`w-8 h-8 border-2 border-white shadow-sm ${
+                      index > 0 ? '-ml-2' : ''
+                    }`}
+                    style={{ zIndex: totalAvatars - index }}
+                  >
+                    <AvatarImage 
+                      src={participant.profilePicture || undefined} 
+                      alt={participant.displayName} 
+                    />
+                    <AvatarFallback className="purple-gradient text-white font-semibold text-xs">
+                      {getInitials(participant.displayName)}
+                    </AvatarFallback>
+                  </Avatar>
+                );
+              } else {
+                // 4-5명일 때: 격자 레이아웃
+                const positions = [
+                  'top-0 left-0',
+                  'top-0 right-0', 
+                  'bottom-0 left-0',
+                  'bottom-0 right-0',
+                  'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10'
+                ];
+                
+                return (
+                  <Avatar 
+                    key={participant.id}
+                    className={`absolute w-6 h-6 border border-white shadow-sm ${positions[index]}`}
+                  >
+                    <AvatarImage 
+                      src={participant.profilePicture || undefined} 
+                      alt={participant.displayName} 
+                    />
+                    <AvatarFallback className="purple-gradient text-white font-semibold text-[10px]">
+                      {getInitials(participant.displayName)}
+                    </AvatarFallback>
+                  </Avatar>
+                );
+              }
+            })}
+          </div>
+        ) : (
+          <Avatar className="w-12 h-12">
+            <AvatarImage 
+              src={getOtherParticipant(chatRoom)?.profilePicture || undefined} 
+              alt={chatRoom.name} 
+            />
+            <AvatarFallback className="purple-gradient text-white font-semibold">
+              {getInitials(displayName)}
+            </AvatarFallback>
+          </Avatar>
+        )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-1 flex-1 min-w-0">
