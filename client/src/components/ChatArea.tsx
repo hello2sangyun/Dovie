@@ -41,6 +41,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [showPollDetailModal, setShowPollDetailModal] = useState(false);
   const [activePoll, setActivePoll] = useState<any>(null);
   const [pollVotes, setPollVotes] = useState<{[key: number]: number}>({});
+  const [userVote, setUserVote] = useState<number | null>(null);
+  const [votedUsers, setVotedUsers] = useState<Set<number>>(new Set());
   const [fileDataForCommand, setFileDataForCommand] = useState<any>(null);
   const [showAddFriendModal, setShowAddFriendModal] = useState(false);
   const [nonFriendUsers, setNonFriendUsers] = useState<any[]>([]);
@@ -381,6 +383,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               initialVotes[index] = Math.floor(Math.random() * 3); // 임시 더미 데이터
             });
             setPollVotes(initialVotes);
+            
+            // 사용자 투표 상태 초기화
+            setUserVote(null);
+            setVotedUsers(new Set());
           } else {
             setActivePoll(null);
           }
@@ -1026,7 +1032,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             pollData={activePoll}
             voteResults={pollVotes}
             totalParticipants={currentChatRoom?.participants?.length || 1}
-            userVote={null} // TODO: 사용자 투표 상태 추가
+            userVote={userVote}
             onClick={() => setShowPollDetailModal(true)}
           />
         </div>
@@ -1518,16 +1524,37 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           open={showPollDetailModal}
           onClose={() => setShowPollDetailModal(false)}
           pollData={activePoll}
-          userVote={null} // TODO: 사용자 투표 상태
+          userVote={userVote}
           voteResults={pollVotes}
           totalParticipants={currentChatRoom?.participants?.length || 1}
           onVote={(optionIndex) => {
+            // 중복 투표 방지: 이미 투표한 사용자는 투표할 수 없음
+            if (userVote !== null) {
+              toast({
+                variant: "destructive",
+                title: "이미 투표하셨습니다",
+                description: "한 번만 투표할 수 있습니다.",
+              });
+              return;
+            }
+
+            // 투표 처리
             console.log('Vote submitted:', optionIndex);
-            // TODO: 투표 처리 로직 구현
+            
+            // 사용자 투표 상태 업데이트
+            setUserVote(optionIndex);
+            setVotedUsers(prev => new Set([...prev, user!.id]));
+            
+            // 투표 결과 업데이트
             setPollVotes(prev => ({
               ...prev,
               [optionIndex]: (prev[optionIndex] || 0) + 1
             }));
+
+            toast({
+              title: "투표 완료!",
+              description: `"${activePoll.options[optionIndex]}"에 투표했습니다.`,
+            });
           }}
         />
       )}
