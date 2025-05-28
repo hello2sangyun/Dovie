@@ -781,7 +781,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         de: "German"
       };
       
-      const targetLanguageName = languageNames[targetLanguage] || targetLanguage;
+      const targetLanguageName = languageNames[targetLanguage as keyof typeof languageNames] || targetLanguage;
       const result = await translateText(text, targetLanguageName);
       
       if (result.success) {
@@ -822,14 +822,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Processing audio file:", req.file.originalname, req.file.size, "bytes");
 
       // Create a file stream for OpenAI Whisper API
-      const audioBuffer = fs.readFileSync(req.file.path);
-      const audioFile = new Blob([audioBuffer], { type: req.file.mimetype });
-      
-      // Add filename property for OpenAI API
-      Object.defineProperty(audioFile, 'name', {
-        value: req.file.originalname || 'voice_message.webm',
-        writable: false
-      });
+      const audioFile = fs.createReadStream(req.file.path);
 
       const result = await transcribeAudio(audioFile);
 

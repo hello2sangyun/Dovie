@@ -1499,7 +1499,57 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                         </div>
                       )}
                       
-                      {msg.messageType === "file" ? (
+                      {msg.messageType === "voice" ? (
+                        <div>
+                          <div className="flex items-center space-x-3">
+                            <div className={cn(
+                              "w-10 h-10 rounded-lg flex items-center justify-center",
+                              isMe ? "bg-white/20" : "bg-gray-100"
+                            )}>
+                              🎤
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className={cn(
+                                "text-sm font-medium",
+                                isMe ? "text-white" : "text-gray-900"
+                              )}>
+                                음성 메시지
+                              </p>
+                              <p className={cn(
+                                "text-xs",
+                                isMe ? "text-white/70" : "text-gray-500"
+                              )}>
+                                {msg.voiceDuration ? `${msg.voiceDuration}초` : ""}
+                              </p>
+                            </div>
+                            {msg.fileUrl && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className={cn(
+                                  isMe ? "text-white hover:bg-white/10" : "text-purple-600 hover:text-purple-700"
+                                )}
+                                onClick={() => {
+                                  const audio = new Audio(msg.fileUrl);
+                                  audio.play();
+                                }}
+                              >
+                                ▶️
+                              </Button>
+                            )}
+                          </div>
+                          
+                          {msg.content && (
+                            <div className={cn(
+                              "mt-2 pt-2 border-t text-sm",
+                              isMe ? "border-white/20 text-white/90" : "border-gray-100 text-gray-700"
+                            )}>
+                              <span className="text-xs opacity-70 block mb-1">음성 인식 결과:</span>
+                              {msg.content}
+                            </div>
+                          )}
+                        </div>
+                      ) : msg.messageType === "file" ? (
                         <div>
                           <div className="flex items-center space-x-3">
                             <div className={cn(
@@ -1763,38 +1813,44 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         )}
         
         <div className="p-3 chat-input-area">
-          <div className="flex items-end space-x-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-gray-400 hover:text-purple-600 p-2"
-            onClick={handleFileUpload}
-            disabled={uploadFileMutation.isPending}
-          >
-            <Paperclip className="h-5 w-5" />
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-gray-400 hover:text-purple-600 p-2"
-            onClick={insertHashtag}
-          >
-            <Hash className="h-5 w-5" />
-          </Button>
+          <div className="flex items-end space-x-1">
+          {/* Compact left buttons group */}
+          <div className="flex items-center space-x-0.5 mr-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-400 hover:text-purple-600 p-1.5 min-w-0 h-8 w-8"
+              onClick={handleFileUpload}
+              disabled={uploadFileMutation.isPending}
+              title="파일 첨부"
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-400 hover:text-purple-600 p-1.5 min-w-0 h-8 w-8"
+              onClick={insertHashtag}
+              title="해시태그"
+            >
+              <Hash className="h-4 w-4" />
+            </Button>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-gray-400 hover:text-purple-600 p-2"
-            onClick={() => {
-              setMessage('/');
-              setShowChatCommands(true);
-              messageInputRef.current?.focus();
-            }}
-          >
-            <span className="text-lg font-bold">/</span>
-          </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-400 hover:text-purple-600 p-1.5 min-w-0 h-8 w-8"
+              onClick={() => {
+                setMessage('/');
+                setShowChatCommands(true);
+                messageInputRef.current?.focus();
+              }}
+              title="명령어"
+            >
+              <span className="text-sm font-bold">/</span>
+            </Button>
+          </div>
           
           <div className="flex-1 relative mx-1">
             <Input

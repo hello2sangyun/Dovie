@@ -24,10 +24,18 @@ export default function VoiceRecorder({ onRecordingComplete, disabled }: VoiceRe
   useEffect(() => {
     const checkMicrophonePermission = async () => {
       try {
-        const permission = await navigator.permissions.query({ name: 'microphone' as PermissionName });
-        setMicrophoneAccess(permission.state === 'granted');
+        // 브라우저가 권한 API를 지원하는지 확인
+        if ('permissions' in navigator) {
+          const permission = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+          setMicrophoneAccess(permission.state === 'granted');
+        } else {
+          // 권한 API를 지원하지 않는 경우, 일단 true로 설정하고 실제 녹음 시도 시 확인
+          setMicrophoneAccess(true);
+        }
       } catch (error) {
         console.warn('Microphone permission check failed:', error);
+        // 권한 확인 실패 시에도 일단 허용으로 설정하고 실제 시도 시 확인
+        setMicrophoneAccess(true);
       }
     };
 
