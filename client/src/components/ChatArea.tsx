@@ -233,9 +233,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           fileUrl: result.audioUrl,
           fileName: "voice_message.webm",
           fileSize: 0,
-          voiceDuration: result.duration || 0,
+          voiceDuration: Math.round(result.duration || 0),
           detectedLanguage: result.detectedLanguage || "korean",
-          confidence: result.confidence || 0.9
+          confidence: String(result.confidence || 0.9)
         });
         
         toast({

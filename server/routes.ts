@@ -502,12 +502,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
+      console.log("Message creation - Request body:", JSON.stringify(req.body, null, 2));
+      console.log("Message creation - Chat room ID:", req.params.chatRoomId);
+      console.log("Message creation - User ID:", userId);
+      
       const messageData = insertMessageSchema.parse({
         chatRoomId: Number(req.params.chatRoomId),
         senderId: Number(userId),
         ...req.body,
       });
 
+      console.log("Message creation - Parsed data:", JSON.stringify(messageData, null, 2));
       const message = await storage.createMessage(messageData);
       const messageWithSender = await storage.getMessageById(message.id);
 
@@ -518,9 +523,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       res.json({ message: messageWithSender });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Message creation error:", error);
-      res.status(500).json({ message: "Failed to send message", error: error.message });
+      console.error("Error details:", {
+        message: error?.message,
+        stack: error?.stack,
+        name: error?.name,
+        issues: error?.issues
+      });
+      res.status(500).json({ 
+        message: "Failed to send message", 
+        error: error?.message || String(error),
+        details: error?.issues || null
+      });
     }
   });
 
