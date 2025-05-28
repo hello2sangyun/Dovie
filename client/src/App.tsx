@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import LandingPage from "@/pages/LandingPage";
 import LoginPage from "@/pages/LoginPage";
+import SignupPage from "@/pages/SignupPage";
+import ProfileSetupPage from "@/pages/ProfileSetupPage";
 import PhoneLogin from "@/pages/PhoneLogin";
 import MainApp from "@/pages/MainApp";
 import NotFound from "@/pages/not-found";
@@ -16,6 +18,8 @@ function Router() {
     <Switch>
       <Route path="/" component={LandingPage} />
       <Route path="/login" component={LoginPage} />
+      <Route path="/signup" component={SignupPage} />
+      <Route path="/profile-setup" component={ProfileSetupPage} />
       <Route path="/phone-login" component={PhoneLogin} />
       <Route path="/app" component={MainApp} />
       <Route component={NotFound} />
