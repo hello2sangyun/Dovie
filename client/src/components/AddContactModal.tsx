@@ -31,7 +31,7 @@ export default function AddContactModal({ open, onClose }: AddContactModalProps)
 
   const addContactMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/contacts", {
+      const response = await apiRequest("/api/contacts", "POST", {
         contactUsername: contactUsername.startsWith('@') ? contactUsername.slice(1) : contactUsername,
         nickname: nickname.trim() || undefined,
       });
