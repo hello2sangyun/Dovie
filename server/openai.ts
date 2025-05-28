@@ -274,15 +274,39 @@ export async function transcribeAudio(filePath: string): Promise<{
     console.log("Starting audio transcription with language detection...");
     console.log("Audio file path:", filePath);
     
-    // Create file stream for OpenAI API
-    const audioFile = fs.createReadStream(filePath);
+    // Read file as buffer and create FormData with proper filename
+    const audioBuffer = fs.readFileSync(filePath);
+    console.log("Audio buffer read successfully, size:", audioBuffer.length, "bytes");
     
-    // Use verbose_json format to get language detection info
-    const transcription = await openai.audio.transcriptions.create({
-      file: audioFile,
-      model: "whisper-1", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-      response_format: "verbose_json"
+    // Create a Blob with proper MIME type and filename
+    const audioBlob = new Blob([audioBuffer], { type: "audio/webm" });
+    console.log("Audio blob created with type audio/webm");
+    
+    // Create FormData for OpenAI API with proper filename
+    const formData = new FormData();
+    formData.append("file", audioBlob, "audio.webm");
+    formData.append("model", "whisper-1");
+    formData.append("response_format", "verbose_json");
+    
+    console.log("FormData prepared for OpenAI API");
+    
+    // Make direct fetch request to OpenAI API
+    const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: formData
     });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("OpenAI API Error:", response.status, errorText);
+      throw new Error(`OpenAI API Error: ${response.status} ${errorText}`);
+    }
+    
+    const transcription = await response.json();
+    console.log("Direct API call successful");
 
     console.log("Audio transcription completed:", {
       text: transcription.text,

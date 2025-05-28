@@ -820,13 +820,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log("Processing audio file:", req.file.originalname, req.file.size, "bytes");
+      console.log("Original file path:", req.file.path);
 
       // Create a new file with .webm extension that OpenAI can recognize
       const webmFilePath = req.file.path + '.webm';
+      console.log("Target WebM file path:", webmFilePath);
       
-      // Copy the original file with proper extension
-      fs.copyFileSync(req.file.path, webmFilePath);
-      console.log("File copied with extension:", webmFilePath);
+      // Read the original file and write it with proper extension
+      const fileBuffer = fs.readFileSync(req.file.path);
+      fs.writeFileSync(webmFilePath, fileBuffer);
+      console.log("File written with extension:", webmFilePath, "Size:", fileBuffer.length, "bytes");
+      
+      // Verify the new file exists
+      if (fs.existsSync(webmFilePath)) {
+        console.log("WebM file successfully created and verified");
+      } else {
+        console.error("WebM file creation failed");
+        throw new Error("Failed to create WebM file");
+      }
       
       // Pass the properly named file to transcribeAudio
       const result = await transcribeAudio(webmFilePath);
@@ -853,6 +864,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: result.error || "음성 변환에 실패했습니다."
         });
       }
+    } catch (error) {
+      console.error("Audio transcription error:", error);
+      res.status(500).json({
+        success: false,
+        message: "음성 처리 중 오류가 발생했습니다."
+      });
+    }
   });
 
   // Get user by ID for QR scanning
