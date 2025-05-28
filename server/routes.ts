@@ -821,64 +821,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Processing audio file:", req.file.originalname, req.file.size, "bytes");
 
-      // Convert WebM to WAV using FFmpeg for better OpenAI compatibility
-      const wavFilePath = req.file.path + '.wav';
-      const { exec } = require('child_process');
+      // Create a new file with .webm extension that OpenAI can recognize
+      const webmFilePath = req.file.path + '.webm';
       
-      try {
-        // Convert WebM to WAV using FFmpeg
-        await new Promise((resolve, reject) => {
-          exec(`ffmpeg -i "${req.file.path}" -ar 16000 -ac 1 "${wavFilePath}"`, (error: any, stdout: any, stderr: any) => {
-            if (error) {
-              console.error("FFmpeg conversion error:", error);
-              reject(error);
-            } else {
-              console.log("Audio converted to WAV:", wavFilePath);
-              resolve(stdout);
-            }
-          });
-        });
-        
-        // Pass the WAV file to transcribeAudio
-        const result = await transcribeAudio(wavFilePath);
-        
-        // Clean up temporary files
-        fs.unlinkSync(req.file.path);
-        fs.unlinkSync(wavFilePath);
+      // Copy the original file with proper extension
+      fs.copyFileSync(req.file.path, webmFilePath);
+      console.log("File copied with extension:", webmFilePath);
+      
+      // Pass the properly named file to transcribeAudio
+      const result = await transcribeAudio(webmFilePath);
+      
+      // Clean up temporary files
+      fs.unlinkSync(req.file.path);
+      fs.unlinkSync(webmFilePath);
 
-        if (result.success) {
-          // Save the audio file (optional - you might want to store it)
-          const audioUrl = `/uploads/${req.file.filename}`;
-          
-          res.json({
-            success: true,
-            transcription: result.transcription,
-            duration: result.duration,
-            detectedLanguage: result.detectedLanguage,
-            confidence: result.confidence,
-            audioUrl: audioUrl
-          });
-        } else {
-          res.status(500).json({
-            success: false,
-            message: result.error || "음성 변환에 실패했습니다."
-          });
-        }
-      } catch (error) {
-        console.error("Audio file processing error:", error);
+      if (result.success) {
+        // Save the audio file (optional - you might want to store it)
+        const audioUrl = `/uploads/${req.file.filename}`;
         
-        // Clean up temporary files if they exist
-        if (req.file && fs.existsSync(req.file.path)) {
-          fs.unlinkSync(req.file.path);
-        }
-        const wavFilePath = req.file?.path + '.wav';
-        if (wavFilePath && fs.existsSync(wavFilePath)) {
-          fs.unlinkSync(wavFilePath);
-        }
-        
+        res.json({
+          success: true,
+          transcription: result.transcription,
+          duration: result.duration,
+          detectedLanguage: result.detectedLanguage,
+          confidence: result.confidence,
+          audioUrl: audioUrl
+        });
+      } else {
         res.status(500).json({
           success: false,
-          message: "음성 처리 중 오류가 발생했습니다."
+          message: result.error || "음성 변환에 실패했습니다."
         });
       }
   });
