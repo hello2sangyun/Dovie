@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
+import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 import AddFriendConfirmModal from "./AddFriendConfirmModal";
 import MessageContextMenu from "./MessageContextMenu";
 import CommandModal from "./CommandModal";
@@ -803,7 +803,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       src={isMe ? (user?.profilePicture || undefined) : (msg.sender.profilePicture || undefined)} 
                       alt={isMe ? (user?.displayName || "Me") : msg.sender.displayName} 
                     />
-                    <AvatarFallback className="purple-gradient text-white text-sm font-semibold">
+                    <AvatarFallback className={`bg-gradient-to-br ${getAvatarColor(isMe ? (user?.displayName || "Me") : msg.sender.displayName)} text-white text-sm font-semibold`}>
                       {getInitials(isMe ? (user?.displayName || "Me") : msg.sender.displayName)}
                     </AvatarFallback>
                   </Avatar>

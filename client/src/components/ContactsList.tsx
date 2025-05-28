@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Search } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 
 interface ContactsListProps {
   onAddContact: () => void;

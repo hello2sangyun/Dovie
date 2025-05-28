@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { UserPlus, Users, CheckSquare } from "lucide-react";
-import { getInitials } from "@/lib/utils";
+import { getInitials, getAvatarColor } from "@/lib/utils";
 
 interface AddFriendConfirmModalProps {
   open: boolean;
@@ -146,7 +146,7 @@ export default function AddFriendConfirmModal({ open, onClose, users }: AddFrien
                 />
                 <Avatar className="w-10 h-10">
                   <AvatarImage src={user.profilePicture} alt={user.displayName} />
-                  <AvatarFallback className="purple-gradient text-white font-semibold text-xs">
+                  <AvatarFallback className={`bg-gradient-to-br ${getAvatarColor(user.displayName)} text-white font-semibold text-xs`}>
                     {getInitials(user.displayName)}
                   </AvatarFallback>
                 </Avatar>

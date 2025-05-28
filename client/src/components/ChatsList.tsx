@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, Pin, Users } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 
 interface ChatsListProps {
   onSelectChat: (chatId: number) => void;
@@ -340,7 +340,7 @@ function ChatRoomItem({
               src={getOtherParticipant(chatRoom)?.profilePicture || undefined} 
               alt={chatRoom.name} 
             />
-            <AvatarFallback className="purple-gradient text-white font-semibold">
+            <AvatarFallback className={`bg-gradient-to-br ${getAvatarColor(displayName)} text-white font-semibold`}>
               {getInitials(displayName)}
             </AvatarFallback>
           </Avatar>
