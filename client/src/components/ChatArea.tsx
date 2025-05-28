@@ -1034,8 +1034,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           : "bg-teal-50 text-teal-900 rounded-tl-none border border-teal-200"
                         : isMe 
                           ? "chat-bubble-me rounded-tr-none" 
-                          : "chat-bubble-other rounded-tl-none",
-                      msg.isCalculated && "calculator-message"
+                          : "chat-bubble-other rounded-tl-none"
                     )}>
                       {/* 회신 메시지 표시 */}
                       {msg.replyToMessageId && (
@@ -1158,16 +1157,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                               )} />
                             )}
                             {msg.isCalculated && (
-                              <div className="relative calculator-icon">
-                                <Calculator className={cn(
-                                  "h-3 w-3 flex-shrink-0 mt-0.5",
-                                  isMe ? "text-white/90" : "text-indigo-600"
-                                )} />
-                                <div className={cn(
-                                  "absolute -inset-1 rounded-full animate-ping opacity-30",
-                                  isMe ? "bg-white" : "bg-indigo-400"
-                                )} />
-                              </div>
+                              <Calculator className={cn(
+                                "h-3 w-3 flex-shrink-0 mt-0.5",
+                                isMe ? "text-white/70" : "text-gray-500"
+                              )} />
                             )}
                           </div>
                         </div>
