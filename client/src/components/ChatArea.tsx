@@ -228,11 +228,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       if (result.success && result.transcription) {
         // 음성 메시지와 텍스트 변환을 함께 전송
         sendMessageMutation.mutate({
-          content: `🎤 ${result.transcription}`,
+          content: result.transcription,
           messageType: "voice",
           fileUrl: result.audioUrl,
-          fileName: "음성 메시지",
-          fileSize: result.duration || 0
+          fileName: "voice_message.webm",
+          fileSize: 0,
+          voiceDuration: result.duration || 0,
+          detectedLanguage: result.detectedLanguage || "korean",
+          confidence: result.confidence || 0.9
         });
         
         toast({
