@@ -33,7 +33,7 @@ export default function SignupPage() {
         displayName: data.displayName,
         username: data.email.split('@')[0] + '_' + Math.floor(Math.random() * 1000),
       });
-      return response;
+      return response.json();
     },
     onSuccess: (data) => {
       setUser(data.user);

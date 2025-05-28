@@ -62,7 +62,7 @@ export default function ProfileSetupPage() {
         ...data,
         isProfileComplete: true,
       });
-      return response;
+      return response.json();
     },
     onSuccess: (data) => {
       setUser(data.user);
