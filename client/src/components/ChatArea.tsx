@@ -278,6 +278,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     if (message.startsWith('/')) {
       processCommandMutation.mutate(message);
       setMessage("");
+      setShowChatCommands(false); // AI 커맨드 창 닫기
       return;
     }
 
@@ -426,6 +427,24 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       setShowChatCommands(false);
     }
   };
+
+  // 창 밖 클릭 시 커맨드 창 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showChatCommands || showCommandSuggestions) {
+        const chatArea = document.querySelector('.chat-input-area');
+        if (chatArea && !chatArea.contains(event.target as Node)) {
+          setShowChatCommands(false);
+          setShowCommandSuggestions(false);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showChatCommands, showCommandSuggestions]);
 
   const insertHashtag = () => {
     setMessage(prev => prev + '#');
