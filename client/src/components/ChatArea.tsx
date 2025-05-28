@@ -511,9 +511,67 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                 ←
               </Button>
             )}
-            <div className="w-10 h-10 purple-gradient rounded-full flex items-center justify-center text-white font-semibold">
-              {getInitials(chatRoomDisplayName)}
-            </div>
+            {currentChatRoom.isGroup ? (
+              <div className="relative w-10 h-10 flex items-center justify-center">
+                {currentChatRoom.participants.slice(0, Math.min(5, currentChatRoom.participants.length)).map((participant: any, index: number) => {
+                  const totalAvatars = Math.min(5, currentChatRoom.participants.length);
+                  const isStackLayout = totalAvatars <= 3;
+                  
+                  if (isStackLayout) {
+                    // 3명 이하일 때: 겹치는 스택 레이아웃
+                    return (
+                      <div
+                        key={participant.id}
+                        className={`w-7 h-7 rounded-full border-2 border-white shadow-sm purple-gradient flex items-center justify-center text-white font-semibold text-xs ${
+                          index > 0 ? '-ml-1.5' : ''
+                        }`}
+                        style={{ zIndex: totalAvatars - index }}
+                      >
+                        {participant.profilePicture ? (
+                          <img 
+                            src={participant.profilePicture} 
+                            alt={participant.displayName}
+                            className="w-full h-full rounded-full object-cover"
+                          />
+                        ) : (
+                          participant.displayName?.charAt(0)?.toUpperCase() || 'U'
+                        )}
+                      </div>
+                    );
+                  } else {
+                    // 4-5명일 때: 격자 레이아웃
+                    const positions = [
+                      'top-0 left-0',
+                      'top-0 right-0', 
+                      'bottom-0 left-0',
+                      'bottom-0 right-0',
+                      'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10'
+                    ];
+                    
+                    return (
+                      <div
+                        key={participant.id}
+                        className={`absolute w-5 h-5 rounded-full border border-white shadow-sm purple-gradient flex items-center justify-center text-white font-semibold text-[8px] ${positions[index]}`}
+                      >
+                        {participant.profilePicture ? (
+                          <img 
+                            src={participant.profilePicture} 
+                            alt={participant.displayName}
+                            className="w-full h-full rounded-full object-cover"
+                          />
+                        ) : (
+                          participant.displayName?.charAt(0)?.toUpperCase() || 'U'
+                        )}
+                      </div>
+                    );
+                  }
+                })}
+              </div>
+            ) : (
+              <div className="w-10 h-10 purple-gradient rounded-full flex items-center justify-center text-white font-semibold">
+                {getInitials(chatRoomDisplayName)}
+              </div>
+            )}
             <div>
               <h3 className="font-semibold text-gray-900">{chatRoomDisplayName}</h3>
               <p className="text-sm text-gray-500">
