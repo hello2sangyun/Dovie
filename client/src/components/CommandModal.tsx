@@ -99,7 +99,7 @@ export default function CommandModal({
         commandData.originalTimestamp = messageData.timestamp;
       }
 
-      const response = await apiRequest("POST", "/api/commands", commandData);
+      const response = await apiRequest("/api/commands", "POST", commandData);
       return { ...response.json(), processedCommandName };
     },
     onSuccess: (data) => {

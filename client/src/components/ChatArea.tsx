@@ -92,7 +92,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
-      const response = await apiRequest("POST", `/api/chat-rooms/${chatRoomId}/messages`, messageData);
+      const response = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages`, "POST", messageData);
       return response.json();
     },
     onSuccess: () => {
@@ -114,7 +114,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   // Mark messages as read mutation
   const markAsReadMutation = useMutation({
     mutationFn: async (lastMessageId: number) => {
-      return apiRequest("POST", `/api/chat-rooms/${chatRoomId}/mark-read`, { lastMessageId });
+      return apiRequest(`/api/chat-rooms/${chatRoomId}/mark-read`, "POST", { lastMessageId });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/unread-counts"] });
