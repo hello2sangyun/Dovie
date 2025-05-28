@@ -276,8 +276,7 @@ export async function transcribeAudio(audioFile: any): Promise<{
     const transcription = await openai.audio.transcriptions.create({
       file: audioFile,
       model: "whisper-1", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-      response_format: "verbose_json",
-      language: undefined // Let Whisper auto-detect the language
+      response_format: "verbose_json"
     });
 
     console.log("Audio transcription completed:", {
