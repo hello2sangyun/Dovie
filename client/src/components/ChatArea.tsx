@@ -15,6 +15,8 @@ import LanguageSelectionModal from "./LanguageSelectionModal";
 import CalculatorPreviewModal from "./CalculatorPreviewModal";
 import PollCreationModal from "./PollCreationModal";
 import PollMessage from "./PollMessage";
+import PollBanner from "./PollBanner";
+import PollDetailModal from "./PollDetailModal";
 
 interface ChatAreaProps {
   chatRoomId: number;
@@ -36,6 +38,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [calculatorData, setCalculatorData] = useState<{expression: string, result: string}>({expression: "", result: ""});
   const [showPollModal, setShowPollModal] = useState(false);
   const [pollQuestion, setPollQuestion] = useState("");
+  const [showPollDetailModal, setShowPollDetailModal] = useState(false);
+  const [activePoll, setActivePoll] = useState<any>(null);
+  const [pollVotes, setPollVotes] = useState<{[key: number]: number}>({});
   const [fileDataForCommand, setFileDataForCommand] = useState<any>(null);
   const [showAddFriendModal, setShowAddFriendModal] = useState(false);
   const [nonFriendUsers, setNonFriendUsers] = useState<any[]>([]);
@@ -347,6 +352,30 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const messages = messagesData?.messages || [];
   const commands = commandsData?.commands || [];
   const contacts = contactsData?.contacts || [];
+
+  // 활성 투표 감지
+  useEffect(() => {
+    if (messages.length > 0) {
+      const pollMessages = messages.filter((msg: any) => 
+        msg.messageType === "poll" && msg.pollData
+      );
+      
+      if (pollMessages.length > 0) {
+        const latestPoll = pollMessages[pollMessages.length - 1];
+        const pollData = JSON.parse(latestPoll.pollData);
+        const isExpired = new Date() > new Date(pollData.expiresAt);
+        
+        if (!isExpired) {
+          setActivePoll({
+            ...pollData,
+            messageId: latestPoll.id
+          });
+        } else {
+          setActivePoll(null);
+        }
+      }
+    }
+  }, [messages]);
 
   // 채팅방 이름을 올바르게 표시하는 함수
   const getChatRoomDisplayName = (chatRoom: any) => {
@@ -973,6 +1002,19 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           </div>
         )}
       </div>
+
+      {/* Active Poll Banner */}
+      {activePoll && (
+        <div className="px-4 py-2 border-b border-gray-200 bg-white">
+          <PollBanner
+            pollData={activePoll}
+            voteResults={pollVotes}
+            totalParticipants={currentChatRoom?.participants?.length || 1}
+            userVote={null} // TODO: 사용자 투표 상태 추가
+            onClick={() => setShowPollDetailModal(true)}
+          />
+        </div>
+      )}
 
       {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0 overscroll-behavior-y-contain">
