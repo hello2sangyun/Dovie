@@ -823,45 +823,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create a new file with proper .webm extension for OpenAI API
       const newFilePath = req.file.path + '.webm';
-      fs.renameSync(req.file.path, newFilePath);
       
-      // Pass the file path with extension to transcribeAudio
-      const result = await transcribeAudio(newFilePath);
-
-      // Clean up temporary file
-      fs.unlinkSync(newFilePath);
-
-      if (result.success) {
-        // Save the audio file (optional - you might want to store it)
-        const audioUrl = `/uploads/${req.file.filename}`;
+      try {
+        // Copy the file with proper extension
+        fs.copyFileSync(req.file.path, newFilePath);
+        console.log("File copied to:", newFilePath);
         
-        res.json({
-          success: true,
-          transcription: result.transcription,
-          duration: result.duration,
-          detectedLanguage: result.detectedLanguage,
-          confidence: result.confidence,
-          audioUrl: audioUrl
-        });
-      } else {
+        // Pass the file path with extension to transcribeAudio
+        const result = await transcribeAudio(newFilePath);
+        
+        // Clean up temporary files
+        fs.unlinkSync(req.file.path);
+        fs.unlinkSync(newFilePath);
+
+        if (result.success) {
+          // Save the audio file (optional - you might want to store it)
+          const audioUrl = `/uploads/${req.file.filename}`;
+          
+          res.json({
+            success: true,
+            transcription: result.transcription,
+            duration: result.duration,
+            detectedLanguage: result.detectedLanguage,
+            confidence: result.confidence,
+            audioUrl: audioUrl
+          });
+        } else {
+          res.status(500).json({
+            success: false,
+            message: result.error || "음성 변환에 실패했습니다."
+          });
+        }
+      } catch (error) {
+        console.error("Audio file processing error:", error);
+        
+        // Clean up temporary files if they exist
+        if (req.file && fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+        const newFilePath = req.file?.path + '.webm';
+        if (fs.existsSync(newFilePath)) {
+          fs.unlinkSync(newFilePath);
+        }
+        
         res.status(500).json({
           success: false,
-          message: result.error || "음성 변환에 실패했습니다."
+          message: "음성 처리 중 오류가 발생했습니다."
         });
       }
-    } catch (error) {
-      console.error("Audio transcription error:", error);
-      
-      // Clean up temporary file if it exists
-      if (req.file && fs.existsSync(req.file.path)) {
-        fs.unlinkSync(req.file.path);
-      }
-      
-      res.status(500).json({
-        success: false,
-        message: "음성 처리 중 오류가 발생했습니다."
-      });
-    }
   });
 
   // Get user by ID for QR scanning
