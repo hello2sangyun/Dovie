@@ -1204,12 +1204,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                                 <Languages className="h-3 w-3 text-blue-600 dark:text-blue-400" />
                               </div>
                             )}
-                            {/* 디버깅: 모든 메시지에 계산기 뱃지 표시 */}
-                            {msg.content && /^\d{1,3}(,\d{3})*(\.\d+)?$/.test(msg.content.trim()) && (
-                              <div className="flex items-center justify-center w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 flex-shrink-0 mt-0.5">
-                                <Calculator className="h-3 w-3 text-green-600 dark:text-green-400" />
-                              </div>
-                            )}
+
                           </div>
                         </div>
                       )}
@@ -1447,6 +1442,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         expression={calculatorData.expression}
         result={calculatorData.result}
         onSendToChat={handleSendCalculatorResult}
+      />
+
+      {/* Poll Creation Modal */}
+      <PollCreationModal
+        open={showPollModal}
+        onClose={() => setShowPollModal(false)}
+        question={pollQuestion}
+        onCreatePoll={handleCreatePoll}
       />
 
     </div>
