@@ -440,9 +440,18 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       }
     };
 
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setShowChatCommands(false);
+        setShowCommandSuggestions(false);
+      }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [showChatCommands, showCommandSuggestions]);
 
@@ -1110,7 +1119,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           </div>
         )}
         
-        <div className="p-3">
+        <div className="p-3 chat-input-area">
           <div className="flex items-end space-x-2">
           <Button
             variant="ghost"
@@ -1195,7 +1204,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       <div
                         key={item.cmd}
                         className="p-2 hover:bg-blue-50 rounded cursor-pointer"
-                        onClick={() => setMessage(item.cmd + ' ')}
+                        onClick={() => {
+                          setMessage(item.cmd + ' ');
+                          setShowChatCommands(false);
+                        }}
                       >
                         <div className="flex items-start space-x-2">
                           <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium">
