@@ -880,14 +880,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                               "w-10 h-10 rounded-lg flex items-center justify-center",
                               msg.isCommandRecall && msg.isLocalOnly
                                 ? isMe ? "bg-white/20" : "bg-teal-200"
-                                : isMe ? "bg-white/20" : "bg-blue-100"
+                                : isMe ? "bg-white/20" : "bg-gray-100"
                             )}>
-                              <Paperclip className={cn(
-                                "h-5 w-5",
-                                msg.isCommandRecall && msg.isLocalOnly
-                                  ? isMe ? "text-white" : "text-teal-700"
-                                  : isMe ? "text-white" : "text-blue-600"
-                              )} />
+                              {getFileIcon(msg.fileName)}
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className={cn(
@@ -952,12 +947,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           )}
                         </div>
                       ) : (
-                        <p className={cn(
+                        <div className={cn(
                           "text-sm",
                           isMe ? "text-white" : "text-gray-900"
                         )}>
-                          {msg.content}
-                        </p>
+                          {renderMessageWithLinks(msg.content)}
+                        </div>
                       )}
                     </div>
                   </div>
