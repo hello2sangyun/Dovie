@@ -519,7 +519,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ message: messageWithSender });
     } catch (error) {
-      res.status(500).json({ message: "Failed to send message" });
+      console.error("Message creation error:", error);
+      res.status(500).json({ message: "Failed to send message", error: error.message });
     }
   });
 
