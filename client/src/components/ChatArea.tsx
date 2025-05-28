@@ -13,6 +13,7 @@ import MessageContextMenu from "./MessageContextMenu";
 import CommandModal from "./CommandModal";
 import LanguageSelectionModal from "./LanguageSelectionModal";
 import CalculatorPreviewModal from "./CalculatorPreviewModal";
+import PollCreationModal from "./PollCreationModal";
 
 interface ChatAreaProps {
   chatRoomId: number;
@@ -32,6 +33,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [textToTranslate, setTextToTranslate] = useState("");
   const [showCalculatorModal, setShowCalculatorModal] = useState(false);
   const [calculatorData, setCalculatorData] = useState<{expression: string, result: string}>({expression: "", result: ""});
+  const [showPollModal, setShowPollModal] = useState(false);
+  const [pollQuestion, setPollQuestion] = useState("");
   const [fileDataForCommand, setFileDataForCommand] = useState<any>(null);
   const [showAddFriendModal, setShowAddFriendModal] = useState(false);
   const [nonFriendUsers, setNonFriendUsers] = useState<any[]>([]);
@@ -197,9 +200,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       const result = await response.json();
       
       if (result.success) {
-        // 번역 결과만 깔끔하게 표시 (번역 마크 추가)
+        // 번역 결과를 아이콘과 함께 표시
         sendMessageMutation.mutate({
-          content: result.content,
+          content: `🌐 ${result.content}`,
           messageType: "text",
           isTranslated: true,
           replyToMessageId: replyToMessage?.id
@@ -252,12 +255,46 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // 계산기 결과를 채팅방에 전송
   const handleSendCalculatorResult = (result: string) => {
+    const expression = calculatorData.expression;
     sendMessageMutation.mutate({
-      content: result,
+      content: `🧮 ${expression} = ${result}`,
       messageType: "text",
       isCalculated: true,
       replyToMessageId: replyToMessage?.id
     });
+  };
+
+  // 폴 생성 핸들러
+  const handleCreatePoll = async (question: string, options: string[]) => {
+    try {
+      const response = await apiRequest("/api/commands/process", "POST", { 
+        commandText: `/poll ${question}`,
+        pollOptions: options
+      });
+      const result = await response.json();
+      
+      if (result.success) {
+        // 투표를 아이콘과 함께 표시
+        const pollContent = `📊 ${question}\n\n${options.map((option, index) => `${index + 1}. ${option}`).join('\n')}`;
+        sendMessageMutation.mutate({
+          content: pollContent,
+          messageType: "text",
+          replyToMessageId: replyToMessage?.id
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "투표 생성 실패",
+          description: result.content,
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "투표 오류",
+        description: "투표 생성 중 오류가 발생했습니다.",
+      });
+    }
   };
 
   // File upload mutation
@@ -371,6 +408,18 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         const expression = message.replace('/calculate ', '').trim();
         if (expression) {
           handleCalculatorCommand(expression);
+          setMessage("");
+          setShowChatCommands(false);
+          return;
+        }
+      }
+      
+      // 특별한 폴 처리
+      if (message.startsWith('/poll ')) {
+        const question = message.replace('/poll ', '').trim();
+        if (question) {
+          setPollQuestion(question);
+          setShowPollModal(true);
           setMessage("");
           setShowChatCommands(false);
           return;
