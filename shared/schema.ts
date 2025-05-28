@@ -63,6 +63,12 @@ export const messages = pgTable("messages", {
   pollData: text("poll_data"), // JSON string containing poll information
   originalMessageId: integer("original_message_id").references(() => messages.id),
   replyToMessageId: integer("reply_to_message_id").references(() => messages.id),
+  // Boom message fields
+  boomTimer: integer("boom_timer"), // Timer in seconds
+  expiresAt: timestamp("expires_at"), // When the boom message expires
+  targetUserId: integer("target_user_id").references(() => users.id), // For sendback messages
+  spotlightMessageId: integer("spotlight_message_id").references(() => messages.id), // For spotlight messages
+  spotlightDuration: text("spotlight_duration"), // Duration for spotlight
   createdAt: timestamp("created_at").defaultNow(),
 });
 

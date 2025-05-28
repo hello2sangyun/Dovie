@@ -632,11 +632,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           
           if (seconds > 0) {
             // 폭탄 메시지 전송
+            const expirationTime = new Date(Date.now() + seconds * 1000);
+            console.log(`🚀 Sending boom message: timer=${seconds}s, expires=${expirationTime.toISOString()}`);
+            
             sendMessageMutation.mutate({
               content: `💣 ${boomMessage}`,
               messageType: "boom",
               boomTimer: seconds,
-              expiresAt: new Date(Date.now() + seconds * 1000).toISOString()
+              expiresAt: expirationTime.toISOString()
             });
             
             toast({
