@@ -134,11 +134,21 @@ export default function CreateGroupChatModal({ open, onClose, onSuccess }: Creat
                     <div
                       key={contact.id}
                       className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer"
-                      onClick={() => handleContactToggle(contact.contactUserId)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleContactToggle(contact.contactUserId);
+                      }}
                     >
                       <Checkbox
                         checked={selectedContacts.includes(contact.contactUserId)}
-                        onCheckedChange={() => handleContactToggle(contact.contactUserId)}
+                        onCheckedChange={(checked) => {
+                          handleContactToggle(contact.contactUserId);
+                        }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
                       />
                       <Avatar className="w-10 h-10">
                         <AvatarImage 
