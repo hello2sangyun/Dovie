@@ -28,6 +28,7 @@ export interface IStorage {
   createChatRoom(chatRoom: InsertChatRoom, participantIds: number[]): Promise<ChatRoom>;
   deleteChatRoom(chatRoomId: number, userId: number): Promise<void>;
   updateChatRoom(chatRoomId: number, updates: Partial<InsertChatRoom>): Promise<ChatRoom | undefined>;
+  leaveChatRoom(chatRoomId: number, userId: number, saveFiles: boolean): Promise<void>;
 
   // Message operations
   getMessages(chatRoomId: number, limit?: number): Promise<(Message & { sender: User })[]>;
@@ -207,6 +208,48 @@ export class DatabaseStorage implements IStorage {
       .where(eq(chatRooms.id, chatRoomId))
       .returning();
     return chatRoom || undefined;
+  }
+
+  async leaveChatRoom(chatRoomId: number, userId: number, saveFiles: boolean): Promise<void> {
+    // Remove user from chat participants
+    await db
+      .delete(chatParticipants)
+      .where(and(
+        eq(chatParticipants.chatRoomId, chatRoomId),
+        eq(chatParticipants.userId, userId)
+      ));
+
+    // Handle files based on saveFiles flag
+    if (saveFiles) {
+      // Move files to user's archive/storage
+      // For now, we'll just mark them as archived
+      await db
+        .update(commands)
+        .set({ chatRoomId: null }) // Remove from chat room but keep for user
+        .where(and(
+          eq(commands.chatRoomId, chatRoomId),
+          eq(commands.userId, userId)
+        ));
+    } else {
+      // Delete user's commands/files from this chat room
+      await db
+        .delete(commands)
+        .where(and(
+          eq(commands.chatRoomId, chatRoomId),
+          eq(commands.userId, userId)
+        ));
+    }
+
+    // Check if chat room is empty and delete if needed
+    const remainingParticipants = await db
+      .select()
+      .from(chatParticipants)
+      .where(eq(chatParticipants.chatRoomId, chatRoomId));
+
+    if (remainingParticipants.length === 0) {
+      // Delete the entire chat room if no participants left
+      await db.delete(chatRooms).where(eq(chatRooms.id, chatRoomId));
+    }
   }
 
   async getMessages(chatRoomId: number, limit: number = 50): Promise<(Message & { sender: User })[]> {

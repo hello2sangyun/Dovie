@@ -40,10 +40,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [replyToMessage, setReplyToMessage] = useState<any>(null);
   const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
   const [uploadingFiles, setUploadingFiles] = useState<Array<{id: string, fileName: string}>>([]);
+  const [showChatSettings, setShowChatSettings] = useState(false);
+  const [showMentions, setShowMentions] = useState(false);
+  const [mentionPosition, setMentionPosition] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatAreaRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
+  const messageInputRef = useRef<HTMLTextAreaElement>(null);
 
   // Get chat room details
   const { data: chatRoomsData } = useQuery({

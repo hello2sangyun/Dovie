@@ -438,6 +438,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/chat-rooms/:chatRoomId", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { name } = req.body;
+      const chatRoom = await storage.updateChatRoom(Number(req.params.chatRoomId), { name });
+      res.json({ chatRoom });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update chat room" });
+    }
+  });
+
+  app.post("/api/chat-rooms/:chatRoomId/leave", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { saveFiles } = req.body;
+      await storage.leaveChatRoom(Number(req.params.chatRoomId), Number(userId), saveFiles);
+      
+      // 나가기 메시지 전송
+      const leaveMessage = await storage.createMessage({
+        chatRoomId: Number(req.params.chatRoomId),
+        senderId: Number(userId),
+        content: `사용자가 채팅방을 나갔습니다.`,
+        messageType: "system",
+      });
+
+      // WebSocket으로 알림
+      broadcastToRoom(Number(req.params.chatRoomId), {
+        type: "message",
+        message: leaveMessage,
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to leave chat room" });
+    }
+  });
+
   // Message routes
   app.get("/api/chat-rooms/:chatRoomId/messages", async (req, res) => {
     try {
