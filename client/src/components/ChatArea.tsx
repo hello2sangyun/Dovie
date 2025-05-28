@@ -25,6 +25,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const queryClient = useQueryClient();
   const [message, setMessage] = useState("");
   const [showCommandSuggestions, setShowCommandSuggestions] = useState(false);
+  const [showChatCommands, setShowChatCommands] = useState(false);
   const [fileDataForCommand, setFileDataForCommand] = useState<any>(null);
   const [showAddFriendModal, setShowAddFriendModal] = useState(false);
   const [nonFriendUsers, setNonFriendUsers] = useState<any[]>([]);
@@ -273,6 +274,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const handleSendMessage = () => {
     if (!message.trim()) return;
 
+    // Check if it's a chat command (starts with /)
+    if (message.startsWith('/')) {
+      processCommandMutation.mutate(message);
+      setMessage("");
+      return;
+    }
+
     // Check if it's a command recall
     if (message.startsWith('#')) {
       const commandName = message.slice(1);
@@ -409,6 +417,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       setShowCommandSuggestions(true);
     } else {
       setShowCommandSuggestions(false);
+    }
+    
+    // Show AI chat commands when user types "/"
+    if (value.startsWith('/') && value.length > 0) {
+      setShowChatCommands(true);
+    } else {
+      setShowChatCommands(false);
     }
   };
 
@@ -1134,6 +1149,43 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           <span className="text-sm text-gray-600">
                             {command.fileName || command.savedText || "저장된 항목"}
                           </span>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+            
+            {/* AI Chat Commands dropdown */}
+            {showChatCommands && (
+              <div className="absolute bottom-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mb-1 max-h-60 overflow-y-auto">
+                <div className="p-2">
+                  <div className="text-xs font-medium text-gray-500 mb-2 px-2">AI Commands</div>
+                  {[
+                    { cmd: '/translate', desc: 'Translate text to any language', example: '/translate Hello to Korean' },
+                    { cmd: '/calculate', desc: 'Perform mathematical calculations', example: '/calculate 15 * 8 + 42' },
+                    { cmd: '/summarize', desc: 'Summarize long text', example: '/summarize [your text]' },
+                    { cmd: '/vibe', desc: 'Analyze emotional tone', example: '/vibe I love this app!' },
+                    { cmd: '/poll', desc: 'Create interactive polls', example: '/poll What should we eat? Pizza,Sushi,Tacos' }
+                  ]
+                    .filter(item => 
+                      message.length <= 1 || 
+                      item.cmd.toLowerCase().includes(message.toLowerCase())
+                    )
+                    .map((item) => (
+                      <div
+                        key={item.cmd}
+                        className="p-2 hover:bg-blue-50 rounded cursor-pointer"
+                        onClick={() => setMessage(item.cmd + ' ')}
+                      >
+                        <div className="flex items-start space-x-2">
+                          <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium">
+                            {item.cmd}
+                          </span>
+                          <div className="flex-1">
+                            <div className="text-sm text-gray-700">{item.desc}</div>
+                            <div className="text-xs text-gray-500 mt-1">{item.example}</div>
+                          </div>
                         </div>
                       </div>
                     ))}
