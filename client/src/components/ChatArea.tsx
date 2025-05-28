@@ -289,6 +289,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         pollData: JSON.stringify(pollData),
         replyToMessageId: replyToMessage?.id
       });
+
+      // 즉시 활성 투표로 설정
+      setActivePoll(pollData);
     } catch (error) {
       toast({
         variant: "destructive",
@@ -362,17 +365,30 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       
       if (pollMessages.length > 0) {
         const latestPoll = pollMessages[pollMessages.length - 1];
-        const pollData = JSON.parse(latestPoll.pollData);
-        const isExpired = new Date() > new Date(pollData.expiresAt);
-        
-        if (!isExpired) {
-          setActivePoll({
-            ...pollData,
-            messageId: latestPoll.id
-          });
-        } else {
-          setActivePoll(null);
+        try {
+          const pollData = JSON.parse(latestPoll.pollData);
+          const isExpired = new Date() > new Date(pollData.expiresAt);
+          
+          if (!isExpired) {
+            setActivePoll({
+              ...pollData,
+              messageId: latestPoll.id
+            });
+            
+            // 투표 결과 초기화 (실제로는 서버에서 가져와야 함)
+            const initialVotes: {[key: number]: number} = {};
+            pollData.options.forEach((_: any, index: number) => {
+              initialVotes[index] = Math.floor(Math.random() * 3); // 임시 더미 데이터
+            });
+            setPollVotes(initialVotes);
+          } else {
+            setActivePoll(null);
+          }
+        } catch (error) {
+          console.error("Poll data parsing error:", error);
         }
+      } else if (!activePoll) {
+        setActivePoll(null);
       }
     }
   }, [messages]);
