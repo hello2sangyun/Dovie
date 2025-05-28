@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Pin } from "lucide-react";
+import { Plus, Search, Pin, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ChatsListProps {
@@ -68,7 +68,12 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup 
 
   // 채팅방 이름을 상대방의 닉네임으로 표시하는 함수
   const getChatRoomDisplayName = (chatRoom: any) => {
-    // 상대방 찾기 (본인이 아닌 참가자)
+    // 그룹 채팅인 경우 그룹 이름 반환
+    if (chatRoom.isGroup) {
+      return chatRoom.name;
+    }
+    
+    // 개인 채팅인 경우 상대방 찾기 (본인이 아닌 참가자)
     const otherParticipant = chatRoom.participants?.find((p: any) => p.id !== user?.id);
     
     if (!otherParticipant) {
@@ -288,7 +293,12 @@ function ChatRoomItem({
         </Avatar>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
-            <p className="font-medium text-gray-900 truncate">{displayName}</p>
+            <div className="flex items-center space-x-1 flex-1 min-w-0">
+              {chatRoom.isGroup && (
+                <Users className="h-4 w-4 text-purple-500 flex-shrink-0" />
+              )}
+              <p className="font-medium text-gray-900 truncate">{displayName}</p>
+            </div>
             <div className="flex items-center space-x-2">
               {chatRoom.lastMessage && (
                 <span className="text-xs text-gray-500">
