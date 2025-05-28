@@ -133,39 +133,48 @@ export default function CreateGroupChatModal({ open, onClose, onSuccess }: Creat
                   {contacts.map((contact: any) => (
                     <div
                       key={contact.id}
-                      className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleContactToggle(contact.contactUserId);
-                      }}
+                      className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg"
                     >
-                      <Checkbox
-                        checked={selectedContacts.includes(contact.contactUserId)}
-                        onCheckedChange={(checked) => {
-                          handleContactToggle(contact.contactUserId);
-                        }}
+                      <div 
+                        className="cursor-pointer"
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
+                          handleContactToggle(contact.contactUserId);
                         }}
-                      />
-                      <Avatar className="w-10 h-10">
-                        <AvatarImage 
-                          src={contact.contactUser.profilePicture || undefined} 
-                          alt={contact.nickname || contact.contactUser.displayName} 
+                      >
+                        <Checkbox
+                          checked={selectedContacts.includes(contact.contactUserId)}
+                          onCheckedChange={(checked) => {
+                            handleContactToggle(contact.contactUserId);
+                          }}
                         />
-                        <AvatarFallback className="purple-gradient text-white font-semibold">
-                          {getInitials(contact.nickname || contact.contactUser.displayName)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 truncate">
-                          {contact.nickname || contact.contactUser.displayName}
-                        </p>
-                        <p className="text-sm text-gray-500 truncate">
-                          @{contact.contactUser.username}
-                        </p>
+                      </div>
+                      <div 
+                        className="flex items-center space-x-3 flex-1 cursor-pointer"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleContactToggle(contact.contactUserId);
+                        }}
+                      >
+                        <Avatar className="w-10 h-10">
+                          <AvatarImage 
+                            src={contact.contactUser.profilePicture || undefined} 
+                            alt={contact.nickname || contact.contactUser.displayName} 
+                          />
+                          <AvatarFallback className="purple-gradient text-white font-semibold">
+                            {getInitials(contact.nickname || contact.contactUser.displayName)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-900 truncate">
+                            {contact.nickname || contact.contactUser.displayName}
+                          </p>
+                          <p className="text-sm text-gray-500 truncate">
+                            @{contact.contactUser.username}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   ))}
