@@ -35,10 +35,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let user = await storage.getUserByUsername(username);
       if (!user) {
-        const userData = insertUserSchema.parse({
+        // 테스트 사용자용 기본 데이터
+        const userData = {
           username,
           displayName: username,
-        });
+          email: `${username}@test.com`, // 테스트용 이메일
+          password: "test123", // 테스트용 비밀번호
+          isEmailVerified: true,
+          isProfileComplete: true, // 테스트 사용자는 프로필 완성 상태
+        };
         user = await storage.createUser(userData);
       }
 
