@@ -43,6 +43,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [pollVotes, setPollVotes] = useState<{[key: number]: number}>({});
   const [userVote, setUserVote] = useState<number | null>(null);
   const [votedUsers, setVotedUsers] = useState<Set<number>>(new Set());
+  const [explodedMessages, setExplodedMessages] = useState<Set<number>>(new Set());
+  const [messageTimers, setMessageTimers] = useState<{[key: number]: number}>({});
   const [fileDataForCommand, setFileDataForCommand] = useState<any>(null);
   const [showAddFriendModal, setShowAddFriendModal] = useState(false);
   const [nonFriendUsers, setNonFriendUsers] = useState<any[]>([]);
@@ -398,6 +400,50 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       }
     }
   }, [messages]);
+
+  // 폭탄 메시지 타이머 관리
+  useEffect(() => {
+    const boomMessages = messages.filter((msg: any) => 
+      msg.messageType === "boom" && msg.expiresAt && !explodedMessages.has(msg.id)
+    );
+
+    const timers: {[key: number]: NodeJS.Timeout} = {};
+    const newMessageTimers: {[key: number]: number} = {};
+
+    boomMessages.forEach((msg: any) => {
+      const expiresAt = new Date(msg.expiresAt).getTime();
+      const now = Date.now();
+      const timeLeft = Math.max(0, Math.floor((expiresAt - now) / 1000));
+
+      if (timeLeft > 0) {
+        newMessageTimers[msg.id] = timeLeft;
+        
+        // 1초마다 타이머 업데이트
+        timers[msg.id] = setInterval(() => {
+          setMessageTimers(prev => {
+            const currentTime = Math.max(0, prev[msg.id] - 1);
+            
+            if (currentTime <= 0) {
+              // 폭발!
+              setExplodedMessages(prevExploded => new Set([...prevExploded, msg.id]));
+              return { ...prev, [msg.id]: 0 };
+            }
+            
+            return { ...prev, [msg.id]: currentTime };
+          });
+        }, 1000);
+      } else {
+        // 이미 만료된 메시지
+        setExplodedMessages(prev => new Set([...prev, msg.id]));
+      }
+    });
+
+    setMessageTimers(newMessageTimers);
+
+    return () => {
+      Object.values(timers).forEach(timer => clearInterval(timer));
+    };
+  }, [messages, explodedMessages]);
 
   // 채팅방 이름을 올바르게 표시하는 함수
   const getChatRoomDisplayName = (chatRoom: any) => {
@@ -1369,6 +1415,75 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                             console.log('Vote for option:', optionIndex, 'in poll:', msg.id);
                           }}
                         />
+                      ) : msg.messageType === "boom" ? (
+                        explodedMessages.has(msg.id) ? (
+                          // 폭발한 메시지
+                          <div className="text-center py-4">
+                            <div className="inline-flex items-center space-x-2 bg-gray-100 rounded-lg px-4 py-2 border-2 border-dashed border-gray-300">
+                              <span className="text-2xl animate-bounce">💥</span>
+                              <span className="text-sm text-gray-600 font-medium">이 메시지는 폭발했습니다</span>
+                              <span className="text-xs text-gray-400">(삭제됨)</span>
+                            </div>
+                          </div>
+                        ) : (
+                          // 활성 폭탄 메시지 (카운트다운)
+                          <div className="relative">
+                            <div className={cn(
+                              "flex items-center space-x-3 p-3 rounded-lg border-2",
+                              messageTimers[msg.id] <= 5 
+                                ? "border-red-500 bg-red-50 animate-pulse" 
+                                : "border-orange-500 bg-orange-50"
+                            )}>
+                              <div className={cn(
+                                "text-2xl",
+                                messageTimers[msg.id] <= 3 ? "animate-bounce" : ""
+                              )}>
+                                💣
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-gray-800 mb-2">
+                                  {msg.content.replace('💣 ', '')}
+                                </p>
+                                <div className="flex items-center space-x-2">
+                                  <div className={cn(
+                                    "px-3 py-1 rounded-full text-sm font-bold min-w-[60px] text-center",
+                                    messageTimers[msg.id] <= 5 
+                                      ? "bg-red-500 text-white animate-pulse" 
+                                      : "bg-orange-500 text-white"
+                                  )}>
+                                    {messageTimers[msg.id] || 0}초
+                                  </div>
+                                  <span className="text-xs text-gray-600">후 폭발</span>
+                                  {messageTimers[msg.id] <= 3 && (
+                                    <span className="text-xs text-red-600 font-bold animate-pulse">⚠️ 위험!</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      ) : msg.messageType === "sendback" ? (
+                        // SendBack 메시지 (작성자에게만 보임)
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <span className="text-lg">↩️</span>
+                            <span className="text-xs text-yellow-700 font-medium">작성자만 볼 수 있는 피드백</span>
+                          </div>
+                          <p className="text-sm text-yellow-800">
+                            {msg.content.replace('↩️ 피드백: ', '')}
+                          </p>
+                        </div>
+                      ) : msg.messageType === "spotlight" ? (
+                        // Spotlight 메시지
+                        <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <span className="text-lg">📌</span>
+                            <span className="text-xs text-purple-700 font-medium">주목 메시지</span>
+                          </div>
+                          <p className="text-sm text-purple-800">
+                            {msg.content}
+                          </p>
+                        </div>
                       ) : (
                         <div className={cn(
                           "text-sm",
