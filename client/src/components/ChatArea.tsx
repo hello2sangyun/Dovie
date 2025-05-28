@@ -518,13 +518,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       const otherParticipants = currentChatRoom.participants?.filter((p: any) => p.id !== user.id) || [];
       const contacts = contactsData.contacts || [];
       
-      for (const participant of otherParticipants) {
-        const isContact = contacts.some((contact: any) => contact.contactUserId === participant.id);
-        if (!isContact) {
-          setNonFriendUser(participant);
-          setShowAddFriendModal(true);
-          break; // Show modal for first non-friend found
-        }
+      // 친구가 아닌 모든 참가자 찾기
+      const nonFriends = otherParticipants.filter((participant: any) => {
+        return !contacts.some((contact: any) => contact.contactUserId === participant.id);
+      });
+      
+      if (nonFriends.length > 0) {
+        setNonFriendUsers(nonFriends);
+        setShowAddFriendModal(true);
       }
     }
   }, [currentChatRoom, contactsData, user]);

@@ -54,24 +54,45 @@ export default function AddFriendConfirmModal({ open, onClose, users }: AddFrien
   // 선택된 사용자들을 친구로 추가
   const addContactsMutation = useMutation({
     mutationFn: async () => {
-      const promises = selectedUsers.map(userId => {
+      const results = [];
+      for (const userId of selectedUsers) {
         const user = users.find(u => u.id === userId);
-        if (!user) return Promise.resolve();
+        if (!user) continue;
         
-        return apiRequest("POST", "/api/contacts", {
-          contactUserId: userId,
-          nickname: user.displayName,
-        });
-      });
-      
-      return Promise.all(promises);
+        try {
+          const response = await apiRequest("/api/contacts", "POST", {
+            contactUserId: userId,
+            nickname: user.displayName,
+          });
+          results.push({ success: true, user });
+        } catch (error) {
+          console.error(`Failed to add ${user.displayName}:`, error);
+          results.push({ success: false, user, error });
+        }
+      }
+      return results;
     },
-    onSuccess: () => {
+    onSuccess: (results) => {
       queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
-      toast({
-        title: "친구 추가 완료",
-        description: `${selectedUsers.length}명이 친구 목록에 추가되었습니다.`,
-      });
+      
+      const successful = results.filter(r => r.success);
+      const failed = results.filter(r => !r.success);
+      
+      if (successful.length > 0) {
+        toast({
+          title: "친구 추가 완료",
+          description: `${successful.length}명이 친구 목록에 추가되었습니다.`,
+        });
+      }
+      
+      if (failed.length > 0) {
+        toast({
+          variant: "destructive",
+          title: "일부 친구 추가 실패",
+          description: `${failed.length}명의 사용자를 추가하는데 실패했습니다.`,
+        });
+      }
+      
       onClose();
     },
     onError: (error: any) => {
@@ -79,7 +100,7 @@ export default function AddFriendConfirmModal({ open, onClose, users }: AddFrien
       toast({
         variant: "destructive",
         title: "친구 추가 실패",
-        description: "일부 사용자를 추가하는데 실패했습니다. 다시 시도해주세요.",
+        description: "친구 추가 중 오류가 발생했습니다. 다시 시도해주세요.",
       });
     },
   });
