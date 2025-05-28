@@ -408,7 +408,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     );
 
     const timers: {[key: number]: NodeJS.Timeout} = {};
-    const newMessageTimers: {[key: number]: number} = {};
 
     boomMessages.forEach((msg: any) => {
       const expiresAt = new Date(msg.expiresAt).getTime();
@@ -416,16 +415,22 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       const timeLeft = Math.max(0, Math.floor((expiresAt - now) / 1000));
 
       if (timeLeft > 0) {
-        newMessageTimers[msg.id] = timeLeft;
+        // 초기 타이머 설정
+        setMessageTimers(prev => ({ ...prev, [msg.id]: timeLeft }));
         
         // 1초마다 타이머 업데이트
         timers[msg.id] = setInterval(() => {
           setMessageTimers(prev => {
-            const currentTime = Math.max(0, prev[msg.id] - 1);
+            const currentTime = Math.max(0, (prev[msg.id] || 0) - 1);
             
             if (currentTime <= 0) {
               // 폭발!
-              setExplodedMessages(prevExploded => new Set([...prevExploded, msg.id]));
+              setExplodedMessages(prevExploded => {
+                const newSet = new Set(Array.from(prevExploded));
+                newSet.add(msg.id);
+                return newSet;
+              });
+              clearInterval(timers[msg.id]);
               return { ...prev, [msg.id]: 0 };
             }
             
@@ -434,16 +439,18 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         }, 1000);
       } else {
         // 이미 만료된 메시지
-        setExplodedMessages(prev => new Set([...prev, msg.id]));
+        setExplodedMessages(prev => {
+          const newSet = new Set(Array.from(prev));
+          newSet.add(msg.id);
+          return newSet;
+        });
       }
     });
-
-    setMessageTimers(newMessageTimers);
 
     return () => {
       Object.values(timers).forEach(timer => clearInterval(timer));
     };
-  }, [messages, explodedMessages]);
+  }, [messages]);
 
   // 채팅방 이름을 올바르게 표시하는 함수
   const getChatRoomDisplayName = (chatRoom: any) => {
