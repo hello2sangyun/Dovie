@@ -7,6 +7,8 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   displayName: text("display_name").notNull(),
+  email: text("email").unique().notNull(),
+  password: text("password").notNull(),
   phoneNumber: text("phone_number"),
   birthday: text("birthday"),
   profilePicture: text("profile_picture"),
@@ -16,6 +18,8 @@ export const users = pgTable("users", {
   language: text("language").default("ko"),
   notificationsEnabled: boolean("notifications_enabled").default(true),
   notificationSound: text("notification_sound").default("default"),
+  isEmailVerified: boolean("is_email_verified").default(false),
+  isProfileComplete: boolean("is_profile_complete").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
