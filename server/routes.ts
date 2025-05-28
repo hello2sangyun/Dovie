@@ -4,6 +4,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema } from "@shared/schema";
+import { translateText } from "./openai";
 import bcrypt from "bcryptjs";
 import multer from "multer";
 import path from "path";
@@ -751,6 +752,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false,
         content: "Command processing failed. Please check if OpenAI API key is configured.",
         type: 'text'
+      });
+    }
+  });
+
+  // Translation API endpoint
+  app.post("/api/translate", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { text, targetLanguage } = req.body;
+      
+      if (!text || !targetLanguage) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Text and target language are required" 
+        });
+      }
+      
+      // Language code mapping
+      const languageNames = {
+        ko: "Korean",
+        en: "English", 
+        hu: "Hungarian",
+        de: "German"
+      };
+      
+      const targetLanguageName = languageNames[targetLanguage] || targetLanguage;
+      const result = await translateText(text, targetLanguageName);
+      
+      if (result.success) {
+        res.json({
+          success: true,
+          translatedText: result.content
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          message: "번역에 실패했습니다."
+        });
+      }
+    } catch (error) {
+      console.error("Translation error:", error);
+      res.status(500).json({
+        success: false,
+        message: "번역 서비스에 연결할 수 없습니다."
       });
     }
   });

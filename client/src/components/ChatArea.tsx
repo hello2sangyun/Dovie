@@ -1589,19 +1589,43 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                         </div>
                       ) : (
                         <div className={cn(
-                          "text-sm",
+                          "text-sm relative",
                           isMe ? "text-white" : "text-gray-900"
                         )}>
-                          <div className="flex items-start space-x-1">
-                            <div className="flex-1">
-                              {renderMessageWithLinks(msg.content)}
-                            </div>
-                            {msg.isTranslated && (
-                              <div className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/30 flex-shrink-0 mt-0.5">
-                                <Languages className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                          {/* 번역 상태에 따른 메시지 표시 */}
+                          <div className={cn(
+                            "transition-all duration-500 ease-in-out",
+                            translatingMessages.has(msg.id) ? "animate-pulse" : "",
+                            translatedMessages[msg.id] ? "transform perspective-1000" : ""
+                          )}>
+                            {translatedMessages[msg.id] ? (
+                              // 번역된 메시지 표시 (flip 효과)
+                              <div className="animate-in fade-in-0 zoom-in-95 duration-300">
+                                <div className="flex items-start space-x-1">
+                                  <div className="flex-1">
+                                    <div className="mb-2">
+                                      {renderMessageWithLinks(translatedMessages[msg.id].text)}
+                                    </div>
+                                    <div className="text-xs opacity-70 flex items-center space-x-1">
+                                      <Languages className="h-3 w-3" />
+                                      <span>ChatGPT 번역완료</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              // 원본 메시지 표시
+                              <div className="flex items-start space-x-1">
+                                <div className="flex-1">
+                                  {renderMessageWithLinks(msg.content)}
+                                </div>
+                                {msg.isTranslated && (
+                                  <div className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/30 flex-shrink-0 mt-0.5">
+                                    <Languages className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                                  </div>
+                                )}
                               </div>
                             )}
-
                           </div>
                         </div>
                       )}
@@ -1880,7 +1904,16 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         open={showLanguageModal}
         onClose={() => setShowLanguageModal(false)}
         originalText={textToTranslate}
+        onTranslate={handleCommandTranslate}
+      />
+
+      {/* Translate Modal */}
+      <TranslateModal
+        open={showTranslateModal}
+        onClose={() => setShowTranslateModal(false)}
+        originalText={messageToTranslate?.content || ""}
         onTranslate={handleTranslate}
+        isTranslating={isTranslating}
       />
 
       {/* Calculator Preview Modal */}
