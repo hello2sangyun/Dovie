@@ -267,27 +267,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   // 폴 생성 핸들러
   const handleCreatePoll = async (question: string, options: string[]) => {
     try {
-      const response = await apiRequest("/api/commands/process", "POST", { 
-        commandText: `/poll ${question}`,
-        pollOptions: options
+      // 투표를 직접 아이콘과 함께 표시 (서버 호출 없이)
+      const pollContent = `📊 ${question}\n\n${options.map((option, index) => `${index + 1}. ${option}`).join('\n')}`;
+      sendMessageMutation.mutate({
+        content: pollContent,
+        messageType: "text",
+        replyToMessageId: replyToMessage?.id
       });
-      const result = await response.json();
-      
-      if (result.success) {
-        // 투표를 아이콘과 함께 표시
-        const pollContent = `📊 ${question}\n\n${options.map((option, index) => `${index + 1}. ${option}`).join('\n')}`;
-        sendMessageMutation.mutate({
-          content: pollContent,
-          messageType: "text",
-          replyToMessageId: replyToMessage?.id
-        });
-      } else {
-        toast({
-          variant: "destructive",
-          title: "투표 생성 실패",
-          description: result.content,
-        });
-      }
     } catch (error) {
       toast({
         variant: "destructive",
