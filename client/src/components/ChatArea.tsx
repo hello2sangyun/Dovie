@@ -18,6 +18,7 @@ import PollMessage from "./PollMessage";
 import PollBanner from "./PollBanner";
 import PollDetailModal from "./PollDetailModal";
 import TranslateModal from "./TranslateModal";
+import VoiceRecorder from "./VoiceRecorder";
 
 interface ChatAreaProps {
   chatRoomId: number;
@@ -54,6 +55,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [translatedMessages, setTranslatedMessages] = useState<{[key: number]: {text: string, language: string}}>({});
   const [translatingMessages, setTranslatingMessages] = useState<Set<number>>(new Set());
   const [isTranslating, setIsTranslating] = useState(false);
+  const [isProcessingVoice, setIsProcessingVoice] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [contextMenu, setContextMenu] = useState<{
     visible: boolean;
@@ -204,6 +206,55 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         title: "번역 실패",
         description: "번역 중 오류가 발생했습니다. 다시 시도해주세요.",
       });
+    },
+  });
+
+  // Voice transcription mutation
+  const transcribeVoiceMutation = useMutation({
+    mutationFn: async (audioBlob: Blob) => {
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'voice_message.webm');
+      
+      const response = await fetch("/api/transcribe", {
+        method: "POST",
+        headers: {
+          "x-user-id": user?.id?.toString() || ""
+        },
+        body: formData
+      });
+      return response.json();
+    },
+    onSuccess: (result) => {
+      if (result.success && result.transcription) {
+        // 음성 메시지와 텍스트 변환을 함께 전송
+        sendMessageMutation.mutate({
+          content: `🎤 ${result.transcription}`,
+          messageType: "voice",
+          fileUrl: result.audioUrl,
+          fileName: "음성 메시지",
+          fileSize: result.duration || 0
+        });
+        
+        toast({
+          title: "음성 메시지 전송 완료!",
+          description: "음성이 텍스트로 변환되어 전송되었습니다.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "음성 변환 실패",
+          description: "음성을 텍스트로 변환할 수 없습니다.",
+        });
+      }
+      setIsProcessingVoice(false);
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "음성 처리 실패",
+        description: "음성 메시지 처리 중 오류가 발생했습니다.",
+      });
+      setIsProcessingVoice(false);
     },
   });
 
@@ -857,6 +908,17 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     translateMessageMutation.mutate({
       text: messageToTranslate.content,
       targetLanguage
+    });
+  };
+
+  // 음성 녹음 완료 핸들러
+  const handleVoiceRecordingComplete = (audioBlob: Blob, duration: number) => {
+    setIsProcessingVoice(true);
+    transcribeVoiceMutation.mutate(audioBlob);
+    
+    toast({
+      title: "음성 처리 중...",
+      description: "음성을 텍스트로 변환하고 있습니다.",
     });
   };
 
@@ -1855,6 +1917,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               </div>
             )}
           </div>
+          
+          {/* Voice Recorder */}
+          <VoiceRecorder
+            onRecordingComplete={handleVoiceRecordingComplete}
+            disabled={isProcessingVoice || sendMessageMutation.isPending}
+          />
           
           <Button
             className="purple-gradient hover:purple-gradient-hover"
