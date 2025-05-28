@@ -11,6 +11,7 @@ import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 import AddFriendConfirmModal from "./AddFriendConfirmModal";
 import MessageContextMenu from "./MessageContextMenu";
 import CommandModal from "./CommandModal";
+import LanguageSelectionModal from "./LanguageSelectionModal";
 
 interface ChatAreaProps {
   chatRoomId: number;
@@ -26,6 +27,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [message, setMessage] = useState("");
   const [showCommandSuggestions, setShowCommandSuggestions] = useState(false);
   const [showChatCommands, setShowChatCommands] = useState(false);
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [textToTranslate, setTextToTranslate] = useState("");
   const [fileDataForCommand, setFileDataForCommand] = useState<any>(null);
   const [showAddFriendModal, setShowAddFriendModal] = useState(false);
   const [nonFriendUsers, setNonFriendUsers] = useState<any[]>([]);
@@ -182,6 +185,37 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     },
   });
 
+  // 번역 처리 함수
+  const handleTranslate = async (text: string, targetLanguage: string) => {
+    try {
+      const response = await apiRequest("/api/commands/process", "POST", { 
+        commandText: `/translate ${text} to ${targetLanguage}` 
+      });
+      const result = await response.json();
+      
+      if (result.success) {
+        // 번역 결과만 깔끔하게 표시
+        sendMessageMutation.mutate({
+          content: result.content,
+          messageType: "text",
+          replyToMessageId: replyToMessage?.id
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "번역 실패",
+          description: result.content,
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "번역 오류",
+        description: "번역 서비스에 연결할 수 없습니다.",
+      });
+    }
+  };
+
   // File upload mutation
   const uploadFileMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -276,6 +310,18 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
     // Check if it's a chat command (starts with /)
     if (message.startsWith('/')) {
+      // 특별한 번역 처리
+      if (message.startsWith('/translate ')) {
+        const textToTranslate = message.replace('/translate ', '').trim();
+        if (textToTranslate) {
+          setTextToTranslate(textToTranslate);
+          setShowLanguageModal(true);
+          setMessage("");
+          setShowChatCommands(false);
+          return;
+        }
+      }
+      
       processCommandMutation.mutate(message);
       setMessage("");
       setShowChatCommands(false); // AI 커맨드 창 닫기
@@ -1190,7 +1236,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                 <div className="p-2">
                   <div className="text-xs font-medium text-gray-500 mb-2 px-2">AI Commands</div>
                   {[
-                    { cmd: '/translate', desc: 'Translate text to any language', example: '/translate Hello to Korean' },
+                    { cmd: '/translate', desc: 'Translate text with language selection', example: '/translate 안녕하세요' },
                     { cmd: '/calculate', desc: 'Perform mathematical calculations', example: '/calculate 15 * 8 + 42' },
                     { cmd: '/summarize', desc: 'Summarize long text', example: '/summarize [your text]' },
                     { cmd: '/vibe', desc: 'Analyze emotional tone', example: '/vibe I love this app!' },
@@ -1267,6 +1313,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         onReplyMessage={handleReplyMessage}
       />
 
+      {/* Language Selection Modal */}
+      <LanguageSelectionModal
+        open={showLanguageModal}
+        onClose={() => setShowLanguageModal(false)}
+        originalText={textToTranslate}
+        onTranslate={handleTranslate}
+      />
 
     </div>
   );
