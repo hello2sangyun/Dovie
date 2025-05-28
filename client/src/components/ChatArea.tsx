@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages } from "lucide-react";
+import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
@@ -12,6 +12,7 @@ import AddFriendConfirmModal from "./AddFriendConfirmModal";
 import MessageContextMenu from "./MessageContextMenu";
 import CommandModal from "./CommandModal";
 import LanguageSelectionModal from "./LanguageSelectionModal";
+import CalculatorPreviewModal from "./CalculatorPreviewModal";
 
 interface ChatAreaProps {
   chatRoomId: number;
@@ -29,6 +30,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [showChatCommands, setShowChatCommands] = useState(false);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [textToTranslate, setTextToTranslate] = useState("");
+  const [showCalculatorModal, setShowCalculatorModal] = useState(false);
+  const [calculatorData, setCalculatorData] = useState<{expression: string, result: string}>({expression: "", result: ""});
   const [fileDataForCommand, setFileDataForCommand] = useState<any>(null);
   const [showAddFriendModal, setShowAddFriendModal] = useState(false);
   const [nonFriendUsers, setNonFriendUsers] = useState<any[]>([]);
@@ -217,6 +220,46 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
   };
 
+  // 계산기 처리 함수
+  const handleCalculatorCommand = async (expression: string) => {
+    try {
+      const response = await apiRequest("/api/commands/process", "POST", { 
+        commandText: `/calculate ${expression}` 
+      });
+      const result = await response.json();
+      
+      if (result.success) {
+        setCalculatorData({
+          expression: expression,
+          result: result.content
+        });
+        setShowCalculatorModal(true);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "계산 실패",
+          description: result.content,
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "계산 오류",
+        description: "계산 서비스에 연결할 수 없습니다.",
+      });
+    }
+  };
+
+  // 계산기 결과를 채팅방에 전송
+  const handleSendCalculatorResult = (result: string) => {
+    sendMessageMutation.mutate({
+      content: result,
+      messageType: "text",
+      isCalculated: true,
+      replyToMessageId: replyToMessage?.id
+    });
+  };
+
   // File upload mutation
   const uploadFileMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -317,6 +360,17 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         if (textToTranslate) {
           setTextToTranslate(textToTranslate);
           setShowLanguageModal(true);
+          setMessage("");
+          setShowChatCommands(false);
+          return;
+        }
+      }
+      
+      // 특별한 계산기 처리
+      if (message.startsWith('/calculate ')) {
+        const expression = message.replace('/calculate ', '').trim();
+        if (expression) {
+          handleCalculatorCommand(expression);
           setMessage("");
           setShowChatCommands(false);
           return;
@@ -1102,6 +1156,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                                 isMe ? "text-white/70" : "text-gray-500"
                               )} />
                             )}
+                            {msg.isCalculated && (
+                              <Calculator className={cn(
+                                "h-3 w-3 flex-shrink-0 mt-0.5",
+                                isMe ? "text-white/70" : "text-gray-500"
+                              )} />
+                            )}
                           </div>
                         </div>
                       )}
@@ -1330,6 +1390,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         onClose={() => setShowLanguageModal(false)}
         originalText={textToTranslate}
         onTranslate={handleTranslate}
+      />
+
+      {/* Calculator Preview Modal */}
+      <CalculatorPreviewModal
+        open={showCalculatorModal}
+        onClose={() => setShowCalculatorModal(false)}
+        expression={calculatorData.expression}
+        result={calculatorData.result}
+        onSendToChat={handleSendCalculatorResult}
       />
 
     </div>
