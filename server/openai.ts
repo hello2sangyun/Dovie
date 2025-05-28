@@ -259,3 +259,37 @@ export async function processCommand(commandText: string): Promise<CommandRespon
       };
   }
 }
+
+// Audio transcription for voice messages
+export async function transcribeAudio(audioFile: any): Promise<{ success: boolean, transcription?: string, duration?: number, error?: string }> {
+  try {
+    console.log("Starting audio transcription with Whisper...");
+    
+    const transcription = await openai.audio.transcriptions.create({
+      file: audioFile,
+      model: "whisper-1",
+      response_format: "text"
+    });
+
+    console.log("Transcription successful:", transcription);
+    
+    return {
+      success: true,
+      transcription: transcription || "음성을 인식할 수 없습니다.",
+      duration: 0
+    };
+  } catch (error: any) {
+    console.error("Audio transcription error:", {
+      message: error.message,
+      status: error.status,
+      code: error.code,
+      type: error.type,
+      error: error
+    });
+    
+    return {
+      success: false,
+      error: `음성 변환 실패: ${error.message || 'Unknown error'}`
+    };
+  }
+}

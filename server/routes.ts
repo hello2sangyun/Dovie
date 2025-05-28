@@ -4,7 +4,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema } from "@shared/schema";
-import { translateText } from "./openai";
+import { translateText, transcribeAudio } from "./openai";
 import bcrypt from "bcryptjs";
 import multer from "multer";
 import path from "path";
