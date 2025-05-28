@@ -191,6 +191,9 @@ export const commandsRelations = relations(commands, ({ one }) => ({
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
+}).extend({
+  email: z.string().email("올바른 이메일 형식을 입력해주세요"),
+  password: z.string().min(6, "비밀번호는 6자 이상이어야 합니다"),
 });
 
 export const insertContactSchema = createInsertSchema(contacts).omit({

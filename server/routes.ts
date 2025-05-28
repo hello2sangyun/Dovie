@@ -139,38 +139,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 회원가입 API
   app.post("/api/auth/signup", async (req, res) => {
     try {
+      console.log("Signup request body:", req.body);
       const { email, password, displayName, username } = req.body;
       
       if (!email || !password || !displayName || !username) {
+        console.log("Missing fields:", { email: !!email, password: !!password, displayName: !!displayName, username: !!username });
         return res.status(400).json({ message: "모든 필드를 입력해주세요." });
       }
 
       // 이메일 중복 확인
       const existingUserByEmail = await storage.getUserByEmail(email);
       if (existingUserByEmail) {
+        console.log("Email already exists:", email);
         return res.status(400).json({ message: "이미 사용 중인 이메일입니다." });
       }
 
       // 사용자명 중복 확인
       const existingUserByUsername = await storage.getUserByUsername(username);
       if (existingUserByUsername) {
+        console.log("Username already exists:", username);
         return res.status(400).json({ message: "이미 사용 중인 사용자명입니다." });
       }
 
       // 비밀번호 해싱
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // 사용자 생성
-      const userData = insertUserSchema.parse({
+      // 사용자 생성 데이터 준비
+      const userData = {
         email,
         password: hashedPassword,
         username,
         displayName,
-        isEmailVerified: true, // 실제 환경에서는 이메일 인증 필요
+        isEmailVerified: true,
         isProfileComplete: false,
-      });
+      };
 
-      const user = await storage.createUser(userData);
+      console.log("Creating user with data:", { ...userData, password: "[HIDDEN]" });
+
+      // 스키마 검증
+      const validatedData = insertUserSchema.parse(userData);
+      console.log("Schema validation passed");
+
+      const user = await storage.createUser(validatedData);
+      console.log("User created successfully:", { id: user.id, email: user.email });
 
       // 사용자 온라인 상태 업데이트
       await storage.updateUser(user.id, { isOnline: true });
@@ -178,7 +189,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ user });
     } catch (error) {
       console.error("Signup error:", error);
-      res.status(500).json({ message: "회원가입에 실패했습니다." });
+      console.error("Error details:", error.message);
+      if (error.issues) {
+        console.error("Validation issues:", error.issues);
+      }
+      res.status(500).json({ message: "회원가입에 실패했습니다.", error: error.message });
     }
   });
 
