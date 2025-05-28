@@ -39,6 +39,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [messageDataForCommand, setMessageDataForCommand] = useState<any>(null);
   const [replyToMessage, setReplyToMessage] = useState<any>(null);
   const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
+  const [uploadingFiles, setUploadingFiles] = useState<Array<{id: string, fileName: string}>>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatAreaRef = useRef<HTMLDivElement>(null);
@@ -125,16 +126,31 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   // File upload mutation
   const uploadFileMutation = useMutation({
     mutationFn: async (file: File) => {
+      // 업로드 시작 시 로딩 메시지 추가
+      const uploadId = Date.now().toString();
+      setUploadingFiles(prev => [...prev, { id: uploadId, fileName: file.name }]);
+      
       const formData = new FormData();
       formData.append("file", file);
       
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-      
-      if (!response.ok) throw new Error("Upload failed");
-      return response.json();
+      try {
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+        
+        if (!response.ok) throw new Error("Upload failed");
+        const result = await response.json();
+        
+        // 업로드 완료 시 로딩 메시지 제거
+        setUploadingFiles(prev => prev.filter(f => f.id !== uploadId));
+        
+        return result;
+      } catch (error) {
+        // 에러 시 로딩 메시지 제거
+        setUploadingFiles(prev => prev.filter(f => f.id !== uploadId));
+        throw error;
+      }
     },
     onSuccess: (uploadData) => {
       sendMessageMutation.mutate({
@@ -533,7 +549,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             대화를 시작해보세요!
           </div>
         ) : (
-          messages.map((msg: any, index: number) => {
+          <>
+            {messages.map((msg: any, index: number) => {
             const isMe = msg.senderId === user?.id;
             const showDate = index === 0 || 
               new Date(messages[index - 1].createdAt).toDateString() !== new Date(msg.createdAt).toDateString();
@@ -739,7 +756,39 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                 </div>
               </div>
             );
-          })
+          })}
+          
+          {/* 업로드 중인 파일들을 로딩 메시지로 표시 */}
+          {uploadingFiles.map((uploadingFile) => (
+            <div key={uploadingFile.id} className="flex items-start space-x-3 flex-row-reverse space-x-reverse mb-4">
+              <Avatar className="w-8 h-8">
+                <AvatarImage 
+                  src={user?.profilePicture || undefined} 
+                  alt={user?.displayName || "Me"} 
+                />
+                <AvatarFallback className="purple-gradient text-white text-sm font-semibold">
+                  {getInitials(user?.displayName || "Me")}
+                </AvatarFallback>
+              </Avatar>
+              
+              <div className="flex flex-col items-end max-w-xs lg:max-w-md">
+                <div className="bg-purple-600 text-white p-3 rounded-lg shadow-sm">
+                  <div className="flex items-center space-x-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span className="text-sm">📎 {uploadingFile.fileName} 업로드 중...</span>
+                  </div>
+                </div>
+                <span className="text-xs text-gray-500 mt-1">
+                  {new Date().toLocaleTimeString('ko-KR', { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: false
+                  })}
+                </span>
+              </div>
+            </div>
+          ))}
+        </>
         )}
         <div ref={messagesEndRef} />
       </div>
