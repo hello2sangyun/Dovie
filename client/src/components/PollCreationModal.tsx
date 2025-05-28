@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,11 @@ export default function PollCreationModal({
   const [pollQuestion, setPollQuestion] = useState(question);
   const [options, setOptions] = useState<string[]>(["", ""]);
   const [selectedDuration, setSelectedDuration] = useState<number>(24); // Default 1 day
+
+  // question prop이 변경될 때 상태 업데이트
+  useEffect(() => {
+    setPollQuestion(question);
+  }, [question]);
 
   const handleAddOption = () => {
     if (options.length < 5) {

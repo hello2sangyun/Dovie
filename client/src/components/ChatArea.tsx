@@ -1186,13 +1186,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                             </div>
                           )}
                         </div>
-                      ) : msg.messageType === "poll" ? (
+                      ) : msg.messageType === "poll" && msg.pollData ? (
                         <PollMessage
-                          pollData={JSON.parse(msg.pollData || '{}')}
+                          pollData={JSON.parse(msg.pollData)}
                           isMe={isMe}
                           onVote={(optionIndex) => {
-                            // TODO: 투표 처리 로직
-                            console.log('Vote for option:', optionIndex);
+                            console.log('Vote for option:', optionIndex, 'in poll:', msg.id);
                           }}
                         />
                       ) : (
