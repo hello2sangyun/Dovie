@@ -22,6 +22,8 @@ export interface CommandResponse {
 // /translate command - translate text to specified language
 export async function translateText(text: string, targetLanguage: string = 'English'): Promise<CommandResponse> {
   try {
+    console.log(`Attempting translation: "${text}" to ${targetLanguage}`);
+    
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -37,16 +39,24 @@ export async function translateText(text: string, targetLanguage: string = 'Engl
       max_tokens: 1000,
     });
 
+    console.log("OpenAI response received successfully");
     return {
       success: true,
       content: response.choices[0].message.content || "Translation failed",
       type: 'text'
     };
-  } catch (error) {
-    console.error("Translation error:", error);
+  } catch (error: any) {
+    console.error("Translation error details:", {
+      message: error.message,
+      status: error.status,
+      code: error.code,
+      type: error.type,
+      error: error
+    });
+    
     return {
       success: false,
-      content: `Translation service unavailable: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      content: `Translation failed: ${error.message || 'Unknown error'}`,
       type: 'text'
     };
   }
