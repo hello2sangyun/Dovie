@@ -5,27 +5,68 @@ import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import VaultLogo from "@/components/VaultLogo";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Phone, Play } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Mail, Lock, Phone, Play, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
   const { setUser } = useAuth();
   const { toast } = useToast();
+  
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  const [showPassword, setShowPassword] = useState(false);
   const [username] = useState(`testuser_${Math.floor(Math.random() * 10000)}`);
+
+  const loginMutation = useMutation({
+    mutationFn: async (data: typeof formData) => {
+      const response = await apiRequest("/api/auth/login", "POST", data);
+      return response;
+    },
+    onSuccess: (data) => {
+      setUser(data.user);
+      localStorage.setItem("userId", data.user.id.toString());
+      
+      // 프로필이 완성되지 않은 경우 프로필 설정 페이지로
+      if (!data.user.isProfileComplete) {
+        setLocation("/profile-setup");
+        toast({
+          title: "로그인 성공",
+          description: "프로필을 완성해주세요!",
+        });
+      } else {
+        setLocation("/app");
+        toast({
+          title: "로그인 성공",
+          description: `${data.user.displayName}님 환영합니다!`,
+        });
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "로그인 실패",
+        description: error.message || "이메일 또는 비밀번호를 확인해주세요.",
+      });
+    },
+  });
 
   const testLoginMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/auth/test-login", { username });
-      return response.json();
+      const response = await apiRequest("/api/auth/test-login", "POST", { username });
+      return response;
     },
     onSuccess: (data) => {
       setUser(data.user);
       localStorage.setItem("userId", data.user.id.toString());
       setLocation("/app");
       toast({
-        title: "로그인 성공",
+        title: "테스트 로그인 성공",
         description: `${data.user.displayName}님 환영합니다!`,
       });
     },
@@ -38,45 +79,119 @@ export default function LoginPage() {
     },
   });
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    loginMutation.mutate(formData);
+  };
+
   return (
-    <div className="fixed inset-0 bg-white flex items-center justify-center">
+    <div className="fixed inset-0 bg-gray-50 flex items-center justify-center">
       <div className="w-full max-w-md p-8 animate-slide-up">
         <div className="text-center mb-8">
           <VaultLogo size="lg" className="mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Vault Messenger</h2>
-          <p className="text-gray-600">로그인하여 시작하세요</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Dovie Messenger</h2>
+          <p className="text-gray-600">비즈니스 메신저 서비스에 로그인하세요</p>
         </div>
 
         <div className="space-y-4">
-          <Card className="bg-gray-50 border">
-            <CardContent className="p-4">
-              <h3 className="font-medium text-gray-900 mb-2">전화번호 인증</h3>
-              <p className="text-sm text-gray-600 mb-3">전화번호로 로그인하세요</p>
-              <Button 
-                className="w-full" 
-                variant="secondary" 
-                onClick={() => setLocation("/phone-login")}
-              >
-                <Phone className="mr-2 h-4 w-4" />
-                전화번호로 로그인
-              </Button>
+          {/* 이메일 로그인 */}
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-center text-lg">이메일로 로그인</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">이메일</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="example@company.com"
+                      value={formData.email}
+                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">비밀번호</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="비밀번호를 입력하세요"
+                      value={formData.password}
+                      onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                      className="pl-10 pr-10"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <Button 
+                  type="submit" 
+                  className="w-full purple-gradient hover:purple-gradient-hover"
+                  disabled={loginMutation.isPending}
+                >
+                  {loginMutation.isPending ? "로그인 중..." : "로그인"}
+                </Button>
+              </form>
+
+              <div className="mt-4 text-center">
+                <p className="text-sm text-gray-600">
+                  계정이 없으신가요?{" "}
+                  <button
+                    onClick={() => setLocation("/signup")}
+                    className="text-purple-600 hover:text-purple-700 font-medium"
+                  >
+                    회원가입하기
+                  </button>
+                </p>
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-purple-50 border-purple-200">
-            <CardContent className="p-4">
-              <h3 className="font-medium text-gray-900 mb-2">테스트 로그인</h3>
-              <p className="text-sm text-gray-600 mb-3">테스트용 계정으로 바로 시작</p>
-              <Button 
-                className="w-full purple-gradient hover:purple-gradient-hover"
-                onClick={() => testLoginMutation.mutate()}
-                disabled={testLoginMutation.isPending}
-              >
-                <Play className="mr-2 h-4 w-4" />
-                {testLoginMutation.isPending ? "로그인 중..." : "테스트 시작하기"}
-              </Button>
-            </CardContent>
-          </Card>
+          {/* 기타 로그인 옵션 */}
+          <div className="space-y-3">
+            <Card className="bg-gray-50 border">
+              <CardContent className="p-4">
+                <Button 
+                  className="w-full" 
+                  variant="secondary" 
+                  onClick={() => setLocation("/phone-login")}
+                >
+                  <Phone className="mr-2 h-4 w-4" />
+                  전화번호로 로그인
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-purple-50 border-purple-200">
+              <CardContent className="p-4">
+                <Button 
+                  className="w-full"
+                  variant="outline"
+                  onClick={() => testLoginMutation.mutate()}
+                  disabled={testLoginMutation.isPending}
+                >
+                  <Play className="mr-2 h-4 w-4" />
+                  {testLoginMutation.isPending ? "로그인 중..." : "테스트 계정으로 시작"}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         <div className="mt-8 text-center">

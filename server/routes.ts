@@ -4,6 +4,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema } from "@shared/schema";
+import bcrypt from "bcryptjs";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -132,6 +133,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("SMS verify error:", error);
       res.status(500).json({ message: "인증에 실패했습니다." });
+    }
+  });
+
+  // 회원가입 API
+  app.post("/api/auth/signup", async (req, res) => {
+    try {
+      const { email, password, displayName, username } = req.body;
+      
+      if (!email || !password || !displayName || !username) {
+        return res.status(400).json({ message: "모든 필드를 입력해주세요." });
+      }
+
+      // 이메일 중복 확인
+      const existingUserByEmail = await storage.getUserByEmail(email);
+      if (existingUserByEmail) {
+        return res.status(400).json({ message: "이미 사용 중인 이메일입니다." });
+      }
+
+      // 사용자명 중복 확인
+      const existingUserByUsername = await storage.getUserByUsername(username);
+      if (existingUserByUsername) {
+        return res.status(400).json({ message: "이미 사용 중인 사용자명입니다." });
+      }
+
+      // 비밀번호 해싱
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // 사용자 생성
+      const userData = insertUserSchema.parse({
+        email,
+        password: hashedPassword,
+        username,
+        displayName,
+        isEmailVerified: true, // 실제 환경에서는 이메일 인증 필요
+        isProfileComplete: false,
+      });
+
+      const user = await storage.createUser(userData);
+
+      // 사용자 온라인 상태 업데이트
+      await storage.updateUser(user.id, { isOnline: true });
+
+      res.json({ user });
+    } catch (error) {
+      console.error("Signup error:", error);
+      res.status(500).json({ message: "회원가입에 실패했습니다." });
+    }
+  });
+
+  // 로그인 API
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({ message: "이메일과 비밀번호를 입력해주세요." });
+      }
+
+      // 사용자 찾기
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(400).json({ message: "등록되지 않은 이메일입니다." });
+      }
+
+      // 비밀번호 확인
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        return res.status(400).json({ message: "비밀번호가 일치하지 않습니다." });
+      }
+
+      // 사용자 온라인 상태 업데이트
+      await storage.updateUser(user.id, { isOnline: true });
+
+      res.json({ user });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ message: "로그인에 실패했습니다." });
     }
   });
 
