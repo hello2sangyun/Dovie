@@ -1750,6 +1750,91 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     return null;
   };
 
+  // 언어 감지 함수
+  const detectLanguage = (text: string): string => {
+    // 한글 감지
+    if (/[가-힣]/.test(text)) {
+      return 'korean';
+    }
+    
+    // 일본어 감지 (히라가나, 가타카나)
+    if (/[ひらがなカタカナ]/.test(text) || /[ぁ-ゔァ-ヴー]/.test(text)) {
+      return 'japanese';
+    }
+    
+    // 중국어 감지 (간체/번체)
+    if (/[\u4e00-\u9fff]/.test(text)) {
+      return 'chinese';
+    }
+    
+    // 스페인어 패턴
+    if (/[ñáéíóúü]/i.test(text) || /\b(el|la|es|de|que|y|en|un|con|para|por|como|muy|pero|todo|más|puede|hacer|tiempo|si|donde|estar|hola|gracias|por favor)\b/i.test(text)) {
+      return 'spanish';
+    }
+    
+    // 프랑스어 패턴
+    if (/[àâäéèêëïîôöùûüÿç]/i.test(text) || /\b(le|la|de|et|à|un|il|être|et|en|avoir|que|pour|dans|ce|son|une|sur|avec|ne|se|pas|tout|plus|pouvoir|par|plus|grand|nouveau|gouvernement|bonjour|merci|s'il vous plaît)\b/i.test(text)) {
+      return 'french';
+    }
+    
+    // 독일어 패턴
+    if (/[äöüß]/i.test(text) || /\b(der|die|das|und|in|den|von|zu|mit|sich|auf|für|ist|im|dem|nicht|ein|eine|als|auch|es|an|werden|aus|er|hat|dass|sie|nach|wird|bei|einer|um|am|sind|noch|wie|einem|über|einen|so|zum|war|haben|nur|oder|aber|vor|zur|bis|unter|während|hallo|danke|bitte)\b/i.test(text)) {
+      return 'german';
+    }
+    
+    // 러시아어 감지
+    if (/[а-яё]/i.test(text)) {
+      return 'russian';
+    }
+    
+    // 기본값은 영어
+    return 'english';
+  };
+
+  // 사용자별 언어 히스토리 추적을 위한 상태
+  const [userLanguageHistory, setUserLanguageHistory] = useState<{[userId: number]: string[]}>({});
+
+  // 번역 필요성 감지 함수
+  const shouldSuggestTranslation = (currentText: string, messages: any[]): { shouldSuggest: boolean; targetLanguage?: string; languageName?: string } => {
+    const currentLanguage = detectLanguage(currentText);
+    
+    // 최근 10개 메시지에서 다른 사용자들의 언어 패턴 분석
+    const recentMessages = messages.slice(-10);
+    const otherUsersLanguages = new Set<string>();
+    
+    recentMessages.forEach(msg => {
+      if (msg.senderId !== user?.id && msg.messageType === 'text') {
+        const msgLanguage = detectLanguage(msg.content);
+        otherUsersLanguages.add(msgLanguage);
+      }
+    });
+    
+    // 현재 사용자가 쓰는 언어와 다른 언어를 사용하는 사용자가 있는지 확인
+    const otherLangsArray = Array.from(otherUsersLanguages);
+    for (const otherLang of otherLangsArray) {
+      if (otherLang !== currentLanguage) {
+        const languageNames: {[key: string]: string} = {
+          'korean': '한국어',
+          'english': 'English',
+          'japanese': '日本語',
+          'chinese': '中文',
+          'spanish': 'Español',
+          'french': 'Français',
+          'german': 'Deutsch',
+          'russian': 'Русский'
+        };
+        
+        return {
+          shouldSuggest: true,
+          targetLanguage: otherLang,
+          languageName: languageNames[otherLang] || otherLang
+        };
+      }
+    }
+    
+    return { shouldSuggest: false };
+  };
+
   // 선택지/투표 감지 함수
   const detectPoll = (text: string) => {
     const patterns = [
@@ -1881,10 +1966,19 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       allSuggestions.push(scheduleDetection);
     }
     
-    // 4. 외국어 감지
-    const foreignLanguageDetection = detectForeignLanguage(value);
-    if (foreignLanguageDetection) {
-      allSuggestions.push(foreignLanguageDetection);
+    // 4. 번역 필요성 감지 (상대방과 다른 언어 사용 시에만)
+    if (messages?.data?.messages) {
+      const translationCheck = shouldSuggestTranslation(value, messages.data.messages);
+      if (translationCheck.shouldSuggest) {
+        allSuggestions.push({
+          type: 'translation' as const,
+          text: `${translationCheck.languageName}로 번역`,
+          result: value,
+          icon: '🌐',
+          category: '번역',
+          action: () => handleChatTranslation(translationCheck.targetLanguage!)
+        });
+      }
     }
     
     // 5. 감정 감지
