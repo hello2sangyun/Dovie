@@ -1181,19 +1181,21 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
   };
 
-  // 화폐 감지 함수
+  // 화폐 감지 함수 (확장된 통화 지원)
   const detectCurrency = (text: string): { amount: number; currency: string } | null => {
     const patterns = [
-      /(\d+(?:\.\d+)?)\s*(원|₩)/i,
-      /(\d+(?:\.\d+)?)\s*(달러|\$|dollar)/i,
-      /(\d+(?:\.\d+)?)\s*(유로|€|euro)/i,
-      /(\d+(?:\.\d+)?)\s*(엔|¥|yen)/i,
-      /(\d+(?:\.\d+)?)\s*(위안|yuan)/i,
-      /(\d+(?:\.\d+)?)\s*(파운드|£|pound)/i,
-      /\$(\d+(?:\.\d+)?)/i,
-      /€(\d+(?:\.\d+)?)/i,
-      /¥(\d+(?:\.\d+)?)/i,
-      /£(\d+(?:\.\d+)?)/i
+      /(\d+(?:,\d{3})*(?:\.\d+)?)\s*(원|₩|KRW)/i,
+      /(\d+(?:,\d{3})*(?:\.\d+)?)\s*(달러|\$|dollar|USD)/i,
+      /(\d+(?:,\d{3})*(?:\.\d+)?)\s*(유로|€|euro|EUR)/i,
+      /(\d+(?:,\d{3})*(?:\.\d+)?)\s*(엔|¥|yen|JPY)/i,
+      /(\d+(?:,\d{3})*(?:\.\d+)?)\s*(위안|yuan|CNY)/i,
+      /(\d+(?:,\d{3})*(?:\.\d+)?)\s*(파운드|£|pound|GBP)/i,
+      /(\d+(?:,\d{3})*(?:\.\d+)?)\s*(포린트|HUF)/i,
+      /(\d+(?:,\d{3})*(?:\.\d+)?)\s*(크루나|CZK)/i,
+      /\$(\d+(?:,\d{3})*(?:\.\d+)?)/i,
+      /€(\d+(?:,\d{3})*(?:\.\d+)?)/i,
+      /¥(\d+(?:,\d{3})*(?:\.\d+)?)/i,
+      /£(\d+(?:,\d{3})*(?:\.\d+)?)/i
     ];
 
     for (const pattern of patterns) {
@@ -2879,17 +2881,17 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               className="resize-none"
             />
             
-            {/* 스마트 채팅 제안 - 모바일 최적화 */}
+            {/* 스마트 채팅 제안 - 컴팩트 디자인 */}
             {showSmartSuggestions && smartSuggestions.length > 0 && (
-              <div className="absolute bottom-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mb-1 max-h-60 overflow-y-auto z-50">
-                <div className="p-2">
-                  <div className="text-xs font-medium text-gray-500 mb-2 px-1">스마트 제안</div>
+              <div className="absolute bottom-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mb-1 max-h-40 overflow-y-auto z-50">
+                <div className="p-1">
+                  <div className="text-xs font-medium text-gray-500 mb-1 px-2">스마트 제안</div>
                   {smartSuggestions.map((suggestion, index) => (
                     <div
                       key={index}
-                      className={`p-3 rounded-lg cursor-pointer transition-colors border ${
+                      className={`p-2 rounded-md cursor-pointer transition-colors border ${
                         index === selectedSuggestionIndex 
-                          ? 'bg-blue-100 border-blue-300 shadow-sm' 
+                          ? 'bg-blue-100 border-blue-300' 
                           : 'border-transparent hover:border-blue-200 hover:bg-blue-50'
                       }`}
                       onClick={() => {
@@ -2906,8 +2908,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                         messageInputRef.current?.focus();
                       }}
                     >
-                      <div className="flex items-start space-x-3">
-                        <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                      <div className="flex items-center space-x-2">
+                        <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
                           suggestion.type === 'calculation' ? 'bg-blue-100' :
                           suggestion.type === 'currency' ? 'bg-green-100' :
                           suggestion.type === 'schedule' ? 'bg-purple-100' :
@@ -2933,7 +2935,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           suggestion.type === 'topic_info' ? 'bg-indigo-100' :
                           'bg-gray-100'
                         }`}>
-                          <span className={`text-sm ${
+                          <span className={`text-xs ${
                             suggestion.type === 'calculation' ? 'text-blue-600' :
                             suggestion.type === 'currency' ? 'text-green-600' :
                             suggestion.type === 'schedule' ? 'text-purple-600' :
@@ -2963,37 +2965,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           </span>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                              suggestion.type === 'calculation' ? 'bg-blue-100 text-blue-700' :
-                              suggestion.type === 'currency' ? 'bg-green-100 text-green-700' :
-                              suggestion.type === 'schedule' ? 'bg-purple-100 text-purple-700' :
-                              suggestion.type === 'translation' ? 'bg-indigo-100 text-indigo-700' :
-                              suggestion.type === 'emotion' ? 'bg-pink-100 text-pink-700' :
-                              suggestion.type === 'food' ? 'bg-orange-100 text-orange-700' :
-                              suggestion.type === 'youtube' ? 'bg-red-100 text-red-700' :
-                              suggestion.type === 'news' ? 'bg-blue-100 text-blue-700' :
-                              suggestion.type === 'unit' ? 'bg-purple-100 text-purple-700' :
-                              suggestion.type === 'search' ? 'bg-yellow-100 text-yellow-700' :
-                              suggestion.type === 'birthday' ? 'bg-pink-100 text-pink-700' :
-                              suggestion.type === 'meeting' ? 'bg-green-100 text-green-700' :
-                              suggestion.type === 'address' ? 'bg-red-100 text-red-700' :
-                              suggestion.type === 'poll' ? 'bg-cyan-100 text-cyan-700' :
-                              suggestion.type === 'todo' ? 'bg-emerald-100 text-emerald-700' :
-                              suggestion.type === 'timer' ? 'bg-amber-100 text-amber-700' :
-                              suggestion.type === 'reminder' ? 'bg-violet-100 text-violet-700' :
-                              suggestion.type === 'quote' ? 'bg-rose-100 text-rose-700' :
-                              suggestion.type === 'question' ? 'bg-sky-100 text-sky-700' :
-                              suggestion.type === 'summary' ? 'bg-slate-100 text-slate-700' :
-                              suggestion.type === 'decision' ? 'bg-teal-100 text-teal-700' :
-                              suggestion.type === 'category' ? 'bg-lime-100 text-lime-700' :
-                              suggestion.type === 'topic_info' ? 'bg-indigo-100 text-indigo-700' :
-                              'bg-gray-100 text-gray-700'
-                            }`}>
-                              {suggestion.category || (suggestion.type === 'calculation' ? '계산 결과' : '환율 변환')}
-                            </span>
-                          </div>
-                          <div className="text-sm text-gray-700 break-all">
+                          <div className="text-xs text-gray-700 leading-snug">
                             {suggestion.text}
                           </div>
                         </div>
