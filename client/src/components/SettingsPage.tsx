@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
+import { ImageCropper } from "@/components/ImageCropper";
 import { Camera, User, LogOut, Building2 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 import VaultLogo from "./VaultLogo";
@@ -26,6 +27,8 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [businessName, setBusinessName] = useState("");
   const [businessAddress, setBusinessAddress] = useState("");
+  const [showImageCropper, setShowImageCropper] = useState(false);
+  const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
 
   // Profile update mutation
   const updateProfileMutation = useMutation({
@@ -55,10 +58,11 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
       setProfileImage(null);
       setPreviewUrl(null);
       
-      // 5. 페이지 강제 새로고침으로 브라우저 캐시 우회
+      // 5. 강제 UI 업데이트
       setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+        // 브라우저 캐시 완전 우회를 위한 강제 새로고침
+        window.location.href = window.location.href + '?t=' + Date.now();
+      }, 500);
       
       toast({
         title: "프로필 업데이트 완료",
@@ -145,10 +149,18 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setProfileImage(file);
       const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
+      setOriginalImageUrl(url);
+      setShowImageCropper(true);
     }
+  };
+
+  const handleCropComplete = (croppedFile: File) => {
+    setProfileImage(croppedFile);
+    const url = URL.createObjectURL(croppedFile);
+    setPreviewUrl(url);
+    setShowImageCropper(false);
+    console.log("Cropped image ready for upload:", croppedFile);
   };
 
   const handleSaveProfile = () => {
@@ -404,6 +416,14 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
           로그아웃
         </Button>
       </div>
+
+      {/* Image Cropper Modal */}
+      <ImageCropper
+        open={showImageCropper}
+        onClose={() => setShowImageCropper(false)}
+        imageSrc={originalImageUrl || ""}
+        onCropComplete={handleCropComplete}
+      />
     </div>
   );
 }
