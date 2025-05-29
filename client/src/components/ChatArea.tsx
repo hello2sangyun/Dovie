@@ -2795,7 +2795,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       )}
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-2 space-y-3 min-h-0 overscroll-behavior-y-contain">
+      <div className="flex-1 overflow-y-auto px-4 py-2 space-y-3 min-h-0 overscroll-behavior-y-contain max-h-[calc(100vh-200px)] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
         {/* Security Notice - WhatsApp Style */}
         <div className="flex justify-center mb-6 px-4">
           <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-xl px-4 py-3 max-w-sm mx-auto shadow-lg transform hover:scale-105 transition-all duration-200 backdrop-blur-sm">

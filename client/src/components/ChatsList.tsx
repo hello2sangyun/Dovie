@@ -196,7 +196,7 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto max-h-[calc(100vh-280px)] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
         {pinnedChats.length > 0 && (
           <>
             <div className="p-3 bg-gray-50">

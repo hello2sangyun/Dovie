@@ -123,7 +123,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
         </Select>
       </div>
 
-      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+      <div className="flex-1 overflow-y-auto max-h-[calc(100vh-320px)] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
         {filteredAndSortedContacts.length === 0 ? (
           <div className="p-4 text-center text-gray-500">
             {searchTerm ? "검색 결과가 없습니다" : "연락처가 없습니다"}

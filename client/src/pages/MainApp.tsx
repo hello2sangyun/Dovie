@@ -54,51 +54,53 @@ export default function MainApp() {
     enabled: !!user,
   });
 
-  // Preload all profile images when data is available
+  // Optimized profile image preloading with debounce and limits
   useEffect(() => {
-    const imagesToPreload: string[] = [];
+    if (!user) return;
     
-    // Add current user's profile image
-    if (user?.profilePicture) {
-      const userImageUrl = `${user.profilePicture}?v=${user.id}_${user.profilePicture.split('/').pop()}`;
-      imagesToPreload.push(userImageUrl);
-    }
+    const timeoutId = setTimeout(() => {
+      const imagesToPreload = new Set<string>();
+      
+      // Add current user's profile image
+      if (user?.profilePicture) {
+        imagesToPreload.add(`${user.profilePicture}?v=${user.id}`);
+      }
+      
+      // Add contact profile images (limit to first 8 for performance)
+      if (contactsData?.contacts) {
+        contactsData.contacts.slice(0, 8).forEach((contact: any) => {
+          if (contact.contactUser?.profilePicture) {
+            imagesToPreload.add(`${contact.contactUser.profilePicture}?v=${contact.contactUser.id}`);
+          }
+        });
+      }
+      
+      // Add chat room participants' profile images (limit to recent 5 rooms)
+      if (chatRoomsData?.chatRooms) {
+        chatRoomsData.chatRooms.slice(0, 5).forEach((room: any) => {
+          if (room.participants) {
+            room.participants.slice(0, 3).forEach((participant: any) => {
+              if (participant.profilePicture && participant.id !== user?.id) {
+                imagesToPreload.add(`${participant.profilePicture}?v=${participant.id}`);
+              }
+            });
+          }
+        });
+      }
+      
+      // Batch preload with rate limiting to prevent network congestion
+      if (imagesToPreload.size > 0) {
+        Array.from(imagesToPreload).forEach((imageUrl, index) => {
+          setTimeout(() => {
+            const img = new Image();
+            img.src = imageUrl;
+          }, index * 100); // Stagger requests by 100ms
+        });
+      }
+    }, 800); // Debounce by 800ms to avoid rapid re-execution
     
-    // Add contact profile images
-    if (contactsData?.contacts) {
-      contactsData.contacts.forEach((contact: any) => {
-        if (contact.contactUser?.profilePicture) {
-          const contactImageUrl = `${contact.contactUser.profilePicture}?v=${contact.contactUser.id}_${contact.contactUser.profilePicture.split('/').pop()}`;
-          imagesToPreload.push(contactImageUrl);
-        }
-      });
-    }
-    
-    // Add chat room participants' profile images
-    if (chatRoomsData?.chatRooms) {
-      chatRoomsData.chatRooms.forEach((room: any) => {
-        if (room.participants) {
-          room.participants.forEach((participant: any) => {
-            if (participant.profilePicture && participant.id !== user?.id) {
-              const participantImageUrl = `${participant.profilePicture}?v=${participant.id}_${participant.profilePicture.split('/').pop()}`;
-              imagesToPreload.push(participantImageUrl);
-            }
-          });
-        }
-      });
-    }
-    
-    // Remove duplicates and preload
-    const uniqueImages = Array.from(new Set(imagesToPreload));
-    if (uniqueImages.length > 0) {
-      // Simple preloading without external function
-      uniqueImages.forEach(imageUrl => {
-        const img = new Image();
-        img.src = imageUrl;
-      });
-      console.log(`Preloaded ${uniqueImages.length} profile images`);
-    }
-  }, [user, contactsData, chatRoomsData]);
+    return () => clearTimeout(timeoutId);
+  }, [user?.id, contactsData?.contacts?.length, chatRoomsData?.chatRooms?.length]);
 
   // 친구와의 채팅방 찾기 또는 생성
   const createOrFindChatRoom = (contactUserId: number, contactUser: any) => {
