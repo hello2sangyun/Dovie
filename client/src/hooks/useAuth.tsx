@@ -6,15 +6,54 @@ interface AuthContextType {
   user: User | null;
   setUser: (user: User | null) => void;
   isLoading: boolean;
+  locationPermissionGranted: boolean;
+  requestLocationPermission: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [locationPermissionGranted, setLocationPermissionGranted] = useState<boolean>(
+    localStorage.getItem("locationPermissionGranted") === "true"
+  );
 
   // Try to get user from localStorage on app start
   const storedUserId = localStorage.getItem("userId");
+
+  // Location permission request function
+  const requestLocationPermission = async (): Promise<boolean> => {
+    if (!navigator.geolocation) {
+      return false;
+    }
+
+    return new Promise((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          localStorage.setItem("locationPermissionGranted", "true");
+          localStorage.setItem("userLocation", JSON.stringify({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+            timestamp: Date.now()
+          }));
+          setLocationPermissionGranted(true);
+          resolve(true);
+        },
+        (error) => {
+          console.warn("위치 정보 접근 거부:", error);
+          localStorage.setItem("locationPermissionGranted", "false");
+          setLocationPermissionGranted(false);
+          resolve(false);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000
+        }
+      );
+    });
+  };
 
   const { data, isLoading } = useQuery({
     queryKey: ["/api/auth/me"],
