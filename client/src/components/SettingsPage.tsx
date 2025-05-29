@@ -182,6 +182,95 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
           </CardContent>
         </Card>
 
+        {/* Business User Registration */}
+        {user.userRole === "user" && (
+          <Card className="w-full">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                비즈니스 사용자 등록
+              </CardTitle>
+              <p className="text-xs text-gray-500">
+                매장 운영자라면 공식 채팅방을 생성하고 관리할 수 있습니다
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="space-y-1">
+                <Label htmlFor="businessName" className="text-sm">사업장명</Label>
+                <Input
+                  id="businessName"
+                  placeholder="예: 이태원 브런치카페"
+                  className="h-9"
+                />
+              </div>
+              
+              <div className="space-y-1">
+                <Label htmlFor="businessAddress" className="text-sm">사업장 주소</Label>
+                <Input
+                  id="businessAddress"
+                  placeholder="예: 서울시 용산구 이태원동 123-45"
+                  className="h-9"
+                />
+              </div>
+              
+              <Button
+                className="w-full h-9"
+                variant="outline"
+              >
+                비즈니스 사용자 신청
+              </Button>
+              
+              <p className="text-xs text-gray-400 text-center">
+                신청 후 검토를 거쳐 승인됩니다
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Business Status for Business Users */}
+        {user.userRole === "business" && (
+          <Card className="w-full">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                비즈니스 계정
+                {user.isBusinessVerified && (
+                  <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full">
+                    인증됨
+                  </span>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {user.businessName && (
+                <div>
+                  <p className="text-sm font-medium">{user.businessName}</p>
+                  {user.businessAddress && (
+                    <p className="text-xs text-gray-500">{user.businessAddress}</p>
+                  )}
+                </div>
+              )}
+              
+              <div className="flex gap-2">
+                <Button
+                  className="flex-1 h-9"
+                  variant="outline"
+                  size="sm"
+                >
+                  내 공식방 관리
+                </Button>
+                <Button
+                  className="flex-1 h-9"
+                  variant="outline" 
+                  size="sm"
+                >
+                  비즈니스 설정
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* App Info */}
         <Card className="w-full">
           <CardContent className="pt-4 pb-4">

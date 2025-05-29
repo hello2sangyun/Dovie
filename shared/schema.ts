@@ -20,6 +20,12 @@ export const users = pgTable("users", {
   notificationSound: text("notification_sound").default("default"),
   isEmailVerified: boolean("is_email_verified").default(false),
   isProfileComplete: boolean("is_profile_complete").default(false),
+  userRole: text("user_role").default("user"), // user, business, admin
+  businessName: text("business_name"),
+  businessAddress: text("business_address"),
+  businessLatitude: decimal("business_latitude", { precision: 10, scale: 8 }),
+  businessLongitude: decimal("business_longitude", { precision: 11, scale: 8 }),
+  isBusinessVerified: boolean("is_business_verified").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -128,6 +134,60 @@ export const pollVotes = pgTable("poll_votes", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Location-based chat rooms
+export const locationChatRooms = pgTable("location_chat_rooms", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  latitude: decimal("latitude", { precision: 10, scale: 8 }).notNull(),
+  longitude: decimal("longitude", { precision: 11, scale: 8 }).notNull(),
+  radius: integer("radius").default(50), // meters
+  address: text("address"),
+  isOfficial: boolean("is_official").default(false),
+  businessOwnerId: integer("business_owner_id").references(() => users.id),
+  autoDeleteAt: timestamp("auto_delete_at"),
+  isActive: boolean("is_active").default(true),
+  maxParticipants: integer("max_participants").default(100),
+  participantCount: integer("participant_count").default(0),
+  lastActivity: timestamp("last_activity").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const locationChatParticipants = pgTable("location_chat_participants", {
+  id: serial("id").primaryKey(),
+  locationChatRoomId: integer("location_chat_room_id").references(() => locationChatRooms.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  joinedAt: timestamp("joined_at").defaultNow(),
+  lastSeen: timestamp("last_seen").defaultNow(),
+  isMuted: boolean("is_muted").default(false),
+  isBlocked: boolean("is_blocked").default(false),
+}, (table) => ({
+  uniqueParticipant: unique().on(table.locationChatRoomId, table.userId),
+}));
+
+export const locationChatMessages = pgTable("location_chat_messages", {
+  id: serial("id").primaryKey(),
+  locationChatRoomId: integer("location_chat_room_id").references(() => locationChatRooms.id).notNull(),
+  senderId: integer("sender_id").references(() => users.id).notNull(),
+  content: text("content").notNull(),
+  messageType: text("message_type").default("text"), // text, image, voice, file
+  fileName: text("file_name"),
+  fileSize: integer("file_size"),
+  voiceDuration: integer("voice_duration"),
+  detectedLanguage: text("detected_language"),
+  confidence: text("confidence"),
+  isSystemMessage: boolean("is_system_message").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const userLocations = pgTable("user_locations", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  latitude: decimal("latitude", { precision: 10, scale: 8 }).notNull(),
+  longitude: decimal("longitude", { precision: 11, scale: 8 }).notNull(),
+  accuracy: decimal("accuracy", { precision: 8, scale: 2 }),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const usersRelations = relations(users, ({ many }) => ({
   contacts: many(contacts, { relationName: "userContacts" }),
   contactOf: many(contacts, { relationName: "contactUser" }),
@@ -135,6 +195,10 @@ export const usersRelations = relations(users, ({ many }) => ({
   chatParticipants: many(chatParticipants),
   sentMessages: many(messages),
   commands: many(commands),
+  ownedLocationChatRooms: many(locationChatRooms),
+  locationChatParticipants: many(locationChatParticipants),
+  locationChatMessages: many(locationChatMessages),
+  userLocation: many(userLocations),
 }));
 
 export const contactsRelations = relations(contacts, ({ one }) => ({
@@ -220,6 +284,45 @@ export const commandsRelations = relations(commands, ({ one }) => ({
   }),
 }));
 
+// Location chat relations
+export const locationChatRoomsRelations = relations(locationChatRooms, ({ one, many }) => ({
+  businessOwner: one(users, {
+    fields: [locationChatRooms.businessOwnerId],
+    references: [users.id],
+  }),
+  participants: many(locationChatParticipants),
+  messages: many(locationChatMessages),
+}));
+
+export const locationChatParticipantsRelations = relations(locationChatParticipants, ({ one }) => ({
+  locationChatRoom: one(locationChatRooms, {
+    fields: [locationChatParticipants.locationChatRoomId],
+    references: [locationChatRooms.id],
+  }),
+  user: one(users, {
+    fields: [locationChatParticipants.userId],
+    references: [users.id],
+  }),
+}));
+
+export const locationChatMessagesRelations = relations(locationChatMessages, ({ one }) => ({
+  locationChatRoom: one(locationChatRooms, {
+    fields: [locationChatMessages.locationChatRoomId],
+    references: [locationChatRooms.id],
+  }),
+  sender: one(users, {
+    fields: [locationChatMessages.senderId],
+    references: [users.id],
+  }),
+}));
+
+export const userLocationsRelations = relations(userLocations, ({ one }) => ({
+  user: one(users, {
+    fields: [userLocations.userId],
+    references: [users.id],
+  }),
+}));
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
@@ -258,6 +361,29 @@ export const insertPhoneVerificationSchema = createInsertSchema(phoneVerificatio
   createdAt: true,
 });
 
+export const insertLocationChatRoomSchema = createInsertSchema(locationChatRooms).omit({
+  id: true,
+  createdAt: true,
+  participantCount: true,
+  lastActivity: true,
+});
+
+export const insertLocationChatParticipantSchema = createInsertSchema(locationChatParticipants).omit({
+  id: true,
+  joinedAt: true,
+  lastSeen: true,
+});
+
+export const insertLocationChatMessageSchema = createInsertSchema(locationChatMessages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserLocationSchema = createInsertSchema(userLocations).omit({
+  id: true,
+  updatedAt: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Contact = typeof contacts.$inferSelect;
@@ -272,3 +398,12 @@ export type Command = typeof commands.$inferSelect;
 export type InsertCommand = z.infer<typeof insertCommandSchema>;
 export type PhoneVerification = typeof phoneVerifications.$inferSelect;
 export type InsertPhoneVerification = z.infer<typeof insertPhoneVerificationSchema>;
+
+export type LocationChatRoom = typeof locationChatRooms.$inferSelect;
+export type InsertLocationChatRoom = z.infer<typeof insertLocationChatRoomSchema>;
+export type LocationChatParticipant = typeof locationChatParticipants.$inferSelect;
+export type InsertLocationChatParticipant = z.infer<typeof insertLocationChatParticipantSchema>;
+export type LocationChatMessage = typeof locationChatMessages.$inferSelect;
+export type InsertLocationChatMessage = z.infer<typeof insertLocationChatMessageSchema>;
+export type UserLocation = typeof userLocations.$inferSelect;
+export type InsertUserLocation = z.infer<typeof insertUserLocationSchema>;
