@@ -839,6 +839,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Pass the file directly to transcribeAudio function
     const result = await transcribeAudio(req.file.path);
     
+    // 음성 파일을 uploads 폴더에 저장하고 URL 생성
+    const audioFileName = `voice_${Date.now()}.webm`;
+    const audioPath = path.join('uploads', audioFileName);
+    
+    // 음성 파일을 영구 저장
+    fs.copyFileSync(req.file.path, audioPath);
+    const audioUrl = `/uploads/${audioFileName}`;
+    
+    console.log("Audio file saved:", audioPath, "URL:", audioUrl);
+    
     // Clean up temporary file
     fs.unlinkSync(req.file.path);
 
@@ -848,7 +858,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         transcription: result.transcription,
         duration: result.duration,
         detectedLanguage: result.detectedLanguage,
-        confidence: result.confidence
+        confidence: result.confidence,
+        audioUrl: audioUrl
       });
     } else {
       res.status(500).json({

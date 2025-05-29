@@ -928,7 +928,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   }
 
   // 음성 메시지 재생/일시정지 함수
-  const handleVoicePlayback = async (messageId: number, voiceDuration?: number) => {
+  const handleVoicePlayback = async (messageId: number, audioUrl?: string, voiceDuration?: number) => {
     if (playingAudio === messageId) {
       // 현재 재생 중인 음성을 일시정지
       if (audioRef.current) {
@@ -942,40 +942,44 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           audioRef.current.pause();
         }
         
-        // 실제 음성 메시지를 가져와서 재생하기 위해 음성 파일을 생성
-        // 현재는 음성 파일 URL이 없으므로 간단한 음성 신호음으로 대체
-        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        // 음성 메시지를 나타내는 톤 생성
-        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-        oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.5);
-        oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 1);
-        
-        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + (voiceDuration || 3));
-        
-        setPlayingAudio(messageId);
-        
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + (voiceDuration || 3));
-        
-        // 재생 완료 후 상태 초기화
-        setTimeout(() => {
-          setPlayingAudio(null);
-        }, (voiceDuration || 3) * 1000);
-        
-        toast({
-          title: "음성 재생 중",
-          description: `${voiceDuration || 3}초 음성 메시지를 재생합니다.`,
-        });
+        // 실제 음성 파일이 있으면 재생
+        if (audioUrl) {
+          const audio = new Audio(audioUrl);
+          audioRef.current = audio;
+          
+          audio.onended = () => {
+            setPlayingAudio(null);
+          };
+          
+          audio.onerror = () => {
+            console.error("Audio file could not be loaded:", audioUrl);
+            setPlayingAudio(null);
+            toast({
+              variant: "destructive",
+              title: "재생 실패",
+              description: "음성 파일을 로드할 수 없습니다.",
+            });
+          };
+          
+          setPlayingAudio(messageId);
+          await audio.play();
+          
+          toast({
+            title: "음성 재생 중",
+            description: "녹음된 음성을 재생하고 있습니다.",
+          });
+        } else {
+          // 음성 파일 URL이 없는 경우 알림
+          toast({
+            variant: "destructive",
+            title: "재생 불가",
+            description: "음성 파일을 찾을 수 없습니다.",
+          });
+        }
         
       } catch (error) {
         console.error("Audio playback error:", error);
+        setPlayingAudio(null);
         toast({
           variant: "destructive",
           title: "재생 실패",
@@ -1566,7 +1570,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                         <div>
                           <div className="flex items-center space-x-3">
                             <button
-                              onClick={() => handleVoicePlayback(msg.id, msg.voiceDuration)}
+                              onClick={() => handleVoicePlayback(msg.id, msg.fileUrl, msg.voiceDuration)}
                               className={cn(
                                 "w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105",
                                 isMe ? "bg-white/20 hover:bg-white/30" : "bg-gray-100 hover:bg-gray-200"
