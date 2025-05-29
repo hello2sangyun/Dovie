@@ -1238,7 +1238,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     <div 
       ref={chatAreaRef}
       data-chat-area="true"
-      className={`h-full flex flex-col bg-gray-50 relative ${isDragOver ? 'bg-purple-50' : ''}`}
+      className={`h-full flex flex-col bg-gray-50 relative mb-0 pb-0 ${isDragOver ? 'bg-purple-50' : ''}`}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
@@ -1874,7 +1874,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       </div>
 
       {/* Chat Input - Fixed position */}
-      <div className="bg-white border-t border-gray-200 flex-shrink-0 sticky bottom-0 z-10">
+      <div className="bg-white border-t border-gray-200 flex-shrink-0 sticky bottom-0 z-10 pb-0">
         {/* Reply Preview */}
         {replyToMessage && (
           <div className="px-2 py-1 border-b border-gray-200 bg-gray-50">
@@ -1902,7 +1902,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           </div>
         )}
         
-        <div className="px-2 py-1 chat-input-area">
+        <div className="px-2 pb-0 pt-1 chat-input-area">
           <div className="flex items-center space-x-1">
           {/* Compact left buttons group */}
           <div className="flex items-center space-x-0.5 mr-1">

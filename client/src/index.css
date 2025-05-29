@@ -205,4 +205,30 @@
   .touch-manipulation {
     touch-action: manipulation;
   }
+  
+  /* Remove bottom spacing on mobile */
+  html, body, #root {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile */
+    overflow: hidden;
+  }
+  
+  /* Ensure chat input area has no bottom padding */
+  .chat-input-area {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+  }
+  
+  /* Remove bottom gap from sticky elements */
+  .sticky {
+    margin-bottom: 0 !important;
+  }
+  
+  /* Fix mobile viewport bottom spacing */
+  .fixed.bottom-0 {
+    bottom: 0 !important;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
 }
