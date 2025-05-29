@@ -470,6 +470,110 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
   };
 
+  // 전체 채팅방 번역 함수
+  const handleChatTranslation = async (targetLanguage: string) => {
+    if (!messages?.data?.messages) return;
+    
+    try {
+      setIsTranslating(true);
+      
+      // 번역할 메시지들 수집 (텍스트 메시지만, 최근 20개)
+      const textMessages = messages.data.messages
+        .filter((msg: any) => msg.messageType === 'text' && msg.content.trim())
+        .slice(-20);
+      
+      if (textMessages.length === 0) {
+        toast({
+          title: "번역할 메시지가 없습니다",
+          description: "텍스트 메시지가 없어 번역할 수 없습니다.",
+        });
+        return;
+      }
+
+      const languageMap: {[key: string]: string} = {
+        'korean': 'Korean',
+        'english': 'English', 
+        'japanese': 'Japanese',
+        'chinese': 'Chinese',
+        'spanish': 'Spanish',
+        'french': 'French',
+        'german': 'German',
+        'russian': 'Russian'
+      };
+      
+      const targetLangName = languageMap[targetLanguage] || 'English';
+      
+      // 각 메시지를 개별적으로 번역
+      const translationPromises = textMessages.map(async (msg: any) => {
+        try {
+          const response = await fetch("/api/translate", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-user-id": user?.id?.toString() || ""
+            },
+            body: JSON.stringify({
+              text: msg.content,
+              targetLanguage: targetLangName
+            })
+          });
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            return {
+              messageId: msg.id,
+              translatedText: result.translatedText,
+              language: targetLangName
+            };
+          }
+        } catch (error) {
+          console.error('Translation error for message:', msg.id, error);
+        }
+        
+        return null;
+      });
+      
+      const results = await Promise.all(translationPromises);
+      const successfulTranslations = results.filter(result => result !== null);
+      
+      if (successfulTranslations.length > 0) {
+        // 번역 결과를 기존 번역 상태에 저장
+        const newTranslations: {[key: number]: {text: string, language: string}} = {};
+        successfulTranslations.forEach(translation => {
+          if (translation) {
+            newTranslations[translation.messageId] = {
+              text: translation.translatedText,
+              language: translation.language
+            };
+          }
+        });
+        
+        setTranslatedMessages(prev => ({ ...prev, ...newTranslations }));
+        
+        toast({
+          title: "번역 완료",
+          description: `${successfulTranslations.length}개 메시지가 번역되었습니다.`,
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "번역 실패",
+          description: "메시지를 번역할 수 없습니다.",
+        });
+      }
+      
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "번역 오류",
+        description: "번역 중 오류가 발생했습니다.",
+      });
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
   // 계산기 처리 함수
   const handleCalculatorCommand = async (expression: string) => {
     try {
