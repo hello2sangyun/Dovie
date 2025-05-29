@@ -36,12 +36,18 @@ interface UserLocation {
   accuracy: number;
 }
 
-export default function NearbyChats() {
+interface NearbyChatsProps {
+  onChatRoomSelect: (chatRoomId: number) => void;
+}
+
+export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
-  const [locationPermission, setLocationPermission] = useState<"granted" | "denied" | "prompt">("prompt");
+  const [locationPermission, setLocationPermission] = useState<"granted" | "denied" | "prompt">(() => {
+    return localStorage.getItem("locationPermission") as "granted" | "denied" | "prompt" || "prompt";
+  });
   const [showCreateRoom, setShowCreateRoom] = useState(false);
   const [newRoomName, setNewRoomName] = useState("");
 
@@ -84,6 +90,7 @@ export default function NearbyChats() {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setLocationPermission("granted");
+        localStorage.setItem("locationPermission", "granted");
         const location = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
@@ -94,6 +101,7 @@ export default function NearbyChats() {
       },
       () => {
         setLocationPermission("denied");
+        localStorage.setItem("locationPermission", "denied");
         toast({
           variant: "destructive",
           title: "위치 권한 거부",
@@ -167,12 +175,14 @@ export default function NearbyChats() {
       const response = await apiRequest(`/api/location/chat-rooms/${roomId}/join`, "POST");
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (_, roomId) => {
       queryClient.invalidateQueries({ queryKey: ["/api/location/nearby-chats"] });
       toast({
         title: "채팅방 입장",
         description: "채팅방에 입장했습니다.",
       });
+      // 채팅방으로 이동
+      onChatRoomSelect(roomId);
     },
     onError: () => {
       toast({

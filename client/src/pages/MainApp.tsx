@@ -223,7 +223,7 @@ export default function MainApp() {
               </TabsContent>
               
               <TabsContent value="nearby" className="h-full m-0">
-                <NearbyChats />
+                <NearbyChats onChatRoomSelect={handleChatRoomSelect} />
               </TabsContent>
               
               <TabsContent value="archive" className="h-full m-0">
