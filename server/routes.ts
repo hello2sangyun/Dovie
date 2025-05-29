@@ -1012,11 +1012,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Pass the file directly to transcribeAudio function
     const result = await transcribeAudio(req.file.path);
     
-    // 음성 파일을 uploads 폴더에 저장하고 URL 생성
+    // 음성 파일을 uploads 폴더에 저장하고 URL 생성 (암호화하지 않음)
     const audioFileName = `voice_${Date.now()}.webm`;
-    const audioPath = path.join('uploads', audioFileName);
+    const audioPath = path.join(uploadDir, audioFileName);
     
-    // 음성 파일을 영구 저장
+    // 음성 파일을 영구 저장 (원본 그대로 저장)
     fs.copyFileSync(req.file.path, audioPath);
     const audioUrl = `/uploads/${audioFileName}`;
     
@@ -1084,32 +1084,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "File not found" });
       }
 
-      const encryptedData = await fs.promises.readFile(filePath, 'utf8');
+      // 파일 확장자로 MIME 타입 결정
+      const ext = path.extname(filename).toLowerCase();
+      let contentType = 'application/octet-stream';
       
+      if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
+      else if (ext === '.png') contentType = 'image/png';
+      else if (ext === '.gif') contentType = 'image/gif';
+      else if (ext === '.webp') contentType = 'image/webp';
+      else if (ext === '.mp3') contentType = 'audio/mpeg';
+      else if (ext === '.wav') contentType = 'audio/wav';
+      else if (ext === '.webm') contentType = 'audio/webm';
+      else if (ext === '.mp4') contentType = 'video/mp4';
+      else if (ext === '.pdf') contentType = 'application/pdf';
+      else if (ext === '.txt') contentType = 'text/plain';
+
+      // 음성 파일인 경우 원본 그대로 서빙
+      if (filename.startsWith('voice_')) {
+        const rawData = await fs.promises.readFile(filePath);
+        res.set('Content-Type', contentType);
+        res.set('Cache-Control', 'public, max-age=31536000');
+        res.send(rawData);
+        return;
+      }
+
+      // 일반 파일의 경우 복호화 시도
       try {
+        const encryptedData = await fs.promises.readFile(filePath, 'utf8');
         const decryptedBuffer = decryptFileData(encryptedData);
         
-        // 파일 확장자로 MIME 타입 결정
-        const ext = path.extname(filename).toLowerCase();
-        let contentType = 'application/octet-stream';
-        
-        if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
-        else if (ext === '.png') contentType = 'image/png';
-        else if (ext === '.gif') contentType = 'image/gif';
-        else if (ext === '.webp') contentType = 'image/webp';
-        else if (ext === '.mp3') contentType = 'audio/mpeg';
-        else if (ext === '.wav') contentType = 'audio/wav';
-        else if (ext === '.webm') contentType = 'audio/webm';
-        else if (ext === '.mp4') contentType = 'video/mp4';
-        else if (ext === '.pdf') contentType = 'application/pdf';
-        else if (ext === '.txt') contentType = 'text/plain';
-
         res.set('Content-Type', contentType);
         res.set('Cache-Control', 'public, max-age=31536000');
         res.send(decryptedBuffer);
       } catch (decryptError) {
         // 복호화 실패 시 원본 파일 그대로 서빙 (암호화되지 않은 파일일 수 있음)
         const rawData = await fs.promises.readFile(filePath);
+        res.set('Content-Type', contentType);
+        res.set('Cache-Control', 'public, max-age=31536000');
         res.send(rawData);
       }
     } catch (error) {

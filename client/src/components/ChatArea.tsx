@@ -1607,9 +1607,35 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                                 className={cn(
                                   isMe ? "text-white hover:bg-white/10" : "text-purple-600 hover:text-purple-700"
                                 )}
-                                onClick={() => {
-                                  const audio = new Audio(msg.fileUrl);
-                                  audio.play();
+                                onClick={async () => {
+                                  try {
+                                    const audio = new Audio(msg.fileUrl);
+                                    audio.addEventListener('error', (e) => {
+                                      console.error('Audio playback error:', e);
+                                      toast({
+                                        variant: "destructive",
+                                        title: "재생 오류",
+                                        description: "음성 파일을 재생할 수 없습니다.",
+                                      });
+                                    });
+                                    
+                                    audio.addEventListener('loadstart', () => {
+                                      console.log('Audio loading started');
+                                    });
+                                    
+                                    audio.addEventListener('canplay', () => {
+                                      console.log('Audio can start playing');
+                                    });
+                                    
+                                    await audio.play();
+                                  } catch (error) {
+                                    console.error('Audio play error:', error);
+                                    toast({
+                                      variant: "destructive",
+                                      title: "재생 실패",
+                                      description: "음성 메시지를 재생할 수 없습니다.",
+                                    });
+                                  }
                                 }}
                               >
                                 ▶️
@@ -1922,7 +1948,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               variant="ghost"
               size="sm"
               className="text-gray-400 hover:text-purple-600 p-1 min-w-0 h-7 w-7"
-              onClick={insertHashtag}
+              onClick={() => onCreateCommand()}
               title="해시태그"
             >
               <Hash className="h-4 w-4" />
