@@ -712,7 +712,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // File upload route with encryption
+  // Voice file upload route (unencrypted for direct browser playback)
+  app.post("/api/upload-voice", upload.single("file"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      // 음성 파일은 암호화하지 않고 원본 형태로 저장
+      const timestamp = Date.now();
+      const randomString = Math.random().toString(36).substring(2, 15);
+      const fileName = `voice_${timestamp}_${randomString}.webm`;
+      const finalPath = path.join(uploadDir, fileName);
+      
+      // 파일을 최종 위치로 이동
+      fs.renameSync(req.file.path, finalPath);
+
+      const fileUrl = `/uploads/${fileName}`;
+      res.json({
+        fileUrl,
+        fileName: req.file.originalname,
+        fileSize: req.file.size,
+      });
+    } catch (error) {
+      console.error("Voice file upload error:", error);
+      res.status(500).json({ message: "Voice file upload failed" });
+    }
+  });
+
+  // File upload route with encryption (for non-voice files)
   app.post("/api/upload", upload.single("file"), async (req, res) => {
     try {
       if (!req.file) {

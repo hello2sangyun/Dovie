@@ -314,16 +314,42 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const transcribeVoiceMutation = useMutation({
     mutationFn: async (audioBlob: Blob) => {
       const formData = new FormData();
-      formData.append('audio', audioBlob, 'voice_message.webm');
+      formData.append('file', audioBlob, 'voice_message.webm');
       
-      const response = await fetch("/api/transcribe", {
+      // 먼저 음성 파일을 암호화되지 않은 형태로 업로드
+      const uploadResponse = await fetch("/api/upload-voice", {
         method: "POST",
         headers: {
           "x-user-id": user?.id?.toString() || ""
         },
         body: formData
       });
-      return response.json();
+      
+      if (!uploadResponse.ok) {
+        throw new Error('Voice upload failed');
+      }
+      
+      const uploadResult = await uploadResponse.json();
+      
+      // 그 다음 음성 변환 요청
+      const transcribeFormData = new FormData();
+      transcribeFormData.append('audio', audioBlob, 'voice_message.webm');
+      
+      const response = await fetch("/api/transcribe", {
+        method: "POST",
+        headers: {
+          "x-user-id": user?.id?.toString() || ""
+        },
+        body: transcribeFormData
+      });
+      
+      const transcribeResult = await response.json();
+      
+      // 업로드된 파일 URL을 결과에 추가
+      return {
+        ...transcribeResult,
+        audioUrl: uploadResult.fileUrl
+      };
     },
     onSuccess: (result) => {
       if (result.success && result.transcription) {
