@@ -219,6 +219,29 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
     },
   });
 
+  // Leave location chat room mutation
+  const leaveLocationChatRoomMutation = useMutation({
+    mutationFn: async (roomId: number) => {
+      const response = await apiRequest(`/api/location/chat-rooms/${roomId}/leave`, "POST");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/location/nearby-chats"] });
+      setExitCountdown(null);
+      toast({
+        title: "채팅방 퇴장",
+        description: "위치를 벗어나 채팅방에서 자동으로 나갔습니다.",
+      });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "퇴장 실패",
+        description: "채팅방 퇴장에 실패했습니다.",
+      });
+    },
+  });
+
   // Get nearby chat rooms
   const { data: nearbyChatRooms, isLoading } = useQuery({
     queryKey: ["/api/location/nearby-chats", userLocation],
@@ -397,12 +420,66 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
 
   return (
     <div className="h-full flex flex-col">
+      {/* 자동 퇴장 카운트다운 알림 */}
+      {exitCountdown && (
+        <div className="p-4 bg-orange-50 dark:bg-orange-900/20 border-l-4 border-orange-500">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <Clock className="h-5 w-5 text-orange-500 mr-2" />
+              <div>
+                <p className="text-sm font-medium text-orange-800 dark:text-orange-200">
+                  주변챗 자동 퇴장 예정
+                </p>
+                <p className="text-sm text-orange-700 dark:text-orange-300">
+                  위치를 벗어나 {exitCountdown.seconds}초 후 자동으로 채팅방을 나갑니다
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setExitCountdown(null)}
+              className="text-orange-600 border-orange-300 hover:bg-orange-100"
+            >
+              취소
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* NEW 알림 */}
+      {hasNewChats && (
+        <div className="p-3 bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-500">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-2 h-2 bg-purple-500 rounded-full mr-2 animate-pulse"></div>
+              <p className="text-sm font-medium text-purple-800 dark:text-purple-200">
+                새로운 주변 채팅방이 발견되었습니다!
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setHasNewChats(false)}
+              className="text-purple-600 hover:bg-purple-100"
+            >
+              확인
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <MapPin className="h-5 w-5 text-purple-600" />
             <h2 className="text-lg font-semibold">주변챗</h2>
+            {hasNewChats && (
+              <Badge className="bg-red-500 text-white text-xs px-1.5 py-0.5 animate-pulse">
+                NEW
+              </Badge>
+            )}
           </div>
           
           <Dialog open={showCreateRoom} onOpenChange={setShowCreateRoom}>

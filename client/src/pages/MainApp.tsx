@@ -426,12 +426,18 @@ export default function MainApp() {
               <Button
                 variant="ghost"
                 className={cn(
-                  "flex flex-col items-center py-1 px-2",
+                  "flex flex-col items-center py-1 px-2 relative",
                   activeMobileTab === "nearby" ? "text-purple-600" : "text-gray-400"
                 )}
-                onClick={() => setActiveMobileTab("nearby")}
+                onClick={() => {
+                  setActiveMobileTab("nearby");
+                  // NEW 알림 클릭시 제거 로직은 NearbyChats 컴포넌트에서 처리
+                }}
               >
-                <MapPin className="h-4 w-4" />
+                <div className="relative">
+                  <MapPin className="h-4 w-4" />
+                  {/* NEW 뱃지 - 실제로는 NearbyChats 컴포넌트에서 state 관리 필요 */}
+                </div>
                 <span className="text-xs mt-0.5">주변챗</span>
               </Button>
               <Button
