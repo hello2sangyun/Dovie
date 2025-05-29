@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -67,12 +67,11 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
       return response.json();
     },
     onSuccess: (uploadData) => {
+      console.log("Image uploaded successfully:", uploadData);
       updateProfileMutation.mutate({
         displayName,
         profilePicture: uploadData.fileUrl
       });
-      setProfileImage(null);
-      setPreviewUrl(null);
     },
   });
 
@@ -117,6 +116,15 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
       updateProfileMutation.mutate({ displayName });
     }
   };
+
+  // Update local states when user data changes
+  useEffect(() => {
+    if (user) {
+      setDisplayName(user.displayName || "");
+      setPreviewUrl(null);
+      setProfileImage(null);
+    }
+  }, [user]);
 
   const handleBusinessRegistration = () => {
     if (!businessName.trim() || !businessAddress.trim()) {

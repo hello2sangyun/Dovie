@@ -311,8 +311,8 @@ function ChatRoomItem({
       <div className="flex items-center space-x-3">
         {chatRoom.isGroup ? (
           <div className="relative w-12 h-12 flex items-center justify-center">
-            {chatRoom.participants.slice(0, Math.min(5, chatRoom.participants.length)).map((participant: any, index: number) => {
-              const totalAvatars = Math.min(5, chatRoom.participants.length);
+            {chatRoom.participants.slice(0, Math.min(4, chatRoom.participants.length)).map((participant: any, index: number) => {
+              const totalAvatars = Math.min(4, chatRoom.participants.length);
               const isStackLayout = totalAvatars <= 3;
               
               if (isStackLayout) {
