@@ -1074,7 +1074,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // File decryption route for profile pictures and other encrypted files
+  app.get("/uploads/:filename", async (req, res) => {
+    try {
+      const { filename } = req.params;
+      const filePath = path.join(uploadDir, filename);
 
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ message: "File not found" });
+      }
+
+      // 파일 확장자로 MIME 타입 결정
+      const ext = path.extname(filename).toLowerCase();
+      let contentType = 'application/octet-stream';
+      
+      if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
+      else if (ext === '.png') contentType = 'image/png';
+      else if (ext === '.gif') contentType = 'image/gif';
+      else if (ext === '.webp') contentType = 'image/webp';
+      else if (ext === '.mp3') contentType = 'audio/mpeg';
+      else if (ext === '.wav') contentType = 'audio/wav';
+      else if (ext === '.webm') contentType = 'audio/webm';
+      else if (ext === '.mp4') contentType = 'video/mp4';
+      else if (ext === '.pdf') contentType = 'application/pdf';
+      else if (ext === '.txt') contentType = 'text/plain';
+
+      // 음성 파일인 경우 원본 그대로 서빙 (암호화하지 않음)
+      if (filename.startsWith('voice_')) {
+        const rawData = await fs.promises.readFile(filePath);
+        res.set('Content-Type', contentType);
+        res.set('Cache-Control', 'public, max-age=31536000');
+        res.send(rawData);
+        return;
+      }
+
+      // 일반 파일의 경우 복호화 시도
+      try {
+        const encryptedData = await fs.promises.readFile(filePath, 'utf8');
+        const decryptedBuffer = decryptFileData(encryptedData);
+        
+        res.set('Content-Type', contentType);
+        res.set('Cache-Control', 'public, max-age=31536000');
+        res.send(decryptedBuffer);
+      } catch (decryptError) {
+        console.log('Decryption failed, serving raw file:', filename);
+        // 복호화 실패 시 원본 파일 그대로 서빙
+        const rawData = await fs.promises.readFile(filePath);
+        res.set('Content-Type', contentType);
+        res.set('Cache-Control', 'public, max-age=31536000');
+        res.send(rawData);
+      }
+    } catch (error) {
+      console.error("File serving error:", error);
+      res.status(500).json({ message: "File serving failed" });
+    }
+  });
 
   // Get user by ID for QR scanning
   app.get("/api/users/:id", async (req, res) => {

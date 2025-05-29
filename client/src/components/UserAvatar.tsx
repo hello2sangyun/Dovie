@@ -40,9 +40,9 @@ export function UserAvatar({
 
   const avatarColor = getAvatarColor(user.displayName);
   
-  // 프로필 이미지 URL 생성 (깜빡임 방지를 위해 고정된 캐시 버스터 사용)
+  // 프로필 이미지 URL 생성 (캐시 버스팅을 위해 고정된 버전 사용)
   const profileImageUrl = user.profilePicture ? 
-    `${user.profilePicture}?v=1` : null;
+    `${user.profilePicture}?v=${user.id}_${user.profilePicture.split('/').pop()}` : null;
 
   console.log("UserAvatar rendering for user:", user.id, "displayName:", user.displayName, "profilePicture:", user.profilePicture, "finalUrl:", profileImageUrl);
 
