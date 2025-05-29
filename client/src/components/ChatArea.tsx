@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -1490,15 +1491,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     e.currentTarget.addEventListener('touchmove', handleTouchEnd, { once: true });
                   }}
                 >
-                  <Avatar className="w-8 h-8">
-                    <AvatarImage 
-                      src={isMe ? (user?.profilePicture || undefined) : (msg.sender.profilePicture || undefined)} 
-                      alt={isMe ? (user?.displayName || "Me") : msg.sender.displayName} 
-                    />
-                    <AvatarFallback className={`bg-gradient-to-br ${getAvatarColor(isMe ? (user?.displayName || "Me") : msg.sender.displayName)} text-white text-sm font-semibold`}>
-                      {getInitials(isMe ? (user?.displayName || "Me") : msg.sender.displayName)}
-                    </AvatarFallback>
-                  </Avatar>
+                  <UserAvatar 
+                    user={isMe ? user : msg.sender} 
+                    size="md" 
+                    fallbackClassName={`bg-gradient-to-br ${getAvatarColor(isMe ? (user?.displayName || "Me") : msg.sender.displayName)}`}
+                  />
                   
                   <div className={cn(
                     "flex flex-col",
@@ -1848,15 +1845,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           {/* 업로드 중인 파일들을 로딩 메시지로 표시 */}
           {uploadingFiles.map((uploadingFile) => (
             <div key={uploadingFile.id} className="flex items-start space-x-3 flex-row-reverse space-x-reverse mb-4">
-              <Avatar className="w-8 h-8">
-                <AvatarImage 
-                  src={user?.profilePicture || undefined} 
-                  alt={user?.displayName || "Me"} 
-                />
-                <AvatarFallback className="purple-gradient text-white text-sm font-semibold">
-                  {getInitials(user?.displayName || "Me")}
-                </AvatarFallback>
-              </Avatar>
+              <UserAvatar 
+                user={user || undefined} 
+                size="md" 
+                fallbackClassName="purple-gradient"
+              />
               
               <div className="flex flex-col items-end max-w-xs lg:max-w-md">
                 <div className="bg-purple-600 text-white p-3 rounded-lg shadow-sm">

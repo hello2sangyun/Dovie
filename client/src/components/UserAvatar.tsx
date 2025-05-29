@@ -9,7 +9,7 @@ interface UserAvatarProps {
     id: number;
     displayName: string;
     profilePicture?: string | null;
-  };
+  } | null;
   size?: "sm" | "md" | "lg" | "xl";
   className?: string;
   fallbackClassName?: string;
