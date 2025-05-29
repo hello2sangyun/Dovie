@@ -14,6 +14,7 @@ import CommandModal from "@/components/CommandModal";
 import CreateGroupChatModal from "@/components/CreateGroupChatModal";
 
 import SettingsPage from "@/components/SettingsPage";
+import NearbyChats from "@/components/NearbyChats";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, MapPin } from "lucide-react";
@@ -221,6 +222,10 @@ export default function MainApp() {
                 />
               </TabsContent>
               
+              <TabsContent value="nearby" className="h-full m-0">
+                <NearbyChats />
+              </TabsContent>
+              
               <TabsContent value="archive" className="h-full m-0">
                 <ArchiveList />
               </TabsContent>
@@ -301,6 +306,9 @@ export default function MainApp() {
               selectedChatId={selectedChatRoom}
             />
           )}
+          {activeMobileTab === "nearby" && (
+            <NearbyChats />
+          )}
           {showMobileChat && selectedChatRoom && (
             <div className="h-full flex flex-col overflow-hidden">
               <div className="flex-1 min-h-0">
@@ -344,6 +352,17 @@ export default function MainApp() {
               >
                 <MessageCircle className="h-4 w-4" />
                 <span className="text-xs mt-0.5">채팅방</span>
+              </Button>
+              <Button
+                variant="ghost"
+                className={cn(
+                  "flex flex-col items-center py-1 px-2",
+                  activeMobileTab === "nearby" ? "text-purple-600" : "text-gray-400"
+                )}
+                onClick={() => setActiveMobileTab("nearby")}
+              >
+                <MapPin className="h-4 w-4" />
+                <span className="text-xs mt-0.5">주변챗</span>
               </Button>
               <Button
                 variant="ghost"

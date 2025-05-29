@@ -54,6 +54,12 @@ export interface IStorage {
 
   // Business user operations
   registerBusinessUser(userId: number, businessData: { businessName: string; businessAddress: string }): Promise<User | undefined>;
+
+  // Location-based chat operations
+  updateUserLocation(userId: number, location: { latitude: number; longitude: number; accuracy: number }): Promise<void>;
+  getNearbyLocationChatRooms(latitude: number, longitude: number, radius?: number): Promise<LocationChatRoom[]>;
+  createLocationChatRoom(userId: number, roomData: { name: string; latitude: number; longitude: number; address: string }): Promise<LocationChatRoom>;
+  joinLocationChatRoom(userId: number, roomId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -517,6 +523,102 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     return updatedUser || undefined;
+  }
+
+  async updateUserLocation(userId: number, location: { latitude: number; longitude: number; accuracy: number }): Promise<void> {
+    await db
+      .insert(userLocations)
+      .values({
+        userId,
+        latitude: location.latitude.toString(),
+        longitude: location.longitude.toString(),
+        accuracy: location.accuracy.toString()
+      })
+      .onConflictDoUpdate({
+        target: userLocations.userId,
+        set: {
+          latitude: location.latitude.toString(),
+          longitude: location.longitude.toString(),
+          accuracy: location.accuracy.toString(),
+          updatedAt: new Date()
+        }
+      });
+  }
+
+  async getNearbyLocationChatRooms(latitude: number, longitude: number, radius: number = 100): Promise<any[]> {
+    const result = await db
+      .select({
+        id: locationChatRooms.id,
+        name: locationChatRooms.name,
+        latitude: locationChatRooms.latitude,
+        longitude: locationChatRooms.longitude,
+        radius: locationChatRooms.radius,
+        address: locationChatRooms.address,
+        isOfficial: locationChatRooms.isOfficial,
+        participantCount: locationChatRooms.participantCount,
+        maxParticipants: locationChatRooms.maxParticipants,
+        lastActivity: locationChatRooms.lastActivity
+      })
+      .from(locationChatRooms)
+      .where(eq(locationChatRooms.isActive, true));
+    
+    return result;
+  }
+
+  async createLocationChatRoom(userId: number, roomData: { name: string; latitude: number; longitude: number; address: string }): Promise<any> {
+    const autoDeleteAt = new Date();
+    autoDeleteAt.setHours(autoDeleteAt.getHours() + 12); // Auto delete after 12 hours
+
+    const [newRoom] = await db
+      .insert(locationChatRooms)
+      .values({
+        name: roomData.name,
+        latitude: roomData.latitude.toString(),
+        longitude: roomData.longitude.toString(),
+        address: roomData.address,
+        autoDeleteAt,
+        participantCount: 1
+      })
+      .returning();
+
+    // Auto-join the creator
+    await db
+      .insert(locationChatParticipants)
+      .values({
+        locationChatRoomId: newRoom.id,
+        userId
+      });
+
+    return newRoom;
+  }
+
+  async joinLocationChatRoom(userId: number, roomId: number): Promise<void> {
+    // Check if already joined
+    const existing = await db
+      .select()
+      .from(locationChatParticipants)
+      .where(and(
+        eq(locationChatParticipants.locationChatRoomId, roomId),
+        eq(locationChatParticipants.userId, userId)
+      ));
+
+    if (existing.length === 0) {
+      await db
+        .insert(locationChatParticipants)
+        .values({
+          locationChatRoomId: roomId,
+          userId
+        });
+
+      // Update participant count
+      await db
+        .update(locationChatRooms)
+        .set({
+          participantCount: sql`${locationChatRooms.participantCount} + 1`,
+          lastActivity: new Date()
+        })
+        .where(eq(locationChatRooms.id, roomId));
+    }
   }
 }
 
