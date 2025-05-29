@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useImagePreloader } from "@/hooks/useImagePreloader";
 import VaultLogo from "@/components/VaultLogo";
 import ContactsList from "@/components/ContactsList";
 import ChatsList from "@/components/ChatsList";
@@ -37,6 +38,7 @@ export default function MainApp() {
   const [commandModalData, setCommandModalData] = useState<any>(null);
   const [messageDataForCommand, setMessageDataForCommand] = useState<any>(null);
   const [contactFilter, setContactFilter] = useState<number | null>(null);
+  const { preloadImages } = useImagePreloader();
 
   useWebSocket(user?.id);
 
@@ -51,6 +53,49 @@ export default function MainApp() {
     queryKey: ["/api/chat-rooms"],
     enabled: !!user,
   });
+
+  // Preload all profile images when data is available
+  useEffect(() => {
+    const imagesToPreload: string[] = [];
+    
+    // Add current user's profile image
+    if (user?.profilePicture) {
+      const userImageUrl = `${user.profilePicture}?v=${user.id}_${user.profilePicture.split('/').pop()}`;
+      imagesToPreload.push(userImageUrl);
+    }
+    
+    // Add contact profile images
+    if (contactsData?.contacts) {
+      contactsData.contacts.forEach((contact: any) => {
+        if (contact.contactUser?.profilePicture) {
+          const contactImageUrl = `${contact.contactUser.profilePicture}?v=${contact.contactUser.id}_${contact.contactUser.profilePicture.split('/').pop()}`;
+          imagesToPreload.push(contactImageUrl);
+        }
+      });
+    }
+    
+    // Add chat room participants' profile images
+    if (chatRoomsData?.chatRooms) {
+      chatRoomsData.chatRooms.forEach((room: any) => {
+        if (room.participants) {
+          room.participants.forEach((participant: any) => {
+            if (participant.profilePicture && participant.id !== user?.id) {
+              const participantImageUrl = `${participant.profilePicture}?v=${participant.id}_${participant.profilePicture.split('/').pop()}`;
+              imagesToPreload.push(participantImageUrl);
+            }
+          });
+        }
+      });
+    }
+    
+    // Remove duplicates and preload
+    const uniqueImages = [...new Set(imagesToPreload)];
+    if (uniqueImages.length > 0) {
+      preloadImages(uniqueImages).then(() => {
+        console.log(`Preloaded ${uniqueImages.length} profile images`);
+      });
+    }
+  }, [user, contactsData, chatRoomsData, preloadImages]);
 
   // 친구와의 채팅방 찾기 또는 생성
   const createOrFindChatRoom = (contactUserId: number, contactUser: any) => {

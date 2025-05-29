@@ -2,6 +2,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { getInitials, getAvatarColor } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { usePreloadedImage } from "@/hooks/useImagePreloader";
+import { useState } from "react";
 
 interface UserAvatarProps {
   userId?: number;
@@ -32,6 +34,7 @@ export function UserAvatar({
   showOnlineStatus = false 
 }: UserAvatarProps) {
   const { user: currentUser } = useAuth();
+  const [imageError, setImageError] = useState(false);
   
   // 현재 사용자인 경우 Auth 컨텍스트에서 최신 정보 사용
   const user = providedUser || (userId === currentUser?.id ? currentUser : null);
@@ -41,38 +44,49 @@ export function UserAvatar({
   const avatarColor = getAvatarColor(user.displayName);
   
   // 프로필 이미지 URL 생성 (캐시 버스팅을 위해 고정된 버전 사용)
-  const profileImageUrl = user.profilePicture ? 
+  const profileImageUrl = user.profilePicture && !imageError ? 
     `${user.profilePicture}?v=${user.id}_${user.profilePicture.split('/').pop()}` : null;
 
-  console.log("UserAvatar rendering for user:", user.id, "displayName:", user.displayName, "profilePicture:", user.profilePicture, "finalUrl:", profileImageUrl);
+  // 이미지 프리로딩 사용
+  const { isLoaded, isLoading } = usePreloadedImage(profileImageUrl);
 
   return (
     <div className="relative">
       <Avatar className={cn(sizeMap[size], className)}>
-        {profileImageUrl ? (
+        {profileImageUrl && isLoaded ? (
           <AvatarImage 
             src={profileImageUrl}
             alt={user.displayName}
-            onLoad={() => {
-              console.log("✅ UserAvatar image loaded for user:", user.id);
-            }}
-            onError={(e) => {
-              console.error("❌ UserAvatar image failed for user:", user.id, "URL:", profileImageUrl);
+            className="transition-opacity duration-200"
+            onError={() => {
+              setImageError(true);
             }}
           />
         ) : null}
         <AvatarFallback 
           className={cn(
-            "font-semibold text-white",
+            "font-semibold text-white transition-all duration-200",
             avatarColor,
             size === "sm" && "text-xs",
             size === "md" && "text-sm", 
             size === "lg" && "text-base",
             size === "xl" && "text-lg",
-            fallbackClassName
+            fallbackClassName,
+            // 이미지 로딩 중일 때 약간의 로딩 표시
+            isLoading && "animate-pulse"
           )}
         >
-          {getInitials(user.displayName)}
+          {isLoading ? (
+            <div className={cn(
+              "rounded-full bg-white/20",
+              size === "sm" && "w-4 h-4",
+              size === "md" && "w-5 h-5",
+              size === "lg" && "w-8 h-8",
+              size === "xl" && "w-10 h-10"
+            )} />
+          ) : (
+            getInitials(user.displayName)
+          )}
         </AvatarFallback>
       </Avatar>
       
