@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { Camera, User, LogOut, Building2 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 import VaultLogo from "./VaultLogo";
@@ -205,19 +206,23 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
             {/* Profile Image - Compact */}
             <div className="flex items-center space-x-4">
               <div className="relative">
-                <Avatar className="w-16 h-16">
-                  <AvatarImage 
-                    src={previewUrl || (user.profilePicture ? `${user.profilePicture}?t=${Date.now()}` : undefined)} 
-                    alt={user.displayName}
-                    onError={(e) => {
-                      console.log("Image load error:", e);
-                      console.log("Attempted to load:", previewUrl || user.profilePicture);
-                    }}
+                {previewUrl ? (
+                  <Avatar className="w-16 h-16">
+                    <AvatarImage 
+                      src={previewUrl} 
+                      alt="미리보기"
+                    />
+                    <AvatarFallback className="text-lg purple-gradient text-white">
+                      {getInitials(user.displayName)}
+                    </AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <UserAvatar 
+                    user={user} 
+                    size="xl" 
+                    fallbackClassName="purple-gradient"
                   />
-                  <AvatarFallback className="text-lg purple-gradient text-white">
-                    {getInitials(user.displayName)}
-                  </AvatarFallback>
-                </Avatar>
+                )}
                 <button
                   onClick={() => document.getElementById('profile-image-input')?.click()}
                   className="absolute -bottom-1 -right-1 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center hover:bg-purple-700 transition-colors"

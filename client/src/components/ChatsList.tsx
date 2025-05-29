@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, Pin, Users, X } from "lucide-react";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
@@ -318,21 +319,17 @@ function ChatRoomItem({
               if (isStackLayout) {
                 // 3명 이하일 때: 겹치는 스택 레이아웃
                 return (
-                  <Avatar 
+                  <div
                     key={participant.id}
-                    className={`w-8 h-8 border-2 border-white shadow-sm ${
-                      index > 0 ? '-ml-2' : ''
-                    }`}
+                    className={`${index > 0 ? '-ml-2' : ''} border-2 border-white rounded-full shadow-sm`}
                     style={{ zIndex: totalAvatars - index }}
                   >
-                    <AvatarImage 
-                      src={participant.profilePicture || undefined} 
-                      alt={participant.displayName} 
+                    <UserAvatar 
+                      user={participant} 
+                      size="md" 
+                      fallbackClassName="purple-gradient"
                     />
-                    <AvatarFallback className="purple-gradient text-white font-semibold text-xs">
-                      {getInitials(participant.displayName)}
-                    </AvatarFallback>
-                  </Avatar>
+                  </div>
                 );
               } else {
                 // 4-5명일 때: 격자 레이아웃
@@ -345,32 +342,26 @@ function ChatRoomItem({
                 ];
                 
                 return (
-                  <Avatar 
+                  <div
                     key={participant.id}
-                    className={`absolute w-6 h-6 border border-white shadow-sm ${positions[index]}`}
+                    className={`absolute border border-white rounded-full shadow-sm ${positions[index]}`}
                   >
-                    <AvatarImage 
-                      src={participant.profilePicture || undefined} 
-                      alt={participant.displayName} 
+                    <UserAvatar 
+                      user={participant} 
+                      size="sm" 
+                      fallbackClassName="purple-gradient"
                     />
-                    <AvatarFallback className="purple-gradient text-white font-semibold text-[10px]">
-                      {getInitials(participant.displayName)}
-                    </AvatarFallback>
-                  </Avatar>
+                  </div>
                 );
               }
             })}
           </div>
         ) : (
-          <Avatar className="w-12 h-12">
-            <AvatarImage 
-              src={getOtherParticipant(chatRoom)?.profilePicture || undefined} 
-              alt={chatRoom.name} 
-            />
-            <AvatarFallback className={`bg-gradient-to-br ${getAvatarColor(displayName)} text-white font-semibold`}>
-              {getInitials(displayName)}
-            </AvatarFallback>
-          </Avatar>
+          <UserAvatar 
+            user={getOtherParticipant(chatRoom)} 
+            size="lg" 
+            fallbackClassName={`bg-gradient-to-br ${getAvatarColor(displayName)}`}
+          />
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
