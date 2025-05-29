@@ -52,26 +52,27 @@ export default function MainApp() {
     enabled: !!user,
   });
 
-  // Create or find existing chat room
+  // 친구와의 채팅방 찾기 또는 생성
   const createOrFindChatRoom = (contactUserId: number, contactUser: any) => {
-    // Check if chat room already exists with this contact
-    const existingChatRoom = chatRoomsData?.chatRooms?.find((room: any) => {
-      return !room.isGroup && 
+    // 해당 친구와의 기존 채팅방이 있는지 확인
+    const existingChatRoom = (chatRoomsData as any)?.chatRooms?.find((room: any) => {
+      return room.participants?.length === 2 && 
              room.participants?.some((p: any) => p.id === contactUserId) &&
              room.participants?.some((p: any) => p.id === user?.id);
     });
 
     if (existingChatRoom) {
-      // Go to existing chat room
+      // 기존 채팅방이 있으면 해당 채팅방 선택하고 필터 적용
       setSelectedChatRoom(existingChatRoom.id);
+      setContactFilter(contactUserId);
       setActiveTab("chats");
-      toast({
-        title: "기존 채팅방으로 이동",
-        description: `${contactUser.nickname || contactUser.displayName}님과의 채팅방으로 이동했습니다.`,
-      });
     } else {
-      // Create new chat room
-      createChatRoomMutation.mutate({ contactUserId, contactUser });
+      // 기존 채팅방이 없으면 새로 생성
+      const roomName = contactUser.nickname || contactUser.displayName || contactUser.username;
+      createChatRoomMutation.mutate({
+        name: roomName,
+        participantIds: [contactUserId]
+      });
     }
   };
 
@@ -131,6 +132,8 @@ export default function MainApp() {
     setSelectedChatRoom(chatRoomId);
     setActiveTab("chats");
   };
+
+
 
   if (!user) {
     return <div>Loading...</div>;
@@ -224,6 +227,8 @@ export default function MainApp() {
                   onSelectChat={setSelectedChatRoom}
                   selectedChatId={selectedChatRoom}
                   onCreateGroup={() => setModals({ ...modals, createGroup: true })}
+                  contactFilter={contactFilter}
+                  onClearFilter={() => setContactFilter(null)}
                 />
               </TabsContent>
               
