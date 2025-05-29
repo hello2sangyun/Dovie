@@ -6,15 +6,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Serve static files from uploads directory BEFORE any other middleware
-app.use('/uploads', express.static('uploads', {
-  // Add proper headers for images
-  setHeaders: (res, path) => {
-    if (path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.png')) {
-      res.setHeader('Content-Type', 'image/jpeg');
-    }
-  }
-}));
+// 정적 파일 미들웨어 제거 - routes.ts에서 복호화하여 서빙함
 
 app.use((req, res, next) => {
   const start = Date.now();
