@@ -173,18 +173,25 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
   const joinChatRoomMutation = useMutation({
     mutationFn: async (roomId: number) => {
       const response = await apiRequest(`/api/location/chat-rooms/${roomId}/join`, "POST");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       return response.json();
     },
-    onSuccess: (_, roomId) => {
+    onSuccess: (data, roomId) => {
       queryClient.invalidateQueries({ queryKey: ["/api/location/nearby-chats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
       toast({
         title: "채팅방 입장",
         description: "채팅방에 입장했습니다.",
       });
-      // 채팅방으로 이동
-      onChatRoomSelect(roomId);
+      // 서버에서 반환된 실제 채팅방 ID로 이동
+      if (data.chatRoomId) {
+        onChatRoomSelect(data.chatRoomId);
+      }
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Join chat room error:", error);
       toast({
         variant: "destructive",
         title: "입장 실패",

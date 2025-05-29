@@ -3,7 +3,7 @@ import express from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema } from "@shared/schema";
+import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, locationChatRooms, chatRooms, chatParticipants } from "@shared/schema";
 import { translateText, transcribeAudio } from "./openai";
 import bcrypt from "bcryptjs";
 import multer from "multer";
@@ -11,6 +11,8 @@ import path from "path";
 import fs from "fs";
 import { encryptFileData, decryptFileData, hashFileName } from "./crypto";
 import { processCommand } from "./openai";
+import { db } from "./db";
+import { eq, and } from "drizzle-orm";
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -393,9 +395,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const roomId = Number(req.params.roomId);
       
-      await storage.joinLocationChatRoom(Number(userId), roomId);
+      // Get location chat room details
+      const locationRoom = await db.select().from(locationChatRooms).where(eq(locationChatRooms.id, roomId)).limit(1);
       
-      res.json({ success: true });
+      if (locationRoom.length === 0) {
+        return res.status(404).json({ message: "채팅방을 찾을 수 없습니다." });
+      }
+
+      // Join location chat room
+      await storage.joinLocationChatRoom(Number(userId), roomId);
+
+      // Use storage interface to create chat room
+      let regularChatRoom = await db.select().from(chatRooms).where(eq(chatRooms.name, locationRoom[0].name)).limit(1);
+      
+      if (regularChatRoom.length === 0) {
+        // Create new regular chat room using storage interface
+        const newChatRoom = await storage.createChatRoom({
+          name: locationRoom[0].name,
+          isGroup: true,
+          createdBy: Number(userId)
+        }, [Number(userId)]);
+        
+        regularChatRoom = [newChatRoom];
+      }
+
+      // Add user to regular chat room participants
+      const existingParticipant = await db
+        .select()
+        .from(chatParticipants)
+        .where(and(
+          eq(chatParticipants.userId, Number(userId)),
+          eq(chatParticipants.chatRoomId, regularChatRoom[0].id)
+        ))
+        .limit(1);
+
+      if (existingParticipant.length === 0) {
+        await db.insert(chatParticipants).values({
+          userId: Number(userId),
+          chatRoomId: regularChatRoom[0].id
+        });
+      }
+      
+      res.json({ 
+        success: true, 
+        chatRoomId: regularChatRoom[0].id,
+        locationChatRoomId: roomId
+      });
     } catch (error) {
       console.error("Join location chat room error:", error);
       res.status(500).json({ message: "채팅방 입장에 실패했습니다." });
