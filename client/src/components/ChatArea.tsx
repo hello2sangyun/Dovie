@@ -1254,6 +1254,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   });
   const [showHashSuggestions, setShowHashSuggestions] = useState(false);
   const [hashSuggestions, setHashSuggestions] = useState<string[]>([]);
+  const [selectedHashIndex, setSelectedHashIndex] = useState(0);
   const [storedTags] = useState<string[]>([
     "회의", "보고서", "일정", "업무", "프로젝트", "마감", "검토", "승인", "피드백", "공유",
     "예산", "계획", "분석", "제안", "협업", "진행", "완료", "확인", "수정", "전달"
@@ -2120,6 +2121,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       );
       setHashSuggestions(filteredTags);
       setShowHashSuggestions(filteredTags.length > 0);
+      setSelectedHashIndex(0); // 선택 인덱스 초기화
       // 태그 추천 활성화 시 스마트 추천 비활성화
       setShowSmartSuggestions(false);
       setSmartSuggestions([]);
@@ -2127,6 +2129,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     } else {
       setShowHashSuggestions(false);
       setHashSuggestions([]);
+      setSelectedHashIndex(0);
     }
     
     if (value.trim().length < 2) {
@@ -3326,6 +3329,44 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                 setIsNavigatingWithKeyboard(false);
               }}
               onKeyDown={(e) => {
+                // 태그 추천이 표시된 상태에서 키보드 네비게이션
+                if (showHashSuggestions && hashSuggestions.length > 0) {
+                  if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    setSelectedHashIndex(prev => 
+                      prev < hashSuggestions.length - 1 ? prev + 1 : 0
+                    );
+                    return;
+                  }
+                  if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    setSelectedHashIndex(prev => 
+                      prev > 0 ? prev - 1 : hashSuggestions.length - 1
+                    );
+                    return;
+                  }
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    const selectedTag = hashSuggestions[selectedHashIndex];
+                    if (selectedTag) {
+                      const currentMessage = message.replace(/#\w*$/, `#${selectedTag} `);
+                      setMessage(currentMessage);
+                      setShowHashSuggestions(false);
+                      setHashSuggestions([]);
+                      setSelectedHashIndex(0);
+                      messageInputRef.current?.focus();
+                    }
+                    return;
+                  }
+                  if (e.key === 'Escape') {
+                    e.preventDefault();
+                    setShowHashSuggestions(false);
+                    setHashSuggestions([]);
+                    setSelectedHashIndex(0);
+                    return;
+                  }
+                }
+                
                 // 스마트 제안이 표시된 상태에서 키보드 네비게이션
                 if (showSmartSuggestions && smartSuggestions.length > 0) {
                   if (e.key === 'ArrowDown') {
@@ -3402,17 +3443,24 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   {hashSuggestions.map((tag, index) => (
                     <div
                       key={tag}
-                      className="flex items-center p-2 hover:bg-gray-50 cursor-pointer rounded text-sm"
+                      className={`flex items-center p-2 cursor-pointer rounded text-sm ${
+                        index === selectedHashIndex 
+                          ? 'bg-purple-100 text-purple-900' 
+                          : 'hover:bg-gray-50 text-gray-700'
+                      }`}
                       onClick={() => {
                         const currentMessage = message.replace(/#\w*$/, `#${tag} `);
                         setMessage(currentMessage);
                         setShowHashSuggestions(false);
                         setHashSuggestions([]);
+                        setSelectedHashIndex(0);
                         messageInputRef.current?.focus();
                       }}
                     >
-                      <Hash className="h-3 w-3 text-purple-500 mr-1" />
-                      <span className="text-gray-700">{tag}</span>
+                      <Hash className={`h-3 w-3 mr-1 ${
+                        index === selectedHashIndex ? 'text-purple-600' : 'text-purple-500'
+                      }`} />
+                      <span>{tag}</span>
                     </div>
                   ))}
                 </div>
