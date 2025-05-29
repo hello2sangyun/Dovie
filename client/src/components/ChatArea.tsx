@@ -1492,74 +1492,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     return null;
   };
 
-  // 메시지 감정 분석 함수 (배경 그라디언트용)
-  const analyzeMoodForGradient = (text: string): { gradient: string; textColor: string } => {
-    const moodPatterns = {
-      happy: {
-        patterns: [/기쁘|행복|좋아|최고|굿|좋다|신나|즐거|웃|ㅎㅎ|ㅋㅋ|😄|😊|😁|🎉|👍/i],
-        gradient: 'from-yellow-100/70 via-pink-100/70 to-orange-100/70',
-        textColor: 'text-orange-900'
-      },
-      love: {
-        patterns: [/사랑|좋아해|♥|❤|💕|💖|💗|사랑해|고마워|감사|예뻐|귀여/i],
-        gradient: 'from-pink-100/70 via-rose-100/70 to-red-100/70',
-        textColor: 'text-red-900'
-      },
-      excited: {
-        patterns: [/와|우와|대박|완전|진짜|개좋|꺅|야호|최고|레츠고|let's go|amazing|awesome/i],
-        gradient: 'from-purple-100/70 via-blue-100/70 to-cyan-100/70',
-        textColor: 'text-purple-900'
-      },
-      sad: {
-        patterns: [/슬프|우울|힘들|울|눈물|아프|속상|답답|ㅠㅠ|😢|😭|💔|힘들어/i],
-        gradient: 'from-blue-100/70 via-slate-100/70 to-gray-100/70',
-        textColor: 'text-slate-900'
-      },
-      angry: {
-        patterns: [/화|짜증|빡|열받|분노|미치|싫|짜증나|😡|😠|어이없|어이가없/i],
-        gradient: 'from-red-100/70 via-orange-100/70 to-yellow-100/70',
-        textColor: 'text-red-900'
-      },
-      tired: {
-        patterns: [/피곤|졸려|잠|힘들어|지쳐|😴|😪|하품|잠와|잠온다|피곤해/i],
-        gradient: 'from-indigo-100/70 via-purple-100/70 to-blue-100/70',
-        textColor: 'text-indigo-900'
-      },
-      surprised: {
-        patterns: [/어|헉|깜짝|놀랐|어머|세상에|믿을수없|진짜|😮|😲|🤯|헐|대박/i],
-        gradient: 'from-green-100/70 via-emerald-100/70 to-teal-100/70',
-        textColor: 'text-green-900'
-      },
-      calm: {
-        patterns: [/평화|조용|고요|차분|편안|안정|힐링|relaxing|peace|calm/i],
-        gradient: 'from-emerald-100/70 via-green-100/70 to-lime-100/70',
-        textColor: 'text-emerald-900'
-      },
-      grateful: {
-        patterns: [/고마|감사|thank|thanks|고맙|도움|도와줘서|친절|배려/i],
-        gradient: 'from-amber-100/70 via-yellow-100/70 to-orange-100/70',
-        textColor: 'text-amber-900'
-      },
-      worried: {
-        patterns: [/걱정|불안|무서|두려|혹시|혹시나|어떡하|어떻게|😰|😟|😨/i],
-        gradient: 'from-gray-100/70 via-slate-100/70 to-zinc-100/70',
-        textColor: 'text-gray-900'
-      }
-    };
 
-    for (const [mood, config] of Object.entries(moodPatterns)) {
-      for (const pattern of config.patterns) {
-        if (pattern.test(text)) {
-          return {
-            gradient: config.gradient,
-            textColor: config.textColor
-          };
-        }
-      }
-    }
-    
-    return { gradient: '', textColor: '' }; // 기본값: 그라디언트 없음
-  };
 
   // 감정 감지 함수 (스마트 제안용)
   const detectEmotion = (text: string) => {
@@ -2852,21 +2785,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                         ? isMe 
                           ? "bg-teal-500 text-white rounded-tr-none border border-teal-400" 
                           : "bg-teal-50 text-teal-900 rounded-tl-none border border-teal-200"
-                        : (() => {
-                            // 감정 기반 배경 그라디언트 적용 (개선된 텍스트 대비)
-                            if (msg.messageType === 'text' && msg.content) {
-                              const moodStyle = analyzeMoodForGradient(msg.content);
-                              if (moodStyle.gradient && !isMe) {
-                                return `bg-gradient-to-br ${moodStyle.gradient} rounded-tl-none border border-gray-200/50 ${moodStyle.textColor}`;
-                              }
-                              if (moodStyle.gradient && isMe) {
-                                return `bg-gradient-to-br ${moodStyle.gradient} rounded-tr-none border border-white/20 ${moodStyle.textColor}`;
-                              }
-                            }
-                            return isMe 
-                              ? "chat-bubble-me rounded-tr-none" 
-                              : "chat-bubble-other rounded-tl-none";
-                          })()
+                        : isMe 
+                          ? "chat-bubble-me rounded-tr-none"
+                          : "chat-bubble-other rounded-tl-none"
                     )}>
                       {/* 회신 메시지 표시 */}
                       {msg.replyToMessageId && (
