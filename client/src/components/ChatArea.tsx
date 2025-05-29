@@ -1000,7 +1000,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // 스마트 채팅 상태
   const [smartSuggestions, setSmartSuggestions] = useState<Array<{
-    type: 'calculation' | 'currency' | 'schedule' | 'translation' | 'address' | 'poll' | 'todo' | 'timer' | 'emotion' | 'food' | 'youtube' | 'news' | 'unit' | 'search' | 'birthday' | 'meeting';
+    type: 'calculation' | 'currency' | 'schedule' | 'translation' | 'address' | 'poll' | 'todo' | 'timer' | 'emotion' | 'food' | 'youtube' | 'news' | 'unit' | 'search' | 'birthday' | 'meeting' | 'reminder' | 'quote' | 'question' | 'followup' | 'summary' | 'decision' | 'category' | 'file_summary' | 'topic_info';
     text: string;
     result: string;
     amount?: number;
@@ -1345,6 +1345,161 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     return null;
   };
 
+  // 지연 답변 감지 함수
+  const detectDelayedResponse = (text: string) => {
+    const patterns = [
+      /이따가.*알려|나중에.*말해|잠깐만.*기다려/i,
+      /곧.*연락|잠시.*후에|금방.*답변/i,
+      /확인.*후.*연락|알아보고.*말해/i
+    ];
+
+    for (const pattern of patterns) {
+      if (pattern.test(text)) {
+        return {
+          type: 'reminder' as const,
+          text: '30분 후 리마인드 설정',
+          result: `리마인드: ${text}`,
+          icon: '⏰',
+          category: '리마인더'
+        };
+      }
+    }
+    return null;
+  };
+
+  // 성공/동기부여 문장 감지 함수
+  const detectMotivation = (text: string) => {
+    const patterns = [
+      /성공.*하려면|성공.*위해/i,
+      /꿈.*이루|목표.*달성/i,
+      /포기.*하지.*말|힘내|화이팅/i,
+      /도전.*해보|시작.*해야/i
+    ];
+
+    for (const pattern of patterns) {
+      if (pattern.test(text)) {
+        return {
+          type: 'quote' as const,
+          text: '성공 명언 보여드릴까요?',
+          result: `명언: ${text}`,
+          icon: '💪',
+          category: '명언'
+        };
+      }
+    }
+    return null;
+  };
+
+  // 질문 감지 및 답변 포맷 제안 함수
+  const detectQuestion = (text: string) => {
+    const patterns = [
+      /.*몇\s*시.*에/i,
+      /.*언제.*해/i,
+      /.*어디서.*만날/i,
+      /.*뭐.*먹을/i,
+      /.*어떻게.*생각/i
+    ];
+
+    for (const pattern of patterns) {
+      if (pattern.test(text)) {
+        return {
+          type: 'question' as const,
+          text: '정중한 답변 포맷 제안',
+          result: `답변: ${text}`,
+          icon: '❓',
+          category: '질문 답변'
+        };
+      }
+    }
+    return null;
+  };
+
+  // 긴 메시지 요약 감지 함수
+  const detectLongMessage = (text: string) => {
+    // 긴 메시지 (100자 이상) 또는 요약 키워드 감지
+    if (text.length > 100 || /요약|정리|핵심|포인트/.test(text)) {
+      return {
+        type: 'summary' as const,
+        text: '핵심 요약 보기',
+        result: `요약: ${text.substring(0, 50)}...`,
+        icon: '📝',
+        category: '요약'
+      };
+    }
+    return null;
+  };
+
+  // 의사결정 도우미 감지 함수
+  const detectDecision = (text: string) => {
+    const patterns = [
+      /.*할까.*말까/i,
+      /고민.*되|어떻게.*할지/i,
+      /선택.*해야|결정.*해야/i,
+      /.*vs.*|.*아니면.*/i
+    ];
+
+    for (const pattern of patterns) {
+      if (pattern.test(text)) {
+        return {
+          type: 'decision' as const,
+          text: '장단점 정리해볼까요?',
+          result: `의사결정: ${text}`,
+          icon: '⚖️',
+          category: '의사결정'
+        };
+      }
+    }
+    return null;
+  };
+
+  // 카테고리 분류 감지 함수
+  const detectCategory = (text: string) => {
+    const categories = {
+      '계약': /계약|협의|조건|계약서/i,
+      '배송': /배송|택배|주문|도착/i,
+      '일정': /일정|스케줄|회의|약속/i,
+      '업무': /업무|프로젝트|회사|직장/i,
+      '개인': /개인.*적|사적.*인|개인.*정보/i
+    };
+
+    for (const [category, pattern] of Object.entries(categories)) {
+      if (pattern.test(text)) {
+        return {
+          type: 'category' as const,
+          text: `[${category}] 카테고리로 정리할까요?`,
+          result: `분류: ${text}`,
+          icon: '🏷️',
+          category: '분류'
+        };
+      }
+    }
+    return null;
+  };
+
+  // 주제별 정보 추천 감지 함수
+  const detectTopicInfo = (text: string) => {
+    const topics = {
+      '전기차': /전기차|배터리|충전|테슬라/i,
+      '부동산': /부동산|집값|아파트|전세/i,
+      '주식': /주식|투자|코스피|증권/i,
+      '암호화폐': /비트코인|암호화폐|블록체인/i,
+      'IT': /AI|인공지능|개발|프로그래밍/i
+    };
+
+    for (const [topic, pattern] of Object.entries(topics)) {
+      if (pattern.test(text)) {
+        return {
+          type: 'topic_info' as const,
+          text: `${topic} 관련 최신 정보 찾아볼까요?`,
+          result: `정보: ${text}`,
+          icon: '📊',
+          category: '정보 검색'
+        };
+      }
+    }
+    return null;
+  };
+
 
 
   // 주소 감지 함수
@@ -1578,9 +1733,51 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     if (timerDetection) {
       allSuggestions.push(timerDetection);
     }
+
+    // 17. 지연 답변 감지
+    const delayedResponseDetection = detectDelayedResponse(value);
+    if (delayedResponseDetection) {
+      allSuggestions.push(delayedResponseDetection);
+    }
+
+    // 18. 동기부여/명언 감지
+    const motivationDetection = detectMotivation(value);
+    if (motivationDetection) {
+      allSuggestions.push(motivationDetection);
+    }
+
+    // 19. 질문 감지
+    const questionDetection = detectQuestion(value);
+    if (questionDetection) {
+      allSuggestions.push(questionDetection);
+    }
+
+    // 20. 긴 메시지 요약 감지
+    const longMessageDetection = detectLongMessage(value);
+    if (longMessageDetection) {
+      allSuggestions.push(longMessageDetection);
+    }
+
+    // 21. 의사결정 도우미 감지
+    const decisionDetection = detectDecision(value);
+    if (decisionDetection) {
+      allSuggestions.push(decisionDetection);
+    }
+
+    // 22. 카테고리 분류 감지
+    const categoryDetection = detectCategory(value);
+    if (categoryDetection) {
+      allSuggestions.push(categoryDetection);
+    }
+
+    // 23. 주제별 정보 감지
+    const topicInfoDetection = detectTopicInfo(value);
+    if (topicInfoDetection) {
+      allSuggestions.push(topicInfoDetection);
+    }
     
     if (allSuggestions.length > 0) {
-      setSmartSuggestions(allSuggestions.slice(0, 5)); // 최대 5개만 표시
+      setSmartSuggestions(allSuggestions.slice(0, 4)); // 최대 4개만 표시 (UI 최적화)
       setShowSmartSuggestions(true);
     } else {
       setShowSmartSuggestions(false);
@@ -2545,6 +2742,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           suggestion.type === 'poll' ? 'bg-cyan-100' :
                           suggestion.type === 'todo' ? 'bg-emerald-100' :
                           suggestion.type === 'timer' ? 'bg-amber-100' :
+                          suggestion.type === 'reminder' ? 'bg-violet-100' :
+                          suggestion.type === 'quote' ? 'bg-rose-100' :
+                          suggestion.type === 'question' ? 'bg-sky-100' :
+                          suggestion.type === 'summary' ? 'bg-slate-100' :
+                          suggestion.type === 'decision' ? 'bg-teal-100' :
+                          suggestion.type === 'category' ? 'bg-lime-100' :
+                          suggestion.type === 'topic_info' ? 'bg-indigo-100' :
                           'bg-gray-100'
                         }`}>
                           <span className={`text-sm ${
@@ -2564,6 +2768,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                             suggestion.type === 'poll' ? 'text-cyan-600' :
                             suggestion.type === 'todo' ? 'text-emerald-600' :
                             suggestion.type === 'timer' ? 'text-amber-600' :
+                            suggestion.type === 'reminder' ? 'text-violet-600' :
+                            suggestion.type === 'quote' ? 'text-rose-600' :
+                            suggestion.type === 'question' ? 'text-sky-600' :
+                            suggestion.type === 'summary' ? 'text-slate-600' :
+                            suggestion.type === 'decision' ? 'text-teal-600' :
+                            suggestion.type === 'category' ? 'text-lime-600' :
+                            suggestion.type === 'topic_info' ? 'text-indigo-600' :
                             'text-gray-600'
                           }`}>
                             {suggestion.icon || (suggestion.type === 'calculation' ? '🧮' : '💱')}
@@ -2588,6 +2799,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                               suggestion.type === 'poll' ? 'bg-cyan-100 text-cyan-700' :
                               suggestion.type === 'todo' ? 'bg-emerald-100 text-emerald-700' :
                               suggestion.type === 'timer' ? 'bg-amber-100 text-amber-700' :
+                              suggestion.type === 'reminder' ? 'bg-violet-100 text-violet-700' :
+                              suggestion.type === 'quote' ? 'bg-rose-100 text-rose-700' :
+                              suggestion.type === 'question' ? 'bg-sky-100 text-sky-700' :
+                              suggestion.type === 'summary' ? 'bg-slate-100 text-slate-700' :
+                              suggestion.type === 'decision' ? 'bg-teal-100 text-teal-700' :
+                              suggestion.type === 'category' ? 'bg-lime-100 text-lime-700' :
+                              suggestion.type === 'topic_info' ? 'bg-indigo-100 text-indigo-700' :
                               'bg-gray-100 text-gray-700'
                             }`}>
                               {suggestion.category || (suggestion.type === 'calculation' ? '계산 결과' : '환율 변환')}
