@@ -1255,10 +1255,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [showHashSuggestions, setShowHashSuggestions] = useState(false);
   const [hashSuggestions, setHashSuggestions] = useState<string[]>([]);
   const [selectedHashIndex, setSelectedHashIndex] = useState(0);
-  const [storedTags] = useState<string[]>([
-    "회의", "보고서", "일정", "업무", "프로젝트", "마감", "검토", "승인", "피드백", "공유",
-    "예산", "계획", "분석", "제안", "협업", "진행", "완료", "확인", "수정", "전달"
-  ]);
+  // 채팅방별 저장된 명령어들을 태그로 사용
+  const savedCommands = (commandsData as any)?.commands || [];
+  const storedTags = savedCommands.map((cmd: any) => cmd.commandName);
 
   // 천 단위 마침표로 숫자 포맷팅
   const formatNumber = (num: number): string => {
