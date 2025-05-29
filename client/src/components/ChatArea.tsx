@@ -1111,6 +1111,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [showSmartSuggestions, setShowSmartSuggestions] = useState(false);
   const [suggestionTimeout, setSuggestionTimeout] = useState<NodeJS.Timeout | null>(null);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
+  const [isNavigatingWithKeyboard, setIsNavigatingWithKeyboard] = useState(false);
   const [smartResultModal, setSmartResultModal] = useState<{show: boolean, title: string, content: string}>({
     show: false,
     title: '',
@@ -1891,17 +1892,21 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       setSmartSuggestions(allSuggestions.slice(0, 3)); // 최대 3개만 표시 (덜 방해되도록)
       setShowSmartSuggestions(true);
       setSelectedSuggestionIndex(0); // 첫 번째 항목 선택
+      setIsNavigatingWithKeyboard(false); // 새로운 제안 시 키보드 네비게이션 상태 초기화
       
-      // 5초 후 자동으로 숨김
-      const timeout = setTimeout(() => {
-        setShowSmartSuggestions(false);
-        setSmartSuggestions([]);
-      }, 5000);
-      setSuggestionTimeout(timeout);
+      // 5초 후 자동으로 숨김 (키보드 네비게이션 중이 아닐 때만)
+      if (!isNavigatingWithKeyboard) {
+        const timeout = setTimeout(() => {
+          setShowSmartSuggestions(false);
+          setSmartSuggestions([]);
+        }, 5000);
+        setSuggestionTimeout(timeout);
+      }
     } else {
       setShowSmartSuggestions(false);
       setSmartSuggestions([]);
       setSelectedSuggestionIndex(0);
+      setIsNavigatingWithKeyboard(false);
     }
   };
 
@@ -2823,22 +2828,38 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               ref={messageInputRef}
               placeholder="메시지를 입력하세요..."
               value={message}
-              onChange={(e) => handleMessageChange(e.target.value)}
+              onChange={(e) => {
+                handleMessageChange(e.target.value);
+                // 일반 텍스트 입력 시 키보드 네비게이션 상태 해제
+                setIsNavigatingWithKeyboard(false);
+              }}
               onKeyDown={(e) => {
                 // 스마트 제안이 표시된 상태에서 키보드 네비게이션
                 if (showSmartSuggestions && smartSuggestions.length > 0) {
                   if (e.key === 'ArrowDown') {
                     e.preventDefault();
+                    setIsNavigatingWithKeyboard(true);
                     setSelectedSuggestionIndex(prev => 
                       prev < smartSuggestions.length - 1 ? prev + 1 : 0
                     );
+                    // 키보드 사용 중에는 자동 숨김 타이머 정지
+                    if (suggestionTimeout) {
+                      clearTimeout(suggestionTimeout);
+                      setSuggestionTimeout(null);
+                    }
                     return;
                   }
                   if (e.key === 'ArrowUp') {
                     e.preventDefault();
+                    setIsNavigatingWithKeyboard(true);
                     setSelectedSuggestionIndex(prev => 
                       prev > 0 ? prev - 1 : smartSuggestions.length - 1
                     );
+                    // 키보드 사용 중에는 자동 숨김 타이머 정지
+                    if (suggestionTimeout) {
+                      clearTimeout(suggestionTimeout);
+                      setSuggestionTimeout(null);
+                    }
                     return;
                   }
                   if (e.key === 'Enter' && !e.shiftKey) {
