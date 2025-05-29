@@ -27,8 +27,17 @@ export function useProfileImage(userId?: number) {
   }, [queryClient]);
   
   useEffect(() => {
+    console.log("🔍 useProfileImage effect triggered:", {
+      userId: targetUser?.id,
+      profilePicture: targetUser?.profilePicture,
+      lastUpdate
+    });
+    
     if (!targetUser?.profilePicture) {
+      console.log("❌ No profile picture found for user:", targetUser?.id);
       setImageUrl(null);
+      setIsLoading(false);
+      setError(null);
       return;
     }
     
@@ -36,7 +45,7 @@ export function useProfileImage(userId?: number) {
     const cacheBuster = lastUpdate;
     const url = `${targetUser.profilePicture}?t=${cacheBuster}`;
     
-    console.log("🖼️ Loading profile image for user:", targetUser.id, "URL:", url);
+    console.log("🖼️ Loading profile image for user:", targetUser.id, "Original URL:", targetUser.profilePicture, "Final URL:", url);
     
     setIsLoading(true);
     setError(null);
@@ -45,13 +54,13 @@ export function useProfileImage(userId?: number) {
     const img = new Image();
     
     img.onload = () => {
-      console.log("✅ Profile image loaded successfully:", url);
+      console.log("✅ Profile image loaded successfully for user:", targetUser.id, "URL:", url);
       setImageUrl(url);
       setIsLoading(false);
     };
     
-    img.onerror = () => {
-      console.error("❌ Profile image failed to load:", url);
+    img.onerror = (e) => {
+      console.error("❌ Profile image failed to load for user:", targetUser.id, "URL:", url, "Error:", e);
       setError("이미지를 불러올 수 없습니다");
       setImageUrl(null);
       setIsLoading(false);
