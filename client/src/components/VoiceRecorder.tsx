@@ -165,7 +165,7 @@ export default function VoiceRecorder({ onRecordingComplete, disabled }: VoiceRe
         variant="outline"
         size="sm"
         onClick={handlePermissionRequest}
-        className="text-gray-400 hover:text-purple-600"
+        className="text-gray-400 hover:text-purple-600 h-7 w-7 p-1"
         title="마이크 권한을 요청하려면 클릭하세요"
       >
         <MicOff className="h-4 w-4" />
@@ -188,7 +188,7 @@ export default function VoiceRecorder({ onRecordingComplete, disabled }: VoiceRe
         size="sm"
         disabled={disabled || isPreparing}
         className={cn(
-          "relative transition-all duration-200",
+          "relative transition-all duration-200 h-7 w-7 p-1",
           isRecording && "animate-pulse scale-110 shadow-lg",
           isPreparing && "opacity-50"
         )}

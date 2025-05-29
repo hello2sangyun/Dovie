@@ -1877,7 +1877,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       <div className="bg-white border-t border-gray-200 flex-shrink-0 sticky bottom-0 z-10">
         {/* Reply Preview */}
         {replyToMessage && (
-          <div className="p-2 border-b border-gray-200 bg-gray-50">
+          <div className="px-2 py-1 border-b border-gray-200 bg-gray-50">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center space-x-2 mb-1">
@@ -1902,14 +1902,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           </div>
         )}
         
-        <div className="p-2 chat-input-area">
-          <div className="flex items-end space-x-1">
+        <div className="px-2 py-1 chat-input-area">
+          <div className="flex items-center space-x-1">
           {/* Compact left buttons group */}
-          <div className="flex items-center space-x-0.5 mr-2">
+          <div className="flex items-center space-x-0.5 mr-1">
             <Button
               variant="ghost"
               size="sm"
-              className="text-gray-400 hover:text-purple-600 p-1.5 min-w-0 h-8 w-8"
+              className="text-gray-400 hover:text-purple-600 p-1 min-w-0 h-7 w-7"
               onClick={handleFileUpload}
               disabled={uploadFileMutation.isPending}
               title="파일 첨부"
@@ -1920,7 +1920,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             <Button
               variant="ghost"
               size="sm"
-              className="text-gray-400 hover:text-purple-600 p-1.5 min-w-0 h-8 w-8"
+              className="text-gray-400 hover:text-purple-600 p-1 min-w-0 h-7 w-7"
               onClick={insertHashtag}
               title="해시태그"
             >
@@ -1930,7 +1930,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             <Button
               variant="ghost"
               size="sm"
-              className="text-gray-400 hover:text-purple-600 p-1.5 min-w-0 h-8 w-8"
+              className="text-gray-400 hover:text-purple-600 p-1 min-w-0 h-7 w-7"
               onClick={() => {
                 setMessage('/');
                 setShowChatCommands(true);
@@ -2071,7 +2071,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           />
           
           <Button
-            className="purple-gradient hover:purple-gradient-hover"
+            className="purple-gradient hover:purple-gradient-hover h-8 w-8 p-1.5"
             onClick={handleSendMessage}
             disabled={sendMessageMutation.isPending || !message.trim()}
           >
