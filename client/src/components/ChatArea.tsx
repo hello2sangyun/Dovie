@@ -2870,7 +2870,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   
                   <div className={cn(
                     "flex flex-col",
-                    msg.replyToMessageId ? "max-w-md lg:max-w-xl" : "max-w-xs lg:max-w-md",
+                    msg.replyToMessageId ? "max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl" : "max-w-xs sm:max-w-sm md:max-w-md lg:max-w-xl",
                     isMe ? "items-end" : "items-start"
                   )}>
                     {!isMe && (
@@ -2893,7 +2893,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     )}
 
                     <div className={cn(
-                      "rounded-lg p-3 shadow-sm max-w-[85%] sm:max-w-[70%] break-words",
+                      "rounded-lg p-3 shadow-sm w-fit break-words",
                       msg.isCommandRecall && msg.isLocalOnly
                         ? isMe 
                           ? "bg-teal-500 text-white rounded-tr-none border border-teal-400" 
