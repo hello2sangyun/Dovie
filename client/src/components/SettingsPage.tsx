@@ -153,14 +153,12 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
     }
   };
 
-  // Update local states when user data changes
+  // Initialize display name when user data loads
   useEffect(() => {
-    if (user) {
+    if (user && !displayName) {
       setDisplayName(user.displayName || "");
-      setPreviewUrl(null);
-      setProfileImage(null);
     }
-  }, [user]);
+  }, [user, displayName]);
 
   const handleBusinessRegistration = () => {
     if (!businessName.trim() || !businessAddress.trim()) {
@@ -209,8 +207,12 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
               <div className="relative">
                 <Avatar className="w-16 h-16">
                   <AvatarImage 
-                    src={previewUrl || user.profilePicture || undefined} 
-                    alt={user.displayName} 
+                    src={previewUrl || (user.profilePicture ? `${user.profilePicture}?t=${Date.now()}` : undefined)} 
+                    alt={user.displayName}
+                    onError={(e) => {
+                      console.log("Image load error:", e);
+                      console.log("Attempted to load:", previewUrl || user.profilePicture);
+                    }}
                   />
                   <AvatarFallback className="text-lg purple-gradient text-white">
                     {getInitials(user.displayName)}
