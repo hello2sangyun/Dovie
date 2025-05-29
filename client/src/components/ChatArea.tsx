@@ -1252,6 +1252,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     title: '',
     content: ''
   });
+  const [showHashSuggestions, setShowHashSuggestions] = useState(false);
+  const [hashSuggestions, setHashSuggestions] = useState<string[]>([]);
+  const [storedTags] = useState<string[]>([
+    "회의", "보고서", "일정", "업무", "프로젝트", "마감", "검토", "승인", "피드백", "공유",
+    "예산", "계획", "분석", "제안", "협업", "진행", "완료", "확인", "수정", "전달"
+  ]);
 
   // 천 단위 마침표로 숫자 포맷팅
   const formatNumber = (num: number): string => {
@@ -1829,6 +1835,82 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           result: `정보: ${text}`,
           icon: '📊',
           category: '정보 검색'
+        };
+      }
+    }
+    return null;
+  };
+
+  // 매너톤 감지 함수
+  const detectMannertone = (text: string) => {
+    const casualPatterns = [
+      /이거\s*왜\s*이렇게\s*늦었어/i,
+      /빨리\s*해줘/i,
+      /대체\s*뭐\s*하는\s*거야/i,
+      /언제까지\s*기다려야/i,
+      /진짜\s*답답해/i,
+      /또\s*안\s*됐어/i,
+      /말이\s*안\s*돼/i,
+      /이상하네/i,
+      /뭔가\s*이상해/i
+    ];
+
+    const businessAlternatives = {
+      '이거 왜 이렇게 늦었어요?': '혹시 진행 상황을 다시 확인해주실 수 있을까요?',
+      '빨리 해줘요': '가능한 빠른 시일 내에 처리해주시면 감사하겠습니다.',
+      '대체 뭐 하는 거예요?': '현재 진행 상황에 대해 설명해주실 수 있나요?',
+      '언제까지 기다려야 해요?': '예상 완료 시점을 알려주실 수 있을까요?',
+      '진짜 답답해요': '조금 더 구체적인 설명을 부탁드립니다.',
+      '또 안 됐어요': '다른 해결 방법이 있는지 검토해볼까요?',
+      '말이 안 돼요': '좀 더 자세한 설명이 필요할 것 같습니다.',
+      '이상하네요': '확인이 필요한 부분이 있는 것 같습니다.',
+      '뭔가 이상해요': '검토가 필요한 사항이 있는 것 같습니다.'
+    };
+
+    for (const pattern of casualPatterns) {
+      if (pattern.test(text)) {
+        const suggestion = Object.values(businessAlternatives)[0];
+        return {
+          type: 'mannertone' as const,
+          text: '비즈니스 톤으로 정중하게 바꿔보시겠어요?',
+          result: suggestion,
+          icon: '💼',
+          category: '매너톤'
+        };
+      }
+    }
+    return null;
+  };
+
+  // 파일 요청/공유 감지 함수
+  const detectFileRequest = (text: string) => {
+    const filePatterns = [
+      /보고서.*보내줄?\s*수\s*있어/i,
+      /파일.*다시.*보내/i,
+      /문서.*공유/i,
+      /자료.*전달/i,
+      /첨부.*파일/i,
+      /엑셀.*파일/i,
+      /pdf.*보내/i,
+      /이미지.*공유/i,
+      /사진.*보내/i
+    ];
+
+    for (const pattern of filePatterns) {
+      if (pattern.test(text)) {
+        return {
+          type: 'file_request' as const,
+          text: '최근 공유된 파일을 다시 보내드릴까요?',
+          result: '최근 파일 목록을 확인하겠습니다.',
+          icon: '📎',
+          category: '파일 공유',
+          action: () => {
+            // 실제로는 최근 파일 목록을 가져와서 표시
+            toast({
+              title: "파일 검색",
+              description: "최근 공유된 파일을 찾고 있습니다..."
+            });
+          }
         };
       }
     }
@@ -3181,13 +3263,25 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               variant="ghost"
               size="sm"
               className="text-gray-400 hover:text-purple-600 p-1 min-w-0 h-7 w-7"
+              onClick={() => {
+                setMessage(prev => prev + "#");
+                messageInputRef.current?.focus();
+              }}
+              title="스마트 추천"
+            >
+              <Hash className="h-4 w-4" />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-400 hover:text-purple-600 p-1 min-w-0 h-7 w-7"
               onClick={handleFileUpload}
               disabled={uploadFileMutation.isPending}
               title="파일 첨부"
             >
               <Paperclip className="h-4 w-4" />
             </Button>
-            
 
           </div>
           
