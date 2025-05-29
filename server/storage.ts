@@ -163,20 +163,26 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(users, eq(chatParticipants.userId, users.id))
       .where(inArray(chatParticipants.chatRoomId, chatRoomIds));
 
-    // Batch fetch last messages for these chat rooms with a more efficient approach
-    const allLastMessages = await db
-      .select({
-        chatRoomId: messages.chatRoomId,
-        message: messages,
-        sender: users,
-        rn: sql<number>`row_number() over (partition by ${messages.chatRoomId} order by ${messages.createdAt} desc)`
-      })
-      .from(messages)
-      .innerJoin(users, eq(messages.senderId, users.id))
-      .where(inArray(messages.chatRoomId, chatRoomIds));
-
-    // Filter to get only the latest message per room
-    const latestMessages = allLastMessages.filter(item => item.rn === 1);
+    // Simple sequential approach for last messages
+    const lastMessageByRoom = new Map<number, Message & { sender: User }>();
+    
+    for (const chatRoomId of chatRoomIds) {
+      const [lastMessageData] = await db
+        .select()
+        .from(messages)
+        .innerJoin(users, eq(messages.senderId, users.id))
+        .where(eq(messages.chatRoomId, chatRoomId))
+        .orderBy(desc(messages.createdAt))
+        .limit(1);
+      
+      if (lastMessageData) {
+        lastMessageByRoom.set(chatRoomId, {
+          ...lastMessageData.messages,
+          content: lastMessageData.messages.content ? decryptText(lastMessageData.messages.content) : lastMessageData.messages.content,
+          sender: lastMessageData.users
+        });
+      }
+    }
 
     // Group participants by chat room
     const participantsByRoom = new Map<number, User[]>();
@@ -185,16 +191,6 @@ export class DatabaseStorage implements IStorage {
         participantsByRoom.set(chatRoomId, []);
       }
       participantsByRoom.get(chatRoomId)!.push(user);
-    });
-
-    // Group last messages by chat room
-    const lastMessageByRoom = new Map<number, Message & { sender: User }>();
-    latestMessages.forEach(({ chatRoomId, message, sender }) => {
-      lastMessageByRoom.set(chatRoomId, {
-        ...message,
-        content: message.content ? decryptText(message.content) : message.content,
-        sender
-      });
     });
 
     // Combine results

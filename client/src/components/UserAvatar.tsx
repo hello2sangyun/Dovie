@@ -54,13 +54,15 @@ export function UserAvatar({
   return (
     <div className="relative">
       <Avatar className={cn(sizeMap[size], className)}>
-        {profileImageUrl && isLoaded ? (
+        {profileImageUrl && !imageError ? (
           <AvatarImage 
             src={profileImageUrl}
             alt={user.displayName}
             className="transition-opacity duration-200"
+            onLoad={() => setIsLoaded(true)}
             onError={() => {
               setImageError(true);
+              setIsLoaded(false);
             }}
           />
         ) : null}
