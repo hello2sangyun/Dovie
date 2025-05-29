@@ -57,6 +57,9 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
       
       const response = await fetch("/api/upload", {
         method: "POST",
+        headers: {
+          "x-user-id": user?.id.toString() || "",
+        },
         body: formData,
       });
       
@@ -68,6 +71,8 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
         displayName,
         profilePicture: uploadData.fileUrl
       });
+      setProfileImage(null);
+      setPreviewUrl(null);
     },
   });
 

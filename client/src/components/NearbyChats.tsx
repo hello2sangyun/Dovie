@@ -9,8 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { MapPin, Users, Plus, Clock, Star, Navigation } from "lucide-react";
+import { MapPin, Users, Plus, Clock, Star, Navigation, Camera, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface LocationChatRoom {
   id: number;
@@ -50,6 +52,12 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
   });
   const [showCreateRoom, setShowCreateRoom] = useState(false);
   const [newRoomName, setNewRoomName] = useState("");
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState<LocationChatRoom | null>(null);
+  const [joinNickname, setJoinNickname] = useState(user?.displayName || "");
+  const [joinProfileOption, setJoinProfileOption] = useState<"current" | "custom">("current");
+  const [customProfileImage, setCustomProfileImage] = useState<File | null>(null);
+  const [customProfilePreview, setCustomProfilePreview] = useState<string | null>(null);
 
   // Request location permission and get current location
   useEffect(() => {
@@ -235,6 +243,76 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
     },
   });
 
+  // Upload custom profile image for location chat
+  const uploadCustomProfileMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        headers: {
+          "x-user-id": user?.id.toString() || "",
+        },
+        body: formData,
+      });
+      
+      if (!response.ok) throw new Error("Upload failed");
+      return response.json();
+    },
+  });
+
+  const handleCustomImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setCustomProfileImage(file);
+      const url = URL.createObjectURL(file);
+      setCustomProfilePreview(url);
+    }
+  };
+
+  const handleJoinRoom = (room: LocationChatRoom) => {
+    setSelectedRoom(room);
+    setJoinNickname(user?.displayName || "");
+    setJoinProfileOption("current");
+    setCustomProfileImage(null);
+    setCustomProfilePreview(null);
+    setShowJoinModal(true);
+  };
+
+  const handleConfirmJoin = async () => {
+    if (!selectedRoom) return;
+
+    try {
+      let profileImageUrl = user?.profilePicture;
+      
+      // Upload custom profile image if selected
+      if (joinProfileOption === "custom" && customProfileImage) {
+        const uploadResult = await uploadCustomProfileMutation.mutateAsync(customProfileImage);
+        profileImageUrl = uploadResult.fileUrl;
+      }
+
+      // Join the room with custom profile data
+      const joinData = {
+        nickname: joinNickname,
+        profileImage: profileImageUrl
+      };
+
+      joinChatRoomMutation.mutate(selectedRoom.id);
+      setShowJoinModal(false);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "입장 실패",
+        description: "프로필 설정 중 오류가 발생했습니다.",
+      });
+    }
+  };
+
+  const getInitials = (name: string) => {
+    return name.split(' ').map(word => word.charAt(0).toUpperCase()).join('').slice(0, 2);
+  };
+
   const handleCreateRoom = () => {
     if (!newRoomName.trim() || !userLocation) return;
     
@@ -400,7 +478,7 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
                     
                     <Button
                       size="sm"
-                      onClick={() => joinChatRoomMutation.mutate(room.id)}
+                      onClick={() => handleJoinRoom(room)}
                       disabled={joinChatRoomMutation.isPending}
                       className="ml-2"
                     >
@@ -424,6 +502,93 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
           </div>
         )}
       </div>
+
+      {/* Join Room Profile Setup Modal */}
+      <Dialog open={showJoinModal} onOpenChange={setShowJoinModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>채팅방 입장 설정</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="nickname">채팅방에서 사용할 이름</Label>
+              <Input
+                id="nickname"
+                value={joinNickname}
+                onChange={(e) => setJoinNickname(e.target.value)}
+                placeholder="닉네임을 입력하세요"
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label>프로필 사진 설정</Label>
+              <RadioGroup 
+                value={joinProfileOption} 
+                onValueChange={(value) => setJoinProfileOption(value as "current" | "custom")}
+                className="mt-2"
+              >
+                <div className="flex items-center space-x-3">
+                  <RadioGroupItem value="current" id="current" />
+                  <label htmlFor="current" className="flex items-center space-x-2 cursor-pointer">
+                    <Avatar className="w-8 h-8">
+                      <AvatarImage src={user?.profilePicture || undefined} />
+                      <AvatarFallback className="text-sm bg-purple-100 text-purple-600">
+                        {getInitials(user?.displayName || "")}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm">현재 프로필 사용</span>
+                  </label>
+                </div>
+                
+                <div className="flex items-center space-x-3">
+                  <RadioGroupItem value="custom" id="custom" />
+                  <label htmlFor="custom" className="flex items-center space-x-2 cursor-pointer">
+                    <div className="relative">
+                      <Avatar className="w-8 h-8">
+                        <AvatarImage src={customProfilePreview || undefined} />
+                        <AvatarFallback className="text-sm bg-gray-100 text-gray-600">
+                          <Camera className="h-4 w-4" />
+                        </AvatarFallback>
+                      </Avatar>
+                      {joinProfileOption === "custom" && (
+                        <button
+                          onClick={() => document.getElementById('custom-profile-input')?.click()}
+                          className="absolute -bottom-1 -right-1 w-4 h-4 bg-purple-600 text-white rounded-full flex items-center justify-center hover:bg-purple-700"
+                        >
+                          <Camera className="h-2 w-2" />
+                        </button>
+                      )}
+                    </div>
+                    <span className="text-sm">새 프로필 업로드</span>
+                  </label>
+                  <input
+                    id="custom-profile-input"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleCustomImageSelect}
+                    className="hidden"
+                  />
+                </div>
+              </RadioGroup>
+            </div>
+          </div>
+
+          <div className="flex gap-2 mt-6">
+            <Button variant="outline" onClick={() => setShowJoinModal(false)} className="flex-1">
+              취소
+            </Button>
+            <Button 
+              onClick={handleConfirmJoin}
+              disabled={!joinNickname.trim() || joinChatRoomMutation.isPending}
+              className="flex-1"
+            >
+              {joinChatRoomMutation.isPending ? "입장 중..." : "입장하기"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
