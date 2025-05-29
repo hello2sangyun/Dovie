@@ -21,7 +21,36 @@ export default function LoginPage() {
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [keepLoggedIn, setKeepLoggedIn] = useState(true);
   const [username] = useState(`testuser_${Math.floor(Math.random() * 10000)}`);
+
+  // 위치정보 권한 요청 함수
+  const requestLocationPermission = () => {
+    if (!navigator.geolocation) {
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        localStorage.setItem("locationPermissionGranted", "true");
+        localStorage.setItem("userLocation", JSON.stringify({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+          timestamp: Date.now()
+        }));
+      },
+      (error) => {
+        console.warn("위치 정보 접근 거부:", error);
+        localStorage.setItem("locationPermissionGranted", "false");
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000
+      }
+    );
+  };
 
   const loginMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -31,6 +60,25 @@ export default function LoginPage() {
     onSuccess: (data) => {
       setUser(data.user);
       localStorage.setItem("userId", data.user.id.toString());
+      
+      // 로그인 유지 설정
+      if (keepLoggedIn) {
+        localStorage.setItem("keepLoggedIn", "true");
+        localStorage.setItem("userToken", data.token || "");
+      }
+      
+      // 관리자 계정 체크
+      if (formData.email === "master@master.com") {
+        setLocation("/admin");
+        toast({
+          title: "관리자 로그인",
+          description: "관리자 페이지로 이동합니다.",
+        });
+        return;
+      }
+      
+      // 위치정보 권한 요청
+      requestLocationPermission();
       
       // 프로필이 완성되지 않은 경우 프로필 설정 페이지로
       if (!data.user.isProfileComplete) {
@@ -138,6 +186,19 @@ export default function LoginPage() {
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
+                </div>
+
+                <div className="flex items-center space-x-2 mb-4">
+                  <input
+                    type="checkbox"
+                    id="keepLoggedIn"
+                    checked={keepLoggedIn}
+                    onChange={(e) => setKeepLoggedIn(e.target.checked)}
+                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                  />
+                  <label htmlFor="keepLoggedIn" className="text-sm text-gray-700">
+                    로그인 상태 유지
+                  </label>
                 </div>
 
                 <Button 
