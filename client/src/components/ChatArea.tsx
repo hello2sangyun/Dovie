@@ -1607,35 +1607,17 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                                 className={cn(
                                   isMe ? "text-white hover:bg-white/10" : "text-purple-600 hover:text-purple-700"
                                 )}
-                                onClick={async () => {
-                                  try {
-                                    const audio = new Audio(msg.fileUrl);
-                                    audio.addEventListener('error', (e) => {
-                                      console.error('Audio playback error:', e);
-                                      toast({
-                                        variant: "destructive",
-                                        title: "재생 오류",
-                                        description: "음성 파일을 재생할 수 없습니다.",
-                                      });
-                                    });
-                                    
-                                    audio.addEventListener('loadstart', () => {
-                                      console.log('Audio loading started');
-                                    });
-                                    
-                                    audio.addEventListener('canplay', () => {
-                                      console.log('Audio can start playing');
-                                    });
-                                    
-                                    await audio.play();
-                                  } catch (error) {
+                                onClick={() => {
+                                  console.log('Playing audio from:', msg.fileUrl);
+                                  const audio = new Audio(msg.fileUrl);
+                                  audio.play().catch(error => {
                                     console.error('Audio play error:', error);
                                     toast({
                                       variant: "destructive",
                                       title: "재생 실패",
-                                      description: "음성 메시지를 재생할 수 없습니다.",
+                                      description: "음성 파일을 로드할 수 없습니다.",
                                     });
-                                  }
+                                  });
                                 }}
                               >
                                 ▶️
