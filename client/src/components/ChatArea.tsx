@@ -2975,11 +2975,17 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           : 'border-transparent hover:border-blue-200 hover:bg-blue-50'
                       }`}
                       onClick={() => {
+                        // 환율 변환일 경우 사용 빈도 추적
+                        if (suggestion.type === 'currency' && suggestion.fromCurrency && suggestion.toCurrency) {
+                          updateCurrencyUsage(suggestion.fromCurrency, suggestion.toCurrency);
+                        }
+                        
                         // 제안 텍스트를 메시지 입력창으로 복사
                         setMessage(suggestion.text);
                         setShowSmartSuggestions(false);
                         setSmartSuggestions([]);
                         setSelectedSuggestionIndex(0);
+                        setIsNavigatingWithKeyboard(false);
                         if (suggestionTimeout) {
                           clearTimeout(suggestionTimeout);
                           setSuggestionTimeout(null);
