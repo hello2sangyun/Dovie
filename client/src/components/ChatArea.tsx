@@ -2120,6 +2120,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       );
       setHashSuggestions(filteredTags);
       setShowHashSuggestions(filteredTags.length > 0);
+      // 태그 추천 활성화 시 스마트 추천 비활성화
+      setShowSmartSuggestions(false);
+      setSmartSuggestions([]);
+      return; // 태그 모드일 때는 스마트 추천 로직 실행하지 않음
     } else {
       setShowHashSuggestions(false);
       setHashSuggestions([]);
