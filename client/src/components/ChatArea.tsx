@@ -1000,13 +1000,16 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // 스마트 채팅 상태
   const [smartSuggestions, setSmartSuggestions] = useState<Array<{
-    type: 'calculation' | 'currency';
+    type: 'calculation' | 'currency' | 'schedule' | 'translation' | 'payment' | 'address' | 'poll' | 'todo' | 'timer';
     text: string;
     result: string;
     amount?: number;
     fromCurrency?: string;
     toCurrency?: string;
     rate?: number;
+    icon?: string;
+    category?: string;
+    action?: () => void;
   }>>([]);
   const [showSmartSuggestions, setShowSmartSuggestions] = useState(false);
 
@@ -1076,7 +1079,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // 화폐 감지 함수
   const detectCurrency = (text: string): { amount: number; currency: string } | null => {
-    // 금액과 화폐 단위 패턴 매칭
     const patterns = [
       /(\d+(?:\.\d+)?)\s*(원|₩)/i,
       /(\d+(?:\.\d+)?)\s*(달러|\$|dollar)/i,
@@ -1097,13 +1099,172 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         if (amount > 0) {
           const currencyText = (match[2] || match[1]).toLowerCase();
           
-          // 화폐 코드 결정
           for (const [code, info] of Object.entries(currencyPatterns)) {
             if (info.symbols.some(symbol => currencyText.includes(symbol.toLowerCase()))) {
               return { amount, currency: code };
             }
           }
         }
+      }
+    }
+    return null;
+  };
+
+  // 일정/시간 감지 함수
+  const detectSchedule = (text: string) => {
+    const patterns = [
+      /(내일|오늘|모레)\s*(\d{1,2})시/i,
+      /(\d{1,2})월\s*(\d{1,2})일\s*(\d{1,2})시/i,
+      /(\d{1,2})시에?\s*(회의|미팅|약속)/i,
+      /(회의|미팅|약속).*(\d{1,2})시/i
+    ];
+    
+    for (const pattern of patterns) {
+      if (pattern.test(text)) {
+        return {
+          type: 'schedule' as const,
+          text: '일정 등록하기',
+          result: `일정: ${text}`,
+          icon: '📅',
+          category: '일정 관리'
+        };
+      }
+    }
+    return null;
+  };
+
+  // 외국어 감지 함수
+  const detectForeignLanguage = (text: string) => {
+    const patterns = {
+      english: /^[a-zA-Z\s\.,!?'"]+$/,
+      chinese: /[\u4e00-\u9fff]/,
+      japanese: /[\u3040-\u309f\u30a0-\u30ff]/,
+      arabic: /[\u0600-\u06ff]/,
+      russian: /[\u0400-\u04ff]/
+    };
+
+    for (const [lang, pattern] of Object.entries(patterns)) {
+      if (pattern.test(text) && text.length > 5) {
+        return {
+          type: 'translation' as const,
+          text: '한국어로 번역하기',
+          result: `번역: ${text}`,
+          icon: '🌐',
+          category: '번역'
+        };
+      }
+    }
+    return null;
+  };
+
+  // 송금 문장 감지 함수
+  const detectPayment = (text: string) => {
+    const patterns = [
+      /(\d+(?:만|천)?\s*원)\s*(보내|송금|이체)/i,
+      /(보내|송금|이체).*(\d+(?:만|천)?\s*원)/i,
+      /돈.*(\d+(?:만|천)?\s*원)/i
+    ];
+
+    for (const pattern of patterns) {
+      if (pattern.test(text)) {
+        return {
+          type: 'payment' as const,
+          text: '송금 링크 만들기',
+          result: `송금 요청: ${text}`,
+          icon: '💰',
+          category: '송금'
+        };
+      }
+    }
+    return null;
+  };
+
+  // 주소 감지 함수
+  const detectAddress = (text: string) => {
+    const patterns = [
+      /[가-힣]+시\s*[가-힣]+구\s*[가-힣]+로/i,
+      /[가-힣]+동\s*\d+번지/i,
+      /[가-힣]+역\s*근처/i,
+      /서울|부산|대구|인천|광주|대전|울산|세종/i
+    ];
+
+    for (const pattern of patterns) {
+      if (pattern.test(text)) {
+        return {
+          type: 'address' as const,
+          text: '지도에서 보기',
+          result: `위치: ${text}`,
+          icon: '📍',
+          category: '위치'
+        };
+      }
+    }
+    return null;
+  };
+
+  // 선택지/투표 감지 함수
+  const detectPoll = (text: string) => {
+    const patterns = [
+      /(.+),\s*(.+),?\s*(중에|중에서).*(뭐|무엇|어떤)/i,
+      /(.+)\s*(아니면|또는|vs)\s*(.+)[?？]/i,
+      /(치킨|피자|햄버거|중국음식|한식|일식|양식).*뭐.*먹/i
+    ];
+
+    for (const pattern of patterns) {
+      if (pattern.test(text)) {
+        return {
+          type: 'poll' as const,
+          text: '투표 만들기',
+          result: `투표: ${text}`,
+          icon: '📊',
+          category: '투표'
+        };
+      }
+    }
+    return null;
+  };
+
+  // 할 일 감지 함수
+  const detectTodo = (text: string) => {
+    const patterns = [
+      /.*(해야|해야지|해야겠).*/i,
+      /.*(끝내|완료|제출).*(해야|해야지)/i,
+      /오늘.*까지.*해야/i,
+      /(보고서|과제|숙제|업무).*(해야|완료)/i
+    ];
+
+    for (const pattern of patterns) {
+      if (pattern.test(text)) {
+        return {
+          type: 'todo' as const,
+          text: '할 일 등록하기',
+          result: `할 일: ${text}`,
+          icon: '✅',
+          category: '할 일'
+        };
+      }
+    }
+    return null;
+  };
+
+  // 타이머 감지 함수
+  const detectTimer = (text: string) => {
+    const patterns = [
+      /(\d+)분\s*(뒤에|후에|있다가)\s*(알려|깨워|알림)/i,
+      /(\d+)시간\s*(뒤에|후에|있다가)\s*(알려|깨워|알림)/i,
+      /(알림|타이머).*(\d+)(분|시간)/i
+    ];
+
+    for (const pattern of patterns) {
+      const match = text.match(pattern);
+      if (match) {
+        return {
+          type: 'timer' as const,
+          text: '타이머 설정하기',
+          result: `타이머: ${text}`,
+          icon: '⏰',
+          category: '타이머'
+        };
       }
     }
     return null;
@@ -1125,22 +1286,26 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const handleMessageChange = async (value: string) => {
     setMessage(value);
     
-    // 스마트 채팅 기능 1: 환전 기능
+    if (value.trim().length < 2) {
+      setShowSmartSuggestions(false);
+      setSmartSuggestions([]);
+      return;
+    }
+    
+    const allSuggestions = [];
+    
+    // 1. 환전 기능
     const currencyDetection = detectCurrency(value);
     if (currencyDetection && currencyDetection.amount >= 1) {
       try {
         const suggestions = await getExchangeRates(currencyDetection.currency, currencyDetection.amount);
-        if (suggestions.length > 0) {
-          setSmartSuggestions(suggestions);
-          setShowSmartSuggestions(true);
-          return;
-        }
+        allSuggestions.push(...suggestions);
       } catch (error) {
         console.error('환율 조회 중 오류:', error);
       }
     }
     
-    // 스마트 채팅 기능 2: 계산기
+    // 2. 계산기
     const calculationMatch = value.match(/[\d\+\-\*\/\(\)\.\s]+$/);
     if (calculationMatch && calculationMatch[0].length > 3) {
       const expression = calculationMatch[0].trim();
@@ -1148,13 +1313,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         try {
           const result = evaluateExpression(expression);
           if (result !== null && !isNaN(result)) {
-            setSmartSuggestions([{
+            allSuggestions.push({
               type: 'calculation',
               text: `${expression} = ${result}`,
-              result: `${expression} = ${result}`
-            }]);
-            setShowSmartSuggestions(true);
-            return;
+              result: `${expression} = ${result}`,
+              icon: '🧮',
+              category: '계산'
+            });
           }
         } catch (e) {
           // 계산 오류 무시
@@ -1162,8 +1327,55 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       }
     }
     
-    setShowSmartSuggestions(false);
-    setSmartSuggestions([]);
+    // 3. 일정/시간 감지
+    const scheduleDetection = detectSchedule(value);
+    if (scheduleDetection) {
+      allSuggestions.push(scheduleDetection);
+    }
+    
+    // 4. 외국어 감지
+    const foreignLanguageDetection = detectForeignLanguage(value);
+    if (foreignLanguageDetection) {
+      allSuggestions.push(foreignLanguageDetection);
+    }
+    
+    // 5. 송금 감지
+    const paymentDetection = detectPayment(value);
+    if (paymentDetection) {
+      allSuggestions.push(paymentDetection);
+    }
+    
+    // 6. 주소 감지
+    const addressDetection = detectAddress(value);
+    if (addressDetection) {
+      allSuggestions.push(addressDetection);
+    }
+    
+    // 7. 투표 감지
+    const pollDetection = detectPoll(value);
+    if (pollDetection) {
+      allSuggestions.push(pollDetection);
+    }
+    
+    // 8. 할 일 감지
+    const todoDetection = detectTodo(value);
+    if (todoDetection) {
+      allSuggestions.push(todoDetection);
+    }
+    
+    // 9. 타이머 감지
+    const timerDetection = detectTimer(value);
+    if (timerDetection) {
+      allSuggestions.push(timerDetection);
+    }
+    
+    if (allSuggestions.length > 0) {
+      setSmartSuggestions(allSuggestions.slice(0, 5)); // 최대 5개만 표시
+      setShowSmartSuggestions(true);
+    } else {
+      setShowSmartSuggestions(false);
+      setSmartSuggestions([]);
+    }
   };
 
   // 창 밖 클릭 시 커맨드 창 닫기
@@ -2094,39 +2306,66 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               className="resize-none"
             />
             
-            {/* 스마트 채팅 제안 */}
+            {/* 스마트 채팅 제안 - 모바일 최적화 */}
             {showSmartSuggestions && smartSuggestions.length > 0 && (
-              <div className="absolute bottom-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mb-1 max-h-60 overflow-y-auto">
+              <div className="absolute bottom-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mb-1 max-h-60 overflow-y-auto z-50">
                 <div className="p-2">
                   <div className="text-xs font-medium text-gray-500 mb-2 px-1">스마트 제안</div>
                   {smartSuggestions.map((suggestion, index) => (
                     <div
                       key={index}
-                      className="p-2 hover:bg-blue-50 rounded cursor-pointer transition-colors"
+                      className="p-3 hover:bg-blue-50 rounded-lg cursor-pointer transition-colors border border-transparent hover:border-blue-200"
                       onClick={() => handleSmartSuggestionSelect(suggestion)}
                     >
-                      <div className="flex items-center space-x-2">
-                        {suggestion.type === 'calculation' ? (
-                          <>
-                            <span className="text-blue-600">🧮</span>
-                            <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium">
-                              계산 결과
+                      <div className="flex items-start space-x-3">
+                        <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                          suggestion.type === 'calculation' ? 'bg-blue-100' :
+                          suggestion.type === 'currency' ? 'bg-green-100' :
+                          suggestion.type === 'schedule' ? 'bg-purple-100' :
+                          suggestion.type === 'translation' ? 'bg-indigo-100' :
+                          suggestion.type === 'payment' ? 'bg-yellow-100' :
+                          suggestion.type === 'address' ? 'bg-red-100' :
+                          suggestion.type === 'poll' ? 'bg-pink-100' :
+                          suggestion.type === 'todo' ? 'bg-emerald-100' :
+                          suggestion.type === 'timer' ? 'bg-orange-100' :
+                          'bg-gray-100'
+                        }`}>
+                          <span className={`text-sm ${
+                            suggestion.type === 'calculation' ? 'text-blue-600' :
+                            suggestion.type === 'currency' ? 'text-green-600' :
+                            suggestion.type === 'schedule' ? 'text-purple-600' :
+                            suggestion.type === 'translation' ? 'text-indigo-600' :
+                            suggestion.type === 'payment' ? 'text-yellow-600' :
+                            suggestion.type === 'address' ? 'text-red-600' :
+                            suggestion.type === 'poll' ? 'text-pink-600' :
+                            suggestion.type === 'todo' ? 'text-emerald-600' :
+                            suggestion.type === 'timer' ? 'text-orange-600' :
+                            'text-gray-600'
+                          }`}>
+                            {suggestion.icon || (suggestion.type === 'calculation' ? '🧮' : '💱')}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                              suggestion.type === 'calculation' ? 'bg-blue-100 text-blue-700' :
+                              suggestion.type === 'currency' ? 'bg-green-100 text-green-700' :
+                              suggestion.type === 'schedule' ? 'bg-purple-100 text-purple-700' :
+                              suggestion.type === 'translation' ? 'bg-indigo-100 text-indigo-700' :
+                              suggestion.type === 'payment' ? 'bg-yellow-100 text-yellow-700' :
+                              suggestion.type === 'address' ? 'bg-red-100 text-red-700' :
+                              suggestion.type === 'poll' ? 'bg-pink-100 text-pink-700' :
+                              suggestion.type === 'todo' ? 'bg-emerald-100 text-emerald-700' :
+                              suggestion.type === 'timer' ? 'bg-orange-100 text-orange-700' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {suggestion.category || (suggestion.type === 'calculation' ? '계산 결과' : '환율 변환')}
                             </span>
-                            <span className="text-sm text-gray-700 font-mono">
-                              {suggestion.text}
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <span className="text-green-600">💱</span>
-                            <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-medium">
-                              환율 변환
-                            </span>
-                            <span className="text-sm text-gray-700">
-                              {suggestion.text}
-                            </span>
-                          </>
-                        )}
+                          </div>
+                          <div className="text-sm text-gray-700 break-all">
+                            {suggestion.text}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
