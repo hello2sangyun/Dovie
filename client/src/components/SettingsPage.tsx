@@ -29,18 +29,38 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
   // Profile update mutation
   const updateProfileMutation = useMutation({
     mutationFn: async (data: { displayName?: string; profilePicture?: string }) => {
+      console.log("Updating profile with data:", data);
       const response = await apiRequest(`/api/users/${user?.id}`, "PATCH", data);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      console.log("Profile update successful:", data);
+      
+      // 1. Auth 컨텍스트 업데이트
       setUser(data.user);
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      
+      // 2. React Query 캐시 강제 새로고침
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
+      
+      // 3. 모든 채팅방 관련 쿼리도 새로고침 (프로필 사진이 채팅방에 반영되도록)
+      await queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
+      
+      // 4. 로컬 상태 초기화
+      setProfileImage(null);
+      setPreviewUrl(null);
+      
       toast({
         title: "프로필 업데이트 완료",
         description: "프로필이 성공적으로 업데이트되었습니다.",
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Profile update error:", error);
       toast({
         variant: "destructive",
         title: "업데이트 실패",
@@ -52,6 +72,7 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
   // Profile image upload mutation
   const uploadImageMutation = useMutation({
     mutationFn: async (file: File) => {
+      console.log("Starting image upload...");
       const formData = new FormData();
       formData.append("file", file);
       
@@ -63,14 +84,29 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
         body: formData,
       });
       
-      if (!response.ok) throw new Error("Upload failed");
-      return response.json();
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Upload failed:", errorText);
+        throw new Error(`Upload failed: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log("Image upload result:", result);
+      return result;
     },
     onSuccess: (uploadData) => {
-      console.log("Image uploaded successfully:", uploadData);
+      console.log("Image uploaded successfully, updating profile:", uploadData);
       updateProfileMutation.mutate({
         displayName,
         profilePicture: uploadData.fileUrl
+      });
+    },
+    onError: (error) => {
+      console.error("Image upload error:", error);
+      toast({
+        variant: "destructive",
+        title: "이미지 업로드 실패",
+        description: "이미지 업로드에 실패했습니다.",
       });
     },
   });

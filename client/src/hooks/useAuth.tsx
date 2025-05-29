@@ -18,7 +18,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const { data, isLoading } = useQuery({
     queryKey: ["/api/auth/me"],
-    enabled: !!storedUserId && !user,
+    enabled: !!storedUserId,
+    refetchInterval: 30000, // 30초마다 자동 새로고침
+    staleTime: 0, // 항상 최신 데이터 요청
     queryFn: async () => {
       const response = await fetch("/api/auth/me", {
         headers: {
