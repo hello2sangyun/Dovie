@@ -1182,62 +1182,91 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     'PLN': { symbols: ['즐로티', 'zł', 'pln'], name: '폴란드 즐로티' }
   };
 
+  // 고정 환율 (실제 API 실패 시 사용할 기본값)
+  const fallbackRates: { [key: string]: { [key: string]: number } } = {
+    'USD': { 'KRW': 1300, 'EUR': 0.85, 'JPY': 150, 'CNY': 7.2, 'GBP': 0.79, 'HUF': 350, 'CZK': 23, 'PLN': 4.0 },
+    'EUR': { 'USD': 1.18, 'KRW': 1530, 'JPY': 176, 'CNY': 8.5, 'GBP': 0.93, 'HUF': 412, 'CZK': 27, 'PLN': 4.7 },
+    'KRW': { 'USD': 0.00077, 'EUR': 0.00065, 'JPY': 0.115, 'CNY': 0.0055, 'GBP': 0.00061, 'HUF': 0.27, 'CZK': 0.018, 'PLN': 0.0031 },
+    'JPY': { 'USD': 0.0067, 'EUR': 0.0057, 'KRW': 8.7, 'CNY': 0.048, 'GBP': 0.0053, 'HUF': 2.33, 'CZK': 0.15, 'PLN': 0.027 },
+    'CNY': { 'USD': 0.139, 'EUR': 0.118, 'KRW': 181, 'JPY': 20.8, 'GBP': 0.11, 'HUF': 48.6, 'CZK': 3.2, 'PLN': 0.56 },
+    'GBP': { 'USD': 1.27, 'EUR': 1.08, 'KRW': 1650, 'JPY': 190, 'CNY': 9.1, 'HUF': 443, 'CZK': 29, 'PLN': 5.1 },
+    'HUF': { 'USD': 0.0029, 'EUR': 0.0024, 'KRW': 3.7, 'JPY': 0.43, 'CNY': 0.021, 'GBP': 0.0023, 'CZK': 0.066, 'PLN': 0.011 },
+    'CZK': { 'USD': 0.043, 'EUR': 0.037, 'KRW': 56, 'JPY': 6.5, 'CNY': 0.31, 'GBP': 0.034, 'HUF': 15.2, 'PLN': 0.17 },
+    'PLN': { 'USD': 0.25, 'EUR': 0.21, 'KRW': 325, 'JPY': 37.5, 'CNY': 1.8, 'GBP': 0.20, 'HUF': 87.5, 'CZK': 5.8 }
+  };
+
   // 환율 가져오기 함수 (확장된 통화 지원 및 사용 빈도 추적)
   const getExchangeRates = async (fromCurrency: string, amount: number) => {
+    let rates: { [key: string]: number } = {};
+    let usingFallback = false;
+    
     try {
-      // 무료 환율 API 사용 (exchangerate-api.com)
+      // 실제 환율 API 사용 시도
       const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${fromCurrency}`);
       const data = await response.json();
+      rates = data.rates || {};
+    } catch (error) {
+      console.log('실제 환율 API 실패, 고정 환율 사용');
+      usingFallback = true;
+    }
+    
+    // API 실패 또는 일부 통화 누락 시 고정 환율 사용
+    if (usingFallback || Object.keys(rates).length < 5) {
+      rates = fallbackRates[fromCurrency] || {};
+      usingFallback = true;
+    }
+    
+    const usage = getCurrencyUsage();
+    const suggestions = [];
+    
+    // 지원되는 모든 통화
+    const allCurrencies = ['USD', 'EUR', 'JPY', 'CNY', 'KRW', 'GBP', 'HUF', 'CZK', 'PLN'];
+    const targetCurrencies = allCurrencies.filter(c => c !== fromCurrency);
+    
+    // 사용 빈도와 함께 변환 결과 생성
+    const conversions = [];
+    for (const toCurrency of targetCurrencies) {
+      let rate = rates[toCurrency];
       
-      const usage = getCurrencyUsage();
-      const suggestions = [];
-      
-      // 지원되는 모든 통화
-      const allCurrencies = ['USD', 'EUR', 'JPY', 'CNY', 'KRW', 'GBP', 'HUF', 'CZK', 'PLN'];
-      const targetCurrencies = allCurrencies.filter(c => c !== fromCurrency);
-      
-      // 사용 빈도와 함께 변환 결과 생성
-      const conversions = [];
-      for (const toCurrency of targetCurrencies) {
-        if (data.rates[toCurrency]) {
-          const rate = data.rates[toCurrency];
-          const convertedAmount = amount * rate;
-          const usageKey = `${fromCurrency}_${toCurrency}`;
-          const usageCount = usage[usageKey] || 0;
-          
-          conversions.push({
-            toCurrency,
-            rate,
-            convertedAmount,
-            usageCount,
-            text: `${formatNumber(amount)} ${fromCurrency} → ${formatNumber(Math.round(convertedAmount * 100) / 100)} ${toCurrency}`,
-            result: `${formatNumber(amount)} ${fromCurrency} = ${formatNumber(Math.round(convertedAmount * 100) / 100)} ${toCurrency}`
-          });
-        }
+      // 환율이 없으면 고정 환율에서 찾기
+      if (!rate && fallbackRates[fromCurrency] && fallbackRates[fromCurrency][toCurrency]) {
+        rate = fallbackRates[fromCurrency][toCurrency];
       }
       
-      // 사용 빈도순으로 정렬 후 상위 5개 선택
-      conversions.sort((a, b) => b.usageCount - a.usageCount);
-      const topConversions = conversions.slice(0, 5);
-      
-      // 제안 형태로 변환
-      for (const conversion of topConversions) {
-        suggestions.push({
-          type: 'currency' as const,
-          text: conversion.text,
-          result: conversion.result,
-          amount,
-          fromCurrency,
-          toCurrency: conversion.toCurrency,
-          rate: conversion.rate
+      if (rate) {
+        const convertedAmount = amount * rate;
+        const usageKey = `${fromCurrency}_${toCurrency}`;
+        const usageCount = usage[usageKey] || 0;
+        
+        conversions.push({
+          toCurrency,
+          rate,
+          convertedAmount,
+          usageCount,
+          text: `${formatNumber(amount)} ${fromCurrency} → ${formatNumber(Math.round(convertedAmount * 100) / 100)} ${toCurrency}`,
+          result: `${formatNumber(amount)} ${fromCurrency} = ${formatNumber(Math.round(convertedAmount * 100) / 100)} ${toCurrency}`
         });
       }
-      
-      return suggestions;
-    } catch (error) {
-      console.error('환율 가져오기 실패:', error);
-      return [];
     }
+    
+    // 사용 빈도순으로 정렬 후 모든 변환 표시 (최대 8개)
+    conversions.sort((a, b) => b.usageCount - a.usageCount);
+    const topConversions = conversions.slice(0, 8);
+    
+    // 제안 형태로 변환
+    for (const conversion of topConversions) {
+      suggestions.push({
+        type: 'currency' as const,
+        text: conversion.text,
+        result: conversion.result,
+        amount,
+        fromCurrency,
+        toCurrency: conversion.toCurrency,
+        rate: conversion.rate
+      });
+    }
+    
+    return suggestions;
   };
 
   // 화폐 감지 함수 (확장된 통화 지원)
