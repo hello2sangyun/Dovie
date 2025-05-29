@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause } from "lucide-react";
@@ -90,7 +91,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     enabled: !!user,
   });
 
-  const currentChatRoom = chatRoomsData?.chatRooms?.find((room: any) => room.id === chatRoomId);
+  const currentChatRoom = (chatRoomsData as any)?.chatRooms?.find((room: any) => room.id === chatRoomId);
 
   // Get contacts to check if other participants are friends
   const { data: contactsData } = useQuery({
@@ -1943,9 +1944,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           </div>
           
           <div className="flex-1 relative mx-1">
-            <Input
+            <Textarea
               ref={messageInputRef}
-              type="text"
               placeholder="메시지를 입력하세요..."
               value={message}
               onChange={(e) => handleMessageChange(e.target.value)}

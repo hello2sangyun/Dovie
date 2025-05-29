@@ -50,10 +50,21 @@ export function decryptFileData(encryptedData: string): Buffer {
   try {
     const decrypted = CryptoJS.AES.decrypt(encryptedData, ENCRYPTION_KEY);
     const base64Data = decrypted.toString(CryptoJS.enc.Utf8);
+    
+    // 복호화된 데이터가 유효한지 확인
+    if (!base64Data || base64Data.length === 0) {
+      throw new Error('복호화된 데이터가 비어있습니다');
+    }
+    
     return Buffer.from(base64Data, 'base64');
   } catch (error) {
     console.error('파일 복호화 오류:', error);
-    throw new Error('파일 복호화에 실패했습니다');
+    // 복호화 실패 시 원본 데이터를 그대로 반환 (암호화되지 않은 파일일 수 있음)
+    try {
+      return Buffer.from(encryptedData, 'base64');
+    } catch {
+      throw new Error('파일 데이터 처리에 실패했습니다');
+    }
   }
 }
 

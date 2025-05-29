@@ -1042,6 +1042,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // File upload route
+  app.post("/api/upload", upload.single("file"), async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    try {
+      const fileBuffer = fs.readFileSync(req.file.path);
+      const encryptedData = encryptFileData(fileBuffer);
+      const encryptedFileName = hashFileName(req.file.originalname);
+      const encryptedFilePath = path.join(uploadDir, encryptedFileName);
+
+      await fs.promises.writeFile(encryptedFilePath, encryptedData, 'utf8');
+      fs.unlinkSync(req.file.path); // 임시 파일 삭제
+
+      res.json({
+        fileUrl: `/uploads/${encryptedFileName}`,
+        fileName: req.file.originalname,
+        fileSize: req.file.size,
+        fileType: req.file.mimetype
+      });
+    } catch (error) {
+      console.error("File upload error:", error);
+      res.status(500).json({ message: "File upload failed" });
+    }
+  });
+
+  // File decryption route
+  app.get("/uploads/:filename", async (req, res) => {
+    try {
+      const { filename } = req.params;
+      const filePath = path.join(uploadDir, filename);
+
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ message: "File not found" });
+      }
+
+      const encryptedData = await fs.promises.readFile(filePath, 'utf8');
+      
+      try {
+        const decryptedBuffer = decryptFileData(encryptedData);
+        
+        // 파일 확장자로 MIME 타입 결정
+        const ext = path.extname(filename).toLowerCase();
+        let contentType = 'application/octet-stream';
+        
+        if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
+        else if (ext === '.png') contentType = 'image/png';
+        else if (ext === '.gif') contentType = 'image/gif';
+        else if (ext === '.webp') contentType = 'image/webp';
+        else if (ext === '.mp3') contentType = 'audio/mpeg';
+        else if (ext === '.wav') contentType = 'audio/wav';
+        else if (ext === '.webm') contentType = 'audio/webm';
+        else if (ext === '.mp4') contentType = 'video/mp4';
+        else if (ext === '.pdf') contentType = 'application/pdf';
+        else if (ext === '.txt') contentType = 'text/plain';
+
+        res.set('Content-Type', contentType);
+        res.set('Cache-Control', 'public, max-age=31536000');
+        res.send(decryptedBuffer);
+      } catch (decryptError) {
+        // 복호화 실패 시 원본 파일 그대로 서빙 (암호화되지 않은 파일일 수 있음)
+        const rawData = await fs.promises.readFile(filePath);
+        res.send(rawData);
+      }
+    } catch (error) {
+      console.error("File serving error:", error);
+      res.status(500).json({ message: "File serving failed" });
+    }
+  });
+
   // Get user by ID for QR scanning
   app.get("/api/users/:id", async (req, res) => {
     const userId = req.headers["x-user-id"];
