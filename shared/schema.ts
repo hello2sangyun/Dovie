@@ -181,7 +181,7 @@ export const locationChatMessages = pgTable("location_chat_messages", {
 
 export const userLocations = pgTable("user_locations", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull().unique(),
   latitude: decimal("latitude", { precision: 10, scale: 8 }).notNull(),
   longitude: decimal("longitude", { precision: 11, scale: 8 }).notNull(),
   accuracy: decimal("accuracy", { precision: 8, scale: 2 }),

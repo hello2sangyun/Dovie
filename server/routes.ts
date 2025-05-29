@@ -304,6 +304,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Location-based chat routes
+  app.post("/api/location/update", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { latitude, longitude, accuracy } = req.body;
+      
+      if (!latitude || !longitude) {
+        return res.status(400).json({ message: "위도와 경도가 필요합니다." });
+      }
+
+      await storage.updateUserLocation(Number(userId), {
+        latitude: Number(latitude),
+        longitude: Number(longitude),
+        accuracy: Number(accuracy) || 0
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Location update error:", error);
+      res.status(500).json({ message: "위치 정보 업데이트에 실패했습니다." });
+    }
+  });
+
+  app.get("/api/location/nearby-chats", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { latitude, longitude, radius } = req.query;
+      
+      if (!latitude || !longitude) {
+        return res.status(400).json({ message: "위도와 경도가 필요합니다." });
+      }
+
+      const chatRooms = await storage.getNearbyLocationChatRooms(
+        Number(latitude),
+        Number(longitude),
+        Number(radius) || 100
+      );
+
+      res.json({ chatRooms });
+    } catch (error) {
+      console.error("Nearby chats error:", error);
+      res.status(500).json({ message: "주변 채팅방을 가져올 수 없습니다." });
+    }
+  });
+
+  app.post("/api/location/chat-rooms", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { name, latitude, longitude, address } = req.body;
+      
+      if (!name || !latitude || !longitude) {
+        return res.status(400).json({ message: "채팅방 이름, 위도, 경도가 필요합니다." });
+      }
+
+      const chatRoom = await storage.createLocationChatRoom(Number(userId), {
+        name,
+        latitude: Number(latitude),
+        longitude: Number(longitude),
+        address: address || "위치 정보 없음"
+      });
+
+      res.json({ chatRoom });
+    } catch (error) {
+      console.error("Create location chat room error:", error);
+      res.status(500).json({ message: "채팅방 생성에 실패했습니다." });
+    }
+  });
+
+  app.post("/api/location/chat-rooms/:roomId/join", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const roomId = Number(req.params.roomId);
+      
+      await storage.joinLocationChatRoom(Number(userId), roomId);
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Join location chat room error:", error);
+      res.status(500).json({ message: "채팅방 입장에 실패했습니다." });
+    }
+  });
+
   // User routes
   app.put("/api/users/:id", async (req, res) => {
     try {

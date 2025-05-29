@@ -121,6 +121,18 @@ export default function NearbyChats() {
   // Get nearby chat rooms
   const { data: nearbyChatRooms, isLoading } = useQuery({
     queryKey: ["/api/location/nearby-chats", userLocation],
+    queryFn: async () => {
+      if (!userLocation) return { chatRooms: [] };
+      
+      const params = new URLSearchParams({
+        latitude: userLocation.latitude.toString(),
+        longitude: userLocation.longitude.toString(),
+        radius: "100"
+      });
+      
+      const response = await apiRequest(`/api/location/nearby-chats?${params}`, "GET");
+      return response.json();
+    },
     enabled: !!userLocation && !!user,
     refetchInterval: 30000, // Refresh every 30 seconds
   });

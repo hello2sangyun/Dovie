@@ -1,12 +1,14 @@
 import { 
   users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications,
+  locationChatRooms, locationChatParticipants, userLocations,
   type User, type InsertUser, type Contact, type InsertContact,
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
   type Command, type InsertCommand, type MessageRead, type InsertMessageRead,
-  type PhoneVerification, type InsertPhoneVerification
+  type PhoneVerification, type InsertPhoneVerification,
+  type LocationChatRoom, type InsertLocationChatRoom
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, like, or, count, gt, lt } from "drizzle-orm";
+import { eq, and, desc, asc, like, or, count, gt, lt, sql } from "drizzle-orm";
 import { encryptText, decryptText } from "./crypto";
 
 export interface IStorage {
@@ -526,6 +528,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserLocation(userId: number, location: { latitude: number; longitude: number; accuracy: number }): Promise<void> {
+    // Delete existing location if any
+    await db.delete(userLocations).where(eq(userLocations.userId, userId));
+    
+    // Insert new location
     await db
       .insert(userLocations)
       .values({
@@ -533,15 +539,6 @@ export class DatabaseStorage implements IStorage {
         latitude: location.latitude.toString(),
         longitude: location.longitude.toString(),
         accuracy: location.accuracy.toString()
-      })
-      .onConflictDoUpdate({
-        target: userLocations.userId,
-        set: {
-          latitude: location.latitude.toString(),
-          longitude: location.longitude.toString(),
-          accuracy: location.accuracy.toString(),
-          updatedAt: new Date()
-        }
       });
   }
 
