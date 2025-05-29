@@ -1231,7 +1231,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // 스마트 채팅 상태
   const [smartSuggestions, setSmartSuggestions] = useState<Array<{
-    type: 'calculation' | 'currency' | 'schedule' | 'translation' | 'address' | 'poll' | 'todo' | 'timer' | 'emotion' | 'food' | 'youtube' | 'news' | 'unit' | 'search' | 'birthday' | 'meeting' | 'reminder' | 'quote' | 'question' | 'followup' | 'summary' | 'decision' | 'category' | 'file_summary' | 'topic_info';
+    type: 'calculation' | 'currency' | 'schedule' | 'translation' | 'address' | 'poll' | 'todo' | 'timer' | 'emotion' | 'food' | 'youtube' | 'news' | 'unit' | 'search' | 'birthday' | 'meeting' | 'reminder' | 'quote' | 'question' | 'followup' | 'summary' | 'decision' | 'category' | 'file_summary' | 'topic_info' | 'mannertone' | 'file_request';
     text: string;
     result: string;
     amount?: number;
@@ -2111,6 +2111,20 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const handleMessageChange = async (value: string) => {
     setMessage(value);
     
+    // # 태그 감지 및 추천
+    const hashMatch = value.match(/#(\w*)$/);
+    if (hashMatch) {
+      const currentTag = hashMatch[1].toLowerCase();
+      const filteredTags = storedTags.filter(tag => 
+        tag.toLowerCase().includes(currentTag)
+      );
+      setHashSuggestions(filteredTags);
+      setShowHashSuggestions(filteredTags.length > 0);
+    } else {
+      setShowHashSuggestions(false);
+      setHashSuggestions([]);
+    }
+    
     if (value.trim().length < 2) {
       setShowSmartSuggestions(false);
       setSmartSuggestions([]);
@@ -2285,6 +2299,18 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     const topicInfoDetection = detectTopicInfo(value);
     if (topicInfoDetection) {
       allSuggestions.push(topicInfoDetection);
+    }
+
+    // 24. 매너톤 감지
+    const mannertoneDetection = detectMannertone(value);
+    if (mannertoneDetection) {
+      allSuggestions.push(mannertoneDetection);
+    }
+
+    // 25. 파일 요청/공유 감지
+    const fileRequestDetection = detectFileRequest(value);
+    if (fileRequestDetection) {
+      allSuggestions.push(fileRequestDetection);
     }
     
     // 기존 타이머 제거
@@ -3255,7 +3281,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           </div>
         )}
         
-        <div className="px-2 pb-0 pt-1 chat-input-area">
+        <div className="px-2 pb-1 pt-1 chat-input-area">
           <div className="flex items-center space-x-1">
           {/* Compact left buttons group */}
           <div className="flex items-center space-x-0.5 mr-1">
@@ -3364,6 +3390,31 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               className="resize-none"
             />
             
+            {/* # 태그 추천 */}
+            {showHashSuggestions && hashSuggestions.length > 0 && (
+              <div className="absolute bottom-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mb-1 max-h-32 overflow-y-auto z-50">
+                <div className="p-1">
+                  <div className="text-xs font-medium text-gray-500 mb-1 px-2"># 태그 추천</div>
+                  {hashSuggestions.map((tag, index) => (
+                    <div
+                      key={tag}
+                      className="flex items-center p-2 hover:bg-gray-50 cursor-pointer rounded text-sm"
+                      onClick={() => {
+                        const currentMessage = message.replace(/#\w*$/, `#${tag} `);
+                        setMessage(currentMessage);
+                        setShowHashSuggestions(false);
+                        setHashSuggestions([]);
+                        messageInputRef.current?.focus();
+                      }}
+                    >
+                      <Hash className="h-3 w-3 text-purple-500 mr-1" />
+                      <span className="text-gray-700">{tag}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* 스마트 채팅 제안 - 컴팩트 디자인 */}
             {showSmartSuggestions && smartSuggestions.length > 0 && (
               <div 

@@ -434,19 +434,43 @@ export default function AdminPage() {
                 <CardHeader>
                   <CardTitle>지역별 사용자 분포</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {stats.locationStats.map((location, index) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">{location.region}</span>
-                        <div className="flex items-center space-x-2">
-                          <div className="w-20 bg-gray-200 rounded-full h-2">
+                <CardContent className="overflow-hidden">
+                  <div className="space-y-3 max-w-full">
+                    {stats.locationStats.map((location: any, index: number) => (
+                      <div key={index} className="flex items-center justify-between gap-2 min-w-0">
+                        <span className="text-sm text-gray-600 truncate flex-shrink-0 max-w-[120px]">{location.region}</span>
+                        <div className="flex items-center space-x-2 flex-1 min-w-0">
+                          <div className="flex-1 bg-gray-200 rounded-full h-2 min-w-[60px] max-w-[120px]">
                             <div 
-                              className="bg-purple-600 h-2 rounded-full" 
-                              style={{ width: `${(location.users / stats.totalUsers) * 100}%` }}
+                              className="bg-purple-600 h-2 rounded-full transition-all duration-300" 
+                              style={{ width: `${Math.min((location.users / stats.totalUsers) * 100, 100)}%` }}
                             ></div>
                           </div>
-                          <span className="text-sm font-medium">{location.users}</span>
+                          <span className="text-sm font-medium flex-shrink-0 w-8 text-right">{location.users}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>일별 신규 사용자</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {stats.dailyStats.slice(-7).map((day: any, index: number) => (
+                      <div key={index} className="flex items-center justify-between gap-2">
+                        <span className="text-sm text-gray-600 w-16">{day.date}</span>
+                        <div className="flex items-center space-x-2 flex-1">
+                          <div className="flex-1 bg-gray-200 rounded-full h-2 max-w-[100px]">
+                            <div 
+                              className="bg-green-600 h-2 rounded-full transition-all duration-300" 
+                              style={{ width: `${Math.min((day.newUsers / Math.max(...stats.dailyStats.map((d: any) => d.newUsers))) * 100, 100)}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-sm font-medium w-8 text-right">{day.newUsers}</span>
                         </div>
                       </div>
                     ))}
