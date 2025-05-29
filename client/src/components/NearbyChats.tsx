@@ -172,13 +172,27 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
   // Join location chat room
   const joinChatRoomMutation = useMutation({
     mutationFn: async (roomId: number) => {
-      const response = await apiRequest(`/api/location/chat-rooms/${roomId}/join`, "POST");
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      console.log("Attempting to join room:", roomId);
+      try {
+        const response = await apiRequest(`/api/location/chat-rooms/${roomId}/join`, "POST");
+        console.log("Response status:", response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Response error:", errorText);
+          throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+        }
+        
+        const data = await response.json();
+        console.log("Response data:", data);
+        return data;
+      } catch (error) {
+        console.error("Request failed:", error);
+        throw error;
       }
-      return response.json();
     },
     onSuccess: (data, roomId) => {
+      console.log("Join success - data:", data, "roomId:", roomId);
       queryClient.invalidateQueries({ queryKey: ["/api/location/nearby-chats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
       toast({
@@ -186,8 +200,12 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
         description: "채팅방에 입장했습니다.",
       });
       // 서버에서 반환된 실제 채팅방 ID로 이동
-      if (data.chatRoomId) {
+      if (data && data.chatRoomId) {
+        console.log("Moving to chat room:", data.chatRoomId);
         onChatRoomSelect(data.chatRoomId);
+      } else {
+        console.log("No chatRoomId in response, using original roomId:", roomId);
+        onChatRoomSelect(roomId);
       }
     },
     onError: (error) => {
@@ -195,7 +213,7 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
       toast({
         variant: "destructive",
         title: "입장 실패",
-        description: "채팅방에 입장할 수 없습니다.",
+        description: `채팅방에 입장할 수 없습니다: ${error.message}`,
       });
     },
   });
