@@ -95,7 +95,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider value={{ 
       user, 
       setUser: handleSetUser, 
-      isLoading: isLoading && !!storedUserId 
+      isLoading: isLoading && !!storedUserId,
+      locationPermissionGranted,
+      requestLocationPermission
     }}>
       {children}
     </AuthContext.Provider>

@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
-  const { setUser } = useAuth();
+  const { setUser, requestLocationPermission } = useAuth();
   const { toast } = useToast();
   
   const [formData, setFormData] = useState({
@@ -24,33 +24,7 @@ export default function LoginPage() {
   const [keepLoggedIn, setKeepLoggedIn] = useState(true);
   const [username] = useState(`testuser_${Math.floor(Math.random() * 10000)}`);
 
-  // 위치정보 권한 요청 함수
-  const requestLocationPermission = () => {
-    if (!navigator.geolocation) {
-      return;
-    }
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        localStorage.setItem("locationPermissionGranted", "true");
-        localStorage.setItem("userLocation", JSON.stringify({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          accuracy: position.coords.accuracy,
-          timestamp: Date.now()
-        }));
-      },
-      (error) => {
-        console.warn("위치 정보 접근 거부:", error);
-        localStorage.setItem("locationPermissionGranted", "false");
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 300000
-      }
-    );
-  };
 
   const loginMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -77,7 +51,7 @@ export default function LoginPage() {
         return;
       }
       
-      // 위치정보 권한 요청
+      // 위치정보 권한 요청 (Auth context에서 처리)
       requestLocationPermission();
       
       // 프로필이 완성되지 않은 경우 프로필 설정 페이지로
