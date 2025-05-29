@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
-import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause } from "lucide-react";
+import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause, Cloud, CloudRain, Sun, CloudSnow } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
@@ -21,6 +21,7 @@ import PollBanner from "./PollBanner";
 import PollDetailModal from "./PollDetailModal";
 import TranslateModal from "./TranslateModal";
 import VoiceRecorder from "./VoiceRecorder";
+import { useWeather, getWeatherBackground } from "../hooks/useWeather";
 
 interface ChatAreaProps {
   chatRoomId: number;
@@ -57,6 +58,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [translatedMessages, setTranslatedMessages] = useState<{[key: number]: {text: string, language: string}}>({});
   const [translatingMessages, setTranslatingMessages] = useState<Set<number>>(new Set());
   const [isTranslating, setIsTranslating] = useState(false);
+  
+  // Weather hook
+  const { weather, loading: weatherLoading } = useWeather();
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [playingAudio, setPlayingAudio] = useState<number | null>(null);
