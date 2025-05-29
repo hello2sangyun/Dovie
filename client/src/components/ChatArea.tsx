@@ -998,22 +998,75 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
   };
 
+  // 스마트 채팅 상태
+  const [smartSuggestions, setSmartSuggestions] = useState<Array<{
+    type: 'calculation';
+    text: string;
+    result: string;
+  }>>([]);
+  const [showSmartSuggestions, setShowSmartSuggestions] = useState(false);
+
+  // 안전한 계산식 평가 함수
+  const evaluateExpression = (expr: string): number | null => {
+    try {
+      // 안전한 문자만 허용 (숫자, 연산자, 괄호, 공백, 소수점)
+      if (!/^[\d\+\-\*\/\(\)\.\s]+$/.test(expr)) {
+        return null;
+      }
+      
+      // eval 대신 Function 생성자 사용 (더 안전)
+      const result = Function(`"use strict"; return (${expr})`)();
+      
+      if (typeof result === 'number' && isFinite(result)) {
+        return Math.round(result * 100000) / 100000; // 소수점 5자리까지
+      }
+      
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
+  // 스마트 제안 선택 처리
+  const handleSmartSuggestionSelect = (suggestion: typeof smartSuggestions[0]) => {
+    // 즉시 메시지 전송
+    sendMessageMutation.mutate({
+      content: suggestion.result,
+      messageType: "text"
+    });
+    
+    setMessage('');
+    setShowSmartSuggestions(false);
+    setSmartSuggestions([]);
+  };
+
   const handleMessageChange = (value: string) => {
     setMessage(value);
     
-    const lastWord = value.split(' ').pop();
-    if (lastWord?.startsWith('#') && lastWord.length > 1) {
-      setShowCommandSuggestions(true);
-    } else {
-      setShowCommandSuggestions(false);
+    // 스마트 채팅 기능: 계산기
+    const calculationMatch = value.match(/[\d\+\-\*\/\(\)\.\s]+$/);
+    if (calculationMatch && calculationMatch[0].length > 3) {
+      const expression = calculationMatch[0].trim();
+      if (expression && /[\+\-\*\/]/.test(expression)) {
+        try {
+          const result = evaluateExpression(expression);
+          if (result !== null && !isNaN(result)) {
+            setSmartSuggestions([{
+              type: 'calculation',
+              text: `${expression} = ${result}`,
+              result: `${expression} = ${result}`
+            }]);
+            setShowSmartSuggestions(true);
+            return;
+          }
+        } catch (e) {
+          // 계산 오류 무시
+        }
+      }
     }
     
-    // Show AI chat commands when user types "/"
-    if (value.startsWith('/') && value.length > 0) {
-      setShowChatCommands(true);
-    } else {
-      setShowChatCommands(false);
-    }
+    setShowSmartSuggestions(false);
+    setSmartSuggestions([]);
   };
 
   // 창 밖 클릭 시 커맨드 창 닫기
@@ -1926,29 +1979,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               <Paperclip className="h-4 w-4" />
             </Button>
             
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-gray-400 hover:text-purple-600 p-1 min-w-0 h-7 w-7"
-              onClick={() => onCreateCommand()}
-              title="해시태그"
-            >
-              <Hash className="h-4 w-4" />
-            </Button>
 
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-gray-400 hover:text-purple-600 p-1 min-w-0 h-7 w-7"
-              onClick={() => {
-                setMessage('/');
-                setShowChatCommands(true);
-                messageInputRef.current?.focus();
-              }}
-              title="명령어"
-            >
-              <span className="text-sm font-bold">/</span>
-            </Button>
           </div>
           
           <div className="flex-1 relative mx-1">
@@ -1966,107 +1997,28 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               className="resize-none"
             />
             
-            {/* Command suggestions dropdown */}
-            {showCommandSuggestions && commands.length > 0 && (
+            {/* 스마트 채팅 제안 */}
+            {showSmartSuggestions && smartSuggestions.length > 0 && (
               <div className="absolute bottom-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mb-1 max-h-40 overflow-y-auto">
                 <div className="p-2">
-                  {commands
-                    .filter((cmd: any) => 
-                      message.slice(1).length === 0 || 
-                      cmd.commandName.toLowerCase().includes(message.slice(1).toLowerCase())
-                    )
-                    .map((command: any) => (
-                      <div
-                        key={command.id}
-                        className="p-2 hover:bg-purple-50 rounded cursor-pointer"
-                        onClick={() => selectCommand(command.commandName)}
-                      >
-                        <div className="flex items-center space-x-2">
-                          <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-medium">
-                            #{command.commandName}
-                          </span>
-                          <span className="text-sm text-gray-600">
-                            {command.fileName || command.savedText || "저장된 항목"}
-                          </span>
-                        </div>
+                  <div className="text-xs font-medium text-gray-500 mb-2 px-1">스마트 제안</div>
+                  {smartSuggestions.map((suggestion, index) => (
+                    <div
+                      key={index}
+                      className="p-2 hover:bg-blue-50 rounded cursor-pointer transition-colors"
+                      onClick={() => handleSmartSuggestionSelect(suggestion)}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <span className="text-blue-600">🧮</span>
+                        <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium">
+                          계산 결과
+                        </span>
+                        <span className="text-sm text-gray-700 font-mono">
+                          {suggestion.text}
+                        </span>
                       </div>
-                    ))}
-                </div>
-              </div>
-            )}
-            
-            {/* AI Chat Commands dropdown */}
-            {showChatCommands && (
-              <div className="absolute bottom-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-xl mb-1 max-h-56 overflow-y-auto z-50">
-                <div className="p-2">
-                  <div className="text-xs font-medium text-gray-500 mb-2 px-1">사용 가능한 명령어</div>
-                  <div className="space-y-1">
-                    {[
-                      { 
-                        cmd: '/translate', 
-                        desc: '텍스트 번역', 
-                        example: '/translate 안녕하세요',
-                        icon: '🌐'
-                      },
-                      { 
-                        cmd: '/calculate', 
-                        desc: '수학 계산', 
-                        example: '/calculate 15 * 8 + 42',
-                        icon: '🧮'
-                      },
-                      { 
-                        cmd: '/poll', 
-                        desc: '투표 생성', 
-                        example: '/poll 점심 뭐 먹을까?',
-                        icon: '📊'
-                      },
-                      { 
-                        cmd: '/sendback', 
-                        desc: '작성자에게 피드백', 
-                        example: '/sendback 34 다시 확인해주세요',
-                        icon: '↩️'
-                      },
-                      { 
-                        cmd: '/spotlight', 
-                        desc: '메시지 상단 고정', 
-                        example: '/spotlight 56 5분간',
-                        icon: '📌'
-                      },
-                      { 
-                        cmd: '/boom', 
-                        desc: '시한폭탄 메시지', 
-                        example: '/boom 10s 비밀 메시지',
-                        icon: '💣'
-                      }
-                    ]
-                      .filter(item => 
-                        message.length <= 1 || 
-                        item.cmd.toLowerCase().includes(message.toLowerCase())
-                      )
-                      .map((item) => (
-                        <div
-                          key={item.cmd}
-                          className="p-2 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 rounded-md cursor-pointer transition-all duration-150 border border-transparent hover:border-blue-200"
-                          onClick={() => {
-                            setMessage(item.cmd + ' ');
-                            setShowChatCommands(false);
-                          }}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2 flex-1">
-                              <span className="text-sm">{item.icon}</span>
-                              <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-2 py-1 rounded text-xs font-medium">
-                                {item.cmd}
-                              </div>
-                              <span className="text-sm text-gray-700 font-medium">{item.desc}</span>
-                            </div>
-                            <div className="text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded font-mono ml-2 flex-shrink-0">
-                              {item.example}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
