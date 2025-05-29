@@ -54,13 +54,30 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
   // Request location permission and get current location
   useEffect(() => {
     if (navigator.geolocation) {
-      navigator.permissions.query({ name: 'geolocation' }).then(result => {
-        setLocationPermission(result.state);
-        
-        if (result.state === 'granted') {
-          getCurrentLocation();
-        }
-      });
+      // Check stored permission first
+      const storedPermission = localStorage.getItem("locationPermission");
+      if (storedPermission === "granted") {
+        setLocationPermission("granted");
+        getCurrentLocation();
+      } else {
+        // Check actual browser permission
+        navigator.permissions.query({ name: 'geolocation' }).then(result => {
+          setLocationPermission(result.state);
+          localStorage.setItem("locationPermission", result.state);
+          
+          if (result.state === 'granted') {
+            getCurrentLocation();
+          }
+        }).catch(() => {
+          // Fallback if permissions API is not supported
+          if (storedPermission) {
+            setLocationPermission(storedPermission as "granted" | "denied" | "prompt");
+            if (storedPermission === "granted") {
+              getCurrentLocation();
+            }
+          }
+        });
+      }
     }
   }, []);
 
