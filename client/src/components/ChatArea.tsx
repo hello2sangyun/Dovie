@@ -1169,17 +1169,17 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
   };
 
-  // 확장된 화폐 패턴 및 환율 정보
+  // 확장된 화폐 패턴 및 환율 정보 (국기 포함)
   const currencyPatterns = {
-    'KRW': { symbols: ['원', '₩'], name: '한국 원' },
-    'USD': { symbols: ['달러', '$', 'dollar'], name: '미국 달러' },
-    'EUR': { symbols: ['유로', '€', 'euro'], name: '유로' },
-    'JPY': { symbols: ['엔', '¥', 'yen'], name: '일본 엔' },
-    'CNY': { symbols: ['위안', '¥', 'yuan'], name: '중국 위안' },
-    'GBP': { symbols: ['파운드', '£', 'pound'], name: '영국 파운드' },
-    'HUF': { symbols: ['포린트', 'huf'], name: '헝가리 포린트' },
-    'CZK': { symbols: ['크루나', 'czk'], name: '체코 크루나' },
-    'PLN': { symbols: ['즐로티', 'zł', 'pln'], name: '폴란드 즐로티' }
+    'KRW': { symbols: ['원', '₩'], name: '한국 원', flag: '🇰🇷' },
+    'USD': { symbols: ['달러', '$', 'dollar'], name: '미국 달러', flag: '🇺🇸' },
+    'EUR': { symbols: ['유로', '€', 'euro'], name: '유로', flag: '🇪🇺' },
+    'JPY': { symbols: ['엔', '¥', 'yen'], name: '일본 엔', flag: '🇯🇵' },
+    'CNY': { symbols: ['위안', '¥', 'yuan'], name: '중국 위안', flag: '🇨🇳' },
+    'GBP': { symbols: ['파운드', '£', 'pound'], name: '영국 파운드', flag: '🇬🇧' },
+    'HUF': { symbols: ['포린트', 'huf'], name: '헝가리 포린트', flag: '🇭🇺' },
+    'CZK': { symbols: ['크루나', 'czk'], name: '체코 크루나', flag: '🇨🇿' },
+    'PLN': { symbols: ['즐로티', 'zł', 'pln'], name: '폴란드 즐로티', flag: '🇵🇱' }
   };
 
   // 고정 환율 (실제 API 실패 시 사용할 기본값)
@@ -1238,13 +1238,16 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         const usageKey = `${fromCurrency}_${toCurrency}`;
         const usageCount = usage[usageKey] || 0;
         
+        const fromFlag = currencyPatterns[fromCurrency]?.flag || '💱';
+        const toFlag = currencyPatterns[toCurrency]?.flag || '💱';
+        
         conversions.push({
           toCurrency,
           rate,
           convertedAmount,
           usageCount,
-          text: `${formatNumber(amount)} ${fromCurrency} → ${formatNumber(Math.round(convertedAmount * 100) / 100)} ${toCurrency}`,
-          result: `${formatNumber(amount)} ${fromCurrency} = ${formatNumber(Math.round(convertedAmount * 100) / 100)} ${toCurrency}`
+          text: `${fromFlag} ${formatNumber(amount)} ${fromCurrency} → ${toFlag} ${formatNumber(Math.round(convertedAmount * 100) / 100)} ${toCurrency}`,
+          result: `${fromFlag} ${formatNumber(amount)} ${fromCurrency} = ${toFlag} ${formatNumber(Math.round(convertedAmount * 100) / 100)} ${toCurrency}`
         });
       }
     }
