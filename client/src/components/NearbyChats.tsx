@@ -56,9 +56,6 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<LocationChatRoom | null>(null);
   const [joinNickname, setJoinNickname] = useState(user?.displayName || "");
-  const [joinProfileOption, setJoinProfileOption] = useState<"current" | "custom">("current");
-  const [customProfileImage, setCustomProfileImage] = useState<File | null>(null);
-  const [customProfilePreview, setCustomProfilePreview] = useState<string | null>(null);
 
   // Request location permission and get current location
   useEffect(() => {
@@ -244,70 +241,23 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
     },
   });
 
-  // Upload custom profile image for location chat
-  const uploadCustomProfileMutation = useMutation({
-    mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append("file", file);
-      
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        headers: {
-          "x-user-id": user?.id.toString() || "",
-        },
-        body: formData,
-      });
-      
-      if (!response.ok) throw new Error("Upload failed");
-      return response.json();
-    },
-  });
+  // 커스텀 프로필 업로드는 향후 구현 예정 (현재는 기본 프로필만 사용)
 
-  const handleCustomImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setCustomProfileImage(file);
-      const url = URL.createObjectURL(file);
-      setCustomProfilePreview(url);
-    }
-  };
+
 
   const handleJoinRoom = (room: LocationChatRoom) => {
     setSelectedRoom(room);
     setJoinNickname(user?.displayName || "");
-    setJoinProfileOption("current");
-    setCustomProfileImage(null);
-    setCustomProfilePreview(null);
     setShowJoinModal(true);
   };
 
   const handleConfirmJoin = async () => {
     if (!selectedRoom) return;
 
-    try {
-      let profileImageUrl = user?.profilePicture;
-      
-      // Upload custom profile image if selected
-      if (joinProfileOption === "custom" && customProfileImage) {
-        const uploadResult = await uploadCustomProfileMutation.mutateAsync(customProfileImage);
-        profileImageUrl = uploadResult.fileUrl;
-      }
-
-      // Join the room with custom profile data
-      const joinData = {
-        nickname: joinNickname,
-        profileImage: profileImageUrl
-      };
-
-      joinChatRoomMutation.mutate(selectedRoom.id);
-      setShowJoinModal(false);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "입장 실패",
-        description: "프로필 설정 중 오류가 발생했습니다.",
-      });
-    }
+    // 주변 채팅방에서는 임시 프로필만 사용 (실제 사용자 프로필 변경하지 않음)
+    // 커스텀 프로필 기능은 향후 구현 예정
+    joinChatRoomMutation.mutate(selectedRoom.id);
+    setShowJoinModal(false);
   };
 
   const getInitials = (name: string) => {
@@ -524,55 +474,18 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
             </div>
 
             <div>
-              <Label>프로필 사진 설정</Label>
-              <RadioGroup 
-                value={joinProfileOption} 
-                onValueChange={(value) => setJoinProfileOption(value as "current" | "custom")}
-                className="mt-2"
-              >
-                <div className="flex items-center space-x-3">
-                  <RadioGroupItem value="current" id="current" />
-                  <label htmlFor="current" className="flex items-center space-x-2 cursor-pointer">
-                    <Avatar className="w-8 h-8">
-                      <AvatarImage src={user?.profilePicture || undefined} />
-                      <AvatarFallback className="text-sm bg-purple-100 text-purple-600">
-                        {getInitials(user?.displayName || "")}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm">현재 프로필 사용</span>
-                  </label>
-                </div>
-                
-                <div className="flex items-center space-x-3">
-                  <RadioGroupItem value="custom" id="custom" />
-                  <label htmlFor="custom" className="flex items-center space-x-2 cursor-pointer">
-                    <div className="relative">
-                      <Avatar className="w-8 h-8">
-                        <AvatarImage src={customProfilePreview || undefined} />
-                        <AvatarFallback className="text-sm bg-gray-100 text-gray-600">
-                          <Camera className="h-4 w-4" />
-                        </AvatarFallback>
-                      </Avatar>
-                      {joinProfileOption === "custom" && (
-                        <button
-                          onClick={() => document.getElementById('custom-profile-input')?.click()}
-                          className="absolute -bottom-1 -right-1 w-4 h-4 bg-purple-600 text-white rounded-full flex items-center justify-center hover:bg-purple-700"
-                        >
-                          <Camera className="h-2 w-2" />
-                        </button>
-                      )}
-                    </div>
-                    <span className="text-sm">새 프로필 업로드</span>
-                  </label>
-                  <input
-                    id="custom-profile-input"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleCustomImageSelect}
-                    className="hidden"
-                  />
-                </div>
-              </RadioGroup>
+              <Label>프로필 사진</Label>
+              <div className="mt-2 flex items-center space-x-3">
+                <UserAvatar 
+                  user={user} 
+                  size="md" 
+                  fallbackClassName="bg-purple-100 text-purple-600"
+                />
+                <span className="text-sm text-gray-600">현재 프로필을 사용합니다</span>
+              </div>
+              <p className="text-xs text-gray-400 mt-1">
+                프로필 변경은 설정 페이지에서 가능합니다
+              </p>
             </div>
           </div>
 
