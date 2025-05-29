@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { getInitials, getAvatarColor } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-import { usePreloadedImage } from "@/hooks/useImagePreloader";
+import { useImagePreloader } from "@/hooks/useImagePreloader";
 import { useState } from "react";
 
 interface UserAvatarProps {
