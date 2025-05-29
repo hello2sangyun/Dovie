@@ -41,14 +41,19 @@ export function UserAvatar({
   const avatarColor = getAvatarColor(user.displayName);
   const imageUrl = user.profilePicture ? `${user.profilePicture}?t=${Date.now()}` : undefined;
 
+  console.log("UserAvatar rendering for user:", user.id, "displayName:", user.displayName, "imageUrl:", imageUrl);
+
   return (
     <div className="relative">
       <Avatar className={cn(sizeMap[size], className)}>
         <AvatarImage 
           src={imageUrl}
           alt={user.displayName}
+          onLoad={() => {
+            console.log("✅ UserAvatar image loaded successfully for user:", user.id, "URL:", imageUrl);
+          }}
           onError={(e) => {
-            console.log("UserAvatar image load error for user:", user.id, "URL:", imageUrl);
+            console.error("❌ UserAvatar image load error for user:", user.id, "URL:", imageUrl, "Error:", e);
           }}
         />
         <AvatarFallback 
