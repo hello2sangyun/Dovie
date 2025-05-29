@@ -1000,7 +1000,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // 스마트 채팅 상태
   const [smartSuggestions, setSmartSuggestions] = useState<Array<{
-    type: 'calculation' | 'currency' | 'schedule' | 'translation' | 'payment' | 'address' | 'poll' | 'todo' | 'timer';
+    type: 'calculation' | 'currency' | 'schedule' | 'translation' | 'address' | 'poll' | 'todo' | 'timer' | 'emotion' | 'food' | 'youtube' | 'news' | 'unit' | 'search' | 'birthday' | 'meeting';
     text: string;
     result: string;
     amount?: number;
@@ -1133,21 +1133,23 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     return null;
   };
 
-  // 외국어 감지 함수
+  // 외국어 감지 함수 (상대방 언어에 맞춰 번역)
   const detectForeignLanguage = (text: string) => {
     const patterns = {
-      english: /^[a-zA-Z\s\.,!?'"]+$/,
-      chinese: /[\u4e00-\u9fff]/,
-      japanese: /[\u3040-\u309f\u30a0-\u30ff]/,
-      arabic: /[\u0600-\u06ff]/,
-      russian: /[\u0400-\u04ff]/
+      english: { regex: /^[a-zA-Z\s\.,!?'"]+$/, target: '영어로 번역하기' },
+      chinese: { regex: /[\u4e00-\u9fff]/, target: '중국어로 번역하기' },
+      japanese: { regex: /[\u3040-\u309f\u30a0-\u30ff]/, target: '일본어로 번역하기' },
+      korean: { regex: /[가-힣]/, target: '한국어로 번역하기' }
     };
 
-    for (const [lang, pattern] of Object.entries(patterns)) {
-      if (pattern.test(text) && text.length > 5) {
+    // 상대방이 자주 사용하는 언어 감지 (임시로 영어로 설정)
+    const preferredLanguage = 'english'; // 실제로는 상대방의 이전 메시지 분석 필요
+
+    for (const [lang, config] of Object.entries(patterns)) {
+      if (config.regex.test(text) && text.length > 5 && lang !== preferredLanguage) {
         return {
           type: 'translation' as const,
-          text: '한국어로 번역하기',
+          text: patterns[preferredLanguage].target,
           result: `번역: ${text}`,
           icon: '🌐',
           category: '번역'
@@ -1157,27 +1159,193 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     return null;
   };
 
-  // 송금 문장 감지 함수
-  const detectPayment = (text: string) => {
-    const patterns = [
-      /(\d+(?:만|천)?\s*원)\s*(보내|송금|이체)/i,
-      /(보내|송금|이체).*(\d+(?:만|천)?\s*원)/i,
-      /돈.*(\d+(?:만|천)?\s*원)/i
+  // 감정 감지 함수
+  const detectEmotion = (text: string) => {
+    const emotions = {
+      sad: { patterns: [/슬프|우울|힘들|피곤|지쳐|아프|아파/i], emoji: '😢', comfort: '힘내요!' },
+      happy: { patterns: [/기쁘|행복|좋아|최고|완벽|성공/i], emoji: '😊', comfort: '축하해요!' },
+      angry: { patterns: [/화나|짜증|빡쳐|열받|답답/i], emoji: '😤', comfort: '진정해요' },
+      tired: { patterns: [/피곤|지쳐|졸려|잠|힘들어/i], emoji: '😴', comfort: '푹 쉬세요!' },
+      stressed: { patterns: [/스트레스|바빠|정신없|헷갈려/i], emoji: '😰', comfort: '화이팅!' }
+    };
+
+    for (const [emotion, config] of Object.entries(emotions)) {
+      for (const pattern of config.patterns) {
+        if (pattern.test(text)) {
+          return {
+            type: 'emotion' as const,
+            text: `${config.emoji} ${config.comfort}`,
+            result: `${config.emoji} ${config.comfort}`,
+            icon: config.emoji,
+            category: '공감'
+          };
+        }
+      }
+    }
+    return null;
+  };
+
+  // 음식 감지 함수
+  const detectFood = (text: string) => {
+    const foodPatterns = [
+      /치킨|닭|튀김/i,
+      /피자|파스타|이탈리아/i,
+      /중국음식|짜장|짬뽕|탕수육/i,
+      /햄버거|버거|맥도날드|KFC/i,
+      /족발|보쌈|한식/i,
+      /일식|초밥|라멘|우동/i,
+      /배달|시켜|먹고\s*싶/i
     ];
 
-    for (const pattern of patterns) {
+    for (const pattern of foodPatterns) {
       if (pattern.test(text)) {
         return {
-          type: 'payment' as const,
-          text: '송금 링크 만들기',
-          result: `송금 요청: ${text}`,
-          icon: '💰',
-          category: '송금'
+          type: 'food' as const,
+          text: '근처 배달 검색할까요?',
+          result: `음식 주문: ${text}`,
+          icon: '🍕',
+          category: '배달'
         };
       }
     }
     return null;
   };
+
+  // 유튜브 감지 함수
+  const detectYoutube = (text: string) => {
+    const patterns = [
+      /유튜브|youtube|영상.*봤|동영상/i,
+      /이.*영상.*봤/i,
+      /.*채널.*구독/i
+    ];
+
+    for (const pattern of patterns) {
+      if (pattern.test(text)) {
+        return {
+          type: 'youtube' as const,
+          text: '영상 미리보기 만들기',
+          result: `유튜브: ${text}`,
+          icon: '📺',
+          category: '동영상'
+        };
+      }
+    }
+    return null;
+  };
+
+  // 뉴스 감지 함수
+  const detectNews = (text: string) => {
+    const patterns = [
+      /뉴스.*뭐.*있|오늘.*뉴스/i,
+      /기사.*봤|신문.*봤/i,
+      /뉴스.*요약|요약.*해줘/i
+    ];
+
+    for (const pattern of patterns) {
+      if (pattern.test(text)) {
+        return {
+          type: 'news' as const,
+          text: '오늘 뉴스 3줄 요약',
+          result: `뉴스 요약: ${text}`,
+          icon: '📰',
+          category: '뉴스'
+        };
+      }
+    }
+    return null;
+  };
+
+  // 단위 변환 감지 함수
+  const detectUnit = (text: string) => {
+    const patterns = [
+      /(\d+)\s*(마일|mile).*km/i,
+      /(\d+)\s*kg.*파운드|pound/i,
+      /(\d+)\s*도.*화씨|섭씨/i,
+      /(\d+)\s*피트|feet.*미터/i
+    ];
+
+    for (const pattern of patterns) {
+      const match = text.match(pattern);
+      if (match) {
+        return {
+          type: 'unit' as const,
+          text: '단위 변환하기',
+          result: `단위 변환: ${text}`,
+          icon: '📏',
+          category: '변환'
+        };
+      }
+    }
+    return null;
+  };
+
+  // 검색 감지 함수
+  const detectSearch = (text: string) => {
+    const patterns = [
+      /.*가\s*뭐야\?|.*이\s*뭐야\?/i,
+      /.*에\s*대해.*알려줘|.*설명.*해줘/i,
+      /.*찾아줘|.*검색.*해줘/i
+    ];
+
+    for (const pattern of patterns) {
+      if (pattern.test(text)) {
+        return {
+          type: 'search' as const,
+          text: '검색하기',
+          result: `검색: ${text}`,
+          icon: '🔍',
+          category: '검색'
+        };
+      }
+    }
+    return null;
+  };
+
+  // 생일/기념일 감지 함수
+  const detectBirthday = (text: string) => {
+    const patterns = [
+      /.*(생일|생신|탄생일)/i,
+      /.*(기념일|축하|파티)/i,
+      /.*(결혼기념일|돌잔치)/i
+    ];
+
+    for (const pattern of patterns) {
+      if (pattern.test(text)) {
+        return {
+          type: 'birthday' as const,
+          text: '축하 카드 만들기',
+          result: `축하: ${text}`,
+          icon: '🎉',
+          category: '축하'
+        };
+      }
+    }
+    return null;
+  };
+
+  // 미팅/회의 감지 함수
+  const detectMeeting = (text: string) => {
+    const patterns = [
+      /.*(줌|zoom|미팅|meeting)/i,
+      /.*(회의|컨퍼런스|화상)/i,
+      /.*(온라인.*만나|화상.*통화)/i
+    ];
+
+    for (const pattern of patterns) {
+      if (pattern.test(text)) {
+        return {
+          type: 'meeting' as const,
+          text: '화상회의 링크 만들기',
+          result: `미팅: ${text}`,
+          icon: '📹',
+          category: '화상회의'
+        };
+      }
+    }
+    return null;
+  };
+
+
 
   // 주소 감지 함수
   const detectAddress = (text: string) => {
@@ -1339,31 +1507,73 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       allSuggestions.push(foreignLanguageDetection);
     }
     
-    // 5. 송금 감지
-    const paymentDetection = detectPayment(value);
-    if (paymentDetection) {
-      allSuggestions.push(paymentDetection);
+    // 5. 감정 감지
+    const emotionDetection = detectEmotion(value);
+    if (emotionDetection) {
+      allSuggestions.push(emotionDetection);
     }
     
-    // 6. 주소 감지
+    // 6. 음식 감지
+    const foodDetection = detectFood(value);
+    if (foodDetection) {
+      allSuggestions.push(foodDetection);
+    }
+    
+    // 7. 유튜브 감지
+    const youtubeDetection = detectYoutube(value);
+    if (youtubeDetection) {
+      allSuggestions.push(youtubeDetection);
+    }
+    
+    // 8. 뉴스 감지
+    const newsDetection = detectNews(value);
+    if (newsDetection) {
+      allSuggestions.push(newsDetection);
+    }
+    
+    // 9. 단위 변환 감지
+    const unitDetection = detectUnit(value);
+    if (unitDetection) {
+      allSuggestions.push(unitDetection);
+    }
+    
+    // 10. 검색 감지
+    const searchDetection = detectSearch(value);
+    if (searchDetection) {
+      allSuggestions.push(searchDetection);
+    }
+    
+    // 11. 생일/기념일 감지
+    const birthdayDetection = detectBirthday(value);
+    if (birthdayDetection) {
+      allSuggestions.push(birthdayDetection);
+    }
+    
+    // 12. 미팅/회의 감지
+    const meetingDetection = detectMeeting(value);
+    if (meetingDetection) {
+      allSuggestions.push(meetingDetection);
+    }
+    
+    // 13. 주소 감지
     const addressDetection = detectAddress(value);
     if (addressDetection) {
       allSuggestions.push(addressDetection);
     }
     
-    // 7. 투표 감지
+    // 14. 투표 감지
     const pollDetection = detectPoll(value);
     if (pollDetection) {
       allSuggestions.push(pollDetection);
     }
     
-    // 8. 할 일 감지
+    // 15. 할 일 감지
     const todoDetection = detectTodo(value);
     if (todoDetection) {
       allSuggestions.push(todoDetection);
     }
     
-    // 9. 타이머 감지
+    // 16. 타이머 감지
     const timerDetection = detectTimer(value);
     if (timerDetection) {
       allSuggestions.push(timerDetection);
@@ -2323,11 +2533,18 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           suggestion.type === 'currency' ? 'bg-green-100' :
                           suggestion.type === 'schedule' ? 'bg-purple-100' :
                           suggestion.type === 'translation' ? 'bg-indigo-100' :
-                          suggestion.type === 'payment' ? 'bg-yellow-100' :
+                          suggestion.type === 'emotion' ? 'bg-pink-100' :
+                          suggestion.type === 'food' ? 'bg-orange-100' :
+                          suggestion.type === 'youtube' ? 'bg-red-100' :
+                          suggestion.type === 'news' ? 'bg-blue-100' :
+                          suggestion.type === 'unit' ? 'bg-purple-100' :
+                          suggestion.type === 'search' ? 'bg-yellow-100' :
+                          suggestion.type === 'birthday' ? 'bg-pink-100' :
+                          suggestion.type === 'meeting' ? 'bg-green-100' :
                           suggestion.type === 'address' ? 'bg-red-100' :
-                          suggestion.type === 'poll' ? 'bg-pink-100' :
+                          suggestion.type === 'poll' ? 'bg-cyan-100' :
                           suggestion.type === 'todo' ? 'bg-emerald-100' :
-                          suggestion.type === 'timer' ? 'bg-orange-100' :
+                          suggestion.type === 'timer' ? 'bg-amber-100' :
                           'bg-gray-100'
                         }`}>
                           <span className={`text-sm ${
@@ -2335,11 +2552,18 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                             suggestion.type === 'currency' ? 'text-green-600' :
                             suggestion.type === 'schedule' ? 'text-purple-600' :
                             suggestion.type === 'translation' ? 'text-indigo-600' :
-                            suggestion.type === 'payment' ? 'text-yellow-600' :
+                            suggestion.type === 'emotion' ? 'text-pink-600' :
+                            suggestion.type === 'food' ? 'text-orange-600' :
+                            suggestion.type === 'youtube' ? 'text-red-600' :
+                            suggestion.type === 'news' ? 'text-blue-600' :
+                            suggestion.type === 'unit' ? 'text-purple-600' :
+                            suggestion.type === 'search' ? 'text-yellow-600' :
+                            suggestion.type === 'birthday' ? 'text-pink-600' :
+                            suggestion.type === 'meeting' ? 'text-green-600' :
                             suggestion.type === 'address' ? 'text-red-600' :
-                            suggestion.type === 'poll' ? 'text-pink-600' :
+                            suggestion.type === 'poll' ? 'text-cyan-600' :
                             suggestion.type === 'todo' ? 'text-emerald-600' :
-                            suggestion.type === 'timer' ? 'text-orange-600' :
+                            suggestion.type === 'timer' ? 'text-amber-600' :
                             'text-gray-600'
                           }`}>
                             {suggestion.icon || (suggestion.type === 'calculation' ? '🧮' : '💱')}
@@ -2352,11 +2576,18 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                               suggestion.type === 'currency' ? 'bg-green-100 text-green-700' :
                               suggestion.type === 'schedule' ? 'bg-purple-100 text-purple-700' :
                               suggestion.type === 'translation' ? 'bg-indigo-100 text-indigo-700' :
-                              suggestion.type === 'payment' ? 'bg-yellow-100 text-yellow-700' :
+                              suggestion.type === 'emotion' ? 'bg-pink-100 text-pink-700' :
+                              suggestion.type === 'food' ? 'bg-orange-100 text-orange-700' :
+                              suggestion.type === 'youtube' ? 'bg-red-100 text-red-700' :
+                              suggestion.type === 'news' ? 'bg-blue-100 text-blue-700' :
+                              suggestion.type === 'unit' ? 'bg-purple-100 text-purple-700' :
+                              suggestion.type === 'search' ? 'bg-yellow-100 text-yellow-700' :
+                              suggestion.type === 'birthday' ? 'bg-pink-100 text-pink-700' :
+                              suggestion.type === 'meeting' ? 'bg-green-100 text-green-700' :
                               suggestion.type === 'address' ? 'bg-red-100 text-red-700' :
-                              suggestion.type === 'poll' ? 'bg-pink-100 text-pink-700' :
+                              suggestion.type === 'poll' ? 'bg-cyan-100 text-cyan-700' :
                               suggestion.type === 'todo' ? 'bg-emerald-100 text-emerald-700' :
-                              suggestion.type === 'timer' ? 'bg-orange-100 text-orange-700' :
+                              suggestion.type === 'timer' ? 'bg-amber-100 text-amber-700' :
                               'bg-gray-100 text-gray-700'
                             }`}>
                               {suggestion.category || (suggestion.type === 'calculation' ? '계산 결과' : '환율 변환')}
