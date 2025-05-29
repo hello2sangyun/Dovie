@@ -116,6 +116,11 @@ export default function MainApp() {
     setModals({ ...modals, command: true });
   };
 
+  const handleChatRoomSelect = (chatRoomId: number) => {
+    setSelectedChatRoom(chatRoomId);
+    setActiveTab("chats");
+  };
+
   const closeModals = () => {
     setModals({ addContact: false, command: false, createGroup: false });
     setCommandModalData(null);
