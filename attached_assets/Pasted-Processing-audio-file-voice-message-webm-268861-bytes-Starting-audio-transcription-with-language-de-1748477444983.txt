@@ -1,0 +1,50 @@
+Processing audio file: voice_message.webm 268861 bytes
+Starting audio transcription with language detection...
+Audio file path: /home/runner/workspace/uploads/889021906540fad3666f7f734728f22d
+Audio buffer read successfully, size: 268861 bytes
+Audio blob created with type audio/webm
+FormData prepared for OpenAI API
+Direct API call successful
+Audio transcription completed: {
+  text: '내가 가장 지금 잘 알고 있는 사람은 우리 부모님도 아니고 내 와이프야',
+  language: 'korean',
+  duration: 10.279999732971191
+}
+12:09:49 AM [express] POST /api/transcribe 200 in 1671ms :: {"success":true,"transcription":"내가 가장 지금…
+Message creation - Request body: {
+  "content": "내가 가장 지금 잘 알고 있는 사람은 우리 부모님도 아니고 내 와이프야",
+  "messageType": "voice",
+  "fileName": "voice_message.webm",
+  "fileSize": 0,
+  "voiceDuration": 10,
+  "detectedLanguage": "korean",
+  "confidence": "0.9"
+}
+Message creation - Chat room ID: 57
+Message creation - User ID: 91
+Message creation - Parsed data: {
+  "chatRoomId": 57,
+  "senderId": 91,
+  "content": "내가 가장 지금 잘 알고 있는 사람은 우리 부모님도 아니고 내 와이프야",
+  "messageType": "voice",
+  "fileName": "voice_message.webm",
+  "fileSize": 0,
+  "voiceDuration": 10,
+  "detectedLanguage": "korean",
+  "confidence": "0.9"
+}
+12:09:49 AM [express] POST /api/chat-rooms/57/messages 200 in 228ms :: {"message":{"id":155,"chatRoom…
+12:09:50 AM [express] GET /api/chat-rooms/57/messages 200 in 55ms :: {"messages":[{"id":147,"chatRoom…
+12:09:50 AM [express] GET /api/chat-rooms/57/messages 200 in 167ms :: {"messages":[{"id":147,"chatRoo…
+12:09:50 AM [express] GET /api/chat-rooms/57/messages 200 in 187ms :: {"messages":[{"id":147,"chatRoo…
+12:09:50 AM [express] GET /api/chat-rooms/57/messages 200 in 199ms :: {"messages":[{"id":147,"chatRoo…
+12:09:50 AM [express] POST /api/chat-rooms/57/mark-read 200 in 78ms :: {"success":true}
+12:09:50 AM [express] POST /api/chat-rooms/57/mark-read 200 in 90ms :: {"success":true}
+12:09:50 AM [express] GET /api/chat-rooms/57/messages 304 in 43ms :: {"messages":[{"id":147,"chatRoom…
+12:09:50 AM [express] GET /api/chat-rooms/57/messages 304 in 44ms :: {"messages":[{"id":147,"chatRoom…
+12:09:51 AM [express] GET /api/chat-rooms 200 in 1574ms :: {"chatRooms":[{"id":58,"name":"Lhahahaha",…
+12:09:51 AM [express] GET /api/chat-rooms 200 in 1626ms :: {"chatRooms":[{"id":58,"name":"Lhahahaha",…
+12:09:52 AM [express] GET /api/chat-rooms 200 in 1468ms :: {"chatRooms":[{"id":58,"name":"Lhahahaha",…
+12:09:52 AM [express] GET /api/chat-rooms 200 in 1608ms :: {"chatRooms":[{"id":58,"name":"Lhahahaha",…
+12:10:16 AM [express] GET /api/auth/me 304 in 178ms :: {"user":{"id":91,"username":"hello2sangyun_83"…
+12:10:25 AM [express] GET /api/auth/me 304 in 57ms :: {"user":{"id":91,"username":"hello2sangyun_83",…
