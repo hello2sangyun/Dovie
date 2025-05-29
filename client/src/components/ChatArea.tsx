@@ -142,6 +142,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       setMessage("");
       setShowCommandSuggestions(false);
       setReplyToMessage(null); // 회신 상태 초기화
+      
+      // 스마트 제안 숨기기
+      setShowSmartSuggestions(false);
+      setSmartSuggestions([]);
+      if (suggestionTimeout) {
+        clearTimeout(suggestionTimeout);
+        setSuggestionTimeout(null);
+      }
     },
     onError: (error) => {
       toast({
@@ -1012,6 +1020,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     action?: () => void;
   }>>([]);
   const [showSmartSuggestions, setShowSmartSuggestions] = useState(false);
+  const [suggestionTimeout, setSuggestionTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // 안전한 계산식 평가 함수
   const evaluateExpression = (expr: string): number | null => {
@@ -1776,9 +1785,21 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       allSuggestions.push(topicInfoDetection);
     }
     
+    // 기존 타이머 제거
+    if (suggestionTimeout) {
+      clearTimeout(suggestionTimeout);
+    }
+
     if (allSuggestions.length > 0) {
-      setSmartSuggestions(allSuggestions.slice(0, 4)); // 최대 4개만 표시 (UI 최적화)
+      setSmartSuggestions(allSuggestions.slice(0, 3)); // 최대 3개만 표시 (덜 방해되도록)
       setShowSmartSuggestions(true);
+      
+      // 5초 후 자동으로 숨김
+      const timeout = setTimeout(() => {
+        setShowSmartSuggestions(false);
+        setSmartSuggestions([]);
+      }, 5000);
+      setSuggestionTimeout(timeout);
     } else {
       setShowSmartSuggestions(false);
       setSmartSuggestions([]);
