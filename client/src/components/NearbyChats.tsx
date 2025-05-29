@@ -48,6 +48,8 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
+  const [hasNewChats, setHasNewChats] = useState(false);
+  const [exitCountdown, setExitCountdown] = useState<{roomId: number, seconds: number} | null>(null);
   const [locationPermission, setLocationPermission] = useState<"granted" | "denied" | "prompt">(() => {
     return localStorage.getItem("locationPermission") as "granted" | "denied" | "prompt" || "prompt";
   });
@@ -137,11 +139,76 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
     );
   };
 
+  // 위치 기반 알림 체크
+  useEffect(() => {
+    if (userLocation && user) {
+      const checkProximity = setInterval(async () => {
+        try {
+          const response = await apiRequest(`/api/location/check-proximity`, "GET");
+          const data = await response.json();
+          
+          if (data.hasNewChats && data.hasNewChats.length > 0) {
+            setHasNewChats(true);
+            toast({
+              title: "주변챗 알림",
+              description: "새로운 주변 채팅방이 발견되었습니다!",
+            });
+          }
+        } catch (error) {
+          console.error("Proximity check error:", error);
+        }
+      }, 30000); // 30초마다 체크
+
+      return () => clearInterval(checkProximity);
+    }
+  }, [userLocation, user]);
+
+  // 자동 퇴장 카운트다운 처리
+  useEffect(() => {
+    if (exitCountdown) {
+      const countdown = setInterval(() => {
+        setExitCountdown(prev => {
+          if (!prev) return null;
+          
+          const newSeconds = prev.seconds - 1;
+          if (newSeconds <= 0) {
+            // 자동 퇴장 실행
+            leaveLocationChatRoomMutation.mutate(prev.roomId);
+            clearInterval(countdown);
+            return null;
+          }
+          
+          return { ...prev, seconds: newSeconds };
+        });
+      }, 1000);
+
+      return () => clearInterval(countdown);
+    }
+  }, [exitCountdown]);
+
   // Update user location mutation
   const updateUserLocationMutation = useMutation({
     mutationFn: async (location: UserLocation) => {
       const response = await apiRequest("/api/location/update", "POST", location);
       return response.json();
+    },
+    onSuccess: async () => {
+      // 위치 업데이트 후 자동 퇴장 체크
+      try {
+        const response = await apiRequest("/api/location/check-exit", "GET");
+        const data = await response.json();
+        
+        if (data.shouldExit && data.roomId) {
+          setExitCountdown({ roomId: data.roomId, seconds: 20 });
+          toast({
+            title: "주변챗 알림",
+            description: "위치를 벗어나 20초 후 자동으로 채팅방을 나갑니다.",
+            variant: "destructive"
+          });
+        }
+      } catch (error) {
+        console.error("Exit check error:", error);
+      }
     },
     onError: () => {
       toast({

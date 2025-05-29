@@ -1,6 +1,6 @@
 import { 
   users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications,
-  locationChatRooms, locationChatParticipants, userLocations,
+  locationChatRooms, locationChatParticipants, locationChatMessages, userLocations,
   type User, type InsertUser, type Contact, type InsertContact,
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
   type Command, type InsertCommand, type MessageRead, type InsertMessageRead,
