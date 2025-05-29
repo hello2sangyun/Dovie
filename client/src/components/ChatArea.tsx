@@ -2843,11 +2843,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     e.preventDefault();
                     const selectedSuggestion = smartSuggestions[selectedSuggestionIndex];
                     if (selectedSuggestion) {
-                      executeSmartMutation.mutate({
-                        type: selectedSuggestion.type,
-                        content: selectedSuggestion.text,
-                        originalText: message
-                      });
+                      // 제안 텍스트를 메시지 입력창으로 복사
+                      setMessage(selectedSuggestion.text);
                       setShowSmartSuggestions(false);
                       setSmartSuggestions([]);
                       setSelectedSuggestionIndex(0);
@@ -2855,6 +2852,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                         clearTimeout(suggestionTimeout);
                         setSuggestionTimeout(null);
                       }
+                      // 입력창에 포커스 유지
+                      messageInputRef.current?.focus();
                     }
                     return;
                   }
@@ -2894,11 +2893,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           : 'border-transparent hover:border-blue-200 hover:bg-blue-50'
                       }`}
                       onClick={() => {
-                        executeSmartMutation.mutate({
-                          type: suggestion.type,
-                          content: suggestion.text,
-                          originalText: message
-                        });
+                        // 제안 텍스트를 메시지 입력창으로 복사
+                        setMessage(suggestion.text);
                         setShowSmartSuggestions(false);
                         setSmartSuggestions([]);
                         setSelectedSuggestionIndex(0);
@@ -2906,6 +2902,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           clearTimeout(suggestionTimeout);
                           setSuggestionTimeout(null);
                         }
+                        // 입력창에 포커스
+                        messageInputRef.current?.focus();
                       }}
                     >
                       <div className="flex items-start space-x-3">
