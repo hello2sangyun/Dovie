@@ -812,7 +812,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Serve encrypted files with decryption
+  // Serve files (both encrypted and unencrypted)
   app.get("/uploads/:filename", async (req, res) => {
     try {
       const filename = req.params.filename;
@@ -823,28 +823,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "File not found" });
       }
       
-      // 암호화된 파일 읽기
-      const encryptedData = fs.readFileSync(filePath, 'utf8');
+      // 음성 파일인지 확인 (voice_로 시작하는 파일명)
+      const isVoiceFile = filename.startsWith('voice_') && filename.endsWith('.webm');
       
-      // 파일 복호화
-      const decryptedBuffer = decryptFileData(encryptedData);
-      
-      // 파일 확장자에 따른 Content-Type 설정
-      const ext = path.extname(filename).toLowerCase();
-      let contentType = 'application/octet-stream';
-      
-      if (ext === '.txt') contentType = 'text/plain; charset=utf-8';
-      else if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
-      else if (ext === '.png') contentType = 'image/png';
-      else if (ext === '.gif') contentType = 'image/gif';
-      else if (ext === '.pdf') contentType = 'application/pdf';
-      
-      res.set({
-        'Content-Type': contentType,
-        'Content-Length': decryptedBuffer.length,
-      });
-      
-      res.send(decryptedBuffer);
+      if (isVoiceFile) {
+        // 음성 파일은 암호화되지 않았으므로 직접 제공
+        const fileBuffer = fs.readFileSync(filePath);
+        
+        res.set({
+          'Content-Type': 'audio/webm',
+          'Content-Length': fileBuffer.length,
+          'Accept-Ranges': 'bytes',
+          'Cache-Control': 'public, max-age=31536000'
+        });
+        
+        res.send(fileBuffer);
+      } else {
+        // 다른 파일들은 암호화되어 있으므로 복호화 후 제공
+        const encryptedData = fs.readFileSync(filePath, 'utf8');
+        const decryptedBuffer = decryptFileData(encryptedData);
+        
+        // 파일 확장자에 따른 Content-Type 설정
+        const ext = path.extname(filename).toLowerCase();
+        let contentType = 'application/octet-stream';
+        
+        if (ext === '.txt') contentType = 'text/plain; charset=utf-8';
+        else if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
+        else if (ext === '.png') contentType = 'image/png';
+        else if (ext === '.gif') contentType = 'image/gif';
+        else if (ext === '.pdf') contentType = 'application/pdf';
+        
+        res.set({
+          'Content-Type': contentType,
+          'Content-Length': decryptedBuffer.length,
+        });
+        
+        res.send(decryptedBuffer);
+      }
     } catch (error) {
       console.error('File serving error:', error);
       res.status(500).json({ message: "Failed to serve file" });
