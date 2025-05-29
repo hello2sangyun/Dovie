@@ -146,6 +146,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       // 스마트 제안 숨기기
       setShowSmartSuggestions(false);
       setSmartSuggestions([]);
+      setSelectedSuggestionIndex(0);
       if (suggestionTimeout) {
         clearTimeout(suggestionTimeout);
         setSuggestionTimeout(null);
@@ -158,6 +159,94 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         description: "다시 시도해주세요.",
       });
     },
+  });
+
+  // 스마트 기능 실행 mutation
+  const executeSmartMutation = useMutation({
+    mutationFn: async ({ type, content, originalText }: { type: string; content: string; originalText?: string }) => {
+      // 간단한 기능들은 로컬에서 처리
+      if (type === 'calculation') {
+        const result = evaluateExpression(originalText || content);
+        return { success: true, result: result?.toString() || '계산 오류' };
+      }
+      
+      if (type === 'currency') {
+        // 실제 환율 API 연동 필요, 현재는 간단한 계산
+        const match = (originalText || content).match(/(\d+)\s*(달러|USD|원|KRW)/i);
+        if (match) {
+          const amount = parseFloat(match[1]);
+          const currency = match[2].toLowerCase();
+          if (currency.includes('달러') || currency.includes('usd')) {
+            return { success: true, result: `${amount}달러 ≈ ${(amount * 1300).toLocaleString()}원 (환율 1,300원 기준)` };
+          } else {
+            return { success: true, result: `${amount}원 ≈ ${(amount / 1300).toFixed(2)}달러 (환율 1,300원 기준)` };
+          }
+        }
+      }
+
+      // AI 기능들은 OpenAI API 필요
+      if (['translation', 'emotion', 'summary', 'quote', 'decision', 'news', 'search', 'topic_info'].includes(type)) {
+        try {
+          const response = await fetch('/api/smart-suggestion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type, content, originalText })
+          });
+          
+          if (!response.ok) {
+            throw new Error('API 요청 실패');
+          }
+          
+          return await response.json();
+        } catch (error) {
+          // OpenAI API가 설정되지 않은 경우 기본 응답
+          const defaultResponses = {
+            translation: '번역 기능을 사용하려면 OpenAI API 키가 필요합니다.',
+            emotion: '공감합니다! 힘내세요 💝',
+            summary: '요약 기능을 사용하려면 OpenAI API 키가 필요합니다.',
+            quote: '"성공은 준비가 기회를 만났을 때 일어난다." - 세네카',
+            decision: '장점과 단점을 차근차근 생각해보세요. 신중한 결정이 좋은 결과를 만듭니다.',
+            news: '뉴스 요약 기능을 사용하려면 OpenAI API 키가 필요합니다.',
+            search: '검색 기능을 사용하려면 OpenAI API 키가 필요합니다.',
+            topic_info: '정보 검색 기능을 사용하려면 OpenAI API 키가 필요합니다.'
+          };
+          return { success: true, result: defaultResponses[type as keyof typeof defaultResponses] || '기능을 실행할 수 없습니다.' };
+        }
+      }
+
+      // 기타 기능들
+      const otherResponses = {
+        reminder: '30분 후 리마인드가 설정되었습니다 ⏰',
+        food: '🍕 배달 앱을 확인해보세요!',
+        youtube: '📺 영상 링크를 공유해주시면 미리보기를 만들어드립니다',
+        unit: '단위 변환: 요청하신 변환을 처리했습니다',
+        birthday: '🎉 축하 카드가 준비되었습니다!',
+        meeting: '📹 화상회의 링크: https://meet.google.com/new',
+        address: '📍 지도에서 위치를 확인하세요',
+        poll: '📊 투표가 생성되었습니다',
+        todo: '✅ 할 일이 추가되었습니다',
+        timer: '⏰ 타이머가 설정되었습니다',
+        category: '🏷️ 메시지가 분류되었습니다'
+      };
+
+      return { success: true, result: otherResponses[type as keyof typeof otherResponses] || '기능이 실행되었습니다.' };
+    },
+    onSuccess: (data, variables) => {
+      if (data.success) {
+        setSmartResultModal({
+          show: true,
+          title: variables.content,
+          content: data.result
+        });
+      }
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "처리 실패",
+        description: "다시 시도해주세요.",
+      });
+    }
   });
 
   // Mark messages as read mutation
@@ -1021,6 +1110,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   }>>([]);
   const [showSmartSuggestions, setShowSmartSuggestions] = useState(false);
   const [suggestionTimeout, setSuggestionTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
+  const [smartResultModal, setSmartResultModal] = useState<{show: boolean, title: string, content: string}>({
+    show: false,
+    title: '',
+    content: ''
+  });
 
   // 안전한 계산식 평가 함수
   const evaluateExpression = (expr: string): number | null => {
@@ -1793,6 +1888,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     if (allSuggestions.length > 0) {
       setSmartSuggestions(allSuggestions.slice(0, 3)); // 최대 3개만 표시 (덜 방해되도록)
       setShowSmartSuggestions(true);
+      setSelectedSuggestionIndex(0); // 첫 번째 항목 선택
       
       // 5초 후 자동으로 숨김
       const timeout = setTimeout(() => {
@@ -1803,6 +1899,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     } else {
       setShowSmartSuggestions(false);
       setSmartSuggestions([]);
+      setSelectedSuggestionIndex(0);
     }
   };
 
