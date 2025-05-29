@@ -56,6 +56,9 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<LocationChatRoom | null>(null);
   const [joinNickname, setJoinNickname] = useState(user?.displayName || "");
+  const [profileOption, setProfileOption] = useState<"main" | "temp">("main");
+  const [tempProfileImage, setTempProfileImage] = useState<File | null>(null);
+  const [tempProfilePreview, setTempProfilePreview] = useState<string | null>(null);
 
   // Request location permission and get current location
   useEffect(() => {
@@ -241,13 +244,23 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
     },
   });
 
-  // 커스텀 프로필 업로드는 향후 구현 예정 (현재는 기본 프로필만 사용)
+  const handleTempImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setTempProfileImage(file);
+      const url = URL.createObjectURL(file);
+      setTempProfilePreview(url);
+    }
+  };
 
 
 
   const handleJoinRoom = (room: LocationChatRoom) => {
     setSelectedRoom(room);
     setJoinNickname(user?.displayName || "");
+    setProfileOption("main");
+    setTempProfileImage(null);
+    setTempProfilePreview(null);
     setShowJoinModal(true);
   };
 
@@ -474,18 +487,94 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
             </div>
 
             <div>
-              <Label>프로필 사진</Label>
-              <div className="mt-2 flex items-center space-x-3">
-                <UserAvatar 
-                  user={user} 
-                  size="md" 
-                  fallbackClassName="bg-purple-100 text-purple-600"
-                />
-                <span className="text-sm text-gray-600">현재 프로필을 사용합니다</span>
+              <Label>프로필 설정</Label>
+              <div className="mt-3 space-y-3">
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="radio"
+                    id="main-profile"
+                    name="profile-option"
+                    value="main"
+                    checked={profileOption === "main"}
+                    onChange={(e) => setProfileOption(e.target.value as "main" | "temp")}
+                    className="w-4 h-4"
+                  />
+                  <label htmlFor="main-profile" className="flex items-center space-x-3 cursor-pointer flex-1">
+                    <UserAvatar user={user} size="sm" />
+                    <div>
+                      <div className="text-sm font-medium">메인 프로필 사용</div>
+                      <div className="text-xs text-gray-500">현재 설정된 프로필과 이름</div>
+                    </div>
+                  </label>
+                </div>
+                
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="radio"
+                    id="temp-profile"
+                    name="profile-option"
+                    value="temp"
+                    checked={profileOption === "temp"}
+                    onChange={(e) => setProfileOption(e.target.value as "main" | "temp")}
+                    className="w-4 h-4"
+                  />
+                  <label htmlFor="temp-profile" className="flex items-center space-x-3 cursor-pointer flex-1">
+                    <div className="relative">
+                      {tempProfilePreview ? (
+                        <img 
+                          src={tempProfilePreview} 
+                          alt="임시 프로필" 
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                          <Camera className="w-4 h-4 text-gray-400" />
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium">임시 프로필 사용</div>
+                      <div className="text-xs text-gray-500">이 채팅방에서만 사용할 프로필</div>
+                    </div>
+                  </label>
+                </div>
+                
+                {profileOption === "temp" && (
+                  <div className="ml-7 space-y-2">
+                    <input
+                      type="file"
+                      id="temp-profile-upload"
+                      accept="image/*"
+                      onChange={handleTempImageSelect}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => document.getElementById('temp-profile-upload')?.click()}
+                      className="w-full"
+                    >
+                      <Camera className="w-4 h-4 mr-2" />
+                      임시 프로필 사진 선택
+                    </Button>
+                    {tempProfilePreview && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setTempProfileImage(null);
+                          setTempProfilePreview(null);
+                        }}
+                        className="w-full text-red-500 hover:text-red-600"
+                      >
+                        프로필 사진 제거
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
-              <p className="text-xs text-gray-400 mt-1">
-                프로필 변경은 설정 페이지에서 가능합니다
-              </p>
             </div>
           </div>
 

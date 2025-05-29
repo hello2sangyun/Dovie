@@ -49,13 +49,16 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
       // 2. React Query 캐시 즉시 업데이트 (캐시된 데이터 직접 설정)
       queryClient.setQueryData(["/api/auth/me"], { user: data.user });
       
-      // 3. 모든 관련 쿼리 백그라운드에서 새로고침
-      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
+      // 3. 모든 관련 쿼리를 즉시 새로고침하여 프로필 변경사항 반영
+      await queryClient.refetchQueries({ queryKey: ["/api/chat-rooms"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/contacts"] });
       
       // 4. 로컬 상태 초기화
       setProfileImage(null);
       setPreviewUrl(null);
+      
+      // 5. 강제로 모든 컴포넌트 리렌더링 트리거
+      queryClient.invalidateQueries();
       
       console.log("✅ Profile updated successfully, new URL:", data.user.profilePicture);
       
