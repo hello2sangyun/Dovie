@@ -2510,16 +2510,52 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     );
   }
 
+  // Get weather background styling
+  const weatherBackground = weather ? getWeatherBackground(weather.condition) : getWeatherBackground('Clear');
+  
+  // Get weather icon component
+  const getWeatherIcon = (condition: string) => {
+    const conditionLower = condition?.toLowerCase() || '';
+    if (conditionLower.includes('rain') || conditionLower.includes('drizzle')) {
+      return <CloudRain className="h-4 w-4" />;
+    }
+    if (conditionLower.includes('snow')) {
+      return <CloudSnow className="h-4 w-4" />;
+    }
+    if (conditionLower.includes('cloud')) {
+      return <Cloud className="h-4 w-4" />;
+    }
+    return <Sun className="h-4 w-4" />;
+  };
+
   return (
     <div 
       ref={chatAreaRef}
       data-chat-area="true"
-      className={`h-full flex flex-col bg-gray-50 relative mb-0 pb-0 ${isDragOver ? 'bg-purple-50' : ''}`}
+      className={cn(
+        "h-full flex flex-col relative mb-0 pb-0",
+        weatherBackground.background,
+        isDragOver ? 'bg-purple-50' : ''
+      )}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
+      {/* Weather Pattern Overlay */}
+      <div className={cn("absolute inset-0 pointer-events-none", weatherBackground.overlay)} />
+      
+      {/* Weather Info Display */}
+      {weather && !weatherLoading && (
+        <div className="absolute top-4 right-4 bg-white/80 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm border border-white/20 z-10">
+          <div className="flex items-center space-x-2 text-sm">
+            {getWeatherIcon(weather.condition)}
+            <span className="text-gray-700 font-medium">{weather.temperature}°C</span>
+            <span className="text-gray-600">{weather.description}</span>
+          </div>
+        </div>
+      )}
+      
       {/* Drag Overlay */}
       {isDragOver && (
         <div className="absolute inset-0 bg-purple-100 bg-opacity-80 border-2 border-dashed border-purple-400 z-50 flex items-center justify-center">
