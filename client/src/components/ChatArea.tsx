@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator } from "lucide-react";
+import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
@@ -57,6 +57,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [isTranslating, setIsTranslating] = useState(false);
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [playingAudio, setPlayingAudio] = useState<number | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [contextMenu, setContextMenu] = useState<{
     visible: boolean;
     x: number;
@@ -923,7 +925,36 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       title: "음성 처리 중...",
       description: "음성을 텍스트로 변환하고 있습니다.",
     });
-  };
+  }
+
+  // 음성 메시지 재생/일시정지 함수
+  const handleVoicePlayback = (messageId: number, voiceDuration?: number) => {
+    if (playingAudio === messageId) {
+      // 현재 재생 중인 음성을 일시정지
+      if (audioRef.current) {
+        audioRef.current.pause();
+        setPlayingAudio(null);
+      }
+    } else {
+      // 새로운 음성을 재생
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      
+      setPlayingAudio(messageId);
+      
+      // 음성 지속시간에 따라 자동으로 재생 종료
+      const duration = (voiceDuration || 3) * 1000;
+      setTimeout(() => {
+        setPlayingAudio(null);
+      }, duration);
+      
+      toast({
+        title: "음성 재생 중",
+        description: "음성 메시지를 재생하고 있습니다.",
+      });
+    }
+  };;
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -1505,12 +1536,25 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       {msg.messageType === "voice" ? (
                         <div>
                           <div className="flex items-center space-x-3">
-                            <div className={cn(
-                              "w-10 h-10 rounded-lg flex items-center justify-center",
-                              isMe ? "bg-white/20" : "bg-gray-100"
-                            )}>
-                              🎤
-                            </div>
+                            <button
+                              onClick={() => handleVoicePlayback(msg.id, msg.voiceDuration)}
+                              className={cn(
+                                "w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105",
+                                isMe ? "bg-white/20 hover:bg-white/30" : "bg-gray-100 hover:bg-gray-200"
+                              )}
+                            >
+                              {playingAudio === msg.id ? (
+                                <Pause className={cn(
+                                  "h-5 w-5",
+                                  isMe ? "text-white" : "text-gray-700"
+                                )} />
+                              ) : (
+                                <Play className={cn(
+                                  "h-5 w-5",
+                                  isMe ? "text-white" : "text-gray-700"
+                                )} />
+                              )}
+                            </button>
                             <div className="flex-1 min-w-0">
                               <p className={cn(
                                 "text-sm font-medium",
