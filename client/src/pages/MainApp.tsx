@@ -70,8 +70,8 @@ export default function MainApp() {
       // 기존 채팅방이 없으면 새로 생성
       const roomName = contactUser.nickname || contactUser.displayName || contactUser.username;
       createChatRoomMutation.mutate({
-        name: roomName,
-        participantIds: [contactUserId]
+        contactUserId,
+        contactUser
       });
     }
   };
@@ -214,7 +214,7 @@ export default function MainApp() {
                   onAddContact={() => openModal("addContact")}
                   onSelectContact={(contactUserId) => {
                     // Find the contact user data
-                    const contact = contactsData?.contacts?.find((c: any) => c.contactUserId === contactUserId);
+                    const contact = (contactsData as any)?.contacts?.find((c: any) => c.contactUserId === contactUserId);
                     if (contact) {
                       createOrFindChatRoom(contactUserId, contact.contactUser);
                     }
@@ -227,7 +227,7 @@ export default function MainApp() {
                   onSelectChat={setSelectedChatRoom}
                   selectedChatId={selectedChatRoom}
                   onCreateGroup={() => setModals({ ...modals, createGroup: true })}
-                  contactFilter={contactFilter}
+                  contactFilter={contactFilter || undefined}
                   onClearFilter={() => setContactFilter(null)}
                 />
               </TabsContent>
@@ -301,9 +301,12 @@ export default function MainApp() {
             <ContactsList 
               onAddContact={() => openModal("addContact")}
               onSelectContact={(contactUserId) => {
-                // 해당 친구가 포함된 채팅방들을 찾아서 채팅방 리스트로 이동
-                setContactFilter(contactUserId);
-                setActiveMobileTab("chats");
+                // 해당 친구와의 채팅방 찾기 또는 생성 (모바일)
+                const contact = (contactsData as any)?.contacts?.find((c: any) => c.contactUserId === contactUserId);
+                if (contact) {
+                  createOrFindChatRoom(contactUserId, contact.contactUser);
+                  setActiveMobileTab("chats");
+                }
               }}
             />
           )}
@@ -314,6 +317,9 @@ export default function MainApp() {
                 setShowMobileChat(true);
               }}
               selectedChatId={selectedChatRoom}
+              onCreateGroup={() => setModals({ ...modals, createGroup: true })}
+              contactFilter={contactFilter || undefined}
+              onClearFilter={() => setContactFilter(null)}
             />
           )}
           {activeMobileTab === "nearby" && (
