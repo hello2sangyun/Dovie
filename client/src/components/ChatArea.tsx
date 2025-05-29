@@ -2172,7 +2172,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             
             // 사용자 투표 상태 업데이트
             setUserVote(optionIndex);
-            setVotedUsers(prev => new Set([...prev, user!.id]));
+            setVotedUsers(prev => new Set([...Array.from(prev), user!.id]));
             
             // 투표 결과 업데이트
             setPollVotes(prev => ({

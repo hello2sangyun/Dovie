@@ -196,13 +196,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.updateUser(user.id, { isOnline: true });
 
       res.json({ user });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Signup error:", error);
-      console.error("Error details:", error.message);
-      if (error.issues) {
+      console.error("Error details:", error?.message);
+      if (error?.issues) {
         console.error("Validation issues:", error.issues);
       }
-      res.status(500).json({ message: "회원가입에 실패했습니다.", error: error.message });
+      res.status(500).json({ message: "회원가입에 실패했습니다.", error: error?.message || "Unknown error" });
     }
   });
 
