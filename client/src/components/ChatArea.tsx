@@ -1118,6 +1118,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     content: ''
   });
 
+  // 천 단위 마침표로 숫자 포맷팅
+  const formatNumber = (num: number): string => {
+    return num.toLocaleString('ko-KR');
+  };
+
   // 안전한 계산식 평가 함수
   const evaluateExpression = (expr: string): number | null => {
     try {
@@ -1139,40 +1144,93 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
   };
 
-  // 화폐 패턴 및 환율 정보
+  // 사용 빈도 추적을 위한 로컬 스토리지 키
+  const CURRENCY_USAGE_KEY = 'currency_usage_history';
+
+  // 통화 사용 빈도 가져오기
+  const getCurrencyUsage = (): { [key: string]: number } => {
+    try {
+      const stored = localStorage.getItem(CURRENCY_USAGE_KEY);
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  };
+
+  // 통화 사용 빈도 업데이트
+  const updateCurrencyUsage = (fromCurrency: string, toCurrency: string) => {
+    try {
+      const usage = getCurrencyUsage();
+      const key = `${fromCurrency}_${toCurrency}`;
+      usage[key] = (usage[key] || 0) + 1;
+      localStorage.setItem(CURRENCY_USAGE_KEY, JSON.stringify(usage));
+    } catch {
+      // 로컬 스토리지 오류 무시
+    }
+  };
+
+  // 확장된 화폐 패턴 및 환율 정보
   const currencyPatterns = {
     'KRW': { symbols: ['원', '₩'], name: '한국 원' },
     'USD': { symbols: ['달러', '$', 'dollar'], name: '미국 달러' },
     'EUR': { symbols: ['유로', '€', 'euro'], name: '유로' },
     'JPY': { symbols: ['엔', '¥', 'yen'], name: '일본 엔' },
     'CNY': { symbols: ['위안', '¥', 'yuan'], name: '중국 위안' },
-    'GBP': { symbols: ['파운드', '£', 'pound'], name: '영국 파운드' }
+    'GBP': { symbols: ['파운드', '£', 'pound'], name: '영국 파운드' },
+    'HUF': { symbols: ['포린트', 'huf'], name: '헝가리 포린트' },
+    'CZK': { symbols: ['크루나', 'czk'], name: '체코 크루나' },
+    'PLN': { symbols: ['즐로티', 'zł', 'pln'], name: '폴란드 즐로티' }
   };
 
-  // 환율 가져오기 함수 (실제 API 사용)
+  // 환율 가져오기 함수 (확장된 통화 지원 및 사용 빈도 추적)
   const getExchangeRates = async (fromCurrency: string, amount: number) => {
     try {
       // 무료 환율 API 사용 (exchangerate-api.com)
       const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${fromCurrency}`);
       const data = await response.json();
       
+      const usage = getCurrencyUsage();
       const suggestions = [];
-      const targetCurrencies = ['USD', 'EUR', 'JPY', 'CNY', 'KRW', 'GBP'].filter(c => c !== fromCurrency);
       
-      for (const toCurrency of targetCurrencies.slice(0, 3)) { // 상위 3개만 표시
+      // 지원되는 모든 통화
+      const allCurrencies = ['USD', 'EUR', 'JPY', 'CNY', 'KRW', 'GBP', 'HUF', 'CZK', 'PLN'];
+      const targetCurrencies = allCurrencies.filter(c => c !== fromCurrency);
+      
+      // 사용 빈도와 함께 변환 결과 생성
+      const conversions = [];
+      for (const toCurrency of targetCurrencies) {
         if (data.rates[toCurrency]) {
           const rate = data.rates[toCurrency];
-          const convertedAmount = (amount * rate).toFixed(2);
-          suggestions.push({
-            type: 'currency' as const,
-            text: `${amount} ${fromCurrency} → ${convertedAmount} ${toCurrency}`,
-            result: `${amount} ${fromCurrency} = ${convertedAmount} ${toCurrency}`,
-            amount,
-            fromCurrency,
+          const convertedAmount = amount * rate;
+          const usageKey = `${fromCurrency}_${toCurrency}`;
+          const usageCount = usage[usageKey] || 0;
+          
+          conversions.push({
             toCurrency,
-            rate
+            rate,
+            convertedAmount,
+            usageCount,
+            text: `${formatNumber(amount)} ${fromCurrency} → ${formatNumber(Math.round(convertedAmount * 100) / 100)} ${toCurrency}`,
+            result: `${formatNumber(amount)} ${fromCurrency} = ${formatNumber(Math.round(convertedAmount * 100) / 100)} ${toCurrency}`
           });
         }
+      }
+      
+      // 사용 빈도순으로 정렬 후 상위 5개 선택
+      conversions.sort((a, b) => b.usageCount - a.usageCount);
+      const topConversions = conversions.slice(0, 5);
+      
+      // 제안 형태로 변환
+      for (const conversion of topConversions) {
+        suggestions.push({
+          type: 'currency' as const,
+          text: conversion.text,
+          result: conversion.result,
+          amount,
+          fromCurrency,
+          toCurrency: conversion.toCurrency,
+          rate: conversion.rate
+        });
       }
       
       return suggestions;
@@ -1193,6 +1251,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       /(\d+(?:,\d{3})*(?:\.\d+)?)\s*(파운드|£|pound|GBP)/i,
       /(\d+(?:,\d{3})*(?:\.\d+)?)\s*(포린트|HUF)/i,
       /(\d+(?:,\d{3})*(?:\.\d+)?)\s*(크루나|CZK)/i,
+      /(\d+(?:,\d{3})*(?:\.\d+)?)\s*(즐로티|zł|PLN)/i,
       /\$(\d+(?:,\d{3})*(?:\.\d+)?)/i,
       /€(\d+(?:,\d{3})*(?:\.\d+)?)/i,
       /¥(\d+(?:,\d{3})*(?:\.\d+)?)/i,
@@ -1745,8 +1804,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           if (result !== null && !isNaN(result)) {
             allSuggestions.push({
               type: 'calculation',
-              text: `${expression} = ${result}`,
-              result: `${expression} = ${result}`,
+              text: `${expression} = ${formatNumber(result)}`,
+              result: `${expression} = ${formatNumber(result)}`,
               icon: '🧮',
               category: '계산'
             });
