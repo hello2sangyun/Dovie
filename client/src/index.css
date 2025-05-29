@@ -341,3 +341,35 @@
     padding-bottom: env(safe-area-inset-bottom, 0);
   }
 }
+
+/* 커스텀 스크롤바 스타일 - 성능 최적화 */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(209 213 219) rgb(243 244 246);
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: rgb(243 244 246);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgb(209 213 219);
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgb(156 163 175);
+}
+
+/* 스크롤 성능 최적화 */
+.scrollbar-thin {
+  will-change: scroll-position;
+  overflow-anchor: none;
+}

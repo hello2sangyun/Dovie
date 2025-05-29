@@ -8,7 +8,7 @@ import {
   type LocationChatRoom, type InsertLocationChatRoom
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, like, or, count, gt, lt, sql } from "drizzle-orm";
+import { eq, and, desc, asc, like, or, count, gt, lt, sql, inArray } from "drizzle-orm";
 import { encryptText, decryptText } from "./crypto";
 
 export interface IStorage {
@@ -141,7 +141,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getChatRooms(userId: number): Promise<(ChatRoom & { participants: User[], lastMessage?: Message & { sender: User } })[]> {
-    // Get chat rooms where user is a participant
+    // Get user's chat rooms
     const userChatRooms = await db
       .select({ chatRoom: chatRooms })
       .from(chatParticipants)
@@ -149,40 +149,60 @@ export class DatabaseStorage implements IStorage {
       .where(eq(chatParticipants.userId, userId))
       .orderBy(desc(chatRooms.isPinned), desc(chatRooms.createdAt));
 
-    const result = [];
-    for (const { chatRoom } of userChatRooms) {
-      // Get participants
-      const participantsData = await db
-        .select({ user: users })
-        .from(chatParticipants)
-        .innerJoin(users, eq(chatParticipants.userId, users.id))
-        .where(eq(chatParticipants.chatRoomId, chatRoom.id));
-      
-      const participants = participantsData.map(p => p.user);
+    if (userChatRooms.length === 0) return [];
 
-      // Get last message
-      const [lastMessageData] = await db
-        .select()
-        .from(messages)
-        .innerJoin(users, eq(messages.senderId, users.id))
-        .where(eq(messages.chatRoomId, chatRoom.id))
-        .orderBy(desc(messages.createdAt))
-        .limit(1);
+    const chatRoomIds = userChatRooms.map(({ chatRoom }) => chatRoom.id);
 
-      const lastMessage = lastMessageData ? {
-        ...lastMessageData.messages,
-        content: lastMessageData.messages.content ? decryptText(lastMessageData.messages.content) : lastMessageData.messages.content,
-        sender: lastMessageData.users
-      } : undefined;
+    // Batch fetch all participants for these chat rooms
+    const allParticipants = await db
+      .select({
+        chatRoomId: chatParticipants.chatRoomId,
+        user: users
+      })
+      .from(chatParticipants)
+      .innerJoin(users, eq(chatParticipants.userId, users.id))
+      .where(inArray(chatParticipants.chatRoomId, chatRoomIds));
 
-      result.push({
-        ...chatRoom,
-        participants,
-        lastMessage
+    // Batch fetch last messages for these chat rooms with a more efficient approach
+    const allLastMessages = await db
+      .select({
+        chatRoomId: messages.chatRoomId,
+        message: messages,
+        sender: users,
+        rn: sql<number>`row_number() over (partition by ${messages.chatRoomId} order by ${messages.createdAt} desc)`
+      })
+      .from(messages)
+      .innerJoin(users, eq(messages.senderId, users.id))
+      .where(inArray(messages.chatRoomId, chatRoomIds));
+
+    // Filter to get only the latest message per room
+    const latestMessages = allLastMessages.filter(item => item.rn === 1);
+
+    // Group participants by chat room
+    const participantsByRoom = new Map<number, User[]>();
+    allParticipants.forEach(({ chatRoomId, user }) => {
+      if (!participantsByRoom.has(chatRoomId)) {
+        participantsByRoom.set(chatRoomId, []);
+      }
+      participantsByRoom.get(chatRoomId)!.push(user);
+    });
+
+    // Group last messages by chat room
+    const lastMessageByRoom = new Map<number, Message & { sender: User }>();
+    latestMessages.forEach(({ chatRoomId, message, sender }) => {
+      lastMessageByRoom.set(chatRoomId, {
+        ...message,
+        content: message.content ? decryptText(message.content) : message.content,
+        sender
       });
-    }
+    });
 
-    return result;
+    // Combine results
+    return userChatRooms.map(({ chatRoom }) => ({
+      ...chatRoom,
+      participants: participantsByRoom.get(chatRoom.id) || [],
+      lastMessage: lastMessageByRoom.get(chatRoom.id)
+    }));
   }
 
   async createChatRoom(chatRoom: InsertChatRoom, participantIds: number[]): Promise<ChatRoom> {
