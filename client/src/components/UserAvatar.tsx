@@ -47,8 +47,9 @@ export function UserAvatar({
   const profileImageUrl = user.profilePicture && !imageError ? 
     `${user.profilePicture}?v=${user.id}_${user.profilePicture.split('/').pop()}` : null;
 
-  // 이미지 프리로딩 사용
-  const { isLoaded, isLoading } = usePreloadedImage(profileImageUrl);
+  // 이미지 로딩 상태를 단순하게 관리
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   return (
     <div className="relative">

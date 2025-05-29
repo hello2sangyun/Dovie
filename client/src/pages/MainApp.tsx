@@ -89,13 +89,16 @@ export default function MainApp() {
     }
     
     // Remove duplicates and preload
-    const uniqueImages = [...new Set(imagesToPreload)];
+    const uniqueImages = Array.from(new Set(imagesToPreload));
     if (uniqueImages.length > 0) {
-      preloadImages(uniqueImages).then(() => {
-        console.log(`Preloaded ${uniqueImages.length} profile images`);
+      // Simple preloading without external function
+      uniqueImages.forEach(imageUrl => {
+        const img = new Image();
+        img.src = imageUrl;
       });
+      console.log(`Preloaded ${uniqueImages.length} profile images`);
     }
-  }, [user, contactsData, chatRoomsData, preloadImages]);
+  }, [user, contactsData, chatRoomsData]);
 
   // 친구와의 채팅방 찾기 또는 생성
   const createOrFindChatRoom = (contactUserId: number, contactUser: any) => {
