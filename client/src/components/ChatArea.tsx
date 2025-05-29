@@ -2941,6 +2941,59 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             )}
           </div>
           
+          {/* 스마트 제안 결과 모달 */}
+          {smartResultModal.show && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-lg max-w-md w-full max-h-96 overflow-hidden">
+                <div className="p-4 border-b">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold">스마트 결과</h3>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSmartResultModal({ show: false, title: '', content: '' })}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="p-4 overflow-y-auto max-h-80">
+                  <div className="mb-3">
+                    <span className="text-sm text-gray-600">요청:</span>
+                    <p className="text-sm font-medium">{smartResultModal.title}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-600">결과:</span>
+                    <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                      <p className="text-sm whitespace-pre-wrap">{smartResultModal.content}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-4 border-t flex justify-end space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(smartResultModal.content);
+                      toast({ title: "복사 완료", description: "결과가 클립보드에 복사되었습니다." });
+                    }}
+                  >
+                    복사
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      setMessage(smartResultModal.content);
+                      setSmartResultModal({ show: false, title: '', content: '' });
+                    }}
+                  >
+                    메시지로 전송
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {/* Voice Recorder */}
           <VoiceRecorder
             onRecordingComplete={handleVoiceRecordingComplete}
