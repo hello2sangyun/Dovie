@@ -1429,7 +1429,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       )}
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0 overscroll-behavior-y-contain">
+      <div className="flex-1 overflow-y-auto px-4 py-2 space-y-3 min-h-0 overscroll-behavior-y-contain">
         {/* Security Notice - WhatsApp Style */}
         <div className="flex justify-center mb-6 px-4">
           <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-xl px-4 py-3 max-w-sm mx-auto shadow-lg transform hover:scale-105 transition-all duration-200 backdrop-blur-sm">
@@ -1877,7 +1877,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       <div className="bg-white border-t border-gray-200 flex-shrink-0 sticky bottom-0 z-10">
         {/* Reply Preview */}
         {replyToMessage && (
-          <div className="p-3 border-b border-gray-200 bg-gray-50">
+          <div className="p-2 border-b border-gray-200 bg-gray-50">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center space-x-2 mb-1">
@@ -1902,7 +1902,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           </div>
         )}
         
-        <div className="p-3 chat-input-area">
+        <div className="p-2 chat-input-area">
           <div className="flex items-end space-x-1">
           {/* Compact left buttons group */}
           <div className="flex items-center space-x-0.5 mr-2">
