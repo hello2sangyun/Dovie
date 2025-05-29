@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Camera, User, LogOut } from "lucide-react";
+import { Camera, User, LogOut, Building2 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 import VaultLogo from "./VaultLogo";
 
@@ -23,6 +23,8 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
   const [displayName, setDisplayName] = useState(user?.displayName || "");
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [businessName, setBusinessName] = useState("");
+  const [businessAddress, setBusinessAddress] = useState("");
 
   // Profile update mutation
   const updateProfileMutation = useMutation({
@@ -69,6 +71,31 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
     },
   });
 
+  // Business user registration mutation
+  const businessRegistrationMutation = useMutation({
+    mutationFn: async (data: { businessName: string; businessAddress: string }) => {
+      const response = await apiRequest("/api/users/register-business", "POST", data);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setUser(data.user);
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      toast({
+        title: "비즈니스 등록 신청 완료",
+        description: "검토 후 승인 여부를 알려드립니다.",
+      });
+      setBusinessName("");
+      setBusinessAddress("");
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "등록 신청 실패",
+        description: "다시 시도해주세요.",
+      });
+    },
+  });
+
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -84,6 +111,22 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
     } else {
       updateProfileMutation.mutate({ displayName });
     }
+  };
+
+  const handleBusinessRegistration = () => {
+    if (!businessName.trim() || !businessAddress.trim()) {
+      toast({
+        variant: "destructive",
+        title: "입력 오류",
+        description: "사업장명과 주소를 모두 입력해주세요.",
+      });
+      return;
+    }
+    
+    businessRegistrationMutation.mutate({
+      businessName: businessName.trim(),
+      businessAddress: businessAddress.trim()
+    });
   };
 
   const handleLogout = () => {
@@ -199,6 +242,8 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
                 <Label htmlFor="businessName" className="text-sm">사업장명</Label>
                 <Input
                   id="businessName"
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
                   placeholder="예: 이태원 브런치카페"
                   className="h-9"
                 />
@@ -208,16 +253,20 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
                 <Label htmlFor="businessAddress" className="text-sm">사업장 주소</Label>
                 <Input
                   id="businessAddress"
+                  value={businessAddress}
+                  onChange={(e) => setBusinessAddress(e.target.value)}
                   placeholder="예: 서울시 용산구 이태원동 123-45"
                   className="h-9"
                 />
               </div>
               
               <Button
+                onClick={handleBusinessRegistration}
+                disabled={businessRegistrationMutation.isPending}
                 className="w-full h-9"
                 variant="outline"
               >
-                비즈니스 사용자 신청
+                {businessRegistrationMutation.isPending ? "신청 중..." : "비즈니스 사용자 신청"}
               </Button>
               
               <p className="text-xs text-gray-400 text-center">
