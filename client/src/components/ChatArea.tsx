@@ -2822,7 +2822,56 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               placeholder="메시지를 입력하세요..."
               value={message}
               onChange={(e) => handleMessageChange(e.target.value)}
-              onKeyPress={(e) => {
+              onKeyDown={(e) => {
+                // 스마트 제안이 표시된 상태에서 키보드 네비게이션
+                if (showSmartSuggestions && smartSuggestions.length > 0) {
+                  if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    setSelectedSuggestionIndex(prev => 
+                      prev < smartSuggestions.length - 1 ? prev + 1 : 0
+                    );
+                    return;
+                  }
+                  if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    setSelectedSuggestionIndex(prev => 
+                      prev > 0 ? prev - 1 : smartSuggestions.length - 1
+                    );
+                    return;
+                  }
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    const selectedSuggestion = smartSuggestions[selectedSuggestionIndex];
+                    if (selectedSuggestion) {
+                      executeSmartMutation.mutate({
+                        type: selectedSuggestion.type,
+                        content: selectedSuggestion.text,
+                        originalText: message
+                      });
+                      setShowSmartSuggestions(false);
+                      setSmartSuggestions([]);
+                      setSelectedSuggestionIndex(0);
+                      if (suggestionTimeout) {
+                        clearTimeout(suggestionTimeout);
+                        setSuggestionTimeout(null);
+                      }
+                    }
+                    return;
+                  }
+                  if (e.key === 'Escape') {
+                    e.preventDefault();
+                    setShowSmartSuggestions(false);
+                    setSmartSuggestions([]);
+                    setSelectedSuggestionIndex(0);
+                    if (suggestionTimeout) {
+                      clearTimeout(suggestionTimeout);
+                      setSuggestionTimeout(null);
+                    }
+                    return;
+                  }
+                }
+                
+                // 일반적인 엔터키 처리
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
                   handleSendMessage();
@@ -2839,8 +2888,25 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   {smartSuggestions.map((suggestion, index) => (
                     <div
                       key={index}
-                      className="p-3 hover:bg-blue-50 rounded-lg cursor-pointer transition-colors border border-transparent hover:border-blue-200"
-                      onClick={() => handleSmartSuggestionSelect(suggestion)}
+                      className={`p-3 rounded-lg cursor-pointer transition-colors border ${
+                        index === selectedSuggestionIndex 
+                          ? 'bg-blue-100 border-blue-300 shadow-sm' 
+                          : 'border-transparent hover:border-blue-200 hover:bg-blue-50'
+                      }`}
+                      onClick={() => {
+                        executeSmartMutation.mutate({
+                          type: suggestion.type,
+                          content: suggestion.text,
+                          originalText: message
+                        });
+                        setShowSmartSuggestions(false);
+                        setSmartSuggestions([]);
+                        setSelectedSuggestionIndex(0);
+                        if (suggestionTimeout) {
+                          clearTimeout(suggestionTimeout);
+                          setSuggestionTimeout(null);
+                        }
+                      }}
                     >
                       <div className="flex items-start space-x-3">
                         <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
