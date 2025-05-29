@@ -140,7 +140,7 @@ export const locationChatRooms = pgTable("location_chat_rooms", {
   name: text("name").notNull(),
   latitude: decimal("latitude", { precision: 10, scale: 8 }).notNull(),
   longitude: decimal("longitude", { precision: 11, scale: 8 }).notNull(),
-  radius: integer("radius").default(50), // meters
+  radius: integer("radius").default(50), // meters - 기본 50미터 반경
   address: text("address"),
   isOfficial: boolean("is_official").default(false),
   businessOwnerId: integer("business_owner_id").references(() => users.id),

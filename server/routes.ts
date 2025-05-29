@@ -1390,5 +1390,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   }
 
+  // 위치 기반 채팅방 자동 관리 시스템
+  setInterval(async () => {
+    try {
+      // 1시간 이상 비활성 채팅방 삭제 (비즈니스 계정 제외)
+      await storage.cleanupInactiveLocationChats();
+      
+      // 참여자 0명인 채팅방 삭제
+      await storage.cleanupEmptyLocationChats();
+      
+      // 위치 벗어난 사용자 자동 퇴장 처리
+      await storage.handleLocationBasedExit();
+    } catch (error) {
+      console.error('Location chat cleanup error:', error);
+    }
+  }, 60000); // 1분마다 실행
+
   return httpServer;
 }

@@ -62,6 +62,14 @@ export interface IStorage {
   getNearbyLocationChatRooms(latitude: number, longitude: number, radius?: number): Promise<LocationChatRoom[]>;
   createLocationChatRoom(userId: number, roomData: { name: string; latitude: number; longitude: number; address: string }): Promise<LocationChatRoom>;
   joinLocationChatRoom(userId: number, roomId: number): Promise<void>;
+  
+  // 위치 기반 자동 관리
+  cleanupInactiveLocationChats(): Promise<void>;
+  cleanupEmptyLocationChats(): Promise<void>;
+  handleLocationBasedExit(): Promise<void>;
+  leaveLocationChatRoom(userId: number, roomId: number): Promise<void>;
+  deleteLocationChatRoom(roomId: number): Promise<void>;
+  checkLocationProximity(userId: number): Promise<{ roomId: number; distance: number; hasNewChats: boolean }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -632,6 +640,171 @@ export class DatabaseStorage implements IStorage {
         })
         .where(eq(locationChatRooms.id, roomId));
     }
+  }
+
+  // 위치 기반 자동 관리 메소드들
+  async cleanupInactiveLocationChats(): Promise<void> {
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    
+    // 1시간 이상 비활성이고 비즈니스 계정이 아닌 채팅방 삭제
+    const inactiveRooms = await db.select({ id: locationChatRooms.id })
+      .from(locationChatRooms)
+      .where(
+        and(
+          eq(locationChatRooms.isActive, true),
+          eq(locationChatRooms.isOfficial, false),
+          sql`${locationChatRooms.lastActivity} < ${oneHourAgo}`
+        )
+      );
+
+    for (const room of inactiveRooms) {
+      await this.deleteLocationChatRoom(room.id);
+    }
+  }
+
+  async cleanupEmptyLocationChats(): Promise<void> {
+    // 참여자가 0명인 채팅방 삭제
+    const emptyRooms = await db.select({ id: locationChatRooms.id })
+      .from(locationChatRooms)
+      .where(
+        and(
+          eq(locationChatRooms.isActive, true),
+          eq(locationChatRooms.participantCount, 0)
+        )
+      );
+
+    for (const room of emptyRooms) {
+      await this.deleteLocationChatRoom(room.id);
+    }
+  }
+
+  async handleLocationBasedExit(): Promise<void> {
+    // 현재 활성 참여자들과 그들의 위치를 확인
+    const participants = await db.select({
+      userId: locationChatParticipants.userId,
+      roomId: locationChatParticipants.locationChatRoomId,
+      roomLat: locationChatRooms.latitude,
+      roomLng: locationChatRooms.longitude,
+      radius: locationChatRooms.radius,
+      userLat: userLocations.latitude,
+      userLng: userLocations.longitude,
+    })
+    .from(locationChatParticipants)
+    .innerJoin(locationChatRooms, eq(locationChatParticipants.locationChatRoomId, locationChatRooms.id))
+    .leftJoin(userLocations, eq(locationChatParticipants.userId, userLocations.userId))
+    .where(eq(locationChatRooms.isActive, true));
+
+    for (const participant of participants) {
+      if (participant.userLat && participant.userLng) {
+        const distance = this.calculateDistance(
+          parseFloat(participant.userLat.toString()),
+          parseFloat(participant.userLng.toString()),
+          parseFloat(participant.roomLat.toString()),
+          parseFloat(participant.roomLng.toString())
+        );
+
+        // 반경을 벗어난 경우 자동 퇴장
+        if (distance > (participant.radius || 50)) {
+          await this.leaveLocationChatRoom(participant.userId, participant.roomId);
+        }
+      }
+    }
+  }
+
+  private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371000; // 지구 반지름 (미터)
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  }
+
+  async leaveLocationChatRoom(userId: number, roomId: number): Promise<void> {
+    // 참여자 삭제
+    await db.delete(locationChatParticipants)
+      .where(
+        and(
+          eq(locationChatParticipants.userId, userId),
+          eq(locationChatParticipants.locationChatRoomId, roomId)
+        )
+      );
+
+    // 참여자 수 감소
+    await db.update(locationChatRooms)
+      .set({ participantCount: sql`${locationChatRooms.participantCount} - 1` })
+      .where(eq(locationChatRooms.id, roomId));
+  }
+
+  async deleteLocationChatRoom(roomId: number): Promise<void> {
+    // 메시지 삭제
+    await db.delete(locationChatMessages)
+      .where(eq(locationChatMessages.locationChatRoomId, roomId));
+    
+    // 참여자 삭제
+    await db.delete(locationChatParticipants)
+      .where(eq(locationChatParticipants.locationChatRoomId, roomId));
+    
+    // 채팅방 삭제
+    await db.delete(locationChatRooms)
+      .where(eq(locationChatRooms.id, roomId));
+  }
+
+  async checkLocationProximity(userId: number): Promise<{ roomId: number; distance: number; hasNewChats: boolean }[]> {
+    const userLocation = await db.select()
+      .from(userLocations)
+      .where(eq(userLocations.userId, userId));
+
+    if (!userLocation.length) return [];
+
+    const { latitude: userLat, longitude: userLng } = userLocation[0];
+    
+    // 주변 50미터 내 채팅방 찾기
+    const nearbyRooms = await db.select({
+      id: locationChatRooms.id,
+      name: locationChatRooms.name,
+      latitude: locationChatRooms.latitude,
+      longitude: locationChatRooms.longitude,
+      radius: locationChatRooms.radius,
+      participantCount: locationChatRooms.participantCount,
+      lastActivity: locationChatRooms.lastActivity,
+    })
+    .from(locationChatRooms)
+    .where(eq(locationChatRooms.isActive, true));
+
+    const proximityResults = [];
+    for (const room of nearbyRooms) {
+      const distance = this.calculateDistance(
+        parseFloat(userLat.toString()),
+        parseFloat(userLng.toString()),
+        parseFloat(room.latitude.toString()),
+        parseFloat(room.longitude.toString())
+      );
+
+      if (distance <= (room.radius || 50)) {
+        // 사용자가 이미 참여하고 있는지 확인
+        const isParticipant = await db.select()
+          .from(locationChatParticipants)
+          .where(
+            and(
+              eq(locationChatParticipants.userId, userId),
+              eq(locationChatParticipants.locationChatRoomId, room.id)
+            )
+          );
+
+        const hasNewChats = !isParticipant.length;
+        
+        proximityResults.push({
+          roomId: room.id,
+          distance,
+          hasNewChats
+        });
+      }
+    }
+
+    return proximityResults;
   }
 }
 
