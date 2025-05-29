@@ -1112,6 +1112,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [suggestionTimeout, setSuggestionTimeout] = useState<NodeJS.Timeout | null>(null);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
   const [isNavigatingWithKeyboard, setIsNavigatingWithKeyboard] = useState(false);
+  const [isHoveringOverSuggestions, setIsHoveringOverSuggestions] = useState(false);
   const [smartResultModal, setSmartResultModal] = useState<{show: boolean, title: string, content: string}>({
     show: false,
     title: '',
@@ -1987,11 +1988,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       setSelectedSuggestionIndex(0); // 첫 번째 항목 선택
       setIsNavigatingWithKeyboard(false); // 새로운 제안 시 키보드 네비게이션 상태 초기화
       
-      // 5초 후 자동으로 숨김 (키보드 네비게이션 중이 아닐 때만)
-      if (!isNavigatingWithKeyboard) {
+      // 5초 후 자동으로 숨김 (키보드 네비게이션 중이거나 마우스 호버 중이 아닐 때만)
+      if (!isNavigatingWithKeyboard && !isHoveringOverSuggestions) {
         const timeout = setTimeout(() => {
-          setShowSmartSuggestions(false);
-          setSmartSuggestions([]);
+          // 타이머 실행 시점에서도 호버 상태가 아닐 때만 숨김
+          if (!isHoveringOverSuggestions && !isNavigatingWithKeyboard) {
+            setShowSmartSuggestions(false);
+            setSmartSuggestions([]);
+          }
         }, 5000);
         setSuggestionTimeout(timeout);
       }
@@ -2997,7 +3001,30 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             
             {/* 스마트 채팅 제안 - 컴팩트 디자인 */}
             {showSmartSuggestions && smartSuggestions.length > 0 && (
-              <div className="absolute bottom-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mb-1 max-h-60 overflow-y-auto z-50">
+              <div 
+                className="absolute bottom-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mb-1 max-h-60 overflow-y-auto z-50"
+                onMouseEnter={() => {
+                  setIsHoveringOverSuggestions(true);
+                  // 호버 시 타이머 정지
+                  if (suggestionTimeout) {
+                    clearTimeout(suggestionTimeout);
+                    setSuggestionTimeout(null);
+                  }
+                }}
+                onMouseLeave={() => {
+                  setIsHoveringOverSuggestions(false);
+                  // 호버 해제 시 타이머 재시작 (키보드 네비게이션 중이 아닐 때만)
+                  if (!isNavigatingWithKeyboard) {
+                    const timeout = setTimeout(() => {
+                      if (!isHoveringOverSuggestions && !isNavigatingWithKeyboard) {
+                        setShowSmartSuggestions(false);
+                        setSmartSuggestions([]);
+                      }
+                    }, 2000); // 호버 해제 후 2초 여유
+                    setSuggestionTimeout(timeout);
+                  }
+                }}
+              >
                 <div className="p-1">
                   <div className="text-xs font-medium text-gray-500 mb-1 px-2">스마트 제안</div>
                   {smartSuggestions.map((suggestion, index) => (
