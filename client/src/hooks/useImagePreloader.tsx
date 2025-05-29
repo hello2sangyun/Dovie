@@ -1,160 +1,85 @@
 import { useState, useEffect, useRef } from 'react';
 
-interface ImageCache {
-  [url: string]: {
-    loaded: boolean;
-    loading: boolean;
-    element: HTMLImageElement | null;
-  };
-}
-
-class ImagePreloader {
-  private static instance: ImagePreloader;
-  private cache: ImageCache = {};
-  private loadingQueue: Set<string> = new Set();
-
-  static getInstance(): ImagePreloader {
-    if (!ImagePreloader.instance) {
-      ImagePreloader.instance = new ImagePreloader();
-    }
-    return ImagePreloader.instance;
-  }
-
-  preloadImage(url: string): Promise<boolean> {
-    return new Promise((resolve) => {
-      // 이미 로드된 경우
-      if (this.cache[url]?.loaded) {
-        resolve(true);
-        return;
-      }
-
-      // 이미 로딩 중인 경우
-      if (this.cache[url]?.loading) {
-        // 기존 이미지 요소에 리스너 추가
-        const existingImg = this.cache[url].element;
-        if (existingImg) {
-          const onLoad = () => {
-            resolve(true);
-            existingImg.removeEventListener('load', onLoad);
-            existingImg.removeEventListener('error', onError);
-          };
-          const onError = () => {
-            resolve(false);
-            existingImg.removeEventListener('load', onLoad);
-            existingImg.removeEventListener('error', onError);
-          };
-          existingImg.addEventListener('load', onLoad);
-          existingImg.addEventListener('error', onError);
-        }
-        return;
-      }
-
-      // 새로운 이미지 로드
-      const img = new Image();
-      this.cache[url] = {
-        loaded: false,
-        loading: true,
-        element: img
-      };
-
-      img.onload = () => {
-        this.cache[url].loaded = true;
-        this.cache[url].loading = false;
-        this.loadingQueue.delete(url);
-        resolve(true);
-      };
-
-      img.onerror = () => {
-        this.cache[url].loading = false;
-        this.loadingQueue.delete(url);
-        resolve(false);
-      };
-
-      this.loadingQueue.add(url);
-      img.src = url;
-    });
-  }
-
-  isLoaded(url: string): boolean {
-    return this.cache[url]?.loaded || false;
-  }
-
-  isLoading(url: string): boolean {
-    return this.cache[url]?.loading || false;
-  }
-
-  preloadMultiple(urls: string[]): Promise<boolean[]> {
-    return Promise.all(urls.map(url => this.preloadImage(url)));
-  }
-
-  clearCache(): void {
-    this.cache = {};
-    this.loadingQueue.clear();
-  }
+interface PreloadedImage {
+  url: string;
+  loaded: boolean;
+  element?: HTMLImageElement;
 }
 
 export function useImagePreloader() {
-  const preloader = useRef(ImagePreloader.getInstance());
-  
-  const preloadImage = (url: string) => {
-    return preloader.current.preloadImage(url);
+  const [preloadedImages, setPreloadedImages] = useState<Map<string, PreloadedImage>>(new Map());
+  const preloadQueueRef = useRef<string[]>([]);
+  const isProcessingRef = useRef(false);
+
+  const preloadImage = (url: string): Promise<HTMLImageElement> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = url;
+    });
   };
 
-  const preloadImages = (urls: string[]) => {
-    return preloader.current.preloadMultiple(urls);
+  const processPreloadQueue = async () => {
+    if (isProcessingRef.current || preloadQueueRef.current.length === 0) {
+      return;
+    }
+
+    isProcessingRef.current = true;
+
+    while (preloadQueueRef.current.length > 0) {
+      const url = preloadQueueRef.current.shift();
+      if (!url) continue;
+
+      // 이미 로드된 이미지는 건너뛰기
+      if (preloadedImages.has(url) && preloadedImages.get(url)?.loaded) {
+        continue;
+      }
+
+      try {
+        const img = await preloadImage(url);
+        setPreloadedImages(prev => new Map(prev).set(url, {
+          url,
+          loaded: true,
+          element: img
+        }));
+      } catch (error) {
+        console.warn('Failed to preload image:', url, error);
+        setPreloadedImages(prev => new Map(prev).set(url, {
+          url,
+          loaded: false
+        }));
+      }
+    }
+
+    isProcessingRef.current = false;
   };
 
-  const isImageLoaded = (url: string) => {
-    return preloader.current.isLoaded(url);
+  const addToPreloadQueue = (urls: string[]) => {
+    const newUrls = urls.filter(url => 
+      url && 
+      !preloadedImages.has(url) && 
+      !preloadQueueRef.current.includes(url)
+    );
+    
+    preloadQueueRef.current.push(...newUrls);
+    
+    // 즉시 처리 시작
+    processPreloadQueue();
   };
 
-  const isImageLoading = (url: string) => {
-    return preloader.current.isLoading(url);
+  const isImageLoaded = (url: string): boolean => {
+    return preloadedImages.get(url)?.loaded || false;
+  };
+
+  const getPreloadedImage = (url: string): HTMLImageElement | undefined => {
+    return preloadedImages.get(url)?.element;
   };
 
   return {
-    preloadImage,
-    preloadImages,
+    addToPreloadQueue,
     isImageLoaded,
-    isImageLoading
+    getPreloadedImage,
+    preloadedImages: preloadedImages
   };
-}
-
-export function usePreloadedImage(url: string | null) {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const { preloadImage, isImageLoaded, isImageLoading } = useImagePreloader();
-
-  useEffect(() => {
-    if (!url) {
-      setIsLoaded(false);
-      setIsLoading(false);
-      return;
-    }
-
-    // 이미 로드된 경우
-    if (isImageLoaded(url)) {
-      setIsLoaded(true);
-      setIsLoading(false);
-      return;
-    }
-
-    // 이미 로딩 중인 경우
-    if (isImageLoading(url)) {
-      setIsLoading(true);
-      setIsLoaded(false);
-      return;
-    }
-
-    // 새로운 이미지 로드
-    setIsLoading(true);
-    setIsLoaded(false);
-
-    preloadImage(url).then((success) => {
-      setIsLoading(false);
-      setIsLoaded(success);
-    });
-  }, [url, preloadImage, isImageLoaded, isImageLoading]);
-
-  return { isLoaded, isLoading };
 }

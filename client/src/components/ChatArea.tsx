@@ -2749,11 +2749,16 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     e.currentTarget.addEventListener('touchmove', handleTouchEnd, { once: true });
                   }}
                 >
-                  <UserAvatar 
-                    user={isMe ? user : msg.sender} 
-                    size="md" 
-                    fallbackClassName={`bg-gradient-to-br ${getAvatarColor(isMe ? (user?.displayName || "Me") : msg.sender.displayName)}`}
-                  />
+                  <div className="flex flex-col items-center">
+                    <UserAvatar 
+                      user={isMe ? user : msg.sender} 
+                      size="md" 
+                      fallbackClassName={`bg-gradient-to-br ${getAvatarColor(isMe ? (user?.displayName || "Me") : msg.sender.displayName)}`}
+                    />
+                    <span className="text-xs text-gray-600 mt-1 text-center max-w-[60px] truncate">
+                      {isMe ? (user?.displayName || "나") : msg.sender.displayName}
+                    </span>
+                  </div>
                   
                   <div className={cn(
                     "flex flex-col",
@@ -2780,14 +2785,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     )}
 
                     <div className={cn(
-                      "rounded-lg p-3 shadow-sm",
+                      "rounded-lg p-3 shadow-sm max-w-[85%] sm:max-w-[70%] break-words",
                       msg.isCommandRecall && msg.isLocalOnly
                         ? isMe 
                           ? "bg-teal-500 text-white rounded-tr-none border border-teal-400" 
                           : "bg-teal-50 text-teal-900 rounded-tl-none border border-teal-200"
                         : isMe 
-                          ? "chat-bubble-me rounded-tr-none"
-                          : "chat-bubble-other rounded-tl-none"
+                          ? "bg-purple-600 text-white rounded-tr-none" 
+                          : "bg-white text-gray-900 rounded-tl-none border border-gray-200"
                     )}>
                       {/* 회신 메시지 표시 */}
                       {msg.replyToMessageId && (

@@ -38,7 +38,7 @@ export default function MainApp() {
   const [commandModalData, setCommandModalData] = useState<any>(null);
   const [messageDataForCommand, setMessageDataForCommand] = useState<any>(null);
   const [contactFilter, setContactFilter] = useState<number | null>(null);
-  const { preloadImages } = useImagePreloader();
+  const { addToPreloadQueue } = useImagePreloader();
 
   useWebSocket(user?.id);
 
