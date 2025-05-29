@@ -312,7 +312,11 @@ export default function MainApp() {
             />
           )}
           {activeMobileTab === "nearby" && (
-            <NearbyChats />
+            <NearbyChats onChatRoomSelect={(chatId) => {
+              setSelectedChatRoom(chatId);
+              setShowMobileChat(true);
+              setActiveMobileTab("chats");
+            }} />
           )}
           {showMobileChat && selectedChatRoom && (
             <div className="h-full flex flex-col overflow-hidden">
