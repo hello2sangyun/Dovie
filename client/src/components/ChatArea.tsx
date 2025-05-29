@@ -3348,7 +3348,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     e.preventDefault();
                     const selectedTag = hashSuggestions[selectedHashIndex];
                     if (selectedTag) {
-                      const currentMessage = message.replace(/#\w*$/, `#${selectedTag} `);
+                      const currentMessage = message.replace(/#\w*$/, `#${selectedTag}`);
                       setMessage(currentMessage);
                       setShowHashSuggestions(false);
                       setHashSuggestions([]);
@@ -3448,7 +3448,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           : 'hover:bg-gray-50 text-gray-700'
                       }`}
                       onClick={() => {
-                        const currentMessage = message.replace(/#\w*$/, `#${tag} `);
+                        const currentMessage = message.replace(/#\w*$/, `#${tag}`);
                         setMessage(currentMessage);
                         setShowHashSuggestions(false);
                         setHashSuggestions([]);
