@@ -1977,7 +1977,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
 
     if (allSuggestions.length > 0) {
-      setSmartSuggestions(allSuggestions.slice(0, 3)); // 최대 3개만 표시 (덜 방해되도록)
+      // 환율 변환의 경우 모든 제안 표시, 다른 경우 최대 3개
+      const maxSuggestions = allSuggestions.some(s => s.type === 'currency') ? allSuggestions.length : 3;
+      setSmartSuggestions(allSuggestions.slice(0, maxSuggestions));
       setShowSmartSuggestions(true);
       setSelectedSuggestionIndex(0); // 첫 번째 항목 선택
       setIsNavigatingWithKeyboard(false); // 새로운 제안 시 키보드 네비게이션 상태 초기화
@@ -2992,7 +2994,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             
             {/* 스마트 채팅 제안 - 컴팩트 디자인 */}
             {showSmartSuggestions && smartSuggestions.length > 0 && (
-              <div className="absolute bottom-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mb-1 max-h-40 overflow-y-auto z-50">
+              <div className="absolute bottom-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mb-1 max-h-60 overflow-y-auto z-50">
                 <div className="p-1">
                   <div className="text-xs font-medium text-gray-500 mb-1 px-2">스마트 제안</div>
                   {smartSuggestions.map((suggestion, index) => (
