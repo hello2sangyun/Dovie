@@ -1000,9 +1000,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // 스마트 채팅 상태
   const [smartSuggestions, setSmartSuggestions] = useState<Array<{
-    type: 'calculation';
+    type: 'calculation' | 'currency';
     text: string;
     result: string;
+    amount?: number;
+    fromCurrency?: string;
+    toCurrency?: string;
+    rate?: number;
   }>>([]);
   const [showSmartSuggestions, setShowSmartSuggestions] = useState(false);
 
@@ -1027,6 +1031,84 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
   };
 
+  // 화폐 패턴 및 환율 정보
+  const currencyPatterns = {
+    'KRW': { symbols: ['원', '₩'], name: '한국 원' },
+    'USD': { symbols: ['달러', '$', 'dollar'], name: '미국 달러' },
+    'EUR': { symbols: ['유로', '€', 'euro'], name: '유로' },
+    'JPY': { symbols: ['엔', '¥', 'yen'], name: '일본 엔' },
+    'CNY': { symbols: ['위안', '¥', 'yuan'], name: '중국 위안' },
+    'GBP': { symbols: ['파운드', '£', 'pound'], name: '영국 파운드' }
+  };
+
+  // 환율 가져오기 함수 (실제 API 사용)
+  const getExchangeRates = async (fromCurrency: string, amount: number) => {
+    try {
+      // 무료 환율 API 사용 (exchangerate-api.com)
+      const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${fromCurrency}`);
+      const data = await response.json();
+      
+      const suggestions = [];
+      const targetCurrencies = ['USD', 'EUR', 'JPY', 'CNY', 'KRW', 'GBP'].filter(c => c !== fromCurrency);
+      
+      for (const toCurrency of targetCurrencies.slice(0, 3)) { // 상위 3개만 표시
+        if (data.rates[toCurrency]) {
+          const rate = data.rates[toCurrency];
+          const convertedAmount = (amount * rate).toFixed(2);
+          suggestions.push({
+            type: 'currency' as const,
+            text: `${amount} ${fromCurrency} → ${convertedAmount} ${toCurrency}`,
+            result: `${amount} ${fromCurrency} = ${convertedAmount} ${toCurrency}`,
+            amount,
+            fromCurrency,
+            toCurrency,
+            rate
+          });
+        }
+      }
+      
+      return suggestions;
+    } catch (error) {
+      console.error('환율 가져오기 실패:', error);
+      return [];
+    }
+  };
+
+  // 화폐 감지 함수
+  const detectCurrency = (text: string): { amount: number; currency: string } | null => {
+    // 금액과 화폐 단위 패턴 매칭
+    const patterns = [
+      /(\d+(?:\.\d+)?)\s*(원|₩)/i,
+      /(\d+(?:\.\d+)?)\s*(달러|\$|dollar)/i,
+      /(\d+(?:\.\d+)?)\s*(유로|€|euro)/i,
+      /(\d+(?:\.\d+)?)\s*(엔|¥|yen)/i,
+      /(\d+(?:\.\d+)?)\s*(위안|yuan)/i,
+      /(\d+(?:\.\d+)?)\s*(파운드|£|pound)/i,
+      /\$(\d+(?:\.\d+)?)/i,
+      /€(\d+(?:\.\d+)?)/i,
+      /¥(\d+(?:\.\d+)?)/i,
+      /£(\d+(?:\.\d+)?)/i
+    ];
+
+    for (const pattern of patterns) {
+      const match = text.match(pattern);
+      if (match) {
+        const amount = parseFloat(match[1] || match[2]);
+        if (amount > 0) {
+          const currencyText = (match[2] || match[1]).toLowerCase();
+          
+          // 화폐 코드 결정
+          for (const [code, info] of Object.entries(currencyPatterns)) {
+            if (info.symbols.some(symbol => currencyText.includes(symbol.toLowerCase()))) {
+              return { amount, currency: code };
+            }
+          }
+        }
+      }
+    }
+    return null;
+  };
+
   // 스마트 제안 선택 처리
   const handleSmartSuggestionSelect = (suggestion: typeof smartSuggestions[0]) => {
     // 즉시 메시지 전송
@@ -1040,10 +1122,25 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     setSmartSuggestions([]);
   };
 
-  const handleMessageChange = (value: string) => {
+  const handleMessageChange = async (value: string) => {
     setMessage(value);
     
-    // 스마트 채팅 기능: 계산기
+    // 스마트 채팅 기능 1: 환전 기능
+    const currencyDetection = detectCurrency(value);
+    if (currencyDetection && currencyDetection.amount >= 1) {
+      try {
+        const suggestions = await getExchangeRates(currencyDetection.currency, currencyDetection.amount);
+        if (suggestions.length > 0) {
+          setSmartSuggestions(suggestions);
+          setShowSmartSuggestions(true);
+          return;
+        }
+      } catch (error) {
+        console.error('환율 조회 중 오류:', error);
+      }
+    }
+    
+    // 스마트 채팅 기능 2: 계산기
     const calculationMatch = value.match(/[\d\+\-\*\/\(\)\.\s]+$/);
     if (calculationMatch && calculationMatch[0].length > 3) {
       const expression = calculationMatch[0].trim();
@@ -1999,7 +2096,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             
             {/* 스마트 채팅 제안 */}
             {showSmartSuggestions && smartSuggestions.length > 0 && (
-              <div className="absolute bottom-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mb-1 max-h-40 overflow-y-auto">
+              <div className="absolute bottom-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mb-1 max-h-60 overflow-y-auto">
                 <div className="p-2">
                   <div className="text-xs font-medium text-gray-500 mb-2 px-1">스마트 제안</div>
                   {smartSuggestions.map((suggestion, index) => (
@@ -2009,13 +2106,27 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       onClick={() => handleSmartSuggestionSelect(suggestion)}
                     >
                       <div className="flex items-center space-x-2">
-                        <span className="text-blue-600">🧮</span>
-                        <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium">
-                          계산 결과
-                        </span>
-                        <span className="text-sm text-gray-700 font-mono">
-                          {suggestion.text}
-                        </span>
+                        {suggestion.type === 'calculation' ? (
+                          <>
+                            <span className="text-blue-600">🧮</span>
+                            <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium">
+                              계산 결과
+                            </span>
+                            <span className="text-sm text-gray-700 font-mono">
+                              {suggestion.text}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-green-600">💱</span>
+                            <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-medium">
+                              환율 변환
+                            </span>
+                            <span className="text-sm text-gray-700">
+                              {suggestion.text}
+                            </span>
+                          </>
+                        )}
                       </div>
                     </div>
                   ))}
