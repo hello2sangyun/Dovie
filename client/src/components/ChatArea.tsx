@@ -2111,11 +2111,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const handleMessageChange = async (value: string) => {
     setMessage(value);
     
-    // # 태그 감지 및 추천
-    const hashMatch = value.match(/#(\w*)$/);
+    // # 태그 감지 및 추천 (모든 언어 지원)
+    const hashMatch = value.match(/#([^#\s]*)$/);
     if (hashMatch) {
       const currentTag = hashMatch[1].toLowerCase();
-      const filteredTags = storedTags.filter(tag => 
+      const filteredTags = storedTags.filter((tag: string) => 
         tag.toLowerCase().includes(currentTag)
       );
       setHashSuggestions(filteredTags);
@@ -3348,7 +3348,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     e.preventDefault();
                     const selectedTag = hashSuggestions[selectedHashIndex];
                     if (selectedTag) {
-                      const currentMessage = message.replace(/#\w*$/, `#${selectedTag}`);
+                      const currentMessage = message.replace(/#[^#\s]*$/, `#${selectedTag}`);
                       setMessage(currentMessage);
                       setShowHashSuggestions(false);
                       setHashSuggestions([]);
@@ -3448,7 +3448,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           : 'hover:bg-gray-50 text-gray-700'
                       }`}
                       onClick={() => {
-                        const currentMessage = message.replace(/#\w*$/, `#${tag}`);
+                        const currentMessage = message.replace(/#[^#\s]*$/, `#${tag}`);
                         setMessage(currentMessage);
                         setShowHashSuggestions(false);
                         setHashSuggestions([]);
