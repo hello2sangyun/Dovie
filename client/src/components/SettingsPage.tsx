@@ -43,26 +43,21 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
     onSuccess: async (data) => {
       console.log("Profile update successful:", data);
       
-      // 1. Auth 컨텍스트 업데이트
+      // 1. Auth 컨텍스트 즉시 업데이트
       setUser(data.user);
       
-      // 2. React Query 캐시 강제 새로고침
-      await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      await queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
+      // 2. React Query 캐시 즉시 업데이트 (캐시된 데이터 직접 설정)
+      queryClient.setQueryData(["/api/auth/me"], { user: data.user });
       
-      // 3. 모든 관련 쿼리 새로고침
-      await queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
-      await queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
+      // 3. 모든 관련 쿼리 백그라운드에서 새로고침
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
       
       // 4. 로컬 상태 초기화
       setProfileImage(null);
       setPreviewUrl(null);
       
-      // 5. 강제 UI 업데이트
-      setTimeout(() => {
-        // 브라우저 캐시 완전 우회를 위한 강제 새로고침
-        window.location.href = window.location.href + '?t=' + Date.now();
-      }, 500);
+      console.log("✅ Profile updated successfully, new URL:", data.user.profilePicture);
       
       toast({
         title: "프로필 업데이트 완료",
