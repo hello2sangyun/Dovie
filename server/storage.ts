@@ -503,6 +503,21 @@ export class DatabaseStorage implements IStorage {
       .delete(phoneVerifications)
       .where(lt(phoneVerifications.expiresAt, new Date()));
   }
+
+  async registerBusinessUser(userId: number, businessData: { businessName: string; businessAddress: string }): Promise<User | undefined> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({
+        userRole: "business",
+        businessName: businessData.businessName,
+        businessAddress: businessData.businessAddress,
+        isBusinessVerified: false
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return updatedUser || undefined;
+  }
 }
 
 export const storage = new DatabaseStorage();

@@ -257,6 +257,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 비즈니스 사용자 등록 API
+  app.post("/api/users/register-business", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { businessName, businessAddress } = req.body;
+      
+      if (!businessName || !businessAddress) {
+        return res.status(400).json({ message: "사업장명과 주소를 입력해주세요." });
+      }
+
+      const user = await storage.registerBusinessUser(Number(userId), {
+        businessName,
+        businessAddress
+      });
+
+      if (!user) {
+        return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+      }
+
+      res.json({ user });
+    } catch (error) {
+      console.error("Business registration error:", error);
+      res.status(500).json({ message: "비즈니스 등록에 실패했습니다." });
+    }
+  });
+
   app.get("/api/auth/me", async (req, res) => {
     const userId = req.headers["x-user-id"];
     if (!userId) {

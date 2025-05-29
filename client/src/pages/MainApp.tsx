@@ -16,7 +16,7 @@ import CreateGroupChatModal from "@/components/CreateGroupChatModal";
 import SettingsPage from "@/components/SettingsPage";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users } from "lucide-react";
+import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function MainApp() {
@@ -146,7 +146,7 @@ export default function MainApp() {
 
           {/* Navigation Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-            <TabsList className="grid w-full grid-cols-4 border-b border-gray-200 rounded-none bg-transparent h-auto">
+            <TabsList className="grid w-full grid-cols-5 border-b border-gray-200 rounded-none bg-transparent h-auto">
               <TabsTrigger 
                 value="contacts" 
                 className={cn(
@@ -166,6 +166,16 @@ export default function MainApp() {
               >
                 <MessageSquare className="h-5 w-5" />
                 <span className="text-xs">채팅방</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="nearby"
+                className={cn(
+                  "py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent flex-col items-center gap-1",
+                  "data-[state=active]:border-purple-600 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-600"
+                )}
+              >
+                <MapPin className="h-5 w-5" />
+                <span className="text-xs">주변챗</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="archive"
