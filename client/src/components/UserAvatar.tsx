@@ -1,5 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfileImage } from "@/hooks/useProfileImage";
 import { getInitials, getAvatarColor } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
@@ -36,26 +37,30 @@ export function UserAvatar({
   // 현재 사용자인 경우 Auth 컨텍스트에서 최신 정보 사용
   const user = providedUser || (userId === currentUser?.id ? currentUser : null);
   
+  // 커스텀 훅으로 프로필 이미지 관리
+  const { imageUrl, isLoading, error } = useProfileImage(user?.id);
+  
   if (!user) return null;
 
   const avatarColor = getAvatarColor(user.displayName);
-  const imageUrl = user.profilePicture ? `${user.profilePicture}?t=${Date.now()}` : undefined;
 
-  console.log("UserAvatar rendering for user:", user.id, "displayName:", user.displayName, "imageUrl:", imageUrl);
+  console.log("UserAvatar rendering for user:", user.id, "displayName:", user.displayName, "imageUrl:", imageUrl, "isLoading:", isLoading, "error:", error);
 
   return (
     <div className="relative">
       <Avatar className={cn(sizeMap[size], className)}>
-        <AvatarImage 
-          src={imageUrl}
-          alt={user.displayName}
-          onLoad={() => {
-            console.log("✅ UserAvatar image loaded successfully for user:", user.id, "URL:", imageUrl);
-          }}
-          onError={(e) => {
-            console.error("❌ UserAvatar image load error for user:", user.id, "URL:", imageUrl, "Error:", e);
-          }}
-        />
+        {imageUrl && !error ? (
+          <AvatarImage 
+            src={imageUrl}
+            alt={user.displayName}
+            onLoad={() => {
+              console.log("✅ UserAvatar image displayed for user:", user.id);
+            }}
+            onError={() => {
+              console.error("❌ UserAvatar image display error for user:", user.id);
+            }}
+          />
+        ) : null}
         <AvatarFallback 
           className={cn(
             "font-semibold text-white",
@@ -67,7 +72,7 @@ export function UserAvatar({
             fallbackClassName
           )}
         >
-          {getInitials(user.displayName)}
+          {isLoading ? "..." : getInitials(user.displayName)}
         </AvatarFallback>
       </Avatar>
       

@@ -47,13 +47,18 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
       await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       await queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
       
-      // 3. 모든 채팅방 관련 쿼리도 새로고침 (프로필 사진이 채팅방에 반영되도록)
+      // 3. 모든 관련 쿼리 새로고침
       await queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
       await queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
       
       // 4. 로컬 상태 초기화
       setProfileImage(null);
       setPreviewUrl(null);
+      
+      // 5. 페이지 강제 새로고침으로 브라우저 캐시 우회
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
       
       toast({
         title: "프로필 업데이트 완료",
