@@ -35,6 +35,38 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [message, setMessage] = useState("");
+
+  // 임시 메시지 저장 관련 함수들
+  const getDraftKey = (roomId: number) => `chat_draft_${roomId}`;
+  
+  const saveDraftMessage = (roomId: number, content: string) => {
+    try {
+      if (content.trim()) {
+        localStorage.setItem(getDraftKey(roomId), content);
+      } else {
+        localStorage.removeItem(getDraftKey(roomId));
+      }
+    } catch (error) {
+      console.warn('Failed to save draft message:', error);
+    }
+  };
+
+  const loadDraftMessage = (roomId: number): string => {
+    try {
+      return localStorage.getItem(getDraftKey(roomId)) || "";
+    } catch (error) {
+      console.warn('Failed to load draft message:', error);
+      return "";
+    }
+  };
+
+  const clearDraftMessage = (roomId: number) => {
+    try {
+      localStorage.removeItem(getDraftKey(roomId));
+    } catch (error) {
+      console.warn('Failed to clear draft message:', error);
+    }
+  };
   const [showCommandSuggestions, setShowCommandSuggestions] = useState(false);
   const [showChatCommands, setShowChatCommands] = useState(false);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
@@ -921,6 +953,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
 
 
+
+
+  // 채팅방 변경 시 임시 메시지 복원
+  useEffect(() => {
+    // 새 채팅방의 임시 메시지 불러오기
+    const draftMessage = loadDraftMessage(chatRoomId);
+    setMessage(draftMessage);
+  }, [chatRoomId]);
+
   const handleSendMessage = () => {
     if (!message.trim()) return;
 
@@ -1157,6 +1198,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
 
     sendMessageMutation.mutate(messageData);
+    
+    // 메시지 전송 후 임시 저장된 내용 삭제
+    clearDraftMessage(chatRoomId);
     setReplyToMessage(null); // 회신 모드 해제
   };
 
@@ -2332,6 +2376,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   const handleMessageChange = async (value: string) => {
     setMessage(value);
+    
+    // 입력할 때마다 자동으로 임시 저장
+    saveDraftMessage(chatRoomId, value);
     
     // # 태그 감지 및 추천 (모든 언어 지원)
     const hashMatch = value.match(/#([^#\s]*)$/);
