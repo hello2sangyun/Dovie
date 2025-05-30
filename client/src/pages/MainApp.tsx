@@ -199,7 +199,7 @@ export default function MainApp() {
           <div className="p-4 border-b border-gray-200 purple-gradient">
             <div className="flex items-center justify-center space-x-3">
               <VaultLogo size="sm" />
-              <h1 className="text-xl font-bold text-white">Vault Messenger</h1>
+              <h1 className="text-xl font-bold text-white">Dovie Messenger</h1>
             </div>
           </div>
 

@@ -126,7 +126,7 @@ export default function QRScannerModal({ open, onClose, onScanResult }: QRScanne
           throw new Error("사용자 정보를 가져올 수 없습니다.");
         }
       } else {
-        throw new Error("올바른 Vault Messenger QR코드가 아닙니다.");
+        throw new Error("올바른 Dovie Messenger QR코드가 아닙니다.");
       }
     } catch (error) {
       toast({

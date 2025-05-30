@@ -396,8 +396,8 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
           <CardContent className="pt-4 pb-4">
             <div className="text-center space-y-1">
               <VaultLogo size="sm" className="mx-auto" />
-              <p className="text-sm text-gray-500">Vault Messenger</p>
-              <p className="text-xs text-gray-400">보안 메신저 v1.0.0</p>
+              <p className="text-sm text-gray-500">Dovie Messenger</p>
+              <p className="text-xs text-gray-400">스마트 메신저 v1.0.0</p>
               <p className="text-xs text-gray-400">모든 메시지와 파일이 암호화됩니다</p>
             </div>
           </CardContent>
