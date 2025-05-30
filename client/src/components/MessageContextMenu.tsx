@@ -154,53 +154,52 @@ export default function MessageContextMenu({
       {/* Context Menu */}
       <div
         ref={menuRef}
-        className="context-menu fixed z-50 bg-white border border-gray-300 rounded-lg shadow-lg py-1 min-w-[120px]
-                   animate-in fade-in-0 zoom-in-95 duration-150"
+        className="context-menu fixed z-50 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg py-1 min-w-[120px]"
         style={{ left: menuPosition.x, top: menuPosition.y }}
         onClick={(e) => e.stopPropagation()}
       >
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start px-3 py-2 h-8 text-left text-sm hover:bg-gray-100 transition-colors"
+          className="w-full justify-start px-3 py-2 h-8 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           onClick={handleReplyClick}
         >
-          <Reply className="w-3 h-3 mr-2 text-gray-600" />
-          <span className="text-gray-700">답장</span>
+          <Reply className="w-3 h-3 mr-2 text-gray-600 dark:text-gray-300" />
+          <span className="text-gray-700 dark:text-gray-200">답장</span>
         </Button>
         
         {canEdit && (
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start px-3 py-2 h-8 text-left text-sm hover:bg-gray-100 transition-colors"
+            className="w-full justify-start px-3 py-2 h-8 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             onClick={handleEditClick}
           >
-            <Edit3 className="w-3 h-3 mr-2 text-gray-600" />
-            <span className="text-gray-700">수정</span>
+            <Edit3 className="w-3 h-3 mr-2 text-gray-600 dark:text-gray-300" />
+            <span className="text-gray-700 dark:text-gray-200">수정</span>
           </Button>
         )}
         
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start px-3 py-2 h-8 text-left text-sm hover:bg-gray-100 transition-colors"
+          className="w-full justify-start px-3 py-2 h-8 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           onClick={handleSaveClick}
         >
-          <Save className="w-3 h-3 mr-2 text-gray-600" />
-          <span className="text-gray-700">저장</span>
+          <Save className="w-3 h-3 mr-2 text-gray-600 dark:text-gray-300" />
+          <span className="text-gray-700 dark:text-gray-200">저장</span>
         </Button>
         
-        <div className="border-t border-gray-200 my-1" />
+        <div className="border-t border-gray-200 dark:border-gray-600 my-1" />
         
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start px-3 py-2 h-8 text-left text-sm hover:bg-gray-100 transition-colors"
+          className="w-full justify-start px-3 py-2 h-8 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           onClick={handleTranslateClick}
         >
-          <Globe className="w-3 h-3 mr-2 text-gray-600" />
-          <span className="text-gray-700">번역</span>
+          <Globe className="w-3 h-3 mr-2 text-gray-600 dark:text-gray-300" />
+          <span className="text-gray-700 dark:text-gray-200">번역</span>
         </Button>
       </div>
     </>

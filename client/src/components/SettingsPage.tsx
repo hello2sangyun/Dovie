@@ -10,7 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
 import { ImageCropper } from "@/components/ImageCropper";
-import { Camera, User, LogOut, Building2 } from "lucide-react";
+import { Camera, User, LogOut, Building2, Moon, Sun } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { getInitials } from "@/lib/utils";
 import VaultLogo from "./VaultLogo";
 
@@ -29,6 +30,13 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
   const [businessAddress, setBusinessAddress] = useState("");
   const [showImageCropper, setShowImageCropper] = useState(false);
   const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('darkMode') === 'true' || 
+             (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    }
+    return false;
+  });
 
   // Profile update mutation
   const updateProfileMutation = useMutation({
@@ -190,6 +198,21 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
       businessName: businessName.trim(),
       businessAddress: businessAddress.trim()
     });
+  };
+
+  // Dark mode effect
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isDarkMode) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    localStorage.setItem('darkMode', isDarkMode.toString());
+  }, [isDarkMode]);
+
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode);
   };
 
   const handleLogout = () => {
@@ -390,6 +413,31 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
             </CardContent>
           </Card>
         )}
+
+        {/* Appearance Settings */}
+        <Card className="w-full">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center space-x-2 text-base">
+              {isDarkMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+              <span>화면 설정</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-sm font-medium">다크 모드</Label>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  어두운 테마로 전환합니다
+                </p>
+              </div>
+              <Switch
+                checked={isDarkMode}
+                onCheckedChange={toggleDarkMode}
+                className="data-[state=checked]:bg-purple-600"
+              />
+            </div>
+          </CardContent>
+        </Card>
 
         {/* App Info */}
         <Card className="w-full">
