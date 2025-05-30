@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
-import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause, Cloud, CloudRain, Sun, CloudSnow } from "lucide-react";
+import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause, Cloud, CloudRain, Sun, CloudSnow, MoreVertical, LogOut, Settings } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
@@ -261,6 +261,31 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/unread-counts"] });
       queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+    },
+  });
+
+  // Leave chat room mutation
+  const leaveChatRoomMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest(`/api/chat-rooms/${chatRoomId}/leave`, "POST", { saveFiles: false });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/unread-counts"] });
+      if (onBackClick) {
+        onBackClick();
+      }
+      toast({
+        title: "채팅방에서 나갔습니다",
+        description: "성공적으로 채팅방을 나갔습니다.",
+      });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "나가기 실패",
+        description: "채팅방을 나가는 중 오류가 발생했습니다.",
+      });
     },
   });
 
@@ -2443,7 +2468,21 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       const latestMessage = messages[messages.length - 1];
       markAsReadMutation.mutate(latestMessage.id);
     }
-  }, [messages, chatRoomId]);;
+  }, [messages, chatRoomId]);
+
+  // Close chat settings when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showChatSettings && !(event.target as Element).closest('.relative')) {
+        setShowChatSettings(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showChatSettings]);;
 
   const selectCommand = (commandName: string) => {
     setMessage(`#${commandName}`);
@@ -2728,6 +2767,36 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             <Button variant="ghost" size="sm" className="text-gray-400 hover:text-purple-600">
               <Info className="h-4 w-4" />
             </Button>
+            <div className="relative">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-gray-400 hover:text-purple-600"
+                onClick={() => setShowChatSettings(!showChatSettings)}
+              >
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+              
+              {/* Chat Settings Dropdown */}
+              {showChatSettings && (
+                <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 w-48">
+                  <div className="py-1">
+                    <button
+                      onClick={() => {
+                        setShowChatSettings(false);
+                        if (window.confirm('정말로 이 채팅방을 나가시겠습니까?')) {
+                          leaveChatRoomMutation.mutate();
+                        }
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>채팅방 나가기</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         
