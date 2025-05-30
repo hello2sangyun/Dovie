@@ -87,73 +87,76 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
 
   return (
     <div className="h-full flex flex-col">
-      <div className="p-4 border-b border-gray-200">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-gray-900">연락처</h3>
+      <div className="p-3 border-b border-gray-200">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-semibold text-gray-900 text-sm">연락처</h3>
           <Button
             variant="ghost"
             size="sm"
-            className="text-purple-600 hover:text-purple-700"
+            className="text-purple-600 hover:text-purple-700 h-7 w-7 p-0"
             onClick={onAddContact}
           >
-            <Plus className="h-5 w-5" />
+            <Plus className="h-4 w-4" />
           </Button>
         </div>
         
         <div className="relative mb-2">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-3 w-3" />
           <Input
             type="text"
-            placeholder="연락처 검색..."
+            placeholder="검색..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-7 h-7 text-xs"
           />
         </div>
         
         <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger>
-            <SelectValue placeholder="정렬 방식" />
+          <SelectTrigger className="h-7 text-xs">
+            <SelectValue placeholder="정렬" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="nickname">닉네임 순 정렬</SelectItem>
-            <SelectItem value="username">이름 순 정렬</SelectItem>
-            <SelectItem value="lastSeen">마지막 접속순 정렬</SelectItem>
+            <SelectItem value="nickname">닉네임순</SelectItem>
+            <SelectItem value="username">이름순</SelectItem>
+            <SelectItem value="lastSeen">접속순</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      <div className="flex-1 overflow-y-auto max-h-[calc(100vh-320px)] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+      <div className="flex-1 overflow-y-auto max-h-[calc(100vh-240px)] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
         {filteredAndSortedContacts.length === 0 ? (
-          <div className="p-4 text-center text-gray-500">
+          <div className="p-3 text-center text-gray-500 text-sm">
             {searchTerm ? "검색 결과가 없습니다" : "연락처가 없습니다"}
           </div>
         ) : (
           filteredAndSortedContacts.map((contact: any) => (
             <div
               key={contact.id}
-              className="p-4 hover:bg-purple-50 cursor-pointer border-b border-gray-100 transition-colors"
+              className="px-3 py-2 hover:bg-purple-50 cursor-pointer border-b border-gray-100 transition-colors"
               onClick={() => onSelectContact(contact.contactUserId)}
             >
-              <div className="flex items-center space-x-3">
-                <Avatar className="w-12 h-12">
+              <div className="flex items-center space-x-2">
+                <Avatar className="w-8 h-8">
                   <AvatarImage 
                     src={contact.contactUser.profilePicture || undefined} 
                     alt={contact.nickname || contact.contactUser.displayName} 
                   />
-                  <AvatarFallback className={`bg-gradient-to-br ${getAvatarColor(contact.nickname || contact.contactUser.displayName)} text-white font-semibold`}>
+                  <AvatarFallback className={`bg-gradient-to-br ${getAvatarColor(contact.nickname || contact.contactUser.displayName)} text-white font-semibold text-xs`}>
                     {getInitials(contact.nickname || contact.contactUser.displayName)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 truncate">
-                    {contact.nickname || contact.contactUser.displayName}
-                  </p>
-                  <p className="text-sm text-gray-500 truncate">@{contact.contactUser.username}</p>
-                  <p className={cn(
-                    "text-xs",
-                    contact.contactUser.isOnline ? "text-green-500" : "text-gray-400"
-                  )}>
+                  <div className="flex items-center justify-between">
+                    <p className="font-medium text-gray-900 truncate text-sm">
+                      {contact.nickname || contact.contactUser.displayName}
+                    </p>
+                    <div className={cn(
+                      "w-2 h-2 rounded-full ml-2 flex-shrink-0",
+                      contact.contactUser.isOnline ? "bg-green-500" : "bg-gray-300"
+                    )} />
+                  </div>
+                  <p className="text-xs text-gray-500 truncate">@{contact.contactUser.username}</p>
+                  <p className="text-xs text-gray-400 truncate">
                     {getOnlineStatus(contact.contactUser)}
                   </p>
                 </div>
