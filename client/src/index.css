@@ -41,6 +41,12 @@
   --normal-text: hsl(224 71.4% 4.1%);
 }
 
+[data-sonner-toaster][data-theme='dark'] {
+  --normal-bg: hsl(224 71.4% 4.1%);
+  --normal-border: hsl(215 27.9% 16.9%);
+  --normal-text: hsl(210 20% 98%);
+}
+
 [data-sonner-toast] {
   max-width: 300px !important;
   padding: 8px 12px !important;

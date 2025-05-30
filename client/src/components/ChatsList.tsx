@@ -332,8 +332,8 @@ function ChatRoomItem({
   return (
     <div
       className={cn(
-        "p-4 hover:bg-purple-50 cursor-pointer border-b border-gray-100 transition-colors relative",
-        isSelected && "bg-purple-50"
+        "p-4 hover:bg-purple-50 dark:hover:bg-gray-800 cursor-pointer border-b border-gray-100 dark:border-gray-700 transition-colors relative",
+        isSelected && "bg-purple-50 dark:bg-gray-800"
       )}
       onClick={onClick}
     >
@@ -344,7 +344,7 @@ function ChatRoomItem({
       <div className="flex items-center space-x-3">
         {chatRoom.isGroup ? (
           <div className="relative w-12 h-12 flex items-center justify-center">
-            {chatRoom.participants.slice(0, Math.min(4, chatRoom.participants.length)).map((participant: any, index: number) => {
+            {chatRoom.participants.slice(0, 4).map((participant: any, index: number) => {
               const totalAvatars = Math.min(4, chatRoom.participants.length);
               const isStackLayout = totalAvatars <= 3;
               
@@ -353,7 +353,7 @@ function ChatRoomItem({
                 return (
                   <div
                     key={participant.id}
-                    className={`${index > 0 ? '-ml-2' : ''} border-2 border-white rounded-full shadow-sm`}
+                    className={`${index > 0 ? '-ml-2' : ''} border-2 border-white dark:border-gray-700 rounded-full shadow-sm`}
                     style={{ zIndex: totalAvatars - index }}
                   >
                     <UserAvatar 
@@ -364,19 +364,18 @@ function ChatRoomItem({
                   </div>
                 );
               } else {
-                // 4-5명일 때: 격자 레이아웃
+                // 4명일 때: 균형있는 격자 레이아웃
                 const positions = [
                   'top-0 left-0',
                   'top-0 right-0', 
                   'bottom-0 left-0',
-                  'bottom-0 right-0',
-                  'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10'
+                  'bottom-0 right-0'
                 ];
                 
                 return (
                   <div
                     key={participant.id}
-                    className={`absolute border border-white rounded-full shadow-sm ${positions[index]}`}
+                    className={`absolute border border-white dark:border-gray-700 rounded-full shadow-sm ${positions[index]}`}
                   >
                     <UserAvatar 
                       user={participant} 
@@ -401,11 +400,11 @@ function ChatRoomItem({
               {chatRoom.isGroup && (
                 <Users className="h-4 w-4 text-purple-500 flex-shrink-0" />
               )}
-              <p className="font-medium text-gray-900 truncate">{displayName}</p>
+              <p className="font-medium text-gray-900 dark:text-gray-100 truncate">{displayName}</p>
             </div>
             <div className="flex items-center space-x-2">
               {chatRoom.lastMessage && (
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
                   {formatTime(chatRoom.lastMessage.createdAt)}
                 </span>
               )}
@@ -421,9 +420,9 @@ function ChatRoomItem({
               )}
             </div>
           </div>
-          <p className="text-sm text-gray-600 truncate">
+          <p className="text-sm text-gray-600 dark:text-gray-300 truncate">
             {hasDraft ? (
-              <span className="text-orange-600 font-medium">
+              <span className="text-orange-600 dark:text-orange-400 font-medium">
                 📝 임시저장: {draftPreview}
               </span>
             ) : (
@@ -432,7 +431,7 @@ function ChatRoomItem({
           </p>
           {chatRoom.isGroup && (
             <div className="flex items-center justify-between mt-1">
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-gray-400 dark:text-gray-500">
                 참여자 {chatRoom.participants.length}명
               </span>
             </div>
