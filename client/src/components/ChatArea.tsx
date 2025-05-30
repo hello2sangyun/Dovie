@@ -83,6 +83,25 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [mentionSuggestions, setMentionSuggestions] = useState<any[]>([]);
   const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
   const [mentionStart, setMentionStart] = useState(-1);
+  
+  // Adaptive UI Flow states
+  const [conversationMode, setConversationMode] = useState<'casual' | 'business' | 'creative' | 'support'>('casual');
+  const [uiAdaptations, setUiAdaptations] = useState({
+    showQuickReplies: false,
+    showActionButtons: false,
+    showMoodIndicator: false,
+    showTimeAwareness: false,
+    compactMode: false,
+    focusMode: false
+  });
+  const [conversationContext, setConversationContext] = useState({
+    topic: '',
+    urgency: 'normal' as 'low' | 'normal' | 'high',
+    participants: 0,
+    lastActivity: Date.now(),
+    messagePattern: 'text' as 'text' | 'media' | 'mixed'
+  });
+  const [adaptiveActions, setAdaptiveActions] = useState<any[]>([]);
   const [mentionPosition, setMentionPosition] = useState(0);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -2669,6 +2688,129 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     setReplyToMessage(null);
   };
 
+  // Adaptive Conversation UI Flow functions
+  const analyzeConversationContext = (messages: any[]) => {
+    if (!messages || messages.length === 0) return;
+
+    const recentMessages = messages.slice(-10);
+    const lastHour = Date.now() - (60 * 60 * 1000);
+    const recentActivity = recentMessages.filter(msg => new Date(msg.createdAt).getTime() > lastHour);
+
+    // Detect conversation mode based on content patterns
+    const businessKeywords = ['회의', '프로젝트', '일정', '업무', '보고서', '회사', '미팅', '계약', '제안'];
+    const supportKeywords = ['문제', '도움', '해결', '오류', '버그', '지원', '문의', '질문'];
+    const creativeKeywords = ['아이디어', '창의적', '브레인스토밍', '디자인', '예술', '창작', '영감'];
+
+    const content = recentMessages.map(m => m.content || '').join(' ').toLowerCase();
+    
+    let detectedMode: 'casual' | 'business' | 'creative' | 'support' = 'casual';
+    
+    if (businessKeywords.some(keyword => content.includes(keyword))) {
+      detectedMode = 'business';
+    } else if (supportKeywords.some(keyword => content.includes(keyword))) {
+      detectedMode = 'support';
+    } else if (creativeKeywords.some(keyword => content.includes(keyword))) {
+      detectedMode = 'creative';
+    }
+
+    // Detect urgency based on message patterns
+    const urgentPatterns = ['긴급', '급한', '즉시', '빨리', '중요', '!!', '!!!'];
+    const hasUrgentContent = urgentPatterns.some(pattern => content.includes(pattern));
+    const highFrequency = recentActivity.length > 5;
+
+    const urgency = hasUrgentContent || highFrequency ? 'high' : recentActivity.length > 2 ? 'normal' : 'low';
+
+    // Detect message patterns
+    const mediaCount = recentMessages.filter(m => m.messageType === 'file' || m.messageType === 'voice').length;
+    const textCount = recentMessages.filter(m => m.messageType === 'text').length;
+    
+    let messagePattern: 'text' | 'media' | 'mixed' = 'text';
+    if (mediaCount > textCount) messagePattern = 'media';
+    else if (mediaCount > 0 && textCount > 0) messagePattern = 'mixed';
+
+    // Update conversation context
+    setConversationContext({
+      topic: extractTopicFromMessages(recentMessages),
+      urgency,
+      participants: currentChatRoom?.participants?.length || 0,
+      lastActivity: Date.now(),
+      messagePattern
+    });
+
+    setConversationMode(detectedMode);
+    updateUIAdaptations(detectedMode, urgency, messagePattern);
+  };
+
+  const extractTopicFromMessages = (messages: any[]) => {
+    // Simple topic extraction based on frequent words
+    const words = messages
+      .map(m => m.content || '')
+      .join(' ')
+      .toLowerCase()
+      .split(/\s+/)
+      .filter(word => word.length > 3 && !['그런데', '그리고', '하지만'].includes(word));
+    
+    const wordCount = words.reduce((acc, word) => {
+      acc[word] = (acc[word] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const topWord = Object.entries(wordCount)
+      .sort(([,a], [,b]) => b - a)[0];
+    
+    return topWord ? topWord[0] : '';
+  };
+
+  const updateUIAdaptations = (mode: string, urgency: string, pattern: string) => {
+    const adaptations = {
+      showQuickReplies: mode === 'business' || urgency === 'high',
+      showActionButtons: mode === 'support' || mode === 'business',
+      showMoodIndicator: mode === 'creative' || mode === 'casual',
+      showTimeAwareness: urgency === 'high',
+      compactMode: pattern === 'media' || urgency === 'high',
+      focusMode: mode === 'business' && urgency === 'high'
+    };
+
+    setUiAdaptations(adaptations);
+    generateAdaptiveActions(mode, urgency);
+  };
+
+  const generateAdaptiveActions = (mode: string, urgency: string) => {
+    const actions = [];
+
+    if (mode === 'business') {
+      actions.push(
+        { id: 'schedule', icon: '📅', label: '일정 추가', action: () => setMessage('/일정 ') },
+        { id: 'task', icon: '✅', label: '할 일 생성', action: () => setMessage('/할일 ') },
+        { id: 'meeting', icon: '🎯', label: '회의 요약', action: () => setMessage('/요약 ') }
+      );
+    }
+
+    if (mode === 'support') {
+      actions.push(
+        { id: 'faq', icon: '❓', label: 'FAQ 검색', action: () => setMessage('/검색 ') },
+        { id: 'ticket', icon: '🎫', label: '티켓 생성', action: () => setMessage('/티켓 ') },
+        { id: 'escalate', icon: '⚡', label: '상급자 호출', action: () => setMessage('@all 도움 필요: ') }
+      );
+    }
+
+    if (mode === 'creative') {
+      actions.push(
+        { id: 'brainstorm', icon: '💡', label: '아이디어 생성', action: () => setMessage('/아이디어 ') },
+        { id: 'inspire', icon: '✨', label: '영감 찾기', action: () => setMessage('/영감 ') },
+        { id: 'moodboard', icon: '🎨', label: '무드보드', action: () => setMessage('/무드보드 ') }
+      );
+    }
+
+    if (urgency === 'high') {
+      actions.unshift(
+        { id: 'urgent', icon: '🚨', label: '긴급 알림', action: () => setMessage('@all 🚨 긴급: ') }
+      );
+    }
+
+    setAdaptiveActions(actions);
+  };
+
   // 멘션 기능 관련 함수들
   const detectMentions = (text: string) => {
     const mentionRegex = /@(\w+)/g;
@@ -3011,7 +3153,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         </div>
       )}
       {/* Chat Header - Fixed position with Mobile Integration */}
-      <div className="bg-white border-b border-gray-200 p-4 flex-shrink-0 sticky top-0 z-10">
+      <div className={cn(
+        "bg-white border-b border-gray-200 p-4 flex-shrink-0 sticky top-0 z-10",
+        uiAdaptations.compactMode && "p-2",
+        uiAdaptations.focusMode && "bg-blue-50 border-blue-200"
+      )}>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             {showMobileHeader && onBackClick && (
@@ -3086,10 +3232,43 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               </div>
             )}
             <div>
-              <h3 className="font-semibold text-gray-900">{chatRoomDisplayName}</h3>
-              <p className="text-sm text-gray-500">
-                {currentChatRoom.participants?.length}명 참여
-              </p>
+              <div className="flex items-center space-x-2">
+                <h3 className="font-semibold text-gray-900">{chatRoomDisplayName}</h3>
+                
+                {/* Conversation Mode Indicator */}
+                {conversationMode !== 'casual' && (
+                  <span className={cn(
+                    "px-2 py-1 rounded-full text-xs font-medium",
+                    conversationMode === 'business' && "bg-blue-100 text-blue-800",
+                    conversationMode === 'support' && "bg-orange-100 text-orange-800",
+                    conversationMode === 'creative' && "bg-purple-100 text-purple-800"
+                  )}>
+                    {conversationMode === 'business' && '💼 업무'}
+                    {conversationMode === 'support' && '🆘 지원'}
+                    {conversationMode === 'creative' && '🎨 창작'}
+                  </span>
+                )}
+
+                {/* Urgency Indicator */}
+                {conversationContext.urgency === 'high' && uiAdaptations.showTimeAwareness && (
+                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 animate-pulse">
+                    🚨 긴급
+                  </span>
+                )}
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <p className="text-sm text-gray-500">
+                  {currentChatRoom.participants?.length}명 참여
+                </p>
+                
+                {/* Topic Indicator */}
+                {conversationContext.topic && (
+                  <span className="text-xs text-gray-400">
+                    주제: {conversationContext.topic}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           <div className="flex items-center space-x-2">
@@ -3699,6 +3878,84 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           </div>
         )}
         
+        {/* Adaptive Quick Actions */}
+        {uiAdaptations.showActionButtons && adaptiveActions.length > 0 && (
+          <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
+            <div className="flex items-center space-x-2 overflow-x-auto">
+              <span className="text-xs text-gray-500 whitespace-nowrap mr-2">빠른 작업:</span>
+              {adaptiveActions.map((action) => (
+                <Button
+                  key={action.id}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center space-x-1 whitespace-nowrap"
+                  onClick={action.action}
+                >
+                  <span>{action.icon}</span>
+                  <span className="text-xs">{action.label}</span>
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Quick Replies for Business/Urgent Conversations */}
+        {uiAdaptations.showQuickReplies && (
+          <div className="px-4 py-2 bg-blue-50 border-b border-blue-200">
+            <div className="flex items-center space-x-2 overflow-x-auto">
+              <span className="text-xs text-blue-600 whitespace-nowrap mr-2">빠른 답장:</span>
+              {conversationMode === 'business' && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs whitespace-nowrap bg-white"
+                    onClick={() => setMessage('확인했습니다. ')}
+                  >
+                    ✅ 확인
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs whitespace-nowrap bg-white"
+                    onClick={() => setMessage('검토 후 회신드리겠습니다. ')}
+                  >
+                    📋 검토 중
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs whitespace-nowrap bg-white"
+                    onClick={() => setMessage('회의를 잡겠습니다. ')}
+                  >
+                    📅 회의 요청
+                  </Button>
+                </>
+              )}
+              {conversationContext.urgency === 'high' && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs whitespace-nowrap bg-white"
+                    onClick={() => setMessage('즉시 처리하겠습니다. ')}
+                  >
+                    🚀 즉시 처리
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs whitespace-nowrap bg-white"
+                    onClick={() => setMessage('지금 확인 중입니다. ')}
+                  >
+                    👀 확인 중
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="px-2 pb-1 pt-1 chat-input-area">
           <div className="flex items-center space-x-1">
           {/* Compact left buttons group */}
