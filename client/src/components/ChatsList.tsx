@@ -21,6 +21,30 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
 
+  // 임시 메시지 확인 함수
+  const getDraftKey = (roomId: number) => `chat_draft_${roomId}`;
+  
+  const hasDraftMessage = (roomId: number): boolean => {
+    try {
+      const draft = localStorage.getItem(getDraftKey(roomId));
+      return draft !== null && draft.trim().length > 0;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  const getDraftPreview = (roomId: number): string => {
+    try {
+      const draft = localStorage.getItem(getDraftKey(roomId));
+      if (draft && draft.trim().length > 0) {
+        return draft.length > 20 ? draft.substring(0, 20) + "..." : draft;
+      }
+      return "";
+    } catch (error) {
+      return "";
+    }
+  };
+
   const { data: chatRoomsData, isLoading } = useQuery({
     queryKey: ["/api/chat-rooms"],
     enabled: !!user,
@@ -213,6 +237,8 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
                 onClick={() => onSelectChat(chatRoom.id)}
                 isPinned
                 unreadCount={getUnreadCount(chatRoom.id)}
+                hasDraft={hasDraftMessage(chatRoom.id)}
+                draftPreview={getDraftPreview(chatRoom.id)}
               />
             ))}
           </>
@@ -233,6 +259,8 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
                 isSelected={selectedChatId === chatRoom.id}
                 onClick={() => onSelectChat(chatRoom.id)}
                 unreadCount={getUnreadCount(chatRoom.id)}
+                hasDraft={hasDraftMessage(chatRoom.id)}
+                draftPreview={getDraftPreview(chatRoom.id)}
               />
             ))}
           </>
@@ -254,7 +282,9 @@ function ChatRoomItem({
   isSelected, 
   onClick, 
   isPinned = false,
-  unreadCount = 0
+  unreadCount = 0,
+  hasDraft = false,
+  draftPreview = ""
 }: {
   chatRoom: any;
   displayName: string;
@@ -262,6 +292,8 @@ function ChatRoomItem({
   onClick: () => void;
   isPinned?: boolean;
   unreadCount?: number;
+  hasDraft?: boolean;
+  draftPreview?: string;
 }) {
   const { user } = useAuth();
   
@@ -377,6 +409,11 @@ function ChatRoomItem({
                   {formatTime(chatRoom.lastMessage.createdAt)}
                 </span>
               )}
+              {hasDraft && (
+                <Badge variant="outline" className="bg-orange-50 text-orange-600 border-orange-200 text-xs px-2 py-0.5">
+                  ✏️ 임시저장
+                </Badge>
+              )}
               {unreadCount > 0 && (
                 <Badge variant="default" className="bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 min-w-[20px] h-5 flex items-center justify-center rounded-full">
                   {unreadCount > 99 ? '99+' : unreadCount}
@@ -385,7 +422,13 @@ function ChatRoomItem({
             </div>
           </div>
           <p className="text-sm text-gray-600 truncate">
-            {getLastMessagePreview(chatRoom.lastMessage)}
+            {hasDraft ? (
+              <span className="text-orange-600 font-medium">
+                📝 임시저장: {draftPreview}
+              </span>
+            ) : (
+              getLastMessagePreview(chatRoom.lastMessage)
+            )}
           </p>
           {chatRoom.isGroup && (
             <div className="flex items-center justify-between mt-1">
