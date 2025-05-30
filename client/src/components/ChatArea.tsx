@@ -110,7 +110,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [uploadingFiles, setUploadingFiles] = useState<Array<{id: string, fileName: string}>>([]);
   const [showChatSettings, setShowChatSettings] = useState(false);
   const [showMentions, setShowMentions] = useState(false);
-  const [editingMessage, setEditingMessage] = useState<number | null>(null);
+  const [editingMessage, setEditingMessage] = useState<any>(null);
   const [editContent, setEditContent] = useState("");
   const [mentionSuggestions, setMentionSuggestions] = useState<any[]>([]);
   const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
@@ -4497,52 +4497,32 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       )}
 
       {/* Message Context Menu */}
-      {contextMenu.visible && (
-        <div
-          className="fixed bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1"
-          style={{ left: contextMenu.x, top: contextMenu.y }}
-        >
-          <button
-            onClick={() => {
-              handleReplyMessage();
-              setContextMenu({ ...contextMenu, visible: false });
-            }}
-            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center space-x-2"
-          >
-            <span>💬</span>
-            <span>답장</span>
-          </button>
-          {contextMenu.message?.senderId === user?.id && (
-            <button
-              onClick={() => handleEditMessage(contextMenu.message)}
-              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center space-x-2"
-            >
-              <span>✏️</span>
-              <span>수정</span>
-            </button>
-          )}
-          <button
-            onClick={() => {
-              handleSaveMessage();
-              setContextMenu({ ...contextMenu, visible: false });
-            }}
-            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center space-x-2"
-          >
-            <span>💾</span>
-            <span>저장</span>
-          </button>
-          <button
-            onClick={() => {
-              handleTranslateMessage(contextMenu.message);
-              setContextMenu({ ...contextMenu, visible: false });
-            }}
-            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center space-x-2"
-          >
-            <span>🌐</span>
-            <span>번역</span>
-          </button>
-        </div>
-      )}
+      <MessageContextMenu
+        x={contextMenu.x}
+        y={contextMenu.y}
+        visible={contextMenu.visible}
+        canEdit={contextMenu.message?.senderId === user?.id}
+        onClose={() => setContextMenu({ ...contextMenu, visible: false })}
+        onReplyMessage={() => {
+          handleReplyMessage();
+          setContextMenu({ ...contextMenu, visible: false });
+        }}
+        onEditMessage={() => {
+          if (contextMenu.message) {
+            setEditingMessage(contextMenu.message);
+            setEditContent(contextMenu.message.content);
+            setContextMenu({ ...contextMenu, visible: false });
+          }
+        }}
+        onSaveMessage={() => {
+          handleSaveMessage();
+          setContextMenu({ ...contextMenu, visible: false });
+        }}
+        onTranslateMessage={() => {
+          handleTranslateMessage(contextMenu.message);
+          setContextMenu({ ...contextMenu, visible: false });
+        }}
+      />
 
       {/* 욕설 방지 모달 */}
       {showProfanityModal && (
