@@ -78,6 +78,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [uploadingFiles, setUploadingFiles] = useState<Array<{id: string, fileName: string}>>([]);
   const [showChatSettings, setShowChatSettings] = useState(false);
   const [showMentions, setShowMentions] = useState(false);
+  const [editingMessage, setEditingMessage] = useState<number | null>(null);
+  const [editContent, setEditContent] = useState("");
   const [mentionPosition, setMentionPosition] = useState(0);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -285,6 +287,28 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         variant: "destructive",
         title: "나가기 실패",
         description: "채팅방을 나가는 중 오류가 발생했습니다.",
+      });
+    },
+  });
+
+  // Edit message mutation
+  const editMessageMutation = useMutation({
+    mutationFn: async ({ messageId, content }: { messageId: number; content: string }) => {
+      return apiRequest(`/api/chat-rooms/${chatRoomId}/messages/${messageId}`, "PUT", { content });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] });
+      setEditingMessage(null);
+      setEditContent("");
+      toast({
+        title: "메시지가 수정되었습니다",
+      });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "수정 실패",
+        description: "메시지 수정 중 오류가 발생했습니다.",
       });
     },
   });

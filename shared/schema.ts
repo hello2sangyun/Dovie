@@ -78,6 +78,8 @@ export const messages = pgTable("messages", {
   targetUserId: integer("target_user_id").references(() => users.id), // For sendback messages
   spotlightMessageId: integer("spotlight_message_id").references(() => messages.id), // For spotlight messages
   spotlightDuration: text("spotlight_duration"), // Duration for spotlight
+  isEdited: boolean("is_edited").default(false), // Track if message was edited
+  editedAt: timestamp("edited_at"), // When the message was last edited
   createdAt: timestamp("created_at").defaultNow(),
 });
 

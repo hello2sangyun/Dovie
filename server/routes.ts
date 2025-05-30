@@ -762,6 +762,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Edit message route
+  app.put("/api/chat-rooms/:chatRoomId/messages/:messageId", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { content } = req.body;
+      const messageId = Number(req.params.messageId);
+      const chatRoomId = Number(req.params.chatRoomId);
+
+      // Get the message to verify ownership
+      const message = await storage.getMessageById(messageId);
+      if (!message || message.senderId !== Number(userId)) {
+        return res.status(403).json({ message: "Not authorized to edit this message" });
+      }
+
+      // Update the message content and mark as edited
+      const updatedMessage = await storage.updateMessage(messageId, {
+        content,
+        isEdited: true,
+        editedAt: new Date()
+      });
+
+      res.json({ message: updatedMessage });
+    } catch (error) {
+      console.error("Message edit error:", error);
+      res.status(500).json({ message: "Failed to edit message" });
+    }
+  });
+
   // Voice file upload route (unencrypted for direct browser playback)
   app.post("/api/upload-voice", upload.single("file"), async (req, res) => {
     try {

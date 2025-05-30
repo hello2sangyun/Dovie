@@ -36,6 +36,7 @@ export interface IStorage {
   getMessages(chatRoomId: number, limit?: number): Promise<(Message & { sender: User })[]>;
   createMessage(message: InsertMessage): Promise<Message>;
   getMessageById(messageId: number): Promise<(Message & { sender: User }) | undefined>;
+  updateMessage(messageId: number, updates: Partial<InsertMessage>): Promise<Message | undefined>;
 
   // Command operations
   getCommands(userId: number, chatRoomId?: number): Promise<(Command & { originalSender?: User })[]>;
@@ -333,6 +334,16 @@ export class DatabaseStorage implements IStorage {
       ...result.messages,
       sender: result.users
     } : undefined;
+  }
+
+  async updateMessage(messageId: number, updates: Partial<InsertMessage>): Promise<Message | undefined> {
+    const [updatedMessage] = await db
+      .update(messages)
+      .set(updates)
+      .where(eq(messages.id, messageId))
+      .returning();
+
+    return updatedMessage;
   }
 
   async getCommands(userId: number, chatRoomId?: number): Promise<(Command & { originalSender?: User })[]> {
