@@ -902,6 +902,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const handleSendMessage = () => {
     if (!message.trim()) return;
 
+    // 욕설 감지 확인
+    const profanityDetection = detectProfanity(message);
+    if (profanityDetection) {
+      setProfanityMessage(message);
+      setShowProfanityModal(true);
+      return;
+    }
+
     // Check if it's a chat command (starts with /)
     if (message.startsWith('/')) {
       // 특별한 번역 처리
@@ -1571,6 +1579,136 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           };
         }
       }
+    }
+    return null;
+  };
+
+  // 기억 회상 기능 - 이전 대화에서 관련 파일이나 메시지 찾기
+  const detectMemoryRecall = (text: string) => {
+    const memoryPatterns = [
+      /지난번|이전에|전에|예전에/i,
+      /보낸\s*(파일|표|문서|이미지)/i,
+      /공유.*했던/i,
+      /올렸던|업로드/i,
+      /기억.*나/i
+    ];
+
+    for (const pattern of memoryPatterns) {
+      if (pattern.test(text)) {
+        return {
+          type: 'memory_recall' as const,
+          text: '이전 대화에서 찾아볼까요?',
+          result: `관련 메시지: 2025년 4월 18일에 공유된 파일일까요?`,
+          icon: '🧠',
+          category: '기억'
+        };
+      }
+    }
+    return null;
+  };
+
+  // 욕설 감지 함수
+  const detectProfanity = (text: string) => {
+    const profanityPatterns = [
+      /시발|씨발|새끼|병신|개새/i,
+      /좆|지랄|염병|엿먹/i,
+      /미친놈|미친년|또라이/i,
+      /fuck|shit|damn|bitch/i
+    ];
+
+    for (const pattern of profanityPatterns) {
+      if (pattern.test(text)) {
+        return {
+          type: 'profanity_warning' as const,
+          text: '정말 욕설을 올리시겠어요?',
+          result: '메시지 전송을 다시 생각해보세요.',
+          icon: '⚠️',
+          category: '주의'
+        };
+      }
+    }
+    return null;
+  };
+
+  // 비즈니스 톤 변환 감지
+  const detectBusinessTone = (text: string) => {
+    const casualPatterns = [
+      /이건\s*좀\s*아닌\s*것\s*같아/i,
+      /별로야|안\s*좋아|마음에\s*안\s*들/i,
+      /안\s*될\s*것\s*같/i,
+      /힘들\s*것\s*같/i,
+      /못\s*하겠/i
+    ];
+
+    for (const pattern of casualPatterns) {
+      if (pattern.test(text)) {
+        return {
+          type: 'business_tone' as const,
+          text: '비즈니스 톤으로 변환할까요?',
+          result: '해당 제안에 대해 추가 검토가 필요할 것 같습니다.',
+          icon: '💼',
+          category: '비즈니스'
+        };
+      }
+    }
+    return null;
+  };
+
+  // 중복 질문 감지
+  const detectDuplicateQuestion = (text: string) => {
+    const questionPatterns = [
+      /몇\s*개|얼마나|언제|어떻게/i,
+      /\?\s*$|궁금/i
+    ];
+
+    // 간단한 중복 감지 (실제로는 이전 메시지와 비교 필요)
+    for (const pattern of questionPatterns) {
+      if (pattern.test(text) && text.length > 5) {
+        return {
+          type: 'duplicate_question' as const,
+          text: '이전에도 같은 질문이 있었습니다. 다시 보여드릴까요?',
+          result: '이전 답변 보기 (2025.05.25)',
+          icon: '🔄',
+          category: '중복 질문'
+        };
+      }
+    }
+    return null;
+  };
+
+  // 대화 연결 제안
+  const detectConversationContinuation = (text: string) => {
+    const continuationPatterns = [
+      /다음에|나중에|이따가/i,
+      /또\s*얘기|다시\s*논의/i,
+      /보류|미룰게/i
+    ];
+
+    for (const pattern of continuationPatterns) {
+      if (pattern.test(text)) {
+        return {
+          type: 'conversation_continuation' as const,
+          text: '리마인드를 설정할까요?',
+          result: '지난번 논의하던 "견적 협의" 이어서 진행할까요?',
+          icon: '💭',
+          category: '대화 연결'
+        };
+      }
+    }
+    return null;
+  };
+
+  // 시간대 감지 (늦은 시간 메시지)
+  const detectLateNightMessage = () => {
+    const currentHour = new Date().getHours();
+    if (currentHour >= 22 || currentHour <= 6) {
+      return {
+        type: 'late_night' as const,
+        text: '지금은 늦은 시간입니다. 예약 발송으로 아침 8시에 보내시겠어요?',
+        result: '예약 발송 설정됨',
+        icon: '🌙',
+        category: '시간 배려'
+      };
     }
     return null;
   };
@@ -2470,6 +2608,49 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     if (contextMenu.message) {
       setReplyToMessage(contextMenu.message);
     }
+  };
+
+  // 메시지 편집 핸들러
+  const handleEditMessage = (message: any) => {
+    if (message.senderId === user?.id) {
+      setEditingMessage(message.id);
+      setEditContent(message.content);
+      setContextMenu({ ...contextMenu, visible: false });
+    }
+  };
+
+  // 메시지 편집 저장
+  const handleSaveEdit = () => {
+    if (editingMessage && editContent.trim()) {
+      editMessageMutation.mutate({
+        messageId: editingMessage,
+        content: editContent.trim()
+      });
+    }
+  };
+
+  // 메시지 편집 취소
+  const handleCancelEdit = () => {
+    setEditingMessage(null);
+    setEditContent("");
+  };
+
+  // 욕설 방지 모달 상태
+  const [showProfanityModal, setShowProfanityModal] = useState(false);
+  const [profanityMessage, setProfanityMessage] = useState("");
+
+  // 욕설 감지 후 메시지 전송 확인
+  const handleProfanityConfirm = () => {
+    setShowProfanityModal(false);
+    // 실제 메시지 전송
+    sendMessageMutation.mutate({
+      content: profanityMessage,
+      messageType: "text",
+      replyToMessageId: replyToMessage?.id
+    });
+    setMessage("");
+    setProfanityMessage("");
+    setReplyToMessage(null);
   };
 
   // 회신 메시지 클릭 시 원본 메시지로 이동
