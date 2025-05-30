@@ -102,64 +102,6 @@
     @apply bg-white border border-border;
   }
 
-  /* 감정 기반 그라디언트 색상 정의 */
-  .mood-gradient-happy {
-    background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 50%, #fecaca 100%);
-  }
-  
-  .mood-gradient-sad {
-    background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 50%, #f3e8ff 100%);
-  }
-  
-  .mood-gradient-angry {
-    background: linear-gradient(135deg, #fef2f2 0%, #fed7aa 50%, #fef3c7 100%);
-  }
-  
-  .mood-gradient-curious {
-    background: linear-gradient(135deg, #f0fdf4 0%, #d1fae5 50%, #ccfbf1 100%);
-  }
-  
-  .mood-gradient-love {
-    background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 50%, #fef2f2 100%);
-  }
-  
-  .mood-gradient-business {
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #f4f4f5 100%);
-  }
-  
-  .mood-gradient-celebration {
-    background: linear-gradient(135deg, #faf5ff 0%, #fdf2f8 50%, #fef3c7 100%);
-  }
-
-  /* 내 메시지용 더 진한 그라디언트 */
-  .mood-gradient-dark-happy {
-    background: linear-gradient(135deg, #fbbf24 0%, #f97316 50%, #f472b6 100%);
-  }
-  
-  .mood-gradient-dark-sad {
-    background: linear-gradient(135deg, #60a5fa 0%, #818cf8 50%, #a78bfa 100%);
-  }
-  
-  .mood-gradient-dark-angry {
-    background: linear-gradient(135deg, #f87171 0%, #fb923c 50%, #fbbf24 100%);
-  }
-  
-  .mood-gradient-dark-curious {
-    background: linear-gradient(135deg, #4ade80 0%, #34d399 50%, #2dd4bf 100%);
-  }
-  
-  .mood-gradient-dark-love {
-    background: linear-gradient(135deg, #f472b6 0%, #fb7185 50%, #f87171 100%);
-  }
-  
-  .mood-gradient-dark-business {
-    background: linear-gradient(135deg, #9ca3af 0%, #64748b 50%, #71717a 100%);
-  }
-  
-  .mood-gradient-dark-celebration {
-    background: linear-gradient(135deg, #a855f7 0%, #f472b6 50%, #fbbf24 100%);
-  }
-
   /* 스크롤바 스타일링 */
   .scrollbar-thin {
     scrollbar-width: thin;

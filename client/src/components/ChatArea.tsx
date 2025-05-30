@@ -1583,97 +1583,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     return null;
   };
 
-  // 메시지 감정 분석 및 배경 그라디언트 결정
-  const getMoodGradient = (text: string) => {
-    if (!text || typeof text !== 'string') return null;
-
-    const moodPatterns = {
-      // 긍정적 감정 - 따뜻한 그라디언트
-      happy: {
-        patterns: [
-          /기쁘|행복|좋아|최고|완벽|성공|축하|감사|고마워|사랑|웃음|즐거|신나|기대/i,
-          /좋은\s*하루|좋은\s*일|잘\s*됐|다행|만족|뿌듯/i,
-          /🎉|😊|😄|😍|🥰|❤️|💕|👍|✨/
-        ],
-        gradient: 'from-yellow-100 via-orange-50 to-pink-50'
-      },
-      
-      // 부정적 감정 - 차분한 블루 그라디언트
-      sad: {
-        patterns: [
-          /슬프|우울|힘들|피곤|지쳐|아프|아파|외로|서운|속상|실망/i,
-          /안\s*좋|나쁘|최악|망했|죽겠|힘들어|지겨/i,
-          /😢|😭|💔|😞|😔|🙁|😟|😰/
-        ],
-        gradient: 'from-blue-50 via-indigo-25 to-purple-50'
-      },
-
-      // 화남/짜증 - 붉은 계열 그라디언트
-      angry: {
-        patterns: [
-          /화나|짜증|빡쳐|열받|답답|미치겠|돌겠|싫어|혐오/i,
-          /진짜\s*(화|짜증)|정말\s*(화|짜증)|개\s*(화|짜증)/i,
-          /😠|😡|🤬|💢|👿/
-        ],
-        gradient: 'from-red-50 via-orange-25 to-yellow-50'
-      },
-
-      // 흥미/궁금 - 그린 계열 그라디언트
-      curious: {
-        patterns: [
-          /궁금|신기|재미|흥미|놀라|와|우와|대박|헐|쩔어/i,
-          /어떻게|왜|뭐야|뭔데|정말\?|진짜\?/i,
-          /🤔|😲|😮|🧐|💭|❓|❗/
-        ],
-        gradient: 'from-green-50 via-emerald-25 to-teal-50'
-      },
-
-      // 사랑/애정 - 핑크 계열 그라디언트
-      love: {
-        patterns: [
-          /사랑|좋아해|고마워|감사|소중|귀여|예쁘|멋져|최고/i,
-          /보고\s*싶|그리워|아껴|챙겨|배려/i,
-          /❤️|💕|💖|💝|😍|🥰|😘|💋/
-        ],
-        gradient: 'from-pink-50 via-rose-25 to-red-50'
-      },
-
-      // 비즈니스/공식적 - 중성 그라디언트
-      business: {
-        patterns: [
-          /회의|미팅|업무|프로젝트|계획|일정|보고서|검토|승인/i,
-          /진행|완료|처리|확인|전달|공유|협의|논의/i,
-          /💼|📊|📈|📋|📝|🗂️|📁/
-        ],
-        gradient: 'from-gray-25 via-slate-25 to-zinc-50'
-      },
-
-      // 축하/파티 - 밝은 무지개 그라디언트
-      celebration: {
-        patterns: [
-          /축하|생일|기념일|성공|합격|취업|승진|결혼|돌잔치/i,
-          /파티|축제|이벤트|선물|케이크|장미|꽃/i,
-          /🎉|🎊|🎂|🎈|🎁|🌹|💐|🎵|🎶/
-        ],
-        gradient: 'from-purple-50 via-pink-50 to-yellow-50'
-      }
-    };
-
-    // 감정 분석
-    for (const [mood, config] of Object.entries(moodPatterns)) {
-      for (const pattern of config.patterns) {
-        if (pattern.test(text)) {
-          return {
-            mood,
-            gradient: config.gradient
-          };
-        }
-      }
-    }
-
-    return null; // 중성적인 메시지는 기본 스타일 유지
-  };
-
   // 기억 회상 기능 - 이전 대화에서 관련 파일이나 메시지 찾기
   const detectMemoryRecall = (text: string) => {
     const memoryPatterns = [
@@ -3263,32 +3172,16 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       </div>
                     )}
 
-                    <div 
-                      className={cn(
-                        "rounded-lg p-3 shadow-sm w-fit break-words relative overflow-hidden",
-                        (() => {
-                          // 기분 기반 그라디언트 적용
-                          const moodGradient = getMoodGradient(msg.content);
-                          
-                          if (msg.isCommandRecall && msg.isLocalOnly) {
-                            return isMe 
-                              ? "bg-teal-500 text-white rounded-tr-none border border-teal-400" 
-                              : "bg-teal-50 text-teal-900 rounded-tl-none border border-teal-200";
-                          }
-                          
-                          if (moodGradient) {
-                            const moodClass = isMe ? `mood-gradient-dark-${moodGradient.mood}` : `mood-gradient-${moodGradient.mood}`;
-                            return isMe 
-                              ? `${moodClass} text-white rounded-tr-none`
-                              : `${moodClass} text-gray-900 rounded-tl-none border border-gray-200`;
-                          }
-                          
-                          return isMe 
-                            ? "bg-purple-600 text-white rounded-tr-none" 
-                            : "bg-white text-gray-900 rounded-tl-none border border-gray-200";
-                        })()
-                      )}
-                    >
+                    <div className={cn(
+                      "rounded-lg p-3 shadow-sm w-fit break-words",
+                      msg.isCommandRecall && msg.isLocalOnly
+                        ? isMe 
+                          ? "bg-teal-500 text-white rounded-tr-none border border-teal-400" 
+                          : "bg-teal-50 text-teal-900 rounded-tl-none border border-teal-200"
+                        : isMe 
+                          ? "bg-purple-600 text-white rounded-tr-none" 
+                          : "bg-white text-gray-900 rounded-tl-none border border-gray-200"
+                    )}>
                       {/* 회신 메시지 표시 */}
                       {msg.replyToMessageId && (
                         <div 
