@@ -3957,15 +3957,88 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       )}
 
       {/* Message Context Menu */}
-      <MessageContextMenu
-        visible={contextMenu.visible}
-        x={contextMenu.x}
-        y={contextMenu.y}
-        onClose={() => setContextMenu({ ...contextMenu, visible: false })}
-        onSaveMessage={handleSaveMessage}
-        onReplyMessage={handleReplyMessage}
-        onTranslateMessage={() => handleTranslateMessage(contextMenu.message)}
-      />
+      {contextMenu.visible && (
+        <div
+          className="fixed bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+        >
+          <button
+            onClick={() => {
+              handleReplyMessage();
+              setContextMenu({ ...contextMenu, visible: false });
+            }}
+            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center space-x-2"
+          >
+            <span>💬</span>
+            <span>답장</span>
+          </button>
+          {contextMenu.message?.senderId === user?.id && (
+            <button
+              onClick={() => handleEditMessage(contextMenu.message)}
+              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center space-x-2"
+            >
+              <span>✏️</span>
+              <span>수정</span>
+            </button>
+          )}
+          <button
+            onClick={() => {
+              handleSaveMessage();
+              setContextMenu({ ...contextMenu, visible: false });
+            }}
+            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center space-x-2"
+          >
+            <span>💾</span>
+            <span>저장</span>
+          </button>
+          <button
+            onClick={() => {
+              handleTranslateMessage(contextMenu.message);
+              setContextMenu({ ...contextMenu, visible: false });
+            }}
+            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center space-x-2"
+          >
+            <span>🌐</span>
+            <span>번역</span>
+          </button>
+        </div>
+      )}
+
+      {/* 욕설 방지 모달 */}
+      {showProfanityModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="text-center mb-4">
+              <div className="w-16 h-16 mx-auto mb-4 bg-yellow-100 rounded-full flex items-center justify-center">
+                <span className="text-2xl">⚠️</span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                정말 욕설을 올리시겠어요?
+              </h3>
+              <p className="text-gray-600">
+                메시지 전송을 다시 생각해보세요.
+              </p>
+            </div>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => {
+                  setShowProfanityModal(false);
+                  setProfanityMessage("");
+                }}
+                className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleProfanityConfirm}
+                className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                전송
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Language Selection Modal */}
       <LanguageSelectionModal
