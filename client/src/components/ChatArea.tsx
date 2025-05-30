@@ -205,12 +205,20 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
-      const response = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages`, "POST", messageData);
+      const endpoint = isLocationChat 
+        ? `/api/location/chat-rooms/${actualRoomId}/messages`
+        : `/api/chat-rooms/${chatRoomId}/messages`;
+      const response = await apiRequest(endpoint, "POST", messageData);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms", chatRoomId, "messages"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      if (isLocationChat) {
+        queryClient.invalidateQueries({ queryKey: ["/api/location/chat-rooms", actualRoomId, "messages"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/location/nearby-chats"] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms", chatRoomId, "messages"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      }
       setMessage("");
       setShowCommandSuggestions(false);
       setReplyToMessage(null); // 회신 상태 초기화
