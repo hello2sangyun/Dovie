@@ -211,6 +211,27 @@ export class DatabaseStorage implements IStorage {
     }));
   }
 
+  async getChatRoomById(chatRoomId: number): Promise<(ChatRoom & { participants: User[] }) | undefined> {
+    const [chatRoom] = await db
+      .select()
+      .from(chatRooms)
+      .where(eq(chatRooms.id, chatRoomId));
+
+    if (!chatRoom) return undefined;
+
+    // Get participants for this chat room
+    const participants = await db
+      .select({ user: users })
+      .from(chatParticipants)
+      .innerJoin(users, eq(chatParticipants.userId, users.id))
+      .where(eq(chatParticipants.chatRoomId, chatRoomId));
+
+    return {
+      ...chatRoom,
+      participants: participants.map(({ user }) => user)
+    };
+  }
+
   async createChatRoom(chatRoom: InsertChatRoom, participantIds: number[]): Promise<ChatRoom> {
     const [newChatRoom] = await db
       .insert(chatRooms)
