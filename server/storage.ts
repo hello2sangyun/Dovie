@@ -27,6 +27,7 @@ export interface IStorage {
 
   // Chat room operations
   getChatRooms(userId: number): Promise<(ChatRoom & { participants: User[], lastMessage?: Message & { sender: User } })[]>;
+  getChatRoomById(chatRoomId: number): Promise<(ChatRoom & { participants: User[] }) | undefined>;
   createChatRoom(chatRoom: InsertChatRoom, participantIds: number[]): Promise<ChatRoom>;
   deleteChatRoom(chatRoomId: number, userId: number): Promise<void>;
   updateChatRoom(chatRoomId: number, updates: Partial<InsertChatRoom>): Promise<ChatRoom | undefined>;

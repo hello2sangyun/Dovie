@@ -739,6 +739,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const message = await storage.createMessage(messageData);
       const messageWithSender = await storage.getMessageById(message.id);
 
+      // Handle mentions if present
+      if (messageData.mentionedUserIds || messageData.mentionAll) {
+        // Create mention notifications
+        const chatRoom = await storage.getChatRoomById(Number(req.params.chatRoomId));
+        
+        if (messageData.mentionAll && chatRoom?.participants) {
+          // Notify all participants except sender
+          const participantIds = chatRoom.participants
+            .filter((p: any) => p.id !== Number(userId))
+            .map((p: any) => p.id);
+          
+          for (const participantId of participantIds) {
+            broadcastToUser(participantId, {
+              type: "mention_notification",
+              message: messageWithSender,
+              mentionType: "all"
+            });
+          }
+        } else if (messageData.mentionedUserIds) {
+          // Notify specific mentioned users
+          const mentionedIds = JSON.parse(messageData.mentionedUserIds);
+          for (const mentionedId of mentionedIds) {
+            if (mentionedId !== Number(userId)) {
+              broadcastToUser(mentionedId, {
+                type: "mention_notification",
+                message: messageWithSender,
+                mentionType: "user"
+              });
+            }
+          }
+        }
+      }
+
       // Broadcast to WebSocket connections
       broadcastToRoom(Number(req.params.chatRoomId), {
         type: "new_message",
@@ -1469,6 +1502,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ws.send(JSON.stringify(data));
       }
     });
+  }
+
+  function broadcastToUser(userId: number, data: any) {
+    const ws = connections.get(userId);
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      try {
+        ws.send(JSON.stringify(data));
+      } catch (error) {
+        console.error(`Failed to send notification to user ${userId}:`, error);
+        connections.delete(userId);
+      }
+    }
   }
 
   // 위치 기반 채팅방 자동 관리 시스템
