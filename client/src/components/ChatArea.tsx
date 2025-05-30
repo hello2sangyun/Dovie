@@ -3774,11 +3774,27 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           "text-sm relative",
                           isMe ? "text-white" : "text-gray-900"
                         )}>
+                          {/* Mood Indicator for Creative/Casual Conversations */}
+                          {uiAdaptations.showMoodIndicator && msg.senderId === user?.id && (
+                            <div className="flex items-center space-x-1 mb-1">
+                              {msg.content && msg.content.includes('!') && (
+                                <span className="text-xs">😊</span>
+                              )}
+                              {msg.content && msg.content.includes('?') && (
+                                <span className="text-xs">🤔</span>
+                              )}
+                              {msg.content && (msg.content.includes('아이디어') || msg.content.includes('창작')) && (
+                                <span className="text-xs">💡</span>
+                              )}
+                            </div>
+                          )}
+
                           {/* 번역 상태에 따른 메시지 표시 */}
                           <div className={cn(
                             "transition-all duration-500 ease-in-out",
                             translatingMessages.has(msg.id) ? "animate-pulse" : "",
-                            translatedMessages[msg.id] ? "transform perspective-1000" : ""
+                            translatedMessages[msg.id] ? "transform perspective-1000" : "",
+                            uiAdaptations.compactMode && "text-sm leading-tight"
                           )}>
                             {translatedMessages[msg.id] ? (
                               // 번역된 메시지 표시 (flip 효과)
