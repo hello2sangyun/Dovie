@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Save, Reply, Languages } from "lucide-react";
+import { Save, Reply, Languages, Edit3, Globe } from "lucide-react";
 
 interface MessageContextMenuProps {
   x: number;
@@ -9,6 +9,8 @@ interface MessageContextMenuProps {
   onSaveMessage: () => void;
   onReplyMessage: () => void;
   onTranslateMessage: () => void;
+  onEditMessage?: () => void;
+  canEdit?: boolean;
   visible: boolean;
 }
 
@@ -18,7 +20,9 @@ export default function MessageContextMenu({
   onClose, 
   onSaveMessage,
   onReplyMessage,
-  onTranslateMessage, 
+  onTranslateMessage,
+  onEditMessage,
+  canEdit = false,
   visible 
 }: MessageContextMenuProps) {
   useEffect(() => {
@@ -58,48 +62,80 @@ export default function MessageContextMenu({
     onClose();
   };
 
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onEditMessage?.();
+    onClose();
+  };
+
   return (
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm animate-in fade-in-0 duration-200"
+        className="fixed inset-0 z-40"
         onClick={onClose}
       />
       
-      {/* Context Menu - Always centered */}
+      {/* Context Menu */}
       <div
-        className="fixed z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl py-2 min-w-[150px]
-                   left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2
+        className="fixed z-50 bg-white/95 backdrop-blur-md border border-gray-200/60 rounded-xl shadow-xl py-2 min-w-[180px]
                    animate-in fade-in-0 zoom-in-95 duration-200"
+        style={{ left: x, top: y }}
         onClick={(e) => e.stopPropagation()}
       >
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full justify-start px-3 py-2 h-auto text-left"
-          onClick={handleReplyClick}
-        >
-          <Reply className="w-4 h-4 mr-2" />
-          회신
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full justify-start px-3 py-2 h-auto text-left"
-          onClick={handleTranslateClick}
-        >
-          <Languages className="w-4 h-4 mr-2" />
-          번역하기
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full justify-start px-3 py-2 h-auto text-left"
-          onClick={handleSaveClick}
-        >
-          <Save className="w-4 h-4 mr-2" />
-          메시지 저장
-        </Button>
+        <div className="px-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start px-3 py-3 h-auto text-left rounded-lg hover:bg-blue-50/80 transition-all group"
+            onClick={handleReplyClick}
+          >
+            <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center mr-3 group-hover:bg-blue-200 transition-colors">
+              <Reply className="w-4 h-4 text-blue-600" />
+            </div>
+            <span className="font-medium text-gray-700">답장</span>
+          </Button>
+          
+          {canEdit && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start px-3 py-3 h-auto text-left rounded-lg hover:bg-green-50/80 transition-all group"
+              onClick={handleEditClick}
+            >
+              <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center mr-3 group-hover:bg-green-200 transition-colors">
+                <Edit3 className="w-4 h-4 text-green-600" />
+              </div>
+              <span className="font-medium text-gray-700">수정</span>
+            </Button>
+          )}
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start px-3 py-3 h-auto text-left rounded-lg hover:bg-purple-50/80 transition-all group"
+            onClick={handleSaveClick}
+          >
+            <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center mr-3 group-hover:bg-purple-200 transition-colors">
+              <Save className="w-4 h-4 text-purple-600" />
+            </div>
+            <span className="font-medium text-gray-700">저장</span>
+          </Button>
+          
+          <div className="border-t border-gray-200/50 my-1" />
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start px-3 py-3 h-auto text-left rounded-lg hover:bg-orange-50/80 transition-all group"
+            onClick={handleTranslateClick}
+          >
+            <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center mr-3 group-hover:bg-orange-200 transition-colors">
+              <Globe className="w-4 h-4 text-orange-600" />
+            </div>
+            <span className="font-medium text-gray-700">번역</span>
+          </Button>
+        </div>
       </div>
     </>
   );
