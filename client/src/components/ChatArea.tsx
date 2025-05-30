@@ -169,21 +169,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     },
   });
 
-  // Determine if this is a location-based chat room
-  const isLocationChat = chatRoomId < 0;
-  const actualRoomId = Math.abs(chatRoomId);
-
   // Get messages
   const { data: messagesData, isLoading } = useQuery({
-    queryKey: isLocationChat 
-      ? ["/api/location/chat-rooms", actualRoomId, "messages"]
-      : ["/api/chat-rooms", chatRoomId, "messages"],
+    queryKey: ["/api/chat-rooms", chatRoomId, "messages"],
     enabled: !!chatRoomId,
     queryFn: async () => {
-      const endpoint = isLocationChat 
-        ? `/api/location/chat-rooms/${actualRoomId}/messages`
-        : `/api/chat-rooms/${chatRoomId}/messages`;
-      const response = await fetch(endpoint);
+      const response = await fetch(`/api/chat-rooms/${chatRoomId}/messages`);
       if (!response.ok) throw new Error("Failed to fetch messages");
       return response.json();
     },
@@ -205,20 +196,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
-      const endpoint = isLocationChat 
-        ? `/api/location/chat-rooms/${actualRoomId}/messages`
-        : `/api/chat-rooms/${chatRoomId}/messages`;
-      const response = await apiRequest(endpoint, "POST", messageData);
+      const response = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages`, "POST", messageData);
       return response.json();
     },
     onSuccess: () => {
-      if (isLocationChat) {
-        queryClient.invalidateQueries({ queryKey: ["/api/location/chat-rooms", actualRoomId, "messages"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/location/nearby-chats"] });
-      } else {
-        queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms", chatRoomId, "messages"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
-      }
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms", chatRoomId, "messages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
       setMessage("");
       setShowCommandSuggestions(false);
       setReplyToMessage(null); // 회신 상태 초기화

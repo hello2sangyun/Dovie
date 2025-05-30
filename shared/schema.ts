@@ -43,7 +43,6 @@ export const chatRooms = pgTable("chat_rooms", {
   name: text("name").notNull(),
   isGroup: boolean("is_group").default(false),
   isPinned: boolean("is_pinned").default(false),
-  isLocationBased: boolean("is_location_based").default(false),
   createdBy: integer("created_by").references(() => users.id).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });

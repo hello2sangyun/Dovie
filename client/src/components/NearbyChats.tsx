@@ -251,7 +251,7 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
       const params = new URLSearchParams({
         latitude: userLocation.latitude.toString(),
         longitude: userLocation.longitude.toString(),
-        radius: "50"
+        radius: "100"
       });
       
       const response = await apiRequest(`/api/location/nearby-chats?${params}`, "GET");
@@ -310,12 +310,19 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
     onSuccess: (data, roomId) => {
       console.log("Join success - data:", data, "roomId:", roomId);
       queryClient.invalidateQueries({ queryKey: ["/api/location/nearby-chats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
       toast({
         title: "채팅방 입장",
         description: "채팅방에 입장했습니다.",
       });
-      // 위치 기반 채팅방의 경우 location 프리픽스를 추가하여 구분
-      onChatRoomSelect(-roomId); // 음수를 사용하여 위치 기반 채팅방임을 표시
+      // 서버에서 반환된 실제 채팅방 ID로 이동
+      if (data && data.chatRoomId) {
+        console.log("Moving to chat room:", data.chatRoomId);
+        onChatRoomSelect(data.chatRoomId);
+      } else {
+        console.log("No chatRoomId in response, using original roomId:", roomId);
+        onChatRoomSelect(roomId);
+      }
     },
     onError: (error) => {
       console.error("Join chat room error:", error);
