@@ -2970,53 +2970,61 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // Sound notification functions
   const playNotificationSound = () => {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    oscillator.frequency.value = 800;
-    oscillator.type = 'sine';
-    
-    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-    
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.3);
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = 800;
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+    } catch (error) {
+      console.log('알림 소리 재생 실패');
+    }
   };
 
   const playSirenSound = () => {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator1 = audioContext.createOscillator();
-    const oscillator2 = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    oscillator1.connect(gainNode);
-    oscillator2.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    oscillator1.frequency.setValueAtTime(400, audioContext.currentTime);
-    oscillator1.frequency.linearRampToValueAtTime(800, audioContext.currentTime + 0.5);
-    oscillator1.frequency.linearRampToValueAtTime(400, audioContext.currentTime + 1);
-    
-    oscillator2.frequency.setValueAtTime(600, audioContext.currentTime);
-    oscillator2.frequency.linearRampToValueAtTime(1000, audioContext.currentTime + 0.5);
-    oscillator2.frequency.linearRampToValueAtTime(600, audioContext.currentTime + 1);
-    
-    oscillator1.type = 'sine';
-    oscillator2.type = 'sine';
-    
-    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.15, audioContext.currentTime + 0.01);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
-    
-    oscillator1.start(audioContext.currentTime);
-    oscillator2.start(audioContext.currentTime);
-    oscillator1.stop(audioContext.currentTime + 1);
-    oscillator2.stop(audioContext.currentTime + 1);
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator1 = audioContext.createOscillator();
+      const oscillator2 = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator1.connect(gainNode);
+      oscillator2.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator1.frequency.setValueAtTime(400, audioContext.currentTime);
+      oscillator1.frequency.linearRampToValueAtTime(800, audioContext.currentTime + 0.5);
+      oscillator1.frequency.linearRampToValueAtTime(400, audioContext.currentTime + 1);
+      
+      oscillator2.frequency.setValueAtTime(600, audioContext.currentTime);
+      oscillator2.frequency.linearRampToValueAtTime(1000, audioContext.currentTime + 0.5);
+      oscillator2.frequency.linearRampToValueAtTime(600, audioContext.currentTime + 1);
+      
+      oscillator1.type = 'sine';
+      oscillator2.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.15, audioContext.currentTime + 0.01);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+      
+      oscillator1.start(audioContext.currentTime);
+      oscillator2.start(audioContext.currentTime);
+      oscillator1.stop(audioContext.currentTime + 1);
+      oscillator2.stop(audioContext.currentTime + 1);
+    } catch (error) {
+      console.log('사이렌 소리 재생 실패');
+    }
   };
 
   // Monitor new messages for notifications
@@ -3028,7 +3036,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         // New message detected
         const newMessages = messages.slice(lastMessageCount);
         
-        newMessages.forEach((message) => {
+        newMessages.forEach((message: any) => {
           // Don't play sound for own messages
           if (message.senderId !== user.id) {
             // Check if message mentions the current user

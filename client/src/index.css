@@ -34,6 +34,31 @@
   --purple-gradient-to: 258 90% 66%;   /* purple-600 */
 }
 
+/* Custom toast styles for smaller notifications */
+[data-sonner-toaster][data-theme='light'] {
+  --normal-bg: hsl(0 0% 100%);
+  --normal-border: hsl(220 13% 91%);
+  --normal-text: hsl(224 71.4% 4.1%);
+}
+
+[data-sonner-toast] {
+  max-width: 300px !important;
+  padding: 8px 12px !important;
+  font-size: 13px !important;
+  border-radius: 8px !important;
+}
+
+[data-sonner-toast] [data-title] {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  margin-bottom: 2px !important;
+}
+
+[data-sonner-toast] [data-description] {
+  font-size: 12px !important;
+  opacity: 0.8 !important;
+}
+
 .dark {
   --background: 224 71.4% 4.1%;
   --foreground: 210 20% 98%;
