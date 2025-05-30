@@ -32,8 +32,8 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
   const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('darkMode') === 'true' || 
-             (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      // 사용자가 명시적으로 다크모드를 설정한 경우에만 true
+      return localStorage.getItem('darkMode') === 'true';
     }
     return false;
   });

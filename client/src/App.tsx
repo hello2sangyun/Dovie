@@ -33,8 +33,8 @@ function App() {
   // Dark mode initialization
   useEffect(() => {
     const savedDarkMode = localStorage.getItem('darkMode');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const shouldUseDarkMode = savedDarkMode === 'true' || (!savedDarkMode && prefersDark);
+    // 새로운 사용자는 라이트 모드로 시작, 명시적으로 다크모드를 설정한 경우에만 적용
+    const shouldUseDarkMode = savedDarkMode === 'true';
     
     if (shouldUseDarkMode) {
       document.documentElement.classList.add('dark');
