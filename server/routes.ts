@@ -399,7 +399,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const chatRooms = await storage.getNearbyLocationChatRooms(
         Number(latitude),
         Number(longitude),
-        Number(radius) || 100
+        Number(radius) || 50
       );
 
       res.json({ chatRooms });
@@ -452,43 +452,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "채팅방을 찾을 수 없습니다." });
       }
 
-      // Join location chat room
+      // Join location chat room only (no regular chat room creation)
       await storage.joinLocationChatRoom(Number(userId), roomId);
-
-      // Use storage interface to create chat room
-      let regularChatRoom = await db.select().from(chatRooms).where(eq(chatRooms.name, locationRoom[0].name)).limit(1);
-      
-      if (regularChatRoom.length === 0) {
-        // Create new regular chat room using storage interface
-        const newChatRoom = await storage.createChatRoom({
-          name: locationRoom[0].name,
-          isGroup: true,
-          createdBy: Number(userId)
-        }, [Number(userId)]);
-        
-        regularChatRoom = [newChatRoom];
-      }
-
-      // Add user to regular chat room participants
-      const existingParticipant = await db
-        .select()
-        .from(chatParticipants)
-        .where(and(
-          eq(chatParticipants.userId, Number(userId)),
-          eq(chatParticipants.chatRoomId, regularChatRoom[0].id)
-        ))
-        .limit(1);
-
-      if (existingParticipant.length === 0) {
-        await db.insert(chatParticipants).values({
-          userId: Number(userId),
-          chatRoomId: regularChatRoom[0].id
-        });
-      }
       
       res.json({ 
         success: true, 
-        chatRoomId: regularChatRoom[0].id,
         locationChatRoomId: roomId
       });
     } catch (error) {

@@ -151,12 +151,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getChatRooms(userId: number): Promise<(ChatRoom & { participants: User[], lastMessage?: Message & { sender: User } })[]> {
-    // Get user's chat rooms
+    // Get user's chat rooms (exclude location-based chat rooms)
     const userChatRooms = await db
       .select({ chatRoom: chatRooms })
       .from(chatParticipants)
       .innerJoin(chatRooms, eq(chatParticipants.chatRoomId, chatRooms.id))
-      .where(eq(chatParticipants.userId, userId))
+      .where(and(
+        eq(chatParticipants.userId, userId),
+        eq(chatRooms.isLocationBased, false) // Only non-location based chat rooms
+      ))
       .orderBy(desc(chatRooms.isPinned), desc(chatRooms.createdAt));
 
     if (userChatRooms.length === 0) return [];
@@ -599,7 +602,7 @@ export class DatabaseStorage implements IStorage {
       });
   }
 
-  async getNearbyLocationChatRooms(latitude: number, longitude: number, radius: number = 100): Promise<any[]> {
+  async getNearbyLocationChatRooms(latitude: number, longitude: number, radius: number = 50): Promise<any[]> {
     const result = await db
       .select({
         id: locationChatRooms.id,

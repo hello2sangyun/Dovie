@@ -251,7 +251,7 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
       const params = new URLSearchParams({
         latitude: userLocation.latitude.toString(),
         longitude: userLocation.longitude.toString(),
-        radius: "100"
+        radius: "50"
       });
       
       const response = await apiRequest(`/api/location/nearby-chats?${params}`, "GET");
