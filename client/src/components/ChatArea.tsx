@@ -97,6 +97,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [isDragOver, setIsDragOver] = useState(false);
   const [playingAudio, setPlayingAudio] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const notificationSoundRef = useRef<HTMLAudioElement | null>(null);
+  const mentionSoundRef = useRef<HTMLAudioElement | null>(null);
+  const [lastMessageCount, setLastMessageCount] = useState(0);
   const [contextMenu, setContextMenu] = useState<{
     visible: boolean;
     x: number;
@@ -348,14 +351,22 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   // Edit message mutation
   const editMessageMutation = useMutation({
     mutationFn: async ({ messageId, content }: { messageId: number; content: string }) => {
-      return apiRequest(`/api/chat-rooms/${chatRoomId}/messages/${messageId}`, "PUT", { content });
+      const response = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages/${messageId}`, "PUT", { content });
+      return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // 즉시 메시지 목록을 다시 불러오기
       queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] });
+      // 채팅방 목록도 업데이트 (마지막 메시지 변경될 수 있음)
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      
       setEditingMessage(null);
       setEditContent("");
+      
       toast({
-        title: "메시지가 수정되었습니다",
+        title: "수정 완료",
+        description: "메시지가 성공적으로 수정되었습니다.",
+        className: "max-w-xs",
       });
     },
     onError: () => {
@@ -363,6 +374,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         variant: "destructive",
         title: "수정 실패",
         description: "메시지 수정 중 오류가 발생했습니다.",
+        className: "max-w-xs",
       });
     },
   });
@@ -2955,6 +2967,92 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       }, 3000);
     }
   };
+
+  // Sound notification functions
+  const playNotificationSound = () => {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = 800;
+    oscillator.type = 'sine';
+    
+    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.3);
+  };
+
+  const playSirenSound = () => {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator1 = audioContext.createOscillator();
+    const oscillator2 = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator1.connect(gainNode);
+    oscillator2.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator1.frequency.setValueAtTime(400, audioContext.currentTime);
+    oscillator1.frequency.linearRampToValueAtTime(800, audioContext.currentTime + 0.5);
+    oscillator1.frequency.linearRampToValueAtTime(400, audioContext.currentTime + 1);
+    
+    oscillator2.frequency.setValueAtTime(600, audioContext.currentTime);
+    oscillator2.frequency.linearRampToValueAtTime(1000, audioContext.currentTime + 0.5);
+    oscillator2.frequency.linearRampToValueAtTime(600, audioContext.currentTime + 1);
+    
+    oscillator1.type = 'sine';
+    oscillator2.type = 'sine';
+    
+    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.15, audioContext.currentTime + 0.01);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+    
+    oscillator1.start(audioContext.currentTime);
+    oscillator2.start(audioContext.currentTime);
+    oscillator1.stop(audioContext.currentTime + 1);
+    oscillator2.stop(audioContext.currentTime + 1);
+  };
+
+  // Monitor new messages for notifications
+  useEffect(() => {
+    if (messages.length > 0 && user) {
+      const currentCount = messages.length;
+      
+      if (lastMessageCount > 0 && currentCount > lastMessageCount) {
+        // New message detected
+        const newMessages = messages.slice(lastMessageCount);
+        
+        newMessages.forEach((message) => {
+          // Don't play sound for own messages
+          if (message.senderId !== user.id) {
+            // Check if message mentions the current user
+            const isMentioned = message.content?.includes(`@${user.username}`) || 
+                              message.content?.includes(`@${user.email}`);
+            
+            if (isMentioned) {
+              // Play siren sound for mentions
+              setTimeout(() => {
+                playSirenSound();
+              }, 100);
+            } else {
+              // Play normal notification for other messages
+              setTimeout(() => {
+                playNotificationSound();
+              }, 100);
+            }
+          }
+        });
+      }
+      
+      setLastMessageCount(currentCount);
+    }
+  }, [messages, user, lastMessageCount]);
 
   // Mark messages as read when viewing chat
   useEffect(() => {
