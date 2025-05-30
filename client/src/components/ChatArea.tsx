@@ -80,6 +80,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [showMentions, setShowMentions] = useState(false);
   const [editingMessage, setEditingMessage] = useState<number | null>(null);
   const [editContent, setEditContent] = useState("");
+  const [mentionSuggestions, setMentionSuggestions] = useState<any[]>([]);
+  const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
+  const [mentionStart, setMentionStart] = useState(-1);
   const [mentionPosition, setMentionPosition] = useState(0);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -1109,6 +1112,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       }
     }
 
+    // 멘션 감지 및 처리
+    const mentions = detectMentions(message);
+    const mentionedUsers = findMentionedUsers(mentions);
+    const mentionAll = mentions.includes('all') && currentChatRoom?.isGroup;
+    
     // 회신 메시지인 경우 회신 데이터 포함
     const messageData: any = {
       content: message,
@@ -1119,6 +1127,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       messageData.replyToMessageId = replyToMessage.id;
       messageData.replyToContent = replyToMessage.content;
       messageData.replyToSender = replyToMessage.sender.displayName;
+    }
+
+    // 멘션 데이터 추가
+    if (mentionedUsers.length > 0) {
+      messageData.mentionedUserIds = JSON.stringify(mentionedUsers.map(u => u.id));
+    }
+    if (mentionAll) {
+      messageData.mentionAll = true;
     }
 
     sendMessageMutation.mutate(messageData);
@@ -2653,6 +2669,90 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     setReplyToMessage(null);
   };
 
+  // 멘션 기능 관련 함수들
+  const detectMentions = (text: string) => {
+    const mentionRegex = /@(\w+)/g;
+    const mentions = [];
+    let match;
+    
+    while ((match = mentionRegex.exec(text)) !== null) {
+      mentions.push(match[1]);
+    }
+    
+    return mentions;
+  };
+
+  const findMentionedUsers = (mentionNames: string[]) => {
+    if (!currentChatRoom?.participants) return [];
+    
+    return currentChatRoom.participants.filter((participant: any) => 
+      mentionNames.some(name => 
+        participant.username.toLowerCase().includes(name.toLowerCase()) ||
+        participant.displayName?.toLowerCase().includes(name.toLowerCase())
+      )
+    );
+  };
+
+  const handleMentionSearch = (query: string, cursorPosition: number) => {
+    // @ 문자 이후의 텍스트 찾기
+    const beforeCursor = message.substring(0, cursorPosition);
+    const mentionMatch = beforeCursor.match(/@(\w*)$/);
+    
+    if (mentionMatch) {
+      const searchTerm = mentionMatch[1].toLowerCase();
+      setMentionStart(mentionMatch.index || 0);
+      
+      if (!currentChatRoom?.participants) {
+        setMentionSuggestions([]);
+        setShowMentions(false);
+        return;
+      }
+
+      let suggestions = [];
+      
+      // @all 옵션 추가 (그룹 채팅인 경우)
+      if (currentChatRoom.isGroup && 'all'.includes(searchTerm)) {
+        suggestions.push({
+          id: 'all',
+          username: 'all',
+          displayName: '전체 멤버',
+          isSpecial: true
+        });
+      }
+
+      // 사용자 검색
+      const userSuggestions = currentChatRoom.participants
+        .filter((participant: any) => participant.id !== user?.id) // 자신 제외
+        .filter((participant: any) => 
+          participant.username.toLowerCase().includes(searchTerm) ||
+          participant.displayName?.toLowerCase().includes(searchTerm)
+        )
+        .slice(0, 5); // 최대 5명까지
+
+      suggestions = [...suggestions, ...userSuggestions];
+      
+      setMentionSuggestions(suggestions);
+      setShowMentions(suggestions.length > 0);
+      setSelectedMentionIndex(0);
+    } else {
+      setShowMentions(false);
+      setMentionSuggestions([]);
+    }
+  };
+
+  const selectMention = (user: any) => {
+    if (mentionStart === -1) return;
+    
+    const beforeMention = message.substring(0, mentionStart);
+    const afterMention = message.substring(mentionStart).replace(/@\w*/, `@${user.username} `);
+    
+    setMessage(beforeMention + afterMention);
+    setShowMentions(false);
+    setMentionSuggestions([]);
+    setMentionStart(-1);
+    messageInputRef.current?.focus();
+  };
+
   // 회신 메시지 클릭 시 원본 메시지로 이동
   const scrollToMessage = (messageId: number) => {
     const messageElement = messageRefs.current[messageId];
@@ -3597,11 +3697,50 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               placeholder="메시지를 입력하세요..."
               value={message}
               onChange={(e) => {
-                handleMessageChange(e.target.value);
+                const newValue = e.target.value;
+                setMessage(newValue);
+                handleMessageChange(newValue);
+                
+                // 멘션 감지 및 자동완성
+                const cursorPosition = e.target.selectionStart || 0;
+                handleMentionSearch(newValue, cursorPosition);
+                
                 // 일반 텍스트 입력 시 키보드 네비게이션 상태 해제
                 setIsNavigatingWithKeyboard(false);
               }}
               onKeyDown={(e) => {
+                // 멘션 추천이 표시된 상태에서 키보드 네비게이션
+                if (showMentions && mentionSuggestions.length > 0) {
+                  if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    setSelectedMentionIndex(prev => 
+                      prev < mentionSuggestions.length - 1 ? prev + 1 : 0
+                    );
+                    return;
+                  }
+                  if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    setSelectedMentionIndex(prev => 
+                      prev > 0 ? prev - 1 : mentionSuggestions.length - 1
+                    );
+                    return;
+                  }
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    const selectedUser = mentionSuggestions[selectedMentionIndex];
+                    if (selectedUser) {
+                      selectMention(selectedUser);
+                    }
+                    return;
+                  }
+                  if (e.key === 'Escape') {
+                    e.preventDefault();
+                    setShowMentions(false);
+                    setMentionSuggestions([]);
+                    return;
+                  }
+                }
+                
                 // 태그 추천이 표시된 상태에서 키보드 네비게이션
                 if (showHashSuggestions && hashSuggestions.length > 0) {
                   if (e.key === 'ArrowDown') {

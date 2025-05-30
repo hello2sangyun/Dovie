@@ -80,6 +80,8 @@ export const messages = pgTable("messages", {
   spotlightDuration: text("spotlight_duration"), // Duration for spotlight
   isEdited: boolean("is_edited").default(false), // Track if message was edited
   editedAt: timestamp("edited_at"), // When the message was last edited
+  mentionedUserIds: text("mentioned_user_ids"), // JSON array of mentioned user IDs
+  mentionAll: boolean("mention_all").default(false), // Whether this message mentions all users
   createdAt: timestamp("created_at").defaultNow(),
 });
 
