@@ -214,6 +214,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         clearTimeout(suggestionTimeout);
         setSuggestionTimeout(null);
       }
+
+      // 메시지 전송 후 항상 맨 아래로 스크롤
+      setTimeout(() => {
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 100);
     },
     onError: (error) => {
       toast({
