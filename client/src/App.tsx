@@ -30,6 +30,19 @@ function Router() {
 }
 
 function App() {
+  // Dark mode initialization
+  useEffect(() => {
+    const savedDarkMode = localStorage.getItem('darkMode');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const shouldUseDarkMode = savedDarkMode === 'true' || (!savedDarkMode && prefersDark);
+    
+    if (shouldUseDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
   // 선택적 드래그 앤 드롭 이벤트 처리로 페이지 깜빡임 방지
   useEffect(() => {
     const handleDragOver = (e: DragEvent) => {
