@@ -3591,20 +3591,16 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     highlightedMessageId === msg.id && "bg-yellow-100 rounded-lg p-2 -mx-2"
                   )}
                   onContextMenu={(e) => handleMessageRightClick(e, msg)}
+                  onClick={(e) => {
+                    // 터치 기기에서는 클릭으로, 데스크톱에서는 우클릭으로 메뉴 활성화
+                    if ('ontouchstart' in window) {
+                      handleMessageLongPress(e, msg);
+                    }
+                  }}
                   onTouchStart={(e) => {
-                    let pressTimer: NodeJS.Timeout;
-                    const handleTouchStart = () => {
-                      pressTimer = setTimeout(() => {
-                        handleMessageLongPress(e, msg);
-                      }, 500);
-                    };
-                    const handleTouchEnd = () => {
-                      clearTimeout(pressTimer);
-                    };
-                    
-                    handleTouchStart();
-                    e.currentTarget.addEventListener('touchend', handleTouchEnd, { once: true });
-                    e.currentTarget.addEventListener('touchmove', handleTouchEnd, { once: true });
+                    // 모바일에서 한 번 터치로 메뉴 열기
+                    e.preventDefault();
+                    handleMessageLongPress(e, msg);
                   }}
                 >
                   <div className="flex flex-col items-center">
