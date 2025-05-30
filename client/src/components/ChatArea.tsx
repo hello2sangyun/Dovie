@@ -2832,11 +2832,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // 링크 감지 및 클릭 가능하게 만드는 함수
   const renderMessageWithLinks = (content: string) => {
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    const parts = content.split(urlRegex);
+    // Combined regex for URLs and mentions
+    const combinedRegex = /(https?:\/\/[^\s]+)|(@\w+)/g;
+    const parts = content.split(combinedRegex);
     
     return parts.map((part, index) => {
-      if (urlRegex.test(part)) {
+      if (!part) return null;
+      
+      // Check if it's a URL
+      if (/https?:\/\/[^\s]+/.test(part)) {
         return (
           <a
             key={index}
@@ -2850,8 +2854,42 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           </a>
         );
       }
+      
+      // Check if it's a mention
+      if (/@\w+/.test(part)) {
+        const username = part.slice(1); // Remove @ symbol
+        const isCurrentUser = username === user?.username;
+        const isMentionAll = username === 'all';
+        
+        return (
+          <span
+            key={index}
+            className={`font-medium px-1 py-0.5 rounded cursor-pointer transition-colors ${
+              isCurrentUser 
+                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 hover:bg-blue-200' 
+                : isMentionAll
+                ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 hover:bg-purple-200'
+                : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200'
+            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!isMentionAll && username !== user?.username) {
+                // Navigate to user profile
+                console.log(`Navigate to @${username} profile`);
+                toast({
+                  title: "사용자 프로필",
+                  description: `@${username}의 프로필로 이동합니다.`,
+                });
+              }
+            }}
+          >
+            {part}
+          </span>
+        );
+      }
+      
       return part;
-    });
+    }).filter(Boolean);
   };
 
   // 검색 기능
@@ -3692,6 +3730,49 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           </div>
           
           <div className="flex-1 relative mx-1">
+            {/* 멘션 자동완성 */}
+            {showMentions && mentionSuggestions.length > 0 && (
+              <div className="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto z-50">
+                {mentionSuggestions.map((user, index) => (
+                  <div
+                    key={user.id}
+                    className={`px-3 py-2 cursor-pointer transition-colors flex items-center gap-2 ${
+                      index === selectedMentionIndex 
+                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' 
+                        : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                    }`}
+                    onClick={() => selectMention(user)}
+                  >
+                    {user.isSpecial ? (
+                      <>
+                        <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
+                          <span className="text-white text-xs">@</span>
+                        </div>
+                        <div>
+                          <div className="font-medium text-blue-600 dark:text-blue-400">@{user.username}</div>
+                          <div className="text-xs text-gray-500">{user.displayName}</div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-6 h-6 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+                          <span className="text-xs font-medium">
+                            {user.displayName?.[0] || user.username[0]}
+                          </span>
+                        </div>
+                        <div>
+                          <div className="font-medium">@{user.username}</div>
+                          {user.displayName && (
+                            <div className="text-xs text-gray-500">{user.displayName}</div>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            
             <Textarea
               ref={messageInputRef}
               placeholder="메시지를 입력하세요..."
