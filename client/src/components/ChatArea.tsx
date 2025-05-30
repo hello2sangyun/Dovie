@@ -3862,7 +3862,95 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                               // 원본 메시지 표시
                               <div className="flex items-start space-x-1">
                                 <div className="flex-1">
-                                  {renderMessageWithLinks(msg.content)}
+                                  {editingMessage?.id === msg.id ? (
+                                    // 인라인 편집 모드
+                                    <div className="space-y-2">
+                                      <Textarea
+                                        value={editContent}
+                                        onChange={(e) => setEditContent(e.target.value)}
+                                        className={cn(
+                                          "min-h-[60px] resize-none text-sm border-2 focus:ring-2",
+                                          isMe 
+                                            ? "bg-white/90 text-gray-900 border-white/50 focus:border-white focus:ring-white/30" 
+                                            : "bg-gray-50 text-gray-900 border-gray-300 focus:border-purple-500 focus:ring-purple-200"
+                                        )}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Escape') {
+                                            setEditingMessage(null);
+                                            setEditContent("");
+                                          }
+                                          if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                                            e.preventDefault();
+                                            if (editContent.trim() && editContent !== msg.content) {
+                                              editMessageMutation.mutate({
+                                                messageId: msg.id,
+                                                content: editContent.trim()
+                                              });
+                                            } else {
+                                              setEditingMessage(null);
+                                              setEditContent("");
+                                            }
+                                          }
+                                        }}
+                                        autoFocus
+                                      />
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-xs text-gray-500">
+                                          Ctrl+Enter로 저장, Esc로 취소
+                                        </span>
+                                        <div className="flex items-center space-x-2">
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() => {
+                                              setEditingMessage(null);
+                                              setEditContent("");
+                                            }}
+                                            className={cn(
+                                              "h-6 text-xs",
+                                              isMe ? "text-white/70 hover:text-white hover:bg-white/10" : "text-gray-500 hover:text-gray-700"
+                                            )}
+                                          >
+                                            취소
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() => {
+                                              if (editContent.trim() && editContent !== msg.content) {
+                                                editMessageMutation.mutate({
+                                                  messageId: msg.id,
+                                                  content: editContent.trim()
+                                                });
+                                              } else {
+                                                setEditingMessage(null);
+                                                setEditContent("");
+                                              }
+                                            }}
+                                            disabled={!editContent.trim() || editContent === msg.content}
+                                            className={cn(
+                                              "h-6 text-xs",
+                                              isMe ? "text-white hover:bg-white/10" : "text-purple-600 hover:bg-purple-50"
+                                            )}
+                                          >
+                                            저장
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <>
+                                      {renderMessageWithLinks(msg.content)}
+                                      {msg.isEdited && (
+                                        <span className={cn(
+                                          "text-xs ml-2 opacity-70 italic",
+                                          isMe ? "text-white/60" : "text-gray-500"
+                                        )}>
+                                          (편집됨)
+                                        </span>
+                                      )}
+                                    </>
+                                  )}
                                 </div>
                                 {msg.isTranslated && (
                                   <div className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/30 flex-shrink-0 mt-0.5">
