@@ -227,7 +227,7 @@ export default function MainApp() {
         {/* Sidebar */}
         <div className="w-80 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col">
           {/* Header */}
-          <div className="p-4 border-b border-gray-200 purple-gradient">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700 purple-gradient">
             <div className="flex items-center justify-center space-x-3">
               <VaultLogo size="sm" />
               <h1 className="text-xl font-bold text-white">Dovie Messenger</h1>
@@ -236,7 +236,7 @@ export default function MainApp() {
 
           {/* Navigation Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-            <TabsList className="grid w-full grid-cols-5 border-b border-gray-200 rounded-none bg-transparent h-auto">
+            <TabsList className="grid w-full grid-cols-5 border-b border-gray-200 dark:border-gray-700 rounded-none bg-transparent dark:bg-transparent h-auto">
               <TabsTrigger 
                 value="contacts" 
                 className={cn(
