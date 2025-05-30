@@ -3,7 +3,7 @@ import express from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, locationChatRooms, chatRooms, chatParticipants } from "@shared/schema";
+import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, locationChatRooms, chatRooms, chatParticipants, locationChatParticipants, locationChatMessages, users } from "@shared/schema";
 import { sql } from "drizzle-orm";
 import { translateText, transcribeAudio } from "./openai";
 import bcrypt from "bcryptjs";
@@ -353,6 +353,143 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ message: "Failed to leave location chat room" });
+    }
+  });
+
+  // 위치 기반 채팅방 메시지 가져오기
+  app.get("/api/location/chat-rooms/:roomId/messages", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const roomId = Number(req.params.roomId);
+      
+      // 위치 기반 채팅방 메시지 조회
+      const messages = await db.select({
+        id: locationChatMessages.id,
+        content: locationChatMessages.content,
+        messageType: locationChatMessages.messageType,
+        fileName: locationChatMessages.fileName,
+        fileSize: locationChatMessages.fileSize,
+        voiceDuration: locationChatMessages.voiceDuration,
+        detectedLanguage: locationChatMessages.detectedLanguage,
+        confidence: locationChatMessages.confidence,
+        isSystemMessage: locationChatMessages.isSystemMessage,
+        createdAt: locationChatMessages.createdAt,
+        senderId: locationChatMessages.senderId,
+        sender: {
+          id: users.id,
+          username: users.username,
+          displayName: users.displayName,
+          email: users.email,
+          profilePicture: users.profilePicture,
+          phoneNumber: users.phoneNumber,
+          isBusinessUser: users.isBusinessUser,
+          businessName: users.businessName,
+          businessAddress: users.businessAddress,
+          isBusinessVerified: users.isBusinessVerified,
+          lastSeen: users.lastSeen,
+          isOnline: users.isOnline
+        }
+      })
+      .from(locationChatMessages)
+      .innerJoin(users, eq(locationChatMessages.senderId, users.id))
+      .where(eq(locationChatMessages.locationChatRoomId, roomId))
+      .orderBy(locationChatMessages.createdAt)
+      .limit(50);
+
+      res.json({ messages });
+    } catch (error) {
+      console.error("Location chat messages error:", error);
+      res.status(500).json({ message: "메시지를 가져올 수 없습니다." });
+    }
+  });
+
+  // 위치 기반 채팅방 메시지 전송
+  app.post("/api/location/chat-rooms/:roomId/messages", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const roomId = Number(req.params.roomId);
+      const { content, messageType = "text", fileName, fileSize, voiceDuration } = req.body;
+
+      if (!content?.trim()) {
+        return res.status(400).json({ message: "메시지 내용이 필요합니다." });
+      }
+
+      // 위치 기반 채팅방에 참여 중인지 확인
+      const participation = await db.select()
+        .from(locationChatParticipants)
+        .where(and(
+          eq(locationChatParticipants.locationChatRoomId, roomId),
+          eq(locationChatParticipants.userId, Number(userId))
+        ))
+        .limit(1);
+
+      if (participation.length === 0) {
+        return res.status(403).json({ message: "채팅방에 참여하지 않았습니다." });
+      }
+
+      // 메시지 생성
+      const [newMessage] = await db.insert(locationChatMessages)
+        .values({
+          locationChatRoomId: roomId,
+          senderId: Number(userId),
+          content: content.trim(),
+          messageType,
+          fileName,
+          fileSize,
+          voiceDuration
+        })
+        .returning();
+
+      // 채팅방 마지막 활동 시간 업데이트
+      await db.update(locationChatRooms)
+        .set({ lastActivity: new Date() })
+        .where(eq(locationChatRooms.id, roomId));
+
+      // 발신자 정보와 함께 메시지 반환
+      const messageWithSender = await db.select({
+        id: locationChatMessages.id,
+        content: locationChatMessages.content,
+        messageType: locationChatMessages.messageType,
+        fileName: locationChatMessages.fileName,
+        fileSize: locationChatMessages.fileSize,
+        voiceDuration: locationChatMessages.voiceDuration,
+        detectedLanguage: locationChatMessages.detectedLanguage,
+        confidence: locationChatMessages.confidence,
+        isSystemMessage: locationChatMessages.isSystemMessage,
+        createdAt: locationChatMessages.createdAt,
+        senderId: locationChatMessages.senderId,
+        sender: {
+          id: users.id,
+          username: users.username,
+          displayName: users.displayName,
+          email: users.email,
+          profilePicture: users.profilePicture,
+          phoneNumber: users.phoneNumber,
+          isBusinessUser: users.isBusinessUser,
+          businessName: users.businessName,
+          businessAddress: users.businessAddress,
+          isBusinessVerified: users.isBusinessVerified,
+          lastSeen: users.lastSeen,
+          isOnline: users.isOnline
+        }
+      })
+      .from(locationChatMessages)
+      .innerJoin(users, eq(locationChatMessages.senderId, users.id))
+      .where(eq(locationChatMessages.id, newMessage.id))
+      .limit(1);
+
+      res.json({ message: messageWithSender[0] });
+    } catch (error) {
+      console.error("Location chat message send error:", error);
+      res.status(500).json({ message: "메시지 전송에 실패했습니다." });
     }
   });
 

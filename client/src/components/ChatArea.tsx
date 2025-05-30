@@ -169,12 +169,21 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     },
   });
 
+  // Determine if this is a location-based chat room
+  const isLocationChat = chatRoomId < 0;
+  const actualRoomId = Math.abs(chatRoomId);
+
   // Get messages
   const { data: messagesData, isLoading } = useQuery({
-    queryKey: ["/api/chat-rooms", chatRoomId, "messages"],
+    queryKey: isLocationChat 
+      ? ["/api/location/chat-rooms", actualRoomId, "messages"]
+      : ["/api/chat-rooms", chatRoomId, "messages"],
     enabled: !!chatRoomId,
     queryFn: async () => {
-      const response = await fetch(`/api/chat-rooms/${chatRoomId}/messages`);
+      const endpoint = isLocationChat 
+        ? `/api/location/chat-rooms/${actualRoomId}/messages`
+        : `/api/chat-rooms/${chatRoomId}/messages`;
+      const response = await fetch(endpoint);
       if (!response.ok) throw new Error("Failed to fetch messages");
       return response.json();
     },
