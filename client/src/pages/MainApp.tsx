@@ -54,6 +54,13 @@ export default function MainApp() {
     enabled: !!user,
   });
 
+  // Get unread counts
+  const { data: unreadCountsData } = useQuery({
+    queryKey: ["/api/unread-counts"],
+    enabled: !!user,
+    refetchInterval: 5000,
+  });
+
   // Optimized profile image preloading with debounce and limits
   useEffect(() => {
     if (!user) return;
@@ -183,18 +190,42 @@ export default function MainApp() {
     setActiveTab("chats");
   };
 
+  // Calculate unread counts for tabs
+  const calculateUnreadCounts = () => {
+    const unreadCounts = unreadCountsData?.unreadCounts || [];
+    const chatRooms = chatRoomsData?.chatRooms || [];
+    
+    let totalChatUnread = 0;
+    let totalNearbyUnread = 0;
+    
+    unreadCounts.forEach((unread: any) => {
+      const chatRoom = chatRooms.find((room: any) => room.id === unread.chatRoomId);
+      if (chatRoom) {
+        if (chatRoom.name?.includes('위치') || chatRoom.address) {
+          // Location-based chat room
+          totalNearbyUnread += unread.unreadCount;
+        } else {
+          // Regular chat room
+          totalChatUnread += unread.unreadCount;
+        }
+      }
+    });
+    
+    return { totalChatUnread, totalNearbyUnread };
+  };
 
+  const { totalChatUnread, totalNearbyUnread } = calculateUnreadCounts();
 
   if (!user) {
     return <div>Loading...</div>;
   }
 
   return (
-    <div className="fixed inset-0 bg-white">
+    <div className="fixed inset-0 bg-white dark:bg-gray-900">
       {/* Desktop Layout */}
       <div className="hidden lg:flex h-full">
         {/* Sidebar */}
-        <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+        <div className="w-80 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col">
           {/* Header */}
           <div className="p-4 border-b border-gray-200 purple-gradient">
             <div className="flex items-center justify-center space-x-3">
@@ -219,21 +250,35 @@ export default function MainApp() {
               <TabsTrigger 
                 value="chats"
                 className={cn(
-                  "py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent flex-col items-center gap-1",
+                  "py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent flex-col items-center gap-1 relative",
                   "data-[state=active]:border-purple-600 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-600"
                 )}
               >
-                <MessageSquare className="h-5 w-5" />
+                <div className="relative">
+                  <MessageSquare className="h-5 w-5" />
+                  {totalChatUnread > 0 && (
+                    <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-medium">
+                      {totalChatUnread > 99 ? '99+' : totalChatUnread}
+                    </div>
+                  )}
+                </div>
                 <span className="text-xs">채팅방</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="nearby"
                 className={cn(
-                  "py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent flex-col items-center gap-1",
+                  "py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent flex-col items-center gap-1 relative",
                   "data-[state=active]:border-purple-600 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-600"
                 )}
               >
-                <MapPin className="h-5 w-5" />
+                <div className="relative">
+                  <MapPin className="h-5 w-5" />
+                  {totalNearbyUnread > 0 && (
+                    <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-medium">
+                      {totalNearbyUnread > 99 ? '99+' : totalNearbyUnread}
+                    </div>
+                  )}
+                </div>
                 <span className="text-xs">주변챗</span>
               </TabsTrigger>
               <TabsTrigger 
@@ -415,12 +460,19 @@ export default function MainApp() {
               <Button
                 variant="ghost"
                 className={cn(
-                  "flex flex-col items-center py-1 px-2",
+                  "flex flex-col items-center py-1 px-2 relative",
                   activeMobileTab === "chats" ? "text-purple-600" : "text-gray-400"
                 )}
                 onClick={() => setActiveMobileTab("chats")}
               >
-                <MessageCircle className="h-4 w-4" />
+                <div className="relative">
+                  <MessageCircle className="h-4 w-4" />
+                  {totalChatUnread > 0 && (
+                    <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[16px] h-[16px] flex items-center justify-center font-medium">
+                      {totalChatUnread > 9 ? '9+' : totalChatUnread}
+                    </div>
+                  )}
+                </div>
                 <span className="text-xs mt-0.5">채팅방</span>
               </Button>
               <Button
@@ -436,7 +488,11 @@ export default function MainApp() {
               >
                 <div className="relative">
                   <MapPin className="h-4 w-4" />
-                  {/* NEW 뱃지 - 실제로는 NearbyChats 컴포넌트에서 state 관리 필요 */}
+                  {totalNearbyUnread > 0 && (
+                    <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[16px] h-[16px] flex items-center justify-center font-medium">
+                      {totalNearbyUnread > 9 ? '9+' : totalNearbyUnread}
+                    </div>
+                  )}
                 </div>
                 <span className="text-xs mt-0.5">주변챗</span>
               </Button>
