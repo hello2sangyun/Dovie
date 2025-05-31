@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -66,13 +66,11 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
   // Request location permission and get current location
   useEffect(() => {
     if (navigator.geolocation) {
-      // Check stored permission first
       const storedPermission = localStorage.getItem("locationPermission");
       if (storedPermission === "granted") {
         setLocationPermission("granted");
         getCurrentLocation();
       } else {
-        // Check actual browser permission
         navigator.permissions.query({ name: 'geolocation' }).then(result => {
           setLocationPermission(result.state);
           localStorage.setItem("locationPermission", result.state);
@@ -81,13 +79,7 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
             getCurrentLocation();
           }
         }).catch(() => {
-          // Fallback if permissions API is not supported
-          if (storedPermission) {
-            setLocationPermission(storedPermission as "granted" | "denied" | "prompt");
-            if (storedPermission === "granted") {
-              getCurrentLocation();
-            }
-          }
+          requestLocationPermission();
         });
       }
     }
@@ -144,7 +136,6 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
   useEffect(() => {
     if (locationPermission === "granted" && user) {
       const updateLocationAndCheck = async () => {
-        // Get current location
         navigator.geolocation.getCurrentPosition(
           (position) => {
             const location = {
@@ -161,7 +152,6 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
           { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
         );
 
-        // Check proximity
         try {
           const response = await apiRequest(`/api/location/check-proximity`, "GET");
           const data = await response.json();
@@ -178,10 +168,7 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
         }
       };
 
-      // Initial update
       updateLocationAndCheck();
-      
-      // Set up interval for every 10 seconds
       const locationInterval = setInterval(updateLocationAndCheck, 10000);
 
       return () => clearInterval(locationInterval);
@@ -197,7 +184,6 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
           
           const newSeconds = prev.seconds - 1;
           if (newSeconds <= 0) {
-            // 자동 퇴장 실행
             leaveLocationChatRoomMutation.mutate(prev.roomId);
             clearInterval(countdown);
             return null;
@@ -218,7 +204,6 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
       return response.json();
     },
     onSuccess: async () => {
-      // 위치 업데이트 후 자동 퇴장 체크
       try {
         const response = await apiRequest("/api/location/check-exit", "GET");
         const data = await response.json();
@@ -283,7 +268,7 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
       return response.json();
     },
     enabled: !!userLocation && !!user,
-    refetchInterval: 10000, // Refresh every 10 seconds
+    refetchInterval: 10000,
   });
 
   // Create location chat room mutation
@@ -313,62 +298,48 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
   // Join location chat room
   const joinChatRoomMutation = useMutation({
     mutationFn: async (roomId: number) => {
-      console.log("Attempting to join room:", roomId);
-      try {
-        const response = await apiRequest(`/api/location/chat-rooms/${roomId}/join`, "POST");
-        console.log("Response status:", response.status);
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error("Response error:", errorText);
-          throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
-        }
-        
-        const data = await response.json();
-        console.log("Response data:", data);
-        return data;
-      } catch (error) {
-        console.error("Request failed:", error);
-        throw error;
+      const response = await apiRequest(`/api/location/chat-rooms/${roomId}/join`, "POST");
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
       }
+      
+      return response.json();
     },
-    onSuccess: (data, roomId) => {
-      console.log("Join success - data:", data, "roomId:", roomId);
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/location/nearby-chats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
       toast({
-        title: "채팅방 입장",
-        description: "채팅방에 입장했습니다.",
+        title: "채팅방 참여 완료",
+        description: "주변 채팅방에 성공적으로 참여했습니다.",
       });
-      // 서버에서 반환된 실제 채팅방 ID로 이동
-      if (data && data.chatRoomId) {
-        console.log("Moving to chat room:", data.chatRoomId);
+      if (data.chatRoomId) {
         onChatRoomSelect(data.chatRoomId);
       } else {
-        console.log("No chatRoomId in response, using original roomId:", roomId);
-        onChatRoomSelect(roomId);
+        onChatRoomSelect(data.id);
       }
     },
     onError: (error) => {
-      console.error("Join chat room error:", error);
       toast({
         variant: "destructive",
-        title: "입장 실패",
-        description: `채팅방에 입장할 수 없습니다: ${error.message}`,
+        title: "참여 실패",
+        description: "채팅방 참여에 실패했습니다.",
       });
     },
   });
 
-  const handleTempImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTempProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setTempProfileImage(file);
-      const url = URL.createObjectURL(file);
-      setTempProfilePreview(url);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setTempProfilePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
-
-
 
   const handleJoinRoom = (room: LocationChatRoom) => {
     setSelectedRoom(room);
@@ -379,32 +350,25 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
     setShowJoinModal(true);
   };
 
-  const handleConfirmJoin = async () => {
+  const handleConfirmJoin = () => {
     if (!selectedRoom) return;
-
-    // 주변 채팅방에서는 임시 프로필만 사용 (실제 사용자 프로필 변경하지 않음)
-    // 커스텀 프로필 기능은 향후 구현 예정
-    joinChatRoomMutation.mutate(selectedRoom.id);
     setShowJoinModal(false);
-  };
-
-  const getInitials = (name: string) => {
-    return name.split(' ').map(word => word.charAt(0).toUpperCase()).join('').slice(0, 2);
+    joinChatRoomMutation.mutate(selectedRoom.id);
   };
 
   const handleCreateRoom = () => {
     if (!newRoomName.trim() || !userLocation) return;
     
     createLocationChatMutation.mutate({
-      name: newRoomName.trim(),
+      name: newRoomName,
       latitude: userLocation.latitude,
       longitude: userLocation.longitude,
-      address: "현재 위치" // TODO: Reverse geocoding
+      address: "현재 위치"
     });
   };
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371e3; // Earth's radius in meters
+    const R = 6371e3;
     const φ1 = lat1 * Math.PI/180;
     const φ2 = lat2 * Math.PI/180;
     const Δφ = (lat2-lat1) * Math.PI/180;
@@ -415,7 +379,7 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
               Math.sin(Δλ/2) * Math.sin(Δλ/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
-    return R * c; // Distance in meters
+    return R * c;
   };
 
   const formatDistance = (distance: number) => {
@@ -427,7 +391,6 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
 
   if (!user) return null;
 
-  // Location permission not granted
   if (locationPermission !== "granted") {
     return (
       <div className="h-full flex flex-col items-center justify-center p-8 text-center">
@@ -484,9 +447,7 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
             <div className="flex items-center">
               <Clock className="h-5 w-5 text-orange-500 mr-2" />
               <div>
-                <p className="text-sm font-medium text-orange-800 dark:text-orange-200">
-                  주변챗 자동 퇴장 예정
-                </p>
+                <p className="text-sm font-medium text-orange-800 dark:text-orange-200">자동 퇴장 예정</p>
                 <p className="text-sm text-orange-700 dark:text-orange-300">
                   위치를 벗어나 {exitCountdown.seconds}초 후 자동으로 채팅방을 나갑니다
                 </p>
@@ -530,10 +491,8 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
       {showMap ? (
         <div className="flex-1 p-4">
           <div className="bg-gray-100 dark:bg-gray-800 rounded-lg h-full min-h-[400px] relative overflow-hidden">
-            {/* Simple map visualization */}
             <div className="absolute inset-0 flex items-center justify-center">
               <svg width="100%" height="100%" viewBox="0 0 400 300" className="text-gray-400">
-                {/* Grid background */}
                 <defs>
                   <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
                     <path d="M 20 0 L 0 0 0 20" fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.3"/>
@@ -541,7 +500,6 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
                 </defs>
                 <rect width="100%" height="100%" fill="url(#grid)" />
                 
-                {/* Current location (center) */}
                 <g transform="translate(200, 150)">
                   <circle cx="0" cy="0" r="8" fill="#8b5cf6" />
                   <circle cx="0" cy="0" r="12" fill="none" stroke="#8b5cf6" strokeWidth="2" opacity="0.5" />
@@ -551,8 +509,7 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
                   </text>
                 </g>
 
-                {/* Nearby chat rooms */}
-                {nearbyChatRooms?.chatRooms?.map((room, index) => {
+                {nearbyChatRooms?.chatRooms?.map((room: LocationChatRoom, index: number) => {
                   if (!userLocation) return null;
                   
                   const distance = calculateDistance(
@@ -562,7 +519,6 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
                     parseFloat(room.longitude)
                   );
                   
-                  // Simple positioning based on distance and index
                   const angle = (index * 60) * (Math.PI / 180);
                   const radius = Math.min(distance / 2, 80);
                   const x = 200 + Math.cos(angle) * radius;
@@ -600,7 +556,6 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
               </svg>
             </div>
             
-            {/* Map legend */}
             <div className="absolute bottom-4 left-4 bg-white dark:bg-gray-900 rounded-lg p-3 shadow-lg border border-gray-200 dark:border-gray-700">
               <div className="space-y-2 text-xs">
                 <div className="flex items-center gap-2">
@@ -621,14 +576,12 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
         </div>
       ) : (
         <div className="flex-1 overflow-auto">
-          {/* Loading state */}
           {isLoading && (
             <div className="flex items-center justify-center h-32">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
             </div>
           )}
 
-          {/* Chat rooms list */}
           {!isLoading && nearbyChatRooms?.chatRooms?.length === 0 && (
             <div className="text-center py-8">
               <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-3" />
@@ -639,8 +592,7 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
             </div>
           )}
 
-          {/* Nearby chat rooms */}
-          {nearbyChatRooms?.chatRooms?.map((room) => {
+          {nearbyChatRooms?.chatRooms?.map((room: LocationChatRoom) => {
             const distance = userLocation ? calculateDistance(
               userLocation.latitude,
               userLocation.longitude,
@@ -809,209 +761,6 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
                 {joinChatRoomMutation.isPending ? "참여 중..." : "참여하기"}
               </Button>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
-            const distance = userLocation ? calculateDistance(
-              userLocation.latitude,
-              userLocation.longitude,
-              parseFloat(room.latitude),
-              parseFloat(room.longitude)
-            ) : 0;
-
-            return (
-              <Card key={room.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-medium">{room.name}</h3>
-                        {room.isOfficial && (
-                          <Badge variant="secondary" className="text-xs">
-                            <Star className="h-3 w-3 mr-1" />
-                            공식
-                          </Badge>
-                        )}
-                      </div>
-                      
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <Users className="h-3 w-3" />
-                          {room.participantCount}/{room.maxParticipants}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
-                          {formatDistance(distance)}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          방금 전
-                        </span>
-                      </div>
-                      
-                      {room.address && (
-                        <p className="text-xs text-gray-400 mt-1">{room.address}</p>
-                      )}
-                      
-                      {room.businessOwner && (
-                        <p className="text-xs text-purple-600 mt-1">
-                          운영: {room.businessOwner.businessName}
-                        </p>
-                      )}
-                    </div>
-                    
-                    <Button
-                      size="sm"
-                      onClick={() => handleJoinRoom(room)}
-                      disabled={joinChatRoomMutation.isPending}
-                      className="ml-2"
-                    >
-                      입장
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })
-        ) : (
-          <div className="text-center py-8">
-            <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">주변에 채팅방이 없습니다</h3>
-            <p className="text-gray-600 mb-4">
-              이 지역에 첫 번째 채팅방을 만들어보세요!
-            </p>
-            <Button onClick={() => setShowCreateRoom(true)} className="purple-gradient">
-              채팅방 만들기
-            </Button>
-          </div>
-        )}
-      </div>
-
-      {/* Join Room Profile Setup Modal */}
-      <Dialog open={showJoinModal} onOpenChange={setShowJoinModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>채팅방 입장 설정</DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="nickname">채팅방에서 사용할 이름</Label>
-              <Input
-                id="nickname"
-                value={joinNickname}
-                onChange={(e) => setJoinNickname(e.target.value)}
-                placeholder="닉네임을 입력하세요"
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <Label>프로필 설정</Label>
-              <div className="mt-3 space-y-3">
-                <div className="flex items-center space-x-3">
-                  <input
-                    type="radio"
-                    id="main-profile"
-                    name="profile-option"
-                    value="main"
-                    checked={profileOption === "main"}
-                    onChange={(e) => setProfileOption(e.target.value as "main" | "temp")}
-                    className="w-4 h-4"
-                  />
-                  <label htmlFor="main-profile" className="flex items-center space-x-3 cursor-pointer flex-1">
-                    <UserAvatar user={user} size="sm" />
-                    <div>
-                      <div className="text-sm font-medium">메인 프로필 사용</div>
-                      <div className="text-xs text-gray-500">현재 설정된 프로필과 이름</div>
-                    </div>
-                  </label>
-                </div>
-                
-                <div className="flex items-center space-x-3">
-                  <input
-                    type="radio"
-                    id="temp-profile"
-                    name="profile-option"
-                    value="temp"
-                    checked={profileOption === "temp"}
-                    onChange={(e) => setProfileOption(e.target.value as "main" | "temp")}
-                    className="w-4 h-4"
-                  />
-                  <label htmlFor="temp-profile" className="flex items-center space-x-3 cursor-pointer flex-1">
-                    <div className="relative">
-                      {tempProfilePreview ? (
-                        <img 
-                          src={tempProfilePreview} 
-                          alt="임시 프로필" 
-                          className="w-8 h-8 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                          <Camera className="w-4 h-4 text-gray-400" />
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium">임시 프로필 사용</div>
-                      <div className="text-xs text-gray-500">이 채팅방에서만 사용할 프로필</div>
-                    </div>
-                  </label>
-                </div>
-                
-                {profileOption === "temp" && (
-                  <div className="ml-7 space-y-2">
-                    <input
-                      type="file"
-                      id="temp-profile-upload"
-                      accept="image/*"
-                      onChange={handleTempImageSelect}
-                      className="hidden"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => document.getElementById('temp-profile-upload')?.click()}
-                      className="w-full"
-                    >
-                      <Camera className="w-4 h-4 mr-2" />
-                      임시 프로필 사진 선택
-                    </Button>
-                    {tempProfilePreview && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setTempProfileImage(null);
-                          setTempProfilePreview(null);
-                        }}
-                        className="w-full text-red-500 hover:text-red-600"
-                      >
-                        프로필 사진 제거
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex gap-2 mt-6">
-            <Button variant="outline" onClick={() => setShowJoinModal(false)} className="flex-1">
-              취소
-            </Button>
-            <Button 
-              onClick={handleConfirmJoin}
-              disabled={!joinNickname.trim() || joinChatRoomMutation.isPending}
-              className="flex-1"
-            >
-              {joinChatRoomMutation.isPending ? "입장 중..." : "입장하기"}
-            </Button>
           </div>
         </DialogContent>
       </Dialog>
