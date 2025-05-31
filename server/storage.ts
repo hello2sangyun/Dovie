@@ -588,17 +588,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserLocation(userId: number, location: { latitude: number; longitude: number; accuracy: number }): Promise<void> {
-    // Delete existing location if any
-    await db.delete(userLocations).where(eq(userLocations.userId, userId));
-    
-    // Insert new location
+    // Use upsert to handle existing locations
     await db
       .insert(userLocations)
       .values({
         userId,
         latitude: location.latitude.toString(),
         longitude: location.longitude.toString(),
-        accuracy: location.accuracy.toString()
+        accuracy: location.accuracy.toString(),
+        updatedAt: new Date()
+      })
+      .onConflictDoUpdate({
+        target: userLocations.userId,
+        set: {
+          latitude: location.latitude.toString(),
+          longitude: location.longitude.toString(),
+          accuracy: location.accuracy.toString(),
+          updatedAt: new Date()
+        }
       });
   }
 

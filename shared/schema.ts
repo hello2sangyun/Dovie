@@ -194,6 +194,28 @@ export const userLocations = pgTable("user_locations", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const fileUploads = pgTable("file_uploads", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  chatRoomId: integer("chat_room_id").references(() => chatRooms.id),
+  fileName: text("file_name").notNull(),
+  originalName: text("original_name").notNull(),
+  fileSize: integer("file_size").notNull(),
+  fileType: text("file_type").notNull(),
+  filePath: text("file_path").notNull(),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  isDeleted: boolean("is_deleted").default(false)
+});
+
+export const fileDownloads = pgTable("file_downloads", {
+  id: serial("id").primaryKey(),
+  fileUploadId: integer("file_upload_id").references(() => fileUploads.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  downloadedAt: timestamp("downloaded_at").defaultNow(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent")
+});
+
 export const usersRelations = relations(users, ({ many }) => ({
   contacts: many(contacts, { relationName: "userContacts" }),
   contactOf: many(contacts, { relationName: "contactUser" }),
@@ -329,6 +351,29 @@ export const userLocationsRelations = relations(userLocations, ({ one }) => ({
   }),
 }));
 
+export const fileUploadsRelations = relations(fileUploads, ({ one, many }) => ({
+  user: one(users, {
+    fields: [fileUploads.userId],
+    references: [users.id],
+  }),
+  chatRoom: one(chatRooms, {
+    fields: [fileUploads.chatRoomId],
+    references: [chatRooms.id],
+  }),
+  downloads: many(fileDownloads),
+}));
+
+export const fileDownloadsRelations = relations(fileDownloads, ({ one }) => ({
+  fileUpload: one(fileUploads, {
+    fields: [fileDownloads.fileUploadId],
+    references: [fileUploads.id],
+  }),
+  user: one(users, {
+    fields: [fileDownloads.userId],
+    references: [users.id],
+  }),
+}));
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
@@ -388,6 +433,16 @@ export const insertLocationChatMessageSchema = createInsertSchema(locationChatMe
 export const insertUserLocationSchema = createInsertSchema(userLocations).omit({
   id: true,
   updatedAt: true,
+});
+
+export const insertFileUploadSchema = createInsertSchema(fileUploads).omit({
+  id: true,
+  uploadedAt: true,
+});
+
+export const insertFileDownloadSchema = createInsertSchema(fileDownloads).omit({
+  id: true,
+  downloadedAt: true,
 });
 
 export type User = typeof users.$inferSelect;
