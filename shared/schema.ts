@@ -12,6 +12,7 @@ export const users = pgTable("users", {
   phoneNumber: text("phone_number"),
   birthday: text("birthday"),
   profilePicture: text("profile_picture"),
+  bio: text("bio"),
   qrCode: text("qr_code"),
   isOnline: boolean("is_online").default(false),
   lastSeen: timestamp("last_seen").defaultNow(),
