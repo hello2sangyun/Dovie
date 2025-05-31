@@ -4191,46 +4191,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                         </div>
                       ) : msg.messageType === "file" ? (
                         <div>
-                          <div className="flex items-center space-x-3">
-                            <div className={cn(
-                              "w-10 h-10 rounded-lg flex items-center justify-center",
-                              msg.isCommandRecall && msg.isLocalOnly
-                                ? isMe ? "bg-white/20" : "bg-teal-200"
-                                : isMe ? "bg-white/20" : "bg-gray-100"
-                            )}>
-                              {getFileIcon(msg.fileName)}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className={cn(
-                                "text-sm font-medium truncate",
-                                msg.isCommandRecall && msg.isLocalOnly
-                                  ? isMe ? "text-white" : "text-teal-900"
-                                  : isMe ? "text-white" : "text-gray-900"
-                              )}>
-                                {msg.fileName}
-                              </p>
-                              <p className={cn(
-                                "text-xs",
-                                msg.isCommandRecall && msg.isLocalOnly
-                                  ? isMe ? "text-white/70" : "text-teal-600"
-                                  : isMe ? "text-white/70" : "text-gray-500"
-                              )}>
-                                {msg.fileSize ? `${(msg.fileSize / 1024).toFixed(1)} KB` : ""}
-                              </p>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className={cn(
-                                msg.isCommandRecall && msg.isLocalOnly
-                                  ? isMe ? "text-white hover:bg-white/10" : "text-teal-700 hover:text-teal-800 hover:bg-teal-100"
-                                  : isMe ? "text-white hover:bg-white/10" : "text-purple-600 hover:text-purple-700"
-                              )}
-                              onClick={() => window.open(msg.fileUrl, '_blank')}
-                            >
-                              <Download className="h-4 w-4" />
-                            </Button>
-                          </div>
+                          <MediaPreview
+                            fileUrl={msg.fileUrl}
+                            fileName={msg.fileName}
+                            fileSize={msg.fileSize}
+                            messageContent={msg.content}
+                            isMe={isMe}
+                            className="mb-2"
+                          />
                           
                           {msg.isCommandRecall && (
                             <div className={cn(
