@@ -210,10 +210,10 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
         const data = await response.json();
         
         if (data.shouldExit && data.roomId) {
-          setExitCountdown({ roomId: data.roomId, seconds: 20 });
+          setExitCountdown({ roomId: data.roomId, seconds: 10 });
           toast({
             title: "주변챗 알림",
-            description: "위치를 벗어나 20초 후 자동으로 채팅방을 나갑니다.",
+            description: "위치를 벗어나 10초 후 자동으로 채팅방을 나갑니다.",
             variant: "destructive"
           });
         }

@@ -465,41 +465,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         profileImageUrl
       });
 
-      // Use storage interface to create chat room
-      let regularChatRoom = await db.select().from(chatRooms).where(eq(chatRooms.name, locationRoom[0].name)).limit(1);
-      
-      if (regularChatRoom.length === 0) {
-        // Create new regular chat room using storage interface
-        const newChatRoom = await storage.createChatRoom({
-          name: locationRoom[0].name,
-          isGroup: true,
-          createdBy: Number(userId)
-        }, [Number(userId)]);
-        
-        regularChatRoom = [newChatRoom];
-      }
-
-      // Add user to regular chat room participants
-      const existingParticipant = await db
-        .select()
-        .from(chatParticipants)
-        .where(and(
-          eq(chatParticipants.userId, Number(userId)),
-          eq(chatParticipants.chatRoomId, regularChatRoom[0].id)
-        ))
-        .limit(1);
-
-      if (existingParticipant.length === 0) {
-        await db.insert(chatParticipants).values({
-          userId: Number(userId),
-          chatRoomId: regularChatRoom[0].id
-        });
-      }
-      
+      // For nearby chats, return the location room ID directly
+      // Don't create regular chat rooms for location-based chats
       res.json({ 
         success: true, 
-        chatRoomId: regularChatRoom[0].id,
-        locationChatRoomId: roomId
+        chatRoomId: roomId, // Use location chat room ID directly
+        locationChatRoomId: roomId,
+        isLocationChat: true
       });
     } catch (error) {
       console.error("Join location chat room error:", error);
@@ -552,6 +524,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ user });
     } catch (error) {
       res.status(500).json({ message: "Failed to get user" });
+    }
+  });
+
+  // Location chat messages routes
+  app.get("/api/location/chat-rooms/:roomId/messages", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const roomId = Number(req.params.roomId);
+      
+      // Verify user is participant in location chat
+      const profile = await storage.getLocationChatProfile(Number(userId), roomId);
+      if (!profile) {
+        return res.status(403).json({ message: "Not a participant in this location chat" });
+      }
+
+      // Get messages from location chat room (using regular message system but filtered)
+      const messages = await storage.getMessages(roomId);
+      res.json({ messages });
+    } catch (error) {
+      console.error("Get location messages error:", error);
+      res.status(500).json({ message: "Failed to get messages" });
+    }
+  });
+
+  app.post("/api/location/chat-rooms/:roomId/messages", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const roomId = Number(req.params.roomId);
+      
+      // Verify user is participant in location chat
+      const profile = await storage.getLocationChatProfile(Number(userId), roomId);
+      if (!profile) {
+        return res.status(403).json({ message: "Not a participant in this location chat" });
+      }
+
+      const messageData = req.body;
+      const newMessage = await storage.createMessage({
+        chatRoomId: roomId,
+        senderId: Number(userId),
+        content: messageData.content,
+        messageType: messageData.messageType || "text",
+        fileUrl: messageData.fileUrl,
+        fileName: messageData.fileName,
+        fileSize: messageData.fileSize,
+        voiceDuration: messageData.voiceDuration,
+        detectedLanguage: messageData.detectedLanguage,
+        translatedText: messageData.translatedText,
+        pollData: messageData.pollData,
+        replyToId: messageData.replyToId,
+        mentionedUserIds: messageData.mentionedUserIds,
+        commandData: messageData.commandData
+      });
+
+      const messageWithSender = await storage.getMessageById(newMessage.id);
+
+      // Broadcast to location chat participants via WebSocket
+      broadcastToRoom(roomId, {
+        type: "new_message",
+        message: messageWithSender,
+        isLocationChat: true
+      });
+
+      res.json({ message: messageWithSender });
+    } catch (error) {
+      console.error("Location message creation error:", error);
+      res.status(500).json({ message: "Failed to send message" });
     }
   });
 
