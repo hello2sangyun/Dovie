@@ -43,6 +43,29 @@ interface ChatAreaProps {
 export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader, onBackClick }: ChatAreaProps) {
   const { user } = useAuth();
   const { toast } = useToast();
+  
+  // Check if this is a location-based chat
+  const [isLocationChat, setIsLocationChat] = useState<boolean>(false);
+  
+  // Check if this chat room is a location chat
+  useEffect(() => {
+    const checkIfLocationChat = async () => {
+      try {
+        const response = await apiRequest(`/api/location/chat-rooms/${chatRoomId}/profile`);
+        if (response.ok) {
+          setIsLocationChat(true);
+        } else {
+          setIsLocationChat(false);
+        }
+      } catch (error) {
+        setIsLocationChat(false);
+      }
+    };
+    
+    if (chatRoomId) {
+      checkIfLocationChat();
+    }
+  }, [chatRoomId]);
   const queryClient = useQueryClient();
   const [message, setMessage] = useState("");
   
@@ -235,13 +258,17 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // Get messages with optimized caching
   const { data: messagesData, isLoading } = useQuery({
-    queryKey: ["/api/chat-rooms", chatRoomId, "messages"],
+    queryKey: [isLocationChat ? "/api/location/chat-rooms" : "/api/chat-rooms", chatRoomId, "messages"],
     enabled: !!chatRoomId,
     staleTime: 10 * 1000, // 10초간 신선한 상태 유지
     refetchOnMount: true, // 채팅방 진입 시 항상 최신 메시지 로드
     refetchOnWindowFocus: true, // 포커스 시 새 메시지 확인
     queryFn: async () => {
-      const response = await fetch(`/api/chat-rooms/${chatRoomId}/messages`);
+      const endpoint = isLocationChat 
+        ? `/api/location/chat-rooms/${chatRoomId}/messages`
+        : `/api/chat-rooms/${chatRoomId}/messages`;
+      
+      const response = await fetch(endpoint);
       if (!response.ok) throw new Error("Failed to fetch messages");
       return response.json();
     },
@@ -263,12 +290,19 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
-      const response = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages`, "POST", messageData);
+      const endpoint = isLocationChat 
+        ? `/api/location/chat-rooms/${chatRoomId}/messages`
+        : `/api/chat-rooms/${chatRoomId}/messages`;
+      
+      const response = await apiRequest(endpoint, "POST", messageData);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms", chatRoomId, "messages"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      const queryKey = isLocationChat ? "/api/location/chat-rooms" : "/api/chat-rooms";
+      queryClient.invalidateQueries({ queryKey: [queryKey, chatRoomId, "messages"] });
+      if (!isLocationChat) {
+        queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      }
       setMessage("");
       setShowCommandSuggestions(false);
       setReplyToMessage(null); // 회신 상태 초기화
