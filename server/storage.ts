@@ -853,7 +853,7 @@ export class DatabaseStorage implements IStorage {
       other: 0
     };
 
-    fileUploads.forEach(file => {
+    userFileUploads.forEach((file: any) => {
       if (file.fileType.startsWith('image/')) {
         typeBreakdown.images += file.fileSize;
       } else if (file.fileType.startsWith('video/')) {
@@ -869,7 +869,7 @@ export class DatabaseStorage implements IStorage {
 
     // Chat room breakdown
     const chatRoomMap = new Map();
-    fileUploads.forEach(file => {
+    userFileUploads.forEach((file: any) => {
       const roomName = file.chatRoomName || '개인 파일';
       if (!chatRoomMap.has(roomName)) {
         chatRoomMap.set(roomName, { roomName, fileCount: 0, totalSize: 0 });
