@@ -4881,7 +4881,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             
             <Textarea
               ref={messageInputRef}
-              placeholder="메시지를 입력하세요..."
+              placeholder={isLocationChatRoom ? "📍 주변챗에 메시지를 입력하세요..." : "메시지를 입력하세요..."}
               value={message}
               onChange={(e) => {
                 const newValue = e.target.value;
