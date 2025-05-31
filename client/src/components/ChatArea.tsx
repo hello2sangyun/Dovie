@@ -38,40 +38,15 @@ interface ChatAreaProps {
   onCreateCommand: (fileData?: any, messageData?: any) => void;
   showMobileHeader?: boolean;
   onBackClick?: () => void;
+  isLocationChat?: boolean;
 }
 
-export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader, onBackClick }: ChatAreaProps) {
+export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader, onBackClick, isLocationChat }: ChatAreaProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  // Use React Query to check if this is a location-based chat
-  const { data: locationProfile, isLoading: isCheckingLocation, error: locationError } = useQuery({
-    queryKey: [`/api/location/chat-rooms/${chatRoomId}/profile`],
-    queryFn: async () => {
-      const response = await fetch(`/api/location/chat-rooms/${chatRoomId}/profile`, {
-        headers: {
-          'x-user-id': user?.id?.toString() || '',
-        },
-      });
-      if (response.ok) {
-        return response.json();
-      }
-      throw new Error('Not a location chat');
-    },
-    enabled: !!chatRoomId && !!user?.id,
-    retry: false, // Don't retry if it's not a location chat
-  });
-  
-  const isLocationChat = !!locationProfile;
-  
-  // Debug logging
-  console.log('ChatArea Debug:', {
-    chatRoomId,
-    isCheckingLocation,
-    locationProfile,
-    isLocationChat,
-    locationError: locationError?.message
-  });
+  // Use the isLocationChat prop directly
+  const isLocationChatRoom = isLocationChat || false;
   const queryClient = useQueryClient();
   const [message, setMessage] = useState("");
   
@@ -244,7 +219,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   // Get chat room details (only for regular chats, not location chats)
   const { data: chatRoomsData } = useQuery({
     queryKey: ["/api/chat-rooms"],
-    enabled: !!user && !isLocationChat && !isCheckingLocation,
+    enabled: !!user && !isLocationChatRoom,
   });
 
   const currentChatRoom = (chatRoomsData as any)?.chatRooms?.find((room: any) => room.id === chatRoomId);
@@ -264,8 +239,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // Get messages with optimized caching
   const { data: messagesData, isLoading } = useQuery({
-    queryKey: [isLocationChat ? "/api/location/chat-rooms" : "/api/chat-rooms", chatRoomId, "messages"],
-    enabled: !!chatRoomId && !isCheckingLocation,
+    queryKey: [isLocationChatRoom ? "/api/location/chat-rooms" : "/api/chat-rooms", chatRoomId, "messages"],
+    enabled: !!chatRoomId,
     staleTime: 10 * 1000, // 10초간 신선한 상태 유지
     refetchOnMount: true, // 채팅방 진입 시 항상 최신 메시지 로드
     refetchOnWindowFocus: true, // 포커스 시 새 메시지 확인
