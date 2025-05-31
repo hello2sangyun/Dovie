@@ -3725,7 +3725,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       )}
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-2 space-y-3 min-h-0 overscroll-behavior-y-contain max-h-[calc(100vh-200px)] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+      <div className="flex-1 overflow-y-auto px-4 py-2 space-y-3 min-h-0 overscroll-behavior-y-contain pb-16 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
         {/* Security Notice - WhatsApp Style */}
         <div className="flex justify-center mb-6 px-4">
           <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-xl px-4 py-3 max-w-sm mx-auto shadow-lg transform hover:scale-105 transition-all duration-200 backdrop-blur-sm">
@@ -4420,8 +4420,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Chat Input - Fixed position */}
-      <div className="bg-white border-t border-gray-200 flex-shrink-0 sticky bottom-0 z-10 pb-0">
+      {/* Chat Input - Fixed to absolute bottom */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-20">
         {/* Reply Preview */}
         {replyToMessage && (
           <div className="px-2 py-1 border-b border-gray-200 bg-gray-50">
