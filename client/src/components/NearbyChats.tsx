@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { MapPin, Users, Plus, Clock, Star, Navigation, Camera, User, Map } from "lucide-react";
+import { MapPin, Users, Plus, Clock, Star, Navigation, Camera, User, Map, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
@@ -62,6 +62,8 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
   const [tempProfileImage, setTempProfileImage] = useState<File | null>(null);
   const [tempProfilePreview, setTempProfilePreview] = useState<string | null>(null);
   const [showMap, setShowMap] = useState(false);
+  const [mapZoom, setMapZoom] = useState(1);
+  const [mapCenter, setMapCenter] = useState({ x: 200, y: 150 });
 
   // Request location permission and get current location
   useEffect(() => {
@@ -389,6 +391,19 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
     return `${(distance / 1000).toFixed(1)}km`;
   };
 
+  const handleZoomIn = () => {
+    setMapZoom(prev => Math.min(prev * 1.5, 5));
+  };
+
+  const handleZoomOut = () => {
+    setMapZoom(prev => Math.max(prev / 1.5, 0.3));
+  };
+
+  const handleResetView = () => {
+    setMapZoom(1);
+    setMapCenter({ x: 200, y: 150 });
+  };
+
   if (!user) return null;
 
   if (locationPermission !== "granted") {
@@ -491,24 +506,69 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
       {showMap ? (
         <div className="flex-1 p-4">
           <div className="bg-gray-100 dark:bg-gray-800 rounded-lg h-full min-h-[400px] relative overflow-hidden">
+            {/* Zoom Controls */}
+            <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleZoomIn}
+                className="w-10 h-10 p-0 bg-white/90 backdrop-blur-sm hover:bg-white"
+                disabled={mapZoom >= 5}
+              >
+                <ZoomIn className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleZoomOut}
+                className="w-10 h-10 p-0 bg-white/90 backdrop-blur-sm hover:bg-white"
+                disabled={mapZoom <= 0.3}
+              >
+                <ZoomOut className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleResetView}
+                className="w-10 h-10 p-0 bg-white/90 backdrop-blur-sm hover:bg-white"
+              >
+                <RotateCcw className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            {/* Zoom Level Indicator */}
+            <div className="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-1 text-sm font-medium">
+              {Math.round(mapZoom * 100)}%
+            </div>
+            
             <div className="absolute inset-0 flex items-center justify-center">
-              <svg width="100%" height="100%" viewBox="0 0 400 300" className="text-gray-400">
+              <svg 
+                width="100%" 
+                height="100%" 
+                viewBox={`${-200 * mapZoom + mapCenter.x} ${-150 * mapZoom + mapCenter.y} ${400 * mapZoom} ${300 * mapZoom}`} 
+                className="text-gray-400 transition-all duration-300"
+              >
                 <defs>
-                  <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.3"/>
+                  <pattern id="grid" width={20 / mapZoom} height={20 / mapZoom} patternUnits="userSpaceOnUse">
+                    <path d={`M ${20 / mapZoom} 0 L 0 0 0 ${20 / mapZoom}`} fill="none" stroke="currentColor" strokeWidth={0.5 / mapZoom} opacity="0.3"/>
                   </pattern>
                 </defs>
                 <rect width="100%" height="100%" fill="url(#grid)" />
                 
-                <g transform="translate(200, 150)">
-                  <circle cx="0" cy="0" r="8" fill="#8b5cf6" />
-                  <circle cx="0" cy="0" r="12" fill="none" stroke="#8b5cf6" strokeWidth="2" opacity="0.5" />
-                  <circle cx="0" cy="0" r="20" fill="none" stroke="#8b5cf6" strokeWidth="1" opacity="0.3" />
-                  <text x="0" y="-25" textAnchor="middle" className="text-xs font-medium fill-purple-600">
+                {/* User Location */}
+                <g transform={`translate(${mapCenter.x}, ${mapCenter.y})`}>
+                  <circle cx="0" cy="0" r={8 / mapZoom} fill="#8b5cf6" />
+                  <circle cx="0" cy="0" r={12 / mapZoom} fill="none" stroke="#8b5cf6" strokeWidth={2 / mapZoom} opacity="0.5" />
+                  <circle cx="0" cy="0" r={50 / mapZoom} fill="none" stroke="#8b5cf6" strokeWidth={1 / mapZoom} opacity="0.2" strokeDasharray={`${5 / mapZoom},${3 / mapZoom}`} />
+                  <text x="0" y={-30 / mapZoom} textAnchor="middle" className="text-xs font-medium fill-purple-600" fontSize={12 / mapZoom}>
                     내 위치
+                  </text>
+                  <text x="0" y={40 / mapZoom} textAnchor="middle" className="text-xs fill-gray-500" fontSize={10 / mapZoom}>
+                    0m
                   </text>
                 </g>
 
+                {/* Chat Rooms */}
                 {nearbyChatRooms?.chatRooms?.map((room: LocationChatRoom, index: number) => {
                   if (!userLocation) return null;
                   
@@ -519,34 +579,73 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
                     parseFloat(room.longitude)
                   );
                   
-                  const angle = (index * 60) * (Math.PI / 180);
-                  const radius = Math.min(distance / 2, 80);
-                  const x = 200 + Math.cos(angle) * radius;
-                  const y = 150 + Math.sin(angle) * radius;
+                  // Calculate position based on actual lat/lng difference (simplified)
+                  const latDiff = parseFloat(room.latitude) - userLocation.latitude;
+                  const lngDiff = parseFloat(room.longitude) - userLocation.longitude;
+                  
+                  // Convert to map coordinates (1 degree ≈ 111km, scaled to fit map)
+                  const scale = 100000; // Adjust this to fit your map scale
+                  const x = mapCenter.x + (lngDiff * scale);
+                  const y = mapCenter.y - (latDiff * scale); // Negative because SVG Y increases downward
                   
                   return (
                     <g key={room.id} transform={`translate(${x}, ${y})`}>
+                      {/* Chat room range circle */}
                       <circle 
                         cx="0" 
                         cy="0" 
-                        r="6" 
+                        r={room.radius / mapZoom || 30 / mapZoom} 
                         fill={room.isOfficial ? "#059669" : "#3b82f6"}
-                        className="cursor-pointer hover:opacity-80"
+                        fillOpacity="0.1"
+                        stroke={room.isOfficial ? "#059669" : "#3b82f6"}
+                        strokeWidth={1 / mapZoom}
+                        strokeDasharray={`${3 / mapZoom},${2 / mapZoom}`}
+                      />
+                      {/* Chat room marker */}
+                      <circle 
+                        cx="0" 
+                        cy="0" 
+                        r={8 / mapZoom} 
+                        fill={room.isOfficial ? "#059669" : "#3b82f6"}
+                        className="cursor-pointer hover:opacity-80 transition-opacity"
                         onClick={() => handleJoinRoom(room)}
                       />
+                      {/* Participant indicator */}
+                      <circle 
+                        cx={6 / mapZoom} 
+                        cy={-6 / mapZoom} 
+                        r={4 / mapZoom} 
+                        fill="#ffffff"
+                        stroke={room.isOfficial ? "#059669" : "#3b82f6"}
+                        strokeWidth={1 / mapZoom}
+                      />
+                      <text 
+                        x={6 / mapZoom} 
+                        y={-3 / mapZoom} 
+                        textAnchor="middle" 
+                        className="text-xs font-bold"
+                        fontSize={8 / mapZoom}
+                        fill={room.isOfficial ? "#059669" : "#3b82f6"}
+                      >
+                        {room.participantCount}
+                      </text>
+                      {/* Room name */}
                       <text 
                         x="0" 
-                        y="-12" 
+                        y={-15 / mapZoom} 
                         textAnchor="middle" 
                         className="text-xs font-medium fill-current"
+                        fontSize={11 / mapZoom}
                       >
                         {room.name.length > 8 ? room.name.substring(0, 8) + '...' : room.name}
                       </text>
+                      {/* Distance */}
                       <text 
                         x="0" 
-                        y="20" 
+                        y={25 / mapZoom} 
                         textAnchor="middle" 
                         className="text-xs fill-gray-500"
+                        fontSize={9 / mapZoom}
                       >
                         {formatDistance(distance)}
                       </text>
