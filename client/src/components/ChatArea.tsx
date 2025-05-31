@@ -45,7 +45,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const { toast } = useToast();
   
   // Check if this is a location-based chat
-  const [isLocationChat, setIsLocationChat] = useState<boolean>(false);
+  const [isLocationChat, setIsLocationChat] = useState<boolean | null>(null);
   
   // Check if this chat room is a location chat
   useEffect(() => {
@@ -259,7 +259,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   // Get messages with optimized caching
   const { data: messagesData, isLoading } = useQuery({
     queryKey: [isLocationChat ? "/api/location/chat-rooms" : "/api/chat-rooms", chatRoomId, "messages"],
-    enabled: !!chatRoomId,
+    enabled: !!chatRoomId && isLocationChat !== null,
     staleTime: 10 * 1000, // 10초간 신선한 상태 유지
     refetchOnMount: true, // 채팅방 진입 시 항상 최신 메시지 로드
     refetchOnWindowFocus: true, // 포커스 시 새 메시지 확인
