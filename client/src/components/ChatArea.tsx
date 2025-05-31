@@ -3841,11 +3841,18 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       {msg.replyToMessageId && (
                         <div 
                           className={cn(
-                            "mb-3 p-3 border-l-4 rounded-r-lg cursor-pointer transition-all duration-200 hover:shadow-md",
+                            "mb-3 p-3 border-l-4 rounded-r-lg cursor-pointer transition-all duration-200 hover:shadow-md select-auto",
                             isMe 
                               ? "border-white bg-white/20 hover:bg-white/30 backdrop-blur-sm" 
                               : "border-purple-500 bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 shadow-sm"
                           )}
+                          style={{ 
+                            userSelect: 'auto',
+                            WebkitUserSelect: 'auto',
+                            MozUserSelect: 'auto',
+                            msUserSelect: 'auto',
+                            WebkitTouchCallout: 'default'
+                          }}
                           onClick={(e) => {
                             e.stopPropagation();
                             scrollToMessage(msg.replyToMessageId);
@@ -3880,12 +3887,18 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                                 <div className="flex items-center space-x-2">
                                   <div 
                                     className={cn(
-                                      "w-8 h-8 rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform",
+                                      "w-8 h-8 rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform select-auto",
                                       isMe ? "bg-white/30 hover:bg-white/40" : "bg-purple-200 hover:bg-purple-300"
                                     )}
+                                    style={{ 
+                                      userSelect: 'auto',
+                                      WebkitUserSelect: 'auto',
+                                      MozUserSelect: 'auto',
+                                      msUserSelect: 'auto',
+                                      WebkitTouchCallout: 'default'
+                                    }}
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      e.preventDefault();
                                       // 음성 재생 로직을 여기에 추가 (원본 메시지의 음성 재생)
                                       const originalMessage = messages.find(m => m.id === msg.replyToMessageId);
                                       if (originalMessage && originalMessage.messageType === 'voice') {
