@@ -270,6 +270,14 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/location/nearby-chats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      
+      // Force refresh location chat profile to update ChatArea state  
+      if (data.chatRoomId) {
+        queryClient.invalidateQueries({ 
+          queryKey: [`/api/location/chat-rooms/${data.chatRoomId}/profile`] 
+        });
+      }
+      
       toast({
         title: "성공",
         description: "주변챗에 참여했습니다.",
