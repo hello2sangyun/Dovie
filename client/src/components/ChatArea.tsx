@@ -5078,7 +5078,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         y={contextMenu.y}
         visible={contextMenu.visible}
         canEdit={contextMenu.message?.senderId === user?.id}
-        canSummarize={contextMenu.message?.content && contextMenu.message.content.length > 50}
+
         onClose={() => setContextMenu({ ...contextMenu, visible: false })}
         onReplyMessage={() => {
           handleReplyMessage();
@@ -5090,18 +5090,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             setEditContent(contextMenu.message.content);
             setContextMenu({ ...contextMenu, visible: false });
           }
-        }}
-        onSaveMessage={() => {
-          handleSaveMessage();
-          setContextMenu({ ...contextMenu, visible: false });
-        }}
-        onSummarizeMessage={() => {
-          handleSummarizeMessage();
-          setContextMenu({ ...contextMenu, visible: false });
-        }}
-        onTranslateMessage={() => {
-          handleTranslateMessage(contextMenu.message);
-          setContextMenu({ ...contextMenu, visible: false });
         }}
         onCopyText={() => {
           if (contextMenu.message?.content) {
