@@ -3462,38 +3462,45 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           </div>
         </div>
       )}
-      {/* Chat Header - Fixed position with Mobile Integration */}
+      {/* Chat Header - Optimized Mobile Layout */}
       <div className={cn(
-        "bg-white border-b border-gray-200 p-4 flex-shrink-0 sticky top-0 z-10",
+        "bg-white border-b border-gray-200 flex-shrink-0 sticky top-0 z-10",
+        showMobileHeader ? "px-3 py-2" : "p-4",
         uiAdaptations.compactMode && "p-2",
         uiAdaptations.focusMode && "bg-blue-50 border-blue-200"
       )}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+        <div className="flex items-center justify-between min-h-0">
+          <div className="flex items-center flex-1 min-w-0 space-x-2">
             {showMobileHeader && onBackClick && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onBackClick}
-                className="p-2 -ml-2 lg:hidden"
+                className="p-1.5 -ml-1 lg:hidden flex-shrink-0"
               >
                 ←
               </Button>
             )}
             {currentChatRoom.isGroup ? (
-              <div className="relative w-10 h-10 flex items-center justify-center">
+              <div className={cn(
+                "relative flex items-center justify-center flex-shrink-0",
+                showMobileHeader ? "w-8 h-8" : "w-10 h-10"
+              )}>
                 {currentChatRoom.participants.slice(0, Math.min(5, currentChatRoom.participants.length)).map((participant: any, index: number) => {
                   const totalAvatars = Math.min(5, currentChatRoom.participants.length);
                   const isStackLayout = totalAvatars <= 3;
+                  const avatarSize = showMobileHeader ? "w-6 h-6" : "w-7 h-7";
                   
                   if (isStackLayout) {
-                    // 3명 이하일 때: 겹치는 스택 레이아웃
                     return (
                       <div
                         key={participant.id}
-                        className={`w-7 h-7 rounded-full border-2 border-white shadow-sm purple-gradient flex items-center justify-center text-white font-semibold text-xs ${
-                          index > 0 ? '-ml-1.5' : ''
-                        }`}
+                        className={cn(
+                          "rounded-full border-2 border-white shadow-sm purple-gradient flex items-center justify-center text-white font-semibold",
+                          avatarSize,
+                          showMobileHeader ? "text-[10px]" : "text-xs",
+                          index > 0 ? "-ml-1" : ""
+                        )}
                         style={{ zIndex: totalAvatars - index }}
                       >
                         {participant.profilePicture ? (
@@ -3508,7 +3515,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       </div>
                     );
                   } else {
-                    // 4-5명일 때: 격자 레이아웃
                     const positions = [
                       'top-0 left-0',
                       'top-0 right-0', 
@@ -3520,7 +3526,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     return (
                       <div
                         key={participant.id}
-                        className={`absolute w-5 h-5 rounded-full border border-white shadow-sm purple-gradient flex items-center justify-center text-white font-semibold text-[8px] ${positions[index]}`}
+                        className={cn(
+                          "absolute rounded-full border border-white shadow-sm purple-gradient flex items-center justify-center text-white font-semibold text-[8px]",
+                          showMobileHeader ? "w-4 h-4" : "w-5 h-5",
+                          positions[index]
+                        )}
                       >
                         {participant.profilePicture ? (
                           <img 
@@ -3537,48 +3547,61 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                 })}
               </div>
             ) : (
-              <div className="w-10 h-10 purple-gradient rounded-full flex items-center justify-center text-white font-semibold">
+              <div className={cn(
+                "purple-gradient rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0",
+                showMobileHeader ? "w-8 h-8 text-sm" : "w-10 h-10"
+              )}>
                 {getInitials(chatRoomDisplayName)}
               </div>
             )}
-            <div>
-              <div className="flex items-center space-x-2">
-                <h3 className="font-semibold text-gray-900">{chatRoomDisplayName}</h3>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center space-x-1 min-w-0">
+                <h3 className={cn(
+                  "font-semibold text-gray-900 truncate flex-1 min-w-0",
+                  showMobileHeader ? "text-base" : "text-lg"
+                )}
+                title={chatRoomDisplayName}
+                >
+                  {chatRoomDisplayName}
+                </h3>
                 
-                {/* Conversation Mode Indicator */}
-                {conversationMode !== 'casual' && (
-                  <span className={cn(
-                    "px-2 py-1 rounded-full text-xs font-medium",
-                    conversationMode === 'business' && "bg-blue-100 text-blue-800",
-                    conversationMode === 'support' && "bg-orange-100 text-orange-800",
-                    conversationMode === 'creative' && "bg-purple-100 text-purple-800"
-                  )}>
-                    {conversationMode === 'business' && '💼 업무'}
-                    {conversationMode === 'support' && '🆘 지원'}
-                    {conversationMode === 'creative' && '🎨 창작'}
-                  </span>
-                )}
+                {/* Compact Indicators for Mobile */}
+                <div className="flex items-center space-x-1 flex-shrink-0">
+                  {conversationMode !== 'casual' && (
+                    <span className={cn(
+                      "px-1.5 py-0.5 rounded-full text-[10px] font-medium flex-shrink-0",
+                      showMobileHeader && "px-1 py-0.5",
+                      conversationMode === 'business' && "bg-blue-100 text-blue-800",
+                      conversationMode === 'support' && "bg-orange-100 text-orange-800", 
+                      conversationMode === 'creative' && "bg-purple-100 text-purple-800"
+                    )}>
+                      {conversationMode === 'business' && (showMobileHeader ? '💼' : '💼 업무')}
+                      {conversationMode === 'support' && (showMobileHeader ? '🆘' : '🆘 지원')}
+                      {conversationMode === 'creative' && (showMobileHeader ? '🎨' : '🎨 창작')}
+                    </span>
+                  )}
 
-                {/* Urgency Indicator */}
-                {conversationContext.urgency === 'high' && uiAdaptations.showTimeAwareness && (
-                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 animate-pulse">
-                    🚨 긴급
-                  </span>
-                )}
+                  {conversationContext.urgency === 'high' && uiAdaptations.showTimeAwareness && (
+                    <span className="px-1 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-800 animate-pulse flex-shrink-0">
+                      🚨
+                    </span>
+                  )}
+                </div>
               </div>
               
-              <div className="flex items-center space-x-2">
-                <p className="text-sm text-gray-500">
-                  {currentChatRoom.participants?.length}명 참여
-                </p>
-                
-                {/* Topic Indicator */}
-                {conversationContext.topic && (
-                  <span className="text-xs text-gray-400">
-                    주제: {conversationContext.topic}
-                  </span>
-                )}
-              </div>
+              {!showMobileHeader && (
+                <div className="flex items-center space-x-2 mt-0.5">
+                  <p className="text-xs text-gray-500">
+                    {currentChatRoom.participants?.length}명 참여
+                  </p>
+                  
+                  {conversationContext.topic && (
+                    <span className="text-xs text-gray-400 truncate">
+                      주제: {conversationContext.topic}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
           <div className="flex items-center space-x-2">
