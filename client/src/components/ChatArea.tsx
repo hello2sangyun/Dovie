@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause, Cloud, CloudRain, Sun, CloudSnow, MoreVertical, LogOut, Settings } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
@@ -2381,12 +2382,55 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   };
 
   // 스마트 제안 선택 처리
-  const handleSmartSuggestionSelect = (suggestion: typeof smartSuggestions[0]) => {
-    // 즉시 메시지 전송
-    sendMessageMutation.mutate({
-      content: suggestion.result,
-      messageType: "text"
-    });
+  const handleSmartSuggestionSelect = async (suggestion: typeof smartSuggestions[0]) => {
+    // AI 기능들은 API 호출 후 모달로 결과 표시
+    if (['translation', 'emotion', 'summary', 'quote', 'decision', 'news', 'search', 'topic_info'].includes(suggestion.type)) {
+      try {
+        setSmartResultModal({
+          show: true,
+          title: `${suggestion.category} 처리 중...`,
+          content: '잠시만 기다려주세요...'
+        });
+
+        const response = await fetch('/api/smart-suggestion', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            type: suggestion.type, 
+            content: message,
+            originalText: message 
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error('API 요청 실패');
+        }
+        
+        const result = await response.json();
+        
+        setSmartResultModal({
+          show: true,
+          title: suggestion.text,
+          content: result.result || "처리할 수 없습니다."
+        });
+        
+      } catch (error) {
+        setSmartResultModal({
+          show: true,
+          title: "오류 발생",
+          content: "서비스를 사용할 수 없습니다. 잠시 후 다시 시도해주세요."
+        });
+      }
+    } else if (suggestion.action) {
+      // 액션이 있는 경우 실행
+      suggestion.action();
+    } else {
+      // 일반적인 경우 메시지 전송
+      sendMessageMutation.mutate({
+        content: suggestion.result,
+        messageType: "text"
+      });
+    }
     
     setMessage('');
     setShowSmartSuggestions(false);
@@ -4834,6 +4878,42 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           }}
         />
       )}
+
+      {/* Smart Result Modal */}
+      <Dialog open={smartResultModal.show} onOpenChange={(open) => setSmartResultModal(prev => ({ ...prev, show: open }))}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{smartResultModal.title}</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <p className="text-sm whitespace-pre-wrap">{smartResultModal.content}</p>
+            </div>
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button
+              variant="outline"
+              onClick={() => setSmartResultModal({ show: false, title: '', content: '' })}
+            >
+              닫기
+            </Button>
+            <Button
+              onClick={() => {
+                if (smartResultModal.content && smartResultModal.content !== '잠시만 기다려주세요...') {
+                  sendMessageMutation.mutate({
+                    content: smartResultModal.content,
+                    messageType: "text"
+                  });
+                }
+                setSmartResultModal({ show: false, title: '', content: '' });
+              }}
+              disabled={!smartResultModal.content || smartResultModal.content === '잠시만 기다려주세요...'}
+            >
+              채팅으로 전송
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );
