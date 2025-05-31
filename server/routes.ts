@@ -543,8 +543,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not a participant in this location chat" });
       }
 
-      // Get messages from location chat room (using regular message system but filtered)
-      const messages = await storage.getMessages(roomId);
+      // Get messages from location chat room
+      const messages = await storage.getLocationChatMessages(roomId);
       res.json({ messages });
     } catch (error) {
       console.error("Get location messages error:", error);

@@ -68,6 +68,10 @@ export interface IStorage {
   joinLocationChatRoom(userId: number, roomId: number, profileData: { nickname: string; profileImageUrl?: string }): Promise<void>;
   getLocationChatProfile(userId: number, roomId: number): Promise<{ nickname: string; profileImageUrl?: string } | undefined>;
   
+  // Location chat message operations
+  getLocationChatMessages(roomId: number, limit?: number): Promise<any[]>;
+  createLocationChatMessage(roomId: number, senderId: number, messageData: any): Promise<any>;
+  
   // 위치 기반 자동 관리
   cleanupInactiveLocationChats(): Promise<void>;
   cleanupEmptyLocationChats(): Promise<void>;
@@ -1024,6 +1028,63 @@ export class DatabaseStorage implements IStorage {
     }
 
     return proximityResults;
+  }
+
+  async getLocationChatMessages(roomId: number, limit: number = 50): Promise<any[]> {
+    const messages = await db
+      .select({
+        id: locationChatMessages.id,
+        content: locationChatMessages.content,
+        messageType: locationChatMessages.messageType,
+        fileName: locationChatMessages.fileName,
+        fileSize: locationChatMessages.fileSize,
+        voiceDuration: locationChatMessages.voiceDuration,
+        detectedLanguage: locationChatMessages.detectedLanguage,
+        createdAt: locationChatMessages.createdAt,
+        senderId: locationChatMessages.senderId,
+        locationChatRoomId: locationChatMessages.locationChatRoomId,
+        sender: {
+          id: users.id,
+          displayName: users.displayName,
+          profilePicture: users.profilePicture
+        },
+        senderProfile: {
+          nickname: locationChatParticipants.nickname,
+          profileImageUrl: locationChatParticipants.profileImageUrl
+        }
+      })
+      .from(locationChatMessages)
+      .innerJoin(users, eq(locationChatMessages.senderId, users.id))
+      .leftJoin(locationChatParticipants, and(
+        eq(locationChatParticipants.userId, locationChatMessages.senderId),
+        eq(locationChatParticipants.locationChatRoomId, roomId)
+      ))
+      .where(eq(locationChatMessages.locationChatRoomId, roomId))
+      .orderBy(desc(locationChatMessages.createdAt))
+      .limit(limit);
+
+    return messages.reverse();
+  }
+
+  async createLocationChatMessage(roomId: number, senderId: number, messageData: any): Promise<any> {
+    const [message] = await db
+      .insert(locationChatMessages)
+      .values({
+        locationChatRoomId: roomId,
+        senderId: senderId,
+        content: messageData.content,
+        messageType: messageData.messageType || "text",
+        fileUrl: messageData.fileUrl,
+        fileName: messageData.fileName,
+        fileSize: messageData.fileSize,
+        voiceDuration: messageData.voiceDuration,
+        detectedLanguage: messageData.detectedLanguage,
+        translatedText: messageData.translatedText,
+        pollData: messageData.pollData
+      })
+      .returning();
+
+    return message;
   }
 }
 
