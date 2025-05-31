@@ -23,6 +23,14 @@ import PollDetailModal from "./PollDetailModal";
 import TranslateModal from "./TranslateModal";
 import VoiceRecorder from "./VoiceRecorder";
 import { useWeather, getWeatherBackground } from "../hooks/useWeather";
+import TypingIndicator, { useTypingIndicator } from "./TypingIndicator";
+import { 
+  InteractiveButton, 
+  AnimatedMessageBubble, 
+  AccessibleSpinner,
+  PulseNotification,
+  useAccessibilitySettings 
+} from "./MicroInteractions";
 
 interface ChatAreaProps {
   chatRoomId: number;
@@ -36,6 +44,34 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [message, setMessage] = useState("");
+  
+  // Typing indicator and accessibility
+  const { typingUsers, addTypingUser, removeTypingUser, clearAllTyping } = useTypingIndicator();
+  const { settings: accessibilitySettings } = useAccessibilitySettings();
+  
+  // Simulate typing users for demo (you can remove this in production)
+  useEffect(() => {
+    const simulateTyping = () => {
+      if (Math.random() > 0.7) { // 30% chance to simulate typing
+        const demoUsers = [
+          { id: 999, displayName: "이상윤", typingStyle: 'dots' as const, typingSpeed: 'normal' as const },
+          { id: 998, displayName: "김민수", typingStyle: 'wave' as const, typingSpeed: 'fast' as const },
+          { id: 997, displayName: "박영희", typingStyle: 'bounce' as const, typingSpeed: 'slow' as const }
+        ];
+        
+        const randomUser = demoUsers[Math.floor(Math.random() * demoUsers.length)];
+        addTypingUser(randomUser);
+        
+        // Remove after 2-4 seconds
+        setTimeout(() => {
+          removeTypingUser(randomUser.id);
+        }, 2000 + Math.random() * 2000);
+      }
+    };
+
+    const interval = setInterval(simulateTyping, 8000); // Every 8 seconds
+    return () => clearInterval(interval);
+  }, [addTypingUser, removeTypingUser]);
 
   // 백그라운드 프리페칭 함수들
   const prefetchRelatedData = async () => {
@@ -4417,6 +4453,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           ))}
         </>
         )}
+        
+        {/* Typing Indicator */}
+        <TypingIndicator
+          typingUsers={typingUsers}
+          accessibilityMode={accessibilitySettings.reducedMotion}
+          animationStyle={accessibilitySettings.reducedMotion ? 'minimal' : 'enhanced'}
+          showUserNames={true}
+        />
+        
         <div ref={messagesEndRef} />
       </div>
 
@@ -4531,29 +4576,37 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           <div className="flex items-center space-x-1">
           {/* Compact left buttons group */}
           <div className="flex items-center space-x-0.5 mr-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-gray-400 hover:text-purple-600 p-0.5 min-w-0 h-6 w-6"
+            <InteractiveButton
+              type="hover"
+              intensity="moderate"
+              accessibilityMode={accessibilitySettings.reducedMotion}
+              hapticFeedback={accessibilitySettings.hapticEnabled}
+              className="text-gray-400 hover:text-purple-600 p-0.5 min-w-0 h-6 w-6 rounded-md transition-colors"
               onClick={() => {
                 setMessage(prev => prev + "#");
                 messageInputRef.current?.focus();
               }}
-              title="스마트 추천"
+              aria-label="스마트 추천"
             >
               <Hash className="h-3 w-3" />
-            </Button>
+            </InteractiveButton>
             
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-gray-400 hover:text-purple-600 p-0.5 min-w-0 h-6 w-6"
+            <InteractiveButton
+              type="hover"
+              intensity="moderate"
+              accessibilityMode={accessibilitySettings.reducedMotion}
+              hapticFeedback={accessibilitySettings.hapticEnabled}
+              className="text-gray-400 hover:text-purple-600 p-0.5 min-w-0 h-6 w-6 rounded-md transition-colors"
               onClick={handleFileUpload}
               disabled={uploadFileMutation.isPending}
-              title="파일 첨부"
+              aria-label="파일 첨부"
             >
-              <Paperclip className="h-3 w-3" />
-            </Button>
+              {uploadFileMutation.isPending ? (
+                <AccessibleSpinner size="sm" accessibilityMode={accessibilitySettings.reducedMotion} />
+              ) : (
+                <Paperclip className="h-3 w-3" />
+              )}
+            </InteractiveButton>
 
           </div>
           
