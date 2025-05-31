@@ -45,7 +45,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const { toast } = useToast();
   
   // Use React Query to check if this is a location-based chat
-  const { data: locationProfile, isLoading: isCheckingLocation } = useQuery({
+  const { data: locationProfile, isLoading: isCheckingLocation, error: locationError } = useQuery({
     queryKey: [`/api/location/chat-rooms/${chatRoomId}/profile`],
     queryFn: async () => {
       const response = await fetch(`/api/location/chat-rooms/${chatRoomId}/profile`, {
@@ -63,6 +63,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   });
   
   const isLocationChat = !!locationProfile;
+  
+  // Debug logging
+  console.log('ChatArea Debug:', {
+    chatRoomId,
+    isCheckingLocation,
+    locationProfile,
+    isLocationChat,
+    locationError: locationError?.message
+  });
   const queryClient = useQueryClient();
   const [message, setMessage] = useState("");
   
