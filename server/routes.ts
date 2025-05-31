@@ -238,65 +238,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 프로필 업데이트 API (파일 업로드 지원)
-  app.patch("/api/auth/profile", upload.single('avatar'), async (req, res) => {
-    try {
-      const user = (req as any).user;
-      if (!user) {
-        return res.status(401).json({ message: "로그인이 필요합니다." });
-      }
-
-      const { displayName, bio } = req.body;
-      const avatarFile = req.file;
-
-      const updates: any = {};
-      
-      if (displayName !== undefined) {
-        updates.displayName = displayName;
-      }
-      
-      if (bio !== undefined) {
-        updates.bio = bio;
-      }
-
-      // 아바타 파일이 업로드된 경우
-      if (avatarFile) {
-        const fileName = hashFileName(avatarFile.originalname);
-        const filePath = `uploads/${fileName}`;
-        
-        // 파일 데이터 암호화
-        const encryptedData = encryptFileData(avatarFile.buffer);
-        
-        // 암호화된 파일 저장
-        await fs.promises.writeFile(filePath, encryptedData);
-        
-        updates.profilePicture = `/api/files/${fileName}`;
-        
-        // 파일 업로드 추적
-        await storage.trackFileUpload({
-          userId: user.id,
-          fileName: fileName,
-          originalName: avatarFile.originalname,
-          fileSize: avatarFile.size,
-          fileType: avatarFile.mimetype,
-          filePath: filePath
-        });
-      }
-
-      const updatedUser = await storage.updateUser(user.id, updates);
-      
-      if (!updatedUser) {
-        return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
-      }
-
-      res.json({ user: updatedUser });
-    } catch (error) {
-      console.error("Profile update error:", error);
-      res.status(500).json({ message: "프로필 업데이트에 실패했습니다." });
-    }
-  });
-
-  // 기존 프로필 업데이트 API (호환성 유지)
+  // 프로필 업데이트 API
   app.patch("/api/users/:id", async (req, res) => {
     try {
       const userId = parseInt(req.params.id);

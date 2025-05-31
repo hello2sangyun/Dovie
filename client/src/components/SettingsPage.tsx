@@ -14,7 +14,6 @@ import { Camera, User, LogOut, Building2, Moon, Sun } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { getInitials } from "@/lib/utils";
 import VaultLogo from "./VaultLogo";
-import { ProfileQuickEdit } from "./ProfileQuickEdit";
 
 interface SettingsPageProps {
   isMobile?: boolean;
@@ -233,22 +232,79 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
           <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">설정</h1>
         </div>
 
-        {/* Profile Section - One-Tap Quick Edit */}
-        <Card className="w-full transition-all duration-200 hover:shadow-md">
+        {/* Profile Section - Compact */}
+        <Card className="w-full transition-all duration-200 hover:shadow-md active:scale-[0.98]">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center space-x-2 text-sm">
               <User className="h-4 w-4 text-purple-600" />
-              <span>프로필 빠른 편집</span>
+              <span>프로필</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <ProfileQuickEdit 
-              user={user} 
-              mode="inline"
-              onSave={() => {
-                queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-              }}
-            />
+          <CardContent className="space-y-3">
+            {/* Profile Image - More Compact */}
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                {previewUrl ? (
+                  <Avatar className="w-12 h-12">
+                    <AvatarImage 
+                      src={previewUrl} 
+                      alt="미리보기"
+                    />
+                    <AvatarFallback className="text-sm purple-gradient text-white">
+                      {getInitials(user.displayName)}
+                    </AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <UserAvatar 
+                    user={user} 
+                    size="lg" 
+                    fallbackClassName="purple-gradient"
+                  />
+                )}
+                <button
+                  onClick={() => document.getElementById('profile-image-input')?.click()}
+                  className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-purple-600 text-white rounded-full flex items-center justify-center hover:bg-purple-700 transition-all duration-200 active:scale-95 hover:scale-110"
+                >
+                  <Camera className="h-2.5 w-2.5" />
+                </button>
+                <input
+                  id="profile-image-input"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                  className="hidden"
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{user.displayName}</p>
+                <p className="text-xs text-gray-500 truncate">@{user.username}</p>
+              </div>
+            </div>
+
+            {/* Display Name - Compact */}
+            <div className="space-y-1">
+              <Label htmlFor="displayName" className="text-xs text-gray-600 dark:text-gray-400">표시 이름</Label>
+              <Input
+                id="displayName"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="표시 이름을 입력하세요"
+                className="h-8 text-sm transition-all duration-200 focus:scale-[1.02]"
+              />
+            </div>
+
+            {/* Save Button - Compact */}
+            <Button
+              onClick={handleSaveProfile}
+              disabled={updateProfileMutation.isPending || uploadImageMutation.isPending}
+              className="w-full purple-gradient h-8 text-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              size="sm"
+            >
+              {updateProfileMutation.isPending || uploadImageMutation.isPending
+                ? "저장 중..."
+                : "프로필 저장"
+              }
+            </Button>
           </CardContent>
         </Card>
 
