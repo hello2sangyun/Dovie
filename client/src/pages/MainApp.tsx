@@ -446,11 +446,18 @@ export default function MainApp() {
           )}
           {activeMobileTab === "nearby" && (
             <NearbyChats onChatRoomSelect={(chatId) => {
+              console.log('Nearby chat selected:', chatId);
               setSelectedLocationChatRoom(chatId);
               setSelectedChatRoom(null);
               setIsLocationChatActive(true);
               setShowMobileChat(true);
               setActiveMobileTab("nearby"); // 탭 상태 유지
+              console.log('State after selection:', {
+                selectedLocationChatRoom: chatId,
+                selectedChatRoom: null,
+                showMobileChat: true,
+                activeMobileTab: "nearby"
+              });
             }} />
           )}
           {showMobileChat && (selectedChatRoom || selectedLocationChatRoom) && (

@@ -47,6 +47,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   
   // Use the isLocationChat prop directly
   const isLocationChatRoom = isLocationChat || false;
+  
+  // Debug logging
+  console.log('ChatArea rendered:', {
+    chatRoomId,
+    isLocationChat,
+    isLocationChatRoom,
+    showMobileHeader
+  });
   const queryClient = useQueryClient();
   const [message, setMessage] = useState("");
   
