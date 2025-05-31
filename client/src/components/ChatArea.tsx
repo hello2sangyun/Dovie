@@ -37,6 +37,45 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const queryClient = useQueryClient();
   const [message, setMessage] = useState("");
 
+  // 백그라운드 프리페칭 함수들
+  const prefetchRelatedData = async () => {
+    try {
+      // 미읽은 메시지 수 미리 로딩
+      await queryClient.prefetchQuery({
+        queryKey: ["/api/unread-counts"],
+        queryFn: async () => {
+          const response = await apiRequest("/api/unread-counts");
+          return response.json();
+        },
+        staleTime: 30 * 1000,
+      });
+
+      // 채팅방 목록 미리 로딩
+      await queryClient.prefetchQuery({
+        queryKey: ["/api/chat-rooms"],
+        queryFn: async () => {
+          const response = await apiRequest("/api/chat-rooms");
+          return response.json();
+        },
+        staleTime: 30 * 1000,
+      });
+    } catch (error) {
+      // 백그라운드 로딩 실패는 무시
+      console.log('백그라운드 프리페칭 실패:', error);
+    }
+  };
+
+  // 컴포넌트 마운트 시 관련 데이터 미리 로딩
+  useEffect(() => {
+    if (user && chatRoomId) {
+      const timer = setTimeout(() => {
+        prefetchRelatedData();
+      }, 1000); // 1초 후 백그라운드에서 로딩
+
+      return () => clearTimeout(timer);
+    }
+  }, [user, chatRoomId]);
+
   // 임시 메시지 저장 관련 함수들
   const getDraftKey = (roomId: number) => `chat_draft_${roomId}`;
   
@@ -3649,7 +3688,20 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           </div>
         </div>
 
-        {messages.length === 0 ? (
+        {isLoading ? (
+          // 로딩 스켈레톤 UI
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-start space-x-3">
+                <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-1/4"></div>
+                  <div className="h-16 bg-gray-200 rounded-lg animate-pulse w-3/4"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : messages.length === 0 ? (
           <div className="text-center text-gray-500 mt-8">
             대화를 시작해보세요!
           </div>
