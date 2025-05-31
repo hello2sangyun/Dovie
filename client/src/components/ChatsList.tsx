@@ -515,16 +515,24 @@ function ChatRoomItem({
     <div
       className={cn(
         "p-4 hover:bg-purple-50 dark:hover:bg-gray-800 cursor-pointer border-b border-gray-100 dark:border-gray-700 transition-colors relative",
-        isSelected && "bg-purple-50 dark:bg-gray-800"
+        isSelected && !isMultiSelectMode && "bg-purple-50 dark:bg-gray-800",
+        isMultiSelectMode && isChecked && "bg-blue-50 dark:bg-blue-900"
       )}
       onClick={onClick}
       onMouseEnter={handleMouseEnter}
     >
-      {isPinned && (
+      {isPinned && !isMultiSelectMode && (
         <Pin className="absolute top-2 right-2 text-purple-500 h-3 w-3" />
       )}
       
       <div className="flex items-center space-x-3">
+        {isMultiSelectMode && (
+          <Checkbox
+            checked={isChecked}
+            onCheckedChange={() => onClick()}
+            className="flex-shrink-0"
+          />
+        )}
         {chatRoom.isGroup ? (
           <div className="relative w-12 h-12 flex items-center justify-center">
             {chatRoom.participants.slice(0, 4).map((participant: any, index: number) => {
