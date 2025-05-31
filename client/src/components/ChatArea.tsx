@@ -170,10 +170,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     },
   });
 
-  // Get messages
+  // Get messages with optimized caching
   const { data: messagesData, isLoading } = useQuery({
     queryKey: ["/api/chat-rooms", chatRoomId, "messages"],
     enabled: !!chatRoomId,
+    staleTime: 10 * 1000, // 10초간 신선한 상태 유지
+    refetchOnMount: true, // 채팅방 진입 시 항상 최신 메시지 로드
+    refetchOnWindowFocus: true, // 포커스 시 새 메시지 확인
     queryFn: async () => {
       const response = await fetch(`/api/chat-rooms/${chatRoomId}/messages`);
       if (!response.ok) throw new Error("Failed to fetch messages");

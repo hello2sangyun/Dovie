@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, Pin, Users, X } from "lucide-react";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
+import { apiRequest } from "@/lib/queryClient";
 
 interface ChatsListProps {
   onSelectChat: (chatId: number) => void;
@@ -19,7 +20,32 @@ interface ChatsListProps {
 
 export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup, contactFilter, onClearFilter }: ChatsListProps) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
+
+  // 메시지 미리 로딩 함수
+  const prefetchMessages = async (chatRoomId: number) => {
+    await queryClient.prefetchQuery({
+      queryKey: [`/api/chat-rooms/${chatRoomId}/messages`],
+      queryFn: async () => {
+        const response = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages`);
+        return response.json();
+      },
+      staleTime: 30 * 1000, // 30초간 신선한 상태로 유지
+    });
+  };
+
+  // 명령어 미리 로딩 함수
+  const prefetchCommands = async () => {
+    await queryClient.prefetchQuery({
+      queryKey: ["/api/commands"],
+      queryFn: async () => {
+        const response = await apiRequest("/api/commands");
+        return response.json();
+      },
+      staleTime: 60 * 1000, // 1분간 신선한 상태로 유지
+    });
+  };
 
   // 임시 메시지 확인 함수
   const getDraftKey = (roomId: number) => `chat_draft_${roomId}`;
@@ -296,6 +322,24 @@ function ChatRoomItem({
   draftPreview?: string;
 }) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // 호버 시 메시지 미리 로딩
+  const handleMouseEnter = async () => {
+    try {
+      await queryClient.prefetchQuery({
+        queryKey: [`/api/chat-rooms/${chatRoom.id}/messages`],
+        queryFn: async () => {
+          const response = await apiRequest(`/api/chat-rooms/${chatRoom.id}/messages`);
+          return response.json();
+        },
+        staleTime: 30 * 1000, // 30초간 신선한 상태로 유지
+      });
+    } catch (error) {
+      // 미리 로딩 실패 시 무시 (사용자 경험에 영향 없음)
+      console.log('메시지 미리 로딩 실패:', error);
+    }
+  };
   
   const getInitials = (name: string) => {
     return name.split(' ').map(word => word.charAt(0).toUpperCase()).join('').slice(0, 2);
@@ -336,6 +380,7 @@ function ChatRoomItem({
         isSelected && "bg-purple-50 dark:bg-gray-800"
       )}
       onClick={onClick}
+      onMouseEnter={handleMouseEnter}
     >
       {isPinned && (
         <Pin className="absolute top-2 right-2 text-purple-500 h-3 w-3" />
