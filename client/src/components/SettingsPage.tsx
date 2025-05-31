@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
 import { ImageCropper } from "@/components/ImageCropper";
-import { Camera, User, LogOut, Building2, Moon, Sun } from "lucide-react";
+import { Camera, User, LogOut, Building2, Moon, Sun, Check, X, Loader2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { getInitials } from "@/lib/utils";
 import VaultLogo from "./VaultLogo";
@@ -25,6 +25,7 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
   const queryClient = useQueryClient();
   const [displayName, setDisplayName] = useState(user?.displayName || "");
   const [username, setUsername] = useState(user?.username || "");
+  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [businessName, setBusinessName] = useState("");
@@ -170,6 +171,39 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
     console.log("Cropped image ready for upload:", croppedFile);
   };
 
+  // 사용자명 중복 체크
+  const checkUsernameMutation = useMutation({
+    mutationFn: async (usernameToCheck: string) => {
+      const response = await apiRequest(`/api/users/check-username/${usernameToCheck}`, "GET");
+      if (!response.ok) {
+        throw new Error('사용자명 체크에 실패했습니다.');
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setUsernameStatus(data.available ? 'available' : 'taken');
+    },
+    onError: () => {
+      setUsernameStatus('idle');
+    }
+  });
+
+  // 사용자명 변경 시 중복 체크
+  const handleUsernameChange = (value: string) => {
+    const cleanValue = value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+    setUsername(cleanValue);
+    
+    if (cleanValue && cleanValue !== user?.username && cleanValue.length >= 3) {
+      setUsernameStatus('checking');
+      // 디바운스를 위해 setTimeout 사용
+      setTimeout(() => {
+        checkUsernameMutation.mutate(cleanValue);
+      }, 500);
+    } else {
+      setUsernameStatus('idle');
+    }
+  };
+
   const handleSaveProfile = () => {
     if (profileImage) {
       uploadImageMutation.mutate(profileImage);
@@ -307,12 +341,29 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
                 <Input
                   id="username"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                  onChange={(e) => handleUsernameChange(e.target.value)}
                   placeholder="사용자아이디"
-                  className="h-8 text-sm pl-6 transition-all duration-200 focus:scale-[1.02]"
+                  className={`h-8 text-sm pl-6 pr-8 transition-all duration-200 focus:scale-[1.02] ${
+                    usernameStatus === 'taken' ? 'border-red-300 focus:border-red-500' :
+                    usernameStatus === 'available' ? 'border-green-300 focus:border-green-500' : ''
+                  }`}
                 />
+                {/* 상태 아이콘 */}
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                  {usernameStatus === 'checking' && <Loader2 className="h-3 w-3 animate-spin text-gray-400" />}
+                  {usernameStatus === 'available' && <Check className="h-3 w-3 text-green-500" />}
+                  {usernameStatus === 'taken' && <X className="h-3 w-3 text-red-500" />}
+                </div>
               </div>
-              <p className="text-xs text-gray-500">영문 소문자, 숫자, 언더스코어(_)만 사용 가능</p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-gray-500">영문 소문자, 숫자, 언더스코어(_)만 사용 가능</p>
+                {usernameStatus === 'taken' && (
+                  <p className="text-xs text-red-500">이미 사용 중인 아이디입니다</p>
+                )}
+                {usernameStatus === 'available' && username.length >= 3 && (
+                  <p className="text-xs text-green-500">사용 가능한 아이디입니다</p>
+                )}
+              </div>
             </div>
 
             {/* Save Button - Compact */}
