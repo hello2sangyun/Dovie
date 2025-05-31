@@ -450,6 +450,7 @@ export default function MainApp() {
               setSelectedChatRoom(null);
               setIsLocationChatActive(true);
               setShowMobileChat(true);
+              setActiveMobileTab("nearby"); // 탭 상태 유지
             }} />
           )}
           {showMobileChat && (selectedChatRoom || selectedLocationChatRoom) && (

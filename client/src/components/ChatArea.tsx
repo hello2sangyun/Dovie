@@ -224,10 +224,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   const currentChatRoom = (chatRoomsData as any)?.chatRooms?.find((room: any) => room.id === chatRoomId);
 
-  // Get contacts to check if other participants are friends
+  // Get contacts to check if other participants are friends (only for regular chats)
   const { data: contactsData } = useQuery({
     queryKey: ["/api/contacts"],
-    enabled: !!user,
+    enabled: !!user && !isLocationChatRoom,
     queryFn: async () => {
       const response = await fetch("/api/contacts", {
         headers: { "x-user-id": user!.id.toString() },
@@ -259,10 +259,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     },
   });
 
-  // Get commands for suggestions
+  // Get commands for suggestions (only for regular chats)
   const { data: commandsData } = useQuery({
     queryKey: ["/api/commands", { chatRoomId }],
-    enabled: !!user && !!chatRoomId,
+    enabled: !!user && !!chatRoomId && !isLocationChatRoom,
     queryFn: async () => {
       const response = await fetch(`/api/commands?chatRoomId=${chatRoomId}`, {
         headers: { "x-user-id": user!.id.toString() },
@@ -913,10 +913,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const commands = commandsData?.commands || [];
   const contacts = contactsData?.contacts || [];
 
-  // Get unread counts to detect first unread message
+  // Get unread counts to detect first unread message (only for regular chats)
   const { data: unreadData } = useQuery({
     queryKey: ["/api/unread-counts"],
-    enabled: !!user,
+    enabled: !!user && !isLocationChatRoom,
     refetchInterval: 5000, // Check every 5 seconds
   });
 
