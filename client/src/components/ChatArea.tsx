@@ -230,7 +230,29 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     enabled: !!user && !isLocationChatRoom,
   });
 
-  const currentChatRoom = (chatRoomsData as any)?.chatRooms?.find((room: any) => room.id === chatRoomId);
+  // Get location chat profile if this is a location chat
+  const { data: locationChatProfile } = useQuery({
+    queryKey: [`/api/location/chat-rooms/${chatRoomId}/profile`],
+    enabled: !!user && isLocationChatRoom,
+    retry: false,
+  });
+
+  // Get nearby chats to find the current location chat room details
+  const { data: nearbyChatsData } = useQuery({
+    queryKey: ["/api/location/nearby-chats"],
+    enabled: !!user && isLocationChatRoom,
+    retry: false,
+  });
+
+  const currentChatRoom = isLocationChatRoom 
+    ? nearbyChatsData?.chatRooms?.find((room: any) => room.id === chatRoomId) || {
+        id: chatRoomId,
+        name: '주변챗',
+        isGroup: true,
+        participants: [{ id: user?.id, displayName: user?.displayName || '나' }],
+        isLocationChat: true
+      }
+    : (chatRoomsData as any)?.chatRooms?.find((room: any) => room.id === chatRoomId);
 
   // Get contacts to check if other participants are friends (only for regular chats)
   const { data: contactsData } = useQuery({
@@ -3759,12 +3781,17 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-1 min-w-0">
                 <h3 className={cn(
-                  "font-semibold text-gray-900 truncate flex-1 min-w-0",
+                  "font-semibold text-gray-900 truncate flex-1 min-w-0 flex items-center space-x-2",
                   showMobileHeader ? "text-base" : "text-lg"
                 )}
                 title={chatRoomDisplayName}
                 >
-                  {chatRoomDisplayName}
+                  <span className="truncate">{chatRoomDisplayName}</span>
+                  {isLocationChatRoom && (
+                    <span className="flex-shrink-0 text-blue-500" title="주변챗">
+                      📍
+                    </span>
+                  )}
                 </h3>
                 
                 {/* Compact Indicators for Mobile */}
