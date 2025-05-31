@@ -3964,11 +3964,21 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                         <div>
                           <div className="flex items-center space-x-3">
                             <button
-                              onClick={() => handleVoicePlayback(msg.id, msg.fileUrl, msg.voiceDuration)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleVoicePlayback(msg.id, msg.fileUrl, msg.voiceDuration);
+                              }}
                               className={cn(
-                                "w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105",
+                                "w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105 select-auto",
                                 isMe ? "bg-white/20 hover:bg-white/30" : "bg-gray-100 hover:bg-gray-200"
                               )}
+                              style={{ 
+                                userSelect: 'auto',
+                                WebkitUserSelect: 'auto',
+                                MozUserSelect: 'auto',
+                                msUserSelect: 'auto',
+                                WebkitTouchCallout: 'default'
+                              }}
                             >
                               {playingAudio === msg.id ? (
                                 <Pause className={cn(
