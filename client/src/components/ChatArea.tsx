@@ -44,28 +44,25 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const { user } = useAuth();
   const { toast } = useToast();
   
-  // Check if this is a location-based chat
-  const [isLocationChat, setIsLocationChat] = useState<boolean | null>(null);
-  
-  // Check if this chat room is a location chat
-  useEffect(() => {
-    const checkIfLocationChat = async () => {
-      try {
-        const response = await apiRequest(`/api/location/chat-rooms/${chatRoomId}/profile`);
-        if (response.ok) {
-          setIsLocationChat(true);
-        } else {
-          setIsLocationChat(false);
-        }
-      } catch (error) {
-        setIsLocationChat(false);
+  // Use React Query to check if this is a location-based chat
+  const { data: locationProfile, isLoading: isCheckingLocation } = useQuery({
+    queryKey: [`/api/location/chat-rooms/${chatRoomId}/profile`],
+    queryFn: async () => {
+      const response = await fetch(`/api/location/chat-rooms/${chatRoomId}/profile`, {
+        headers: {
+          'x-user-id': user?.id?.toString() || '',
+        },
+      });
+      if (response.ok) {
+        return response.json();
       }
-    };
-    
-    if (chatRoomId) {
-      checkIfLocationChat();
-    }
-  }, [chatRoomId]);
+      throw new Error('Not a location chat');
+    },
+    enabled: !!chatRoomId && !!user?.id,
+    retry: false, // Don't retry if it's not a location chat
+  });
+  
+  const isLocationChat = !!locationProfile;
   const queryClient = useQueryClient();
   const [message, setMessage] = useState("");
   
@@ -259,7 +256,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   // Get messages with optimized caching
   const { data: messagesData, isLoading } = useQuery({
     queryKey: [isLocationChat ? "/api/location/chat-rooms" : "/api/chat-rooms", chatRoomId, "messages"],
-    enabled: !!chatRoomId && isLocationChat !== null,
+    enabled: !!chatRoomId && !isCheckingLocation,
     staleTime: 10 * 1000, // 10초간 신선한 상태 유지
     refetchOnMount: true, // 채팅방 진입 시 항상 최신 메시지 로드
     refetchOnWindowFocus: true, // 포커스 시 새 메시지 확인
