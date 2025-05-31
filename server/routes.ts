@@ -23,7 +23,7 @@ if (!fs.existsSync(uploadDir)) {
 
 const upload = multer({
   dest: uploadDir,
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
+  limits: { fileSize: 200 * 1024 * 1024 }, // 200MB limit for videos
 });
 
 // WebSocket connection management
