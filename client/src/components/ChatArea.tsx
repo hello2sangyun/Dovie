@@ -2041,18 +2041,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     return null;
   };
 
-  // 긴 메시지 요약 감지 함수
+  // 긴 메시지 요약 감지 함수 (비활성화 - 컨텍스트 메뉴에서 사용)
   const detectLongMessage = (text: string) => {
-    // 긴 메시지 (100자 이상) 또는 요약 키워드 감지
-    if (text.length > 100 || /요약|정리|핵심|포인트/.test(text)) {
-      return {
-        type: 'summary' as const,
-        text: '핵심 요약 보기',
-        result: `요약: ${text.substring(0, 50)}...`,
-        icon: '📝',
-        category: '요약'
-      };
-    }
+    // 요약 기능은 메시지 컨텍스트 메뉴에서만 사용
     return null;
   };
 
@@ -2778,6 +2769,48 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const handleCancelEdit = () => {
     setEditingMessage(null);
     setEditContent("");
+  };
+
+  // 메시지 요약 핸들러
+  const handleSummarizeMessage = async () => {
+    if (contextMenu.message) {
+      try {
+        setSmartResultModal({
+          show: true,
+          title: '메시지 요약 중...',
+          content: '잠시만 기다려주세요...'
+        });
+
+        const response = await fetch('/api/smart-suggestion', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            type: 'summary', 
+            content: contextMenu.message.content,
+            originalText: contextMenu.message.content 
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error('API 요청 실패');
+        }
+        
+        const result = await response.json();
+        
+        setSmartResultModal({
+          show: true,
+          title: '메시지 요약',
+          content: result.result || "요약할 수 없습니다."
+        });
+        
+      } catch (error) {
+        setSmartResultModal({
+          show: true,
+          title: "요약 실패",
+          content: "요약 서비스를 사용할 수 없습니다. 잠시 후 다시 시도해주세요."
+        });
+      }
+    }
   };
 
   // 욕설 방지 모달 상태
@@ -4746,6 +4779,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         y={contextMenu.y}
         visible={contextMenu.visible}
         canEdit={contextMenu.message?.senderId === user?.id}
+        canSummarize={contextMenu.message?.content && contextMenu.message.content.length > 50}
         onClose={() => setContextMenu({ ...contextMenu, visible: false })}
         onReplyMessage={() => {
           handleReplyMessage();
@@ -4760,6 +4794,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         }}
         onSaveMessage={() => {
           handleSaveMessage();
+          setContextMenu({ ...contextMenu, visible: false });
+        }}
+        onSummarizeMessage={() => {
+          handleSummarizeMessage();
           setContextMenu({ ...contextMenu, visible: false });
         }}
         onTranslateMessage={() => {
