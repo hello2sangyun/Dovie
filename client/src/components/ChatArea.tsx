@@ -268,7 +268,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         ? `/api/location/chat-rooms/${chatRoomId}/messages`
         : `/api/chat-rooms/${chatRoomId}/messages`;
       
-      const response = await fetch(endpoint);
+      const response = await fetch(endpoint, {
+        headers: {
+          'x-user-id': user?.id?.toString() || '',
+        },
+      });
       if (!response.ok) throw new Error("Failed to fetch messages");
       return response.json();
     },
