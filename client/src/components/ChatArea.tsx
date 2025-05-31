@@ -5025,13 +5025,28 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             disabled={isProcessingVoice || sendMessageMutation.isPending}
           />
           
-          <Button
-            className="purple-gradient hover:purple-gradient-hover h-6 w-6 p-1"
-            onClick={handleSendMessage}
-            disabled={sendMessageMutation.isPending || !message.trim()}
+          <PulseNotification 
+            active={message.trim().length > 0}
+            accessibilityMode={accessibilitySettings.reducedMotion}
+            intensity="moderate"
           >
-            <Send className="h-3 w-3" />
-          </Button>
+            <InteractiveButton
+              type="press"
+              intensity="strong"
+              accessibilityMode={accessibilitySettings.reducedMotion}
+              hapticFeedback={accessibilitySettings.hapticEnabled}
+              className="purple-gradient hover:purple-gradient-hover h-6 w-6 p-1 rounded-full transition-all duration-200"
+              onClick={handleSendMessage}
+              disabled={sendMessageMutation.isPending || !message.trim()}
+              aria-label="메시지 전송"
+            >
+              {sendMessageMutation.isPending ? (
+                <AccessibleSpinner size="sm" accessibilityMode={accessibilitySettings.reducedMotion} />
+              ) : (
+                <Send className="h-3 w-3" />
+              )}
+            </InteractiveButton>
+          </PulseNotification>
           </div>
         </div>
       </div>
