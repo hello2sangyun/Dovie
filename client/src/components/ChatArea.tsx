@@ -3597,18 +3597,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     isMe ? "flex-row-reverse space-x-reverse" : "",
                     highlightedMessageId === msg.id && "bg-yellow-100 rounded-lg p-2 -mx-2"
                   )}
-                  onContextMenu={(e) => handleMessageRightClick(e, msg)}
-                  onClick={(e) => {
-                    // 터치 기기에서는 클릭으로, 데스크톱에서는 우클릭으로 메뉴 활성화
-                    if ('ontouchstart' in window) {
-                      handleMessageLongPress(e, msg);
-                    }
-                  }}
-                  onTouchStart={(e) => {
-                    // 모바일에서 한 번 터치로 메뉴 열기
-                    e.preventDefault();
-                    handleMessageLongPress(e, msg);
-                  }}
                 >
                   <div className="flex flex-col items-center">
                     <UserAvatar 
@@ -3645,16 +3633,31 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       </div>
                     )}
 
-                    <div className={cn(
-                      "rounded-lg p-3 shadow-sm w-fit break-words",
-                      msg.isCommandRecall && msg.isLocalOnly
-                        ? isMe 
-                          ? "bg-teal-500 text-white rounded-tr-none border border-teal-400" 
-                          : "bg-teal-50 text-teal-900 rounded-tl-none border border-teal-200"
-                        : isMe 
-                          ? "bg-purple-600 text-white rounded-tr-none" 
-                          : "bg-white text-gray-900 rounded-tl-none border border-gray-200"
-                    )}>
+                    <div 
+                      className={cn(
+                        "rounded-lg p-3 shadow-sm w-fit break-words cursor-pointer",
+                        msg.isCommandRecall && msg.isLocalOnly
+                          ? isMe 
+                            ? "bg-teal-500 text-white rounded-tr-none border border-teal-400" 
+                            : "bg-teal-50 text-teal-900 rounded-tl-none border border-teal-200"
+                          : isMe 
+                            ? "bg-purple-600 text-white rounded-tr-none" 
+                            : "bg-white text-gray-900 rounded-tl-none border border-gray-200"
+                      )}
+                      onContextMenu={(e) => handleMessageRightClick(e, msg)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // 터치 기기에서는 클릭으로, 데스크톱에서는 우클릭으로 메뉴 활성화
+                        if ('ontouchstart' in window) {
+                          handleMessageLongPress(e, msg);
+                        }
+                      }}
+                      onTouchStart={(e) => {
+                        e.stopPropagation();
+                        // 모바일에서 한 번 터치로 메뉴 열기
+                        handleMessageLongPress(e, msg);
+                      }}
+                    >
                       {/* 회신 메시지 표시 */}
                       {msg.replyToMessageId && (
                         <div 
