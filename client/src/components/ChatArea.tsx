@@ -50,29 +50,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const { typingUsers, addTypingUser, removeTypingUser, clearAllTyping } = useTypingIndicator();
   const { settings: accessibilitySettings } = useAccessibilitySettings();
   
-  // Simulate typing users for demo (you can remove this in production)
-  useEffect(() => {
-    const simulateTyping = () => {
-      if (Math.random() > 0.7) { // 30% chance to simulate typing
-        const demoUsers = [
-          { id: 999, displayName: "이상윤", typingStyle: 'dots' as const, typingSpeed: 'normal' as const },
-          { id: 998, displayName: "김민수", typingStyle: 'wave' as const, typingSpeed: 'fast' as const },
-          { id: 997, displayName: "박영희", typingStyle: 'bounce' as const, typingSpeed: 'slow' as const }
-        ];
-        
-        const randomUser = demoUsers[Math.floor(Math.random() * demoUsers.length)];
-        addTypingUser(randomUser);
-        
-        // Remove after 2-4 seconds
-        setTimeout(() => {
-          removeTypingUser(randomUser.id);
-        }, 2000 + Math.random() * 2000);
-      }
-    };
-
-    const interval = setInterval(simulateTyping, 8000); // Every 8 seconds
-    return () => clearInterval(interval);
-  }, [addTypingUser, removeTypingUser]);
+  // Typing indicator functionality for real users only
 
   // 백그라운드 프리페칭 함수들
   const prefetchRelatedData = async () => {
