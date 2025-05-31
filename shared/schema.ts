@@ -98,7 +98,7 @@ export const messageReads = pgTable("message_reads", {
 export const commands = pgTable("commands", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
-  chatRoomId: integer("chat_room_id").references(() => chatRooms.id).notNull(),
+  chatRoomId: integer("chat_room_id").references(() => chatRooms.id), // Made nullable for archived commands
   commandName: text("command_name").notNull(),
   messageId: integer("message_id").references(() => messages.id),
   fileUrl: text("file_url"),
@@ -162,6 +162,8 @@ export const locationChatParticipants = pgTable("location_chat_participants", {
   id: serial("id").primaryKey(),
   locationChatRoomId: integer("location_chat_room_id").references(() => locationChatRooms.id).notNull(),
   userId: integer("user_id").references(() => users.id).notNull(),
+  nickname: text("nickname").notNull(),
+  profileImageUrl: text("profile_image_url"),
   joinedAt: timestamp("joined_at").defaultNow(),
   lastSeen: timestamp("last_seen").defaultNow(),
   isMuted: boolean("is_muted").default(false),

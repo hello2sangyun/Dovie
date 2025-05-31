@@ -65,7 +65,8 @@ export interface IStorage {
   updateUserLocation(userId: number, location: { latitude: number; longitude: number; accuracy: number }): Promise<void>;
   getNearbyLocationChatRooms(latitude: number, longitude: number, radius?: number): Promise<LocationChatRoom[]>;
   createLocationChatRoom(userId: number, roomData: { name: string; latitude: number; longitude: number; address: string }): Promise<LocationChatRoom>;
-  joinLocationChatRoom(userId: number, roomId: number): Promise<void>;
+  joinLocationChatRoom(userId: number, roomId: number, profileData: { nickname: string; profileImageUrl?: string }): Promise<void>;
+  getLocationChatProfile(userId: number, roomId: number): Promise<{ nickname: string; profileImageUrl?: string } | undefined>;
   
   // 위치 기반 자동 관리
   cleanupInactiveLocationChats(): Promise<void>;
