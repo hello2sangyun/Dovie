@@ -188,10 +188,18 @@ export default function VoiceRecorder({ onRecordingComplete, disabled }: VoiceRe
         size="sm"
         disabled={disabled || isPreparing}
         className={cn(
-          "relative transition-all duration-200 h-7 w-7 p-1",
-          isRecording && "animate-pulse scale-110 shadow-lg",
-          isPreparing && "opacity-50"
+          "relative transition-all duration-200 h-7 w-7 p-1 cursor-pointer select-none touch-manipulation",
+          isRecording && "animate-pulse scale-110 shadow-lg cursor-grabbing",
+          isPreparing && "opacity-50 cursor-wait"
         )}
+        style={{ 
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none',
+          WebkitTouchCallout: 'none',
+          WebkitTapHighlightColor: 'transparent'
+        }}
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp} // 마우스가 버튼을 벗어나면 녹음 중지
