@@ -24,6 +24,7 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [displayName, setDisplayName] = useState(user?.displayName || "");
+  const [username, setUsername] = useState(user?.username || "");
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [businessName, setBusinessName] = useState("");
@@ -40,7 +41,7 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
 
   // Profile update mutation
   const updateProfileMutation = useMutation({
-    mutationFn: async (data: { displayName?: string; profilePicture?: string }) => {
+    mutationFn: async (data: { displayName?: string; username?: string; profilePicture?: string }) => {
       console.log("Updating profile with data:", data);
       const response = await apiRequest(`/api/users/${user?.id}`, "PATCH", data);
       if (!response.ok) {
@@ -173,16 +174,21 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
     if (profileImage) {
       uploadImageMutation.mutate(profileImage);
     } else {
-      updateProfileMutation.mutate({ displayName });
+      updateProfileMutation.mutate({ displayName, username });
     }
   };
 
-  // Initialize display name when user data loads
+  // Initialize display name and username when user data loads
   useEffect(() => {
-    if (user && !displayName) {
-      setDisplayName(user.displayName || "");
+    if (user) {
+      if (!displayName) {
+        setDisplayName(user.displayName || "");
+      }
+      if (!username) {
+        setUsername(user.username || "");
+      }
     }
-  }, [user, displayName]);
+  }, [user, displayName, username]);
 
   const handleBusinessRegistration = () => {
     if (!businessName.trim() || !businessAddress.trim()) {
@@ -291,6 +297,22 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
                 placeholder="표시 이름을 입력하세요"
                 className="h-8 text-sm transition-all duration-200 focus:scale-[1.02]"
               />
+            </div>
+
+            {/* Username - Compact */}
+            <div className="space-y-1">
+              <Label htmlFor="username" className="text-xs text-gray-600 dark:text-gray-400">사용자 아이디</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-xs text-gray-500">@</span>
+                <Input
+                  id="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                  placeholder="사용자아이디"
+                  className="h-8 text-sm pl-6 transition-all duration-200 focus:scale-[1.02]"
+                />
+              </div>
+              <p className="text-xs text-gray-500">영문 소문자, 숫자, 언더스코어(_)만 사용 가능</p>
             </div>
 
             {/* Save Button - Compact */}

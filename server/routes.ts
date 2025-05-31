@@ -238,6 +238,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 사용자명 중복 체크 API
+  app.get("/api/users/check-username/:username", async (req, res) => {
+    try {
+      const { username } = req.params;
+      const userId = req.headers["x-user-id"];
+      
+      if (!username) {
+        return res.status(400).json({ message: "사용자명이 필요합니다." });
+      }
+
+      const existingUser = await storage.getUserByUsername(username);
+      
+      // 현재 사용자의 기존 username인 경우는 사용 가능
+      const isAvailable = !existingUser || (userId && existingUser.id === Number(userId));
+      
+      res.json({ available: isAvailable });
+    } catch (error) {
+      console.error("Username check error:", error);
+      res.status(500).json({ message: "사용자명 체크에 실패했습니다." });
+    }
+  });
+
   // 프로필 업데이트 API
   app.patch("/api/users/:id", async (req, res) => {
     try {
@@ -246,6 +268,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!userId) {
         return res.status(400).json({ message: "사용자 ID가 필요합니다." });
+      }
+
+      // username이 변경되는 경우 중복 체크
+      if (updates.username) {
+        const existingUser = await storage.getUserByUsername(updates.username);
+        if (existingUser && existingUser.id !== userId) {
+          return res.status(400).json({ message: "이미 사용 중인 아이디입니다." });
+        }
       }
 
       const user = await storage.updateUser(userId, updates);
