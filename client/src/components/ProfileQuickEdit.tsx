@@ -196,12 +196,12 @@ export function ProfileQuickEdit({ user, trigger, mode = "modal", onSave }: Prof
             <Avatar className="h-12 w-12">
               <AvatarImage src={user.profilePicture || undefined} />
               <AvatarFallback>
-                {user.displayName?.charAt(0).toUpperCase() || user.username?.charAt(0).toUpperCase() || <UserIcon />}
+                {user.displayName?.charAt(0).toUpperCase() || user.username?.charAt(0).toUpperCase() || <User />}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <div className="font-medium truncate">{user.displayName || user.username}</div>
-              <div className="text-sm text-gray-500 truncate">{(user as any).bio || "소개를 추가해보세요"}</div>
+              <div className="text-sm text-gray-500 truncate">{user.bio || "소개를 추가해보세요"}</div>
             </div>
             <Edit3 className="h-4 w-4 text-gray-400" />
           </div>

@@ -241,14 +241,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 프로필 업데이트 API (파일 업로드 지원)
   app.patch("/api/auth/profile", upload.single('avatar'), async (req, res) => {
     try {
-      const session = req.session;
-      if (!session?.userId) {
-        return res.status(401).json({ message: "로그인이 필요합니다." });
-      }
-
-      const user = await storage.getUser(session.userId);
+      const user = req.user;
       if (!user) {
-        return res.status(401).json({ message: "사용자를 찾을 수 없습니다." });
+        return res.status(401).json({ message: "로그인이 필요합니다." });
       }
 
       const { displayName, bio } = req.body;

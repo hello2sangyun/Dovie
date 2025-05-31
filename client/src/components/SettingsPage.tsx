@@ -10,7 +10,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
 import { ImageCropper } from "@/components/ImageCropper";
-import { ProfileQuickEdit } from "@/components/ProfileQuickEdit";
 import { Camera, User, LogOut, Building2, Moon, Sun } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { getInitials } from "@/lib/utils";
@@ -242,20 +241,6 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {/* One-Tap Quick Edit Mode */}
-            <div className="border rounded-lg p-1">
-              <ProfileQuickEdit 
-                user={user} 
-                mode="inline"
-                onSave={() => {
-                  queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-                  toast({
-                    title: "프로필 업데이트 완료",
-                    description: "프로필이 성공적으로 업데이트되었습니다.",
-                  });
-                }}
-              />
-            </div>
             {/* Profile Image - More Compact */}
             <div className="flex items-center space-x-3">
               <div className="relative">
