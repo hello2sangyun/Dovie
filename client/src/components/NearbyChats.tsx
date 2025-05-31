@@ -13,7 +13,7 @@ import { MapPin, Users, Plus, Clock, Star, Navigation, Camera, User, Map, ZoomIn
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
 
 interface LocationChatRoom {
   id: number;
