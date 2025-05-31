@@ -140,10 +140,28 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
     );
   };
 
-  // 위치 기반 알림 체크
+  // 10초마다 위치 업데이트 및 알림 체크
   useEffect(() => {
-    if (userLocation && user) {
-      const checkProximity = setInterval(async () => {
+    if (locationPermission === "granted" && user) {
+      const updateLocationAndCheck = async () => {
+        // Get current location
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const location = {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              accuracy: position.coords.accuracy
+            };
+            setUserLocation(location);
+            updateUserLocationMutation.mutate(location);
+          },
+          (error) => {
+            console.error("Location update error:", error);
+          },
+          { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+        );
+
+        // Check proximity
         try {
           const response = await apiRequest(`/api/location/check-proximity`, "GET");
           const data = await response.json();
@@ -158,11 +176,17 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
         } catch (error) {
           console.error("Proximity check error:", error);
         }
-      }, 30000); // 30초마다 체크
+      };
 
-      return () => clearInterval(checkProximity);
+      // Initial update
+      updateLocationAndCheck();
+      
+      // Set up interval for every 10 seconds
+      const locationInterval = setInterval(updateLocationAndCheck, 10000);
+
+      return () => clearInterval(locationInterval);
     }
-  }, [userLocation, user]);
+  }, [locationPermission, user]);
 
   // 자동 퇴장 카운트다운 처리
   useEffect(() => {
@@ -259,7 +283,7 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
       return response.json();
     },
     enabled: !!userLocation && !!user,
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 10000, // Refresh every 10 seconds
   });
 
   // Create location chat room mutation
@@ -421,6 +445,38 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
 
   return (
     <div className="h-full flex flex-col">
+      {/* Header with map toggle */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-2">
+          <MapPin className="h-5 w-5 text-purple-600" />
+          <h2 className="text-lg font-semibold">주변챗</h2>
+          {userLocation && (
+            <Badge variant="secondary" className="text-xs">
+              정확도 {Math.round(userLocation.accuracy)}m
+            </Badge>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant={showMap ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowMap(!showMap)}
+            className="flex items-center gap-1"
+          >
+            <Map className="h-4 w-4" />
+            지도
+          </Button>
+          <Dialog open={showCreateRoom} onOpenChange={setShowCreateRoom}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="purple-gradient">
+                <Plus className="h-4 w-4 mr-1" />
+                채팅방 만들기
+              </Button>
+            </DialogTrigger>
+          </Dialog>
+        </div>
+      </div>
+
       {/* 자동 퇴장 카운트다운 알림 */}
       {exitCountdown && (
         <div className="p-4 bg-orange-50 dark:bg-orange-900/20 border-l-4 border-orange-500">
@@ -470,73 +526,295 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
         </div>
       )}
 
-      {/* Header */}
-      <div className="p-4 border-b border-gray-200">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <MapPin className="h-5 w-5 text-purple-600" />
-            <h2 className="text-lg font-semibold">주변챗</h2>
-            {hasNewChats && (
-              <Badge className="bg-red-500 text-white text-xs px-1.5 py-0.5 animate-pulse">
-                NEW
-              </Badge>
-            )}
-          </div>
-          
-          <Dialog open={showCreateRoom} onOpenChange={setShowCreateRoom}>
-            <DialogTrigger asChild>
-              <Button size="sm" variant="outline">
-                <Plus className="h-4 w-4 mr-1" />
-                방 만들기
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>새 주변 채팅방 만들기</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="roomName">채팅방 이름</Label>
-                  <Input
-                    id="roomName"
-                    value={newRoomName}
-                    onChange={(e) => setNewRoomName(e.target.value)}
-                    placeholder="예: 이태원 브런치카페 채팅방"
-                  />
+      {/* Map or Chat List View */}
+      {showMap ? (
+        <div className="flex-1 p-4">
+          <div className="bg-gray-100 dark:bg-gray-800 rounded-lg h-full min-h-[400px] relative overflow-hidden">
+            {/* Simple map visualization */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <svg width="100%" height="100%" viewBox="0 0 400 300" className="text-gray-400">
+                {/* Grid background */}
+                <defs>
+                  <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.3"/>
+                  </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#grid)" />
+                
+                {/* Current location (center) */}
+                <g transform="translate(200, 150)">
+                  <circle cx="0" cy="0" r="8" fill="#8b5cf6" />
+                  <circle cx="0" cy="0" r="12" fill="none" stroke="#8b5cf6" strokeWidth="2" opacity="0.5" />
+                  <circle cx="0" cy="0" r="20" fill="none" stroke="#8b5cf6" strokeWidth="1" opacity="0.3" />
+                  <text x="0" y="-25" textAnchor="middle" className="text-xs font-medium fill-purple-600">
+                    내 위치
+                  </text>
+                </g>
+
+                {/* Nearby chat rooms */}
+                {nearbyChatRooms?.chatRooms?.map((room, index) => {
+                  if (!userLocation) return null;
+                  
+                  const distance = calculateDistance(
+                    userLocation.latitude,
+                    userLocation.longitude,
+                    parseFloat(room.latitude),
+                    parseFloat(room.longitude)
+                  );
+                  
+                  // Simple positioning based on distance and index
+                  const angle = (index * 60) * (Math.PI / 180);
+                  const radius = Math.min(distance / 2, 80);
+                  const x = 200 + Math.cos(angle) * radius;
+                  const y = 150 + Math.sin(angle) * radius;
+                  
+                  return (
+                    <g key={room.id} transform={`translate(${x}, ${y})`}>
+                      <circle 
+                        cx="0" 
+                        cy="0" 
+                        r="6" 
+                        fill={room.isOfficial ? "#059669" : "#3b82f6"}
+                        className="cursor-pointer hover:opacity-80"
+                        onClick={() => handleJoinRoom(room)}
+                      />
+                      <text 
+                        x="0" 
+                        y="-12" 
+                        textAnchor="middle" 
+                        className="text-xs font-medium fill-current"
+                      >
+                        {room.name.length > 8 ? room.name.substring(0, 8) + '...' : room.name}
+                      </text>
+                      <text 
+                        x="0" 
+                        y="20" 
+                        textAnchor="middle" 
+                        className="text-xs fill-gray-500"
+                      >
+                        {formatDistance(distance)}
+                      </text>
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
+            
+            {/* Map legend */}
+            <div className="absolute bottom-4 left-4 bg-white dark:bg-gray-900 rounded-lg p-3 shadow-lg border border-gray-200 dark:border-gray-700">
+              <div className="space-y-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-purple-600 rounded-full"></div>
+                  <span>내 위치</span>
                 </div>
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setShowCreateRoom(false)}>
-                    취소
-                  </Button>
-                  <Button
-                    onClick={handleCreateRoom}
-                    disabled={!newRoomName.trim() || createLocationChatMutation.isPending}
-                    className="purple-gradient"
-                  >
-                    {createLocationChatMutation.isPending ? "생성 중..." : "만들기"}
-                  </Button>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-green-600 rounded-full"></div>
+                  <span>공식 채팅방</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                  <span>일반 채팅방</span>
                 </div>
               </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-        
-        {userLocation && (
-          <p className="text-sm text-gray-500">
-            현재 위치 기준 반경 100m 내 채팅방
-          </p>
-        )}
-      </div>
-
-      {/* Chat rooms list */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {isLoading ? (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
-            <p className="text-sm text-gray-500 mt-2">주변 채팅방을 찾는 중...</p>
+            </div>
           </div>
-        ) : nearbyChatRooms?.chatRooms?.length > 0 ? (
-          nearbyChatRooms.chatRooms.map((room: LocationChatRoom) => {
+        </div>
+      ) : (
+        <div className="flex-1 overflow-auto">
+          {/* Loading state */}
+          {isLoading && (
+            <div className="flex items-center justify-center h-32">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+            </div>
+          )}
+
+          {/* Chat rooms list */}
+          {!isLoading && nearbyChatRooms?.chatRooms?.length === 0 && (
+            <div className="text-center py-8">
+              <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+              <p className="text-gray-500 mb-4">주변에 채팅방이 없습니다</p>
+              <p className="text-sm text-gray-400 mb-4">
+                첫 번째 채팅방을 만들어보세요!
+              </p>
+            </div>
+          )}
+
+          {/* Nearby chat rooms */}
+          {nearbyChatRooms?.chatRooms?.map((room) => {
+            const distance = userLocation ? calculateDistance(
+              userLocation.latitude,
+              userLocation.longitude,
+              parseFloat(room.latitude),
+              parseFloat(room.longitude)
+            ) : 0;
+
+            return (
+              <div
+                key={room.id}
+                className="p-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+                onClick={() => handleJoinRoom(room)}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                        {room.name}
+                      </h3>
+                      {room.isOfficial && (
+                        <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+                          공식
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                      <div className="flex items-center gap-1">
+                        <Users className="h-4 w-4" />
+                        <span>{room.participantCount}/{room.maxParticipants}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-4 w-4" />
+                        <span>{formatDistance(distance)}</span>
+                      </div>
+                      {room.lastActivity && (
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          <span>{new Date(room.lastActivity).toLocaleTimeString('ko-KR', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}</span>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">{room.address}</p>
+                  </div>
+                  {room.businessOwner && (
+                    <div className="ml-4 text-right">
+                      <div className="text-xs text-gray-500">사업자</div>
+                      <div className="text-sm font-medium">{room.businessOwner.businessName}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Create room dialog */}
+      <Dialog open={showCreateRoom} onOpenChange={setShowCreateRoom}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>새 주변 채팅방 만들기</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="roomName">채팅방 이름</Label>
+              <Input
+                id="roomName"
+                value={newRoomName}
+                onChange={(e) => setNewRoomName(e.target.value)}
+                placeholder="예: 이태원 브런치카페 채팅방"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowCreateRoom(false)}>
+                취소
+              </Button>
+              <Button
+                onClick={handleCreateRoom}
+                disabled={!newRoomName.trim() || createLocationChatMutation.isPending}
+                className="purple-gradient"
+              >
+                {createLocationChatMutation.isPending ? "생성 중..." : "만들기"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Join room dialog */}
+      <Dialog open={showJoinModal} onOpenChange={setShowJoinModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {selectedRoom?.name} 참여하기
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>닉네임 설정</Label>
+              <RadioGroup
+                value={profileOption}
+                onValueChange={(value: "main" | "temp") => setProfileOption(value)}
+                className="mt-2"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="main" id="main" />
+                  <Label htmlFor="main" className="flex items-center gap-2">
+                    <UserAvatar user={user} size="sm" />
+                    기본 프로필 사용 ({user?.displayName})
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="temp" id="temp" />
+                  <Label htmlFor="temp">임시 프로필 생성</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {profileOption === "temp" && (
+              <div className="space-y-3 pl-6 border-l-2 border-gray-200">
+                <div>
+                  <Label htmlFor="tempNickname">임시 닉네임</Label>
+                  <Input
+                    id="tempNickname"
+                    value={joinNickname}
+                    onChange={(e) => setJoinNickname(e.target.value)}
+                    placeholder="임시 닉네임을 입력하세요"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="tempProfile">프로필 이미지 (선택)</Label>
+                  <div className="flex items-center gap-3 mt-2">
+                    {tempProfilePreview && (
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={tempProfilePreview} />
+                        <AvatarFallback>
+                          <User className="h-5 w-5" />
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                    <Input
+                      id="tempProfile"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleTempProfileChange}
+                      className="cursor-pointer"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowJoinModal(false)}>
+                취소
+              </Button>
+              <Button
+                onClick={() => handleConfirmJoin()}
+                disabled={joinChatRoomMutation.isPending || 
+                  (profileOption === "temp" && !joinNickname.trim())}
+                className="purple-gradient"
+              >
+                {joinChatRoomMutation.isPending ? "참여 중..." : "참여하기"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
             const distance = userLocation ? calculateDistance(
               userLocation.latitude,
               userLocation.longitude,
