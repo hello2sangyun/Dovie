@@ -452,8 +452,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "채팅방을 찾을 수 없습니다." });
       }
 
-      // Join location chat room
-      await storage.joinLocationChatRoom(Number(userId), roomId);
+      // Get profile data from request body
+      const { nickname, profileImageUrl } = req.body;
+      
+      if (!nickname || !nickname.trim()) {
+        return res.status(400).json({ message: "닉네임이 필요합니다." });
+      }
+
+      // Join location chat room with profile data
+      await storage.joinLocationChatRoom(Number(userId), roomId, {
+        nickname: nickname.trim(),
+        profileImageUrl
+      });
 
       // Use storage interface to create chat room
       let regularChatRoom = await db.select().from(chatRooms).where(eq(chatRooms.name, locationRoom[0].name)).limit(1);

@@ -351,9 +351,21 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
   };
 
   const handleConfirmJoin = () => {
-    if (!selectedRoom) return;
+    if (!selectedRoom || !joinNickname.trim() || !tempProfileImage) return;
     setShowJoinModal(false);
-    joinChatRoomMutation.mutate(selectedRoom.id);
+    
+    // Upload profile image and join with nickname
+    const formData = new FormData();
+    formData.append('file', tempProfileImage);
+    formData.append('nickname', joinNickname.trim());
+    
+    joinLocationChatMutation.mutate({
+      roomId: selectedRoom.id,
+      profileData: {
+        nickname: joinNickname.trim(),
+        profileImage: tempProfileImage
+      }
+    });
   };
 
   const handleCreateRoom = () => {

@@ -664,7 +664,7 @@ export class DatabaseStorage implements IStorage {
     return newRoom;
   }
 
-  async joinLocationChatRoom(userId: number, roomId: number): Promise<void> {
+  async joinLocationChatRoom(userId: number, roomId: number, profileData: { nickname: string; profileImageUrl?: string }): Promise<void> {
     // Check if already joined
     const existing = await db
       .select()
@@ -679,7 +679,9 @@ export class DatabaseStorage implements IStorage {
         .insert(locationChatParticipants)
         .values({
           locationChatRoomId: roomId,
-          userId
+          userId,
+          nickname: profileData.nickname,
+          profileImageUrl: profileData.profileImageUrl || null
         });
 
       // Update participant count
@@ -690,7 +692,42 @@ export class DatabaseStorage implements IStorage {
           lastActivity: new Date()
         })
         .where(eq(locationChatRooms.id, roomId));
+    } else {
+      // Update existing participant's profile
+      await db
+        .update(locationChatParticipants)
+        .set({
+          nickname: profileData.nickname,
+          profileImageUrl: profileData.profileImageUrl || null,
+          lastSeen: new Date()
+        })
+        .where(and(
+          eq(locationChatParticipants.locationChatRoomId, roomId),
+          eq(locationChatParticipants.userId, userId)
+        ));
     }
+  }
+
+  async getLocationChatProfile(userId: number, roomId: number): Promise<{ nickname: string; profileImageUrl?: string } | undefined> {
+    const [participant] = await db
+      .select({
+        nickname: locationChatParticipants.nickname,
+        profileImageUrl: locationChatParticipants.profileImageUrl
+      })
+      .from(locationChatParticipants)
+      .where(and(
+        eq(locationChatParticipants.locationChatRoomId, roomId),
+        eq(locationChatParticipants.userId, userId)
+      ));
+
+    if (!participant || !participant.nickname) {
+      return undefined;
+    }
+
+    return {
+      nickname: participant.nickname,
+      profileImageUrl: participant.profileImageUrl || undefined
+    };
   }
 
   // 위치 기반 자동 관리 메소드들
