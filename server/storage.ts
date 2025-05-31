@@ -1074,13 +1074,10 @@ export class DatabaseStorage implements IStorage {
         senderId: senderId,
         content: messageData.content,
         messageType: messageData.messageType || "text",
-        fileUrl: messageData.fileUrl,
         fileName: messageData.fileName,
         fileSize: messageData.fileSize,
         voiceDuration: messageData.voiceDuration,
-        detectedLanguage: messageData.detectedLanguage,
-        translatedText: messageData.translatedText,
-        pollData: messageData.pollData
+        detectedLanguage: messageData.detectedLanguage
       })
       .returning();
 

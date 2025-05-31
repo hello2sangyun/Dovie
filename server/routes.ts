@@ -568,24 +568,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const messageData = req.body;
-      const newMessage = await storage.createMessage({
-        chatRoomId: roomId,
-        senderId: Number(userId),
+      const newMessage = await storage.createLocationChatMessage(roomId, Number(userId), {
         content: messageData.content,
         messageType: messageData.messageType || "text",
-        fileUrl: messageData.fileUrl,
         fileName: messageData.fileName,
         fileSize: messageData.fileSize,
         voiceDuration: messageData.voiceDuration,
-        detectedLanguage: messageData.detectedLanguage,
-        translatedText: messageData.translatedText,
-        pollData: messageData.pollData,
-        replyToId: messageData.replyToId,
-        mentionedUserIds: messageData.mentionedUserIds,
-        commandData: messageData.commandData
+        detectedLanguage: messageData.detectedLanguage
       });
 
-      const messageWithSender = await storage.getMessageById(newMessage.id);
+      // For location chat, create response with profile info
+      const user = await storage.getUser(Number(userId));
+      const messageWithSender = {
+        ...newMessage,
+        sender: user,
+        senderProfile: profile
+      };
 
       // Broadcast to location chat participants via WebSocket
       broadcastToRoom(roomId, {
