@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { UserAvatar } from "@/components/UserAvatar";
 import MediaPreview from "@/components/MediaPreview";
-import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause, Cloud, CloudRain, Sun, CloudSnow, MoreVertical, LogOut, Settings } from "lucide-react";
+import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause, Cloud, CloudRain, Sun, CloudSnow, MoreVertical, LogOut, Settings, MapPin } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
@@ -3688,10 +3688,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       )}
       {/* Chat Header - Optimized Mobile Layout */}
       <div className={cn(
-        "bg-white border-b border-gray-200 flex-shrink-0 sticky top-0 z-10",
+        "flex-shrink-0 sticky top-0 z-10",
         showMobileHeader ? "px-3 py-2" : "p-4",
         uiAdaptations.compactMode && "p-2",
-        uiAdaptations.focusMode && "bg-blue-50 border-blue-200"
+        // 주변챗용 특별한 디자인
+        isLocationChatRoom 
+          ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-b-2 border-blue-200" 
+          : "bg-white border-b border-gray-200",
+        uiAdaptations.focusMode && !isLocationChatRoom && "bg-blue-50 border-blue-200"
       )}>
         <div className="flex items-center justify-between min-h-0">
           <div className="flex items-center flex-1 min-w-0 space-x-2">
@@ -3793,14 +3797,16 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-1 min-w-0">
                 <h3 className={cn(
-                  "font-semibold text-gray-900 truncate flex-1 min-w-0 flex items-center space-x-2",
-                  showMobileHeader ? "text-base" : "text-lg"
+                  "font-semibold truncate flex-1 min-w-0 flex items-center space-x-2",
+                  showMobileHeader ? "text-base" : "text-lg",
+                  // 주변챗용 특별한 색상
+                  isLocationChatRoom ? "text-blue-700" : "text-gray-900"
                 )}
                 title={chatRoomDisplayName}
                 >
-                  <span className="truncate">{chatRoomDisplayName}</span>
+                  <span className="truncate font-bold">{chatRoomDisplayName}</span>
                   {isLocationChatRoom && (
-                    <span className="flex-shrink-0 text-blue-500" title="주변챗">
+                    <span className="flex-shrink-0 text-blue-600 text-lg" title="주변챗">
                       📍
                     </span>
                   )}
@@ -3846,23 +3852,37 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-gray-400 hover:text-purple-600"
-              onClick={() => setShowSearch(!showSearch)}
-            >
-              <Search className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-purple-600">
-              <Video className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-purple-600">
-              <Phone className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-purple-600">
-              <Info className="h-4 w-4" />
-            </Button>
+            {!isLocationChatRoom && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-gray-400 hover:text-purple-600"
+                onClick={() => setShowSearch(!showSearch)}
+              >
+                <Search className="h-4 w-4" />
+              </Button>
+            )}
+            {/* 영상통화/전화 버튼 - 주변챗에서는 숨김 */}
+            {!isLocationChatRoom && (
+              <>
+                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-purple-600">
+                  <Video className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-purple-600">
+                  <Phone className="h-4 w-4" />
+                </Button>
+              </>
+            )}
+            {/* 주변챗용 특별한 정보 버튼 */}
+            {isLocationChatRoom ? (
+              <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
+                <MapPin className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-purple-600">
+                <Info className="h-4 w-4" />
+              </Button>
+            )}
             <div className="relative">
               <Button 
                 variant="ghost" 
@@ -4771,7 +4791,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           </div>
         )}
 
-        <div className="px-2 py-0.5 chat-input-area">
+        <div className={cn(
+          "px-2 py-0.5 chat-input-area",
+          // 주변챗용 특별한 디자인
+          isLocationChatRoom 
+            ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-t-2 border-blue-200" 
+            : "bg-white border-t border-gray-200"
+        )}>
           <div className="flex items-center space-x-1">
           {/* Compact left buttons group */}
           <div className="flex items-center space-x-0.5 mr-1">
