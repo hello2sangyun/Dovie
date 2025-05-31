@@ -246,6 +246,9 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
         
         const uploadResponse = await fetch('/api/upload', {
           method: 'POST',
+          headers: {
+            'x-user-id': user?.id?.toString() || '',
+          },
           body: formData,
         });
         
@@ -256,15 +259,9 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
       }
 
       // Join the location chat with profile data
-      const response = await fetch(`/api/location/chat-rooms/${roomId}/join`, {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          nickname: profileData.nickname,
-          profileImageUrl: finalProfileImageUrl
-        }),
+      const response = await apiRequest(`/api/location/chat-rooms/${roomId}/join`, "POST", {
+        nickname: profileData.nickname,
+        profileImageUrl: finalProfileImageUrl
       });
       
       if (!response.ok) throw new Error("Failed to join location chat");
