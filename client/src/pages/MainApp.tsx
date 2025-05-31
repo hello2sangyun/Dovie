@@ -179,7 +179,16 @@ export default function MainApp() {
 
   const handleChatRoomSelect = (chatRoomId: number) => {
     setSelectedChatRoom(chatRoomId);
+    setSelectedLocationChatRoom(null);
+    setIsLocationChatActive(false);
     setActiveTab("chats");
+  };
+
+  const handleLocationChatRoomSelect = (chatRoomId: number) => {
+    setSelectedLocationChatRoom(chatRoomId);
+    setSelectedChatRoom(null);
+    setIsLocationChatActive(true);
+    setActiveTab("nearby");
   };
 
   const closeModals = () => {
@@ -341,7 +350,7 @@ export default function MainApp() {
               </TabsContent>
               
               <TabsContent value="nearby" className="h-full m-0">
-                <NearbyChats onChatRoomSelect={handleChatRoomSelect} />
+                <NearbyChats onChatRoomSelect={handleLocationChatRoomSelect} />
               </TabsContent>
               
               <TabsContent value="archive" className="h-full m-0">
@@ -376,9 +385,9 @@ export default function MainApp() {
                 <SettingsPage isMobile={false} />
               </div>
             </div>
-          ) : selectedChatRoom ? (
+          ) : selectedChatRoom || selectedLocationChatRoom ? (
             <ChatArea 
-              chatRoomId={selectedChatRoom}
+              chatRoomId={selectedChatRoom || selectedLocationChatRoom!}
               onCreateCommand={handleCreateCommand}
             />
           ) : (
@@ -436,19 +445,25 @@ export default function MainApp() {
           )}
           {activeMobileTab === "nearby" && (
             <NearbyChats onChatRoomSelect={(chatId) => {
-              setSelectedChatRoom(chatId);
+              setSelectedLocationChatRoom(chatId);
+              setSelectedChatRoom(null);
+              setIsLocationChatActive(true);
               setShowMobileChat(true);
-              setActiveMobileTab("chats");
             }} />
           )}
-          {showMobileChat && selectedChatRoom && (
+          {showMobileChat && (selectedChatRoom || selectedLocationChatRoom) && (
             <div className="h-full flex flex-col overflow-hidden">
               <div className="flex-1 min-h-0">
                 <ChatArea 
-                  chatRoomId={selectedChatRoom}
+                  chatRoomId={selectedChatRoom || selectedLocationChatRoom!}
                   onCreateCommand={handleCreateCommand}
                   showMobileHeader={true}
-                  onBackClick={() => setShowMobileChat(false)}
+                  onBackClick={() => {
+                    setShowMobileChat(false);
+                    setSelectedChatRoom(null);
+                    setSelectedLocationChatRoom(null);
+                    setIsLocationChatActive(false);
+                  }}
                 />
               </div>
             </div>
