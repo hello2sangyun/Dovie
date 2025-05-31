@@ -3735,35 +3735,105 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                         handleMessageLongPress(e, msg);
                       }}
                     >
-                      {/* 회신 메시지 표시 */}
+                      {/* 회신 메시지 표시 - 개선된 UI */}
                       {msg.replyToMessageId && (
                         <div 
                           className={cn(
-                            "mb-2 pb-2 border-l-4 pl-3 rounded-l cursor-pointer hover:opacity-80 transition-opacity",
+                            "mb-3 p-3 border-l-4 rounded-r-lg cursor-pointer transition-all duration-200 hover:shadow-md",
                             isMe 
-                              ? "border-white/40 bg-white/10" 
-                              : "border-purple-400 bg-purple-50"
+                              ? "border-white bg-white/20 hover:bg-white/30 backdrop-blur-sm" 
+                              : "border-purple-500 bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 shadow-sm"
                           )}
-                          onClick={() => scrollToMessage(msg.replyToMessageId)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            scrollToMessage(msg.replyToMessageId);
+                          }}
                         >
-                          <div className="flex items-center space-x-1 mb-1">
+                          <div className="flex items-center space-x-2 mb-2">
                             <Reply className={cn(
-                              "h-3 w-3",
-                              isMe ? "text-white/70" : "text-purple-600"
+                              "h-4 w-4",
+                              isMe ? "text-white" : "text-purple-600"
                             )} />
                             <span className={cn(
-                              "text-xs font-medium",
-                              isMe ? "text-white/70" : "text-purple-600"
+                              "text-sm font-semibold",
+                              isMe ? "text-white" : "text-purple-700"
                             )}>
                               {msg.replyToSender || "사용자"}
                             </span>
+                            <span className={cn(
+                              "text-xs px-2 py-0.5 rounded-full",
+                              isMe ? "bg-white/30 text-white" : "bg-purple-100 text-purple-600"
+                            )}>
+                              회신
+                            </span>
                           </div>
-                          <p className={cn(
-                            "text-xs truncate",
-                            isMe ? "text-white/90" : "text-gray-700"
-                          )}>
-                            {msg.replyToContent || "원본 메시지"}
-                          </p>
+                          
+                          {/* 원본 메시지 내용 - 타입별 렌더링 */}
+                          {(() => {
+                            const replyContent = msg.replyToContent || "원본 메시지";
+                            
+                            // 음성 메시지인 경우
+                            if (replyContent.includes('🎵') || replyContent.includes('음성 메시지')) {
+                              return (
+                                <div className="flex items-center space-x-2">
+                                  <div 
+                                    className={cn(
+                                      "w-8 h-8 rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform",
+                                      isMe ? "bg-white/30 hover:bg-white/40" : "bg-purple-200 hover:bg-purple-300"
+                                    )}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      // 음성 재생 로직을 여기에 추가 (원본 메시지의 음성 재생)
+                                      const originalMessage = messages.find(m => m.id === msg.replyToMessageId);
+                                      if (originalMessage && originalMessage.messageType === 'voice') {
+                                        handleVoicePlayback(originalMessage.id, originalMessage.fileUrl, originalMessage.voiceDuration);
+                                      }
+                                    }}
+                                  >
+                                    <Play className={cn(
+                                      "h-4 w-4",
+                                      isMe ? "text-white" : "text-purple-600"
+                                    )} />
+                                  </div>
+                                  <p className={cn(
+                                    "text-sm font-medium",
+                                    isMe ? "text-white/90" : "text-gray-700"
+                                  )}>
+                                    🎵 음성 메시지
+                                  </p>
+                                </div>
+                              );
+                            }
+                            
+                            // 파일 메시지인 경우
+                            if (replyContent.includes('📎') || replyContent.includes('파일')) {
+                              return (
+                                <div className="flex items-center space-x-2">
+                                  <FileText className={cn(
+                                    "h-4 w-4",
+                                    isMe ? "text-white/80" : "text-gray-600"
+                                  )} />
+                                  <p className={cn(
+                                    "text-sm truncate max-w-[200px]",
+                                    isMe ? "text-white/90" : "text-gray-700"
+                                  )}>
+                                    {replyContent}
+                                  </p>
+                                </div>
+                              );
+                            }
+                            
+                            // 일반 텍스트 메시지
+                            return (
+                              <p className={cn(
+                                "text-sm leading-relaxed max-w-[250px]",
+                                replyContent.length > 50 ? "line-clamp-2" : "",
+                                isMe ? "text-white/90" : "text-gray-700"
+                              )}>
+                                {replyContent}
+                              </p>
+                            );
+                          })()}
                         </div>
                       )}
                       
