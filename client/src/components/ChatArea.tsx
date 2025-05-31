@@ -3700,9 +3700,21 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                 variant="ghost"
                 size="sm"
                 onClick={onBackClick}
-                className="p-1.5 -ml-1 lg:hidden flex-shrink-0"
+                className="p-2 -ml-1 lg:hidden flex-shrink-0 hover:bg-gray-100 rounded-full transition-colors"
               >
-                ←
+                <svg 
+                  width="20" 
+                  height="20" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                  className="text-gray-700"
+                >
+                  <path d="m15 18-6-6 6-6"/>
+                </svg>
               </Button>
             )}
             {currentChatRoom.isGroup ? (
