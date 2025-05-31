@@ -151,12 +151,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getChatRooms(userId: number): Promise<(ChatRoom & { participants: User[], lastMessage?: Message & { sender: User } })[]> {
-    // Get user's chat rooms
+    // Get user's chat rooms (excluding location-based chats)
     const userChatRooms = await db
       .select({ chatRoom: chatRooms })
       .from(chatParticipants)
       .innerJoin(chatRooms, eq(chatParticipants.chatRoomId, chatRooms.id))
-      .where(eq(chatParticipants.userId, userId))
+      .where(and(
+        eq(chatParticipants.userId, userId),
+        eq(chatRooms.isLocationChat, false) // 주변챗 제외
+      ))
       .orderBy(desc(chatRooms.isPinned), desc(chatRooms.createdAt));
 
     if (userChatRooms.length === 0) return [];

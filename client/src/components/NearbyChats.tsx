@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { MapPin, Users, Plus, Clock, Star, Navigation, Camera, User } from "lucide-react";
+import { MapPin, Users, Plus, Clock, Star, Navigation, Camera, User, Map } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
@@ -61,6 +61,7 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
   const [profileOption, setProfileOption] = useState<"main" | "temp">("main");
   const [tempProfileImage, setTempProfileImage] = useState<File | null>(null);
   const [tempProfilePreview, setTempProfilePreview] = useState<string | null>(null);
+  const [showMap, setShowMap] = useState(false);
 
   // Request location permission and get current location
   useEffect(() => {
