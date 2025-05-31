@@ -1516,6 +1516,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }
 
+  // Smart suggestion API endpoint
+  app.post("/api/smart-suggestion", async (req, res) => {
+    try {
+      const { type, content, originalText } = req.body;
+      
+      if (!type || !content) {
+        return res.status(400).json({ 
+          success: false, 
+          result: "잘못된 요청입니다." 
+        });
+      }
+
+      let result;
+
+      switch (type) {
+        case 'translation':
+          try {
+            const translationResult = await translateText(content, 'Korean');
+            result = {
+              success: true,
+              result: translationResult.content || "번역할 수 없습니다."
+            };
+          } catch (error) {
+            result = {
+              success: false,
+              result: "번역 서비스를 사용할 수 없습니다."
+            };
+          }
+          break;
+
+        case 'emotion':
+          try {
+            const emotionResult = await processCommand(`/vibe ${content}`);
+            result = {
+              success: emotionResult.success,
+              result: emotionResult.content || "감정을 분석할 수 없습니다."
+            };
+          } catch (error) {
+            result = {
+              success: false,
+              result: "감정 분석 서비스를 사용할 수 없습니다."
+            };
+          }
+          break;
+
+        case 'summary':
+          try {
+            const summaryResult = await processCommand(`/summarize ${content}`);
+            result = {
+              success: summaryResult.success,
+              result: summaryResult.content || "요약할 수 없습니다."
+            };
+          } catch (error) {
+            result = {
+              success: false,
+              result: "요약 서비스를 사용할 수 없습니다."
+            };
+          }
+          break;
+
+        case 'quote':
+          try {
+            const quoteResult = await processCommand(`/quote motivation success`);
+            result = {
+              success: quoteResult.success,
+              result: quoteResult.content || "명언을 찾을 수 없습니다."
+            };
+          } catch (error) {
+            result = {
+              success: false,
+              result: "명언 서비스를 사용할 수 없습니다."
+            };
+          }
+          break;
+
+        case 'decision':
+          try {
+            const decisionResult = await processCommand(`/poll ${content}`);
+            result = {
+              success: decisionResult.success,
+              result: decisionResult.content || "의사결정 도움을 제공할 수 없습니다."
+            };
+          } catch (error) {
+            result = {
+              success: false,
+              result: "의사결정 도우미 서비스를 사용할 수 없습니다."
+            };
+          }
+          break;
+
+        case 'news':
+          result = {
+            success: true,
+            result: `"${content}"와 관련된 최신 뉴스를 검색하시겠습니까? 뉴스 검색 기능은 현재 개발 중입니다.`
+          };
+          break;
+
+        case 'search':
+          result = {
+            success: true,
+            result: `"${content}"에 대한 검색 결과를 찾고 있습니다. 웹 검색 기능은 현재 개발 중입니다.`
+          };
+          break;
+
+        case 'topic_info':
+          result = {
+            success: true,
+            result: `"${content}"에 대한 자세한 정보를 준비하고 있습니다. 주제별 정보 제공 기능은 현재 개발 중입니다.`
+          };
+          break;
+
+        default:
+          result = {
+            success: false,
+            result: "지원하지 않는 기능입니다."
+          };
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error("Smart suggestion error:", error);
+      res.status(500).json({ 
+        success: false, 
+        result: "서비스 오류가 발생했습니다." 
+      });
+    }
+  });
+
   // 위치 기반 채팅방 자동 관리 시스템
   setInterval(async () => {
     try {
