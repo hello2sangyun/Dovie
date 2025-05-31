@@ -4527,32 +4527,32 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           </div>
         )}
 
-        <div className="px-2 pb-1 pt-1 chat-input-area">
+        <div className="px-2 py-0.5 chat-input-area">
           <div className="flex items-center space-x-1">
           {/* Compact left buttons group */}
           <div className="flex items-center space-x-0.5 mr-1">
             <Button
               variant="ghost"
               size="sm"
-              className="text-gray-400 hover:text-purple-600 p-1 min-w-0 h-7 w-7"
+              className="text-gray-400 hover:text-purple-600 p-0.5 min-w-0 h-6 w-6"
               onClick={() => {
                 setMessage(prev => prev + "#");
                 messageInputRef.current?.focus();
               }}
               title="스마트 추천"
             >
-              <Hash className="h-4 w-4" />
+              <Hash className="h-3 w-3" />
             </Button>
             
             <Button
               variant="ghost"
               size="sm"
-              className="text-gray-400 hover:text-purple-600 p-1 min-w-0 h-7 w-7"
+              className="text-gray-400 hover:text-purple-600 p-0.5 min-w-0 h-6 w-6"
               onClick={handleFileUpload}
               disabled={uploadFileMutation.isPending}
               title="파일 첨부"
             >
-              <Paperclip className="h-4 w-4" />
+              <Paperclip className="h-3 w-3" />
             </Button>
 
           </div>
@@ -4753,7 +4753,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   handleSendMessage();
                 }
               }}
-              className="resize-none"
+              className="resize-none min-h-[28px] max-h-[56px] py-1 px-2 text-sm"
             />
             
             {/* # 태그 추천 */}
@@ -4973,11 +4973,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           />
           
           <Button
-            className="purple-gradient hover:purple-gradient-hover h-8 w-8 p-1.5"
+            className="purple-gradient hover:purple-gradient-hover h-6 w-6 p-1"
             onClick={handleSendMessage}
             disabled={sendMessageMutation.isPending || !message.trim()}
           >
-            <Send className="h-4 w-4" />
+            <Send className="h-3 w-3" />
           </Button>
           </div>
         </div>
