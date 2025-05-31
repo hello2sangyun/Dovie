@@ -423,32 +423,32 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Header with map toggle */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center gap-2">
-          <MapPin className="h-5 w-5 text-purple-600" />
-          <h2 className="text-lg font-semibold">주변챗</h2>
+      {/* Header with map toggle - Optimized for mobile */}
+      <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <MapPin className="h-4 w-4 text-purple-600 flex-shrink-0" />
+          <h2 className="text-base font-semibold whitespace-nowrap">주변챗</h2>
           {userLocation && (
-            <Badge variant="secondary" className="text-xs">
-              정확도 {Math.round(userLocation.accuracy)}m
+            <Badge variant="secondary" className="text-xs whitespace-nowrap flex-shrink-0">
+              {Math.round(userLocation.accuracy)}m
             </Badge>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 flex-shrink-0">
           <Button
             variant={showMap ? "default" : "outline"}
             size="sm"
             onClick={() => setShowMap(!showMap)}
-            className="flex items-center gap-1"
+            className="flex items-center gap-1 h-8 px-2 text-xs"
           >
-            <Map className="h-4 w-4" />
+            <Map className="h-3 w-3" />
             지도
           </Button>
           <Dialog open={showCreateRoom} onOpenChange={setShowCreateRoom}>
             <DialogTrigger asChild>
-              <Button size="sm" className="purple-gradient">
-                <Plus className="h-4 w-4 mr-1" />
-                채팅방 만들기
+              <Button size="sm" className="purple-gradient h-8 px-2 text-xs">
+                <Plus className="h-3 w-3 mr-1" />
+                만들기
               </Button>
             </DialogTrigger>
           </Dialog>
