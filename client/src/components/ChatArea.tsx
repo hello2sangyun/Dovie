@@ -3798,7 +3798,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
                     <div 
                       className={cn(
-                        "rounded-lg p-3 shadow-sm w-fit break-words cursor-pointer",
+                        "rounded-lg p-3 shadow-sm w-fit break-words cursor-pointer select-none",
                         msg.isCommandRecall && msg.isLocalOnly
                           ? isMe 
                             ? "bg-teal-500 text-white rounded-tr-none border border-teal-400" 
@@ -3807,13 +3807,22 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                             ? "bg-purple-600 text-white rounded-tr-none" 
                             : "bg-white text-gray-900 rounded-tl-none border border-gray-200"
                       )}
+                      style={{ 
+                        userSelect: 'none',
+                        WebkitUserSelect: 'none',
+                        MozUserSelect: 'none',
+                        msUserSelect: 'none',
+                        WebkitTouchCallout: 'none'
+                      }}
                       onContextMenu={(e) => handleMessageRightClick(e, msg)}
                       onTouchStart={(e) => {
                         e.stopPropagation();
+                        e.preventDefault();
                         handleTouchStart(e, msg);
                       }}
                       onTouchEnd={(e) => {
                         e.stopPropagation();
+                        e.preventDefault();
                         handleTouchEnd();
                       }}
                       onTouchMove={(e) => {
@@ -4973,6 +4982,16 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         }}
         onTranslateMessage={() => {
           handleTranslateMessage(contextMenu.message);
+          setContextMenu({ ...contextMenu, visible: false });
+        }}
+        onCopyText={() => {
+          if (contextMenu.message?.content) {
+            navigator.clipboard.writeText(contextMenu.message.content);
+            toast({
+              title: "텍스트가 복사되었습니다",
+              description: "클립보드에 메시지 내용이 복사되었습니다.",
+            });
+          }
           setContextMenu({ ...contextMenu, visible: false });
         }}
       />

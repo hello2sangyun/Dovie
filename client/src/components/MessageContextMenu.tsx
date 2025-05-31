@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Save, Reply, Languages, Edit3, Globe, FileText } from "lucide-react";
+import { Save, Reply, Languages, Edit3, Globe, FileText, Copy } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface MessageContextMenuProps {
   x: number;
@@ -11,6 +12,7 @@ interface MessageContextMenuProps {
   onTranslateMessage: () => void;
   onSummarizeMessage?: () => void;
   onEditMessage?: () => void;
+  onCopyText?: () => void;
   canEdit?: boolean;
   canSummarize?: boolean;
   visible: boolean;
@@ -25,10 +27,12 @@ export default function MessageContextMenu({
   onTranslateMessage,
   onSummarizeMessage,
   onEditMessage,
+  onCopyText,
   canEdit = false,
   canSummarize = false,
   visible 
 }: MessageContextMenuProps) {
+  const { toast } = useToast();
   const menuRef = useRef<HTMLDivElement>(null);
   const [menuPosition, setMenuPosition] = useState({ x, y });
 
@@ -153,6 +157,12 @@ export default function MessageContextMenu({
     onClose();
   };
 
+  const handleCopyClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onCopyText?.();
+    onClose();
+  };
+
   return (
     <>
       {/* Backdrop */}
@@ -176,6 +186,16 @@ export default function MessageContextMenu({
         >
           <Reply className="w-3 h-3 mr-2 text-gray-600 dark:text-gray-300" />
           <span className="text-gray-700 dark:text-gray-200">답장</span>
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start px-3 py-2 h-8 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          onClick={handleCopyClick}
+        >
+          <Copy className="w-3 h-3 mr-2 text-gray-600 dark:text-gray-300" />
+          <span className="text-gray-700 dark:text-gray-200">텍스트 복사</span>
         </Button>
         
         {canEdit && (
