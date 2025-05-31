@@ -16,9 +16,10 @@ import CreateGroupChatModal from "@/components/CreateGroupChatModal";
 
 import SettingsPage from "@/components/SettingsPage";
 import NearbyChats from "@/components/NearbyChats";
+import StorageAnalytics from "@/pages/StorageAnalytics";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, MapPin } from "lucide-react";
+import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, MapPin, HardDrive } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function MainApp() {
@@ -292,6 +293,16 @@ export default function MainApp() {
                 <span className="text-xs">저장소</span>
               </TabsTrigger>
               <TabsTrigger 
+                value="storage"
+                className={cn(
+                  "py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent flex-col items-center gap-1",
+                  "data-[state=active]:border-purple-600 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-600"
+                )}
+              >
+                <HardDrive className="h-5 w-5" />
+                <span className="text-xs">분석</span>
+              </TabsTrigger>
+              <TabsTrigger 
                 value="settings"
                 className={cn(
                   "py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent flex-col items-center gap-1",
@@ -333,6 +344,10 @@ export default function MainApp() {
               
               <TabsContent value="archive" className="h-full m-0">
                 <ArchiveList />
+              </TabsContent>
+              
+              <TabsContent value="storage" className="h-full m-0">
+                <StorageAnalytics />
               </TabsContent>
               
               <TabsContent value="settings" className="h-full m-0">

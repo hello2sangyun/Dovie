@@ -1,11 +1,13 @@
 import { 
   users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications,
   locationChatRooms, locationChatParticipants, locationChatMessages, userLocations,
+  fileUploads, fileDownloads,
   type User, type InsertUser, type Contact, type InsertContact,
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
   type Command, type InsertCommand, type MessageRead, type InsertMessageRead,
   type PhoneVerification, type InsertPhoneVerification,
-  type LocationChatRoom, type InsertLocationChatRoom
+  type LocationChatRoom, type InsertLocationChatRoom,
+  type FileUpload, type InsertFileUpload, type FileDownload, type InsertFileDownload
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, or, count, gt, lt, sql, inArray } from "drizzle-orm";
@@ -804,7 +806,7 @@ export class DatabaseStorage implements IStorage {
     const timeCondition = this.getTimeCondition(timeRange);
     
     // Get user's file uploads with chat room info
-    const fileUploads = await db
+    const userFileUploads = await db
       .select({
         id: fileUploads.id,
         fileName: fileUploads.fileName,
@@ -821,7 +823,7 @@ export class DatabaseStorage implements IStorage {
         and(
           eq(fileUploads.userId, userId),
           eq(fileUploads.isDeleted, false),
-          timeCondition
+          timeCondition || sql`true`
         )
       );
 
@@ -841,7 +843,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(fileUploads.userId, userId));
 
     // Calculate totals and breakdowns
-    const totalSize = fileUploads.reduce((sum, file) => sum + file.fileSize, 0);
+    const totalSize = userFileUploads.reduce((sum: number, file: any) => sum + file.fileSize, 0);
     
     const typeBreakdown = {
       images: 0,
