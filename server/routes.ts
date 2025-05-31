@@ -686,24 +686,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const { saveFiles } = req.body;
+      console.log(`User ${userId} leaving chat room ${req.params.chatRoomId}, saveFiles: ${saveFiles}`);
+      
       await storage.leaveChatRoom(Number(req.params.chatRoomId), Number(userId), saveFiles);
       
-      // 나가기 메시지 전송
-      const leaveMessage = await storage.createMessage({
-        chatRoomId: Number(req.params.chatRoomId),
-        senderId: Number(userId),
-        content: `사용자가 채팅방을 나갔습니다.`,
-        messageType: "system",
-      });
+      // 나가기 메시지는 채팅방이 삭제되지 않은 경우에만 전송
+      try {
+        const chatRoom = await storage.getChatRoomById(Number(req.params.chatRoomId));
+        if (chatRoom) {
+          const messageData = {
+            chatRoomId: Number(req.params.chatRoomId),
+            senderId: Number(userId),
+            content: `사용자가 채팅방을 나갔습니다.`,
+            messageType: "system" as const,
+          };
+          const leaveMessage = await storage.createMessage(messageData);
 
-      // WebSocket으로 알림
-      broadcastToRoom(Number(req.params.chatRoomId), {
-        type: "message",
-        message: leaveMessage,
-      });
+          // WebSocket으로 알림
+          broadcastToRoom(Number(req.params.chatRoomId), {
+            type: "message",
+            message: leaveMessage,
+          });
+        }
+      } catch (messageError) {
+        // 메시지 전송 실패는 무시 (채팅방이 이미 삭제된 경우)
+        console.log("Could not send leave message (chat room may have been deleted)");
+      }
 
       res.json({ success: true });
     } catch (error) {
+      console.error("Failed to leave chat room:", error);
       res.status(500).json({ message: "Failed to leave chat room" });
     }
   });
