@@ -182,6 +182,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
+  
+  // 길게 터치 관련 상태
+  const [touchTimer, setTouchTimer] = useState<NodeJS.Timeout | null>(null);
+  const [isLongPress, setIsLongPress] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatAreaRef = useRef<HTMLDivElement>(null);
@@ -3094,6 +3098,33 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
   };
 
+  // 길게 터치 이벤트 핸들러
+  const handleTouchStart = (e: React.TouchEvent, message: any) => {
+    setIsLongPress(false);
+    const timer = setTimeout(() => {
+      setIsLongPress(true);
+      handleMessageRightClick(e as any, message);
+      navigator.vibrate?.(50); // 햅틱 피드백
+    }, 500); // 500ms 길게 터치
+    
+    setTouchTimer(timer);
+  };
+
+  const handleTouchEnd = () => {
+    if (touchTimer) {
+      clearTimeout(touchTimer);
+      setTouchTimer(null);
+    }
+    setTimeout(() => setIsLongPress(false), 100);
+  };
+
+  const handleTouchMove = () => {
+    if (touchTimer) {
+      clearTimeout(touchTimer);
+      setTouchTimer(null);
+    }
+  };
+
   // Sound notification functions
   const playNotificationSound = () => {
     try {
@@ -3777,17 +3808,24 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                             : "bg-white text-gray-900 rounded-tl-none border border-gray-200"
                       )}
                       onContextMenu={(e) => handleMessageRightClick(e, msg)}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // 터치 기기에서는 클릭으로, 데스크톱에서는 우클릭으로 메뉴 활성화
-                        if ('ontouchstart' in window) {
-                          handleMessageLongPress(e, msg);
-                        }
-                      }}
                       onTouchStart={(e) => {
                         e.stopPropagation();
-                        // 모바일에서 한 번 터치로 메뉴 열기
-                        handleMessageLongPress(e, msg);
+                        handleTouchStart(e, msg);
+                      }}
+                      onTouchEnd={(e) => {
+                        e.stopPropagation();
+                        handleTouchEnd();
+                      }}
+                      onTouchMove={(e) => {
+                        e.stopPropagation();
+                        handleTouchMove();
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // 길게 터치가 아닌 경우에만 일반 클릭 동작
+                        if (!isLongPress) {
+                          // 일반 클릭 시 아무 동작 안함 (메뉴 열리지 않음)
+                        }
                       }}
                     >
                       {/* 회신 메시지 표시 - 개선된 UI */}
