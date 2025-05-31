@@ -245,7 +245,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     refetchOnMount: true, // 채팅방 진입 시 항상 최신 메시지 로드
     refetchOnWindowFocus: true, // 포커스 시 새 메시지 확인
     queryFn: async () => {
-      const endpoint = isLocationChat 
+      const endpoint = isLocationChatRoom 
         ? `/api/location/chat-rooms/${chatRoomId}/messages`
         : `/api/chat-rooms/${chatRoomId}/messages`;
       
@@ -275,7 +275,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
-      const endpoint = isLocationChat 
+      const endpoint = isLocationChatRoom 
         ? `/api/location/chat-rooms/${chatRoomId}/messages`
         : `/api/chat-rooms/${chatRoomId}/messages`;
       
@@ -283,9 +283,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       return response.json();
     },
     onSuccess: () => {
-      const queryKey = isLocationChat ? "/api/location/chat-rooms" : "/api/chat-rooms";
+      const queryKey = isLocationChatRoom ? "/api/location/chat-rooms" : "/api/chat-rooms";
       queryClient.invalidateQueries({ queryKey: [queryKey, chatRoomId, "messages"] });
-      if (!isLocationChat) {
+      if (!isLocationChatRoom) {
         queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
       }
       setMessage("");

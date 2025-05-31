@@ -389,6 +389,7 @@ export default function MainApp() {
             <ChatArea 
               chatRoomId={selectedChatRoom || selectedLocationChatRoom!}
               onCreateCommand={handleCreateCommand}
+              isLocationChat={!!selectedLocationChatRoom}
             />
           ) : (
             <div className="flex-1 flex items-center justify-center bg-gray-50">
@@ -458,6 +459,7 @@ export default function MainApp() {
                   chatRoomId={selectedChatRoom || selectedLocationChatRoom!}
                   onCreateCommand={handleCreateCommand}
                   showMobileHeader={true}
+                  isLocationChat={!!selectedLocationChatRoom}
                   onBackClick={() => {
                     setShowMobileChat(false);
                     setSelectedChatRoom(null);
