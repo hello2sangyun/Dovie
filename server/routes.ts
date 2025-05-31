@@ -507,6 +507,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user's profile for a specific location chat room
+  app.get("/api/location/chat-rooms/:roomId/profile", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const roomId = Number(req.params.roomId);
+      const profile = await storage.getLocationChatProfile(Number(userId), roomId);
+      
+      if (profile) {
+        res.json(profile);
+      } else {
+        res.status(404).json({ message: "프로필을 찾을 수 없습니다." });
+      }
+    } catch (error) {
+      console.error("Get location chat profile error:", error);
+      res.status(500).json({ message: "프로필 조회에 실패했습니다." });
+    }
+  });
+
   // User routes
   app.put("/api/users/:id", async (req, res) => {
     try {

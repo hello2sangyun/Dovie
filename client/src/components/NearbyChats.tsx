@@ -230,6 +230,67 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
     },
   });
 
+  // Join location chat room mutation  
+  const joinLocationChatMutation = useMutation({
+    mutationFn: async ({ roomId, profileData, profileImageUrl }: { 
+      roomId: number; 
+      profileData: { nickname: string; profileImage: File | null }; 
+      profileImageUrl?: string 
+    }) => {
+      let finalProfileImageUrl = profileImageUrl;
+      
+      // Upload profile image if provided
+      if (profileData.profileImage) {
+        const formData = new FormData();
+        formData.append('file', profileData.profileImage);
+        
+        const uploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (uploadResponse.ok) {
+          const uploadResult = await uploadResponse.json();
+          finalProfileImageUrl = uploadResult.fileUrl;
+        }
+      }
+
+      // Join the location chat with profile data
+      const response = await fetch(`/api/location/chat-rooms/${roomId}/join`, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nickname: profileData.nickname,
+          profileImageUrl: finalProfileImageUrl
+        }),
+      });
+      
+      if (!response.ok) throw new Error("Failed to join location chat");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/location/nearby-chats"] });
+      toast({
+        title: "성공",
+        description: "주변챗에 참여했습니다.",
+      });
+      setShowJoinModal(false);
+      setJoinNickname("");
+      setTempProfileImage(null);
+      setTempProfilePreview(null);
+    },
+    onError: (error) => {
+      console.error("Join location chat error:", error);
+      toast({
+        title: "오류",
+        description: "주변챗 참여에 실패했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Leave location chat room mutation
   const leaveLocationChatRoomMutation = useMutation({
     mutationFn: async (roomId: number) => {
@@ -342,8 +403,32 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
     }
   };
 
-  const handleJoinRoom = (room: LocationChatRoom) => {
+  const handleJoinRoom = async (room: LocationChatRoom) => {
     setSelectedRoom(room);
+    
+    // Check if user already has a profile for this nearby chat room
+    try {
+      const response = await apiRequest(`/api/location/chat-rooms/${room.id}/profile`);
+      if (response.ok) {
+        const profileData = await response.json();
+        if (profileData.nickname && profileData.profileImageUrl) {
+          // User already has a profile, join directly
+          joinLocationChatMutation.mutate({
+            roomId: room.id,
+            profileData: {
+              nickname: profileData.nickname,
+              profileImage: null // Use existing uploaded image
+            },
+            profileImageUrl: profileData.profileImageUrl
+          });
+          return;
+        }
+      }
+    } catch (error) {
+      console.log("No existing profile found, will create new one");
+    }
+    
+    // No existing profile, show setup modal
     setJoinNickname("");
     setTempProfileImage(null);
     setTempProfilePreview(null);
