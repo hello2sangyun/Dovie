@@ -206,6 +206,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const chatAreaRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
+  
+  // Unread messages floating button state
+  const [showUnreadButton, setShowUnreadButton] = useState(false);
+  const [firstUnreadMessageId, setFirstUnreadMessageId] = useState<number | null>(null);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
 
   // Get chat room details
   const { data: chatRoomsData } = useQuery({
@@ -888,6 +893,70 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const messages = messagesData?.messages || [];
   const commands = commandsData?.commands || [];
   const contacts = contactsData?.contacts || [];
+
+  // Get unread counts to detect first unread message
+  const { data: unreadData } = useQuery({
+    queryKey: ["/api/unread-counts"],
+    enabled: !!user,
+    refetchInterval: 5000, // Check every 5 seconds
+  });
+
+  // Unread message detection and auto-scroll
+  useEffect(() => {
+    if (messages.length > 0 && unreadData?.unreadCounts) {
+      const currentRoomUnread = unreadData.unreadCounts.find((u: any) => u.chatRoomId === chatRoomId);
+      
+      if (currentRoomUnread && currentRoomUnread.unreadCount > 0) {
+        // Find first unread message (assuming last N messages are unread)
+        const unreadStartIndex = Math.max(0, messages.length - currentRoomUnread.unreadCount);
+        const firstUnreadMessage = messages[unreadStartIndex];
+        
+        if (firstUnreadMessage) {
+          setFirstUnreadMessageId(firstUnreadMessage.id);
+          
+          // Auto-scroll to first unread message when entering chat room
+          setTimeout(() => {
+            const messageElement = messageRefs.current[firstUnreadMessage.id];
+            if (messageElement) {
+              messageElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 500);
+        }
+      } else {
+        setFirstUnreadMessageId(null);
+        // Auto-scroll to bottom if no unread messages
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 500);
+      }
+    }
+  }, [messages, unreadData, chatRoomId]);
+
+  // Scroll detection for floating button
+  useEffect(() => {
+    const handleScroll = () => {
+      if (chatScrollRef.current && firstUnreadMessageId) {
+        const scrollContainer = chatScrollRef.current;
+        const firstUnreadElement = messageRefs.current[firstUnreadMessageId];
+        
+        if (firstUnreadElement) {
+          const containerRect = scrollContainer.getBoundingClientRect();
+          const elementRect = firstUnreadElement.getBoundingClientRect();
+          
+          // Show button if first unread message is not visible
+          const isVisible = elementRect.top >= containerRect.top && 
+                           elementRect.bottom <= containerRect.bottom;
+          setShowUnreadButton(!isVisible && firstUnreadMessageId !== null);
+        }
+      }
+    };
+
+    const scrollContainer = chatScrollRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll);
+      return () => scrollContainer.removeEventListener('scroll', handleScroll);
+    }
+  }, [firstUnreadMessageId]);
 
   // 활성 투표 감지
   useEffect(() => {
@@ -3831,7 +3900,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       )}
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-2 space-y-3 min-h-0 overscroll-behavior-y-contain pb-16 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+      <div 
+        ref={chatScrollRef}
+        className="flex-1 overflow-y-auto px-4 py-2 space-y-3 min-h-0 overscroll-behavior-y-contain pb-16 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 relative"
+      >
         {/* Security Notice - WhatsApp Style */}
         <div className="flex justify-center mb-6 px-4">
           <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-xl px-4 py-3 max-w-sm mx-auto shadow-lg transform hover:scale-105 transition-all duration-200 backdrop-blur-sm">
@@ -4502,6 +4574,29 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Floating Button for Unread Messages */}
+      {showUnreadButton && firstUnreadMessageId && (
+        <div className="absolute bottom-20 right-4 z-20">
+          <Button
+            variant="default"
+            size="sm"
+            className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg rounded-full px-4 py-2 flex items-center space-x-2"
+            onClick={() => {
+              const messageElement = messageRefs.current[firstUnreadMessageId];
+              if (messageElement) {
+                messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setShowUnreadButton(false);
+              }
+            }}
+          >
+            <span className="text-sm">읽지 않은 메시지</span>
+            <span className="bg-white text-purple-600 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
+              ↑
+            </span>
+          </Button>
+        </div>
+      )}
 
       {/* Chat Input - Fixed to absolute bottom */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-20">
