@@ -30,7 +30,9 @@ export default function MainApp() {
   const [activeMobileTab, setActiveMobileTab] = useState("contacts");
   const [showSettings, setShowSettings] = useState(false);
   const [selectedChatRoom, setSelectedChatRoom] = useState<number | null>(null);
+  const [selectedLocationChatRoom, setSelectedLocationChatRoom] = useState<number | null>(null);
   const [showMobileChat, setShowMobileChat] = useState(false);
+  const [isLocationChatActive, setIsLocationChatActive] = useState(false);
   const [modals, setModals] = useState({
     addContact: false,
     command: false,
