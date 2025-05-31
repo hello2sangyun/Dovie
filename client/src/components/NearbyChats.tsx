@@ -57,8 +57,7 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
   const [newRoomName, setNewRoomName] = useState("");
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<LocationChatRoom | null>(null);
-  const [joinNickname, setJoinNickname] = useState(user?.displayName || "");
-  const [profileOption, setProfileOption] = useState<"main" | "temp">("main");
+  const [joinNickname, setJoinNickname] = useState("");
   const [tempProfileImage, setTempProfileImage] = useState<File | null>(null);
   const [tempProfilePreview, setTempProfilePreview] = useState<string | null>(null);
   const [showMap, setShowMap] = useState(false);
@@ -345,8 +344,7 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
 
   const handleJoinRoom = (room: LocationChatRoom) => {
     setSelectedRoom(room);
-    setJoinNickname(user?.displayName || "");
-    setProfileOption("main");
+    setJoinNickname("");
     setTempProfileImage(null);
     setTempProfilePreview(null);
     setShowJoinModal(true);
@@ -793,59 +791,43 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>닉네임 설정</Label>
-              <RadioGroup
-                value={profileOption}
-                onValueChange={(value: "main" | "temp") => setProfileOption(value)}
-                className="mt-2"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="main" id="main" />
-                  <Label htmlFor="main" className="flex items-center gap-2">
-                    <UserAvatar user={user} size="sm" />
-                    기본 프로필 사용 ({user?.displayName})
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="temp" id="temp" />
-                  <Label htmlFor="temp">임시 프로필 생성</Label>
-                </div>
-              </RadioGroup>
+              <Label htmlFor="tempNickname">임시 닉네임</Label>
+              <Input
+                id="tempNickname"
+                value={joinNickname}
+                onChange={(e) => setJoinNickname(e.target.value)}
+                placeholder="닉네임을 입력하세요"
+                className="mt-1"
+                required
+              />
             </div>
-
-            {profileOption === "temp" && (
-              <div className="space-y-3 pl-6 border-l-2 border-gray-200">
-                <div>
-                  <Label htmlFor="tempNickname">임시 닉네임</Label>
-                  <Input
-                    id="tempNickname"
-                    value={joinNickname}
-                    onChange={(e) => setJoinNickname(e.target.value)}
-                    placeholder="임시 닉네임을 입력하세요"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="tempProfile">프로필 이미지 (선택)</Label>
-                  <div className="flex items-center gap-3 mt-2">
-                    {tempProfilePreview && (
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={tempProfilePreview} />
-                        <AvatarFallback>
-                          <User className="h-5 w-5" />
-                        </AvatarFallback>
-                      </Avatar>
-                    )}
-                    <Input
-                      id="tempProfile"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleTempProfileChange}
-                      className="cursor-pointer"
-                    />
-                  </div>
-                </div>
+            
+            <div>
+              <Label htmlFor="tempProfile">프로필 이미지 (필수)</Label>
+              <div className="flex items-center gap-3 mt-2">
+                {tempProfilePreview && (
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={tempProfilePreview} />
+                    <AvatarFallback>
+                      <User className="h-6 w-6" />
+                    </AvatarFallback>
+                  </Avatar>
+                )}
+                <Input
+                  id="tempProfile"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleTempProfileChange}
+                  className="cursor-pointer"
+                  required
+                />
               </div>
-            )}
+              {!tempProfileImage && (
+                <p className="text-xs text-gray-500 mt-1">
+                  주변챗 참여를 위해 임시 프로필 이미지가 필요합니다
+                </p>
+              )}
+            </div>
 
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setShowJoinModal(false)}>
@@ -854,7 +836,7 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
               <Button
                 onClick={() => handleConfirmJoin()}
                 disabled={joinChatRoomMutation.isPending || 
-                  (profileOption === "temp" && !joinNickname.trim())}
+                  !joinNickname.trim() || !tempProfileImage}
                 className="purple-gradient"
               >
                 {joinChatRoomMutation.isPending ? "참여 중..." : "참여하기"}
