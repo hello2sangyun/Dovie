@@ -3783,11 +3783,19 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                                     )}
                                     onClick={(e) => {
                                       e.stopPropagation();
+                                      e.preventDefault();
                                       // 음성 재생 로직을 여기에 추가 (원본 메시지의 음성 재생)
                                       const originalMessage = messages.find(m => m.id === msg.replyToMessageId);
                                       if (originalMessage && originalMessage.messageType === 'voice') {
                                         handleVoicePlayback(originalMessage.id, originalMessage.fileUrl, originalMessage.voiceDuration);
                                       }
+                                    }}
+                                    onContextMenu={(e) => {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                    }}
+                                    onTouchStart={(e) => {
+                                      e.stopPropagation();
                                     }}
                                   >
                                     <Play className={cn(
