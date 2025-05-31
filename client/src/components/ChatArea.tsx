@@ -1502,6 +1502,72 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     return num.toLocaleString('ko-KR');
   };
 
+  // 한글 숫자를 숫자로 변환하는 함수
+  const parseKoreanNumber = (text: string): number | null => {
+    try {
+      // 이미 숫자인 경우
+      const directNumber = parseFloat(text.replace(/,/g, ''));
+      if (!isNaN(directNumber)) {
+        return directNumber;
+      }
+
+      // 한글 숫자 단위 변환
+      const koreanUnits: { [key: string]: number } = {
+        '천': 1000,
+        '만': 10000,
+        '십만': 100000,
+        '백만': 1000000,
+        '천만': 10000000,
+        '억': 100000000,
+        '십억': 1000000000,
+        '백억': 10000000000,
+        '천억': 100000000000,
+        '조': 1000000000000
+      };
+
+      let result = 0;
+      let currentNumber = '';
+      let i = 0;
+
+      while (i < text.length) {
+        const char = text[i];
+        
+        // 숫자 문자 수집
+        if (/\d/.test(char)) {
+          currentNumber += char;
+          i++;
+          continue;
+        }
+
+        // 단위 찾기
+        let foundUnit = false;
+        for (const [unit, multiplier] of Object.entries(koreanUnits)) {
+          if (text.substring(i, i + unit.length) === unit) {
+            const baseNumber = currentNumber ? parseInt(currentNumber) : 1;
+            result += baseNumber * multiplier;
+            currentNumber = '';
+            i += unit.length;
+            foundUnit = true;
+            break;
+          }
+        }
+
+        if (!foundUnit) {
+          i++;
+        }
+      }
+
+      // 남은 숫자 처리
+      if (currentNumber) {
+        result += parseInt(currentNumber);
+      }
+
+      return result > 0 ? result : null;
+    } catch {
+      return null;
+    }
+  };
+
   // 안전한 계산식 평가 함수
   const evaluateExpression = (expr: string): number | null => {
     try {
