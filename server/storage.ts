@@ -316,8 +316,15 @@ export class DatabaseStorage implements IStorage {
       .where(eq(chatParticipants.chatRoomId, chatRoomId));
 
     if (remainingParticipants.length === 0) {
-      // Delete the entire chat room if no participants left
-      await db.delete(chatRooms).where(eq(chatRooms.id, chatRoomId));
+      // Never delete chat rooms that might have messages
+      // Just mark the chat room as inactive
+      await db
+        .update(chatRooms)
+        .set({ 
+          name: `[삭제된 채팅방]`,
+          isGroup: false 
+        })
+        .where(eq(chatRooms.id, chatRoomId));
     }
   }
 
