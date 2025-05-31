@@ -232,10 +232,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [firstUnreadMessageId, setFirstUnreadMessageId] = useState<number | null>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
-  // Get chat room details
+  // Get chat room details (only for regular chats, not location chats)
   const { data: chatRoomsData } = useQuery({
     queryKey: ["/api/chat-rooms"],
-    enabled: !!user,
+    enabled: !!user && !isLocationChat && !isCheckingLocation,
   });
 
   const currentChatRoom = (chatRoomsData as any)?.chatRooms?.find((room: any) => room.id === chatRoomId);
