@@ -1,12 +1,15 @@
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Pin, Users, X } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Plus, Search, Pin, Users, X, Trash2, LogOut, MoreVertical } from "lucide-react";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -20,8 +23,63 @@ interface ChatsListProps {
 
 export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup, contactFilter, onClearFilter }: ChatsListProps) {
   const { user } = useAuth();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
+  const [selectedRoomIds, setSelectedRoomIds] = useState<number[]>([]);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [saveFiles, setSaveFiles] = useState(true);
+
+  // 채팅방 나가기 mutation
+  const leaveChatRoomMutation = useMutation({
+    mutationFn: async ({ roomId, saveFiles }: { roomId: number; saveFiles: boolean }) => {
+      const response = await apiRequest(`/api/chat-rooms/${roomId}/leave`, "POST", { saveFiles });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      toast({
+        title: "채팅방 나가기 완료",
+        description: saveFiles ? "파일들이 저장소로 이동되었습니다." : "파일들이 삭제되었습니다.",
+      });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "채팅방 나가기 실패",
+        description: "다시 시도해주세요.",
+      });
+    },
+  });
+
+  // 다중 선택 관련 함수들
+  const toggleMultiSelect = () => {
+    setIsMultiSelectMode(!isMultiSelectMode);
+    setSelectedRoomIds([]);
+  };
+
+  const toggleRoomSelection = (roomId: number) => {
+    setSelectedRoomIds(prev => 
+      prev.includes(roomId) 
+        ? prev.filter(id => id !== roomId)
+        : [...prev, roomId]
+    );
+  };
+
+  const handleExitSelectedRooms = () => {
+    if (selectedRoomIds.length === 0) return;
+    setShowExitConfirm(true);
+  };
+
+  const confirmExit = async () => {
+    for (const roomId of selectedRoomIds) {
+      await leaveChatRoomMutation.mutateAsync({ roomId, saveFiles });
+    }
+    setShowExitConfirm(false);
+    setIsMultiSelectMode(false);
+    setSelectedRoomIds([]);
+  };
 
   // 메시지 미리 로딩 함수
   const prefetchMessages = async (chatRoomId: number) => {
@@ -206,15 +264,51 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-semibold text-gray-900">채팅방</h3>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-purple-600 hover:text-purple-700"
-            onClick={onCreateGroup}
-            title="그룹 채팅 만들기"
-          >
-            <Plus className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center space-x-2">
+            {isMultiSelectMode ? (
+              <>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleExitSelectedRooms}
+                  disabled={selectedRoomIds.length === 0}
+                  className="text-xs"
+                >
+                  <LogOut className="h-4 w-4 mr-1" />
+                  나가기 ({selectedRoomIds.length})
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={toggleMultiSelect}
+                  className="text-xs"
+                >
+                  취소
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-600 hover:text-gray-700"
+                  onClick={toggleMultiSelect}
+                  title="채팅방 관리"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-purple-600 hover:text-purple-700"
+                  onClick={onCreateGroup}
+                  title="그룹 채팅 만들기"
+                >
+                  <Plus className="h-5 w-5" />
+                </Button>
+              </>
+            )}
+          </div>
         </div>
         
         <div className="relative">
@@ -260,11 +354,13 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
                 chatRoom={chatRoom}
                 displayName={getChatRoomDisplayName(chatRoom)}
                 isSelected={selectedChatId === chatRoom.id}
-                onClick={() => onSelectChat(chatRoom.id)}
+                onClick={() => isMultiSelectMode ? toggleRoomSelection(chatRoom.id) : onSelectChat(chatRoom.id)}
                 isPinned
                 unreadCount={getUnreadCount(chatRoom.id)}
                 hasDraft={hasDraftMessage(chatRoom.id)}
                 draftPreview={getDraftPreview(chatRoom.id)}
+                isMultiSelectMode={isMultiSelectMode}
+                isChecked={selectedRoomIds.includes(chatRoom.id)}
               />
             ))}
           </>
@@ -283,10 +379,12 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
                 chatRoom={chatRoom}
                 displayName={getChatRoomDisplayName(chatRoom)}
                 isSelected={selectedChatId === chatRoom.id}
-                onClick={() => onSelectChat(chatRoom.id)}
+                onClick={() => isMultiSelectMode ? toggleRoomSelection(chatRoom.id) : onSelectChat(chatRoom.id)}
                 unreadCount={getUnreadCount(chatRoom.id)}
                 hasDraft={hasDraftMessage(chatRoom.id)}
                 draftPreview={getDraftPreview(chatRoom.id)}
+                isMultiSelectMode={isMultiSelectMode}
+                isChecked={selectedRoomIds.includes(chatRoom.id)}
               />
             ))}
           </>
@@ -298,6 +396,42 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
           </div>
         )}
       </div>
+
+      {/* 나가기 확인 다이얼로그 */}
+      <Dialog open={showExitConfirm} onOpenChange={setShowExitConfirm}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>채팅방 나가기</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              선택한 {selectedRoomIds.length}개의 채팅방에서 나가시겠습니까?
+            </p>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="save-files"
+                checked={saveFiles}
+                onCheckedChange={(checked) => setSaveFiles(checked === true)}
+              />
+              <label htmlFor="save-files" className="text-sm text-gray-700">
+                공유된 파일들을 내 저장소로 이동
+              </label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowExitConfirm(false)}>
+              취소
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={confirmExit}
+              disabled={leaveChatRoomMutation.isPending}
+            >
+              {leaveChatRoomMutation.isPending ? "처리중..." : "나가기"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -310,7 +444,9 @@ function ChatRoomItem({
   isPinned = false,
   unreadCount = 0,
   hasDraft = false,
-  draftPreview = ""
+  draftPreview = "",
+  isMultiSelectMode = false,
+  isChecked = false
 }: {
   chatRoom: any;
   displayName: string;
@@ -320,6 +456,8 @@ function ChatRoomItem({
   unreadCount?: number;
   hasDraft?: boolean;
   draftPreview?: string;
+  isMultiSelectMode?: boolean;
+  isChecked?: boolean;
 }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
