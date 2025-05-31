@@ -72,6 +72,11 @@ export interface IStorage {
   leaveLocationChatRoom(userId: number, roomId: number): Promise<void>;
   deleteLocationChatRoom(roomId: number): Promise<void>;
   checkLocationProximity(userId: number): Promise<{ roomId: number; distance: number; hasNewChats: boolean }[]>;
+
+  // File storage analytics operations
+  getStorageAnalytics(userId: number, timeRange: string): Promise<any>;
+  trackFileUpload(fileData: { userId: number; chatRoomId?: number; fileName: string; originalName: string; fileSize: number; fileType: string; filePath: string }): Promise<void>;
+  trackFileDownload(fileUploadId: number, userId: number, ipAddress?: string, userAgent?: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -793,6 +798,130 @@ export class DatabaseStorage implements IStorage {
     // 채팅방 삭제
     await db.delete(locationChatRooms)
       .where(eq(locationChatRooms.id, roomId));
+  }
+
+  async getStorageAnalytics(userId: number, timeRange: string): Promise<any> {
+    const timeCondition = this.getTimeCondition(timeRange);
+    
+    // Get user's file uploads with chat room info
+    const fileUploads = await db
+      .select({
+        id: fileUploads.id,
+        fileName: fileUploads.fileName,
+        originalName: fileUploads.originalName,
+        fileSize: fileUploads.fileSize,
+        fileType: fileUploads.fileType,
+        uploadedAt: fileUploads.uploadedAt,
+        chatRoomName: chatRooms.name,
+        chatRoomId: fileUploads.chatRoomId
+      })
+      .from(fileUploads)
+      .leftJoin(chatRooms, eq(fileUploads.chatRoomId, chatRooms.id))
+      .where(
+        and(
+          eq(fileUploads.userId, userId),
+          eq(fileUploads.isDeleted, false),
+          timeCondition
+        )
+      );
+
+    // Get download logs for user's files
+    const downloads = await db
+      .select({
+        id: fileDownloads.id,
+        fileName: fileUploads.fileName,
+        downloaderName: users.displayName,
+        downloadedAt: fileDownloads.downloadedAt,
+        ipAddress: fileDownloads.ipAddress,
+        fileUploadId: fileDownloads.fileUploadId
+      })
+      .from(fileDownloads)
+      .innerJoin(fileUploads, eq(fileDownloads.fileUploadId, fileUploads.id))
+      .innerJoin(users, eq(fileDownloads.userId, users.id))
+      .where(eq(fileUploads.userId, userId));
+
+    // Calculate totals and breakdowns
+    const totalSize = fileUploads.reduce((sum, file) => sum + file.fileSize, 0);
+    
+    const typeBreakdown = {
+      images: 0,
+      documents: 0,
+      audio: 0,
+      video: 0,
+      other: 0
+    };
+
+    fileUploads.forEach(file => {
+      if (file.fileType.startsWith('image/')) {
+        typeBreakdown.images += file.fileSize;
+      } else if (file.fileType.startsWith('video/')) {
+        typeBreakdown.video += file.fileSize;
+      } else if (file.fileType.startsWith('audio/')) {
+        typeBreakdown.audio += file.fileSize;
+      } else if (file.fileType.includes('document') || file.fileType.includes('pdf') || file.fileType.includes('text')) {
+        typeBreakdown.documents += file.fileSize;
+      } else {
+        typeBreakdown.other += file.fileSize;
+      }
+    });
+
+    // Chat room breakdown
+    const chatRoomMap = new Map();
+    fileUploads.forEach(file => {
+      const roomName = file.chatRoomName || '개인 파일';
+      if (!chatRoomMap.has(roomName)) {
+        chatRoomMap.set(roomName, { roomName, fileCount: 0, totalSize: 0 });
+      }
+      const room = chatRoomMap.get(roomName);
+      room.fileCount++;
+      room.totalSize += file.fileSize;
+    });
+
+    return {
+      totalSize,
+      typeBreakdown,
+      chatRoomBreakdown: Array.from(chatRoomMap.values()),
+      recentDownloads: downloads.slice(0, 20) // Latest 20 downloads
+    };
+  }
+
+  async trackFileUpload(fileData: { userId: number; chatRoomId?: number; fileName: string; originalName: string; fileSize: number; fileType: string; filePath: string }): Promise<void> {
+    await db.insert(fileUploads).values({
+      userId: fileData.userId,
+      chatRoomId: fileData.chatRoomId || null,
+      fileName: fileData.fileName,
+      originalName: fileData.originalName,
+      fileSize: fileData.fileSize,
+      fileType: fileData.fileType,
+      filePath: fileData.filePath
+    });
+  }
+
+  async trackFileDownload(fileUploadId: number, userId: number, ipAddress?: string, userAgent?: string): Promise<void> {
+    await db.insert(fileDownloads).values({
+      fileUploadId,
+      userId,
+      ipAddress: ipAddress || null,
+      userAgent: userAgent || null
+    });
+  }
+
+  private getTimeCondition(timeRange: string) {
+    const now = new Date();
+    let startDate: Date;
+
+    switch (timeRange) {
+      case 'week':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case 'year':
+        startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        break;
+      default: // month
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    }
+
+    return sql`${fileUploads.uploadedAt} >= ${startDate}`;
   }
 
   async checkLocationProximity(userId: number): Promise<{ roomId: number; distance: number; hasNewChats: boolean }[]> {

@@ -468,3 +468,7 @@ export type LocationChatMessage = typeof locationChatMessages.$inferSelect;
 export type InsertLocationChatMessage = z.infer<typeof insertLocationChatMessageSchema>;
 export type UserLocation = typeof userLocations.$inferSelect;
 export type InsertUserLocation = z.infer<typeof insertUserLocationSchema>;
+export type FileUpload = typeof fileUploads.$inferSelect;
+export type InsertFileUpload = z.infer<typeof insertFileUploadSchema>;
+export type FileDownload = typeof fileDownloads.$inferSelect;
+export type InsertFileDownload = z.infer<typeof insertFileDownloadSchema>;

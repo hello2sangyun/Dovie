@@ -1660,5 +1660,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }, 60000); // 1분마다 실행
 
+  // Storage Analytics routes
+  app.get("/api/storage/analytics", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const timeRange = req.query.timeRange as string || 'month';
+      const analytics = await storage.getStorageAnalytics(Number(userId), timeRange);
+      res.json(analytics);
+    } catch (error) {
+      console.error('Storage analytics error:', error);
+      res.status(500).json({ message: "Failed to get storage analytics" });
+    }
+  });
+
+  app.post("/api/storage/track-upload", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const fileData = {
+        userId: Number(userId),
+        ...req.body
+      };
+      await storage.trackFileUpload(fileData);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Track upload error:', error);
+      res.status(500).json({ message: "Failed to track file upload" });
+    }
+  });
+
+  app.post("/api/storage/track-download", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { fileUploadId } = req.body;
+      const ipAddress = req.ip || req.connection.remoteAddress;
+      const userAgent = req.headers['user-agent'];
+      
+      await storage.trackFileDownload(fileUploadId, Number(userId), ipAddress, userAgent);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Track download error:', error);
+      res.status(500).json({ message: "Failed to track file download" });
+    }
+  });
+
   return httpServer;
 }
