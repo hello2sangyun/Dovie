@@ -267,8 +267,9 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
       if (!response.ok) throw new Error("Failed to join location chat");
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/location/nearby-chats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
       toast({
         title: "성공",
         description: "주변챗에 참여했습니다.",
@@ -277,6 +278,11 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
       setJoinNickname("");
       setTempProfileImage(null);
       setTempProfilePreview(null);
+      
+      // Navigate to the chat room
+      if (data.chatRoomId) {
+        onChatRoomSelect(data.chatRoomId);
+      }
     },
     onError: (error) => {
       console.error("Join location chat error:", error);
