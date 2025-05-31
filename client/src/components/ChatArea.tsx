@@ -1344,7 +1344,19 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
-      uploadFileMutation.mutate(files[0]); // Upload the first file
+      const file = files[0];
+      const maxSize = 500 * 1024 * 1024; // 500MB
+      
+      if (file.size > maxSize) {
+        toast({
+          variant: "destructive",
+          title: "파일 크기 제한 초과",
+          description: `파일 크기가 500MB를 초과합니다. (현재: ${(file.size / 1024 / 1024).toFixed(1)}MB)`,
+        });
+        return;
+      }
+      
+      uploadFileMutation.mutate(file);
     }
   };
 
@@ -1442,6 +1454,19 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      const maxSize = 500 * 1024 * 1024; // 500MB
+      
+      if (file.size > maxSize) {
+        toast({
+          variant: "destructive",
+          title: "파일 크기 제한 초과",
+          description: `파일 크기가 500MB를 초과합니다. (현재: ${(file.size / 1024 / 1024).toFixed(1)}MB)`,
+        });
+        // Reset file input
+        event.target.value = '';
+        return;
+      }
+      
       uploadFileMutation.mutate(file);
     }
   };

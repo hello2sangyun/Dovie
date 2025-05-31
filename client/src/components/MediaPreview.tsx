@@ -159,6 +159,18 @@ const VideoPlayer = ({ src, fileName, isMe }: { src: string; fileName: string; i
       <div className="absolute top-2 left-2 bg-black/50 rounded px-2 py-1">
         <span className="text-white text-xs">{fileName}</span>
       </div>
+      
+      <div className="absolute top-2 right-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-white hover:bg-white/20 p-1 h-8 w-8"
+          onClick={() => window.open(src, '_blank')}
+          title="다운로드"
+        >
+          <Download className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 };
@@ -203,9 +215,25 @@ const ImagePreview = ({ src, fileName, isMe }: { src: string; fileName: string; 
         )}
         
         {!hasError && !isLoading && (
-          <div className="absolute top-2 left-2 bg-black/50 rounded px-2 py-1">
-            <span className="text-white text-xs">{fileName}</span>
-          </div>
+          <>
+            <div className="absolute top-2 left-2 bg-black/50 rounded px-2 py-1">
+              <span className="text-white text-xs">{fileName}</span>
+            </div>
+            <div className="absolute top-2 right-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/20 p-1 h-8 w-8"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(src, '_blank');
+                }}
+                title="다운로드"
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+            </div>
+          </>
         )}
       </div>
 
