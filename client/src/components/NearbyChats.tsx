@@ -425,11 +425,11 @@ export default function NearbyChats({ onChatRoomSelect }: NearbyChatsProps) {
     <div className="h-full flex flex-col">
       {/* Header with map toggle */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center gap-2 min-w-0 flex-1">
-          <MapPin className="h-5 w-5 text-purple-600 flex-shrink-0" />
-          <h2 className="text-lg font-semibold whitespace-nowrap">주변챗</h2>
+        <div className="flex items-center gap-2">
+          <MapPin className="h-5 w-5 text-purple-600" />
+          <h2 className="text-lg font-semibold">주변챗</h2>
           {userLocation && (
-            <Badge variant="secondary" className="text-xs whitespace-nowrap flex-shrink-0">
+            <Badge variant="secondary" className="text-xs">
               정확도 {Math.round(userLocation.accuracy)}m
             </Badge>
           )}
