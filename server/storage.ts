@@ -86,6 +86,22 @@ export interface IStorage {
   getStorageAnalytics(userId: number, timeRange: string): Promise<any>;
   trackFileUpload(fileData: { userId: number; chatRoomId?: number; fileName: string; originalName: string; fileSize: number; fileType: string; filePath: string }): Promise<void>;
   trackFileDownload(fileUploadId: number, userId: number, ipAddress?: string, userAgent?: string): Promise<void>;
+
+  // Business card operations
+  createBusinessCard(card: InsertBusinessCard): Promise<BusinessCard>;
+  getBusinessCard(userId: number): Promise<BusinessCard | undefined>;
+  updateBusinessCard(userId: number, updates: Partial<InsertBusinessCard>): Promise<BusinessCard | undefined>;
+  deleteBusinessCard(userId: number): Promise<void>;
+  getContactBusinessCard(contactUserId: number): Promise<BusinessCard | undefined>;
+
+  // QR Code operations
+  generateUserQRCode(userId: number): Promise<string>;
+  getUserByQRCode(qrCode: string): Promise<User | undefined>;
+
+  // Email message operations
+  sendEmailMessage(emailData: InsertEmailMessage): Promise<EmailMessage>;
+  getEmailMessages(chatRoomId: number): Promise<EmailMessage[]>;
+  markEmailAsRead(emailId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1030,6 +1046,91 @@ export class DatabaseStorage implements IStorage {
     }
 
     return proximityResults;
+  }
+
+  // Business Card Operations
+  async createBusinessCard(card: InsertBusinessCard): Promise<BusinessCard> {
+    const [businessCard] = await db
+      .insert(businessCards)
+      .values(card)
+      .returning();
+    return businessCard;
+  }
+
+  async getBusinessCard(userId: number): Promise<BusinessCard | undefined> {
+    const [card] = await db
+      .select()
+      .from(businessCards)
+      .where(and(eq(businessCards.userId, userId), eq(businessCards.isActive, true)));
+    return card || undefined;
+  }
+
+  async updateBusinessCard(userId: number, updates: Partial<InsertBusinessCard>): Promise<BusinessCard | undefined> {
+    const [card] = await db
+      .update(businessCards)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(businessCards.userId, userId))
+      .returning();
+    return card || undefined;
+  }
+
+  async deleteBusinessCard(userId: number): Promise<void> {
+    await db
+      .update(businessCards)
+      .set({ isActive: false })
+      .where(eq(businessCards.userId, userId));
+  }
+
+  async getContactBusinessCard(contactUserId: number): Promise<BusinessCard | undefined> {
+    const [card] = await db
+      .select()
+      .from(businessCards)
+      .where(and(eq(businessCards.userId, contactUserId), eq(businessCards.isActive, true)));
+    return card || undefined;
+  }
+
+  // QR Code Operations
+  async generateUserQRCode(userId: number): Promise<string> {
+    const qrCode = `dovie_user_${userId}_${Date.now()}`;
+    
+    await db
+      .update(users)
+      .set({ qrCode })
+      .where(eq(users.id, userId));
+    
+    return qrCode;
+  }
+
+  async getUserByQRCode(qrCode: string): Promise<User | undefined> {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.qrCode, qrCode));
+    return user || undefined;
+  }
+
+  // Email Message Operations
+  async sendEmailMessage(emailData: InsertEmailMessage): Promise<EmailMessage> {
+    const [emailMessage] = await db
+      .insert(emailMessages)
+      .values(emailData)
+      .returning();
+    return emailMessage;
+  }
+
+  async getEmailMessages(chatRoomId: number): Promise<EmailMessage[]> {
+    return await db
+      .select()
+      .from(emailMessages)
+      .where(eq(emailMessages.chatRoomId, chatRoomId))
+      .orderBy(desc(emailMessages.sentAt));
+  }
+
+  async markEmailAsRead(emailId: number): Promise<void> {
+    await db
+      .update(emailMessages)
+      .set({ isRead: true })
+      .where(eq(emailMessages.id, emailId));
   }
 
   async getLocationChatMessages(roomId: number, limit: number = 50): Promise<any[]> {

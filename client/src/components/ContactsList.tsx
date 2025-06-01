@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Plus, Search, CreditCard, X } from "lucide-react";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 
 interface ContactsListProps {
@@ -17,6 +18,9 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("nickname");
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
+  const [showBusinessCardDialog, setShowBusinessCardDialog] = useState(false);
+  const [selectedContact, setSelectedContact] = useState<any>(null);
 
   const { data: contactsData, isLoading } = useQuery({
     queryKey: ["/api/contacts"],
@@ -31,6 +35,19 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   });
 
   const contacts = contactsData?.contacts || [];
+
+  // Business card data query
+  const { data: businessCardData } = useQuery({
+    queryKey: ["/api/business-cards", selectedContact?.contactUser?.id],
+    enabled: !!selectedContact?.contactUser?.id && showBusinessCardDialog,
+    queryFn: async () => {
+      const response = await fetch(`/api/business-cards/${selectedContact.contactUser.id}`, {
+        headers: { "x-user-id": user!.id.toString() },
+      });
+      if (!response.ok) throw new Error("Failed to fetch business card");
+      return response.json();
+    },
+  });
 
   const filteredAndSortedContacts = contacts
     .filter((contact: any) => {
@@ -132,11 +149,17 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
           filteredAndSortedContacts.map((contact: any) => (
             <div
               key={contact.id}
-              className="px-3 py-2 hover:bg-purple-50 cursor-pointer border-b border-gray-100 transition-colors"
-              onClick={() => onSelectContact(contact.contactUserId)}
+              className="px-3 py-2 hover:bg-purple-50 border-b border-gray-100 transition-colors"
             >
               <div className="flex items-center space-x-2">
-                <Avatar className="w-8 h-8">
+                <Avatar 
+                  className="w-8 h-8 cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedContact(contact);
+                    setShowProfileDialog(true);
+                  }}
+                >
                   <AvatarImage 
                     src={contact.contactUser.profilePicture || undefined} 
                     alt={contact.nickname || contact.contactUser.displayName} 
@@ -145,15 +168,32 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                     {getInitials(contact.nickname || contact.contactUser.displayName)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1 min-w-0">
+                <div 
+                  className="flex-1 min-w-0 cursor-pointer"
+                  onClick={() => onSelectContact(contact.contactUserId)}
+                >
                   <div className="flex items-center justify-between">
                     <p className="font-medium text-gray-900 truncate text-sm">
                       {contact.nickname || contact.contactUser.displayName}
                     </p>
-                    <div className={cn(
-                      "w-2 h-2 rounded-full ml-2 flex-shrink-0",
-                      contact.contactUser.isOnline ? "bg-green-500" : "bg-gray-300"
-                    )} />
+                    <div className="flex items-center space-x-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 text-gray-400 hover:text-purple-600"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedContact(contact);
+                          setShowBusinessCardDialog(true);
+                        }}
+                      >
+                        <CreditCard className="h-3 w-3" />
+                      </Button>
+                      <div className={cn(
+                        "w-2 h-2 rounded-full flex-shrink-0",
+                        contact.contactUser.isOnline ? "bg-green-500" : "bg-gray-300"
+                      )} />
+                    </div>
                   </div>
                   <p className="text-xs text-gray-500 truncate">@{contact.contactUser.username}</p>
                   <p className="text-xs text-gray-400 truncate">
