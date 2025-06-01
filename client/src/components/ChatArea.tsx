@@ -267,13 +267,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     },
   });
 
-  // Get messages with optimized caching
-  const { data: messagesData, isLoading } = useQuery({
+  // Get messages with optimized caching and instant display
+  const { data: messagesData, isLoading, isFetching } = useQuery({
     queryKey: [isLocationChatRoom ? "/api/location/chat-rooms" : "/api/chat-rooms", chatRoomId, "messages"],
     enabled: !!chatRoomId,
-    staleTime: 10 * 1000, // 10초간 신선한 상태 유지
-    refetchOnMount: true, // 채팅방 진입 시 항상 최신 메시지 로드
-    refetchOnWindowFocus: true, // 포커스 시 새 메시지 확인
+    staleTime: 30 * 1000, // 30초간 신선한 상태 유지
+    refetchOnMount: false, // 캐시된 데이터가 있으면 즉시 표시
+    refetchOnWindowFocus: false, // 포커스 시 자동 새로고침 비활성화
     queryFn: async () => {
       const endpoint = isLocationChatRoom 
         ? `/api/location/chat-rooms/${chatRoomId}/messages`
@@ -4004,8 +4004,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           </div>
         </div>
 
-        {isLoading ? (
-          // 로딩 스켈레톤 UI
+        {isLoading && !messages.length ? (
+          // 캐시된 메시지가 없을 때만 로딩 스켈레톤 표시
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
               <div key={i} className="flex items-start space-x-3">

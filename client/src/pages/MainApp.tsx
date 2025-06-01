@@ -57,6 +57,29 @@ export default function MainApp() {
     enabled: !!user,
   });
 
+  // Prefetch messages for recent chat rooms
+  useEffect(() => {
+    if (chatRoomsData?.chatRooms && queryClient) {
+      // 최근 채팅방 5개의 메시지를 미리 로딩
+      const recentChatRooms = chatRoomsData.chatRooms.slice(0, 5);
+      
+      recentChatRooms.forEach((room: any, index: number) => {
+        // 각 요청을 100ms씩 지연시켜 서버 부하 분산
+        setTimeout(() => {
+          queryClient.prefetchQuery({
+            queryKey: [`/api/chat-rooms/${room.id}/messages`],
+            queryFn: async () => {
+              const response = await apiRequest(`/api/chat-rooms/${room.id}/messages`, "GET");
+              if (!response.ok) throw new Error('Failed to prefetch messages');
+              return response.json();
+            },
+            staleTime: 30000, // 30초 동안 캐시 유지
+          });
+        }, index * 100);
+      });
+    }
+  }, [chatRoomsData?.chatRooms, queryClient]);
+
   // Get unread counts
   const { data: unreadCountsData } = useQuery({
     queryKey: ["/api/unread-counts"],
