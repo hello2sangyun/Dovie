@@ -218,6 +218,26 @@ export const fileDownloads = pgTable("file_downloads", {
   userAgent: text("user_agent")
 });
 
+export const businessCards = pgTable("business_cards", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  name: text("name").notNull(),
+  company: text("company"),
+  position: text("position"),
+  department: text("department"),
+  email: text("email"),
+  phone: text("phone"),
+  mobilePhone: text("mobile_phone"),
+  fax: text("fax"),
+  website: text("website"),
+  address: text("address"),
+  cardImageUrl: text("card_image_url"),
+  extractedText: text("extracted_text"), // OCR로 추출된 원본 텍스트
+  isDefault: boolean("is_default").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const usersRelations = relations(users, ({ many }) => ({
   contacts: many(contacts, { relationName: "userContacts" }),
   contactOf: many(contacts, { relationName: "contactUser" }),
