@@ -25,15 +25,24 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   const { data: contactsData, isLoading, error } = useQuery({
     queryKey: ["/api/contacts"],
     enabled: !!user,
+    retry: 3,
+    staleTime: 30000,
     queryFn: async () => {
-      console.log("Fetching contacts for user:", user?.id);
-      const response = await fetch("/api/contacts", {
-        headers: { "x-user-id": user!.id.toString() },
-      });
-      if (!response.ok) throw new Error("Failed to fetch contacts");
-      const data = await response.json();
-      console.log("Contacts data received:", data);
-      return data;
+      try {
+        console.log("Fetching contacts for user:", user?.id);
+        const response = await fetch("/api/contacts", {
+          headers: { "x-user-id": user!.id.toString() },
+        });
+        if (!response.ok) {
+          throw new Error(`Failed to fetch contacts: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log("Contacts data received:", data);
+        return data;
+      } catch (err) {
+        console.error("Error fetching contacts:", err);
+        throw err;
+      }
     },
   });
 
@@ -97,7 +106,14 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     return `${Math.floor(diffMinutes / 1440)}일 전 접속`;
   };
 
-  console.log("ContactsList render state:", { isLoading, error, contactsData, contacts: contacts.length });
+  console.log("ContactsList render state:", { 
+    isLoading, 
+    error, 
+    contactsData, 
+    contacts: contacts.length, 
+    contactsStructure: contacts.length > 0 ? contacts[0] : null,
+    user: user?.id 
+  });
 
   if (isLoading) {
     return (
