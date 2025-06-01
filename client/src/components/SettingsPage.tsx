@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
 import { ImageCropper } from "@/components/ImageCropper";
-import { Camera, User, LogOut, Building2, Moon, Sun, Check, X, Loader2, CreditCard, QrCode } from "lucide-react";
+import { Camera, User, LogOut, Building2, Moon, Sun, Check, X, Loader2, CreditCard, QrCode, Upload } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { getInitials } from "@/lib/utils";
 import VaultLogo from "./VaultLogo";
@@ -44,6 +44,8 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
   });
   const [showBusinessCardForm, setShowBusinessCardForm] = useState(false);
   const [qrCode, setQrCode] = useState<string | null>(null);
+  const [businessCardImage, setBusinessCardImage] = useState<File | null>(null);
+  const [isExtractingCard, setIsExtractingCard] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
       // 사용자가 명시적으로 다크모드를 설정한 경우에만 true
@@ -181,6 +183,30 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
         variant: "destructive",
         title: "QR 코드 생성 실패",
         description: "QR 코드 생성에 실패했습니다.",
+      });
+    },
+  });
+
+  // Business card OCR extraction mutation
+  const extractCardMutation = useMutation({
+    mutationFn: async (imageUrl: string) => {
+      const response = await apiRequest("/api/business-cards/extract", "POST", { imageUrl });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setBusinessCard(data.extractedInfo);
+      setIsExtractingCard(false);
+      toast({
+        title: "명함 정보 추출 완료",
+        description: "명함에서 정보를 성공적으로 추출했습니다.",
+      });
+    },
+    onError: () => {
+      setIsExtractingCard(false);
+      toast({
+        variant: "destructive",
+        title: "명함 정보 추출 실패",
+        description: "명함 정보를 추출할 수 없습니다.",
       });
     },
   });
@@ -511,6 +537,65 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
               </Button>
             ) : (
               <div className="space-y-3">
+                {/* Business Card Photo Upload */}
+                <div className="space-y-2">
+                  <Label className="text-xs">명함 사진으로 자동 입력</Label>
+                  <div className="flex gap-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setBusinessCardImage(file);
+                          setIsExtractingCard(true);
+                          
+                          // Upload image and extract info
+                          const formData = new FormData();
+                          formData.append("file", file);
+                          
+                          fetch("/api/upload", {
+                            method: "POST",
+                            headers: {
+                              "x-user-id": user?.id.toString() || "",
+                            },
+                            body: formData,
+                          })
+                          .then(response => response.json())
+                          .then(data => {
+                            extractCardMutation.mutate(data.fileUrl);
+                          })
+                          .catch(() => {
+                            setIsExtractingCard(false);
+                            toast({
+                              variant: "destructive",
+                              title: "업로드 실패",
+                              description: "이미지 업로드에 실패했습니다.",
+                            });
+                          });
+                        }
+                      }}
+                      className="hidden"
+                      id="businessCardUpload"
+                    />
+                    <Button
+                      onClick={() => document.getElementById('businessCardUpload')?.click()}
+                      variant="outline"
+                      className="h-7 text-xs flex-1"
+                      disabled={isExtractingCard}
+                    >
+                      <Upload className="h-3 w-3 mr-1" />
+                      {isExtractingCard ? "정보 추출 중..." : "명함 사진 업로드"}
+                    </Button>
+                  </div>
+                  {isExtractingCard && (
+                    <div className="text-xs text-gray-500 flex items-center gap-1">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      AI가 명함 정보를 분석하고 있습니다...
+                    </div>
+                  )}
+                </div>
+                
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <Label htmlFor="cardName" className="text-xs">이름</Label>
