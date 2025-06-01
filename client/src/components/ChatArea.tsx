@@ -4027,6 +4027,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             const isMe = msg.senderId === user?.id;
             const showDate = index === 0 || 
               new Date(messages[index - 1].createdAt).toDateString() !== new Date(msg.createdAt).toDateString();
+            const isFirstUnread = firstUnreadMessageId === msg.id;
 
             return (
               <div key={msg.id}>
@@ -4035,6 +4036,17 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     <span className="bg-white px-4 py-2 rounded-full text-xs text-gray-500 shadow-sm border">
                       {new Date(msg.createdAt).toLocaleDateString('ko-KR')}
                     </span>
+                  </div>
+                )}
+                
+                {/* 읽지 않은 메시지 시작 표시 */}
+                {isFirstUnread && (
+                  <div className="flex items-center justify-center my-4">
+                    <div className="flex-1 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
+                    <span className="bg-blue-500 text-white px-4 py-1 rounded-full text-xs font-medium shadow-md mx-4">
+                      여기까지 읽으셨습니다
+                    </span>
+                    <div className="flex-1 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
                   </div>
                 )}
                 
