@@ -3,7 +3,7 @@ import express from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, locationChatRooms, chatRooms, chatParticipants } from "@shared/schema";
+import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, locationChatRooms, chatRooms, chatParticipants, insertBusinessCardSchema, insertEmailMessageSchema } from "@shared/schema";
 import { sql } from "drizzle-orm";
 import { translateText, transcribeAudio } from "./openai";
 import bcrypt from "bcryptjs";
@@ -14,6 +14,7 @@ import { encryptFileData, decryptFileData, hashFileName } from "./crypto";
 import { processCommand } from "./openai";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
+import { generateQRCode, generateUserQRData, optimizeBusinessCardImage, extractBusinessCardInfo, generateShareToken, generateBusinessCardShareLink } from "./businessCard";
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");

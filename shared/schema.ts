@@ -498,8 +498,23 @@ export const insertPhoneVerificationSchema = createInsertSchema(phoneVerificatio
 export const insertLocationChatRoomSchema = createInsertSchema(locationChatRooms).omit({
   id: true,
   createdAt: true,
-  participantCount: true,
-  lastActivity: true,
+});
+
+// Business Cards Schemas
+export const insertBusinessCardSchema = createInsertSchema(businessCards).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertBusinessCardShareSchema = createInsertSchema(businessCardShares).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertEmailMessageSchema = createInsertSchema(emailMessages).omit({
+  id: true,
+  createdAt: true,
 });
 
 export const insertLocationChatParticipantSchema = createInsertSchema(locationChatParticipants).omit({
@@ -555,3 +570,9 @@ export type FileUpload = typeof fileUploads.$inferSelect;
 export type InsertFileUpload = z.infer<typeof insertFileUploadSchema>;
 export type FileDownload = typeof fileDownloads.$inferSelect;
 export type InsertFileDownload = z.infer<typeof insertFileDownloadSchema>;
+export type BusinessCard = typeof businessCards.$inferSelect;
+export type InsertBusinessCard = z.infer<typeof insertBusinessCardSchema>;
+export type BusinessCardShare = typeof businessCardShares.$inferSelect;
+export type InsertBusinessCardShare = z.infer<typeof insertBusinessCardShareSchema>;
+export type EmailMessage = typeof emailMessages.$inferSelect;
+export type InsertEmailMessage = z.infer<typeof insertEmailMessageSchema>;
