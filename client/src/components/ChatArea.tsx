@@ -331,12 +331,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         setSuggestionTimeout(null);
       }
 
-      // 메시지 전송 후 항상 맨 아래로 스크롤
+      // 메시지 전송 후 맨 아래로 즉시 이동
       setTimeout(() => {
         if (messagesEndRef.current) {
-          messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+          messagesEndRef.current.scrollIntoView({ behavior: "instant" });
         }
-      }, 100);
+      }, 50);
     },
     onError: (error) => {
       toast({
@@ -963,20 +963,20 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         if (firstUnreadMessage) {
           setFirstUnreadMessageId(firstUnreadMessage.id);
           
-          // Auto-scroll to first unread message when entering chat room
+          // 읽지 않은 메시지로 즉시 이동 (부드러운 스크롤 제거)
           setTimeout(() => {
             const messageElement = messageRefs.current[firstUnreadMessage.id];
             if (messageElement) {
-              messageElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              messageElement.scrollIntoView({ behavior: 'instant', block: 'start' });
             }
-          }, 500);
+          }, 100);
         }
       } else {
         setFirstUnreadMessageId(null);
-        // Auto-scroll to bottom if no unread messages
+        // 읽지 않은 메시지가 없으면 맨 아래로 즉시 이동
         setTimeout(() => {
-          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }, 500);
+          messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+        }, 100);
       }
     }
   }, [messages, unreadData, chatRoomId]);
@@ -1146,9 +1146,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   const chatRoomDisplayName = getChatRoomDisplayName(currentChatRoom);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  // 메시지 변경 시 자동 스크롤 제거 (읽지 않은 메시지 로직에서 처리)
 
 
 
