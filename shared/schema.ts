@@ -12,7 +12,7 @@ export const users = pgTable("users", {
   phoneNumber: text("phone_number"),
   birthday: text("birthday"),
   profilePicture: text("profile_picture"),
-  qrCode: text("qr_code"),
+  qrCode: text("qr_code").unique(), // 개인 QR 코드
   isOnline: boolean("is_online").default(false),
   lastSeen: timestamp("last_seen").defaultNow(),
   language: text("language").default("ko"),
@@ -26,6 +26,51 @@ export const users = pgTable("users", {
   businessLatitude: decimal("business_latitude", { precision: 10, scale: 8 }),
   businessLongitude: decimal("business_longitude", { precision: 11, scale: 8 }),
   isBusinessVerified: boolean("is_business_verified").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// 명함 테이블
+export const businessCards = pgTable("business_cards", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  companyName: text("company_name"),
+  jobTitle: text("job_title"),
+  email: text("email"),
+  phoneNumber: text("phone_number"),
+  address: text("address"),
+  website: text("website"),
+  originalImageUrl: text("original_image_url"), // 원본 명함 사진
+  optimizedImageUrl: text("optimized_image_url"), // 최적화된 명함 사진
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// 이메일 메시지 테이블 (Gmail 연동)
+export const emailMessages = pgTable("email_messages", {
+  id: serial("id").primaryKey(),
+  senderId: integer("sender_id").references(() => users.id).notNull(),
+  recipientId: integer("recipient_id").references(() => users.id).notNull(),
+  chatRoomId: integer("chat_room_id").references(() => chatRooms.id),
+  gmailMessageId: text("gmail_message_id"), // Gmail API 메시지 ID
+  subject: text("subject").notNull(),
+  content: text("content").notNull(),
+  summary: text("summary"), // 채팅방에 표시할 요약
+  isRead: boolean("is_read").default(false),
+  sentAt: timestamp("sent_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// 명함 공유 로그
+export const businessCardShares = pgTable("business_card_shares", {
+  id: serial("id").primaryKey(),
+  cardId: integer("card_id").references(() => businessCards.id).notNull(),
+  sharedBy: integer("shared_by").references(() => users.id).notNull(),
+  sharedTo: text("shared_to"), // 전화번호 또는 이메일
+  shareMethod: text("share_method").notNull(), // 'sms', 'email', 'qr', 'direct'
+  shareToken: text("share_token").unique(), // 공유 링크용 토큰
+  isAccepted: boolean("is_accepted").default(false),
+  expiresAt: timestamp("expires_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -350,6 +395,42 @@ export const userLocationsRelations = relations(userLocations, ({ one }) => ({
   user: one(users, {
     fields: [userLocations.userId],
     references: [users.id],
+  }),
+}));
+
+// Business Cards Relations
+export const businessCardsRelations = relations(businessCards, ({ one, many }) => ({
+  user: one(users, {
+    fields: [businessCards.userId],
+    references: [users.id],
+  }),
+  shares: many(businessCardShares),
+}));
+
+export const businessCardSharesRelations = relations(businessCardShares, ({ one }) => ({
+  card: one(businessCards, {
+    fields: [businessCardShares.cardId],
+    references: [businessCards.id],
+  }),
+  sharedByUser: one(users, {
+    fields: [businessCardShares.sharedBy],
+    references: [users.id],
+  }),
+}));
+
+// Email Messages Relations
+export const emailMessagesRelations = relations(emailMessages, ({ one }) => ({
+  sender: one(users, {
+    fields: [emailMessages.senderId],
+    references: [users.id],
+  }),
+  recipient: one(users, {
+    fields: [emailMessages.recipientId],
+    references: [users.id],
+  }),
+  chatRoom: one(chatRooms, {
+    fields: [emailMessages.chatRoomId],
+    references: [chatRooms.id],
   }),
 }));
 
