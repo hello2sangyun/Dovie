@@ -26,11 +26,11 @@ class MemoryCache {
 
   invalidatePattern(pattern: string): void {
     const regex = new RegExp(pattern.replace(/\*/g, '.*'));
-    for (const key of this.cache.keys()) {
+    Array.from(this.cache.keys()).forEach(key => {
       if (regex.test(key)) {
         this.cache.delete(key);
       }
-    }
+    });
   }
 
   clear(): void {
@@ -40,11 +40,11 @@ class MemoryCache {
   // Cleanup expired entries
   cleanup(): void {
     const now = Date.now();
-    for (const [key, item] of this.cache.entries()) {
+    Array.from(this.cache.entries()).forEach(([key, item]) => {
       if (now > item.expiry) {
         this.cache.delete(key);
       }
-    }
+    });
   }
 
   getStats() {

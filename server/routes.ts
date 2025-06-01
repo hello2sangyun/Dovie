@@ -81,14 +81,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         password: "test123",
         isEmailVerified: true,
         isProfileComplete: true,
-        };
-        user = await storage.createUser(userData);
-      }
+      };
+      user = await storage.createUser(userData);
+    }
 
-      // Update user as online
-      await storage.updateUser(user.id, { isOnline: true });
+    // Update user as online
+    await storage.updateUser(user.id, { isOnline: true });
 
-      res.json({ user });
+    res.json({ user });
   }));
 
   // SMS 인증 코드 전송
