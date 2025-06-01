@@ -22,15 +22,18 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   const [showBusinessCardDialog, setShowBusinessCardDialog] = useState(false);
   const [selectedContact, setSelectedContact] = useState<any>(null);
 
-  const { data: contactsData, isLoading } = useQuery({
+  const { data: contactsData, isLoading, error } = useQuery({
     queryKey: ["/api/contacts"],
     enabled: !!user,
     queryFn: async () => {
+      console.log("Fetching contacts for user:", user?.id);
       const response = await fetch("/api/contacts", {
         headers: { "x-user-id": user!.id.toString() },
       });
       if (!response.ok) throw new Error("Failed to fetch contacts");
-      return response.json();
+      const data = await response.json();
+      console.log("Contacts data received:", data);
+      return data;
     },
   });
 
@@ -94,10 +97,20 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     return `${Math.floor(diffMinutes / 1440)}일 전 접속`;
   };
 
+  console.log("ContactsList render state:", { isLoading, error, contactsData, contacts: contacts.length });
+
   if (isLoading) {
     return (
       <div className="h-full flex items-center justify-center">
         <div className="text-gray-500">연락처를 불러오는 중...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-red-500">연락처를 불러오는데 실패했습니다.</div>
       </div>
     );
   }
