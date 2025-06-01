@@ -467,14 +467,13 @@ export default function MainApp() {
               onClearFilter={() => setContactFilter(null)}
             />
           )}
-          {activeMobileTab === "nearby" && (
+          {activeMobileTab === "nearby" && !showMobileChat && (
             <NearbyChats onChatRoomSelect={(chatId) => {
               console.log('Nearby chat selected:', chatId);
               setSelectedLocationChatRoom(chatId);
               setSelectedChatRoom(null);
               setIsLocationChatActive(true);
               setShowMobileChat(true);
-              setActiveMobileTab("nearby"); // 탭 상태 유지
               console.log('State after selection:', {
                 selectedLocationChatRoom: chatId,
                 selectedChatRoom: null,

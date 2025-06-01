@@ -357,3 +357,35 @@ export async function transcribeAudio(filePath: string): Promise<{
     };
   }
 }
+
+// 명함 이미지 분석
+export async function analyzeBusinessCard(base64Image: string): Promise<string> {
+  try {
+    const visionResponse = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "이 명함 이미지를 분석하여 다음 정보를 추출해주세요: 회사명, 직책, 이메일, 전화번호, 주소, 웹사이트. 각 정보를 개별 줄로 정리해서 반환해주세요."
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:image/jpeg;base64,${base64Image}`
+              }
+            }
+          ],
+        },
+      ],
+      max_tokens: 500,
+    });
+
+    return visionResponse.choices[0].message.content || "";
+  } catch (error: any) {
+    console.error("Business card analysis error:", error);
+    throw new Error(`명함 분석 실패: ${error.message || 'Unknown error'}`);
+  }
+}

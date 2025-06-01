@@ -1,6 +1,6 @@
 import QRCode from 'qrcode';
 import sharp from 'sharp';
-import { analyzeImage } from './openai';
+import { analyzeBusinessCard } from './openai';
 import crypto from 'crypto';
 
 /**
@@ -73,7 +73,7 @@ export async function extractBusinessCardInfo(imagePath: string): Promise<{
     const base64Image = imageBuffer.toString('base64');
     
     // OpenAI Vision API로 명함 분석
-    const analysisResult = await analyzeImage(base64Image);
+    const analysisResult = await analyzeBusinessCard(base64Image);
     
     // 분석 결과에서 명함 정보 추출
     const businessCardInfo = parseBusinessCardAnalysis(analysisResult);
