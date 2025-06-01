@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -10,7 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
 import { ImageCropper } from "@/components/ImageCropper";
-import { Camera, User, LogOut, Building2, Moon, Sun, Check, X, Loader2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Camera, User, LogOut, Building2, Moon, Sun, Check, X, Loader2, CreditCard, Plus, Edit, Trash2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { getInitials } from "@/lib/utils";
 import VaultLogo from "./VaultLogo";
@@ -39,6 +40,13 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
     }
     return false;
   });
+  
+  // Business card states
+  const [showBusinessCardDialog, setShowBusinessCardDialog] = useState(false);
+  const [businessCardImage, setBusinessCardImage] = useState<File | null>(null);
+  const [businessCardPreview, setBusinessCardPreview] = useState<string | null>(null);
+  const [isExtractingCard, setIsExtractingCard] = useState(false);
+  const [extractedCardData, setExtractedCardData] = useState<any>(null);
 
   // Profile update mutation
   const updateProfileMutation = useMutation({

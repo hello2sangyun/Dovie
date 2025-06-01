@@ -249,6 +249,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   locationChatParticipants: many(locationChatParticipants),
   locationChatMessages: many(locationChatMessages),
   userLocation: many(userLocations),
+  businessCards: many(businessCards),
 }));
 
 export const contactsRelations = relations(contacts, ({ one }) => ({
@@ -396,6 +397,13 @@ export const fileDownloadsRelations = relations(fileDownloads, ({ one }) => ({
   }),
 }));
 
+export const businessCardsRelations = relations(businessCards, ({ one }) => ({
+  user: one(users, {
+    fields: [businessCards.userId],
+    references: [users.id],
+  }),
+}));
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
@@ -467,6 +475,12 @@ export const insertFileDownloadSchema = createInsertSchema(fileDownloads).omit({
   downloadedAt: true,
 });
 
+export const insertBusinessCardSchema = createInsertSchema(businessCards).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Contact = typeof contacts.$inferSelect;
@@ -494,3 +508,5 @@ export type FileUpload = typeof fileUploads.$inferSelect;
 export type InsertFileUpload = z.infer<typeof insertFileUploadSchema>;
 export type FileDownload = typeof fileDownloads.$inferSelect;
 export type InsertFileDownload = z.infer<typeof insertFileDownloadSchema>;
+export type BusinessCard = typeof businessCards.$inferSelect;
+export type InsertBusinessCard = z.infer<typeof insertBusinessCardSchema>;
