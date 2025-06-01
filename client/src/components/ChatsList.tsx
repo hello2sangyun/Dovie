@@ -535,47 +535,32 @@ function ChatRoomItem({
         )}
         {chatRoom.isGroup ? (
           <div className="relative w-12 h-12 flex items-center justify-center">
-            {chatRoom.participants.slice(0, 4).map((participant: any, index: number) => {
-              const totalAvatars = Math.min(4, chatRoom.participants.length);
-              const isStackLayout = totalAvatars <= 3;
+            {chatRoom.participants.slice(0, 3).map((participant: any, index: number) => {
+              // 삼각형 배치 좌표
+              const trianglePositions = [
+                { top: '2px', left: '50%', transform: 'translateX(-50%)' }, // 상단 중앙
+                { bottom: '2px', left: '2px' }, // 하단 좌측
+                { bottom: '2px', right: '2px' } // 하단 우측
+              ];
               
-              if (isStackLayout) {
-                // 3명 이하일 때: 겹치는 스택 레이아웃
-                return (
-                  <div
-                    key={participant.id}
-                    className={`${index > 0 ? '-ml-2' : ''} border-2 border-white dark:border-gray-700 rounded-full shadow-sm`}
-                    style={{ zIndex: totalAvatars - index }}
-                  >
-                    <UserAvatar 
-                      user={participant} 
-                      size="md" 
-                      fallbackClassName="purple-gradient"
-                    />
-                  </div>
-                );
-              } else {
-                // 4명일 때: 균형있는 격자 레이아웃
-                const positions = [
-                  'top-0 left-0',
-                  'top-0 right-0', 
-                  'bottom-0 left-0',
-                  'bottom-0 right-0'
-                ];
-                
-                return (
-                  <div
-                    key={participant.id}
-                    className={`absolute border border-white dark:border-gray-700 rounded-full shadow-sm ${positions[index]}`}
-                  >
-                    <UserAvatar 
-                      user={participant} 
-                      size="sm" 
-                      fallbackClassName="purple-gradient"
-                    />
-                  </div>
-                );
-              }
+              const position = trianglePositions[index] || trianglePositions[0];
+              
+              return (
+                <div
+                  key={participant.id}
+                  className="absolute border-2 border-white dark:border-gray-700 rounded-full shadow-sm"
+                  style={{
+                    ...position,
+                    zIndex: 3 - index
+                  }}
+                >
+                  <UserAvatar 
+                    user={participant} 
+                    size="sm" 
+                    fallbackClassName="purple-gradient"
+                  />
+                </div>
+              );
             })}
           </div>
         ) : (

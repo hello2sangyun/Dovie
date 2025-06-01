@@ -4059,13 +4059,40 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   )}
                 >
                   <div className="flex flex-col items-center">
-                    <UserAvatar 
-                      user={isMe ? user : msg.sender} 
-                      size="md" 
-                      fallbackClassName={`bg-gradient-to-br ${getAvatarColor(isMe ? (user?.displayName || "Me") : msg.sender.displayName)}`}
-                    />
+                    {isLocationChatRoom ? (
+                      // 주변챗에서는 임시 프로필 표시
+                      <div className="w-10 h-10 rounded-full border-2 border-white shadow-sm">
+                        {isMe && locationChatProfile?.profileImageUrl ? (
+                          <img 
+                            src={locationChatProfile.profileImageUrl} 
+                            alt="프로필" 
+                            className="w-full h-full rounded-full object-cover"
+                          />
+                        ) : !isMe && msg.locationProfile?.profileImageUrl ? (
+                          <img 
+                            src={msg.locationProfile.profileImageUrl} 
+                            alt="프로필" 
+                            className="w-full h-full rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className={`w-full h-full rounded-full bg-gradient-to-br ${getAvatarColor(isMe ? (locationChatProfile?.nickname || "나") : (msg.locationProfile?.nickname || msg.sender.displayName))} flex items-center justify-center text-white text-sm font-semibold`}>
+                            {(isMe ? (locationChatProfile?.nickname || "나") : (msg.locationProfile?.nickname || msg.sender.displayName)).charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      // 일반 채팅에서는 원래 프로필 표시
+                      <UserAvatar 
+                        user={isMe ? user : msg.sender} 
+                        size="md" 
+                        fallbackClassName={`bg-gradient-to-br ${getAvatarColor(isMe ? (user?.displayName || "Me") : msg.sender.displayName)}`}
+                      />
+                    )}
                     <span className="text-xs text-gray-600 mt-1 text-center max-w-[60px] truncate">
-                      {isMe ? (user?.displayName || "나") : msg.sender.displayName}
+                      {isLocationChatRoom 
+                        ? (isMe ? (locationChatProfile?.nickname || "나") : (msg.locationProfile?.nickname || msg.sender.displayName))
+                        : (isMe ? (user?.displayName || "나") : msg.sender.displayName)
+                      }
                     </span>
                   </div>
                   
@@ -4077,7 +4104,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     {!isMe && (
                       <div className="flex items-center space-x-2 mb-1">
                         <span className="text-sm font-medium text-gray-900">
-                          {msg.sender.displayName}
+                          {isLocationChatRoom 
+                            ? (msg.locationProfile?.nickname || msg.sender.displayName)
+                            : msg.sender.displayName
+                          }
                         </span>
                         <span className="text-xs text-gray-500">
                           {formatTime(msg.createdAt)}
