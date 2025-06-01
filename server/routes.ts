@@ -1,4 +1,4 @@
-import type { Express, Request, Response, NextFunction } from "express";
+import type { Express } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
@@ -14,7 +14,6 @@ import { encryptFileData, decryptFileData, hashFileName } from "./crypto";
 import { processCommand } from "./openai";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
-import { performanceMiddleware, QueryPerformanceTracker, ConnectionPoolMonitor } from "./performance";
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -30,66 +29,38 @@ const upload = multer({
 // WebSocket connection management
 const connections = new Map<number, WebSocket>();
 
-// Global error handler for async routes
-const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
-};
-
-// Rate limiting for API endpoints
-const rateLimit = new Map<string, { count: number; resetTime: number }>();
-const checkRateLimit = (req: Request, res: Response, next: NextFunction) => {
-  const key = `${req.ip}:${req.path}`;
-  const now = Date.now();
-  const windowMs = 60000; // 1 minute
-  const maxRequests = 100; // per window
-  
-  const current = rateLimit.get(key);
-  if (!current || now > current.resetTime) {
-    rateLimit.set(key, { count: 1, resetTime: now + windowMs });
-    return next();
-  }
-  
-  if (current.count >= maxRequests) {
-    return res.status(429).json({ message: "Too many requests" });
-  }
-  
-  current.count++;
-  next();
-};
-
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Add performance monitoring and rate limiting
-  app.use(performanceMiddleware);
-  app.use(checkRateLimit);
+  // Auth routes
+  app.post("/api/auth/test-login", async (req, res) => {
+    try {
+      const { username } = req.body;
+      if (!username) {
+        return res.status(400).json({ message: "Username is required" });
+      }
 
-  // Auth routes with improved error handling
-  app.post("/api/auth/test-login", asyncHandler(async (req, res) => {
-    const { username } = req.body;
-    if (!username?.trim()) {
-      return res.status(400).json({ message: "Username is required" });
+      let user = await storage.getUserByUsername(username);
+      if (!user) {
+        // 테스트 사용자용 기본 데이터
+        const userData = {
+          username,
+          displayName: username,
+          email: `${username}@test.com`, // 테스트용 이메일
+          password: "test123", // 테스트용 비밀번호
+          isEmailVerified: true,
+          isProfileComplete: true, // 테스트 사용자는 프로필 완성 상태
+        };
+        user = await storage.createUser(userData);
+      }
+
+      // Update user as online
+      await storage.updateUser(user.id, { isOnline: true });
+
+      res.json({ user });
+    } catch (error) {
+      console.error("Test login error:", error);
+      res.status(500).json({ message: "Login failed" });
     }
-
-    let user = await storage.getUserByUsername(username.trim());
-    if (!user) {
-      // 테스트 사용자용 기본 데이터
-      const userData = {
-        username: username.trim(),
-        displayName: username.trim(),
-        email: `${username.trim()}@test.com`,
-        password: "test123",
-        isEmailVerified: true,
-        isProfileComplete: true,
-      };
-      user = await storage.createUser(userData);
-    }
-
-    // Update user as online
-    await storage.updateUser(user.id, { isOnline: true });
-
-    res.json({ user });
-  }));
+  });
 
   // SMS 인증 코드 전송
   app.post("/api/auth/send-sms", async (req, res) => {

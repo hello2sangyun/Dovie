@@ -188,32 +188,23 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(users, eq(chatParticipants.userId, users.id))
       .where(inArray(chatParticipants.chatRoomId, chatRoomIds));
 
-    // Optimized batch fetch of last messages - reduces N+1 queries to single query
+    // Simple sequential approach for last messages
     const lastMessageByRoom = new Map<number, Message & { sender: User }>();
     
-    if (chatRoomIds.length > 0) {
-      // Use a more efficient subquery approach
-      const lastMessages = await db
-        .select({
-          message: messages,
-          sender: users
-        })
+    for (const chatRoomId of chatRoomIds) {
+      const [lastMessageData] = await db
+        .select()
         .from(messages)
         .innerJoin(users, eq(messages.senderId, users.id))
-        .where(
-          sql`(messages.chat_room_id, messages.created_at) IN (
-            SELECT chat_room_id, MAX(created_at) 
-            FROM messages 
-            WHERE chat_room_id = ANY(${chatRoomIds}) 
-            GROUP BY chat_room_id
-          )`
-        );
+        .where(eq(messages.chatRoomId, chatRoomId))
+        .orderBy(desc(messages.createdAt))
+        .limit(1);
       
-      for (const { message, sender } of lastMessages) {
-        lastMessageByRoom.set(message.chatRoomId, {
-          ...message,
-          content: message.content ? decryptText(message.content) : message.content,
-          sender
+      if (lastMessageData) {
+        lastMessageByRoom.set(chatRoomId, {
+          ...lastMessageData.messages,
+          content: lastMessageData.messages.content ? decryptText(lastMessageData.messages.content) : lastMessageData.messages.content,
+          sender: lastMessageData.users
         });
       }
     }
