@@ -26,8 +26,8 @@ export default function MainApp() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState("contacts");
-  const [activeMobileTab, setActiveMobileTab] = useState("contacts");
+  const [activeTab, setActiveTab] = useState("chats");
+  const [activeMobileTab, setActiveMobileTab] = useState("chats");
   const [showSettings, setShowSettings] = useState(false);
   const [selectedChatRoom, setSelectedChatRoom] = useState<number | null>(null);
   const [selectedLocationChatRoom, setSelectedLocationChatRoom] = useState<number | null>(null);
