@@ -3,7 +3,7 @@ import express from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, locationChatRooms, chatRooms, chatParticipants, insertBusinessCardSchema, insertEmailMessageSchema } from "@shared/schema";
+import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, locationChatRooms, chatRooms, chatParticipants } from "@shared/schema";
 import { sql } from "drizzle-orm";
 import { translateText, transcribeAudio } from "./openai";
 import bcrypt from "bcryptjs";
@@ -14,7 +14,6 @@ import { encryptFileData, decryptFileData, hashFileName } from "./crypto";
 import { processCommand } from "./openai";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
-import { generateQRCode, generateUserQRData, optimizeBusinessCardImage, extractBusinessCardInfo, generateShareToken, generateBusinessCardShareLink } from "./businessCard";
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -1410,153 +1409,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("File serving error:", error);
       res.status(500).json({ message: "File serving failed" });
-    }
-  });
-
-  // Business Card API endpoints
-  app.post("/api/business-cards", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      const cardData = {
-        ...req.body,
-        userId: Number(userId)
-      };
-
-      const businessCard = await storage.createBusinessCard(cardData);
-      res.json({ businessCard });
-    } catch (error) {
-      console.error("Business card creation error:", error);
-      res.status(500).json({ message: "Failed to create business card" });
-    }
-  });
-
-  app.get("/api/business-cards/my", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      const businessCard = await storage.getBusinessCard(Number(userId));
-      res.json({ businessCard });
-    } catch (error) {
-      console.error("Business card fetch error:", error);
-      res.status(500).json({ message: "Failed to fetch business card" });
-    }
-  });
-
-  app.get("/api/business-cards/:contactUserId", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      const { contactUserId } = req.params;
-      const businessCard = await storage.getContactBusinessCard(Number(contactUserId));
-      res.json({ businessCard });
-    } catch (error) {
-      console.error("Contact business card fetch error:", error);
-      res.status(500).json({ message: "Failed to fetch contact business card" });
-    }
-  });
-
-  app.put("/api/business-cards", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      const businessCard = await storage.updateBusinessCard(Number(userId), req.body);
-      res.json({ businessCard });
-    } catch (error) {
-      console.error("Business card update error:", error);
-      res.status(500).json({ message: "Failed to update business card" });
-    }
-  });
-
-  app.delete("/api/business-cards", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      await storage.deleteBusinessCard(Number(userId));
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Business card deletion error:", error);
-      res.status(500).json({ message: "Failed to delete business card" });
-    }
-  });
-
-  // QR Code API endpoints
-  app.get("/api/qr-code/generate", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      const qrCode = await storage.generateUserQRCode(Number(userId));
-      res.json({ qrCode });
-    } catch (error) {
-      console.error("QR code generation error:", error);
-      res.status(500).json({ message: "Failed to generate QR code" });
-    }
-  });
-
-  app.post("/api/qr-code/scan", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      const { qrCode } = req.body;
-      const user = await storage.getUserByQRCode(qrCode);
-      
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      res.json({ user: { id: user.id, username: user.username, displayName: user.displayName } });
-    } catch (error) {
-      console.error("QR code scan error:", error);
-      res.status(500).json({ message: "Failed to scan QR code" });
-    }
-  });
-
-  // Business card OCR endpoint
-  app.post("/api/business-cards/extract", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      const { imageUrl } = req.body;
-      
-      if (!imageUrl) {
-        return res.status(400).json({ message: "Image URL is required" });
-      }
-
-      // Import business card functions
-      const { extractBusinessCardInfo } = require("./businessCard");
-      
-      // Extract information from business card image
-      const fullImagePath = `${process.cwd()}${imageUrl}`;
-      const extractedInfo = await extractBusinessCardInfo(fullImagePath);
-
-      res.json({ extractedInfo });
-    } catch (error) {
-      console.error("Business card extraction error:", error);
-      res.status(500).json({ message: "Failed to extract business card information" });
     }
   });
 
