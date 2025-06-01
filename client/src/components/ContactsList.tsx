@@ -61,29 +61,34 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     },
   });
 
-  const filteredAndSortedContacts = contacts
+  const filteredAndSortedContacts = (contacts || [])
     .filter((contact: any) => {
       // 본인 계정 제외
-      if (contact.contactUser.id === user?.id) {
+      if (contact.contactUser?.id === user?.id) {
         return false;
       }
       
+      if (!searchTerm) return true;
+      
       const searchLower = searchTerm.toLowerCase();
-      const nickname = contact.nickname || contact.contactUser.displayName;
+      const nickname = contact.nickname || contact.contactUser?.displayName || "";
+      const username = contact.contactUser?.username || "";
       return nickname.toLowerCase().includes(searchLower) ||
-             contact.contactUser.username.toLowerCase().includes(searchLower);
+             username.toLowerCase().includes(searchLower);
     })
     .sort((a: any, b: any) => {
-      const aName = a.nickname || a.contactUser.displayName;
-      const bName = b.nickname || b.contactUser.displayName;
+      const aName = a.nickname || a.contactUser?.displayName || "";
+      const bName = b.nickname || b.contactUser?.displayName || "";
       
       switch (sortBy) {
         case "nickname":
           return aName.localeCompare(bName);
         case "username":
-          return a.contactUser.username.localeCompare(b.contactUser.username);
+          return (a.contactUser?.username || "").localeCompare(b.contactUser?.username || "");
         case "lastSeen":
-          return new Date(b.contactUser.lastSeen || 0).getTime() - new Date(a.contactUser.lastSeen || 0).getTime();
+          const aTime = new Date(a.contactUser?.lastSeen || 0).getTime();
+          const bTime = new Date(b.contactUser?.lastSeen || 0).getTime();
+          return bTime - aTime;
         default:
           return 0;
       }
