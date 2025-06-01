@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
 import { ImageCropper } from "@/components/ImageCropper";
-import { Camera, User, LogOut, Building2, Moon, Sun, Check, X, Loader2 } from "lucide-react";
+import { Camera, User, LogOut, Building2, Moon, Sun, Check, X, Loader2, CreditCard, QrCode } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { getInitials } from "@/lib/utils";
 import VaultLogo from "./VaultLogo";
@@ -32,6 +32,18 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
   const [businessAddress, setBusinessAddress] = useState("");
   const [showImageCropper, setShowImageCropper] = useState(false);
   const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
+  
+  // Business card states
+  const [businessCard, setBusinessCard] = useState({
+    name: "",
+    company: "",
+    position: "",
+    phone: "",
+    email: "",
+    address: ""
+  });
+  const [showBusinessCardForm, setShowBusinessCardForm] = useState(false);
+  const [qrCode, setQrCode] = useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
       // 사용자가 명시적으로 다크모드를 설정한 경우에만 true
@@ -125,6 +137,50 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
         variant: "destructive",
         title: "이미지 업로드 실패",
         description: "이미지 업로드에 실패했습니다.",
+      });
+    },
+  });
+
+  // Business card mutation
+  const businessCardMutation = useMutation({
+    mutationFn: async (cardData: typeof businessCard) => {
+      const response = await apiRequest("/api/business-cards", "POST", cardData);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "명함 등록 완료",
+        description: "명함이 성공적으로 등록되었습니다.",
+      });
+      setShowBusinessCardForm(false);
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "명함 등록 실패",
+        description: "명함 등록에 실패했습니다.",
+      });
+    },
+  });
+
+  // QR code generation mutation
+  const generateQRMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("/api/qr-code/generate", "GET");
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setQrCode(data.qrCode);
+      toast({
+        title: "QR 코드 생성 완료",
+        description: "친구 추가용 QR 코드가 생성되었습니다.",
+      });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "QR 코드 생성 실패",
+        description: "QR 코드 생성에 실패했습니다.",
       });
     },
   });
@@ -431,6 +487,169 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
             </CardContent>
           </Card>
         )}
+
+        {/* Business Card Registration - Compact */}
+        <Card className="w-full transition-all duration-200 hover:shadow-md active:scale-[0.98]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <CreditCard className="h-4 w-4 text-blue-600" />
+              명함 관리
+            </CardTitle>
+            <p className="text-xs text-gray-500">
+              내 명함을 등록하고 친구들과 공유하세요
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {!showBusinessCardForm ? (
+              <Button
+                onClick={() => setShowBusinessCardForm(true)}
+                variant="outline"
+                className="w-full h-8 text-sm"
+              >
+                <CreditCard className="h-3 w-3 mr-2" />
+                명함 등록하기
+              </Button>
+            ) : (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label htmlFor="cardName" className="text-xs">이름</Label>
+                    <Input
+                      id="cardName"
+                      type="text"
+                      value={businessCard.name}
+                      onChange={(e) => setBusinessCard({...businessCard, name: e.target.value})}
+                      className="h-7 text-xs"
+                      placeholder="홍길동"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="cardPosition" className="text-xs">직책</Label>
+                    <Input
+                      id="cardPosition"
+                      type="text"
+                      value={businessCard.position}
+                      onChange={(e) => setBusinessCard({...businessCard, position: e.target.value})}
+                      className="h-7 text-xs"
+                      placeholder="대표이사"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="cardCompany" className="text-xs">회사명</Label>
+                  <Input
+                    id="cardCompany"
+                    type="text"
+                    value={businessCard.company}
+                    onChange={(e) => setBusinessCard({...businessCard, company: e.target.value})}
+                    className="h-7 text-xs"
+                    placeholder="주식회사 도비"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label htmlFor="cardPhone" className="text-xs">전화번호</Label>
+                    <Input
+                      id="cardPhone"
+                      type="text"
+                      value={businessCard.phone}
+                      onChange={(e) => setBusinessCard({...businessCard, phone: e.target.value})}
+                      className="h-7 text-xs"
+                      placeholder="010-1234-5678"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="cardEmail" className="text-xs">이메일</Label>
+                    <Input
+                      id="cardEmail"
+                      type="email"
+                      value={businessCard.email}
+                      onChange={(e) => setBusinessCard({...businessCard, email: e.target.value})}
+                      className="h-7 text-xs"
+                      placeholder="hong@company.com"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="cardAddress" className="text-xs">주소</Label>
+                  <Input
+                    id="cardAddress"
+                    type="text"
+                    value={businessCard.address}
+                    onChange={(e) => setBusinessCard({...businessCard, address: e.target.value})}
+                    className="h-7 text-xs"
+                    placeholder="서울시 강남구 테헤란로 123"
+                  />
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => businessCardMutation.mutate(businessCard)}
+                    disabled={businessCardMutation.isPending || !businessCard.name || !businessCard.company}
+                    className="flex-1 h-7 text-xs purple-gradient"
+                  >
+                    {businessCardMutation.isPending ? "등록 중..." : "명함 저장"}
+                  </Button>
+                  <Button
+                    onClick={() => setShowBusinessCardForm(false)}
+                    variant="outline"
+                    className="h-7 text-xs px-3"
+                  >
+                    취소
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* QR Code Generation - Compact */}
+        <Card className="w-full transition-all duration-200 hover:shadow-md active:scale-[0.98]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <QrCode className="h-4 w-4 text-green-600" />
+              QR 코드
+            </CardTitle>
+            <p className="text-xs text-gray-500">
+              친구 추가용 QR 코드를 생성하세요
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {!qrCode ? (
+              <Button
+                onClick={() => generateQRMutation.mutate()}
+                disabled={generateQRMutation.isPending}
+                variant="outline"
+                className="w-full h-8 text-sm"
+              >
+                <QrCode className="h-3 w-3 mr-2" />
+                {generateQRMutation.isPending ? "생성 중..." : "QR 코드 생성"}
+              </Button>
+            ) : (
+              <div className="text-center space-y-2">
+                <div className="bg-white p-3 rounded border inline-block">
+                  <div className="text-xs font-mono break-all text-gray-600">
+                    {qrCode}
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500">
+                  이 코드를 친구에게 공유하여 친구 추가를 할 수 있습니다
+                </p>
+                <Button
+                  onClick={() => generateQRMutation.mutate()}
+                  variant="outline"
+                  size="sm"
+                  className="h-6 text-xs"
+                >
+                  새로 생성
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Business Status for Business Users - Compact */}
         {user.userRole === "business" && (

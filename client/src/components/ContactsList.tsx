@@ -205,6 +205,122 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
           ))
         )}
       </div>
+
+      {/* 프로필사진 팝업 다이얼로그 */}
+      <Dialog open={showProfileDialog} onOpenChange={setShowProfileDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              {selectedContact?.nickname || selectedContact?.contactUser?.displayName}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowProfileDialog(false)}
+                className="h-6 w-6 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center space-y-4">
+            <Avatar className="w-32 h-32">
+              <AvatarImage 
+                src={selectedContact?.contactUser?.profilePicture || undefined} 
+                alt={selectedContact?.nickname || selectedContact?.contactUser?.displayName} 
+              />
+              <AvatarFallback className={`bg-gradient-to-br ${getAvatarColor(selectedContact?.nickname || selectedContact?.contactUser?.displayName || '')} text-white font-semibold text-2xl`}>
+                {getInitials(selectedContact?.nickname || selectedContact?.contactUser?.displayName || '')}
+              </AvatarFallback>
+            </Avatar>
+            <div className="text-center">
+              <h3 className="text-lg font-semibold">
+                {selectedContact?.nickname || selectedContact?.contactUser?.displayName}
+              </h3>
+              <p className="text-gray-500">@{selectedContact?.contactUser?.username}</p>
+              <div className="flex items-center justify-center space-x-2 mt-2">
+                <div className={cn(
+                  "w-2 h-2 rounded-full",
+                  selectedContact?.contactUser?.isOnline ? "bg-green-500" : "bg-gray-300"
+                )} />
+                <span className="text-sm text-gray-500">
+                  {getOnlineStatus(selectedContact?.contactUser)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 명함보기 다이얼로그 */}
+      <Dialog open={showBusinessCardDialog} onOpenChange={setShowBusinessCardDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              {selectedContact?.nickname || selectedContact?.contactUser?.displayName}의 명함
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowBusinessCardDialog(false)}
+                className="h-6 w-6 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {businessCardData?.businessCard ? (
+              <div className="bg-gradient-to-br from-purple-600 to-blue-600 text-white p-6 rounded-lg shadow-lg">
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <Avatar className="w-12 h-12">
+                      <AvatarImage 
+                        src={selectedContact?.contactUser?.profilePicture || undefined} 
+                        alt={selectedContact?.nickname || selectedContact?.contactUser?.displayName} 
+                      />
+                      <AvatarFallback className="bg-white/20 text-white font-semibold">
+                        {getInitials(selectedContact?.nickname || selectedContact?.contactUser?.displayName || '')}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h3 className="text-lg font-bold">{businessCardData.businessCard.name}</h3>
+                      <p className="text-purple-100">{businessCardData.businessCard.position}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <p className="font-semibold">{businessCardData.businessCard.company}</p>
+                    </div>
+                    
+                    {businessCardData.businessCard.phone && (
+                      <div>
+                        <p className="text-purple-100">전화: {businessCardData.businessCard.phone}</p>
+                      </div>
+                    )}
+                    
+                    {businessCardData.businessCard.email && (
+                      <div>
+                        <p className="text-purple-100">이메일: {businessCardData.businessCard.email}</p>
+                      </div>
+                    )}
+                    
+                    {businessCardData.businessCard.address && (
+                      <div>
+                        <p className="text-purple-100">주소: {businessCardData.businessCard.address}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">등록된 명함이 없습니다</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
