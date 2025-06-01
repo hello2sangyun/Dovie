@@ -1546,16 +1546,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Image URL is required" });
       }
 
-      // Business card OCR extraction will be implemented here
-      // For now, return placeholder response
-      const extractedInfo = {
-        name: "",
-        company: "",
-        position: "",
-        phone: "",
-        email: "",
-        address: ""
-      };
+      // Import business card functions
+      const { extractBusinessCardInfo } = require("./businessCard");
+      
+      // Extract information from business card image
+      const fullImagePath = `${process.cwd()}${imageUrl}`;
+      const extractedInfo = await extractBusinessCardInfo(fullImagePath);
 
       res.json({ extractedInfo });
     } catch (error) {
