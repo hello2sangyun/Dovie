@@ -1229,6 +1229,21 @@ export class DatabaseStorage implements IStorage {
     
     return post;
   }
+
+  // 사용자들이 친구인지 확인
+  async areUsersFriends(userId1: number, userId2: number): Promise<boolean> {
+    const contact = await db.select()
+      .from(contacts)
+      .where(
+        or(
+          and(eq(contacts.userId, userId1), eq(contacts.contactUserId, userId2)),
+          and(eq(contacts.userId, userId2), eq(contacts.contactUserId, userId1))
+        )
+      )
+      .limit(1);
+    
+    return contact.length > 0;
+  }
 }
 
 export const storage = new DatabaseStorage();
