@@ -433,7 +433,8 @@ export default function MainApp() {
                       <div 
                         className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
                         onClick={() => {
-                          window.location.href = "/#space";
+                          setActiveTab("space");
+                          setRightPanelContent(null);
                         }}
                       >
                         <div className="flex items-center space-x-3">
