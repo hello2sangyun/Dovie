@@ -214,21 +214,16 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                   className="cursor-pointer flex-1 flex items-center space-x-2"
                   onClick={() => onSelectContact(contact.contactUserId)}
                 >
-                  <Avatar 
+                  <OptimizedAvatar 
+                    src={contact.contactUser.profilePicture}
+                    name={contact.nickname || contact.contactUser.displayName}
                     className="w-8 h-8 cursor-pointer hover:ring-2 hover:ring-blue-300 transition-all"
-                    onClick={(e) => {
-                      e.stopPropagation();
+                    fallbackClassName="text-xs"
+                    onClick={(e?: React.MouseEvent) => {
+                      e?.stopPropagation();
                       setSelectedFriend({ userId: contact.contactUserId, name: contact.nickname || contact.contactUser.displayName });
                     }}
-                  >
-                    <AvatarImage 
-                      src={contact.contactUser.profilePicture || undefined} 
-                      alt={contact.nickname || contact.contactUser.displayName} 
-                    />
-                    <AvatarFallback className={`bg-gradient-to-br ${getAvatarColor(contact.nickname || contact.contactUser.displayName)} text-white font-semibold text-xs`}>
-                      {getInitials(contact.nickname || contact.contactUser.displayName)}
-                    </AvatarFallback>
-                  </Avatar>
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <p className="font-medium text-gray-900 truncate text-sm">

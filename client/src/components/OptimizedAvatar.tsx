@@ -8,14 +8,15 @@ interface OptimizedAvatarProps {
   name: string;
   className?: string;
   fallbackClassName?: string;
-  onClick?: () => void;
+  onClick?: (e?: React.MouseEvent) => void;
 }
 
 export function OptimizedAvatar({ 
   src, 
   name, 
   className = "", 
-  fallbackClassName = "" 
+  fallbackClassName = "",
+  onClick
 }: OptimizedAvatarProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -44,7 +45,7 @@ export function OptimizedAvatar({
   };
 
   return (
-    <Avatar className={className}>
+    <Avatar className={className} onClick={onClick}>
       {src && !imageError && (
         <AvatarImage 
           src={src} 
