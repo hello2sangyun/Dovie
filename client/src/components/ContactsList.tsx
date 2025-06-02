@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Search, Star } from "lucide-react";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
+import FriendBusinessCardModal from "./FriendBusinessCardModal";
 
 interface ContactsListProps {
   onAddContact: () => void;
@@ -21,6 +22,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("nickname");
+  const [selectedFriend, setSelectedFriend] = useState<{ userId: number; name: string } | null>(null);
 
   // Toggle favorite mutation
   const toggleFavoriteMutation = useMutation({
@@ -163,14 +165,11 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
             {favoriteContacts.map((contact: any) => {
               const displayName = contact.nickname || contact.contactUser.displayName;
               return (
-                <div
-                  key={contact.id}
-                  className="flex flex-col items-center space-y-1 cursor-pointer hover:opacity-75 transition-opacity flex-shrink-0"
-                  onClick={() => onSelectContact(contact.contactUserId)}
-                >
+                <div key={contact.id} className="flex flex-col items-center space-y-1 flex-shrink-0">
                   <div className="relative">
                     <div
-                      className={`w-12 h-12 rounded-full bg-gradient-to-br ${getAvatarColor(displayName)} flex items-center justify-center text-white font-semibold text-sm border-2 border-white shadow-md`}
+                      className={`w-12 h-12 rounded-full bg-gradient-to-br ${getAvatarColor(displayName)} flex items-center justify-center text-white font-semibold text-sm border-2 border-white shadow-md cursor-pointer hover:opacity-75 transition-opacity`}
+                      onClick={() => setSelectedFriend({ userId: contact.contactUserId, name: displayName })}
                     >
                       {contact.contactUser.profilePicture ? (
                         <img 
@@ -186,7 +185,10 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                       <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
                     )}
                   </div>
-                  <span className="text-xs text-gray-700 text-center max-w-[60px] truncate">
+                  <span 
+                    className="text-xs text-gray-700 text-center max-w-[60px] truncate cursor-pointer hover:text-blue-600"
+                    onClick={() => onSelectContact(contact.contactUserId)}
+                  >
                     {displayName}
                   </span>
                 </div>
@@ -212,7 +214,13 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                   className="cursor-pointer flex-1 flex items-center space-x-2"
                   onClick={() => onSelectContact(contact.contactUserId)}
                 >
-                  <Avatar className="w-8 h-8">
+                  <Avatar 
+                    className="w-8 h-8 cursor-pointer hover:ring-2 hover:ring-blue-300 transition-all"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedFriend({ userId: contact.contactUserId, name: contact.nickname || contact.contactUser.displayName });
+                    }}
+                  >
                     <AvatarImage 
                       src={contact.contactUser.profilePicture || undefined} 
                       alt={contact.nickname || contact.contactUser.displayName} 
@@ -268,6 +276,16 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
           ))
         )}
       </div>
+
+      {/* 친구 명함/프로필 모달 */}
+      {selectedFriend && (
+        <FriendBusinessCardModal
+          isOpen={!!selectedFriend}
+          onClose={() => setSelectedFriend(null)}
+          friendUserId={selectedFriend.userId}
+          friendName={selectedFriend.name}
+        />
+      )}
     </div>
   );
 }
