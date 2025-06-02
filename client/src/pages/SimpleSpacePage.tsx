@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,9 @@ import {
   Verified,
   Plus,
   Search,
-  TrendingUp
+  Image,
+  Video,
+  X
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -29,6 +31,8 @@ export default function SimpleSpacePage() {
   const queryClient = useQueryClient();
   const [newPostContent, setNewPostContent] = useState("");
   const [newPostTitle, setNewPostTitle] = useState("");
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch business feed posts
   const { data: feedData, isLoading: feedLoading } = useQuery({
@@ -39,13 +43,36 @@ export default function SimpleSpacePage() {
   // Create post mutation
   const createPostMutation = useMutation({
     mutationFn: async (postData: any) => {
-      const response = await apiRequest("/api/space/posts", "POST", postData);
+      const formData = new FormData();
+      formData.append('title', postData.title || '');
+      formData.append('content', postData.content);
+      formData.append('postType', postData.postType);
+      formData.append('visibility', postData.visibility);
+      
+      // Add files if any
+      selectedFiles.forEach((file) => {
+        formData.append(`files`, file);
+      });
+
+      const response = await fetch("/api/space/posts", {
+        method: "POST",
+        headers: {
+          'x-user-id': user?.id?.toString() || '0',
+        },
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create post');
+      }
+      
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/space/feed"] });
       setNewPostContent("");
       setNewPostTitle("");
+      setSelectedFiles([]);
       toast({
         title: "포스트 작성 완료",
         description: "새로운 포스트가 성공적으로 발행되었습니다.",
@@ -60,6 +87,29 @@ export default function SimpleSpacePage() {
     },
   });
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles = files.filter(file => {
+      const isImage = file.type.startsWith('image/');
+      const isVideo = file.type.startsWith('video/');
+      return (isImage || isVideo) && file.size <= 50 * 1024 * 1024; // 50MB limit
+    });
+    
+    if (validFiles.length !== files.length) {
+      toast({
+        variant: "destructive",
+        title: "파일 선택 오류",
+        description: "이미지, 동영상 파일만 업로드 가능하며 파일 크기는 50MB 이하여야 합니다.",
+      });
+    }
+    
+    setSelectedFiles(prev => [...prev, ...validFiles]);
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleCreatePost = () => {
     if (!newPostContent.trim()) {
       toast({
@@ -70,10 +120,12 @@ export default function SimpleSpacePage() {
       return;
     }
 
+    const postType = selectedFiles.length > 0 ? "media" : "text";
+    
     createPostMutation.mutate({
       title: newPostTitle.trim() || undefined,
       content: newPostContent.trim(),
-      postType: "text",
+      postType,
       visibility: "public",
     });
   };
@@ -81,89 +133,135 @@ export default function SimpleSpacePage() {
   const posts = (feedData as any)?.posts || [];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+    <div className="h-full flex flex-col bg-gray-50">
+      {/* Compact Header */}
       <div className="sticky top-0 z-50 bg-white border-b shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 py-3">
+        <div className="px-3 py-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-                <Building2 className="w-7 h-7 mr-2 text-blue-600" />
-                Business Space
-              </h1>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="relative">
+            <h1 className="text-lg font-bold text-gray-900 flex items-center">
+              <Building2 className="w-5 h-5 mr-2 text-blue-600" />
+              SPACE
+            </h1>
+            <div className="flex items-center space-x-2">
+              <div className="relative hidden sm:block">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
-                  placeholder="회사나 사람 검색..."
-                  className="pl-10 w-64"
+                  placeholder="검색..."
+                  className="pl-10 w-40 h-8 text-sm"
                 />
               </div>
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="w-4 h-4 mr-1" />
-                회사 만들기
+              <Button size="sm" className="h-8 text-xs bg-blue-600 hover:bg-blue-700 hidden sm:flex">
+                <Plus className="w-3 h-3 mr-1" />
+                회사
+              </Button>
+              <Button size="sm" className="h-8 w-8 bg-blue-600 hover:bg-blue-700 sm:hidden">
+                <Search className="w-4 h-4" />
               </Button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        {/* Create Post */}
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <div className="flex space-x-3">
-              <Avatar className="w-10 h-10">
-                <AvatarImage src={user?.profilePicture || undefined} />
-                <AvatarFallback style={{ backgroundColor: getAvatarColor((user?.id || 0).toString()) }}>
-                  {getInitials(user?.displayName || user?.username || "")}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <div className="space-y-3">
-                  <Input
-                    placeholder="제목 (선택사항)"
-                    value={newPostTitle}
-                    onChange={(e) => setNewPostTitle(e.target.value)}
-                    className="border-0 shadow-none p-0 text-lg font-medium"
-                  />
-                  <Textarea
-                    placeholder="무슨 일이 일어나고 있나요?"
-                    value={newPostContent}
-                    onChange={(e) => setNewPostContent(e.target.value)}
-                    className="min-h-[100px] border-0 shadow-none resize-none p-0"
-                  />
-                  <div className="flex items-center justify-end">
-                    <Button
-                      onClick={handleCreatePost}
-                      disabled={!newPostContent.trim() || createPostMutation.isPending}
-                      size="sm"
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      <Send className="w-4 h-4 mr-1" />
-                      발행
-                    </Button>
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-2xl mx-auto px-3 py-4 space-y-4">
+          {/* Create Post */}
+          <Card>
+            <CardContent className="p-3">
+              <div className="flex space-x-3">
+                <Avatar className="w-8 h-8">
+                  <AvatarImage src={user?.profilePicture || undefined} />
+                  <AvatarFallback style={{ backgroundColor: getAvatarColor((user?.id || 0).toString()) }}>
+                    {getInitials(user?.displayName || user?.username || "")}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <div className="space-y-2">
+                    <Input
+                      placeholder="제목 (선택사항)"
+                      value={newPostTitle}
+                      onChange={(e) => setNewPostTitle(e.target.value)}
+                      className="border-0 shadow-none p-0 text-sm font-medium h-auto"
+                    />
+                    <Textarea
+                      placeholder="무슨 일이 일어나고 있나요?"
+                      value={newPostContent}
+                      onChange={(e) => setNewPostContent(e.target.value)}
+                      className="min-h-[60px] border-0 shadow-none resize-none p-0 text-sm"
+                    />
+                    
+                    {/* File previews */}
+                    {selectedFiles.length > 0 && (
+                      <div className="grid grid-cols-2 gap-2 mt-2">
+                        {selectedFiles.map((file, index) => (
+                          <div key={index} className="relative bg-gray-100 rounded-lg p-2">
+                            <button
+                              onClick={() => removeFile(index)}
+                              className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                            <div className="flex items-center space-x-2">
+                              {file.type.startsWith('image/') ? (
+                                <Image className="w-4 h-4 text-blue-600" />
+                              ) : (
+                                <Video className="w-4 h-4 text-purple-600" />
+                              )}
+                              <span className="text-xs text-gray-600 truncate">{file.name}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center justify-between pt-2">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*,video/*"
+                          multiple
+                          onChange={handleFileSelect}
+                          className="hidden"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="h-8 px-2 text-gray-500"
+                        >
+                          <Image className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <Button
+                        onClick={handleCreatePost}
+                        disabled={!newPostContent.trim() || createPostMutation.isPending}
+                        size="sm"
+                        className="h-8 bg-blue-600 hover:bg-blue-700"
+                      >
+                        <Send className="w-3 h-3 mr-1" />
+                        발행
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Posts Feed */}
-        <div className="space-y-4">
+          {/* Posts Feed */}
           {feedLoading ? (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {[...Array(3)].map((_, i) => (
                 <Card key={i} className="animate-pulse">
-                  <CardContent className="p-4">
+                  <CardContent className="p-3">
                     <div className="flex space-x-3">
-                      <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                      <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
                       <div className="flex-1 space-y-2">
-                        <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                        <div className="h-20 bg-gray-200 rounded"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                        <div className="h-16 bg-gray-200 rounded"></div>
                       </div>
                     </div>
                   </CardContent>
@@ -172,63 +270,79 @@ export default function SimpleSpacePage() {
             </div>
           ) : posts.length === 0 ? (
             <Card>
-              <CardContent className="p-8 text-center">
-                <Building2 className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">아직 포스트가 없습니다</h3>
-                <p className="text-gray-500 mb-4">첫 번째 비즈니스 포스트를 작성해보세요!</p>
+              <CardContent className="p-6 text-center">
+                <Building2 className="w-10 h-10 mx-auto mb-3 text-gray-300" />
+                <h3 className="text-sm font-medium text-gray-900 mb-1">아직 포스트가 없습니다</h3>
+                <p className="text-xs text-gray-500">첫 번째 비즈니스 포스트를 작성해보세요!</p>
               </CardContent>
             </Card>
           ) : (
             posts.map((post: any) => (
               <Card key={post.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
+                <CardContent className="p-3">
                   <div className="flex space-x-3">
-                    <Avatar className="w-10 h-10">
+                    <Avatar className="w-8 h-8">
                       <AvatarImage src={post.user?.profilePicture || undefined} />
                       <AvatarFallback style={{ backgroundColor: getAvatarColor((post.user?.id || 0).toString()) }}>
                         {getInitials(post.user?.displayName || "")}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <h4 className="font-semibold text-gray-900">{post.user?.displayName}</h4>
+                      <div className="flex items-center space-x-1 mb-1 flex-wrap">
+                        <h4 className="font-semibold text-gray-900 text-sm">{post.user?.displayName}</h4>
                         {post.companyChannel && (
                           <>
-                            <span className="text-gray-500">at</span>
+                            <span className="text-gray-400 text-xs">at</span>
                             <div className="flex items-center space-x-1">
-                              <span className="font-medium text-blue-600 cursor-pointer hover:underline">
+                              <span className="font-medium text-blue-600 cursor-pointer hover:underline text-xs">
                                 {post.companyChannel.companyName}
                               </span>
                               {post.companyChannel.isVerified && (
-                                <Verified className="w-4 h-4 text-blue-600" />
+                                <Verified className="w-3 h-3 text-blue-600" />
                               )}
                             </div>
                           </>
                         )}
-                        <span className="text-sm text-gray-500">·</span>
-                        <span className="text-sm text-gray-500">
+                        <span className="text-xs text-gray-400">·</span>
+                        <span className="text-xs text-gray-400">
                           {formatDistanceToNow(new Date(post.createdAt), { locale: ko, addSuffix: true })}
                         </span>
                       </div>
                       
                       {post.title && (
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">{post.title}</h3>
+                        <h3 className="text-sm font-semibold text-gray-900 mb-1">{post.title}</h3>
                       )}
                       
-                      <p className="text-gray-700 mb-3 whitespace-pre-wrap">{post.content}</p>
+                      <p className="text-gray-700 mb-2 whitespace-pre-wrap text-sm leading-relaxed">{post.content}</p>
 
-                      <div className="flex items-center space-x-4">
-                        <Button variant="ghost" size="sm" className="text-gray-500">
-                          <Heart className="w-4 h-4 mr-1" />
-                          {post.likeCount || 0}
+                      {/* Show attachments if any */}
+                      {post.attachments && post.attachments.length > 0 && (
+                        <div className="mb-2">
+                          <div className="grid grid-cols-1 gap-2">
+                            {post.attachments.map((attachment: string, index: number) => (
+                              <div key={index} className="bg-gray-100 rounded-lg p-2">
+                                <div className="flex items-center space-x-2">
+                                  <Image className="w-4 h-4 text-blue-600" />
+                                  <span className="text-xs text-gray-600 truncate">첨부파일 {index + 1}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex items-center space-x-3">
+                        <Button variant="ghost" size="sm" className="text-gray-500 h-7 px-2">
+                          <Heart className="w-3 h-3 mr-1" />
+                          <span className="text-xs">{post.likeCount || 0}</span>
                         </Button>
-                        <Button variant="ghost" size="sm" className="text-gray-500">
-                          <MessageCircle className="w-4 h-4 mr-1" />
-                          {post.commentCount || 0}
+                        <Button variant="ghost" size="sm" className="text-gray-500 h-7 px-2">
+                          <MessageCircle className="w-3 h-3 mr-1" />
+                          <span className="text-xs">{post.commentCount || 0}</span>
                         </Button>
-                        <Button variant="ghost" size="sm" className="text-gray-500">
-                          <Share2 className="w-4 h-4 mr-1" />
-                          {post.shareCount || 0}
+                        <Button variant="ghost" size="sm" className="text-gray-500 h-7 px-2">
+                          <Share2 className="w-3 h-3 mr-1" />
+                          <span className="text-xs">{post.shareCount || 0}</span>
                         </Button>
                       </div>
                     </div>
