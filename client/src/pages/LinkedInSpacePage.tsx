@@ -95,11 +95,7 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
   // 포스트 작성 뮤테이션 (기존 API 사용)
   const createPostMutation = useMutation({
     mutationFn: async (postData: { content: string }) => {
-      return apiRequest('/api/posts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(postData),
-      });
+      return apiRequest('/api/posts', 'POST', postData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/posts/user'] });
@@ -129,12 +125,11 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
   const handleScroll = useCallback(() => {
     if (window.innerHeight + document.documentElement.scrollTop 
         >= document.documentElement.offsetHeight - 1000) {
-      if (hasNextPage && !isFetchingNextPage) {
+      if (hasNextPage) {
         setPage(prev => prev + 1);
-        fetchNextPage();
       }
     }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [hasNextPage]);
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
@@ -154,8 +149,8 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
     }
   };
 
-  const posts = postsData?.posts || [];
-  const companies = companiesData?.companies || [];
+  const posts = postsData && Array.isArray(postsData.posts) ? postsData.posts : [];
+  const companies = Array.isArray(companiesData?.companies) ? companiesData.companies : [];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -397,7 +392,8 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
             )}
 
             {/* 무한 스크롤 로딩 */}
-            {isFetchingNextPage && (
+            {/* Loading placeholder - disabled for now */}
+            {false && (
               <Card>
                 <CardContent className="p-6">
                   <div className="animate-pulse">
