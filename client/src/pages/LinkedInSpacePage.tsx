@@ -22,7 +22,10 @@ import {
   MapPin,
   Calendar,
   Edit3,
-  ThumbsUp
+  ThumbsUp,
+  Video,
+  X,
+  ImageIcon
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
@@ -127,7 +130,7 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
   const posts = Array.isArray(postsData) ? postsData : [];
 
   return (
-    <div className="fixed inset-0 bg-gray-50 flex flex-col">
+    <div className="h-full bg-gray-50 flex flex-col">
       {/* 토스 스타일 헤더 */}
       <div className="bg-white border-b border-gray-100 flex-shrink-0 z-50">
         <div className="max-w-2xl mx-auto px-4 py-4">
@@ -381,6 +384,35 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
                       <p className="text-gray-800 leading-relaxed text-sm">
                         {post.content}
                       </p>
+                      
+                      {/* 첨부파일 표시 */}
+                      {post.attachments && post.attachments.length > 0 && (
+                        <div className="mt-3 space-y-2">
+                          {post.attachments.map((attachment, index) => {
+                            const isImageFile = attachment.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                            const isVideoFile = attachment.match(/\.(mp4|webm|mov|avi)$/i);
+                            
+                            return (
+                              <div key={index} className="rounded-xl overflow-hidden border border-gray-200">
+                                {isImageFile && (
+                                  <img 
+                                    src={attachment}
+                                    alt="첨부 이미지"
+                                    className="w-full h-auto"
+                                  />
+                                )}
+                                {isVideoFile && (
+                                  <video 
+                                    src={attachment}
+                                    className="w-full h-auto"
+                                    controls
+                                  />
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                     
                     <div className="flex items-center justify-between pt-3 border-t border-gray-100">
