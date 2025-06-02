@@ -101,10 +101,10 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
   const posts = Array.isArray(postsData) ? postsData : [];
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-y-auto">
+    <div className="fixed inset-0 bg-gray-50 flex flex-col">
       {/* 토스 스타일 헤더 */}
-      <div className="bg-white sticky top-0 z-50 border-b border-gray-100">
-        <div className="px-4 py-4">
+      <div className="bg-white border-b border-gray-100 flex-shrink-0 z-50">
+        <div className="max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <Button 
@@ -121,7 +121,8 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
         </div>
       </div>
 
-      <div className="pb-20">
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-2xl mx-auto pb-20">
         {/* 토스 스타일 프로필 카드 */}
         <div className="bg-white mx-4 mt-4 rounded-2xl overflow-hidden shadow-sm border border-gray-100">
           {/* 간단한 헤더 */}
@@ -354,6 +355,7 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
               </div>
             ))
           )}
+        </div>
         </div>
       </div>
     </div>
