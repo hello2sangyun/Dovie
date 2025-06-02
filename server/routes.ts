@@ -2088,12 +2088,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Space Notifications API
   app.get("/api/space/notifications", async (req, res) => {
-    try {
-      const userId = req.headers["x-user-id"];
-      if (!userId) {
-        return res.status(401).json({ error: "Unauthorized" });
-      }
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
 
+    try {
       // For now, return mock data until we implement the notification system
       res.json({ unreadCount: 0 });
     } catch (error) {
@@ -2293,13 +2293,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let attachments: string[] = [];
       if (req.files && Array.isArray(req.files)) {
         for (const file of req.files) {
-          const timestamp = Date.now();
-          const randomString = Math.random().toString(36).substring(2, 15);
-          const fileName = `space_${timestamp}_${randomString}_${file.originalname}`;
-          const finalPath = path.join(uploadDir, fileName);
-          
-          fs.renameSync(file.path, finalPath);
-          attachments.push(`/uploads/${fileName}`);
+          try {
+            const timestamp = Date.now();
+            const randomString = Math.random().toString(36).substring(2, 15);
+            const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+            const fileName = `space_${timestamp}_${randomString}_${sanitizedName}`;
+            const finalPath = path.join(uploadDir, fileName);
+            
+            // Ensure uploads directory exists
+            if (!fs.existsSync(uploadDir)) {
+              fs.mkdirSync(uploadDir, { recursive: true });
+            }
+            
+            // Move file to final location
+            if (fs.existsSync(file.path)) {
+              fs.renameSync(file.path, finalPath);
+              attachments.push(`/uploads/${fileName}`);
+              console.log(`Successfully uploaded file: ${fileName}`);
+            } else {
+              console.error(`Source file not found: ${file.path}`);
+            }
+          } catch (fileError) {
+            console.error('File upload error:', fileError);
+            // Continue with other files if one fails
+          }
         }
       }
 

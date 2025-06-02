@@ -195,9 +195,9 @@ export default function SimpleSpacePage() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       {/* Compact Header */}
-      <div className="flex-shrink-0 bg-white border-b shadow-sm">
+      <div className="sticky top-0 z-10 bg-white border-b shadow-sm">
         <div className="px-3 py-2">
           <div className="flex items-center justify-between">
             <h1 className="text-lg font-bold text-gray-900 flex items-center">
@@ -252,8 +252,8 @@ export default function SimpleSpacePage() {
       </div>
 
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-2xl mx-auto px-3 py-4 space-y-4 h-full">
+      <div className="flex-1">
+        <div className="max-w-2xl mx-auto px-3 py-4 space-y-4">
 
 
           {/* Create Post - Only show in My Space tab */}
