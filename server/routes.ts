@@ -2110,6 +2110,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const friendIds = friendships.map(f => f.contactUserId);
 
       // Get posts from friends only (exclude current user's posts)
+      // Show public and friends-only posts from friends
       const posts = await db
         .select({
           id: userPosts.id,
@@ -2144,7 +2145,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .leftJoin(users, eq(userPosts.userId, users.id))
         .leftJoin(companyChannels, eq(userPosts.companyChannelId, companyChannels.id))
         .where(and(
-          eq(userPosts.visibility, "public"),
+          inArray(userPosts.visibility, ["public", "friends"]),
           friendIds.length > 0 ? inArray(userPosts.userId, friendIds) : sql`false`
         ))
         .orderBy(desc(userPosts.createdAt))

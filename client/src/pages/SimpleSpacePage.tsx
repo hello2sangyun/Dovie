@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Heart, 
   MessageCircle, 
@@ -19,7 +20,10 @@ import {
   Search,
   Image,
   Video,
-  X
+  X,
+  Globe,
+  Users,
+  Lock
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -33,6 +37,7 @@ export default function SimpleSpacePage() {
   const [newPostTitle, setNewPostTitle] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [activeTab, setActiveTab] = useState<"feed" | "my-space">("feed");
+  const [visibility, setVisibility] = useState<"public" | "friends" | "private">("public");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch friends' posts feed
@@ -77,9 +82,11 @@ export default function SimpleSpacePage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/space/feed"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/space/my-posts"] });
       setNewPostContent("");
       setNewPostTitle("");
       setSelectedFiles([]);
+      setVisibility("public");
       toast({
         title: "포스트 작성 완료",
         description: "새로운 포스트가 성공적으로 발행되었습니다.",
@@ -133,17 +140,43 @@ export default function SimpleSpacePage() {
       title: newPostTitle.trim() || undefined,
       content: newPostContent.trim(),
       postType,
-      visibility: "public",
+      visibility,
     });
   };
 
   const currentPosts = activeTab === "feed" ? (feedData as any)?.posts || [] : (myPostsData as any)?.posts || [];
   const isLoading = activeTab === "feed" ? feedLoading : myPostsLoading;
 
+  const getVisibilityIcon = (visibility: string) => {
+    switch (visibility) {
+      case "public":
+        return <Globe className="w-3 h-3" />;
+      case "friends":
+        return <Users className="w-3 h-3" />;
+      case "private":
+        return <Lock className="w-3 h-3" />;
+      default:
+        return <Globe className="w-3 h-3" />;
+    }
+  };
+
+  const getVisibilityText = (visibility: string) => {
+    switch (visibility) {
+      case "public":
+        return "모두에게 공개";
+      case "friends":
+        return "친구들에게만";
+      case "private":
+        return "나만 보기";
+      default:
+        return "모두에게 공개";
+    }
+  };
+
   return (
-    <div className="h-full flex flex-col bg-gray-50">
+    <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
       {/* Compact Header */}
-      <div className="sticky top-0 z-50 bg-white border-b shadow-sm">
+      <div className="flex-shrink-0 bg-white border-b shadow-sm">
         <div className="px-3 py-2">
           <div className="flex items-center justify-between">
             <h1 className="text-lg font-bold text-gray-900 flex items-center">
@@ -192,7 +225,7 @@ export default function SimpleSpacePage() {
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-2xl mx-auto px-3 py-4 space-y-4">
+        <div className="max-w-2xl mx-auto px-3 py-4 space-y-4 h-full">
 
 
           {/* Create Post - Only show in My Space tab */}
@@ -264,6 +297,36 @@ export default function SimpleSpacePage() {
                           >
                             <Image className="w-4 h-4" />
                           </Button>
+                          
+                          {/* Visibility Selector */}
+                          <Select value={visibility} onValueChange={(value: "public" | "friends" | "private") => setVisibility(value)}>
+                            <SelectTrigger className="w-32 h-8 text-xs">
+                              <div className="flex items-center space-x-1">
+                                {getVisibilityIcon(visibility)}
+                                <span className="hidden sm:inline">{getVisibilityText(visibility)}</span>
+                              </div>
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="public">
+                                <div className="flex items-center space-x-2">
+                                  <Globe className="w-4 h-4" />
+                                  <span>모두에게 공개</span>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="friends">
+                                <div className="flex items-center space-x-2">
+                                  <Users className="w-4 h-4" />
+                                  <span>친구들에게만</span>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="private">
+                                <div className="flex items-center space-x-2">
+                                  <Lock className="w-4 h-4" />
+                                  <span>나만 보기</span>
+                                </div>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                         <Button
                           onClick={handleCreatePost}
@@ -343,6 +406,11 @@ export default function SimpleSpacePage() {
                         <span className="text-xs text-gray-400">
                           {formatDistanceToNow(new Date(post.createdAt), { locale: ko, addSuffix: true })}
                         </span>
+                        <span className="text-xs text-gray-400">·</span>
+                        <div className="flex items-center space-x-1">
+                          {getVisibilityIcon(post.visibility)}
+                          <span className="text-xs text-gray-400">{getVisibilityText(post.visibility)}</span>
+                        </div>
                       </div>
                       
                       {post.title && (
