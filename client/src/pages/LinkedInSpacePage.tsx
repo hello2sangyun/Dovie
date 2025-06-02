@@ -79,42 +79,30 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
   const [hasNextPage, setHasNextPage] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 비즈니스 피드 쿼리 (기존 userPosts 사용)
+  // 기존 user posts API 사용
   const { data: postsData, isLoading } = useQuery({
-    queryKey: ['/api/space/feed'],
-    queryFn: async () => {
-      const response = await fetch('/api/space/feed', {
-        headers: { 'x-user-id': user?.id?.toString() || '' },
-      });
-      return response.json();
-    },
+    queryKey: ['/api/posts/user'],
     enabled: !!user,
   });
 
-  // 추천 회사 채널 쿼리 (임시로 빈 배열 반환)
+  // 추천 회사 채널 쿼리 (빈 배열 반환)
   const { data: companiesData } = useQuery({
-    queryKey: ['/api/space/companies/suggested'],
-    queryFn: async () => {
-      return { companies: [] };
-    },
+    queryKey: ['/api/space/companies'],
+    queryFn: async () => ({ companies: [] }),
     enabled: !!user,
   });
 
-  // 포스트 작성 뮤테이션
+  // 포스트 작성 뮤테이션 (기존 API 사용)
   const createPostMutation = useMutation({
     mutationFn: async (postData: { content: string }) => {
-      const response = await fetch('/api/space/posts', {
+      return apiRequest('/api/posts', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-user-id': user?.id?.toString() || '',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(postData),
       });
-      return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/space/feed'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/posts/user'] });
       setShowPostModal(false);
       setPostContent('');
       setSelectedImage(null);
@@ -154,17 +142,9 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
   }, [handleScroll]);
 
   const handleCreatePost = () => {
-    if (!postContent.trim() && !selectedImage) return;
+    if (!postContent.trim()) return;
 
-    const formData = new FormData();
-    formData.append('content', postContent);
-    formData.append('postType', 'personal');
-    
-    if (selectedImage) {
-      formData.append('image', selectedImage);
-    }
-
-    createPostMutation.mutate(formData);
+    createPostMutation.mutate({ content: postContent });
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
