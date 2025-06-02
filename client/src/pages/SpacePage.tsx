@@ -449,7 +449,7 @@ export default function SpacePage() {
                 </div>
 
                 {/* Load more indicator */}
-                {isFetchingNextPage && (
+                {feedLoading && posts.length === 0 && (
                   <div className="text-center py-4">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
                   </div>

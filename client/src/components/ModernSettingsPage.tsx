@@ -24,7 +24,7 @@ import BlockedContactsPage from "./BlockedContactsPage";
 import ProfileSettingsPage from "./ProfileSettingsPage";
 import NotificationSettingsPage from "./NotificationSettingsPage";
 import SecuritySettingsPage from "./SecuritySettingsPage";
-import SpacePage from "../pages/SpacePage";
+import SimpleSpacePage from "../pages/SimpleSpacePage";
 
 interface ModernSettingsPageProps {
   isMobile?: boolean;
@@ -49,7 +49,7 @@ export default function ModernSettingsPage({ isMobile = false }: ModernSettingsP
   if (activeView === 'space') {
     return (
       <div className="flex-1 overflow-hidden">
-        <SpacePage />
+        <SimpleSpacePage />
       </div>
     );
   }
