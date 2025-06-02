@@ -1609,19 +1609,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       friendIdList.push(parseInt(userId as string)); // 내 포스트도 포함
 
       const posts = await db.select({
-        id: businessPosts.id,
-        userId: businessPosts.userId,
-        companyChannelId: businessPosts.companyChannelId,
-        content: businessPosts.content,
-        imageUrl: businessPosts.imageUrl,
-        linkUrl: businessPosts.linkUrl,
-        linkTitle: businessPosts.linkTitle,
-        linkDescription: businessPosts.linkDescription,
-        postType: businessPosts.postType,
-        likesCount: businessPosts.likesCount,
-        commentsCount: businessPosts.commentsCount,
-        sharesCount: businessPosts.sharesCount,
-        createdAt: businessPosts.createdAt,
+        id: spacePosts.id,
+        userId: spacePosts.userId,
+        companyChannelId: spacePosts.companyChannelId,
+        content: spacePosts.content,
+        imageUrl: spacePosts.imageUrl,
+        linkUrl: spacePosts.linkUrl,
+        linkTitle: spacePosts.linkTitle,
+        linkDescription: spacePosts.linkDescription,
+        postType: spacePosts.postType,
+        likesCount: spacePosts.likesCount,
+        commentsCount: spacePosts.commentsCount,
+        sharesCount: spacePosts.sharesCount,
+        createdAt: spacePosts.createdAt,
         user: {
           id: users.id,
           username: users.username,
@@ -1629,22 +1629,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           profilePicture: users.profilePicture,
         },
         companyChannel: {
-          id: companyChannels.id,
-          name: companyChannels.name,
-          logoUrl: companyChannels.logoUrl,
-          isVerified: companyChannels.isVerified,
+          id: spaceCompanyChannels.id,
+          name: spaceCompanyChannels.companyName,
+          logoUrl: spaceCompanyChannels.logo,
+          isVerified: spaceCompanyChannels.isVerified,
         }
       })
-      .from(businessPosts)
-      .innerJoin(users, eq(businessPosts.userId, users.id))
-      .leftJoin(companyChannels, eq(businessPosts.companyChannelId, companyChannels.id))
+      .from(spacePosts)
+      .innerJoin(users, eq(spacePosts.userId, users.id))
+      .leftJoin(spaceCompanyChannels, eq(spacePosts.companyChannelId, spaceCompanyChannels.id))
       .where(
         and(
-          eq(businessPosts.isVisible, true),
-          inArray(businessPosts.userId, friendIdList)
+          eq(spacePosts.isVisible, true),
+          inArray(spacePosts.userId, friendIdList)
         )
       )
-      .orderBy(desc(businessPosts.createdAt))
+      .orderBy(desc(spacePosts.createdAt))
       .limit(limit)
       .offset(offset);
 
@@ -2943,6 +2943,164 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Unfollow company error:', error);
       res.status(500).json({ message: "Failed to unfollow company" });
+    }
+  });
+
+  // Space 피드 API (기존 userPosts 테이블 사용)
+  app.get("/api/space/feed", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      // 친구 목록 가져오기
+      const friendIds = await db.select({ friendId: contacts.contactUserId })
+        .from(contacts)
+        .where(and(
+          eq(contacts.userId, parseInt(userId as string)),
+          eq(contacts.isBlocked, false)
+        ));
+
+      const friendIdList = friendIds.map(f => f.friendId);
+      friendIdList.push(parseInt(userId as string)); // 내 포스트도 포함
+
+      // userPosts에서 비즈니스 관련 포스트 가져오기
+      const posts = await db.select({
+        id: userPosts.id,
+        userId: userPosts.userId,
+        content: userPosts.content,
+        imageUrl: userPosts.imageUrl,
+        likesCount: userPosts.likeCount,
+        commentsCount: userPosts.commentCount,
+        sharesCount: userPosts.shareCount,
+        createdAt: userPosts.createdAt,
+        user: {
+          id: users.id,
+          username: users.username,
+          displayName: users.displayName,
+          profilePicture: users.profilePicture,
+        }
+      })
+      .from(userPosts)
+      .innerJoin(users, eq(userPosts.userId, users.id))
+      .where(
+        inArray(userPosts.userId, friendIdList)
+      )
+      .orderBy(desc(userPosts.createdAt))
+      .limit(20);
+
+      // 각 포스트에 대해 현재 사용자의 좋아요 여부 확인
+      const postsWithLikes = await Promise.all(posts.map(async (post) => {
+        const userLike = await db.select()
+          .from(postLikes)
+          .where(
+            and(
+              eq(postLikes.postId, post.id),
+              eq(postLikes.userId, parseInt(userId as string))
+            )
+          )
+          .limit(1);
+
+        return {
+          ...post,
+          isLiked: userLike.length > 0,
+          postType: 'personal' as const,
+          companyChannel: null,
+        };
+      }));
+
+      res.json({ posts: postsWithLikes });
+    } catch (error) {
+      console.error('Error fetching space feed:', error);
+      res.status(500).json({ error: 'Failed to fetch space feed' });
+    }
+  });
+
+  // Space 포스트 작성 API
+  app.post("/api/space/posts", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { content } = req.body;
+      
+      if (!content || !content.trim()) {
+        return res.status(400).json({ message: "포스트 내용이 필요합니다." });
+      }
+
+      const [newPost] = await db.insert(userPosts)
+        .values({
+          userId: parseInt(userId as string),
+          content: content.trim(),
+        })
+        .returning();
+
+      res.json({ post: newPost });
+    } catch (error) {
+      console.error("Error creating space post:", error);
+      res.status(500).json({ message: "포스트 작성 중 오류가 발생했습니다." });
+    }
+  });
+
+  // Space 포스트 좋아요/좋아요 취소 API
+  app.post("/api/space/posts/:postId/like", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    const { postId } = req.params;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const [existingLike] = await db.select()
+        .from(postLikes)
+        .where(and(
+          eq(postLikes.postId, parseInt(postId)),
+          eq(postLikes.userId, parseInt(userId as string))
+        ))
+        .limit(1);
+
+      if (existingLike) {
+        // 좋아요 취소
+        await db.delete(postLikes)
+          .where(and(
+            eq(postLikes.postId, parseInt(postId)),
+            eq(postLikes.userId, parseInt(userId as string))
+          ));
+
+        // 좋아요 수 감소
+        await db.update(userPosts)
+          .set({ 
+            likesCount: sql`${userPosts.likesCount} - 1`
+          })
+          .where(eq(userPosts.id, parseInt(postId)));
+
+        res.json({ liked: false });
+      } else {
+        // 좋아요 추가
+        await db.insert(postLikes)
+          .values({
+            postId: parseInt(postId),
+            userId: parseInt(userId as string),
+          });
+
+        // 좋아요 수 증가
+        await db.update(userPosts)
+          .set({ 
+            likesCount: sql`${userPosts.likesCount} + 1`
+          })
+          .where(eq(userPosts.id, parseInt(postId)));
+
+        res.json({ liked: true });
+      }
+    } catch (error) {
+      console.error("Error toggling post like:", error);
+      res.status(500).json({ message: "좋아요 처리 중 오류가 발생했습니다." });
     }
   });
 

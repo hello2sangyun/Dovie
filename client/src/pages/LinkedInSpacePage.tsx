@@ -79,36 +79,42 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
   const [hasNextPage, setHasNextPage] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 비즈니스 피드 무한 스크롤 쿼리
-  const { data: postsData, isLoading, fetchNextPage, isFetchingNextPage } = useQuery({
-    queryKey: ['/api/business/feed', page],
+  // 비즈니스 피드 쿼리 (기존 userPosts 사용)
+  const { data: postsData, isLoading } = useQuery({
+    queryKey: ['/api/space/feed'],
     queryFn: async () => {
-      const response = await apiRequest(`/api/business/feed?page=${page}&limit=10`);
-      return response;
+      const response = await fetch('/api/space/feed', {
+        headers: { 'x-user-id': user?.id?.toString() || '' },
+      });
+      return response.json();
     },
     enabled: !!user,
   });
 
-  // 추천 회사 채널 쿼리
+  // 추천 회사 채널 쿼리 (임시로 빈 배열 반환)
   const { data: companiesData } = useQuery({
-    queryKey: ['/api/business/companies/suggested'],
+    queryKey: ['/api/space/companies/suggested'],
     queryFn: async () => {
-      const response = await apiRequest('/api/business/companies/suggested');
-      return response;
+      return { companies: [] };
     },
     enabled: !!user,
   });
 
   // 포스트 작성 뮤테이션
   const createPostMutation = useMutation({
-    mutationFn: async (postData: FormData) => {
-      return apiRequest('/api/business/posts', {
+    mutationFn: async (postData: { content: string }) => {
+      const response = await fetch('/api/space/posts', {
         method: 'POST',
-        body: postData,
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': user?.id?.toString() || '',
+        },
+        body: JSON.stringify(postData),
       });
+      return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/business/feed'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/space/feed'] });
       setShowPostModal(false);
       setPostContent('');
       setSelectedImage(null);
@@ -118,12 +124,16 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
   // 좋아요 토글 뮤테이션
   const toggleLikeMutation = useMutation({
     mutationFn: async (postId: number) => {
-      return apiRequest(`/api/business/posts/${postId}/like`, {
+      const response = await fetch(`/api/space/posts/${postId}/like`, {
         method: 'POST',
+        headers: {
+          'x-user-id': user?.id?.toString() || '',
+        },
       });
+      return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/business/feed'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/space/feed'] });
     },
   });
 

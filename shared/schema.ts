@@ -543,8 +543,8 @@ export const businessCardShares = pgTable("business_card_shares", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Company channels table
-export const companyChannels = pgTable("company_channels", {
+// Space company channels table (기존과 통합)
+export const spaceCompanyChannels = pgTable("space_company_channels", {
   id: serial("id").primaryKey(),
   companyName: text("company_name").notNull(),
   description: text("description"),
@@ -624,7 +624,7 @@ export const userPostsRelations = relations(userPosts, ({ one, many }) => ({
 
 export const companyChannelsRelations = relations(companyChannels, ({ one, many }) => ({
   creator: one(users, {
-    fields: [companyChannels.createdBy],
+    fields: [companyChannels.createdById],
     references: [users.id],
   }),
   followers: many(companyFollowers),
