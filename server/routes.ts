@@ -1528,6 +1528,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Search company pages for Business Space
+  app.get("/api/space/companies", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const { search } = req.query;
+    
+    try {
+      // Mock company data for demonstration
+      // In a real application, this would query a companies database table
+      const mockCompanies = [
+        {
+          id: 1,
+          name: "테크스타트업",
+          description: "혁신적인 기술 솔루션을 제공하는 스타트업",
+          followerCount: 1250,
+          isVerified: true,
+          logo: null
+        },
+        {
+          id: 2,
+          name: "글로벌 소프트웨어",
+          description: "전 세계를 연결하는 소프트웨어 개발",
+          followerCount: 3400,
+          isVerified: true,
+          logo: null
+        },
+        {
+          id: 3,
+          name: "디지털 마케팅 에이전시",
+          description: "창의적인 디지털 마케팅 전문",
+          followerCount: 890,
+          isVerified: false,
+          logo: null
+        }
+      ];
+
+      let companies = mockCompanies;
+      
+      if (search && typeof search === 'string') {
+        const searchTerm = search.toLowerCase();
+        companies = mockCompanies.filter(company =>
+          company.name.toLowerCase().includes(searchTerm) ||
+          company.description.toLowerCase().includes(searchTerm)
+        );
+      }
+
+      res.json({ companies });
+    } catch (error) {
+      console.error("Company search error:", error);
+      res.status(500).json({ message: "회사 검색 중 오류가 발생했습니다." });
+    }
+  });
+
   // Audio transcription endpoint for voice messages
   app.post("/api/transcribe", upload.single("audio"), async (req, res) => {
     const userId = req.headers["x-user-id"];

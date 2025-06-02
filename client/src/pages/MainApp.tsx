@@ -18,7 +18,7 @@ import ModernSettingsPage from "@/components/ModernSettingsPage";
 import NearbyChats from "@/components/NearbyChats";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, MapPin } from "lucide-react";
+import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, MapPin, Building2, Shield, UserX } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function MainApp() {
@@ -382,8 +382,85 @@ export default function MainApp() {
               </TabsContent>
               
               <TabsContent value="settings" className="h-full m-0">
-                <div className="h-full flex items-center justify-center text-gray-500">
-                  <p>설정 내용은 우측 패널에서 확인하세요</p>
+                <div className="h-full overflow-y-auto">
+                  <div className="p-4 space-y-2">
+                    <h3 className="font-semibold text-gray-900 text-sm mb-3">설정</h3>
+                    
+                    <div 
+                      className="p-3 hover:bg-purple-50 rounded-lg cursor-pointer transition-colors group"
+                      onClick={() => setRightPanelContent("profile")}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                          <BookUser className="w-4 h-4 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900 text-sm">프로필</p>
+                          <p className="text-xs text-gray-500">개인 정보 및 공개 설정</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div 
+                      className="p-3 hover:bg-purple-50 rounded-lg cursor-pointer transition-colors group"
+                      onClick={() => setRightPanelContent("business-space")}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                          <Building2 className="w-4 h-4 text-purple-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900 text-sm">Business Space</p>
+                          <p className="text-xs text-gray-500">비즈니스 네트워킹 설정</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div 
+                      className="p-3 hover:bg-purple-50 rounded-lg cursor-pointer transition-colors group"
+                      onClick={() => setRightPanelContent("privacy")}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                          <Shield className="w-4 h-4 text-green-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900 text-sm">개인정보</p>
+                          <p className="text-xs text-gray-500">보안 및 개인정보 설정</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div 
+                      className="p-3 hover:bg-purple-50 rounded-lg cursor-pointer transition-colors group"
+                      onClick={() => setRightPanelContent("security")}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                          <Shield className="w-4 h-4 text-orange-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900 text-sm">보안 및 개인정보</p>
+                          <p className="text-xs text-gray-500">비밀번호 및 보안 설정</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div 
+                      className="p-3 hover:bg-purple-50 rounded-lg cursor-pointer transition-colors group"
+                      onClick={() => setRightPanelContent("account")}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                          <UserX className="w-4 h-4 text-red-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900 text-sm">계정관리</p>
+                          <p className="text-xs text-gray-500">계정 삭제 및 관리</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </TabsContent>
             </div>
@@ -426,6 +503,190 @@ export default function MainApp() {
                   </Button>
                 </div>
                 <ArchiveList />
+              </div>
+            </div>
+          ) : rightPanelContent === "profile" ? (
+            <div className="flex-1 bg-gray-50 overflow-y-auto">
+              <div className="max-w-4xl mx-auto p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h1 className="text-2xl font-bold text-gray-900">프로필</h1>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setRightPanelContent(null);
+                      setActiveTab("settings");
+                    }}
+                  >
+                    뒤로 가기
+                  </Button>
+                </div>
+                <div className="space-y-6">
+                  <div className="text-center">
+                    <div className="w-24 h-24 bg-purple-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                      <BookUser className="w-12 h-12 text-purple-600" />
+                    </div>
+                    <h2 className="text-xl font-semibold text-gray-900">{user?.displayName}</h2>
+                    <p className="text-gray-500">@{user?.username}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-6 space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">표시 이름</label>
+                      <p className="text-gray-900">{user?.displayName}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">사용자명</label>
+                      <p className="text-gray-900">@{user?.username}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">이메일</label>
+                      <p className="text-gray-900">{user?.email || "이메일 미설정"}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : rightPanelContent === "business-space" ? (
+            <div className="flex-1 bg-gray-50 overflow-y-auto">
+              <div className="max-w-4xl mx-auto p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h1 className="text-2xl font-bold text-gray-900">Business Space</h1>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setRightPanelContent(null);
+                      setActiveTab("settings");
+                    }}
+                  >
+                    뒤로 가기
+                  </Button>
+                </div>
+                <div className="space-y-6">
+                  <div className="bg-white rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">공개 설정</h3>
+                    <div className="space-y-3">
+                      <label className="flex items-center space-x-3">
+                        <input type="checkbox" className="rounded border-gray-300" defaultChecked />
+                        <span className="text-gray-700">내 게시물을 친구들에게 공개</span>
+                      </label>
+                      <label className="flex items-center space-x-3">
+                        <input type="checkbox" className="rounded border-gray-300" />
+                        <span className="text-gray-700">회사 정보 공개</span>
+                      </label>
+                      <label className="flex items-center space-x-3">
+                        <input type="checkbox" className="rounded border-gray-300" defaultChecked />
+                        <span className="text-gray-700">연락처 동기화 허용</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : rightPanelContent === "privacy" ? (
+            <div className="flex-1 bg-gray-50 overflow-y-auto">
+              <div className="max-w-4xl mx-auto p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h1 className="text-2xl font-bold text-gray-900">개인정보</h1>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setRightPanelContent(null);
+                      setActiveTab("settings");
+                    }}
+                  >
+                    뒤로 가기
+                  </Button>
+                </div>
+                <div className="space-y-6">
+                  <div className="bg-white rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">접근 권한</h3>
+                    <div className="space-y-3">
+                      <label className="flex items-center space-x-3">
+                        <input type="checkbox" className="rounded border-gray-300" defaultChecked />
+                        <span className="text-gray-700">온라인 상태 표시</span>
+                      </label>
+                      <label className="flex items-center space-x-3">
+                        <input type="checkbox" className="rounded border-gray-300" defaultChecked />
+                        <span className="text-gray-700">마지막 접속 시간 표시</span>
+                      </label>
+                      <label className="flex items-center space-x-3">
+                        <input type="checkbox" className="rounded border-gray-300" />
+                        <span className="text-gray-700">프로필 검색 허용</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : rightPanelContent === "security" ? (
+            <div className="flex-1 bg-gray-50 overflow-y-auto">
+              <div className="max-w-4xl mx-auto p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h1 className="text-2xl font-bold text-gray-900">보안 및 개인정보</h1>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setRightPanelContent(null);
+                      setActiveTab("settings");
+                    }}
+                  >
+                    뒤로 가기
+                  </Button>
+                </div>
+                <div className="space-y-6">
+                  <div className="bg-white rounded-lg p-6 space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900">보안 설정</h3>
+                    <Button className="w-full" variant="outline">
+                      비밀번호 변경
+                    </Button>
+                    <Button className="w-full" variant="outline">
+                      2단계 인증 설정
+                    </Button>
+                    <Button className="w-full" variant="outline">
+                      로그인 기록 확인
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : rightPanelContent === "account" ? (
+            <div className="flex-1 bg-gray-50 overflow-y-auto">
+              <div className="max-w-4xl mx-auto p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h1 className="text-2xl font-bold text-gray-900">계정관리</h1>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setRightPanelContent(null);
+                      setActiveTab("settings");
+                    }}
+                  >
+                    뒤로 가기
+                  </Button>
+                </div>
+                <div className="space-y-6">
+                  <div className="bg-white rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">계정 정보</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">가입일</label>
+                        <p className="text-gray-900">2024년 1월</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">계정 상태</label>
+                        <p className="text-green-600">활성</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-red-900 mb-4">위험 구역</h3>
+                    <p className="text-red-700 mb-4">
+                      계정을 삭제하면 모든 데이터가 영구적으로 삭제됩니다.
+                    </p>
+                    <Button variant="destructive" className="w-full">
+                      계정 삭제
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           ) : selectedChatRoom || selectedLocationChatRoom ? (

@@ -71,6 +71,16 @@ export default function SimpleSpacePage() {
     queryKey: ["/api/space/notifications"]
   });
 
+  // Company pages search query
+  const { data: companyPages = { companies: [] }, isLoading: isCompaniesLoading } = useQuery({
+    queryKey: ["/api/space/companies", searchQuery],
+    enabled: activeTab === "feed" && !!searchQuery,
+    queryFn: async () => {
+      const response = await fetch(`/api/space/companies?search=${encodeURIComponent(searchQuery)}`);
+      return response.json();
+    }
+  });
+
   const unreadSpaceCount = spaceNotifications?.unreadCount || 0;
   const isLoading = activeTab === "feed" ? isFeedLoading : isMyPostsLoading;
   const posts = activeTab === "feed" ? spaceFeed.posts : myPosts.posts;
@@ -80,8 +90,15 @@ export default function SimpleSpacePage() {
     !searchQuery || 
     post.content?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     post.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    post.user?.displayName?.toLowerCase().includes(searchQuery.toLowerCase())
+    post.user?.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    post.companyChannel?.companyName?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Separate search results for Business Space
+  const searchResults = {
+    companies: searchQuery && activeTab === "feed" ? companyPages.companies || [] : [],
+    posts: filteredPosts
+  };
 
   // Mutations
   const createPostMutation = useMutation({
@@ -381,6 +398,54 @@ export default function SimpleSpacePage() {
             </div>
           )}
 
+          {/* Search Results for Business Space */}
+          {activeTab === "feed" && searchQuery && (
+            <>
+              {/* Company Pages Section */}
+              {searchResults.companies.length > 0 && (
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900">회사 페이지</h3>
+                    <span className="text-xs sm:text-sm text-gray-500 bg-gray-100 px-2 py-1 sm:px-3 rounded-full">
+                      {searchResults.companies.length}개 결과
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                    {searchResults.companies.map((company: any) => (
+                      <Card key={company.id} className="hover:shadow-md transition-shadow cursor-pointer">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                              <Building2 className="w-6 h-6 text-blue-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-gray-900 truncate">{company.name}</h4>
+                              <p className="text-sm text-gray-500 truncate">{company.description}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-xs text-gray-400">{company.followerCount || 0} 팔로워</span>
+                                {company.isVerified && <Verified className="w-3 h-3 text-blue-600" />}
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Posts Section Header for Search */}
+              {searchResults.posts.length > 0 && (
+                <div className="flex items-center justify-between border-b border-gray-200 pb-2 sm:pb-3 mb-4 sm:mb-6">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900">관련 게시물</h3>
+                  <span className="text-xs sm:text-sm text-gray-500 bg-gray-100 px-2 py-1 sm:px-3 rounded-full">
+                    {searchResults.posts.length}개 결과
+                  </span>
+                </div>
+              )}
+            </>
+          )}
+
           {/* Posts Feed */}
           {isLoading ? (
             <div className="space-y-3 sm:space-y-4">
@@ -399,7 +464,7 @@ export default function SimpleSpacePage() {
                 </Card>
               ))}
             </div>
-          ) : filteredPosts.length === 0 ? (
+          ) : searchResults.posts.length === 0 ? (
             <Card>
               <CardContent className="p-6 sm:p-8 text-center">
                 <Building2 className="w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 text-gray-300" />
