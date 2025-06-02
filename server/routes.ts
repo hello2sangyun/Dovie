@@ -1585,6 +1585,295 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Business Feed API - 친구들의 비즈니스 피드 가져오기
+  app.get("/api/business/feed", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = (page - 1) * limit;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      // 내 연락처 중 친구 관계인 사용자들의 비즈니스 포스트 가져오기
+      const friendIds = await db.select({ friendId: contacts.contactUserId })
+        .from(contacts)
+        .where(and(
+          eq(contacts.userId, parseInt(userId as string)),
+          eq(contacts.isBlocked, false)
+        ));
+
+      const friendIdList = friendIds.map(f => f.friendId);
+      friendIdList.push(parseInt(userId as string)); // 내 포스트도 포함
+
+      const posts = await db.select({
+        id: businessPosts.id,
+        userId: businessPosts.userId,
+        companyChannelId: businessPosts.companyChannelId,
+        content: businessPosts.content,
+        imageUrl: businessPosts.imageUrl,
+        linkUrl: businessPosts.linkUrl,
+        linkTitle: businessPosts.linkTitle,
+        linkDescription: businessPosts.linkDescription,
+        postType: businessPosts.postType,
+        likesCount: businessPosts.likesCount,
+        commentsCount: businessPosts.commentsCount,
+        sharesCount: businessPosts.sharesCount,
+        createdAt: businessPosts.createdAt,
+        user: {
+          id: users.id,
+          username: users.username,
+          displayName: users.displayName,
+          profilePicture: users.profilePicture,
+        },
+        companyChannel: {
+          id: companyChannels.id,
+          name: companyChannels.name,
+          logoUrl: companyChannels.logoUrl,
+          isVerified: companyChannels.isVerified,
+        }
+      })
+      .from(businessPosts)
+      .innerJoin(users, eq(businessPosts.userId, users.id))
+      .leftJoin(companyChannels, eq(businessPosts.companyChannelId, companyChannels.id))
+      .where(
+        and(
+          eq(businessPosts.isVisible, true),
+          inArray(businessPosts.userId, friendIdList)
+        )
+      )
+      .orderBy(desc(businessPosts.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+      // 각 포스트에 대해 현재 사용자의 좋아요 여부 확인
+      const postsWithLikes = await Promise.all(posts.map(async (post) => {
+        const [userLike] = await db.select()
+          .from(businessPostLikes)
+          .where(and(
+            eq(businessPostLikes.postId, post.id),
+            eq(businessPostLikes.userId, parseInt(userId as string))
+          ))
+          .limit(1);
+
+        return {
+          ...post,
+          isLiked: !!userLike,
+        };
+      }));
+
+      res.json({ posts: postsWithLikes });
+    } catch (error) {
+      console.error("Error fetching business feed:", error);
+      res.status(500).json({ message: "비즈니스 피드를 가져오는 중 오류가 발생했습니다." });
+    }
+  });
+
+  // 비즈니스 포스트 작성
+  app.post("/api/business/posts", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { content, postType = 'personal', companyChannelId } = req.body;
+      
+      if (!content || !content.trim()) {
+        return res.status(400).json({ message: "포스트 내용이 필요합니다." });
+      }
+
+      const [newPost] = await db.insert(businessPosts)
+        .values({
+          userId: parseInt(userId as string),
+          content: content.trim(),
+          postType,
+          companyChannelId: companyChannelId ? parseInt(companyChannelId) : undefined,
+        })
+        .returning();
+
+      res.json({ post: newPost });
+    } catch (error) {
+      console.error("Error creating business post:", error);
+      res.status(500).json({ message: "포스트 작성 중 오류가 발생했습니다." });
+    }
+  });
+
+  // 비즈니스 포스트 좋아요/좋아요 취소
+  app.post("/api/business/posts/:postId/like", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    const { postId } = req.params;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const [existingLike] = await db.select()
+        .from(businessPostLikes)
+        .where(and(
+          eq(businessPostLikes.postId, parseInt(postId)),
+          eq(businessPostLikes.userId, parseInt(userId as string))
+        ))
+        .limit(1);
+
+      if (existingLike) {
+        // 좋아요 취소
+        await db.delete(businessPostLikes)
+          .where(and(
+            eq(businessPostLikes.postId, parseInt(postId)),
+            eq(businessPostLikes.userId, parseInt(userId as string))
+          ));
+
+        // 좋아요 수 감소
+        await db.update(businessPosts)
+          .set({ 
+            likesCount: sql`${businessPosts.likesCount} - 1`
+          })
+          .where(eq(businessPosts.id, parseInt(postId)));
+
+        res.json({ liked: false });
+      } else {
+        // 좋아요 추가
+        await db.insert(businessPostLikes)
+          .values({
+            postId: parseInt(postId),
+            userId: parseInt(userId as string),
+          });
+
+        // 좋아요 수 증가
+        await db.update(businessPosts)
+          .set({ 
+            likesCount: sql`${businessPosts.likesCount} + 1`
+          })
+          .where(eq(businessPosts.id, parseInt(postId)));
+
+        res.json({ liked: true });
+      }
+    } catch (error) {
+      console.error("Error toggling post like:", error);
+      res.status(500).json({ message: "좋아요 처리 중 오류가 발생했습니다." });
+    }
+  });
+
+  // 추천 회사 채널 가져오기
+  app.get("/api/business/companies/suggested", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      // 승인된 회사 채널들 중 팔로우하지 않은 것들을 가져오기
+      const companies = await db.select({
+        id: companyChannels.id,
+        name: companyChannels.name,
+        description: companyChannels.description,
+        logoUrl: companyChannels.logoUrl,
+        isVerified: companyChannels.isVerified,
+        followersCount: sql<number>`(
+          SELECT COUNT(*) FROM ${companyChannelFollowers} 
+          WHERE ${companyChannelFollowers.channelId} = ${companyChannels.id}
+        )`.as('followersCount'),
+      })
+      .from(companyChannels)
+      .where(eq(companyChannels.isVerified, true))
+      .limit(5);
+
+      res.json({ companies });
+    } catch (error) {
+      console.error("Error fetching suggested companies:", error);
+      res.status(500).json({ message: "추천 회사를 가져오는 중 오류가 발생했습니다." });
+    }
+  });
+
+  // 회사 채널 생성
+  app.post("/api/business/companies", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { name, description, website } = req.body;
+      
+      if (!name || !name.trim()) {
+        return res.status(400).json({ message: "회사명이 필요합니다." });
+      }
+
+      const [newCompany] = await db.insert(companyChannels)
+        .values({
+          name: name.trim(),
+          description: description?.trim(),
+          website: website?.trim(),
+          createdById: parseInt(userId as string),
+          isVerified: false, // 관리자 승인 필요
+        })
+        .returning();
+
+      // 생성자를 관리자로 추가
+      await db.insert(companyChannelAdmins)
+        .values({
+          channelId: newCompany.id,
+          userId: parseInt(userId as string),
+          role: 'admin',
+        });
+
+      res.json({ company: newCompany });
+    } catch (error) {
+      console.error("Error creating company channel:", error);
+      res.status(500).json({ message: "회사 채널 생성 중 오류가 발생했습니다." });
+    }
+  });
+
+  // 회사 채널 팔로우/언팔로우
+  app.post("/api/business/companies/:companyId/follow", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    const { companyId } = req.params;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const [existingFollow] = await db.select()
+        .from(companyChannelFollowers)
+        .where(and(
+          eq(companyChannelFollowers.channelId, parseInt(companyId)),
+          eq(companyChannelFollowers.userId, parseInt(userId as string))
+        ))
+        .limit(1);
+
+      if (existingFollow) {
+        // 언팔로우
+        await db.delete(companyChannelFollowers)
+          .where(and(
+            eq(companyChannelFollowers.channelId, parseInt(companyId)),
+            eq(companyChannelFollowers.userId, parseInt(userId as string))
+          ));
+
+        res.json({ following: false });
+      } else {
+        // 팔로우
+        await db.insert(companyChannelFollowers)
+          .values({
+            channelId: parseInt(companyId),
+            userId: parseInt(userId as string),
+          });
+
+        res.json({ following: true });
+      }
+    } catch (error) {
+      console.error("Error toggling company follow:", error);
+      res.status(500).json({ message: "팔로우 처리 중 오류가 발생했습니다." });
+    }
+  });
+
   // Search company pages for Business Space
   app.get("/api/space/companies", async (req, res) => {
     const userId = req.headers["x-user-id"];

@@ -250,6 +250,90 @@ export const businessCards = pgTable("business_cards", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// 회사 채널 테이블
+export const companyChannels = pgTable("company_channels", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  logoUrl: text("logo_url"),
+  website: text("website"),
+  isVerified: boolean("is_verified").default(false),
+  createdById: integer("created_by_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// 회사 채널 관리자 테이블
+export const companyChannelAdmins = pgTable("company_channel_admins", {
+  id: serial("id").primaryKey(),
+  channelId: integer("channel_id").references(() => companyChannels.id),
+  userId: integer("user_id").references(() => users.id),
+  role: text("role").default("admin"), // admin, moderator
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 회사 채널 팔로워 테이블
+export const companyChannelFollowers = pgTable("company_channel_followers", {
+  id: serial("id").primaryKey(),
+  channelId: integer("channel_id").references(() => companyChannels.id),
+  userId: integer("user_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 비즈니스 피드 포스트 테이블
+export const businessPosts = pgTable("business_posts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  companyChannelId: integer("company_channel_id").references(() => companyChannels.id),
+  content: text("content").notNull(),
+  imageUrl: text("image_url"),
+  linkUrl: text("link_url"),
+  linkTitle: text("link_title"),
+  linkDescription: text("link_description"),
+  postType: text("post_type").default("personal"), // personal, company
+  isVisible: boolean("is_visible").default(true),
+  likesCount: integer("likes_count").default(0),
+  commentsCount: integer("comments_count").default(0),
+  sharesCount: integer("shares_count").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// 비즈니스 포스트 좋아요
+export const businessPostLikes = pgTable("business_post_likes", {
+  id: serial("id").primaryKey(),
+  postId: integer("post_id").references(() => businessPosts.id),
+  userId: integer("user_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 비즈니스 포스트 댓글
+export const businessPostComments = pgTable("business_post_comments", {
+  id: serial("id").primaryKey(),
+  postId: integer("post_id").references(() => businessPosts.id),
+  userId: integer("user_id").references(() => users.id),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// 사용자 프로필 확장 (비즈니스 정보)
+export const userBusinessProfiles = pgTable("user_business_profiles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  jobTitle: text("job_title"),
+  company: text("company"),
+  bio: text("bio"),
+  website: text("website"),
+  location: text("location"),
+  linkedinUrl: text("linkedin_url"),
+  industry: text("industry"),
+  experienceYears: integer("experience_years"),
+  skills: text("skills").array(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const usersRelations = relations(users, ({ many }) => ({
   contacts: many(contacts, { relationName: "userContacts" }),
   contactOf: many(contacts, { relationName: "contactUser" }),

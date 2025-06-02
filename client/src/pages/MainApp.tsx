@@ -18,6 +18,7 @@ import ModernSettingsPage from "@/components/ModernSettingsPage";
 import NearbyChats from "@/components/NearbyChats";
 import BlockedContactsPage from "@/components/BlockedContactsPage";
 import SimpleSpacePage from "@/pages/SimpleSpacePage";
+import LinkedInSpacePage from "@/pages/LinkedInSpacePage";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, MapPin, Building2, Shield, UserX } from "lucide-react";
@@ -433,8 +434,7 @@ export default function MainApp() {
                       <div 
                         className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
                         onClick={() => {
-                          setActiveTab("space");
-                          setRightPanelContent(null);
+                          setRightPanelContent("linkedin-space");
                         }}
                       >
                         <div className="flex items-center space-x-3">
@@ -823,6 +823,8 @@ export default function MainApp() {
                 </div>
               </div>
             </div>
+          ) : rightPanelContent === "linkedin-space" ? (
+            <LinkedInSpacePage onBack={() => setRightPanelContent("digital-command")} />
           ) : rightPanelContent === "profile-edit" ? (
             <div className="flex-1 bg-gray-50 overflow-y-auto">
               <div className="max-w-4xl mx-auto p-6">
