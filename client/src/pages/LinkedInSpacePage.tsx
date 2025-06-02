@@ -130,7 +130,15 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
   const posts = Array.isArray(postsData) ? postsData : [];
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-y-auto">
+    <div 
+      className="w-full bg-gray-50" 
+      style={{ 
+        height: '100vh', 
+        overflowY: 'auto', 
+        WebkitOverflowScrolling: 'touch',
+        position: 'relative'
+      }}
+    >
       {/* 토스 스타일 헤더 */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-2xl mx-auto px-4 py-4">
@@ -150,7 +158,7 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto pb-20">
+      <div className="w-full max-w-2xl mx-auto pb-40" style={{ paddingTop: '0px' }}>
         {/* 토스 스타일 프로필 카드 */}
         <div className="bg-white mx-4 mt-4 rounded-2xl overflow-hidden shadow-sm border border-gray-100">
           {/* 간단한 헤더 */}
@@ -229,18 +237,19 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
         {/* 토스 스타일 포스트 작성 */}
         <div className="mx-4 mt-4 bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
           <div className="flex space-x-3">
-            <Avatar className="w-10 h-10">
+            <Avatar className="w-10 h-10 flex-shrink-0">
               <AvatarImage src={user?.profilePicture || undefined} />
               <AvatarFallback className="bg-gray-100 text-gray-700 font-semibold text-sm">
                 {user?.displayName?.[0]}
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <textarea
                 value={postContent}
                 onChange={(e) => setPostContent(e.target.value)}
                 placeholder="무엇을 공유하고 싶나요?"
                 className="w-full p-0 border-0 resize-none focus:outline-none bg-transparent text-sm placeholder-gray-400 min-h-[80px]"
+                style={{ touchAction: 'manipulation' }}
                 rows={3}
               />
               {selectedFiles.length > 0 && (
