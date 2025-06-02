@@ -142,8 +142,18 @@ export default function ModernSettingsPage({ isMobile = false }: ModernSettingsP
             <h4 className="text-sm font-semibold text-gray-700 px-2">비즈니스</h4>
             
             <Card 
-              className="bg-white/80 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group"
-              onClick={() => setActiveView('business-card')}
+              className="bg-white/80 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group active:scale-95"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Business Card clicked');
+                setActiveView('business-card');
+              }}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                console.log('Business Card touched');
+                setActiveView('business-card');
+              }}
             >
               <CardContent className="p-4">
                 <div className="flex items-center space-x-3">
@@ -160,9 +170,16 @@ export default function ModernSettingsPage({ isMobile = false }: ModernSettingsP
             </Card>
 
             <Card 
-              className="bg-white/80 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group"
-              onClick={() => {
+              className="bg-white/80 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group active:scale-95"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 console.log('Business Space clicked');
+                setActiveView('space');
+              }}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                console.log('Business Space touched');
                 setActiveView('space');
               }}
             >
