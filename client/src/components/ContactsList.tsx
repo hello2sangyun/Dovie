@@ -7,7 +7,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { OptimizedAvatar } from "@/components/OptimizedAvatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Star } from "lucide-react";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger,
+  DropdownMenuSeparator 
+} from "@/components/ui/dropdown-menu";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Plus, Search, Star, MoreVertical, UserX, Trash2, Shield } from "lucide-react";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 import FriendBusinessCardModal from "./FriendBusinessCardModal";
 
@@ -23,6 +40,10 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("nickname");
   const [selectedFriend, setSelectedFriend] = useState<{ userId: number; name: string } | null>(null);
+  const [showBlockConfirm, setShowBlockConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [contactToBlock, setContactToBlock] = useState<any>(null);
+  const [contactToDelete, setContactToDelete] = useState<any>(null);
 
   // Toggle favorite mutation
   const toggleFavoriteMutation = useMutation({
@@ -46,6 +67,50 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     },
   });
 
+  // Block contact mutation
+  const blockContactMutation = useMutation({
+    mutationFn: async (contactUserId: number) => {
+      const response = await apiRequest(`/api/contacts/${contactUserId}/block`, "POST");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
+      toast({
+        title: "연락처 차단 완료",
+        description: "연락처가 차단되었습니다.",
+      });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "차단 실패",
+        description: "연락처 차단 중 오류가 발생했습니다.",
+      });
+    },
+  });
+
+  // Delete contact mutation
+  const deleteContactMutation = useMutation({
+    mutationFn: async (contactUserId: number) => {
+      const response = await apiRequest(`/api/contacts/${contactUserId}`, "DELETE");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
+      toast({
+        title: "연락처 삭제 완료",
+        description: "연락처가 삭제되었습니다.",
+      });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "삭제 실패",
+        description: "연락처 삭제 중 오류가 발생했습니다.",
+      });
+    },
+  });
+
   const { data: contactsData, isLoading } = useQuery({
     queryKey: ["/api/contacts"],
     enabled: !!user,
@@ -59,6 +124,32 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   });
 
   const contacts = contactsData?.contacts || [];
+
+  const handleBlockContact = (contact: any) => {
+    setContactToBlock(contact);
+    setShowBlockConfirm(true);
+  };
+
+  const handleDeleteContact = (contact: any) => {
+    setContactToDelete(contact);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmBlockContact = () => {
+    if (contactToBlock) {
+      blockContactMutation.mutate(contactToBlock.contactUserId);
+      setShowBlockConfirm(false);
+      setContactToBlock(null);
+    }
+  };
+
+  const confirmDeleteContact = () => {
+    if (contactToDelete) {
+      deleteContactMutation.mutate(contactToDelete.contactUserId);
+      setShowDeleteConfirm(false);
+      setContactToDelete(null);
+    }
+  };
 
   // 즐겨찾기 친구와 일반 친구 분리
   const favoriteContacts = contacts.filter((contact: any) => contact.isPinned);
@@ -241,31 +332,70 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                   </div>
                 </div>
                 
-                {/* 즐겨찾기 버튼 */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={cn(
-                    "h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity",
-                    contact.isPinned && "opacity-100"
-                  )}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleFavoriteMutation.mutate({
-                      contactId: contact.id,
-                      isPinned: !contact.isPinned
-                    });
-                  }}
-                >
-                  <Star 
+                <div className="flex items-center space-x-1">
+                  {/* 즐겨찾기 버튼 */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className={cn(
-                      "h-4 w-4",
-                      contact.isPinned 
-                        ? "fill-yellow-400 text-yellow-400" 
-                        : "text-gray-400 hover:text-yellow-400"
-                    )} 
-                  />
-                </Button>
+                      "h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity",
+                      contact.isPinned && "opacity-100"
+                    )}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavoriteMutation.mutate({
+                        contactId: contact.id,
+                        isPinned: !contact.isPinned
+                      });
+                    }}
+                  >
+                    <Star 
+                      className={cn(
+                        "h-4 w-4",
+                        contact.isPinned 
+                          ? "fill-yellow-400 text-yellow-400" 
+                          : "text-gray-400 hover:text-yellow-400"
+                      )} 
+                    />
+                  </Button>
+
+                  {/* 옵션 메뉴 */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreVertical className="h-4 w-4 text-gray-400" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleBlockContact(contact);
+                        }}
+                        className="text-orange-600"
+                      >
+                        <Shield className="h-4 w-4 mr-2" />
+                        차단하기
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteContact(contact);
+                        }}
+                        className="text-red-600"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        삭제하기
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
             </div>
           ))
