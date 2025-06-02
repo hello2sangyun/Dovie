@@ -1,13 +1,15 @@
 import { 
   users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications,
   locationChatRooms, locationChatParticipants, locationChatMessages, userLocations,
-  fileUploads, fileDownloads,
+  fileUploads, fileDownloads, businessCards, businessProfiles, userPosts, businessCardShares,
   type User, type InsertUser, type Contact, type InsertContact,
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
   type Command, type InsertCommand, type MessageRead, type InsertMessageRead,
   type PhoneVerification, type InsertPhoneVerification,
   type LocationChatRoom, type InsertLocationChatRoom,
-  type FileUpload, type InsertFileUpload, type FileDownload, type InsertFileDownload
+  type FileUpload, type InsertFileUpload, type FileDownload, type InsertFileDownload,
+  type BusinessCard, type InsertBusinessCard, type BusinessProfile, type InsertBusinessProfile,
+  type UserPost, type InsertUserPost, type BusinessCardShare, type InsertBusinessCardShare
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, or, count, gt, lt, sql, inArray } from "drizzle-orm";
