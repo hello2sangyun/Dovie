@@ -4,7 +4,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Building2, Mail, Phone, Globe, MapPin, User, Briefcase, Users } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { 
+  Building2, 
+  Mail, 
+  Phone, 
+  Globe, 
+  MapPin, 
+  User, 
+  Briefcase, 
+  Users, 
+  Sparkles,
+  X
+} from "lucide-react";
 import { getInitials, getAvatarColor } from "@/lib/utils";
 
 interface FriendBusinessCardModalProps {
@@ -39,41 +51,61 @@ export default function FriendBusinessCardModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center space-x-3">
-            <div
-              className={`w-10 h-10 rounded-full bg-gradient-to-br ${getAvatarColor(friendName)} flex items-center justify-center text-white font-semibold`}
-            >
-              {getInitials(friendName)}
+      <DialogContent className="max-w-lg mx-auto bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-0 shadow-2xl">
+        <DialogHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                <div
+                  className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${getAvatarColor(friendName)} flex items-center justify-center text-white font-bold text-lg shadow-lg`}
+                >
+                  {getInitials(friendName)}
+                </div>
+                <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                  <Sparkles className="w-3 h-3 text-white" />
+                </div>
+              </div>
+              <div>
+                <DialogTitle className="text-lg font-bold text-gray-900">
+                  {friendName}님
+                </DialogTitle>
+                <p className="text-xs text-gray-500">프로필 정보</p>
+              </div>
             </div>
-            <span>{friendName}님의 프로필</span>
-          </DialogTitle>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={onClose}
+              className="h-8 w-8 p-0 hover:bg-white/50"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
         </DialogHeader>
 
-        {/* 탭 네비게이션 */}
-        <div className="flex border-b">
+        {/* 컴팩트 탭 네비게이션 */}
+        <div className="flex bg-white/60 backdrop-blur-sm rounded-xl p-1 mb-4">
           <button
-            className={`flex-1 py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
+            className={`flex-1 flex items-center justify-center space-x-2 py-2 px-3 text-xs font-medium rounded-lg transition-all ${
               activeTab === "card"
-                ? "border-blue-500 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                ? "bg-white text-blue-600 shadow-sm"
+                : "text-gray-600 hover:text-gray-800"
             }`}
             onClick={() => setActiveTab("card")}
           >
-            <User className="w-4 h-4 inline mr-2" />
-            명함
+            <User className="w-3.5 h-3.5" />
+            <span>명함</span>
           </button>
           <button
-            className={`flex-1 py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
+            className={`flex-1 flex items-center justify-center space-x-2 py-2 px-3 text-xs font-medium rounded-lg transition-all ${
               activeTab === "profile"
-                ? "border-blue-500 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                ? "bg-white text-blue-600 shadow-sm"
+                : "text-gray-600 hover:text-gray-800"
             }`}
             onClick={() => setActiveTab("profile")}
           >
-            <Building2 className="w-4 h-4 inline mr-2" />
-            회사 정보
+            <Building2 className="w-3.5 h-3.5" />
+            <span>회사정보</span>
           </button>
         </div>
 

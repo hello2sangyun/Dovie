@@ -14,7 +14,7 @@ import AddContactModal from "@/components/AddContactModal";
 import CommandModal from "@/components/CommandModal";
 import CreateGroupChatModal from "@/components/CreateGroupChatModal";
 
-import SettingsPage from "@/components/SettingsPage";
+import ModernSettingsPage from "@/components/ModernSettingsPage";
 import NearbyChats from "@/components/NearbyChats";
 import StorageAnalytics from "@/pages/StorageAnalytics";
 import { Button } from "@/components/ui/button";
@@ -385,7 +385,7 @@ export default function MainApp() {
               </TabsContent>
               
               <TabsContent value="settings" className="h-full m-0">
-                <SettingsPage />
+                <ModernSettingsPage />
               </TabsContent>
             </div>
           </Tabs>
