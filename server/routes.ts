@@ -13,7 +13,7 @@ import fs from "fs";
 import { encryptFileData, decryptFileData, hashFileName } from "./crypto";
 import { processCommand } from "./openai";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray, desc } from "drizzle-orm";
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -2086,7 +2086,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Space (Business Feed) Routes
+  // Space (Business Feed) Routes - Friends' posts feed
   app.get("/api/space/feed", async (req, res) => {
     const userId = req.headers["x-user-id"];
     if (!userId) {
@@ -2098,7 +2098,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const limit = parseInt(req.query.limit as string) || 10;
       const offset = (page - 1) * limit;
 
-      // Get posts from friends and followed companies
+      // Get friend user IDs
+      const friendships = await db
+        .select({ contactUserId: contacts.contactUserId })
+        .from(contacts)
+        .where(and(
+          eq(contacts.userId, Number(userId)),
+          eq(contacts.isBlocked, false)
+        ));
+
+      const friendIds = friendships.map(f => f.contactUserId);
+
+      // Get posts from friends only (exclude current user's posts)
       const posts = await db
         .select({
           id: userPosts.id,
@@ -2132,8 +2143,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from(userPosts)
         .leftJoin(users, eq(userPosts.userId, users.id))
         .leftJoin(companyChannels, eq(userPosts.companyChannelId, companyChannels.id))
-        .where(eq(userPosts.visibility, "public"))
-        .orderBy(userPosts.createdAt)
+        .where(and(
+          eq(userPosts.visibility, "public"),
+          friendIds.length > 0 ? inArray(userPosts.userId, friendIds) : sql`false`
+        ))
+        .orderBy(desc(userPosts.createdAt))
         .limit(limit)
         .offset(offset);
 
@@ -2160,16 +2174,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/space/posts", async (req, res) => {
+  // My Space - User's own posts
+  app.get("/api/space/my-posts", async (req, res) => {
     const userId = req.headers["x-user-id"];
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
 
     try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const offset = (page - 1) * limit;
+
+      // Get user's own posts
+      const posts = await db
+        .select({
+          id: userPosts.id,
+          userId: userPosts.userId,
+          companyChannelId: userPosts.companyChannelId,
+          title: userPosts.title,
+          content: userPosts.content,
+          postType: userPosts.postType,
+          attachments: userPosts.attachments,
+          visibility: userPosts.visibility,
+          tags: userPosts.tags,
+          likeCount: userPosts.likeCount,
+          commentCount: userPosts.commentCount,
+          shareCount: userPosts.shareCount,
+          isPinned: userPosts.isPinned,
+          createdAt: userPosts.createdAt,
+          updatedAt: userPosts.updatedAt,
+          user: {
+            id: users.id,
+            username: users.username,
+            displayName: users.displayName,
+            profilePicture: users.profilePicture,
+          },
+          companyChannel: {
+            id: companyChannels.id,
+            companyName: companyChannels.companyName,
+            logo: companyChannels.logo,
+            isVerified: companyChannels.isVerified,
+          }
+        })
+        .from(userPosts)
+        .leftJoin(users, eq(userPosts.userId, users.id))
+        .leftJoin(companyChannels, eq(userPosts.companyChannelId, companyChannels.id))
+        .where(eq(userPosts.userId, Number(userId)))
+        .orderBy(desc(userPosts.createdAt))
+        .limit(limit)
+        .offset(offset);
+
+      // Check if user liked each post
+      const postsWithLikes = await Promise.all(
+        posts.map(async (post) => {
+          const liked = await db
+            .select()
+            .from(postLikes)
+            .where(and(eq(postLikes.postId, post.id), eq(postLikes.userId, Number(userId))))
+            .limit(1);
+
+          return {
+            ...post,
+            isLiked: liked.length > 0,
+          };
+        })
+      );
+
+      res.json({ posts: postsWithLikes });
+    } catch (error) {
+      console.error('My posts error:', error);
+      res.status(500).json({ message: "Failed to get my posts" });
+    }
+  });
+
+  app.post("/api/space/posts", upload.array('files', 5), async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { title, content, postType, visibility } = req.body;
+      
+      // Handle file uploads
+      let attachments: string[] = [];
+      if (req.files && Array.isArray(req.files)) {
+        for (const file of req.files) {
+          const timestamp = Date.now();
+          const randomString = Math.random().toString(36).substring(2, 15);
+          const fileName = `space_${timestamp}_${randomString}_${file.originalname}`;
+          const finalPath = path.join(uploadDir, fileName);
+          
+          fs.renameSync(file.path, finalPath);
+          attachments.push(`/uploads/${fileName}`);
+        }
+      }
+
       const postData = insertUserPostSchema.parse({
         userId: Number(userId),
-        ...req.body,
+        title: title || null,
+        content,
+        postType: postType || 'text',
+        visibility: visibility || 'public',
+        attachments: attachments.length > 0 ? attachments : null,
       });
 
       const [post] = await db.insert(userPosts).values(postData).returning();

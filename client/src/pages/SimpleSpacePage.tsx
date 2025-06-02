@@ -32,12 +32,19 @@ export default function SimpleSpacePage() {
   const [newPostContent, setNewPostContent] = useState("");
   const [newPostTitle, setNewPostTitle] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [activeTab, setActiveTab] = useState<"feed" | "my-space">("feed");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch business feed posts
+  // Fetch friends' posts feed
   const { data: feedData, isLoading: feedLoading } = useQuery({
     queryKey: ["/api/space/feed"],
-    enabled: !!user,
+    enabled: !!user && activeTab === "feed",
+  });
+
+  // Fetch user's own posts
+  const { data: myPostsData, isLoading: myPostsLoading } = useQuery({
+    queryKey: ["/api/space/my-posts"],
+    enabled: !!user && activeTab === "my-space",
   });
 
   // Create post mutation
@@ -130,7 +137,8 @@ export default function SimpleSpacePage() {
     });
   };
 
-  const posts = (feedData as any)?.posts || [];
+  const currentPosts = activeTab === "feed" ? (feedData as any)?.posts || [] : (myPostsData as any)?.posts || [];
+  const isLoading = activeTab === "feed" ? feedLoading : myPostsLoading;
 
   return (
     <div className="h-full flex flex-col bg-gray-50">
@@ -158,6 +166,26 @@ export default function SimpleSpacePage() {
                 <Search className="w-4 h-4" />
               </Button>
             </div>
+          </div>
+          
+          {/* Tab Navigation */}
+          <div className="flex space-x-1 mt-2">
+            <Button
+              variant={activeTab === "feed" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setActiveTab("feed")}
+              className="h-8 text-xs"
+            >
+              Space Home
+            </Button>
+            <Button
+              variant={activeTab === "my-space" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setActiveTab("my-space")}
+              className="h-8 text-xs"
+            >
+              My Space
+            </Button>
           </div>
         </div>
       </div>
