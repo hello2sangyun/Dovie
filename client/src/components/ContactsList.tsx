@@ -411,6 +411,50 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
           friendName={selectedFriend.name}
         />
       )}
+
+      {/* 차단 확인 다이얼로그 */}
+      <AlertDialog open={showBlockConfirm} onOpenChange={setShowBlockConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>연락처 차단</AlertDialogTitle>
+            <AlertDialogDescription>
+              {contactToBlock?.nickname || contactToBlock?.contactUser?.displayName}님을 차단하시겠습니까?
+              차단된 연락처는 메시지를 보낼 수 없으며, 연락처 목록에서 숨겨집니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmBlockContact}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              차단하기
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* 삭제 확인 다이얼로그 */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>연락처 삭제</AlertDialogTitle>
+            <AlertDialogDescription>
+              {contactToDelete?.nickname || contactToDelete?.contactUser?.displayName}님을 연락처에서 삭제하시겠습니까?
+              삭제된 연락처는 복구할 수 없습니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteContact}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              삭제하기
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
