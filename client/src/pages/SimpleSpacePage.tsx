@@ -196,41 +196,41 @@ export default function SimpleSpacePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* Compact Header */}
+      {/* Header */}
       <div className="sticky top-0 z-10 bg-white border-b shadow-sm">
-        <div className="px-3 py-2">
-          <div className="flex items-center justify-between">
-            <h1 className="text-lg font-bold text-gray-900 flex items-center">
-              <Building2 className="w-5 h-5 mr-2 text-blue-600" />
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-xl font-bold text-gray-900 flex items-center">
+              <Building2 className="w-6 h-6 mr-3 text-blue-600" />
               SPACE
             </h1>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               <div className="relative hidden sm:block">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
                   placeholder="검색..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 w-40 h-8 text-sm"
+                  className="pl-10 w-48 h-9 text-sm"
                 />
               </div>
-              <Button size="sm" className="h-8 text-xs bg-blue-600 hover:bg-blue-700 hidden sm:flex">
-                <Plus className="w-3 h-3 mr-1" />
+              <Button size="sm" className="h-9 px-3 text-sm bg-blue-600 hover:bg-blue-700 hidden sm:flex">
+                <Plus className="w-4 h-4 mr-2" />
                 회사
               </Button>
-              <Button size="sm" className="h-8 w-8 bg-blue-600 hover:bg-blue-700 sm:hidden">
+              <Button size="sm" className="h-9 w-9 bg-blue-600 hover:bg-blue-700 sm:hidden">
                 <Search className="w-4 h-4" />
               </Button>
             </div>
           </div>
           
           {/* Tab Navigation */}
-          <div className="flex space-x-1 mt-2">
+          <div className="flex space-x-3">
             <Button
               variant={activeTab === "feed" ? "default" : "ghost"}
               size="sm"
               onClick={() => setActiveTab("feed")}
-              className="h-8 text-xs"
+              className="h-10 px-6 text-sm font-medium"
             >
               Space Home
             </Button>
@@ -238,7 +238,7 @@ export default function SimpleSpacePage() {
               variant={activeTab === "my-space" ? "default" : "ghost"}
               size="sm"
               onClick={() => setActiveTab("my-space")}
-              className="h-8 text-xs relative"
+              className="h-10 px-6 text-sm font-medium relative"
             >
               My Space
               {unreadSpaceCount > 0 && (
