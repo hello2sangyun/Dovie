@@ -3018,6 +3018,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 사용자 포스트 조회 API
+  app.get("/api/posts/user", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const posts = await db
+        .select({
+          id: userPosts.id,
+          userId: userPosts.userId,
+          content: userPosts.content,
+          title: userPosts.title,
+          postType: userPosts.postType,
+          attachments: userPosts.attachments,
+          likeCount: userPosts.likeCount,
+          commentCount: userPosts.commentCount,
+          shareCount: userPosts.shareCount,
+          createdAt: userPosts.createdAt,
+          updatedAt: userPosts.updatedAt,
+          user: {
+            id: users.id,
+            username: users.username,
+            displayName: users.displayName,
+            profilePicture: users.profilePicture,
+          }
+        })
+        .from(userPosts)
+        .leftJoin(users, eq(userPosts.userId, users.id))
+        .where(eq(userPosts.userId, parseInt(userId as string)))
+        .orderBy(desc(userPosts.createdAt));
+
+      res.json(posts);
+    } catch (error) {
+      console.error("Error fetching user posts:", error);
+      res.status(500).json({ message: "포스트를 가져오는 중 오류가 발생했습니다." });
+    }
+  });
+
+  // 포스트 작성 API
+  app.post("/api/posts", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { content } = req.body;
+      
+      if (!content || !content.trim()) {
+        return res.status(400).json({ message: "포스트 내용이 필요합니다." });
+      }
+
+      const [newPost] = await db.insert(userPosts)
+        .values({
+          userId: parseInt(userId as string),
+          content: content.trim(),
+        })
+        .returning();
+
+      res.json({ post: newPost });
+    } catch (error) {
+      console.error("Error creating post:", error);
+      res.status(500).json({ message: "포스트 작성 중 오류가 발생했습니다." });
+    }
+  });
+
   // Space 포스트 작성 API
   app.post("/api/space/posts", async (req, res) => {
     const userId = req.headers["x-user-id"];
