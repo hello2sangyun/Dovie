@@ -208,6 +208,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getBlockedContacts(userId: number): Promise<(Contact & { contactUser: User })[]> {
+    console.log("Getting blocked contacts for user:", userId);
+    
     const result = await db
       .select()
       .from(contacts)
@@ -218,10 +220,16 @@ export class DatabaseStorage implements IStorage {
       ))
       .orderBy(asc(users.displayName));
     
-    return result.map(row => ({
+    console.log("Blocked contacts query result:", result);
+    
+    const mappedResult = result.map(row => ({
       ...row.contacts,
       contactUser: row.users
     }));
+    
+    console.log("Mapped blocked contacts:", mappedResult);
+    
+    return mappedResult;
   }
 
   async getChatRooms(userId: number): Promise<(ChatRoom & { participants: User[], lastMessage?: Message & { sender: User } })[]> {
