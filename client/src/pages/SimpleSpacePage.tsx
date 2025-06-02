@@ -38,6 +38,7 @@ export default function SimpleSpacePage() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [activeTab, setActiveTab] = useState<"feed" | "my-space">("feed");
   const [visibility, setVisibility] = useState<"public" | "friends" | "private">("public");
+  const [searchQuery, setSearchQuery] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch friends' posts feed
@@ -144,8 +145,28 @@ export default function SimpleSpacePage() {
     });
   };
 
+  // Space notifications for new posts badge
+  const { data: spaceNotifications } = useQuery({
+    queryKey: ["/api/space/notifications"],
+    enabled: !!user,
+  });
+
+  const unreadSpaceCount = (spaceNotifications as any)?.unreadCount || 0;
+
   const currentPosts = activeTab === "feed" ? (feedData as any)?.posts || [] : (myPostsData as any)?.posts || [];
   const isLoading = activeTab === "feed" ? feedLoading : myPostsLoading;
+
+  // Filter posts by search query
+  const filteredPosts = currentPosts.filter((post: any) => {
+    if (!searchQuery.trim()) return true;
+    const searchTerm = searchQuery.toLowerCase();
+    return (
+      post.title?.toLowerCase().includes(searchTerm) ||
+      post.content?.toLowerCase().includes(searchTerm) ||
+      post.user?.displayName?.toLowerCase().includes(searchTerm) ||
+      post.companyChannel?.companyName?.toLowerCase().includes(searchTerm)
+    );
+  });
 
   const getVisibilityIcon = (visibility: string) => {
     switch (visibility) {
@@ -188,6 +209,8 @@ export default function SimpleSpacePage() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
                   placeholder="검색..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 w-40 h-8 text-sm"
                 />
               </div>
@@ -215,9 +238,14 @@ export default function SimpleSpacePage() {
               variant={activeTab === "my-space" ? "default" : "ghost"}
               size="sm"
               onClick={() => setActiveTab("my-space")}
-              className="h-8 text-xs"
+              className="h-8 text-xs relative"
             >
               My Space
+              {unreadSpaceCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {unreadSpaceCount > 9 ? "9+" : unreadSpaceCount}
+                </span>
+              )}
             </Button>
           </div>
         </div>
@@ -363,20 +391,22 @@ export default function SimpleSpacePage() {
                 </Card>
               ))}
             </div>
-          ) : currentPosts.length === 0 ? (
+          ) : filteredPosts.length === 0 ? (
             <Card>
               <CardContent className="p-6 text-center">
                 <Building2 className="w-10 h-10 mx-auto mb-3 text-gray-300" />
                 <h3 className="text-sm font-medium text-gray-900 mb-1">
-                  {activeTab === "feed" ? "친구들의 포스트가 없습니다" : "아직 포스트가 없습니다"}
+                  {searchQuery ? "검색 결과가 없습니다" : 
+                   activeTab === "feed" ? "친구들의 포스트가 없습니다" : "아직 포스트가 없습니다"}
                 </h3>
                 <p className="text-xs text-gray-500">
-                  {activeTab === "feed" ? "친구를 추가하여 피드를 채워보세요!" : "첫 번째 비즈니스 포스트를 작성해보세요!"}
+                  {searchQuery ? "다른 검색어로 시도해보세요." :
+                   activeTab === "feed" ? "친구를 추가하여 피드를 채워보세요!" : "첫 번째 비즈니스 포스트를 작성해보세요!"}
                 </p>
               </CardContent>
             </Card>
           ) : (
-            currentPosts.map((post: any) => (
+            filteredPosts.map((post: any) => (
               <Card key={post.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-3">
                   <div className="flex space-x-3">

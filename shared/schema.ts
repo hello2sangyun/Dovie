@@ -35,7 +35,18 @@ export const contacts = pgTable("contacts", {
   contactUserId: integer("contact_user_id").references(() => users.id).notNull(),
   nickname: text("nickname"),
   isPinned: boolean("is_pinned").default(false),
+  isFavorite: boolean("is_favorite").default(false),
   isBlocked: boolean("is_blocked").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const spaceNotifications = pgTable("space_notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  type: text("type").notNull(), // 'new_post', 'post_like', 'post_comment'
+  targetUserId: integer("target_user_id").references(() => users.id),
+  postId: integer("post_id").references(() => userPosts.id),
+  isRead: boolean("is_read").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

@@ -2086,6 +2086,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Space Notifications API
+  app.get("/api/space/notifications", async (req, res) => {
+    try {
+      const userId = req.session.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      // Get unread notifications count for new posts
+      const unreadCount = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(spaceNotifications)
+        .where(and(
+          eq(spaceNotifications.userId, userId),
+          eq(spaceNotifications.isRead, false),
+          eq(spaceNotifications.type, "new_post")
+        ));
+
+      res.json({ unreadCount: Number(unreadCount[0]?.count || 0) });
+    } catch (error) {
+      console.error("Error fetching space notifications:", error);
+      res.status(500).json({ error: "Failed to fetch notifications" });
+    }
+  });
+
+  app.post("/api/space/notifications/mark-read", async (req, res) => {
+    try {
+      const userId = req.session.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      // Mark all space notifications as read
+      await db
+        .update(spaceNotifications)
+        .set({ isRead: true })
+        .where(eq(spaceNotifications.userId, userId));
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking notifications as read:", error);
+      res.status(500).json({ error: "Failed to mark notifications as read" });
+    }
+  });
+
   // Space (Business Feed) Routes - Friends' posts feed
   app.get("/api/space/feed", async (req, res) => {
     const userId = req.headers["x-user-id"];
