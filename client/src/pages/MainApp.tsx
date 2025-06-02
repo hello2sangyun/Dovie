@@ -260,7 +260,7 @@ export default function MainApp() {
       {/* Desktop Layout */}
       <div className="hidden lg:flex h-full">
         {/* Sidebar */}
-        <div className="w-80 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+        <div className="w-96 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col">
           {/* Header */}
           <div className="p-4 border-b border-gray-200 dark:border-gray-700 purple-gradient">
             <div className="flex items-center justify-center space-x-3">
@@ -280,70 +280,70 @@ export default function MainApp() {
               setRightPanelContent(null);
             }
           }} className="flex-1 flex flex-col">
-            <TabsList className="grid w-full grid-cols-4 border-b border-gray-200 dark:border-gray-700 rounded-none bg-transparent dark:bg-transparent h-auto">
+            <TabsList className="grid w-full grid-cols-5 border-b border-gray-200 dark:border-gray-700 rounded-none bg-transparent dark:bg-transparent h-auto">
               <TabsTrigger 
                 value="contacts" 
                 className={cn(
-                  "py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent flex-col items-center gap-1",
+                  "py-2 px-3 text-sm font-medium rounded-none border-b-2 border-transparent flex-col items-center gap-1 min-w-0",
                   "data-[state=active]:border-purple-600 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-600"
                 )}
               >
-                <Users className="h-5 w-5" />
-                <span className="text-xs">연락처</span>
+                <Users className="h-4 w-4" />
+                <span className="text-xs truncate">연락처</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="chats"
                 className={cn(
-                  "py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent flex-col items-center gap-1 relative",
+                  "py-2 px-3 text-sm font-medium rounded-none border-b-2 border-transparent flex-col items-center gap-1 relative min-w-0",
                   "data-[state=active]:border-purple-600 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-600"
                 )}
               >
                 <div className="relative">
-                  <MessageSquare className="h-5 w-5" />
+                  <MessageSquare className="h-4 w-4" />
                   {totalChatUnread > 0 && (
-                    <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-medium">
+                    <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[16px] h-[16px] flex items-center justify-center font-medium">
                       {totalChatUnread > 99 ? '99+' : totalChatUnread}
                     </div>
                   )}
                 </div>
-                <span className="text-xs">채팅방</span>
+                <span className="text-xs truncate">채팅방</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="nearby"
                 className={cn(
-                  "py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent flex-col items-center gap-1 relative",
+                  "py-2 px-3 text-sm font-medium rounded-none border-b-2 border-transparent flex-col items-center gap-1 relative min-w-0",
                   "data-[state=active]:border-purple-600 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-600"
                 )}
               >
                 <div className="relative">
-                  <MapPin className="h-5 w-5" />
+                  <MapPin className="h-4 w-4" />
                   {totalNearbyUnread > 0 && (
-                    <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-medium">
+                    <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[16px] h-[16px] flex items-center justify-center font-medium">
                       {totalNearbyUnread > 99 ? '99+' : totalNearbyUnread}
                     </div>
                   )}
                 </div>
-                <span className="text-xs">주변챗</span>
+                <span className="text-xs truncate">주변챗</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="archive"
                 className={cn(
-                  "py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent flex-col items-center gap-1",
+                  "py-2 px-3 text-sm font-medium rounded-none border-b-2 border-transparent flex-col items-center gap-1 min-w-0",
                   "data-[state=active]:border-purple-600 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-600"
                 )}
               >
-                <Archive className="h-5 w-5" />
-                <span className="text-xs">저장소</span>
+                <Archive className="h-4 w-4" />
+                <span className="text-xs truncate">저장소</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="settings"
                 className={cn(
-                  "py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent flex-col items-center gap-1",
+                  "py-2 px-3 text-sm font-medium rounded-none border-b-2 border-transparent flex-col items-center gap-1 min-w-0",
                   "data-[state=active]:border-purple-600 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-600"
                 )}
               >
-                <Settings className="h-5 w-5" />
-                <span className="text-xs">설정</span>
+                <Settings className="h-4 w-4" />
+                <span className="text-xs truncate">설정</span>
               </TabsTrigger>
             </TabsList>
 
