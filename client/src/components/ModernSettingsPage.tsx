@@ -21,6 +21,9 @@ import { getInitials, getAvatarColor } from "@/lib/utils";
 import BusinessCard from "./BusinessCard";
 import BusinessProfile from "./BusinessProfile";
 import BlockedContactsPage from "./BlockedContactsPage";
+import ProfileSettingsPage from "./ProfileSettingsPage";
+import NotificationSettingsPage from "./NotificationSettingsPage";
+import SecuritySettingsPage from "./SecuritySettingsPage";
 
 interface ModernSettingsPageProps {
   isMobile?: boolean;
@@ -28,7 +31,7 @@ interface ModernSettingsPageProps {
 
 export default function ModernSettingsPage({ isMobile = false }: ModernSettingsPageProps) {
   const { user, logout } = useAuth();
-  const [activeView, setActiveView] = useState<'main' | 'business-card' | 'business-profile' | 'blocked-contacts'>('main');
+  const [activeView, setActiveView] = useState<'main' | 'business-card' | 'business-profile' | 'blocked-contacts' | 'profile' | 'notifications' | 'security'>('main');
 
   if (!user) return null;
 
@@ -56,6 +59,30 @@ export default function ModernSettingsPage({ isMobile = false }: ModernSettingsP
     return (
       <div className="flex-1 overflow-hidden">
         <BlockedContactsPage onBack={() => setActiveView('main')} />
+      </div>
+    );
+  }
+
+  if (activeView === 'profile') {
+    return (
+      <div className="flex-1 overflow-hidden">
+        <ProfileSettingsPage onBack={() => setActiveView('main')} />
+      </div>
+    );
+  }
+
+  if (activeView === 'notifications') {
+    return (
+      <div className="flex-1 overflow-hidden">
+        <NotificationSettingsPage onBack={() => setActiveView('main')} />
+      </div>
+    );
+  }
+
+  if (activeView === 'security') {
+    return (
+      <div className="flex-1 overflow-hidden">
+        <SecuritySettingsPage onBack={() => setActiveView('main')} />
       </div>
     );
   }
@@ -156,7 +183,10 @@ export default function ModernSettingsPage({ isMobile = false }: ModernSettingsP
           <div className="space-y-3">
             <h4 className="text-sm font-semibold text-gray-700 px-2">계정 설정</h4>
             
-            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group">
+            <Card 
+              className="bg-white/80 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group"
+              onClick={() => setActiveView('profile')}
+            >
               <CardContent className="p-4">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
