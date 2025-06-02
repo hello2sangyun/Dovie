@@ -84,6 +84,23 @@ export interface IStorage {
   getStorageAnalytics(userId: number, timeRange: string): Promise<any>;
   trackFileUpload(fileData: { userId: number; chatRoomId?: number; fileName: string; originalName: string; fileSize: number; fileType: string; filePath: string }): Promise<void>;
   trackFileDownload(fileUploadId: number, userId: number, ipAddress?: string, userAgent?: string): Promise<void>;
+
+  // Business card operations
+  getBusinessCard(userId: number): Promise<BusinessCard | undefined>;
+  createOrUpdateBusinessCard(userId: number, cardData: Partial<InsertBusinessCard>): Promise<BusinessCard>;
+  
+  // Business profile operations
+  getBusinessProfile(userId: number): Promise<BusinessProfile | undefined>;
+  createOrUpdateBusinessProfile(userId: number, profileData: Partial<InsertBusinessProfile>): Promise<BusinessProfile>;
+  
+  // Business card sharing operations
+  createBusinessCardShare(userId: number): Promise<BusinessCardShare>;
+  getBusinessCardShare(shareToken: string): Promise<BusinessCardShare | undefined>;
+  getBusinessCardShareInfo(userId: number): Promise<BusinessCardShare | undefined>;
+  
+  // User posts operations
+  getUserPosts(userId: number): Promise<UserPost[]>;
+  createUserPost(userId: number, postData: Partial<InsertUserPost>): Promise<UserPost>;
 }
 
 export class DatabaseStorage implements IStorage {

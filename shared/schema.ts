@@ -397,9 +397,79 @@ export const fileDownloadsRelations = relations(fileDownloads, ({ one }) => ({
   }),
 }));
 
+// Business profiles table
+export const businessProfiles = pgTable("business_profiles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  companyName: text("company_name"),
+  jobTitle: text("job_title"),
+  department: text("department"),
+  website: text("website"),
+  linkedinProfile: text("linkedin_profile"),
+  twitterProfile: text("twitter_profile"),
+  bio: text("bio"),
+  skills: text("skills").array(), // Array of skills
+  achievements: jsonb("achievements"), // JSON object for achievements
+  isPublic: boolean("is_public").default(true),
+  allowBusinessCardSharing: boolean("allow_business_card_sharing").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// User posts table for social features
+export const userPosts = pgTable("user_posts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  title: text("title"),
+  content: text("content").notNull(),
+  postType: text("post_type").default("text"), // text, image, link, etc.
+  attachments: text("attachments").array(), // Array of file URLs
+  visibility: text("visibility").default("friends"), // public, friends, private
+  tags: text("tags").array(), // Array of tags
+  likeCount: integer("like_count").default(0),
+  commentCount: integer("comment_count").default(0),
+  shareCount: integer("share_count").default(0),
+  isPinned: boolean("is_pinned").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Business card sharing links
+export const businessCardShares = pgTable("business_card_shares", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  shareToken: text("share_token").notNull().unique(),
+  isActive: boolean("is_active").default(true),
+  expiresAt: timestamp("expires_at"),
+  viewCount: integer("view_count").default(0),
+  allowDownload: boolean("allow_download").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const businessCardsRelations = relations(businessCards, ({ one }) => ({
   user: one(users, {
     fields: [businessCards.userId],
+    references: [users.id],
+  }),
+}));
+
+export const businessProfilesRelations = relations(businessProfiles, ({ one }) => ({
+  user: one(users, {
+    fields: [businessProfiles.userId],
+    references: [users.id],
+  }),
+}));
+
+export const userPostsRelations = relations(userPosts, ({ one }) => ({
+  user: one(users, {
+    fields: [userPosts.userId],
+    references: [users.id],
+  }),
+}));
+
+export const businessCardSharesRelations = relations(businessCardShares, ({ one }) => ({
+  user: one(users, {
+    fields: [businessCardShares.userId],
     references: [users.id],
   }),
 }));
@@ -481,6 +551,23 @@ export const insertBusinessCardSchema = createInsertSchema(businessCards).omit({
   updatedAt: true,
 });
 
+export const insertBusinessProfileSchema = createInsertSchema(businessProfiles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserPostSchema = createInsertSchema(userPosts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertBusinessCardShareSchema = createInsertSchema(businessCardShares).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Contact = typeof contacts.$inferSelect;
@@ -510,3 +597,9 @@ export type FileDownload = typeof fileDownloads.$inferSelect;
 export type InsertFileDownload = z.infer<typeof insertFileDownloadSchema>;
 export type BusinessCard = typeof businessCards.$inferSelect;
 export type InsertBusinessCard = z.infer<typeof insertBusinessCardSchema>;
+export type BusinessProfile = typeof businessProfiles.$inferSelect;
+export type InsertBusinessProfile = z.infer<typeof insertBusinessProfileSchema>;
+export type UserPost = typeof userPosts.$inferSelect;
+export type InsertUserPost = z.infer<typeof insertUserPostSchema>;
+export type BusinessCardShare = typeof businessCardShares.$inferSelect;
+export type InsertBusinessCardShare = z.infer<typeof insertBusinessCardShareSchema>;
