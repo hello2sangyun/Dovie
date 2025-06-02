@@ -16,10 +16,9 @@ import CreateGroupChatModal from "@/components/CreateGroupChatModal";
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
 import NearbyChats from "@/components/NearbyChats";
-import StorageAnalytics from "@/pages/StorageAnalytics";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, MapPin, HardDrive } from "lucide-react";
+import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function MainApp() {
@@ -30,6 +29,7 @@ export default function MainApp() {
   const [activeMobileTab, setActiveMobileTab] = useState("chats");
   const [showSettings, setShowSettings] = useState(false);
   const [selectedChatRoom, setSelectedChatRoom] = useState<number | null>(null);
+  const [rightPanelContent, setRightPanelContent] = useState<string | null>(null);
   const [selectedLocationChatRoom, setSelectedLocationChatRoom] = useState<number | null>(null);
   const [showMobileChat, setShowMobileChat] = useState(false);
   const [isLocationChatActive, setIsLocationChatActive] = useState(false);
@@ -59,9 +59,9 @@ export default function MainApp() {
 
   // Prefetch messages for recent chat rooms
   useEffect(() => {
-    if (chatRoomsData?.chatRooms && queryClient) {
+    if ((chatRoomsData as any)?.chatRooms && queryClient) {
       // 최근 채팅방 5개의 메시지를 미리 로딩
-      const recentChatRooms = chatRoomsData.chatRooms.slice(0, 5);
+      const recentChatRooms = (chatRoomsData as any).chatRooms.slice(0, 5);
       
       recentChatRooms.forEach((room: any, index: number) => {
         // 각 요청을 100ms씩 지연시켜 서버 부하 분산
@@ -270,8 +270,17 @@ export default function MainApp() {
           </div>
 
           {/* Navigation Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-            <TabsList className="grid w-full grid-cols-5 border-b border-gray-200 dark:border-gray-700 rounded-none bg-transparent dark:bg-transparent h-auto">
+          <Tabs value={activeTab} onValueChange={(value) => {
+            setActiveTab(value);
+            if (value === "archive" || value === "settings") {
+              setRightPanelContent(value);
+              setSelectedChatRoom(null);
+              setSelectedLocationChatRoom(null);
+            } else {
+              setRightPanelContent(null);
+            }
+          }} className="flex-1 flex flex-col">
+            <TabsList className="grid w-full grid-cols-4 border-b border-gray-200 dark:border-gray-700 rounded-none bg-transparent dark:bg-transparent h-auto">
               <TabsTrigger 
                 value="contacts" 
                 className={cn(
@@ -327,16 +336,6 @@ export default function MainApp() {
                 <span className="text-xs">저장소</span>
               </TabsTrigger>
               <TabsTrigger 
-                value="storage"
-                className={cn(
-                  "py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent flex-col items-center gap-1",
-                  "data-[state=active]:border-purple-600 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-600"
-                )}
-              >
-                <HardDrive className="h-5 w-5" />
-                <span className="text-xs">분석</span>
-              </TabsTrigger>
-              <TabsTrigger 
                 value="settings"
                 className={cn(
                   "py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent flex-col items-center gap-1",
@@ -377,35 +376,56 @@ export default function MainApp() {
               </TabsContent>
               
               <TabsContent value="archive" className="h-full m-0">
-                <ArchiveList />
-              </TabsContent>
-              
-              <TabsContent value="storage" className="h-full m-0">
-                <StorageAnalytics />
+                <div className="h-full flex items-center justify-center text-gray-500">
+                  <p>저장소 내용은 우측 패널에서 확인하세요</p>
+                </div>
               </TabsContent>
               
               <TabsContent value="settings" className="h-full m-0">
-                <ModernSettingsPage />
+                <div className="h-full flex items-center justify-center text-gray-500">
+                  <p>설정 내용은 우측 패널에서 확인하세요</p>
+                </div>
               </TabsContent>
             </div>
           </Tabs>
         </div>
 
-        {/* Main Chat Area or Settings */}
+        {/* Main Content Area */}
         <div className="flex-1 flex flex-col">
-          {showSettings ? (
+          {rightPanelContent === "settings" ? (
             <div className="flex-1 bg-gray-50 overflow-y-auto">
               <div className="max-w-4xl mx-auto p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h1 className="text-2xl font-bold text-gray-900">설정</h1>
                   <Button
                     variant="outline"
-                    onClick={() => setShowSettings(false)}
+                    onClick={() => {
+                      setRightPanelContent(null);
+                      setActiveTab("chats");
+                    }}
                   >
                     뒤로 가기
                   </Button>
                 </div>
-                <ModernSettingsPage isMobile={false} />
+                <ModernSettingsPage />
+              </div>
+            </div>
+          ) : rightPanelContent === "archive" ? (
+            <div className="flex-1 bg-gray-50 overflow-y-auto">
+              <div className="max-w-4xl mx-auto p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h1 className="text-2xl font-bold text-gray-900">저장소</h1>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setRightPanelContent(null);
+                      setActiveTab("chats");
+                    }}
+                  >
+                    뒤로 가기
+                  </Button>
+                </div>
+                <ArchiveList />
               </div>
             </div>
           ) : selectedChatRoom || selectedLocationChatRoom ? (
