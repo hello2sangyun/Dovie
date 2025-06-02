@@ -251,7 +251,7 @@ export default function SpacePage() {
                 <div className="text-center">
                   <Avatar className="w-16 h-16 mx-auto mb-3">
                     <AvatarImage src={user?.profilePicture || undefined} />
-                    <AvatarFallback style={{ backgroundColor: getAvatarColor(user?.id || 0) }}>
+                    <AvatarFallback style={{ backgroundColor: getAvatarColor((user?.id || 0).toString()) }}>
                       {getInitials(user?.displayName || user?.username || "")}
                     </AvatarFallback>
                   </Avatar>

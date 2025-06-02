@@ -161,7 +161,7 @@ export default function ModernSettingsPage({ isMobile = false }: ModernSettingsP
 
             <Card 
               className="bg-white/80 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group"
-              onClick={() => setActiveView('business-profile')}
+              onClick={() => setActiveView('space')}
             >
               <CardContent className="p-4">
                 <div className="flex items-center space-x-3">
@@ -169,8 +169,8 @@ export default function ModernSettingsPage({ isMobile = false }: ModernSettingsP
                     <Building2 className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1">
-                    <h5 className="font-semibold text-gray-900">비즈니스 프로필</h5>
-                    <p className="text-xs text-gray-500">회사 정보 및 전문 분야</p>
+                    <h5 className="font-semibold text-gray-900">Business Space</h5>
+                    <p className="text-xs text-gray-500">비즈니스 네트워킹 및 피드</p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
                 </div>
