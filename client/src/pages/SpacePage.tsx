@@ -89,7 +89,7 @@ export default function SpacePage() {
   const [activeTab, setActiveTab] = useState<"feed" | "companies" | "trending">("feed");
 
   // Fetch business feed posts
-  const { data: feedData, isLoading: feedLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useQuery({
+  const { data: feedData, isLoading: feedLoading } = useQuery({
     queryKey: ["/api/space/feed"],
     enabled: !!user,
   });
@@ -186,24 +186,7 @@ export default function SpacePage() {
     });
   };
 
-  // Infinite scroll effect
-  useEffect(() => {
-    const handleScroll = () => {
-      if (
-        window.innerHeight + document.documentElement.scrollTop >=
-        document.documentElement.offsetHeight - 1000 &&
-        hasNextPage &&
-        !isFetchingNextPage
-      ) {
-        fetchNextPage();
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
-
-  const posts = feedData?.pages?.flatMap(page => page.posts) || [];
+  const posts = (feedData as any)?.posts || [];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -267,15 +250,15 @@ export default function SpacePage() {
               <CardContent className="p-4">
                 <div className="text-center">
                   <Avatar className="w-16 h-16 mx-auto mb-3">
-                    <AvatarImage src={user?.profilePicture} />
+                    <AvatarImage src={user?.profilePicture || undefined} />
                     <AvatarFallback style={{ backgroundColor: getAvatarColor(user?.id || 0) }}>
                       {getInitials(user?.displayName || user?.username || "")}
                     </AvatarFallback>
                   </Avatar>
                   <h3 className="font-semibold text-gray-900">{user?.displayName}</h3>
                   <p className="text-sm text-gray-500 mb-3">
-                    {profileData?.jobTitle || "직책 미설정"} 
-                    {profileData?.companyName && ` at ${profileData.companyName}`}
+                    {(profileData as any)?.jobTitle || "직책 미설정"} 
+                    {(profileData as any)?.companyName && ` at ${(profileData as any).companyName}`}
                   </p>
                   <div className="grid grid-cols-2 gap-3 text-center text-sm">
                     <div>

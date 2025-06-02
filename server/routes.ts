@@ -3,7 +3,7 @@ import express from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, locationChatRooms, chatRooms, chatParticipants } from "@shared/schema";
+import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, insertUserPostSchema, insertPostLikeSchema, insertPostCommentSchema, insertCompanyChannelSchema, locationChatRooms, chatRooms, chatParticipants, userPosts, postLikes, postComments, companyChannels, companyFollowers, users, businessProfiles, contacts } from "@shared/schema";
 import { sql } from "drizzle-orm";
 import { translateText, transcribeAudio } from "./openai";
 import bcrypt from "bcryptjs";
@@ -2083,6 +2083,304 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Track download error:', error);
       res.status(500).json({ message: "Failed to track file download" });
+    }
+  });
+
+  // Space (Business Feed) Routes
+  app.get("/api/space/feed", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const offset = (page - 1) * limit;
+
+      // Get posts from friends and followed companies
+      const posts = await db
+        .select({
+          id: userPosts.id,
+          userId: userPosts.userId,
+          companyChannelId: userPosts.companyChannelId,
+          title: userPosts.title,
+          content: userPosts.content,
+          postType: userPosts.postType,
+          attachments: userPosts.attachments,
+          visibility: userPosts.visibility,
+          tags: userPosts.tags,
+          likeCount: userPosts.likeCount,
+          commentCount: userPosts.commentCount,
+          shareCount: userPosts.shareCount,
+          isPinned: userPosts.isPinned,
+          createdAt: userPosts.createdAt,
+          updatedAt: userPosts.updatedAt,
+          user: {
+            id: users.id,
+            username: users.username,
+            displayName: users.displayName,
+            profilePicture: users.profilePicture,
+          },
+          companyChannel: {
+            id: companyChannels.id,
+            companyName: companyChannels.companyName,
+            logo: companyChannels.logo,
+            isVerified: companyChannels.isVerified,
+          }
+        })
+        .from(userPosts)
+        .leftJoin(users, eq(userPosts.userId, users.id))
+        .leftJoin(companyChannels, eq(userPosts.companyChannelId, companyChannels.id))
+        .where(eq(userPosts.visibility, "public"))
+        .orderBy(userPosts.createdAt)
+        .limit(limit)
+        .offset(offset);
+
+      // Check if user liked each post
+      const postsWithLikes = await Promise.all(
+        posts.map(async (post) => {
+          const liked = await db
+            .select()
+            .from(postLikes)
+            .where(and(eq(postLikes.postId, post.id), eq(postLikes.userId, Number(userId))))
+            .limit(1);
+
+          return {
+            ...post,
+            isLiked: liked.length > 0,
+          };
+        })
+      );
+
+      res.json({ posts: postsWithLikes });
+    } catch (error) {
+      console.error('Feed error:', error);
+      res.status(500).json({ message: "Failed to get feed" });
+    }
+  });
+
+  app.post("/api/space/posts", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const postData = insertUserPostSchema.parse({
+        userId: Number(userId),
+        ...req.body,
+      });
+
+      const [post] = await db.insert(userPosts).values(postData).returning();
+      res.json({ post });
+    } catch (error) {
+      console.error('Create post error:', error);
+      res.status(500).json({ message: "Failed to create post" });
+    }
+  });
+
+  app.post("/api/space/posts/:postId/like", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    const { postId } = req.params;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      // Check if already liked
+      const existingLike = await db
+        .select()
+        .from(postLikes)
+        .where(and(eq(postLikes.postId, Number(postId)), eq(postLikes.userId, Number(userId))))
+        .limit(1);
+
+      if (existingLike.length > 0) {
+        return res.status(400).json({ message: "Already liked" });
+      }
+
+      // Add like
+      await db.insert(postLikes).values({
+        postId: Number(postId),
+        userId: Number(userId),
+      });
+
+      // Update like count
+      await db
+        .update(userPosts)
+        .set({
+          likeCount: sql`${userPosts.likeCount} + 1`,
+        })
+        .where(eq(userPosts.id, Number(postId)));
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Like post error:', error);
+      res.status(500).json({ message: "Failed to like post" });
+    }
+  });
+
+  app.delete("/api/space/posts/:postId/like", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    const { postId } = req.params;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      // Remove like
+      const result = await db
+        .delete(postLikes)
+        .where(and(eq(postLikes.postId, Number(postId)), eq(postLikes.userId, Number(userId))))
+        .returning();
+
+      if (result.length === 0) {
+        return res.status(400).json({ message: "Not liked" });
+      }
+
+      // Update like count
+      await db
+        .update(userPosts)
+        .set({
+          likeCount: sql`${userPosts.likeCount} - 1`,
+        })
+        .where(eq(userPosts.id, Number(postId)));
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Unlike post error:', error);
+      res.status(500).json({ message: "Failed to unlike post" });
+    }
+  });
+
+  app.get("/api/space/companies", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const companies = await db
+        .select({
+          id: companyChannels.id,
+          companyName: companyChannels.companyName,
+          description: companyChannels.description,
+          logo: companyChannels.logo,
+          banner: companyChannels.banner,
+          industry: companyChannels.industry,
+          employeeCount: companyChannels.employeeCount,
+          location: companyChannels.location,
+          isVerified: companyChannels.isVerified,
+          isApproved: companyChannels.isApproved,
+          followerCount: companyChannels.followerCount,
+          postCount: companyChannels.postCount,
+          createdAt: companyChannels.createdAt,
+        })
+        .from(companyChannels)
+        .where(eq(companyChannels.isApproved, true))
+        .orderBy(companyChannels.followerCount);
+
+      res.json({ companies });
+    } catch (error) {
+      console.error('Get companies error:', error);
+      res.status(500).json({ message: "Failed to get companies" });
+    }
+  });
+
+  app.post("/api/space/companies", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const companyData = insertCompanyChannelSchema.parse({
+        createdBy: Number(userId),
+        ...req.body,
+      });
+
+      const [company] = await db.insert(companyChannels).values(companyData).returning();
+      res.json({ company });
+    } catch (error) {
+      console.error('Create company error:', error);
+      res.status(500).json({ message: "Failed to create company" });
+    }
+  });
+
+  app.post("/api/space/companies/:companyId/follow", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    const { companyId } = req.params;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      // Check if already following
+      const existingFollow = await db
+        .select()
+        .from(companyFollowers)
+        .where(and(eq(companyFollowers.companyChannelId, Number(companyId)), eq(companyFollowers.userId, Number(userId))))
+        .limit(1);
+
+      if (existingFollow.length > 0) {
+        return res.status(400).json({ message: "Already following" });
+      }
+
+      // Add follow
+      await db.insert(companyFollowers).values({
+        companyChannelId: Number(companyId),
+        userId: Number(userId),
+      });
+
+      // Update follower count
+      await db
+        .update(companyChannels)
+        .set({
+          followerCount: sql`${companyChannels.followerCount} + 1`,
+        })
+        .where(eq(companyChannels.id, Number(companyId)));
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Follow company error:', error);
+      res.status(500).json({ message: "Failed to follow company" });
+    }
+  });
+
+  app.delete("/api/space/companies/:companyId/follow", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    const { companyId } = req.params;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      // Remove follow
+      const result = await db
+        .delete(companyFollowers)
+        .where(and(eq(companyFollowers.companyChannelId, Number(companyId)), eq(companyFollowers.userId, Number(userId))))
+        .returning();
+
+      if (result.length === 0) {
+        return res.status(400).json({ message: "Not following" });
+      }
+
+      // Update follower count
+      await db
+        .update(companyChannels)
+        .set({
+          followerCount: sql`${companyChannels.followerCount} - 1`,
+        })
+        .where(eq(companyChannels.id, Number(companyId)));
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Unfollow company error:', error);
+      res.status(500).json({ message: "Failed to unfollow company" });
     }
   });
 
