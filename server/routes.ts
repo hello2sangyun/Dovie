@@ -3059,8 +3059,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 포스트 작성 API
-  app.post("/api/posts", async (req, res) => {
+  // 포스트 작성 API (이미지/동영상 포함)
+  app.post("/api/posts", upload.array('files', 5), async (req, res) => {
     const userId = req.headers["x-user-id"];
     
     if (!userId) {
@@ -3069,15 +3069,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const { content } = req.body;
+      const files = req.files as Express.Multer.File[];
       
       if (!content || !content.trim()) {
         return res.status(400).json({ message: "포스트 내용이 필요합니다." });
+      }
+
+      let attachments: string[] = [];
+      
+      if (files && files.length > 0) {
+        attachments = files.map(file => `/uploads/${file.filename}`);
       }
 
       const [newPost] = await db.insert(userPosts)
         .values({
           userId: parseInt(userId as string),
           content: content.trim(),
+          attachments: attachments.length > 0 ? attachments : null,
         })
         .returning();
 

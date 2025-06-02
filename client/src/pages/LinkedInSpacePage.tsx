@@ -55,8 +55,9 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [postContent, setPostContent] = useState('');
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
   // 기존 user posts API 사용
   const { data: postsData, isLoading } = useQuery({
@@ -66,13 +67,20 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
 
   // 포스트 작성 뮤테이션
   const createPostMutation = useMutation({
-    mutationFn: async (postData: { content: string }) => {
-      return apiRequest('/api/posts', 'POST', postData);
+    mutationFn: async (formData: FormData) => {
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: {
+          'x-user-id': user?.id?.toString() || '',
+        },
+        body: formData,
+      });
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/posts/user'] });
       setPostContent('');
-      setSelectedImage(null);
+      setSelectedFiles([]);
     },
   });
 
@@ -88,14 +96,32 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
 
   const handleCreatePost = () => {
     if (!postContent.trim()) return;
-    createPostMutation.mutate({ content: postContent });
+    
+    const formData = new FormData();
+    formData.append('content', postContent);
+    
+    selectedFiles.forEach((file) => {
+      formData.append('files', file);
+    });
+    
+    createPostMutation.mutate(formData);
   };
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedImage(file);
-    }
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setSelectedFiles(prev => [...prev, ...files]);
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const isVideo = (file: File) => {
+    return file.type.startsWith('video/');
+  };
+
+  const isImage = (file: File) => {
+    return file.type.startsWith('image/');
   };
 
   const posts = Array.isArray(postsData) ? postsData : [];
@@ -215,21 +241,34 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
                 className="w-full p-0 border-0 resize-none focus:outline-none bg-transparent text-sm placeholder-gray-400 min-h-[80px]"
                 rows={3}
               />
-              {selectedImage && (
-                <div className="mt-3 relative">
-                  <img 
-                    src={URL.createObjectURL(selectedImage)} 
-                    alt="선택된 이미지" 
-                    className="w-full h-auto rounded-xl border border-gray-200"
-                  />
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => setSelectedImage(null)}
-                    className="absolute top-2 right-2 w-6 h-6 p-0 bg-black/50 hover:bg-black/70 text-white rounded-full"
-                  >
-                    ✕
-                  </Button>
+              {selectedFiles.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  {selectedFiles.map((file, index) => (
+                    <div key={index} className="relative">
+                      {isImage(file) && (
+                        <img 
+                          src={URL.createObjectURL(file)} 
+                          alt="선택된 이미지" 
+                          className="w-full h-auto rounded-xl border border-gray-200"
+                        />
+                      )}
+                      {isVideo(file) && (
+                        <video 
+                          src={URL.createObjectURL(file)}
+                          className="w-full h-auto rounded-xl border border-gray-200"
+                          controls
+                        />
+                      )}
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => removeFile(index)}
+                        className="absolute top-2 right-2 w-6 h-6 p-0 bg-black/50 hover:bg-black/70 text-white rounded-full"
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
               )}
               
@@ -242,15 +281,27 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
                     <Camera className="w-4 h-4 mr-1" />
                     사진
                   </button>
-                  <button className="flex items-center text-gray-600 hover:text-blue-600 transition-colors text-sm">
-                    <FileText className="w-4 h-4 mr-1" />
-                    문서
+                  <button 
+                    onClick={() => videoInputRef.current?.click()}
+                    className="flex items-center text-gray-600 hover:text-purple-600 transition-colors text-sm"
+                  >
+                    <Video className="w-4 h-4 mr-1" />
+                    동영상
                   </button>
                   <input
                     ref={fileInputRef}
                     type="file"
                     accept="image/*"
-                    onChange={handleImageSelect}
+                    multiple
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  <input
+                    ref={videoInputRef}
+                    type="file"
+                    accept="video/*"
+                    multiple
+                    onChange={handleFileSelect}
                     className="hidden"
                   />
                 </div>
