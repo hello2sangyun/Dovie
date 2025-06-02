@@ -421,6 +421,7 @@ export const businessProfiles = pgTable("business_profiles", {
 export const userPosts = pgTable("user_posts", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
+  companyChannelId: integer("company_channel_id").references(() => companyChannels.id), // Optional for company posts
   title: text("title"),
   content: text("content").notNull(),
   postType: text("post_type").default("text"), // text, image, link, etc.
@@ -447,6 +448,58 @@ export const businessCardShares = pgTable("business_card_shares", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Company channels table
+export const companyChannels = pgTable("company_channels", {
+  id: serial("id").primaryKey(),
+  companyName: text("company_name").notNull(),
+  description: text("description"),
+  website: text("website"),
+  logo: text("logo"),
+  banner: text("banner"),
+  industry: text("industry"),
+  employeeCount: text("employee_count"), // "1-10", "11-50", etc.
+  location: text("location"),
+  isVerified: boolean("is_verified").default(false),
+  isApproved: boolean("is_approved").default(false),
+  createdBy: integer("created_by").references(() => users.id).notNull(),
+  followerCount: integer("follower_count").default(0),
+  postCount: integer("post_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Company channel followers
+export const companyFollowers = pgTable("company_followers", {
+  id: serial("id").primaryKey(),
+  companyChannelId: integer("company_channel_id").references(() => companyChannels.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  followedAt: timestamp("followed_at").defaultNow(),
+}, (table) => ({
+  uniqueFollower: unique().on(table.companyChannelId, table.userId),
+}));
+
+// Post likes table
+export const postLikes = pgTable("post_likes", {
+  id: serial("id").primaryKey(),
+  postId: integer("post_id").references(() => userPosts.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  likedAt: timestamp("liked_at").defaultNow(),
+}, (table) => ({
+  uniqueLike: unique().on(table.postId, table.userId),
+}));
+
+// Post comments table
+export const postComments = pgTable("post_comments", {
+  id: serial("id").primaryKey(),
+  postId: integer("post_id").references(() => userPosts.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  content: text("content").notNull(),
+  parentCommentId: integer("parent_comment_id").references(() => postComments.id),
+  likeCount: integer("like_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const businessCardsRelations = relations(businessCards, ({ one }) => ({
   user: one(users, {
     fields: [businessCards.userId],
@@ -461,11 +514,64 @@ export const businessProfilesRelations = relations(businessProfiles, ({ one }) =
   }),
 }));
 
-export const userPostsRelations = relations(userPosts, ({ one }) => ({
+export const userPostsRelations = relations(userPosts, ({ one, many }) => ({
   user: one(users, {
     fields: [userPosts.userId],
     references: [users.id],
   }),
+  companyChannel: one(companyChannels, {
+    fields: [userPosts.companyChannelId],
+    references: [companyChannels.id],
+  }),
+  likes: many(postLikes),
+  comments: many(postComments),
+}));
+
+export const companyChannelsRelations = relations(companyChannels, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [companyChannels.createdBy],
+    references: [users.id],
+  }),
+  followers: many(companyFollowers),
+  posts: many(userPosts),
+}));
+
+export const companyFollowersRelations = relations(companyFollowers, ({ one }) => ({
+  companyChannel: one(companyChannels, {
+    fields: [companyFollowers.companyChannelId],
+    references: [companyChannels.id],
+  }),
+  user: one(users, {
+    fields: [companyFollowers.userId],
+    references: [users.id],
+  }),
+}));
+
+export const postLikesRelations = relations(postLikes, ({ one }) => ({
+  post: one(userPosts, {
+    fields: [postLikes.postId],
+    references: [userPosts.id],
+  }),
+  user: one(users, {
+    fields: [postLikes.userId],
+    references: [users.id],
+  }),
+}));
+
+export const postCommentsRelations = relations(postComments, ({ one, many }) => ({
+  post: one(userPosts, {
+    fields: [postComments.postId],
+    references: [userPosts.id],
+  }),
+  user: one(users, {
+    fields: [postComments.userId],
+    references: [users.id],
+  }),
+  parentComment: one(postComments, {
+    fields: [postComments.parentCommentId],
+    references: [postComments.id],
+  }),
+  replies: many(postComments),
 }));
 
 export const businessCardSharesRelations = relations(businessCardShares, ({ one }) => ({
@@ -569,6 +675,23 @@ export const insertBusinessCardShareSchema = createInsertSchema(businessCardShar
   createdAt: true,
 });
 
+export const insertCompanyChannelSchema = createInsertSchema(companyChannels).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPostLikeSchema = createInsertSchema(postLikes).omit({
+  id: true,
+  likedAt: true,
+});
+
+export const insertPostCommentSchema = createInsertSchema(postComments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Contact = typeof contacts.$inferSelect;
@@ -604,3 +727,9 @@ export type UserPost = typeof userPosts.$inferSelect;
 export type InsertUserPost = z.infer<typeof insertUserPostSchema>;
 export type BusinessCardShare = typeof businessCardShares.$inferSelect;
 export type InsertBusinessCardShare = z.infer<typeof insertBusinessCardShareSchema>;
+export type CompanyChannel = typeof companyChannels.$inferSelect;
+export type InsertCompanyChannel = z.infer<typeof insertCompanyChannelSchema>;
+export type PostLike = typeof postLikes.$inferSelect;
+export type InsertPostLike = z.infer<typeof insertPostLikeSchema>;
+export type PostComment = typeof postComments.$inferSelect;
+export type InsertPostComment = z.infer<typeof insertPostCommentSchema>;
