@@ -193,93 +193,97 @@ export default function SimpleSpacePage() {
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto px-3 py-4 space-y-4">
-          {/* Create Post */}
-          <Card>
-            <CardContent className="p-3">
-              <div className="flex space-x-3">
-                <Avatar className="w-8 h-8">
-                  <AvatarImage src={user?.profilePicture || undefined} />
-                  <AvatarFallback style={{ backgroundColor: getAvatarColor((user?.id || 0).toString()) }}>
-                    {getInitials(user?.displayName || user?.username || "")}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <div className="space-y-2">
-                    <Input
-                      placeholder="제목 (선택사항)"
-                      value={newPostTitle}
-                      onChange={(e) => setNewPostTitle(e.target.value)}
-                      className="border-0 shadow-none p-0 text-sm font-medium h-auto"
-                    />
-                    <Textarea
-                      placeholder="무슨 일이 일어나고 있나요?"
-                      value={newPostContent}
-                      onChange={(e) => setNewPostContent(e.target.value)}
-                      className="min-h-[60px] border-0 shadow-none resize-none p-0 text-sm"
-                    />
-                    
-                    {/* File previews */}
-                    {selectedFiles.length > 0 && (
-                      <div className="grid grid-cols-2 gap-2 mt-2">
-                        {selectedFiles.map((file, index) => (
-                          <div key={index} className="relative bg-gray-100 rounded-lg p-2">
-                            <button
-                              onClick={() => removeFile(index)}
-                              className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                            <div className="flex items-center space-x-2">
-                              {file.type.startsWith('image/') ? (
-                                <Image className="w-4 h-4 text-blue-600" />
-                              ) : (
-                                <Video className="w-4 h-4 text-purple-600" />
-                              )}
-                              <span className="text-xs text-gray-600 truncate">{file.name}</span>
+
+
+          {/* Create Post - Only show in My Space tab */}
+          {activeTab === "my-space" && (
+            <Card>
+              <CardContent className="p-3">
+                <div className="flex space-x-3">
+                  <Avatar className="w-8 h-8">
+                    <AvatarImage src={user?.profilePicture || undefined} />
+                    <AvatarFallback style={{ backgroundColor: getAvatarColor((user?.id || 0).toString()) }}>
+                      {getInitials(user?.displayName || user?.username || "")}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="space-y-2">
+                      <Input
+                        placeholder="제목 (선택사항)"
+                        value={newPostTitle}
+                        onChange={(e) => setNewPostTitle(e.target.value)}
+                        className="border-0 shadow-none p-0 text-sm font-medium h-auto"
+                      />
+                      <Textarea
+                        placeholder="무슨 일이 일어나고 있나요?"
+                        value={newPostContent}
+                        onChange={(e) => setNewPostContent(e.target.value)}
+                        className="min-h-[60px] border-0 shadow-none resize-none p-0 text-sm"
+                      />
+                      
+                      {/* File previews */}
+                      {selectedFiles.length > 0 && (
+                        <div className="grid grid-cols-2 gap-2 mt-2">
+                          {selectedFiles.map((file, index) => (
+                            <div key={index} className="relative bg-gray-100 rounded-lg p-2">
+                              <button
+                                onClick={() => removeFile(index)}
+                                className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                              <div className="flex items-center space-x-2">
+                                {file.type.startsWith('image/') ? (
+                                  <Image className="w-4 h-4 text-blue-600" />
+                                ) : (
+                                  <Video className="w-4 h-4 text-purple-600" />
+                                )}
+                                <span className="text-xs text-gray-600 truncate">{file.name}</span>
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    
-                    <div className="flex items-center justify-between pt-2">
-                      <div className="flex items-center space-x-2">
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*,video/*"
-                          multiple
-                          onChange={handleFileSelect}
-                          className="hidden"
-                        />
+                          ))}
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center justify-between pt-2">
+                        <div className="flex items-center space-x-2">
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*,video/*"
+                            multiple
+                            onChange={handleFileSelect}
+                            className="hidden"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="h-8 px-2 text-gray-500"
+                          >
+                            <Image className="w-4 h-4" />
+                          </Button>
+                        </div>
                         <Button
-                          type="button"
-                          variant="ghost"
+                          onClick={handleCreatePost}
+                          disabled={!newPostContent.trim() || createPostMutation.isPending}
                           size="sm"
-                          onClick={() => fileInputRef.current?.click()}
-                          className="h-8 px-2 text-gray-500"
+                          className="h-8 bg-blue-600 hover:bg-blue-700"
                         >
-                          <Image className="w-4 h-4" />
+                          <Send className="w-3 h-3 mr-1" />
+                          발행
                         </Button>
                       </div>
-                      <Button
-                        onClick={handleCreatePost}
-                        disabled={!newPostContent.trim() || createPostMutation.isPending}
-                        size="sm"
-                        className="h-8 bg-blue-600 hover:bg-blue-700"
-                      >
-                        <Send className="w-3 h-3 mr-1" />
-                        발행
-                      </Button>
                     </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Posts Feed */}
-          {feedLoading ? (
+          {isLoading ? (
             <div className="space-y-3">
               {[...Array(3)].map((_, i) => (
                 <Card key={i} className="animate-pulse">
@@ -296,16 +300,20 @@ export default function SimpleSpacePage() {
                 </Card>
               ))}
             </div>
-          ) : posts.length === 0 ? (
+          ) : currentPosts.length === 0 ? (
             <Card>
               <CardContent className="p-6 text-center">
                 <Building2 className="w-10 h-10 mx-auto mb-3 text-gray-300" />
-                <h3 className="text-sm font-medium text-gray-900 mb-1">아직 포스트가 없습니다</h3>
-                <p className="text-xs text-gray-500">첫 번째 비즈니스 포스트를 작성해보세요!</p>
+                <h3 className="text-sm font-medium text-gray-900 mb-1">
+                  {activeTab === "feed" ? "친구들의 포스트가 없습니다" : "아직 포스트가 없습니다"}
+                </h3>
+                <p className="text-xs text-gray-500">
+                  {activeTab === "feed" ? "친구를 추가하여 피드를 채워보세요!" : "첫 번째 비즈니스 포스트를 작성해보세요!"}
+                </p>
               </CardContent>
             </Card>
           ) : (
-            posts.map((post: any) => (
+            currentPosts.map((post: any) => (
               <Card key={post.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-3">
                   <div className="flex space-x-3">
