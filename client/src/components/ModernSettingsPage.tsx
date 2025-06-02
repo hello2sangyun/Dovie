@@ -14,11 +14,13 @@ import {
   Shield, 
   ChevronRight,
   Edit3,
-  Sparkles
+  Sparkles,
+  UserX
 } from "lucide-react";
 import { getInitials, getAvatarColor } from "@/lib/utils";
 import BusinessCard from "./BusinessCard";
 import BusinessProfile from "./BusinessProfile";
+import BlockedContactsPage from "./BlockedContactsPage";
 
 interface ModernSettingsPageProps {
   isMobile?: boolean;
@@ -26,7 +28,7 @@ interface ModernSettingsPageProps {
 
 export default function ModernSettingsPage({ isMobile = false }: ModernSettingsPageProps) {
   const { user, logout } = useAuth();
-  const [activeView, setActiveView] = useState<'main' | 'business-card' | 'business-profile'>('main');
+  const [activeView, setActiveView] = useState<'main' | 'business-card' | 'business-profile' | 'blocked-contacts'>('main');
 
   if (!user) return null;
 
@@ -46,6 +48,14 @@ export default function ModernSettingsPage({ isMobile = false }: ModernSettingsP
         <div className="h-full overflow-y-auto bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
           <BusinessProfile onBack={() => setActiveView('main')} />
         </div>
+      </div>
+    );
+  }
+
+  if (activeView === 'blocked-contacts') {
+    return (
+      <div className="flex-1 overflow-hidden">
+        <BlockedContactsPage onBack={() => setActiveView('main')} />
       </div>
     );
   }
@@ -185,6 +195,24 @@ export default function ModernSettingsPage({ isMobile = false }: ModernSettingsP
                   <div className="flex-1">
                     <h5 className="font-semibold text-gray-900">보안 및 개인정보</h5>
                     <p className="text-xs text-gray-500">비밀번호 및 보안 설정</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card 
+              className="bg-white/80 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group"
+              onClick={() => setActiveView('blocked-contacts')}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-pink-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <UserX className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h5 className="font-semibold text-gray-900">차단된 연락처</h5>
+                    <p className="text-xs text-gray-500">차단된 사용자 관리</p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
                 </div>
