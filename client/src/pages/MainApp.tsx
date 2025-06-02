@@ -432,7 +432,9 @@ export default function MainApp() {
 
                       <div 
                         className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
-                        onClick={() => setRightPanelContent("space")}
+                        onClick={() => {
+                          window.location.href = "/#space";
+                        }}
                       >
                         <div className="flex items-center space-x-3">
                           <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
@@ -757,7 +759,12 @@ export default function MainApp() {
                           <p className="text-gray-900">미설정</p>
                         </div>
                       </div>
-                      <Button className="w-full">명함 정보 수정</Button>
+                      <Button 
+                        className="w-full"
+                        onClick={() => setRightPanelContent("profile-edit")}
+                      >
+                        명함 정보 수정
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -809,6 +816,110 @@ export default function MainApp() {
                           <p className="text-sm text-gray-500">비즈니스 피드 업데이트 알림</p>
                         </div>
                         <input type="checkbox" className="rounded border-gray-300" defaultChecked />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : rightPanelContent === "profile-edit" ? (
+            <div className="flex-1 bg-gray-50 overflow-y-auto">
+              <div className="max-w-4xl mx-auto p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h1 className="text-2xl font-bold text-gray-900">프로필 편집</h1>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setRightPanelContent("digital-command");
+                    }}
+                  >
+                    뒤로 가기
+                  </Button>
+                </div>
+                <div className="space-y-6">
+                  <div className="bg-white rounded-lg p-6">
+                    <div className="space-y-4">
+                      <div className="text-center">
+                        <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mx-auto mb-4 flex items-center justify-center relative">
+                          <BookUser className="w-12 h-12 text-white" />
+                          <Button 
+                            size="sm" 
+                            className="absolute -bottom-1 -right-1 rounded-full w-8 h-8 p-0"
+                          >
+                            <Users className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">표시 이름</label>
+                          <input 
+                            type="text" 
+                            defaultValue={user?.displayName}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">사용자명</label>
+                          <input 
+                            type="text" 
+                            defaultValue={user?.username}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">이메일</label>
+                          <input 
+                            type="email" 
+                            defaultValue={user?.email || ""}
+                            placeholder="이메일을 입력하세요"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">회사</label>
+                          <input 
+                            type="text" 
+                            placeholder="회사명을 입력하세요"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">직책</label>
+                          <input 
+                            type="text" 
+                            placeholder="직책을 입력하세요"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">전화번호</label>
+                          <input 
+                            type="tel" 
+                            placeholder="전화번호를 입력하세요"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">자기소개</label>
+                        <textarea 
+                          rows={3}
+                          placeholder="간단한 자기소개를 입력하세요"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      
+                      <div className="flex space-x-3 pt-4">
+                        <Button className="flex-1">변경사항 저장</Button>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setRightPanelContent("digital-command")}
+                        >
+                          취소
+                        </Button>
                       </div>
                     </div>
                   </div>
