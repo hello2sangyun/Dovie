@@ -405,7 +405,7 @@ export default function MainApp() {
                     뒤로 가기
                   </Button>
                 </div>
-                <SettingsPage isMobile={false} />
+                <ModernSettingsPage isMobile={false} />
               </div>
             </div>
           ) : selectedChatRoom || selectedLocationChatRoom ? (
@@ -503,7 +503,7 @@ export default function MainApp() {
           )}
           {activeMobileTab === "archive" && <ArchiveList />}
           {activeMobileTab === "settings" && (
-            <SettingsPage isMobile={true} />
+            <ModernSettingsPage isMobile={true} />
           )}
         </div>
 
