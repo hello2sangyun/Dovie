@@ -72,7 +72,7 @@ interface LinkedInSpacePageProps {
 export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [showPostModal, setShowPostModal] = useState(false);
+
   const [postContent, setPostContent] = useState('');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [page, setPage] = useState(1);
@@ -99,7 +99,6 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/posts/user'] });
-      setShowPostModal(false);
       setPostContent('');
       setSelectedImage(null);
     },
@@ -247,22 +246,45 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
             {/* 포스트 작성 영역 */}
             <Card>
               <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
+                <div className="flex items-start space-x-3">
                   <Avatar>
                     <AvatarImage src={user?.profilePicture} />
                     <AvatarFallback>{user?.displayName?.[0]}</AvatarFallback>
                   </Avatar>
-                  <Button 
-                    variant="outline" 
-                    className="flex-1 justify-start text-gray-500"
-                    onClick={() => setShowPostModal(true)}
-                  >
-                    무슨 일이 일어나고 있나요?
-                  </Button>
+                  <div className="flex-1">
+                    <textarea
+                      value={postContent}
+                      onChange={(e) => setPostContent(e.target.value)}
+                      placeholder="무슨 일이 일어나고 있나요?"
+                      className="w-full p-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px]"
+                      rows={3}
+                    />
+                    {selectedImage && (
+                      <div className="mt-3">
+                        <img 
+                          src={URL.createObjectURL(selectedImage)} 
+                          alt="Selected" 
+                          className="max-w-full h-auto rounded-lg"
+                        />
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setSelectedImage(null)}
+                          className="mt-2"
+                        >
+                          이미지 제거
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center justify-between mt-3 pt-3 border-t">
                   <div className="flex space-x-2">
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
                       <Camera className="w-4 h-4 mr-2" />
                       사진
                     </Button>
@@ -274,7 +296,21 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
                       <LinkIcon className="w-4 h-4 mr-2" />
                       링크
                     </Button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageSelect}
+                      className="hidden"
+                    />
                   </div>
+                  <Button 
+                    onClick={handleCreatePost}
+                    disabled={!postContent.trim() || createPostMutation.isPending}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    {createPostMutation.isPending ? '게시 중...' : '게시'}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -418,78 +454,7 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
         </div>
       </div>
 
-      {/* 포스트 작성 모달 */}
-      {showPostModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">포스트 작성</h3>
-              <Button variant="ghost" size="sm" onClick={() => setShowPostModal(false)}>
-                ×
-              </Button>
-            </div>
-            
-            <div className="flex items-start space-x-3 mb-4">
-              <Avatar>
-                <AvatarImage src={user?.profilePicture} />
-                <AvatarFallback>{user?.displayName?.[0]}</AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <textarea
-                  value={postContent}
-                  onChange={(e) => setPostContent(e.target.value)}
-                  placeholder="무슨 일이 일어나고 있나요?"
-                  className="w-full p-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  rows={4}
-                />
-                {selectedImage && (
-                  <div className="mt-3">
-                    <img 
-                      src={URL.createObjectURL(selectedImage)} 
-                      alt="Selected" 
-                      className="max-w-full h-auto rounded-lg"
-                    />
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => setSelectedImage(null)}
-                      className="mt-2"
-                    >
-                      이미지 제거
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex space-x-2">
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Camera className="w-4 h-4" />
-                </Button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageSelect}
-                  className="hidden"
-                />
-              </div>
-              <Button 
-                onClick={handleCreatePost}
-                disabled={(!postContent.trim() && !selectedImage) || createPostMutation.isPending}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                {createPostMutation.isPending ? '게시 중...' : '게시'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
