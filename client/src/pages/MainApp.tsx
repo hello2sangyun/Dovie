@@ -484,7 +484,10 @@ export default function MainApp() {
                     뒤로 가기
                   </Button>
                 </div>
-                <ModernSettingsPage />
+                <div className="text-center text-gray-500 py-12">
+                  <Settings className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg">좌측 메뉴에서 설정 항목을 선택하세요</p>
+                </div>
               </div>
             </div>
           ) : rightPanelContent === "archive" ? (
