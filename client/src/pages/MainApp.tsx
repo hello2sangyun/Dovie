@@ -78,7 +78,7 @@ export default function MainApp() {
         }, index * 100);
       });
     }
-  }, [chatRoomsData?.chatRooms, queryClient]);
+  }, [(chatRoomsData as any)?.chatRooms, queryClient]);
 
   // Get unread counts
   const { data: unreadCountsData } = useQuery({
@@ -100,8 +100,8 @@ export default function MainApp() {
       }
       
       // Add contact profile images (limit to first 8 for performance)
-      if (contactsData?.contacts) {
-        contactsData.contacts.slice(0, 8).forEach((contact: any) => {
+      if ((contactsData as any)?.contacts) {
+        (contactsData as any).contacts.slice(0, 8).forEach((contact: any) => {
           if (contact.contactUser?.profilePicture) {
             imagesToPreload.add(`${contact.contactUser.profilePicture}?v=${contact.contactUser.id}`);
           }
@@ -109,8 +109,8 @@ export default function MainApp() {
       }
       
       // Add chat room participants' profile images (limit to recent 5 rooms)
-      if (chatRoomsData?.chatRooms) {
-        chatRoomsData.chatRooms.slice(0, 5).forEach((room: any) => {
+      if ((chatRoomsData as any)?.chatRooms) {
+        (chatRoomsData as any).chatRooms.slice(0, 5).forEach((room: any) => {
           if (room.participants) {
             room.participants.slice(0, 3).forEach((participant: any) => {
               if (participant.profilePicture && participant.id !== user?.id) {
@@ -133,7 +133,7 @@ export default function MainApp() {
     }, 800); // Debounce by 800ms to avoid rapid re-execution
     
     return () => clearTimeout(timeoutId);
-  }, [user?.id, contactsData?.contacts?.length, chatRoomsData?.chatRooms?.length]);
+  }, [user?.id, (contactsData as any)?.contacts?.length, (chatRoomsData as any)?.chatRooms?.length]);
 
   // 친구와의 채팅방 찾기 또는 생성
   const createOrFindChatRoom = (contactUserId: number, contactUser: any) => {
@@ -227,8 +227,8 @@ export default function MainApp() {
 
   // Calculate unread counts for tabs
   const calculateUnreadCounts = () => {
-    const unreadCounts = unreadCountsData?.unreadCounts || [];
-    const chatRooms = chatRoomsData?.chatRooms || [];
+    const unreadCounts = (unreadCountsData as any)?.unreadCounts || [];
+    const chatRooms = (chatRoomsData as any)?.chatRooms || [];
     
     let totalChatUnread = 0;
     let totalNearbyUnread = 0;
@@ -616,7 +616,7 @@ export default function MainApp() {
       <CommandModal 
         open={modals.command}
         onClose={closeModals}
-        chatRoomId={selectedChatRoom}
+        chatRoomId={selectedChatRoom ?? undefined}
         fileData={commandModalData}
         messageData={messageDataForCommand}
       />
