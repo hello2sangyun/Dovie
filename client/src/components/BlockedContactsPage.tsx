@@ -121,7 +121,7 @@ export default function BlockedContactsPage({ onBack }: BlockedContactsPageProps
   return (
     <div className="flex flex-col h-full bg-white">
       {/* Header */}
-      <div className="flex items-center px-4 py-3 border-b border-gray-200">
+      <div className="flex items-center px-4 py-3 border-b border-gray-200 flex-shrink-0">
         <Button
           variant="ghost"
           size="sm"
@@ -134,7 +134,7 @@ export default function BlockedContactsPage({ onBack }: BlockedContactsPageProps
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 120px)' }}>
         {isLoading ? (
           <div className="flex items-center justify-center h-32">
             <div className="text-gray-500">로딩 중...</div>
