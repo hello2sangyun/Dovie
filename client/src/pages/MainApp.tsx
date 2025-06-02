@@ -16,6 +16,8 @@ import CreateGroupChatModal from "@/components/CreateGroupChatModal";
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
 import NearbyChats from "@/components/NearbyChats";
+import BlockedContactsPage from "@/components/BlockedContactsPage";
+import SimpleSpacePage from "@/pages/SimpleSpacePage";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, MapPin, Building2, Shield, UserX } from "lucide-react";
@@ -430,7 +432,7 @@ export default function MainApp() {
 
                       <div 
                         className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
-                        onClick={() => setRightPanelContent("business-space")}
+                        onClick={() => setRightPanelContent("space")}
                       >
                         <div className="flex items-center space-x-3">
                           <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
@@ -705,29 +707,10 @@ export default function MainApp() {
               </div>
             </div>
           ) : rightPanelContent === "account" ? (
-            <div className="flex-1 bg-gray-50 overflow-y-auto">
-              <div className="max-w-4xl mx-auto p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h1 className="text-2xl font-bold text-gray-900">차단된 연락처</h1>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setRightPanelContent(null);
-                      setActiveTab("settings");
-                    }}
-                  >
-                    뒤로 가기
-                  </Button>
-                </div>
-                <div className="space-y-6">
-                  <div className="bg-white rounded-lg p-6 text-center">
-                    <UserX className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">차단된 연락처가 없습니다</h3>
-                    <p className="text-gray-600">차단된 사용자가 있으면 여기에 표시됩니다.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <BlockedContactsPage onBack={() => {
+              setRightPanelContent(null);
+              setActiveTab("settings");
+            }} />
           ) : rightPanelContent === "digital-command" ? (
             <div className="flex-1 bg-gray-50 overflow-y-auto">
               <div className="max-w-4xl mx-auto p-6">

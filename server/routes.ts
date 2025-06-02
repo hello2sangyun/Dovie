@@ -1528,6 +1528,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get blocked contacts
+  app.get("/api/contacts/blocked", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const blockedContacts = await db.select({
+        id: contacts.id,
+        blockedUserId: contacts.contactUserId,
+        blockedAt: contacts.createdAt,
+        blockedUser: {
+          id: users.id,
+          username: users.username,
+          displayName: users.displayName,
+          profilePicture: users.profilePicture,
+        },
+      })
+      .from(contacts)
+      .innerJoin(users, eq(contacts.contactUserId, users.id))
+      .where(and(
+        eq(contacts.userId, parseInt(userId as string)),
+        eq(contacts.isBlocked, true)
+      ));
+
+      res.json({ blockedContacts });
+    } catch (error) {
+      console.error("Error fetching blocked contacts:", error);
+      res.status(500).json({ message: "차단된 연락처를 가져오는 중 오류가 발생했습니다." });
+    }
+  });
+
+  // Unblock contact
+  app.post("/api/contacts/:contactUserId/unblock", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    const { contactUserId } = req.params;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      await db.update(contacts)
+        .set({ isBlocked: false })
+        .where(and(
+          eq(contacts.userId, parseInt(userId as string)),
+          eq(contacts.contactUserId, parseInt(contactUserId))
+        ));
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error unblocking contact:", error);
+      res.status(500).json({ message: "연락처 차단 해제 중 오류가 발생했습니다." });
+    }
+  });
+
   // Search company pages for Business Space
   app.get("/api/space/companies", async (req, res) => {
     const userId = req.headers["x-user-id"];
