@@ -383,80 +383,133 @@ export default function MainApp() {
               
               <TabsContent value="settings" className="h-full m-0">
                 <div className="h-full overflow-y-auto">
-                  <div className="p-4 space-y-2">
-                    <h3 className="font-semibold text-gray-900 text-sm mb-3">설정</h3>
-                    
+                  <div className="p-4">
+                    {/* 프로필 섹션 */}
                     <div 
-                      className="p-3 hover:bg-purple-50 rounded-lg cursor-pointer transition-colors group"
+                      className="mb-6 bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
                       onClick={() => setRightPanelContent("profile")}
                     >
                       <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <BookUser className="w-4 h-4 text-blue-600" />
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center relative">
+                          <BookUser className="w-6 h-6 text-white" />
+                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-purple-600 rounded-full flex items-center justify-center">
+                            <span className="text-xs text-white font-bold">D</span>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium text-gray-900 text-sm">프로필</p>
-                          <p className="text-xs text-gray-500">개인 정보 및 공개 설정</p>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-900">{user?.displayName}</h3>
+                          <p className="text-sm text-gray-500">@{user?.username}</p>
+                          <div className="flex items-center space-x-1 mt-1">
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span className="text-xs text-gray-500">온라인</span>
+                          </div>
+                        </div>
+                        <MessageCircle className="w-5 h-5 text-gray-400" />
+                      </div>
+                    </div>
+
+                    {/* 비즈니스 섹션 */}
+                    <div className="mb-6">
+                      <h4 className="text-sm font-medium text-gray-600 mb-3">비즈니스</h4>
+                      
+                      <div 
+                        className="mb-3 bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
+                        onClick={() => setRightPanelContent("digital-command")}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center">
+                            <MessageSquare className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900">디지털 명함</h3>
+                            <p className="text-sm text-gray-500">명함 정보 관리 및 공유</p>
+                          </div>
+                          <MessageCircle className="w-5 h-5 text-gray-400" />
+                        </div>
+                      </div>
+
+                      <div 
+                        className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
+                        onClick={() => setRightPanelContent("business-space")}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+                            <Building2 className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900">Business Space</h3>
+                            <p className="text-sm text-gray-500">비즈니스 네트워킹 및 피드</p>
+                          </div>
+                          <MessageCircle className="w-5 h-5 text-gray-400" />
                         </div>
                       </div>
                     </div>
-                    
-                    <div 
-                      className="p-3 hover:bg-purple-50 rounded-lg cursor-pointer transition-colors group"
-                      onClick={() => setRightPanelContent("business-space")}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                          <Building2 className="w-4 h-4 text-purple-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900 text-sm">Business Space</p>
-                          <p className="text-xs text-gray-500">비즈니스 네트워킹 설정</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div 
-                      className="p-3 hover:bg-purple-50 rounded-lg cursor-pointer transition-colors group"
-                      onClick={() => setRightPanelContent("privacy")}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                          <Shield className="w-4 h-4 text-green-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900 text-sm">개인정보</p>
-                          <p className="text-xs text-gray-500">보안 및 개인정보 설정</p>
+
+                    {/* 개정 설정 섹션 */}
+                    <div className="mb-6">
+                      <h4 className="text-sm font-medium text-gray-600 mb-3">개정 설정</h4>
+                      
+                      <div 
+                        className="mb-3 bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
+                        onClick={() => setRightPanelContent("privacy")}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+                            <Users className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900">개인정보</h3>
+                            <p className="text-sm text-gray-500">프로필 및 계정 정보 수정</p>
+                          </div>
+                          <MessageCircle className="w-5 h-5 text-gray-400" />
                         </div>
                       </div>
-                    </div>
-                    
-                    <div 
-                      className="p-3 hover:bg-purple-50 rounded-lg cursor-pointer transition-colors group"
-                      onClick={() => setRightPanelContent("security")}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                          <Shield className="w-4 h-4 text-orange-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900 text-sm">보안 및 개인정보</p>
-                          <p className="text-xs text-gray-500">비밀번호 및 보안 설정</p>
+
+                      <div 
+                        className="mb-3 bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
+                        onClick={() => setRightPanelContent("notifications")}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center">
+                            <MessageSquare className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900">알림 설정</h3>
+                            <p className="text-sm text-gray-500">메시지 및 앱 알림 관리</p>
+                          </div>
+                          <MessageCircle className="w-5 h-5 text-gray-400" />
                         </div>
                       </div>
-                    </div>
-                    
-                    <div 
-                      className="p-3 hover:bg-purple-50 rounded-lg cursor-pointer transition-colors group"
-                      onClick={() => setRightPanelContent("account")}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
-                          <UserX className="w-4 h-4 text-red-600" />
+
+                      <div 
+                        className="mb-3 bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
+                        onClick={() => setRightPanelContent("security")}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-gray-600 to-gray-800 rounded-xl flex items-center justify-center">
+                            <Shield className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900">보안 및 개인정보</h3>
+                            <p className="text-sm text-gray-500">비밀번호 및 보안 설정</p>
+                          </div>
+                          <MessageCircle className="w-5 h-5 text-gray-400" />
                         </div>
-                        <div>
-                          <p className="font-medium text-gray-900 text-sm">계정관리</p>
-                          <p className="text-xs text-gray-500">계정 삭제 및 관리</p>
+                      </div>
+
+                      <div 
+                        className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
+                        onClick={() => setRightPanelContent("account")}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center">
+                            <UserX className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900">차단된 연락처</h3>
+                            <p className="text-sm text-gray-500">차단된 사용자 관리</p>
+                          </div>
+                          <MessageCircle className="w-5 h-5 text-gray-400" />
                         </div>
                       </div>
                     </div>
@@ -655,7 +708,31 @@ export default function MainApp() {
             <div className="flex-1 bg-gray-50 overflow-y-auto">
               <div className="max-w-4xl mx-auto p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h1 className="text-2xl font-bold text-gray-900">계정관리</h1>
+                  <h1 className="text-2xl font-bold text-gray-900">차단된 연락처</h1>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setRightPanelContent(null);
+                      setActiveTab("settings");
+                    }}
+                  >
+                    뒤로 가기
+                  </Button>
+                </div>
+                <div className="space-y-6">
+                  <div className="bg-white rounded-lg p-6 text-center">
+                    <UserX className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">차단된 연락처가 없습니다</h3>
+                    <p className="text-gray-600">차단된 사용자가 있으면 여기에 표시됩니다.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : rightPanelContent === "digital-command" ? (
+            <div className="flex-1 bg-gray-50 overflow-y-auto">
+              <div className="max-w-4xl mx-auto p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h1 className="text-2xl font-bold text-gray-900">디지털 명함</h1>
                   <Button
                     variant="outline"
                     onClick={() => {
@@ -668,26 +745,89 @@ export default function MainApp() {
                 </div>
                 <div className="space-y-6">
                   <div className="bg-white rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">계정 정보</h3>
-                    <div className="space-y-3">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">가입일</label>
-                        <p className="text-gray-900">2024년 1월</p>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">내 명함 정보</h3>
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                          <BookUser className="w-8 h-8 text-white" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-900">{user?.displayName}</h4>
+                          <p className="text-gray-600">@{user?.username}</p>
+                        </div>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">계정 상태</label>
-                        <p className="text-green-600">활성</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">이름</label>
+                          <p className="text-gray-900">{user?.displayName}</p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">사용자명</label>
+                          <p className="text-gray-900">@{user?.username}</p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">이메일</label>
+                          <p className="text-gray-900">{user?.email || "미설정"}</p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">회사</label>
+                          <p className="text-gray-900">미설정</p>
+                        </div>
                       </div>
+                      <Button className="w-full">명함 정보 수정</Button>
                     </div>
                   </div>
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-red-900 mb-4">위험 구역</h3>
-                    <p className="text-red-700 mb-4">
-                      계정을 삭제하면 모든 데이터가 영구적으로 삭제됩니다.
-                    </p>
-                    <Button variant="destructive" className="w-full">
-                      계정 삭제
-                    </Button>
+                </div>
+              </div>
+            </div>
+          ) : rightPanelContent === "notifications" ? (
+            <div className="flex-1 bg-gray-50 overflow-y-auto">
+              <div className="max-w-4xl mx-auto p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h1 className="text-2xl font-bold text-gray-900">알림 설정</h1>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setRightPanelContent(null);
+                      setActiveTab("settings");
+                    }}
+                  >
+                    뒤로 가기
+                  </Button>
+                </div>
+                <div className="space-y-6">
+                  <div className="bg-white rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">알림 설정</h3>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-gray-900">메시지 알림</p>
+                          <p className="text-sm text-gray-500">새 메시지가 도착했을 때 알림</p>
+                        </div>
+                        <input type="checkbox" className="rounded border-gray-300" defaultChecked />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-gray-900">소리 알림</p>
+                          <p className="text-sm text-gray-500">알림음 재생</p>
+                        </div>
+                        <input type="checkbox" className="rounded border-gray-300" defaultChecked />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-gray-900">진동 알림</p>
+                          <p className="text-sm text-gray-500">기기 진동 알림</p>
+                        </div>
+                        <input type="checkbox" className="rounded border-gray-300" />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-gray-900">Business Space 알림</p>
+                          <p className="text-sm text-gray-500">비즈니스 피드 업데이트 알림</p>
+                        </div>
+                        <input type="checkbox" className="rounded border-gray-300" defaultChecked />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
