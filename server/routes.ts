@@ -781,8 +781,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const blockedContacts = await storage.getBlockedContacts(Number(userId));
-      res.json({ blockedContacts });
+      const contacts = await storage.getBlockedContacts(Number(userId));
+      res.json({ contacts });
     } catch (error) {
       console.error("Error getting blocked contacts:", error);
       res.status(500).json({ message: "Failed to get blocked contacts" });
