@@ -1103,6 +1103,130 @@ export class DatabaseStorage implements IStorage {
 
     return message;
   }
+
+  // Business card operations
+  async getBusinessCard(userId: number): Promise<BusinessCard | undefined> {
+    const [card] = await db.select().from(businessCards).where(eq(businessCards.userId, userId));
+    return card || undefined;
+  }
+
+  async createOrUpdateBusinessCard(userId: number, cardData: Partial<InsertBusinessCard>): Promise<BusinessCard> {
+    const existingCard = await this.getBusinessCard(userId);
+    
+    if (existingCard) {
+      const [updatedCard] = await db
+        .update(businessCards)
+        .set({ ...cardData, updatedAt: new Date() })
+        .where(eq(businessCards.userId, userId))
+        .returning();
+      return updatedCard;
+    } else {
+      const [newCard] = await db
+        .insert(businessCards)
+        .values({ ...cardData, userId })
+        .returning();
+      return newCard;
+    }
+  }
+
+  // Business profile operations
+  async getBusinessProfile(userId: number): Promise<BusinessProfile | undefined> {
+    const [profile] = await db.select().from(businessProfiles).where(eq(businessProfiles.userId, userId));
+    return profile || undefined;
+  }
+
+  async createOrUpdateBusinessProfile(userId: number, profileData: Partial<InsertBusinessProfile>): Promise<BusinessProfile> {
+    const existingProfile = await this.getBusinessProfile(userId);
+    
+    if (existingProfile) {
+      const [updatedProfile] = await db
+        .update(businessProfiles)
+        .set({ ...profileData, updatedAt: new Date() })
+        .where(eq(businessProfiles.userId, userId))
+        .returning();
+      return updatedProfile;
+    } else {
+      const [newProfile] = await db
+        .insert(businessProfiles)
+        .values({ ...profileData, userId })
+        .returning();
+      return newProfile;
+    }
+  }
+
+  // Business card sharing operations
+  async createBusinessCardShare(userId: number): Promise<BusinessCardShare> {
+    // Generate unique share token
+    const shareToken = Array.from({ length: 32 }, () => 
+      Math.random().toString(36).charAt(2)
+    ).join('');
+
+    const [share] = await db
+      .insert(businessCardShares)
+      .values({
+        userId,
+        shareToken,
+        isActive: true,
+        allowDownload: true
+      })
+      .returning();
+    
+    return share;
+  }
+
+  async getBusinessCardShare(shareToken: string): Promise<BusinessCardShare | undefined> {
+    const [share] = await db
+      .select()
+      .from(businessCardShares)
+      .where(and(
+        eq(businessCardShares.shareToken, shareToken),
+        eq(businessCardShares.isActive, true)
+      ));
+    
+    if (share) {
+      // Increment view count
+      await db
+        .update(businessCardShares)
+        .set({ viewCount: share.viewCount + 1 })
+        .where(eq(businessCardShares.id, share.id));
+    }
+    
+    return share || undefined;
+  }
+
+  async getBusinessCardShareInfo(userId: number): Promise<BusinessCardShare | undefined> {
+    const [share] = await db
+      .select()
+      .from(businessCardShares)
+      .where(and(
+        eq(businessCardShares.userId, userId),
+        eq(businessCardShares.isActive, true)
+      ))
+      .orderBy(desc(businessCardShares.createdAt))
+      .limit(1);
+    
+    return share || undefined;
+  }
+
+  // User posts operations
+  async getUserPosts(userId: number): Promise<UserPost[]> {
+    const posts = await db
+      .select()
+      .from(userPosts)
+      .where(eq(userPosts.userId, userId))
+      .orderBy(desc(userPosts.createdAt));
+    
+    return posts;
+  }
+
+  async createUserPost(userId: number, postData: Partial<InsertUserPost>): Promise<UserPost> {
+    const [post] = await db
+      .insert(userPosts)
+      .values({ ...postData, userId })
+      .returning();
+    
+    return post;
+  }
 }
 
 export const storage = new DatabaseStorage();

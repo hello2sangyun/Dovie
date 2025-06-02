@@ -11,7 +11,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
 import { ImageCropper } from "@/components/ImageCropper";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Camera, User, LogOut, Building2, Moon, Sun, Check, X, Loader2, CreditCard, Plus, Edit, Trash2 } from "lucide-react";
+import { Camera, User, LogOut, Building2, Moon, Sun, Check, X, Loader2, CreditCard, Plus, Edit, Trash2, Briefcase, Share2 } from "lucide-react";
+import BusinessCard from "./BusinessCard";
+import BusinessProfile from "./BusinessProfile";
 import { Switch } from "@/components/ui/switch";
 import { getInitials } from "@/lib/utils";
 import VaultLogo from "./VaultLogo";
@@ -439,6 +441,49 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
             </CardContent>
           </Card>
         )}
+
+        {/* Business Card and Profile Management */}
+        <Card className="w-full transition-all duration-200 hover:shadow-md active:scale-[0.98]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <CreditCard className="h-4 w-4 text-purple-600" />
+              <span>명함 관리</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="w-full h-8 text-sm">
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    명함 수정
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>명함 관리</DialogTitle>
+                  </DialogHeader>
+                  <BusinessCard isOwnCard={true} />
+                </DialogContent>
+              </Dialog>
+              
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="w-full h-8 text-sm">
+                    <Briefcase className="h-4 w-4 mr-2" />
+                    비즈니스 프로필
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>비즈니스 프로필</DialogTitle>
+                  </DialogHeader>
+                  <BusinessProfile isOwnProfile={true} />
+                </DialogContent>
+              </Dialog>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Business Status for Business Users - Compact */}
         {user.userRole === "business" && (
