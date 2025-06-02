@@ -35,6 +35,7 @@ export const contacts = pgTable("contacts", {
   contactUserId: integer("contact_user_id").references(() => users.id).notNull(),
   nickname: text("nickname"),
   isPinned: boolean("is_pinned").default(false),
+  isBlocked: boolean("is_blocked").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

@@ -741,6 +741,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Block contact route
+  app.post("/api/contacts/:contactUserId/block", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      await storage.blockContact(Number(userId), Number(req.params.contactUserId));
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error blocking contact:", error);
+      res.status(500).json({ message: "Failed to block contact" });
+    }
+  });
+
+  // Unblock contact route
+  app.post("/api/contacts/:contactUserId/unblock", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      await storage.unblockContact(Number(userId), Number(req.params.contactUserId));
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error unblocking contact:", error);
+      res.status(500).json({ message: "Failed to unblock contact" });
+    }
+  });
+
+  // Get blocked contacts route
+  app.get("/api/contacts/blocked", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const blockedContacts = await storage.getBlockedContacts(Number(userId));
+      res.json({ blockedContacts });
+    } catch (error) {
+      console.error("Error getting blocked contacts:", error);
+      res.status(500).json({ message: "Failed to get blocked contacts" });
+    }
+  });
+
   // Business card routes
   app.get("/api/business-cards/:userId?", async (req, res) => {
     const userId = req.headers["x-user-id"];

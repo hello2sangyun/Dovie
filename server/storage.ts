@@ -28,6 +28,9 @@ export interface IStorage {
   addContact(contact: InsertContact): Promise<Contact>;
   removeContact(userId: number, contactUserId: number): Promise<void>;
   updateContact(userId: number, contactUserId: number, updates: Partial<InsertContact>): Promise<Contact | undefined>;
+  blockContact(userId: number, contactUserId: number): Promise<void>;
+  unblockContact(userId: number, contactUserId: number): Promise<void>;
+  getBlockedContacts(userId: number): Promise<(Contact & { contactUser: User })[]>;
 
   // Chat room operations
   getChatRooms(userId: number): Promise<(ChatRoom & { participants: User[], lastMessage?: Message & { sender: User } })[]>;
@@ -182,6 +185,43 @@ export class DatabaseStorage implements IStorage {
       .where(whereCondition)
       .returning();
     return contact || undefined;
+  }
+
+  async blockContact(userId: number, contactUserId: number): Promise<void> {
+    await db
+      .update(contacts)
+      .set({ isBlocked: true })
+      .where(and(
+        eq(contacts.userId, userId),
+        eq(contacts.contactUserId, contactUserId)
+      ));
+  }
+
+  async unblockContact(userId: number, contactUserId: number): Promise<void> {
+    await db
+      .update(contacts)
+      .set({ isBlocked: false })
+      .where(and(
+        eq(contacts.userId, userId),
+        eq(contacts.contactUserId, contactUserId)
+      ));
+  }
+
+  async getBlockedContacts(userId: number): Promise<(Contact & { contactUser: User })[]> {
+    const result = await db
+      .select()
+      .from(contacts)
+      .innerJoin(users, eq(contacts.contactUserId, users.id))
+      .where(and(
+        eq(contacts.userId, userId),
+        eq(contacts.isBlocked, true)
+      ))
+      .orderBy(asc(users.displayName));
+    
+    return result.map(row => ({
+      ...row.contacts,
+      contactUser: row.users
+    }));
   }
 
   async getChatRooms(userId: number): Promise<(ChatRoom & { participants: User[], lastMessage?: Message & { sender: User } })[]> {
