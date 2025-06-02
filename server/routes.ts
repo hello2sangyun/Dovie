@@ -704,6 +704,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/contacts/:contactId", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const contactId = Number(req.params.contactId);
+      const updates = req.body;
+      
+      const updatedContact = await storage.updateContact(Number(userId), contactId, updates, true);
+      
+      if (!updatedContact) {
+        return res.status(404).json({ message: "Contact not found" });
+      }
+      
+      res.json({ contact: updatedContact });
+    } catch (error) {
+      console.error("Error updating contact:", error);
+      res.status(500).json({ message: "Failed to update contact" });
+    }
+  });
+
   app.delete("/api/contacts/:contactUserId", async (req, res) => {
     const userId = req.headers["x-user-id"];
     if (!userId) {

@@ -150,14 +150,17 @@ export class DatabaseStorage implements IStorage {
       ));
   }
 
-  async updateContact(userId: number, contactUserId: number, updates: Partial<InsertContact>): Promise<Contact | undefined> {
+  async updateContact(userId: number, contactUserId: number, updates: Partial<InsertContact>): Promise<Contact | undefined>;
+  async updateContact(userId: number, contactId: number, updates: Partial<InsertContact>, byId?: boolean): Promise<Contact | undefined>;
+  async updateContact(userId: number, identifier: number, updates: Partial<InsertContact>, byId: boolean = false): Promise<Contact | undefined> {
+    const whereCondition = byId 
+      ? and(eq(contacts.userId, userId), eq(contacts.id, identifier))
+      : and(eq(contacts.userId, userId), eq(contacts.contactUserId, identifier));
+
     const [contact] = await db
       .update(contacts)
       .set(updates)
-      .where(and(
-        eq(contacts.userId, userId),
-        eq(contacts.contactUserId, contactUserId)
-      ))
+      .where(whereCondition)
       .returning();
     return contact || undefined;
   }
