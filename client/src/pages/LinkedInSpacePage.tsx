@@ -149,8 +149,10 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
     }
   };
 
-  const posts = postsData && Array.isArray(postsData.posts) ? postsData.posts : [];
+  console.log('Posts data:', postsData);
+  const posts = Array.isArray(postsData) ? postsData : [];
   const companies = Array.isArray(companiesData?.companies) ? companiesData.companies : [];
+  console.log('Processed posts:', posts);
 
   return (
     <div className="min-h-screen bg-gray-50">
