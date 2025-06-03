@@ -2,21 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 프리즘 애니메이션 */
-@keyframes prism-rotate {
+/* 프리즘 애니메이션 - Instagram 스토리 스타일 */
+@keyframes gradient-rotate {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
 
-@keyframes prism-pulse {
-  0%, 100% { opacity: 0.8; }
-  50% { opacity: 1; }
+@keyframes gradient-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
 }
 
 .prism-border {
-  background: conic-gradient(from 0deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57, #ff9ff3, #54a0ff, #ff6b6b);
-  animation: prism-rotate 3s linear infinite, prism-pulse 2s ease-in-out infinite;
-  filter: blur(0.5px);
+  background: linear-gradient(45deg, 
+    #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d, #f56040, 
+    #f77737, #fcaf45, #ffdc80, #405de6);
+  background-size: 200% 200%;
+  animation: gradient-rotate 4s linear infinite, gradient-pulse 3s ease-in-out infinite;
+}
+
+.prism-border-v2 {
+  background: conic-gradient(from 0deg at 50% 50%, 
+    #405de6 0deg, #5851db 51deg, #833ab4 102deg, #c13584 153deg, 
+    #e1306c 204deg, #fd1d1d 255deg, #f56040 306deg, #405de6 360deg);
+  animation: gradient-rotate 3s linear infinite;
 }
 
 :root {
