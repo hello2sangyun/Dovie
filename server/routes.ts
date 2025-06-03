@@ -1748,6 +1748,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 특정 사용자의 비즈니스 포스트 가져오기
+  app.get("/api/business-posts/:userId", async (req, res) => {
+    const currentUserId = req.headers["x-user-id"];
+    const { userId } = req.params;
+    
+    if (!currentUserId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const posts = await db.select({
+        id: businessPosts.id,
+        userId: businessPosts.userId,
+        content: businessPosts.content,
+        imageUrl: businessPosts.imageUrl,
+        linkUrl: businessPosts.linkUrl,
+        linkTitle: businessPosts.linkTitle,
+        linkDescription: businessPosts.linkDescription,
+        likesCount: businessPosts.likeCount,
+        commentsCount: businessPosts.commentCount,
+        sharesCount: businessPosts.shareCount,
+        createdAt: businessPosts.createdAt,
+        updatedAt: businessPosts.updatedAt,
+        user: {
+          id: users.id,
+          displayName: users.displayName,
+          profilePicture: users.profilePicture,
+        }
+      })
+      .from(businessPosts)
+      .innerJoin(users, eq(businessPosts.userId, users.id))
+      .where(eq(businessPosts.userId, parseInt(userId)))
+      .orderBy(desc(businessPosts.createdAt));
+
+      res.json(posts);
+    } catch (error) {
+      console.error("Error fetching user business posts:", error);
+      res.status(500).json({ message: "Failed to fetch business posts" });
+    }
+  });
+
   // 비즈니스 포스트 좋아요/좋아요 취소
   app.post("/api/business/posts/:postId/like", async (req, res) => {
     const userId = req.headers["x-user-id"];

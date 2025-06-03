@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -27,7 +28,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Plus, Search, Star, MoreVertical, UserX, Trash2, Shield } from "lucide-react";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
-import FriendBusinessCardModal from "./FriendBusinessCardModal";
 
 interface ContactsListProps {
   onAddContact: () => void;
@@ -38,9 +38,9 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("nickname");
-  const [selectedFriend, setSelectedFriend] = useState<{ userId: number; name: string } | null>(null);
   const [showBlockConfirm, setShowBlockConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [contactToBlock, setContactToBlock] = useState<any>(null);
