@@ -2,6 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 프리즘 애니메이션 */
+@keyframes prism-rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes prism-pulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+.prism-border {
+  background: conic-gradient(from 0deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57, #ff9ff3, #54a0ff, #ff6b6b);
+  animation: prism-rotate 3s linear infinite, prism-pulse 2s ease-in-out infinite;
+  filter: blur(0.5px);
+}
+
 :root {
   --background: 0 0% 100%;
   --foreground: 224 71.4% 4.1%;

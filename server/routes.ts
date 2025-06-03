@@ -13,7 +13,7 @@ import fs from "fs";
 import { encryptFileData, decryptFileData, hashFileName } from "./crypto";
 import { processCommand } from "./openai";
 import { db } from "./db";
-import { eq, and, inArray, desc } from "drizzle-orm";
+import { eq, and, inArray, desc, gte } from "drizzle-orm";
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -3056,6 +3056,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user posts:", error);
       res.status(500).json({ message: "포스트를 가져오는 중 오류가 발생했습니다." });
+    }
+  });
+
+  // 친구들의 최근 포스팅 상태 조회 API
+  app.get("/api/contacts/recent-posts", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      // 24시간 이내 포스팅한 친구들의 목록을 가져옵니다
+      const recentPosts = await db.select({
+        userId: userPosts.userId,
+        username: users.username,
+        displayName: users.displayName,
+        profilePicture: users.profilePicture,
+        latestPostTime: userPosts.createdAt,
+      })
+      .from(userPosts)
+      .innerJoin(users, eq(userPosts.userId, users.id))
+      .innerJoin(contacts, eq(contacts.contactUserId, users.id))
+      .where(
+        and(
+          eq(contacts.userId, parseInt(userId as string)),
+          gte(userPosts.createdAt, new Date(Date.now() - 24 * 60 * 60 * 1000)) // 24시간 이내
+        )
+      )
+      .groupBy(userPosts.userId, users.username, users.displayName, users.profilePicture, userPosts.createdAt)
+      .orderBy(desc(userPosts.createdAt));
+
+      // 각 친구별 최신 포스팅만 반환
+      const uniqueUsers = new Map();
+      recentPosts.forEach(post => {
+        if (!uniqueUsers.has(post.userId) || 
+            new Date(post.latestPostTime) > new Date(uniqueUsers.get(post.userId).latestPostTime)) {
+          uniqueUsers.set(post.userId, post);
+        }
+      });
+
+      res.json(Array.from(uniqueUsers.values()));
+    } catch (error) {
+      console.error("Error fetching recent posts:", error);
+      res.status(500).json({ message: "최근 포스팅을 가져오는 중 오류가 발생했습니다." });
     }
   });
 
