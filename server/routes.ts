@@ -1766,9 +1766,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         linkUrl: businessPosts.linkUrl,
         linkTitle: businessPosts.linkTitle,
         linkDescription: businessPosts.linkDescription,
-        likesCount: businessPosts.likeCount,
-        commentsCount: businessPosts.commentCount,
-        sharesCount: businessPosts.shareCount,
+        likesCount: businessPosts.likesCount,
+        commentsCount: businessPosts.commentsCount,
+        sharesCount: businessPosts.sharesCount,
         createdAt: businessPosts.createdAt,
         updatedAt: businessPosts.updatedAt,
         user: {

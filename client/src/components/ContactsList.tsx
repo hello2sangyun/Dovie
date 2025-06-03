@@ -280,7 +280,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                 <div key={contact.id} className="flex flex-col items-center space-y-1 flex-shrink-0">
                   <div 
                     className="relative cursor-pointer hover:opacity-75 transition-opacity"
-                    onClick={() => setSelectedFriend({ userId: contact.contactUserId, name: displayName })}
+                    onClick={() => setLocation(`/friend/${contact.contactUserId}`)}
                   >
                     <PrismAvatar
                       src={contact.contactUser.profilePicture}
@@ -326,7 +326,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                     className="cursor-pointer"
                     onClick={(e?: React.MouseEvent) => {
                       e?.stopPropagation();
-                      setSelectedFriend({ userId: contact.contactUserId, name: contact.nickname || contact.contactUser.displayName });
+                      setLocation(`/friend/${contact.contactUserId}`);
                     }}
                   >
                     <PrismAvatar
@@ -424,15 +424,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
         )}
       </div>
 
-      {/* 친구 명함/프로필 모달 */}
-      {selectedFriend && (
-        <FriendBusinessCardModal
-          isOpen={!!selectedFriend}
-          onClose={() => setSelectedFriend(null)}
-          friendUserId={selectedFriend.userId}
-          friendName={selectedFriend.name}
-        />
-      )}
+
 
       {/* 차단 확인 다이얼로그 */}
       <AlertDialog open={showBlockConfirm} onOpenChange={setShowBlockConfirm}>
