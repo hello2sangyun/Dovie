@@ -317,6 +317,16 @@ export const businessPostComments = pgTable("business_post_comments", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// 비즈니스 포스트 읽음 상태 테이블
+export const businessPostReads = pgTable("business_post_reads", {
+  id: serial("id").primaryKey(),
+  postId: integer("post_id").references(() => businessPosts.id),
+  userId: integer("user_id").references(() => users.id),
+  readAt: timestamp("read_at").defaultNow().notNull(),
+}, (table) => ({
+  uniquePostRead: unique().on(table.postId, table.userId),
+}));
+
 // 사용자 프로필 확장 (비즈니스 정보)
 export const userBusinessProfiles = pgTable("user_business_profiles", {
   id: serial("id").primaryKey(),

@@ -3059,7 +3059,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 친구들의 최근 포스팅 상태 조회 API
+  // 친구들의 최근 포스팅 상태 조회 API (읽지 않은 포스트만)
   app.get("/api/contacts/recent-posts", async (req, res) => {
     const userId = req.headers["x-user-id"];
     
@@ -3068,8 +3068,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
+      const currentUserId = parseInt(userId as string);
+      
       // 24시간 이내 포스팅한 친구들의 목록을 가져옵니다
       const recentPosts = await db.select({
+        postId: userPosts.id,
         userId: userPosts.userId,
         username: users.username,
         displayName: users.displayName,
@@ -3079,16 +3082,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .from(userPosts)
       .innerJoin(users, eq(userPosts.userId, users.id))
       .innerJoin(contacts, eq(contacts.contactUserId, users.id))
+      .leftJoin(businessPostReads, and(
+        eq(businessPostReads.postId, userPosts.id),
+        eq(businessPostReads.userId, currentUserId)
+      ))
       .where(
         and(
-          eq(contacts.userId, parseInt(userId as string)),
-          gte(userPosts.createdAt, new Date(Date.now() - 24 * 60 * 60 * 1000)) // 24시간 이내
+          eq(contacts.userId, currentUserId),
+          gte(userPosts.createdAt, new Date(Date.now() - 24 * 60 * 60 * 1000)), // 24시간 이내
+          isNull(businessPostReads.id) // 읽지 않은 포스트만
         )
       )
-      .groupBy(userPosts.userId, users.username, users.displayName, users.profilePicture, userPosts.createdAt)
+      .groupBy(userPosts.id, userPosts.userId, users.username, users.displayName, users.profilePicture, userPosts.createdAt)
       .orderBy(desc(userPosts.createdAt));
 
-      // 각 친구별 최신 포스팅만 반환
+      // 각 친구별 최신 읽지 않은 포스팅만 반환
       const uniqueUsers = new Map();
       recentPosts.forEach(post => {
         if (!uniqueUsers.has(post.userId) || 
@@ -3101,6 +3109,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching recent posts:", error);
       res.status(500).json({ message: "최근 포스팅을 가져오는 중 오류가 발생했습니다." });
+    }
+  });
+
+  // 비즈니스 포스트 읽음 상태 기록 API
+  app.post("/api/posts/:postId/mark-read", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    const { postId } = req.params;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const currentUserId = parseInt(userId as string);
+      const postIdInt = parseInt(postId);
+
+      // 이미 읽음 기록이 있는지 확인
+      const existingRead = await db.select()
+        .from(businessPostReads)
+        .where(
+          and(
+            eq(businessPostReads.postId, postIdInt),
+            eq(businessPostReads.userId, currentUserId)
+          )
+        )
+        .limit(1);
+
+      if (existingRead.length === 0) {
+        // 읽음 상태 기록
+        await db.insert(businessPostReads).values({
+          postId: postIdInt,
+          userId: currentUserId,
+          readAt: new Date()
+        });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking post as read:", error);
+      res.status(500).json({ message: "포스트 읽음 처리 중 오류가 발생했습니다." });
     }
   });
 

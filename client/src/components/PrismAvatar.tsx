@@ -30,13 +30,13 @@ export default function PrismAvatar({
   };
 
   return (
-    <div className="relative">
+    <div className="relative flex items-center justify-center p-1">
       {hasNewPost && (
         <div 
-          className={`absolute -inset-0.5 ${prismSize[size]} rounded-full prism-border-v2`}
+          className={`absolute inset-0 ${prismSize[size]} rounded-full prism-border-v2`}
         />
       )}
-      <Avatar className={`${sizeClasses[size]} ${className} relative z-10 border-3 border-white shadow-sm`}>
+      <Avatar className={`${sizeClasses[size]} ${className} relative z-10 border-2 border-white shadow-sm`}>
         <AvatarImage src={src} alt={alt} />
         <AvatarFallback className="bg-gray-100 text-gray-700 font-semibold text-sm">
           {fallback}
