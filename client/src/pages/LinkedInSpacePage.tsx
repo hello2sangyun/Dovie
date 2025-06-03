@@ -422,7 +422,12 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
                                   <img 
                                     src={attachment}
                                     alt="첨부 이미지"
-                                    className="w-full h-auto"
+                                    className="w-full h-auto max-h-96 object-cover"
+                                    onError={(e) => {
+                                      console.error('Image failed to load:', attachment);
+                                      e.currentTarget.style.display = 'none';
+                                    }}
+                                    loading="lazy"
                                   />
                                 )}
                                 {isVideoFile && (
