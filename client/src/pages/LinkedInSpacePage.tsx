@@ -97,6 +97,22 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
     },
   });
 
+  // 포스트 읽음 상태 기록 뮤테이션
+  const markPostAsReadMutation = useMutation({
+    mutationFn: async (postId: number) => {
+      return apiRequest(`/api/posts/${postId}/mark-read`, 'POST');
+    },
+    onSuccess: () => {
+      // 최근 포스트 데이터 새로고침
+      queryClient.invalidateQueries({ queryKey: ['/api/contacts/recent-posts'] });
+    },
+  });
+
+  // 포스트 클릭 핸들러 (읽음 상태 기록)
+  const handlePostClick = (postId: number) => {
+    markPostAsReadMutation.mutate(postId);
+  };
+
   const handleCreatePost = () => {
     if (!postContent.trim()) return;
     
