@@ -1326,9 +1326,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.send(fileBuffer);
       } else {
         try {
-          // 다른 파일들은 암호화되어 있으므로 복호화 후 제공
-          const encryptedData = fs.readFileSync(filePath, 'utf8');
-          const decryptedBuffer = decryptFileData(encryptedData);
+          // 파일이 암호화되었는지 확인 후 처리
+          let decryptedBuffer: Buffer;
+          
+          try {
+            // 먼저 암호화된 텍스트로 읽기 시도
+            const encryptedData = fs.readFileSync(filePath, 'utf8');
+            decryptedBuffer = decryptFileData(encryptedData);
+          } catch (decryptError) {
+            // 복호화 실패시 바이너리로 읽기 (암호화되지 않은 파일)
+            decryptedBuffer = fs.readFileSync(filePath);
+          }
           
           // 파일 확장자에 따른 Content-Type 설정
           const ext = path.extname(filename).toLowerCase();
@@ -3209,7 +3217,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let attachments: string[] = [];
       
       if (files && files.length > 0) {
-        attachments = files.map(file => `/uploads/${file.filename}`);
+        // 파일들을 암호화하여 저장
+        for (const file of files) {
+          try {
+            // 파일이 실제로 존재하고 크기가 0보다 큰지 확인
+            if (!fs.existsSync(file.path) || fs.statSync(file.path).size === 0) {
+              console.log("Empty or missing file, skipping:", file.originalname);
+              continue;
+            }
+            
+            // 파일 내용을 암호화
+            const fileBuffer = fs.readFileSync(file.path);
+            const encryptedData = encryptFileData(fileBuffer);
+            
+            // 암호화된 파일명 생성
+            const encryptedFileName = hashFileName(file.originalname);
+            const encryptedFilePath = path.join(uploadDir, encryptedFileName);
+            
+            // 암호화된 데이터를 파일로 저장
+            fs.writeFileSync(encryptedFilePath, encryptedData, 'utf8');
+            
+            // 원본 임시 파일 삭제
+            fs.unlinkSync(file.path);
+            
+            attachments.push(`/uploads/${encryptedFileName}`);
+            console.log("Successfully processed file:", file.originalname, "->", encryptedFileName);
+          } catch (fileError) {
+            console.error("Error processing file:", file.originalname, fileError);
+            // 파일 처리 실패시 건너뛰기
+          }
+        }
       }
 
       const [newPost] = await db.insert(userPosts)
