@@ -6,6 +6,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { OptimizedAvatar } from "@/components/OptimizedAvatar";
+import PrismAvatar from "@/components/PrismAvatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   DropdownMenu, 
@@ -123,7 +124,27 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     },
   });
 
+  // 최근 포스팅한 친구들 데이터 가져오기
+  const { data: recentPostsData } = useQuery({
+    queryKey: ["/api/contacts/recent-posts"],
+    enabled: !!user,
+    queryFn: async () => {
+      const response = await fetch("/api/contacts/recent-posts", {
+        headers: { "x-user-id": user!.id.toString() },
+      });
+      if (!response.ok) throw new Error("Failed to fetch recent posts");
+      return response.json();
+    },
+    refetchInterval: 30000, // 30초마다 새로고침
+  });
+
   const contacts = contactsData?.contacts || [];
+  const recentPosts = recentPostsData || [];
+
+  // 특정 사용자가 최근에 포스팅했는지 확인하는 함수
+  const hasRecentPost = (userId: number) => {
+    return recentPosts.some((post: any) => post.userId === userId);
+  };
 
   const handleBlockContact = (contact: any) => {
     setContactToBlock(contact);
@@ -257,23 +278,19 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
               const displayName = contact.nickname || contact.contactUser.displayName;
               return (
                 <div key={contact.id} className="flex flex-col items-center space-y-1 flex-shrink-0">
-                  <div className="relative">
-                    <div
-                      className={`w-12 h-12 rounded-full bg-gradient-to-br ${getAvatarColor(displayName)} flex items-center justify-center text-white font-semibold text-sm border-2 border-white shadow-md cursor-pointer hover:opacity-75 transition-opacity`}
-                      onClick={() => setSelectedFriend({ userId: contact.contactUserId, name: displayName })}
-                    >
-                      {contact.contactUser.profilePicture ? (
-                        <img 
-                          src={contact.contactUser.profilePicture} 
-                          alt={displayName}
-                          className="w-full h-full rounded-full object-cover"
-                        />
-                      ) : (
-                        getInitials(displayName)
-                      )}
-                    </div>
+                  <div 
+                    className="relative cursor-pointer hover:opacity-75 transition-opacity"
+                    onClick={() => setSelectedFriend({ userId: contact.contactUserId, name: displayName })}
+                  >
+                    <PrismAvatar
+                      src={contact.contactUser.profilePicture}
+                      fallback={getInitials(displayName)}
+                      hasNewPost={hasRecentPost(contact.contactUserId)}
+                      size="md"
+                      className="shadow-md"
+                    />
                     {contact.contactUser.isOnline && (
-                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full z-20"></div>
                     )}
                   </div>
                   <span 
@@ -305,16 +322,21 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                   className="cursor-pointer flex-1 flex items-center space-x-2"
                   onClick={() => onSelectContact(contact.contactUserId)}
                 >
-                  <OptimizedAvatar 
-                    src={contact.contactUser.profilePicture}
-                    name={contact.nickname || contact.contactUser.displayName}
-                    className="w-8 h-8 cursor-pointer hover:ring-2 hover:ring-blue-300 transition-all"
-                    fallbackClassName="text-xs"
+                  <div
+                    className="cursor-pointer"
                     onClick={(e?: React.MouseEvent) => {
                       e?.stopPropagation();
                       setSelectedFriend({ userId: contact.contactUserId, name: contact.nickname || contact.contactUser.displayName });
                     }}
-                  />
+                  >
+                    <PrismAvatar
+                      src={contact.contactUser.profilePicture}
+                      fallback={getInitials(contact.nickname || contact.contactUser.displayName)}
+                      hasNewPost={hasRecentPost(contact.contactUserId)}
+                      size="sm"
+                      className="hover:ring-2 hover:ring-blue-300 transition-all"
+                    />
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <p className="font-medium text-gray-900 truncate text-sm">
