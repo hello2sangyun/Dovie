@@ -3,7 +3,7 @@ import express from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, insertUserPostSchema, insertPostLikeSchema, insertPostCommentSchema, insertCompanyChannelSchema, locationChatRooms, chatRooms, chatParticipants, userPosts, postLikes, postComments, companyChannels, companyFollowers, users, businessProfiles, contacts, businessPostReads } from "@shared/schema";
+import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, insertUserPostSchema, insertPostLikeSchema, insertPostCommentSchema, insertCompanyChannelSchema, locationChatRooms, chatRooms, chatParticipants, userPosts, postLikes, postComments, companyChannels, companyChannelFollowers, companyChannelAdmins, users, businessProfiles, contacts, businessPostReads, businessPosts, businessPostLikes } from "@shared/schema";
 import { sql } from "drizzle-orm";
 import { translateText, transcribeAudio } from "./openai";
 import bcrypt from "bcryptjs";
@@ -1325,32 +1325,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         res.send(fileBuffer);
       } else {
-        // 다른 파일들은 암호화되어 있으므로 복호화 후 제공
-        const encryptedData = fs.readFileSync(filePath, 'utf8');
-        const decryptedBuffer = decryptFileData(encryptedData);
-        
-        // 파일 확장자에 따른 Content-Type 설정
-        const ext = path.extname(filename).toLowerCase();
-        let contentType = 'application/octet-stream';
-        
-        if (ext === '.txt') contentType = 'text/plain; charset=utf-8';
-        else if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
-        else if (ext === '.png') contentType = 'image/png';
-        else if (ext === '.gif') contentType = 'image/gif';
-        else if (ext === '.webp') contentType = 'image/webp';
-        else if (ext === '.mp4') contentType = 'video/mp4';
-        else if (ext === '.webm') contentType = 'video/webm';
-        else if (ext === '.mov') contentType = 'video/quicktime';
-        else if (ext === '.pdf') contentType = 'application/pdf';
-        
-        res.set({
-          'Content-Type': contentType,
-          'Content-Length': decryptedBuffer.length,
-          'Cache-Control': 'public, max-age=31536000',
-          'Access-Control-Allow-Origin': '*'
-        });
-        
-        res.send(decryptedBuffer);
+        try {
+          // 다른 파일들은 암호화되어 있으므로 복호화 후 제공
+          const encryptedData = fs.readFileSync(filePath, 'utf8');
+          const decryptedBuffer = decryptFileData(encryptedData);
+          
+          // 파일 확장자에 따른 Content-Type 설정
+          const ext = path.extname(filename).toLowerCase();
+          let contentType = 'application/octet-stream';
+          
+          if (ext === '.txt') contentType = 'text/plain; charset=utf-8';
+          else if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
+          else if (ext === '.png') contentType = 'image/png';
+          else if (ext === '.gif') contentType = 'image/gif';
+          else if (ext === '.webp') contentType = 'image/webp';
+          else if (ext === '.bmp') contentType = 'image/bmp';
+          else if (ext === '.svg') contentType = 'image/svg+xml';
+          else if (ext === '.mp4') contentType = 'video/mp4';
+          else if (ext === '.webm') contentType = 'video/webm';
+          else if (ext === '.mov') contentType = 'video/quicktime';
+          else if (ext === '.avi') contentType = 'video/x-msvideo';
+          else if (ext === '.pdf') contentType = 'application/pdf';
+          
+          res.set({
+            'Content-Type': contentType,
+            'Content-Length': decryptedBuffer.length,
+            'Cache-Control': 'public, max-age=31536000',
+            'Access-Control-Allow-Origin': '*',
+            'Cross-Origin-Resource-Policy': 'cross-origin'
+          });
+          
+          res.send(decryptedBuffer);
+        } catch (decryptError) {
+          console.error('File decryption error:', decryptError);
+          // 복호화 실패시 원본 파일을 직접 제공 시도
+          try {
+            const fileBuffer = fs.readFileSync(filePath);
+            const ext = path.extname(filename).toLowerCase();
+            let contentType = 'application/octet-stream';
+            
+            if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
+            else if (ext === '.png') contentType = 'image/png';
+            else if (ext === '.gif') contentType = 'image/gif';
+            else if (ext === '.webp') contentType = 'image/webp';
+            
+            res.set({
+              'Content-Type': contentType,
+              'Content-Length': fileBuffer.length,
+              'Cache-Control': 'public, max-age=31536000',
+              'Access-Control-Allow-Origin': '*',
+              'Cross-Origin-Resource-Policy': 'cross-origin'
+            });
+            
+            res.send(fileBuffer);
+          } catch (fallbackError) {
+            console.error('Fallback file serving error:', fallbackError);
+            return res.status(500).json({ message: "File processing error" });
+          }
+        }
       }
     } catch (error) {
       console.error('File serving error:', error);
