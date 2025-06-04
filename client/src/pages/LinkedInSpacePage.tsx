@@ -6,6 +6,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { 
   Heart, 
   MessageCircle, 
@@ -25,7 +29,9 @@ import {
   ThumbsUp,
   Video,
   X,
-  ImageIcon
+  ImageIcon,
+  Eye,
+  Settings
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
@@ -50,6 +56,22 @@ interface BusinessPost {
   };
 }
 
+interface CompanyProfile {
+  id: number;
+  userId: number;
+  companyName: string;
+  industry?: string;
+  location?: string;
+  description?: string;
+  website?: string;
+  logoUrl?: string;
+  bannerUrl?: string;
+  employeeCount?: string;
+  foundedYear?: number;
+  visitorCount?: number;
+  followerCount?: number;
+}
+
 interface LinkedInSpacePageProps {
   onBack: () => void;
 }
@@ -61,11 +83,74 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    companyName: '',
+    industry: '',
+    location: '',
+    description: '',
+    website: '',
+    employeeCount: '',
+    foundedYear: new Date().getFullYear()
+  });
 
   // 기존 user posts API 사용
   const { data: postsData, isLoading } = useQuery({
     queryKey: ['/api/posts/user'],
     enabled: !!user,
+  });
+
+  // 회사 프로필 조회
+  const { data: companyProfile } = useQuery({
+    queryKey: ['/api/company-profile'],
+    enabled: !!user,
+  });
+
+  // 회사 프로필 업데이트 시 폼 초기화
+  useEffect(() => {
+    if (companyProfile && typeof companyProfile === 'object') {
+      const profile = companyProfile as CompanyProfile;
+      setProfileForm({
+        companyName: profile.companyName || '',
+        industry: profile.industry || '',
+        location: profile.location || '',
+        description: profile.description || '',
+        website: profile.website || '',
+        employeeCount: profile.employeeCount || '',
+        foundedYear: profile.foundedYear || new Date().getFullYear()
+      });
+    }
+  }, [companyProfile]);
+
+  // 회사 프로필 업데이트 뮤테이션
+  const updateCompanyProfileMutation = useMutation({
+    mutationFn: async (profileData: typeof profileForm) => {
+      return apiRequest('/api/company-profile', 'POST', profileData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/company-profile'] });
+      setIsEditingProfile(false);
+    },
+  });
+
+  // 회사 방문자 추가 뮤테이션
+  const addVisitorMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest('/api/company-profile/visit', 'POST');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/company-profile'] });
+    },
+  });
+
+  // 회사 팔로우/언팔로우 뮤테이션
+  const toggleFollowMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest('/api/company-profile/follow', 'POST');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/company-profile'] });
+    },
   });
 
   // 포스트 작성 뮤테이션
@@ -175,55 +260,156 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
       </div>
 
       <div className="w-full max-w-2xl mx-auto pb-40" style={{ paddingTop: '0px' }}>
-        {/* 토스 스타일 프로필 카드 */}
+        {/* 회사 프로필 카드 */}
         <div className="bg-white mx-4 mt-4 rounded-2xl overflow-hidden shadow-sm border border-gray-100">
-          {/* 간단한 헤더 */}
-          <div className="h-24 bg-gradient-to-r from-blue-500 to-indigo-600 relative">
-            <div className="absolute bottom-3 right-4">
-              <Button size="sm" className="bg-black/20 hover:bg-black/30 text-white border-0 rounded-full text-xs px-3 py-1.5">
-                <Camera className="w-3 h-3 mr-1" />
-                편집
-              </Button>
+          {/* 배너 헤더 */}
+          <div className="h-32 bg-gradient-to-r from-blue-500 to-indigo-600 relative">
+            <div className="absolute top-4 right-4">
+              <Dialog open={isEditingProfile} onOpenChange={setIsEditingProfile}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="bg-black/20 hover:bg-black/30 text-white border-0 rounded-full text-xs px-3 py-1.5">
+                    <Settings className="w-3 h-3 mr-1" />
+                    편집
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>회사 프로필 편집</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="companyName">회사명</Label>
+                      <Input
+                        id="companyName"
+                        value={profileForm.companyName}
+                        onChange={(e) => setProfileForm(prev => ({ ...prev, companyName: e.target.value }))}
+                        placeholder="회사명을 입력하세요"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="industry">업종</Label>
+                      <Input
+                        id="industry"
+                        value={profileForm.industry}
+                        onChange={(e) => setProfileForm(prev => ({ ...prev, industry: e.target.value }))}
+                        placeholder="예: IT/소프트웨어"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="location">위치</Label>
+                      <Input
+                        id="location"
+                        value={profileForm.location}
+                        onChange={(e) => setProfileForm(prev => ({ ...prev, location: e.target.value }))}
+                        placeholder="예: 대한민국 서울"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="description">회사 설명</Label>
+                      <Textarea
+                        id="description"
+                        value={profileForm.description}
+                        onChange={(e) => setProfileForm(prev => ({ ...prev, description: e.target.value }))}
+                        placeholder="회사에 대해 간단히 설명해주세요"
+                        rows={3}
+                      />
+                    </div>
+                    <div className="flex space-x-2">
+                      <div className="flex-1">
+                        <Label htmlFor="employeeCount">직원 수</Label>
+                        <Input
+                          id="employeeCount"
+                          value={profileForm.employeeCount}
+                          onChange={(e) => setProfileForm(prev => ({ ...prev, employeeCount: e.target.value }))}
+                          placeholder="예: 1-10명"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <Label htmlFor="foundedYear">설립년도</Label>
+                        <Input
+                          id="foundedYear"
+                          type="number"
+                          value={profileForm.foundedYear}
+                          onChange={(e) => setProfileForm(prev => ({ ...prev, foundedYear: parseInt(e.target.value) }))}
+                          placeholder="예: 2020"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="website">웹사이트</Label>
+                      <Input
+                        id="website"
+                        value={profileForm.website}
+                        onChange={(e) => setProfileForm(prev => ({ ...prev, website: e.target.value }))}
+                        placeholder="https://example.com"
+                      />
+                    </div>
+                    <div className="flex space-x-2 pt-4">
+                      <Button 
+                        onClick={() => setIsEditingProfile(false)}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        취소
+                      </Button>
+                      <Button 
+                        onClick={() => updateCompanyProfileMutation.mutate(profileForm)}
+                        disabled={updateCompanyProfileMutation.isPending}
+                        className="flex-1"
+                      >
+                        저장
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
           
-          {/* 프로필 정보 */}
+          {/* 회사 정보 */}
           <div className="px-5 pb-6">
-            <div className="flex items-start justify-between -mt-8">
-              <Avatar className="w-16 h-16 border-3 border-white shadow-lg">
-                <AvatarImage src={user?.profilePicture || undefined} />
-                <AvatarFallback className="text-lg bg-gray-100 text-gray-700 font-semibold">
-                  {user?.displayName?.[0]}
-                </AvatarFallback>
-              </Avatar>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="mt-2 rounded-full border-gray-200 hover:bg-gray-50 text-xs px-4 py-2"
-              >
-                <Edit3 className="w-3 h-3 mr-1" />
-                편집
-              </Button>
+            <div className="flex items-start justify-between -mt-10">
+              <div className="flex items-center space-x-3">
+                <Avatar className="w-20 h-20 border-4 border-white shadow-lg">
+                  <AvatarImage src={(companyProfile as CompanyProfile)?.logoUrl || user?.profilePicture || undefined} />
+                  <AvatarFallback className="text-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold">
+                    {((companyProfile as CompanyProfile)?.companyName || user?.displayName)?.[0]}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
             </div>
             
             <div className="mt-3">
-              <h2 className="text-lg font-bold text-gray-900 mb-1">{user?.displayName}</h2>
-              <p className="text-sm text-gray-600 mb-2">비즈니스 전문가</p>
+              <h2 className="text-lg font-bold text-gray-900 mb-1">
+                {(companyProfile as CompanyProfile)?.companyName || user?.displayName}
+              </h2>
+              <p className="text-sm text-gray-600 mb-2">
+                {(companyProfile as CompanyProfile)?.industry || '비즈니스 전문가'}
+              </p>
               <p className="text-xs text-gray-500 flex items-center">
                 <MapPin className="w-3 h-3 mr-1" />
-                대한민국
+                {(companyProfile as CompanyProfile)?.location || '대한민국'}
               </p>
+              {(companyProfile as CompanyProfile)?.description && (
+                <p className="text-sm text-gray-700 mt-3">
+                  {(companyProfile as CompanyProfile).description}
+                </p>
+              )}
             </div>
             
             {/* 통계 */}
             <div className="flex justify-around mt-6 pt-4 border-t border-gray-100">
               <div className="text-center">
-                <div className="text-lg font-bold text-gray-900">247</div>
-                <div className="text-xs text-gray-500">연결</div>
+                <div className="text-lg font-bold text-gray-900">
+                  {(companyProfile as CompanyProfile)?.visitorCount || 0}
+                </div>
+                <div className="text-xs text-gray-500">방문자</div>
               </div>
               <div className="text-center">
-                <div className="text-lg font-bold text-gray-900">1,234</div>
-                <div className="text-xs text-gray-500">팔로워</div>
+                <div className="text-lg font-bold text-gray-900">
+                  {(companyProfile as CompanyProfile)?.followerCount || 0}
+                </div>
+                <div className="text-xs text-gray-500">좋아요</div>
               </div>
               <div className="text-center">
                 <div className="text-lg font-bold text-gray-900">{posts.length}</div>
