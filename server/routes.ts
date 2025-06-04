@@ -3391,5 +3391,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Company Profile API endpoints
+  
+  // Get company profile
+  app.get("/api/company-profile", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const [profile] = await db
+        .select()
+        .from(companyProfiles)
+        .where(eq(companyProfiles.userId, parseInt(userId as string)));
+
+      if (!profile) {
+        // Return default structure if no profile exists
+        return res.json({
+          userId: parseInt(userId as string),
+          companyName: "",
+          industry: "",
+          location: "",
+          description: "",
+          website: "",
+          logoUrl: "",
+          bannerUrl: "",
+          employeeCount: "",
+          foundedYear: new Date().getFullYear(),
+          visitorCount: 0,
+          followerCount: 0
+        });
+      }
+
+      res.json(profile);
+    } catch (error) {
+      console.error("Error fetching company profile:", error);
+      res.status(500).json({ message: "Failed to fetch company profile" });
+    }
+  });
+
+  // Create or update company profile
+  app.post("/api/company-profile", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const profileData = insertCompanyProfileSchema.parse({
+        ...req.body,
+        userId: parseInt(userId as string)
+      });
+
+      // Check if profile exists
+      const [existingProfile] = await db
+        .select()
+        .from(companyProfiles)
+        .where(eq(companyProfiles.userId, parseInt(userId as string)));
+
+      let profile;
+      if (existingProfile) {
+        // Update existing profile
+        [profile] = await db
+          .update(companyProfiles)
+          .set({
+            ...profileData,
+            updatedAt: new Date()
+          })
+          .where(eq(companyProfiles.userId, parseInt(userId as string)))
+          .returning();
+      } else {
+        // Create new profile
+        [profile] = await db
+          .insert(companyProfiles)
+          .values(profileData)
+          .returning();
+      }
+
+      res.json(profile);
+    } catch (error) {
+      console.error("Error updating company profile:", error);
+      res.status(500).json({ message: "Failed to update company profile" });
+    }
+  });
+
+  // Add visitor to company profile
+  app.post("/api/company-profile/visit", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      // Increment visitor count
+      await db
+        .update(companyProfiles)
+        .set({
+          visitorCount: sql`${companyProfiles.visitorCount} + 1`,
+          updatedAt: new Date()
+        })
+        .where(eq(companyProfiles.userId, parseInt(userId as string)));
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error adding visitor:", error);
+      res.status(500).json({ message: "Failed to add visitor" });
+    }
+  });
+
+  // Toggle follow company profile
+  app.post("/api/company-profile/follow", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      // For now, just increment follower count
+      // In a real implementation, you'd track individual followers
+      await db
+        .update(companyProfiles)
+        .set({
+          followerCount: sql`${companyProfiles.followerCount} + 1`,
+          updatedAt: new Date()
+        })
+        .where(eq(companyProfiles.userId, parseInt(userId as string)));
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error toggling follow:", error);
+      res.status(500).json({ message: "Failed to toggle follow" });
+    }
+  });
+
   return httpServer;
 }
