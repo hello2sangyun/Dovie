@@ -344,6 +344,27 @@ export const userBusinessProfiles = pgTable("user_business_profiles", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// 회사 프로필 테이블
+export const companyProfiles = pgTable("company_profiles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  companyName: text("company_name").notNull(),
+  industry: text("industry"),
+  location: text("location"),
+  description: text("description"),
+  website: text("website"),
+  logoUrl: text("logo_url"),
+  bannerUrl: text("banner_url"),
+  employeeCount: text("employee_count"),
+  foundedYear: integer("founded_year"),
+  visitorCount: integer("visitor_count").default(0),
+  followerCount: integer("follower_count").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  uniqueUserCompany: unique().on(table.userId),
+}));
+
 export const usersRelations = relations(users, ({ many }) => ({
   contacts: many(contacts, { relationName: "userContacts" }),
   contactOf: many(contacts, { relationName: "contactUser" }),
@@ -797,6 +818,12 @@ export const insertPostCommentSchema = createInsertSchema(postComments).omit({
   updatedAt: true,
 });
 
+export const insertCompanyProfileSchema = createInsertSchema(companyProfiles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Contact = typeof contacts.$inferSelect;
@@ -838,3 +865,5 @@ export type PostLike = typeof postLikes.$inferSelect;
 export type InsertPostLike = z.infer<typeof insertPostLikeSchema>;
 export type PostComment = typeof postComments.$inferSelect;
 export type InsertPostComment = z.infer<typeof insertPostCommentSchema>;
+export type CompanyProfile = typeof companyProfiles.$inferSelect;
+export type InsertCompanyProfile = z.infer<typeof insertCompanyProfileSchema>;
