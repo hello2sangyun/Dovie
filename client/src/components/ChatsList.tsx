@@ -216,6 +216,12 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
       return matchesSearch && hasContact;
     }
     
+    // 친구 필터가 활성화된 경우, 해당 친구가 포함된 채팅방만 표시
+    if (friendFilter) {
+      const hasFriend = chatRoom.participants?.some((p: any) => p.id === friendFilter);
+      return matchesSearch && hasFriend;
+    }
+    
     return matchesSearch;
   });
 
@@ -338,6 +344,23 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
               size="sm"
               onClick={onClearFilter}
               className="h-6 w-6 p-0 text-purple-600 hover:text-purple-700"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+        
+        {/* 친구 필터 표시 */}
+        {friendFilter && (
+          <div className="mt-3 p-2 bg-blue-50 rounded-lg flex items-center justify-between">
+            <span className="text-sm text-blue-700">
+              선택한 친구와의 채팅방만 표시 중
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClearFriendFilter}
+              className="h-6 w-6 p-0 text-blue-600 hover:text-blue-700"
             >
               <X className="h-4 w-4" />
             </Button>
