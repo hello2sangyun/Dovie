@@ -98,13 +98,14 @@ export default function FriendProfilePage() {
   const friendName = (businessCard as any)?.fullName || (businessProfile as any)?.company || (userProfile as any)?.displayName || "친구";
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
-      className="min-h-screen bg-gradient-to-br from-gray-50 to-white overflow-y-auto"
-    >
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+      <motion.div 
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -20 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        className="w-full"
+      >
       {/* Header */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
@@ -526,6 +527,7 @@ export default function FriendProfilePage() {
       
       {/* Bottom spacing for mobile scrolling */}
       <div className="h-6"></div>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }
