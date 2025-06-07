@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ScrollIndicator from "@/components/ScrollIndicator";
+import PerformanceMonitor from "@/components/PerformanceMonitor";
 import { 
   Activity, 
   Users, 
@@ -167,10 +168,11 @@ export default function AdminPage() {
 
       <div className="p-6">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">개요</TabsTrigger>
             <TabsTrigger value="apis">API 상태</TabsTrigger>
             <TabsTrigger value="system">시스템</TabsTrigger>
+            <TabsTrigger value="performance">성능</TabsTrigger>
             <TabsTrigger value="analytics">분석</TabsTrigger>
           </TabsList>
 

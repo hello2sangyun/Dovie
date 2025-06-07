@@ -61,11 +61,16 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       staleTime: 5 * 60 * 1000, // 5 minutes cache
       gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
-      retry: 1, // Retry once on failure
+      retry: (failureCount: number, error: any) => {
+        if (error?.message?.includes('404')) return false;
+        return failureCount < 2;
+      },
       refetchOnMount: false,
+      refetchOnReconnect: 'always',
     },
     mutations: {
-      retry: false,
+      retry: 1,
+      gcTime: 1000 * 60 * 5, // 5 minutes for mutations
     },
   },
 });
