@@ -82,12 +82,18 @@ export default function FriendProfilePage() {
     enabled: !!userId,
   });
 
+  // Fetch friend's user profile data
+  const { data: userProfile, isLoading: userLoading } = useQuery({
+    queryKey: [`/api/users/${userId}/profile`],
+    enabled: !!userId,
+  });
+
   if (!match || !userId) {
     setLocation("/");
     return null;
   }
 
-  const friendName = businessCard?.fullName || businessProfile?.company || "친구";
+  const friendName = (businessCard as any)?.fullName || (businessProfile as any)?.company || (userProfile as any)?.displayName || "친구";
 
   return (
     <motion.div 
@@ -137,7 +143,7 @@ export default function FriendProfilePage() {
             transition={{ duration: 0.4, delay: 0.3 }}
           >
             <Avatar className="w-24 h-24 mx-auto mb-4 shadow-lg">
-              <AvatarImage src={businessCard?.cardImageUrl} />
+              <AvatarImage src={(userProfile as any)?.profilePicture || (businessCard as any)?.cardImageUrl} />
               <AvatarFallback className="bg-blue-100 text-blue-600 text-2xl font-bold">
                 {friendName[0]}
               </AvatarFallback>
@@ -169,6 +175,10 @@ export default function FriendProfilePage() {
               <span className="text-xs">통화</span>
             </Button>
             <Button variant="outline" size="sm" className="flex flex-col items-center py-3 px-2 h-auto">
+              <MessageSquare className="w-5 h-5 mb-1" />
+              <span className="text-xs">메시지</span>
+            </Button>
+            <Button variant="outline" size="sm" className="flex flex-col items-center py-3 px-2 h-auto">
               <Video className="w-5 h-5 mb-1" />
               <span className="text-xs">영상</span>
             </Button>
@@ -179,10 +189,6 @@ export default function FriendProfilePage() {
             <Button variant="outline" size="sm" className="flex flex-col items-center py-3 px-2 h-auto">
               <Search className="w-5 h-5 mb-1" />
               <span className="text-xs">검색</span>
-            </Button>
-            <Button variant="outline" size="sm" className="flex flex-col items-center py-3 px-2 h-auto">
-              <MessageSquare className="w-5 h-5 mb-1" />
-              <span className="text-xs">메시지</span>
             </Button>
           </motion.div>
         </div>
