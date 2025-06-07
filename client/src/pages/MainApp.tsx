@@ -46,9 +46,27 @@ export default function MainApp() {
   const [commandModalData, setCommandModalData] = useState<any>(null);
   const [messageDataForCommand, setMessageDataForCommand] = useState<any>(null);
   const [contactFilter, setContactFilter] = useState<number | null>(null);
+  const [friendFilter, setFriendFilter] = useState<number | null>(null);
   const { addToPreloadQueue } = useImagePreloader();
 
   useWebSocket(user?.id);
+
+  // Handle URL parameters for friend filter
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const friendFilterParam = urlParams.get('friendFilter');
+    
+    if (friendFilterParam) {
+      const friendId = parseInt(friendFilterParam);
+      setFriendFilter(friendId);
+      setActiveMobileTab("chats");
+      setActiveTab("chats");
+      
+      // Clear the URL parameter after setting the filter
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, []);
 
   // Get contacts to find contact user data
   const { data: contactsData } = useQuery({
@@ -989,6 +1007,8 @@ export default function MainApp() {
               onCreateGroup={() => setModals({ ...modals, createGroup: true })}
               contactFilter={contactFilter || undefined}
               onClearFilter={() => setContactFilter(null)}
+              friendFilter={friendFilter}
+              onClearFriendFilter={() => setFriendFilter(null)}
             />
           )}
           {activeMobileTab === "nearby" && (

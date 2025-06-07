@@ -131,25 +131,8 @@ export default function FriendProfilePage() {
   const handleMessageClick = () => {
     if (!userId || !user) return;
 
-    // Check if there's already a direct chat room with this friend
-    const chatRooms = (chatRoomsData as any)?.chatRooms || [];
-    const existingRoom = chatRooms.find((room: any) => {
-      // Check if it's a direct message (not group) and has exactly 2 participants
-      if (room.isGroup || !room.participants) return false;
-      
-      const participantIds = room.participants.map((p: any) => p.userId || p.id);
-      return participantIds.length === 2 && 
-             participantIds.includes(user.id) && 
-             participantIds.includes(parseInt(userId));
-    });
-
-    if (existingRoom) {
-      // Navigate to existing chat room
-      setLocation(`/app?chat=${existingRoom.id}`);
-    } else {
-      // Create new chat room
-      createChatRoomMutation.mutate(userId);
-    }
+    // Navigate to chat list with filter for this friend
+    setLocation(`/app?friendFilter=${userId}`);
   };
 
   if (!match || !userId) {

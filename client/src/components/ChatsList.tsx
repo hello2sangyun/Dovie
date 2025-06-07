@@ -21,9 +21,11 @@ interface ChatsListProps {
   onCreateGroup?: () => void;
   contactFilter?: number | null;
   onClearFilter?: () => void;
+  friendFilter?: number | null;
+  onClearFriendFilter?: () => void;
 }
 
-export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup, contactFilter, onClearFilter }: ChatsListProps) {
+export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup, contactFilter, onClearFilter, friendFilter, onClearFriendFilter }: ChatsListProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
