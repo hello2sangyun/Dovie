@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useLocation, useRoute } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Phone, Video, UserPlus, Search, MoreHorizontal, MapPin, Briefcase, Globe, Calendar, Heart, MessageCircle, Share, Building, MessageSquare } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -64,6 +67,9 @@ export default function FriendProfilePage() {
   const [, setLocation] = useLocation();
   const [match, params] = useRoute("/friend/:userId");
   const userId = params?.userId;
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = useState("posts");
 
@@ -91,7 +97,60 @@ export default function FriendProfilePage() {
     enabled: !!userId,
   });
 
+  // Fetch existing chat rooms to check if a direct chat already exists
+  const { data: chatRoomsData } = useQuery({
+    queryKey: ["/api/chat-rooms"],
+    enabled: !!user,
+  });
 
+  // Mutation to create or find existing chat room
+  const createChatRoomMutation = useMutation({
+    mutationFn: async (friendUserId: string) => {
+      const response = await apiRequest("/api/chat-rooms", "POST", {
+        name: "",
+        isGroup: false,
+        participantIds: [parseInt(friendUserId)],
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      // Navigate to the chat room
+      setLocation(`/app?chat=${data.chatRoom.id}`);
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "채팅방 생성 실패",
+        description: "다시 시도해주세요.",
+      });
+    },
+  });
+
+  // Function to handle message button click
+  const handleMessageClick = () => {
+    if (!userId || !user) return;
+
+    // Check if there's already a direct chat room with this friend
+    const chatRooms = (chatRoomsData as any)?.chatRooms || [];
+    const existingRoom = chatRooms.find((room: any) => {
+      // Check if it's a direct message (not group) and has exactly 2 participants
+      if (room.isGroup || !room.participants) return false;
+      
+      const participantIds = room.participants.map((p: any) => p.userId || p.id);
+      return participantIds.length === 2 && 
+             participantIds.includes(user.id) && 
+             participantIds.includes(parseInt(userId));
+    });
+
+    if (existingRoom) {
+      // Navigate to existing chat room
+      setLocation(`/app?chat=${existingRoom.id}`);
+    } else {
+      // Create new chat room
+      createChatRoomMutation.mutate(userId);
+    }
+  };
 
   if (!match || !userId) {
     setLocation("/");
@@ -181,7 +240,13 @@ export default function FriendProfilePage() {
               <Phone className="w-4 h-4 mb-1" />
               <span className="text-xs">통화</span>
             </Button>
-            <Button variant="outline" size="sm" className="flex flex-col items-center py-2.5 px-1 h-auto border-gray-200 hover:bg-gray-50">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex flex-col items-center py-2.5 px-1 h-auto border-gray-200 hover:bg-gray-50"
+              onClick={handleMessageClick}
+              disabled={createChatRoomMutation.isPending}
+            >
               <MessageSquare className="w-4 h-4 mb-1" />
               <span className="text-xs">메시지</span>
             </Button>
