@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -73,12 +74,13 @@ interface CompanyProfile {
 }
 
 interface LinkedInSpacePageProps {
-  onBack: () => void;
+  onBack?: () => void;
 }
 
 export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const [postContent, setPostContent] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -248,7 +250,7 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={onBack}
+                onClick={() => onBack ? onBack() : setLocation("/contacts")}
                 className="w-8 h-8 p-0 rounded-full hover:bg-gray-100"
               >
                 <ArrowLeft className="w-5 h-5 text-gray-700" />

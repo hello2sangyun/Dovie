@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Phone, Video, UserPlus, Search, MoreHorizontal, MapPin, Briefcase, Globe, Calendar, Heart, MessageCircle, Share, Building } from "lucide-react";
+import { ArrowLeft, Phone, Video, UserPlus, Search, MoreHorizontal, MapPin, Briefcase, Globe, Calendar, Heart, MessageCircle, Share, Building, MessageSquare } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -108,7 +108,7 @@ export default function FriendProfilePage() {
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => setLocation("/")}
+            onClick={() => setLocation("/contacts")}
             className="text-blue-600 hover:bg-blue-50"
           >
             <ArrowLeft className="w-5 h-5 mr-1" />
@@ -157,28 +157,32 @@ export default function FriendProfilePage() {
             </p>
           </motion.div>
           
-          {/* Action Buttons */}
+          {/* Action Buttons - Mobile Optimized */}
           <motion.div 
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.5 }}
-            className="flex justify-center space-x-4 mb-6"
+            className="grid grid-cols-5 gap-2 px-4 mb-6"
           >
-            <Button variant="outline" size="sm" className="flex items-center space-x-2">
-              <Phone className="w-4 h-4" />
-              <span>통화</span>
+            <Button variant="outline" size="sm" className="flex flex-col items-center py-3 px-2 h-auto">
+              <Phone className="w-5 h-5 mb-1" />
+              <span className="text-xs">통화</span>
             </Button>
-            <Button variant="outline" size="sm" className="flex items-center space-x-2">
-              <Video className="w-4 h-4" />
-              <span>영상</span>
+            <Button variant="outline" size="sm" className="flex flex-col items-center py-3 px-2 h-auto">
+              <Video className="w-5 h-5 mb-1" />
+              <span className="text-xs">영상</span>
             </Button>
-            <Button variant="outline" size="sm" className="flex items-center space-x-2">
-              <UserPlus className="w-4 h-4" />
-              <span>친구 추가</span>
+            <Button variant="outline" size="sm" className="flex flex-col items-center py-3 px-2 h-auto">
+              <UserPlus className="w-5 h-5 mb-1" />
+              <span className="text-xs">친구 추가</span>
             </Button>
-            <Button variant="outline" size="sm" className="flex items-center space-x-2">
-              <Search className="w-4 h-4" />
-              <span>검색</span>
+            <Button variant="outline" size="sm" className="flex flex-col items-center py-3 px-2 h-auto">
+              <Search className="w-5 h-5 mb-1" />
+              <span className="text-xs">검색</span>
+            </Button>
+            <Button variant="outline" size="sm" className="flex flex-col items-center py-3 px-2 h-auto">
+              <MessageSquare className="w-5 h-5 mb-1" />
+              <span className="text-xs">메시지</span>
             </Button>
           </motion.div>
         </div>
