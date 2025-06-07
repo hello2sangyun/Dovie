@@ -101,7 +101,7 @@ export default function FriendProfilePage() {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="min-h-screen bg-gradient-to-br from-gray-50 to-white"
+      className="min-h-screen bg-gradient-to-br from-gray-50 to-white overflow-y-auto"
     >
       {/* Header */}
       <motion.div 
@@ -114,7 +114,7 @@ export default function FriendProfilePage() {
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => setLocation("/contacts")}
+            onClick={() => setLocation("/app")}
             className="text-blue-600 hover:bg-blue-50"
           >
             <ArrowLeft className="w-5 h-5 mr-1" />
