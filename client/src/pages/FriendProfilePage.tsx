@@ -110,23 +110,22 @@ export default function FriendProfilePage() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
-        className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-gray-100"
+        className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-3 py-2.5"
       >
-        <div className="flex items-center justify-between p-4">
+        <div className="flex items-center justify-between">
           <Button 
             variant="ghost" 
             size="sm" 
             onClick={() => setLocation("/app")}
-            className="text-blue-600 hover:bg-blue-50"
+            className="p-1.5 hover:bg-gray-100 rounded-full -ml-1"
           >
-            <ArrowLeft className="w-5 h-5 mr-1" />
-            뒤로
+            <ArrowLeft className="w-4 h-4" />
           </Button>
           
-          <h1 className="font-semibold text-lg text-gray-900">프로필</h1>
+          <h1 className="font-medium text-base text-gray-900">프로필</h1>
           
-          <Button variant="ghost" size="sm" className="text-gray-600">
-            <MoreHorizontal className="w-5 h-5" />
+          <Button variant="ghost" size="sm" className="p-1.5 hover:bg-gray-100 rounded-full -mr-1">
+            <MoreHorizontal className="w-4 h-4" />
           </Button>
         </div>
       </motion.div>
@@ -136,7 +135,7 @@ export default function FriendProfilePage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="px-6 py-8 bg-white"
+        className="px-4 py-5 bg-white"
       >
         <div className="text-center">
           <motion.div
@@ -144,9 +143,9 @@ export default function FriendProfilePage() {
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.4, delay: 0.3 }}
           >
-            <Avatar className="w-24 h-24 mx-auto mb-4 shadow-lg">
+            <Avatar className="w-20 h-20 mx-auto mb-3 shadow-md">
               <AvatarImage src={(userProfile as any)?.profilePicture || (businessCard as any)?.cardImageUrl} />
-              <AvatarFallback className="bg-blue-100 text-blue-600 text-2xl font-bold">
+              <AvatarFallback className="bg-blue-100 text-blue-600 text-xl font-bold">
                 {friendName[0]}
               </AvatarFallback>
             </Avatar>
@@ -157,8 +156,8 @@ export default function FriendProfilePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.4 }}
           >
-            <h2 className="text-2xl font-bold text-gray-900 mb-1">{friendName}</h2>
-            <p className="text-gray-600 mb-4">
+            <h2 className="text-xl font-bold text-gray-900 mb-1">{friendName}</h2>
+            <p className="text-sm text-gray-600 mb-4">
               {businessCard?.jobTitle && businessCard?.companyName 
                 ? `${businessCard.jobTitle} • ${businessCard.companyName}`
                 : businessCard?.jobTitle || businessCard?.companyName || "프로필 정보"}
@@ -170,26 +169,26 @@ export default function FriendProfilePage() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.5 }}
-            className="grid grid-cols-5 gap-2 px-4 mb-6"
+            className="grid grid-cols-5 gap-1.5 px-2 mb-5"
           >
-            <Button variant="outline" size="sm" className="flex flex-col items-center py-3 px-2 h-auto">
-              <Phone className="w-5 h-5 mb-1" />
+            <Button variant="outline" size="sm" className="flex flex-col items-center py-2.5 px-1 h-auto border-gray-200 hover:bg-gray-50">
+              <Phone className="w-4 h-4 mb-1" />
               <span className="text-xs">통화</span>
             </Button>
-            <Button variant="outline" size="sm" className="flex flex-col items-center py-3 px-2 h-auto">
-              <MessageSquare className="w-5 h-5 mb-1" />
+            <Button variant="outline" size="sm" className="flex flex-col items-center py-2.5 px-1 h-auto border-gray-200 hover:bg-gray-50">
+              <MessageSquare className="w-4 h-4 mb-1" />
               <span className="text-xs">메시지</span>
             </Button>
-            <Button variant="outline" size="sm" className="flex flex-col items-center py-3 px-2 h-auto">
-              <Video className="w-5 h-5 mb-1" />
+            <Button variant="outline" size="sm" className="flex flex-col items-center py-2.5 px-1 h-auto border-gray-200 hover:bg-gray-50">
+              <Video className="w-4 h-4 mb-1" />
               <span className="text-xs">영상</span>
             </Button>
-            <Button variant="outline" size="sm" className="flex flex-col items-center py-3 px-2 h-auto">
-              <UserPlus className="w-5 h-5 mb-1" />
+            <Button variant="outline" size="sm" className="flex flex-col items-center py-2.5 px-1 h-auto border-gray-200 hover:bg-gray-50">
+              <UserPlus className="w-4 h-4 mb-1" />
               <span className="text-xs">친구 추가</span>
             </Button>
-            <Button variant="outline" size="sm" className="flex flex-col items-center py-3 px-2 h-auto">
-              <Search className="w-5 h-5 mb-1" />
+            <Button variant="outline" size="sm" className="flex flex-col items-center py-2.5 px-1 h-auto border-gray-200 hover:bg-gray-50">
+              <Search className="w-4 h-4 mb-1" />
               <span className="text-xs">검색</span>
             </Button>
           </motion.div>
@@ -204,10 +203,10 @@ export default function FriendProfilePage() {
         className="px-4"
       >
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
-            <TabsTrigger value="posts" className="text-sm">게시물</TabsTrigger>
-            <TabsTrigger value="card" className="text-sm">명함</TabsTrigger>
-            <TabsTrigger value="profile" className="text-sm">프로필</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 mb-4 h-9">
+            <TabsTrigger value="posts" className="text-xs py-1.5">게시물</TabsTrigger>
+            <TabsTrigger value="card" className="text-xs py-1.5">명함</TabsTrigger>
+            <TabsTrigger value="profile" className="text-xs py-1.5">프로필</TabsTrigger>
           </TabsList>
 
           {/* Business Posts Tab */}
@@ -216,7 +215,7 @@ export default function FriendProfilePage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
-              className="max-h-[65vh] overflow-y-auto pr-2"
+              className="space-y-4"
             >
               {postsLoading ? (
                 <div className="space-y-4">
@@ -524,6 +523,9 @@ export default function FriendProfilePage() {
           </TabsContent>
         </Tabs>
       </motion.div>
+      
+      {/* Bottom spacing for mobile scrolling */}
+      <div className="h-6"></div>
     </motion.div>
   );
 }
