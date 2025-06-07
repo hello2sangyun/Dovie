@@ -263,7 +263,6 @@ export default function MainApp() {
   return (
     <div className="fixed inset-0 bg-white dark:bg-gray-900">
       <ScrollIndicator />
-      <PerformanceMonitor showDetailed={false} />
       {/* Desktop Layout */}
       <div className="hidden lg:flex h-full">
         {/* Sidebar */}
