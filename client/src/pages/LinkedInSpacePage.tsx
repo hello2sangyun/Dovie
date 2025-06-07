@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import ScrollIndicator from "@/components/ScrollIndicator";
 import { 
   Heart, 
   MessageCircle, 
@@ -242,6 +243,7 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
         position: 'relative'
       }}
     >
+      <ScrollIndicator />
       {/* 토스 스타일 헤더 */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-2xl mx-auto px-4 py-4">
