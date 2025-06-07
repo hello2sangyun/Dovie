@@ -66,7 +66,7 @@ export default function FriendProfilePage() {
 
   // Fetch friend's business posts
   const { data: businessPosts = [], isLoading: postsLoading } = useQuery({
-    queryKey: ["/api/business-posts", userId],
+    queryKey: [`/api/business-posts/${userId}`],
     enabled: !!userId,
   });
 
