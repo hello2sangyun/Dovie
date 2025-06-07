@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/u
 import { apiRequest } from "@/lib/queryClient";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
+import ScrollIndicator from "@/components/ScrollIndicator";
 import {
   Building2,
   Search,
@@ -167,6 +168,7 @@ export default function SimpleSpacePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      <ScrollIndicator />
       {/* Fixed Header */}
       <div className="sticky top-0 z-20 bg-white border-b shadow-sm">
         <div className="w-full max-w-full overflow-hidden">
