@@ -1759,28 +1759,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const posts = await db.select({
-        id: businessPosts.id,
-        userId: businessPosts.userId,
-        content: businessPosts.content,
-        imageUrl: businessPosts.imageUrl,
-        linkUrl: businessPosts.linkUrl,
-        linkTitle: businessPosts.linkTitle,
-        linkDescription: businessPosts.linkDescription,
-        likesCount: businessPosts.likesCount,
-        commentsCount: businessPosts.commentsCount,
-        sharesCount: businessPosts.sharesCount,
-        createdAt: businessPosts.createdAt,
-        updatedAt: businessPosts.updatedAt,
+        id: userPosts.id,
+        userId: userPosts.userId,
+        title: userPosts.title,
+        content: userPosts.content,
+        postType: userPosts.postType,
+        attachments: userPosts.attachments,
+        visibility: userPosts.visibility,
+        tags: userPosts.tags,
+        likeCount: userPosts.likeCount,
+        commentCount: userPosts.commentCount,
+        shareCount: userPosts.shareCount,
+        isPinned: userPosts.isPinned,
+        createdAt: userPosts.createdAt,
+        updatedAt: userPosts.updatedAt,
         user: {
           id: users.id,
           displayName: users.displayName,
           profilePicture: users.profilePicture,
         }
       })
-      .from(businessPosts)
-      .innerJoin(users, eq(businessPosts.userId, users.id))
-      .where(eq(businessPosts.userId, parseInt(userId)))
-      .orderBy(desc(businessPosts.createdAt));
+      .from(userPosts)
+      .innerJoin(users, eq(userPosts.userId, users.id))
+      .where(eq(userPosts.userId, parseInt(userId)))
+      .orderBy(desc(userPosts.createdAt));
 
       res.json(posts);
     } catch (error) {

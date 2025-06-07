@@ -11,16 +11,18 @@ import { motion } from "framer-motion";
 interface BusinessPost {
   id: number;
   userId: number;
+  title?: string;
   content: string;
-  imageUrl?: string;
-  linkUrl?: string;
-  linkTitle?: string;
-  linkDescription?: string;
+  postType: string;
+  attachments?: string[];
+  visibility: string;
+  tags?: string[];
   createdAt: string;
   updatedAt: string;
-  likesCount: number;
-  commentsCount: number;
-  sharesCount: number;
+  likeCount: number;
+  commentCount: number;
+  shareCount: number;
+  isPinned: boolean;
   user?: {
     id: number;
     displayName: string;
@@ -214,6 +216,7 @@ export default function FriendProfilePage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
+              className="max-h-[65vh] overflow-y-auto pr-2"
             >
               {postsLoading ? (
                 <div className="space-y-4">
@@ -281,17 +284,26 @@ export default function FriendProfilePage() {
                             </div>
                             
                             <div className="mb-4">
+                              {post.title && (
+                                <h5 className="font-semibold text-gray-900 mb-2 text-sm">
+                                  {post.title}
+                                </h5>
+                              )}
                               <p className="text-gray-800 leading-relaxed text-sm">
                                 {post.content}
                               </p>
                               
-                              {post.imageUrl && (
-                                <div className="mt-3 rounded-xl overflow-hidden border border-gray-200">
-                                  <img 
-                                    src={post.imageUrl}
-                                    alt="게시물 이미지"
-                                    className="w-full h-auto"
-                                  />
+                              {post.attachments && post.attachments.length > 0 && (
+                                <div className="mt-3 space-y-2">
+                                  {post.attachments.map((attachment, index) => (
+                                    <div key={index} className="rounded-xl overflow-hidden border border-gray-200">
+                                      <img 
+                                        src={attachment}
+                                        alt={`첨부 이미지 ${index + 1}`}
+                                        className="w-full h-auto"
+                                      />
+                                    </div>
+                                  ))}
                                 </div>
                               )}
                             </div>
@@ -300,15 +312,15 @@ export default function FriendProfilePage() {
                               <div className="flex space-x-6">
                                 <button className="flex items-center space-x-1 text-gray-600 hover:text-red-600 transition-colors text-xs">
                                   <Heart className="w-4 h-4" />
-                                  <span>{post.likesCount}</span>
+                                  <span>{post.likeCount}</span>
                                 </button>
                                 <button className="flex items-center space-x-1 text-gray-600 hover:text-blue-600 transition-colors text-xs">
                                   <MessageCircle className="w-4 h-4" />
-                                  <span>{post.commentsCount}</span>
+                                  <span>{post.commentCount}</span>
                                 </button>
                                 <button className="flex items-center space-x-1 text-gray-600 hover:text-green-600 transition-colors text-xs">
                                   <Share className="w-4 h-4" />
-                                  <span>{post.sharesCount}</span>
+                                  <span>{post.shareCount}</span>
                                 </button>
                               </div>
                             </div>
