@@ -506,45 +506,46 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
           </TabsContent>
 
           {/* Share Tab */}
-          <TabsContent value="share" className="space-y-6 overflow-y-auto max-h-[calc(100vh-200px)]">
-            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Share2 className="w-5 h-5" />
+          <TabsContent value="share" className="space-y-3 overflow-y-auto max-h-[calc(100vh-120px)]">
+            <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg">
+              <CardHeader className="py-3">
+                <CardTitle className="flex items-center space-x-2 text-lg">
+                  <Share2 className="w-4 h-4" />
                   <span>명함 공유</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                {shareData?.shareUrl ? (
-                  <div className="space-y-4">
-                    {/* Share URL */}
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <Label className="text-sm font-medium text-gray-700">공유 링크</Label>
-                      <div className="flex items-center space-x-2 mt-2">
+              <CardContent className="space-y-3 px-4 pb-4">
+                {(shareData as any)?.shareUrl ? (
+                  <div className="space-y-3">
+                    {/* Compact Share URL */}
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <Label className="text-xs font-medium text-gray-700">공유 링크</Label>
+                      <div className="flex items-center space-x-2 mt-1">
                         <Input
-                          value={shareData.shareUrl}
+                          value={(shareData as any).shareUrl}
                           readOnly
-                          className="flex-1"
+                          className="flex-1 h-8 text-xs"
                         />
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            navigator.clipboard.writeText(shareData.shareUrl);
+                            navigator.clipboard.writeText((shareData as any).shareUrl);
                             toast({ title: "링크 복사 완료" });
                           }}
+                          className="h-8 w-8 p-0"
                         >
-                          <Copy className="w-4 h-4" />
+                          <Copy className="w-3 h-3" />
                         </Button>
                       </div>
                     </div>
 
-                    {/* QR Code */}
+                    {/* Compact QR Code */}
                     {qrCodeUrl && (
                       <div className="text-center">
-                        <Label className="text-sm font-medium text-gray-700">QR 코드</Label>
-                        <div className="mt-2 inline-block p-4 bg-white rounded-lg shadow-sm">
-                          <img src={qrCodeUrl} alt="QR Code" className="w-48 h-48" />
+                        <Label className="text-xs font-medium text-gray-700">QR 코드</Label>
+                        <div className="mt-2 inline-block p-2 bg-white rounded-lg shadow-sm">
+                          <img src={qrCodeUrl} alt="QR Code" className="w-32 h-32" />
                         </div>
                         <div className="mt-2">
                           <Button
@@ -556,39 +557,41 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
                               link.href = qrCodeUrl;
                               link.click();
                             }}
+                            className="h-8 text-xs"
                           >
-                            <Download className="w-4 h-4 mr-2" />
+                            <Download className="w-3 h-3 mr-1" />
                             QR 코드 다운로드
                           </Button>
                         </div>
                       </div>
                     )}
 
-                    {/* Share Stats */}
-                    <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                    {/* Compact Share Stats */}
+                    <div className="grid grid-cols-2 gap-2 pt-2 border-t">
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-blue-600">{shareData.viewCount || 0}</div>
-                        <div className="text-sm text-gray-500">조회수</div>
+                        <div className="text-lg font-bold text-blue-600">{(shareData as any).viewCount || 0}</div>
+                        <div className="text-xs text-gray-500">조회수</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600">∞</div>
-                        <div className="text-sm text-gray-500">유효기간</div>
+                        <div className="text-lg font-bold text-green-600">∞</div>
+                        <div className="text-xs text-gray-500">유효기간</div>
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-8">
-                    <QrCode className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-500 mb-2">공유 링크가 없습니다</h3>
-                    <p className="text-gray-400 mb-4">명함을 공유할 수 있는 링크를 생성해보세요</p>
+                  <div className="text-center py-4">
+                    <QrCode className="w-8 h-8 mx-auto text-gray-300 mb-2" />
+                    <h3 className="text-base font-semibold text-gray-500 mb-1">공유 링크가 없습니다</h3>
+                    <p className="text-sm text-gray-400 mb-3">명함을 공유할 수 있는 링크를 생성해보세요</p>
                     <Button 
                       onClick={() => createShareLinkMutation.mutate()}
                       disabled={createShareLinkMutation.isPending}
+                      className="h-8 text-xs"
                     >
                       {createShareLinkMutation.isPending ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
                       ) : (
-                        <Share2 className="w-4 h-4 mr-2" />
+                        <Share2 className="w-3 h-3 mr-1" />
                       )}
                       공유 링크 생성
                     </Button>
