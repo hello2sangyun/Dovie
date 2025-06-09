@@ -18,7 +18,7 @@ import {
   UserX
 } from "lucide-react";
 import { getInitials, getAvatarColor } from "@/lib/utils";
-import BusinessCard from "./BusinessCard";
+import EnhancedBusinessCard from "./EnhancedBusinessCard";
 import BusinessProfile from "./BusinessProfile";
 import BlockedContactsPage from "./BlockedContactsPage";
 import ProfileSettingsPage from "./ProfileSettingsPage";
@@ -40,7 +40,7 @@ export default function ModernSettingsPage({ isMobile = false }: ModernSettingsP
     return (
       <div className="flex-1 overflow-hidden">
         <div className="h-full overflow-y-auto bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-          <BusinessCard onBack={() => setActiveView('main')} />
+          <EnhancedBusinessCard onBack={() => setActiveView('main')} />
         </div>
       </div>
     );
@@ -174,12 +174,12 @@ export default function ModernSettingsPage({ isMobile = false }: ModernSettingsP
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Business Space clicked');
+                console.log('My Space clicked');
                 setActiveView('space');
               }}
               onTouchEnd={(e) => {
                 e.preventDefault();
-                console.log('Business Space touched');
+                console.log('My Space touched');
                 setActiveView('space');
               }}
             >
@@ -189,8 +189,8 @@ export default function ModernSettingsPage({ isMobile = false }: ModernSettingsP
                     <Building2 className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1">
-                    <h5 className="font-semibold text-gray-900">Business Space</h5>
-                    <p className="text-xs text-gray-500">비즈니스 네트워킹 및 피드</p>
+                    <h5 className="font-semibold text-gray-900">My Space</h5>
+                    <p className="text-xs text-gray-500">개인 공간 및 프로필 관리</p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
                 </div>
