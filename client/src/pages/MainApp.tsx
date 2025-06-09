@@ -13,8 +13,7 @@ import ChatArea from "@/components/ChatArea";
 import AddContactModal from "@/components/AddContactModal";
 import CommandModal from "@/components/CommandModal";
 import CreateGroupChatModal from "@/components/CreateGroupChatModal";
-import ScrollIndicator from "@/components/ScrollIndicator";
-import PerformanceMonitor from "@/components/PerformanceMonitor";
+
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
 import NearbyChats from "@/components/NearbyChats";
@@ -280,7 +279,6 @@ export default function MainApp() {
 
   return (
     <div className="fixed inset-0 bg-white dark:bg-gray-900">
-      <ScrollIndicator />
       {/* Desktop Layout */}
       <div className="hidden lg:flex h-full">
         {/* Sidebar */}
