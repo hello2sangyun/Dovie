@@ -144,7 +144,6 @@ export default function FriendProfilePage() {
 
   return (
     <div className="bg-gradient-to-br from-gray-50 to-white">
-      <ScrollIndicator />
       
       <motion.div 
         initial={{ opacity: 0, x: 20 }}
