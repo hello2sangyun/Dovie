@@ -221,8 +221,8 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-2xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 overflow-y-auto">
+      <div className="max-w-2xl mx-auto space-y-6 pb-8">
         {/* Header */}
         <div className="flex items-center justify-between">
           <Button 
@@ -246,7 +246,7 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
           </TabsList>
 
           {/* View Tab */}
-          <TabsContent value="view" className="space-y-6">
+          <TabsContent value="view" className="space-y-6 overflow-y-auto max-h-[calc(100vh-200px)]">
             <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
               <CardHeader className="text-center">
                 <div className="flex justify-center mb-4">
@@ -328,7 +328,7 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
           </TabsContent>
 
           {/* Create Tab */}
-          <TabsContent value="create" className="space-y-6">
+          <TabsContent value="create" className="space-y-6 overflow-y-auto max-h-[calc(100vh-200px)]">
             <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
@@ -503,7 +503,7 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
           </TabsContent>
 
           {/* Share Tab */}
-          <TabsContent value="share" className="space-y-6">
+          <TabsContent value="share" className="space-y-6 overflow-y-auto max-h-[calc(100vh-200px)]">
             <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">

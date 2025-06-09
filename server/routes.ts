@@ -814,7 +814,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const targetUserId = req.params.userId ? Number(req.params.userId) : Number(userId);
+      const targetUserId = req.params.userId && !isNaN(Number(req.params.userId)) ? Number(req.params.userId) : Number(userId);
       const businessCard = await storage.getBusinessCard(targetUserId);
       res.json({ businessCard });
     } catch (error) {
