@@ -20,6 +20,7 @@ import NearbyChats from "@/components/NearbyChats";
 import BlockedContactsPage from "@/components/BlockedContactsPage";
 import SimpleSpacePage from "@/pages/SimpleSpacePage";
 import LinkedInSpacePage from "@/pages/LinkedInSpacePage";
+import EnhancedBusinessCard from "@/components/EnhancedBusinessCard";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, MapPin, Building2, Shield, UserX } from "lucide-react";
@@ -1044,13 +1045,18 @@ export default function MainApp() {
             </div>
           )}
           {activeMobileTab === "archive" && <ArchiveList />}
+          {activeMobileTab === "digital-card" && (
+            <div className="h-full overflow-hidden">
+              <EnhancedBusinessCard />
+            </div>
+          )}
           {activeMobileTab === "settings" && (
             <ModernSettingsPage isMobile={true} />
           )}
         </div>
 
-        {/* Fixed Mobile Bottom Navigation - Hide when in chat */}
-        {!showMobileChat && (
+        {/* Fixed Mobile Bottom Navigation - Hide when in chat or digital card page */}
+        {!showMobileChat && activeMobileTab !== "digital-card" && (
           <div className="bg-white border-t border-gray-200 pb-0 pt-1 px-2 fixed bottom-0 left-0 right-0 z-40 lg:hidden">
             <div className="flex justify-around">
               <Button
