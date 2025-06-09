@@ -224,8 +224,8 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-2 overflow-y-auto pb-20">
-      <div className="max-w-md mx-auto space-y-3">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-2">
+      <div className="max-w-md mx-auto space-y-3 pb-24">
         {/* Compact Header */}
         <div className="flex items-center justify-between py-1">
           <Button 
@@ -331,8 +331,8 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
           </TabsContent>
 
           {/* Create Tab */}
-          <TabsContent value="create" className="h-[calc(100vh-100px)] overflow-y-auto">
-            <div className="space-y-2 pb-32">
+          <TabsContent value="create" className="overflow-y-auto" style={{ height: 'calc(100vh - 180px)', WebkitOverflowScrolling: 'touch' }}>
+            <div className="space-y-2 pb-16">
               <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg">
                 <CardHeader className="py-2">
                   <CardTitle className="flex items-center space-x-2 text-base">
