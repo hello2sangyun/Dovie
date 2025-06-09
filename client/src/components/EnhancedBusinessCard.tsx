@@ -264,8 +264,8 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
           </TabsList>
 
           {/* View Tab */}
-          <TabsContent value="view" className="flex-1 overflow-y-auto pb-20" style={{ WebkitOverflowScrolling: 'touch' }}>
-            <div className="space-y-3">
+          <TabsContent value="view" className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div className="space-y-3 pb-32">
               <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg">
               <CardHeader className="text-center py-4 pb-2">
                 <div className="flex justify-center mb-2">
@@ -528,8 +528,8 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
           </TabsContent>
 
           {/* Share Tab */}
-          <TabsContent value="share" className="flex-1 overflow-y-auto pb-20" style={{ WebkitOverflowScrolling: 'touch' }}>
-            <div className="space-y-3">
+          <TabsContent value="share" className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div className="space-y-3 pb-32">
               <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg">
                   <CardHeader className="py-3">
                     <CardTitle className="flex items-center space-x-2 text-lg">
