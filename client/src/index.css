@@ -28,6 +28,37 @@
   animation: gradient-rotate 3s linear infinite;
 }
 
+/* iOS Safari 자동 줌 방지 */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+input[type="number"],
+select,
+textarea {
+  font-size: 16px !important;
+}
+
+/* 작은 화면에서 텍스트 입력 요소의 줌 방지 */
+@media screen and (max-width: 768px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+    transform: scale(0.875); /* 14px/16px = 0.875 - 시각적으로 작게 보이게 */
+    transform-origin: left top;
+  }
+  
+  /* 채팅 입력창 특별 처리 */
+  textarea[placeholder*="메시지"] {
+    font-size: 16px !important;
+    transform: scale(0.875);
+    transform-origin: left center;
+  }
+}
+
 :root {
   --background: 0 0% 100%;
   --foreground: 224 71.4% 4.1%;
