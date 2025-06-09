@@ -264,8 +264,8 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
           </TabsList>
 
           {/* View Tab */}
-          <TabsContent value="view" className="flex-1 overflow-y-auto pb-20" style={{ WebkitOverflowScrolling: 'touch' }}>
-            <div className="space-y-3">
+          <TabsContent value="view" className="flex-1 overflow-y-auto pb-24" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div className="space-y-3 min-h-full">
               <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg">
               <CardHeader className="text-center py-4 pb-2">
                 <div className="flex justify-center mb-2">
@@ -344,6 +344,87 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
                 )}
               </CardContent>
             </Card>
+
+            {/* Additional scrollable content for business card view */}
+            {((businessCard as any)?.businessCard || Object.values(formData).some(v => v)) && (
+              <>
+                <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg">
+                  <CardHeader className="py-3">
+                    <CardTitle className="flex items-center space-x-2 text-base">
+                      <Share2 className="w-4 h-4" />
+                      <span>연결 및 공유</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3 px-4 pb-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button variant="outline" size="sm" className="h-10">
+                        <QrCode className="w-4 h-4 mr-2" />
+                        QR 코드
+                      </Button>
+                      <Button variant="outline" size="sm" className="h-10">
+                        <Download className="w-4 h-4 mr-2" />
+                        다운로드
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button variant="outline" size="sm" className="h-10">
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        메시지
+                      </Button>
+                      <Button variant="outline" size="sm" className="h-10">
+                        <Star className="w-4 h-4 mr-2" />
+                        즐겨찾기
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg">
+                  <CardHeader className="py-3">
+                    <CardTitle className="flex items-center space-x-2 text-base">
+                      <Calendar className="w-4 h-4" />
+                      <span>빠른 액션</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3 px-4 pb-4">
+                    <div className="space-y-2">
+                      <Button variant="ghost" className="w-full justify-start h-10" size="sm">
+                        <Phone className="w-4 h-4 mr-3" />
+                        전화 걸기
+                      </Button>
+                      <Button variant="ghost" className="w-full justify-start h-10" size="sm">
+                        <Mail className="w-4 h-4 mr-3" />
+                        이메일 보내기
+                      </Button>
+                      <Button variant="ghost" className="w-full justify-start h-10" size="sm">
+                        <MapPin className="w-4 h-4 mr-3" />
+                        위치 보기
+                      </Button>
+                      <Button variant="ghost" className="w-full justify-start h-10" size="sm">
+                        <Calendar className="w-4 h-4 mr-3" />
+                        일정 예약
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg">
+                  <CardHeader className="py-3">
+                    <CardTitle className="flex items-center space-x-2 text-base">
+                      <Building2 className="w-4 h-4" />
+                      <span>상세 정보</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2 px-4 pb-4">
+                    <div className="text-sm text-gray-600">
+                      <p className="mb-2">부서: {(businessCard as any)?.businessCard?.department || formData.department || "미설정"}</p>
+                      <p className="mb-2">생성일: {new Date().toLocaleDateString()}</p>
+                      <p className="mb-2">마지막 수정: {new Date().toLocaleDateString()}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
             </div>
           </TabsContent>
 
