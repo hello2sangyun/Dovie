@@ -629,7 +629,7 @@ export default function MainApp() {
             <div className="flex-1 bg-gray-50 overflow-y-auto">
               <div className="max-w-4xl mx-auto p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h1 className="text-2xl font-bold text-gray-900">Business Space</h1>
+                  <h1 className="text-2xl font-bold text-gray-900">My Space</h1>
                   <Button
                     variant="outline"
                     onClick={() => {

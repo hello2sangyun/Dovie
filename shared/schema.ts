@@ -244,6 +244,7 @@ export const businessCards = pgTable("business_cards", {
   address: text("address"),
   description: text("description"),
   cardImageUrl: text("card_image_url"),
+  profileImageUrl: text("profile_image_url"), // Profile photo for manual creation
   extractedText: text("extracted_text"), // OCR로 추출된 원본 텍스트
   isDefault: boolean("is_default").default(false),
   createdAt: timestamp("created_at").defaultNow(),

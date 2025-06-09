@@ -95,7 +95,7 @@ export default function SimpleSpacePage() {
     post.companyChannel?.companyName?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Separate search results for Business Space
+  // Separate search results for My Space
   const searchResults = {
     companies: searchQuery && activeTab === "feed" ? companyPages.companies || [] : [],
     posts: filteredPosts
