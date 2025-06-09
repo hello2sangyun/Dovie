@@ -5,6 +5,7 @@ import type { User } from "@shared/schema";
 interface AuthContextType {
   user: User | null;
   setUser: (user: User | null) => void;
+  logout: () => void;
   isLoading: boolean;
   locationPermissionGranted: boolean;
   requestLocationPermission: () => Promise<boolean>;
@@ -91,10 +92,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Logout function
+  const logout = async () => {
+    try {
+      // Call logout API endpoint
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Logout API call failed:", error);
+    } finally {
+      // Clear local storage and user state regardless of API call result
+      localStorage.removeItem("userId");
+      localStorage.removeItem("locationPermissionGranted");
+      localStorage.removeItem("userLocation");
+      setUser(null);
+      
+      // Redirect to login page
+      window.location.href = "/login";
+    }
+  };
+
   return (
     <AuthContext.Provider value={{ 
       user, 
       setUser: handleSetUser, 
+      logout,
       isLoading: isLoading && !!storedUserId,
       locationPermissionGranted,
       requestLocationPermission

@@ -238,6 +238,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 로그아웃 API
+  app.post("/api/auth/logout", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"];
+      
+      if (userId) {
+        // 사용자 오프라인 상태 업데이트
+        await storage.updateUser(Number(userId), { isOnline: false });
+      }
+
+      res.json({ message: "로그아웃되었습니다." });
+    } catch (error) {
+      console.error("Logout error:", error);
+      res.status(500).json({ message: "로그아웃에 실패했습니다." });
+    }
+  });
+
   // 사용자명 중복 체크 API
   app.get("/api/users/check-username/:username", async (req, res) => {
     try {
