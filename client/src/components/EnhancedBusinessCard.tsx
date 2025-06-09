@@ -221,55 +221,55 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 overflow-y-auto pb-24">
-      <div className="max-w-2xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-2 overflow-y-auto pb-20">
+      <div className="max-w-md mx-auto space-y-3">
+        {/* Compact Header */}
+        <div className="flex items-center justify-between py-1">
           <Button 
             variant="ghost" 
             onClick={onBack}
-            className="flex items-center space-x-2"
+            className="flex items-center space-x-1 p-2 h-8"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>뒤로가기</span>
+            <span className="text-sm">뒤로가기</span>
           </Button>
-          <h1 className="text-2xl font-bold text-gray-900">디지털 명함</h1>
-          <div className="w-20"></div>
+          <h1 className="text-lg font-bold text-gray-900">디지털 명함</h1>
+          <div className="w-16"></div>
         </div>
 
-        {/* Tabs */}
+        {/* Compact Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="view">명함 보기</TabsTrigger>
-            <TabsTrigger value="create">수동 생성</TabsTrigger>
-            <TabsTrigger value="share">공유하기</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 h-9">
+            <TabsTrigger value="view" className="text-xs">명함 보기</TabsTrigger>
+            <TabsTrigger value="create" className="text-xs">수동 생성</TabsTrigger>
+            <TabsTrigger value="share" className="text-xs">공유하기</TabsTrigger>
           </TabsList>
 
           {/* View Tab */}
-          <TabsContent value="view" className="space-y-6 overflow-y-auto max-h-[calc(100vh-200px)]">
-            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
-              <CardHeader className="text-center">
-                <div className="flex justify-center mb-4">
+          <TabsContent value="view" className="space-y-3 overflow-y-auto max-h-[calc(100vh-120px)]">
+            <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg">
+              <CardHeader className="text-center py-4 pb-2">
+                <div className="flex justify-center mb-2">
                   <div className="relative">
-                    <Avatar className="w-24 h-24 border-4 border-white shadow-lg">
+                    <Avatar className="w-16 h-16 border-2 border-white shadow-md">
                       <AvatarImage src={businessCard?.businessCard?.profileImageUrl || formData.profileImageUrl} />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-2xl">
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-lg">
                         {(businessCard?.businessCard?.fullName || formData.fullName || "사용자")[0]}
                       </AvatarFallback>
                     </Avatar>
                   </div>
                 </div>
-                <CardTitle className="text-2xl text-gray-900">
+                <CardTitle className="text-xl text-gray-900 mb-1">
                   {businessCard?.businessCard?.fullName || formData.fullName || "이름을 설정해주세요"}
                 </CardTitle>
-                <p className="text-lg text-blue-600 font-medium">
+                <p className="text-base text-blue-600 font-medium mb-1">
                   {businessCard?.businessCard?.jobTitle || formData.jobTitle || "직책을 설정해주세요"}
                 </p>
-                <p className="text-gray-600">
+                <p className="text-sm text-gray-600">
                   {businessCard?.businessCard?.companyName || formData.companyName || "회사명을 설정해주세요"}
                 </p>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-2 px-4 pb-4">
                 {(businessCard?.businessCard || Object.values(formData).some(v => v)) ? (
                   <div className="grid gap-4">
                     {(businessCard?.businessCard?.email || formData.email) && (
