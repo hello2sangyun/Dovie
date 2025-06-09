@@ -240,12 +240,27 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
           <div className="w-16"></div>
         </div>
 
-        {/* Compact Tabs */}
+        {/* Enhanced Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col flex-1 min-h-0">
-          <TabsList className="grid w-full grid-cols-3 h-9 flex-shrink-0">
-            <TabsTrigger value="view" className="text-xs">명함 보기</TabsTrigger>
-            <TabsTrigger value="create" className="text-xs">수동 생성</TabsTrigger>
-            <TabsTrigger value="share" className="text-xs">공유하기</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 h-12 flex-shrink-0 bg-white rounded-lg border border-gray-200 shadow-sm">
+            <TabsTrigger 
+              value="view" 
+              className="text-sm font-medium data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all duration-200"
+            >
+              명함 보기
+            </TabsTrigger>
+            <TabsTrigger 
+              value="create" 
+              className="text-sm font-medium data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all duration-200"
+            >
+              수동 생성
+            </TabsTrigger>
+            <TabsTrigger 
+              value="share" 
+              className="text-sm font-medium data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all duration-200"
+            >
+              공유하기
+            </TabsTrigger>
           </TabsList>
 
           {/* View Tab */}
@@ -333,8 +348,8 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
           </TabsContent>
 
           {/* Create Tab */}
-          <TabsContent value="create" className="flex-1 overflow-y-auto pb-20" style={{ WebkitOverflowScrolling: 'touch' }}>
-            <div className="space-y-2">
+          <TabsContent value="create" className="flex-1 overflow-y-auto pb-6" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div className="space-y-3">
               <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg">
                 <CardHeader className="py-2">
                   <CardTitle className="flex items-center space-x-2 text-base">
@@ -343,25 +358,25 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2 px-3 pb-3">
-                {/* Compact Profile Photo Upload */}
-                <div className="flex flex-col items-center space-y-2">
+                {/* Enhanced Profile Photo Upload */}
+                <div className="flex flex-col items-center space-y-3">
                   <div className="relative">
-                    <Avatar className="w-16 h-16 border-2 border-white shadow-md">
+                    <Avatar className="w-20 h-20 border-4 border-white shadow-lg">
                       <AvatarImage src={formData.profileImageUrl} />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-lg">
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xl">
                         {(formData.fullName || "사용자")[0]}
                       </AvatarFallback>
                     </Avatar>
                     <Button
                       size="sm"
-                      className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0"
+                      className="absolute -bottom-1 -right-1 rounded-full w-10 h-10 p-0 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 border-2 border-white shadow-lg transition-colors"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={isUploading}
                     >
                       {isUploading ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                       ) : (
-                        <Camera className="w-4 h-4" />
+                        <Camera className="w-5 h-5" />
                       )}
                     </Button>
                   </div>
@@ -369,140 +384,143 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
                     ref={fileInputRef}
                     type="file"
                     accept="image/*"
+                    capture="environment"
                     onChange={handlePhotoUpload}
                     className="hidden"
                   />
-                  <p className="text-xs text-gray-500">사진을 클릭하여 변경</p>
+                  <p className="text-sm text-gray-600 font-medium">사진을 클릭하여 변경</p>
                 </div>
 
-                {/* Compact Form Fields */}
-                <div className="grid gap-2">
-                  <div className="grid grid-cols-2 gap-2">
+                {/* Optimized Form Fields */}
+                <div className="grid gap-3">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <Label htmlFor="fullName" className="text-xs">이름 *</Label>
+                      <Label htmlFor="fullName" className="text-sm font-medium text-gray-700">이름 *</Label>
                       <Input
                         id="fullName"
                         value={formData.fullName}
                         onChange={(e) => handleInputChange("fullName", e.target.value)}
                         placeholder="홍길동"
-                        className="mt-1 h-8 text-sm"
+                        className="mt-1 h-11 text-base border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="jobTitle" className="text-xs">직책</Label>
+                      <Label htmlFor="jobTitle" className="text-sm font-medium text-gray-700">직책</Label>
                       <Input
                         id="jobTitle"
                         value={formData.jobTitle}
                         onChange={(e) => handleInputChange("jobTitle", e.target.value)}
                         placeholder="대표이사"
-                        className="mt-1 h-8 text-sm"
+                        className="mt-1 h-11 text-base border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <Label htmlFor="companyName" className="text-xs">회사명</Label>
+                      <Label htmlFor="companyName" className="text-sm font-medium text-gray-700">회사명</Label>
                       <Input
                         id="companyName"
                         value={formData.companyName}
                         onChange={(e) => handleInputChange("companyName", e.target.value)}
                         placeholder="(주)도비테크"
-                        className="mt-1 h-8 text-sm"
+                        className="mt-1 h-11 text-base border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="department" className="text-xs">부서</Label>
+                      <Label htmlFor="department" className="text-sm font-medium text-gray-700">부서</Label>
                       <Input
                         id="department"
                         value={formData.department}
                         onChange={(e) => handleInputChange("department", e.target.value)}
                         placeholder="개발팀"
-                        className="mt-1 h-8 text-sm"
+                        className="mt-1 h-11 text-base border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <Label htmlFor="email" className="text-xs">이메일</Label>
+                      <Label htmlFor="email" className="text-sm font-medium text-gray-700">이메일</Label>
                       <Input
                         id="email"
                         type="email"
                         value={formData.email}
                         onChange={(e) => handleInputChange("email", e.target.value)}
                         placeholder="hello@example.com"
-                        className="mt-1 h-8 text-sm"
+                        className="mt-1 h-11 text-base border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="phoneNumber" className="text-xs">전화번호</Label>
+                      <Label htmlFor="phoneNumber" className="text-sm font-medium text-gray-700">전화번호</Label>
                       <Input
                         id="phoneNumber"
                         value={formData.phoneNumber}
                         onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
                         placeholder="010-1234-5678"
-                        className="mt-1 h-8 text-sm"
+                        className="mt-1 h-11 text-base border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <Label htmlFor="website" className="text-xs">웹사이트</Label>
+                    <Label htmlFor="website" className="text-sm font-medium text-gray-700">웹사이트</Label>
                     <Input
                       id="website"
                       value={formData.website}
                       onChange={(e) => handleInputChange("website", e.target.value)}
                       placeholder="https://company.com"
-                      className="mt-1 h-8 text-sm"
+                      className="mt-1 h-11 text-base border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="address" className="text-xs">주소</Label>
+                    <Label htmlFor="address" className="text-sm font-medium text-gray-700">주소</Label>
                     <Input
                       id="address"
                       value={formData.address}
                       onChange={(e) => handleInputChange("address", e.target.value)}
                       placeholder="서울시 강남구 테헤란로 123"
-                      className="mt-1 h-8 text-sm"
+                      className="mt-1 h-11 text-base border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="description" className="text-xs">소개</Label>
+                    <Label htmlFor="description" className="text-sm font-medium text-gray-700">소개</Label>
                     <Textarea
                       id="description"
                       value={formData.description}
                       onChange={(e) => handleInputChange("description", e.target.value)}
                       placeholder="간단한 소개를 입력해주세요"
-                      rows={2}
-                      className="mt-1 text-sm"
+                      rows={3}
+                      className="mt-1 text-base border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all resize-none"
                     />
                   </div>
                 </div>
 
-                {/* Compact Action Buttons */}
-                <div className="flex space-x-2 pt-3">
-                  <Button 
-                    onClick={handleSave} 
-                    disabled={updateCardMutation.isPending}
-                    className="flex-1 h-8 text-xs"
-                  >
-                    {updateCardMutation.isPending ? (
-                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
-                    ) : (
-                      <Save className="w-3 h-3 mr-1" />
-                    )}
-                    저장하기
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setActiveTab("view")}
-                    className="flex-1 h-8 text-xs"
-                  >
-                    미리보기
-                  </Button>
+                {/* Optimized Action Buttons */}
+                <div className="sticky bottom-0 bg-white border-t border-gray-200 p-3 mt-4 -mx-3 -mb-3">
+                  <div className="flex space-x-3">
+                    <Button 
+                      onClick={handleSave} 
+                      disabled={updateCardMutation.isPending}
+                      className="flex-1 h-12 text-sm font-medium bg-blue-600 hover:bg-blue-700 active:bg-blue-800 transition-colors"
+                    >
+                      {updateCardMutation.isPending ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      ) : (
+                        <Save className="w-4 h-4 mr-2" />
+                      )}
+                      저장하기
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setActiveTab("view")}
+                      className="flex-1 h-12 text-sm font-medium border-2 border-gray-300 hover:border-gray-400 active:bg-gray-100 transition-colors"
+                    >
+                      미리보기
+                    </Button>
+                  </div>
                 </div>
                 </CardContent>
               </Card>
