@@ -349,7 +349,7 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
 
           {/* Create Tab */}
           <TabsContent value="create" className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
-            <div className="space-y-3 pb-32">
+            <div className="space-y-3 pb-24">
               <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg">
                 <CardHeader className="py-2">
                   <CardTitle className="flex items-center space-x-2 text-base">
@@ -499,7 +499,7 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
                 </div>
 
                 {/* Optimized Action Buttons */}
-                <div className="fixed bottom-20 left-4 right-4 bg-white border-t border-gray-200 p-3 rounded-lg shadow-lg z-10">
+                <div className="mt-4 pt-4 border-t border-gray-200">
                   <div className="flex space-x-3">
                     <Button 
                       onClick={handleSave} 
