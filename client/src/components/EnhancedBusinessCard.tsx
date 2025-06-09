@@ -221,8 +221,8 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 overflow-y-auto">
-      <div className="max-w-2xl mx-auto space-y-6 pb-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 overflow-y-auto pb-24">
+      <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <Button 

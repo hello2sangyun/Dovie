@@ -404,7 +404,7 @@ export default function MainApp() {
               </TabsContent>
               
               <TabsContent value="settings" className="h-full m-0">
-                <div className="h-full overflow-y-auto">
+                <div className="h-full overflow-y-auto pb-24">
                   <div className="p-4">
                     {/* 프로필 섹션 */}
                     <div 
@@ -662,7 +662,7 @@ export default function MainApp() {
               </div>
             </div>
           ) : rightPanelContent === "privacy" ? (
-            <div className="flex-1 bg-gray-50 overflow-y-auto">
+            <div className="flex-1 bg-gray-50 overflow-y-auto pb-24">
               <div className="max-w-4xl mx-auto p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h1 className="text-2xl font-bold text-gray-900">개인정보</h1>
@@ -698,7 +698,7 @@ export default function MainApp() {
               </div>
             </div>
           ) : rightPanelContent === "security" ? (
-            <div className="flex-1 bg-gray-50 overflow-y-auto">
+            <div className="flex-1 bg-gray-50 overflow-y-auto pb-24">
               <div className="max-w-4xl mx-auto p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h1 className="text-2xl font-bold text-gray-900">보안 및 개인정보</h1>
@@ -734,7 +734,7 @@ export default function MainApp() {
               setActiveTab("settings");
             }} />
           ) : rightPanelContent === "digital-command" ? (
-            <div className="flex-1 bg-gray-50 overflow-y-auto">
+            <div className="flex-1 bg-gray-50 overflow-y-auto pb-24">
               <div className="max-w-4xl mx-auto p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h1 className="text-2xl font-bold text-gray-900">디지털 명함</h1>
