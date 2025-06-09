@@ -331,8 +331,8 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
           </TabsContent>
 
           {/* Create Tab */}
-          <TabsContent value="create" className="h-[calc(100vh-140px)] overflow-y-auto">
-            <div className="space-y-2 pb-20">
+          <TabsContent value="create" className="h-[calc(100vh-100px)] overflow-y-auto">
+            <div className="space-y-2 pb-32">
               <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg">
                 <CardHeader className="py-2">
                   <CardTitle className="flex items-center space-x-2 text-base">
