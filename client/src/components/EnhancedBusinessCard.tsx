@@ -510,14 +510,15 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
           </TabsContent>
 
           {/* Share Tab */}
-          <TabsContent value="share" className="space-y-3 overflow-y-auto max-h-[calc(100vh-120px)]">
-            <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg">
-              <CardHeader className="py-3">
-                <CardTitle className="flex items-center space-x-2 text-lg">
-                  <Share2 className="w-4 h-4" />
-                  <span>명함 공유</span>
-                </CardTitle>
-              </CardHeader>
+          <TabsContent value="share" className="flex-1 overflow-y-auto pb-20" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div className="space-y-3">
+              <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg">
+                  <CardHeader className="py-3">
+                    <CardTitle className="flex items-center space-x-2 text-lg">
+                      <Share2 className="w-4 h-4" />
+                      <span>명함 공유</span>
+                    </CardTitle>
+                  </CardHeader>
               <CardContent className="space-y-3 px-4 pb-4">
                 {(shareData as any)?.shareUrl ? (
                   <div className="space-y-3">
@@ -603,6 +604,7 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
                 )}
               </CardContent>
             </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
