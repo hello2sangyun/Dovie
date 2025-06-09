@@ -4701,9 +4701,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Floating Button for Unread Messages - Moved to center */}
+      {/* Floating Button for Unread Messages - Moved to center and higher */}
       {showUnreadButton && firstUnreadMessageId && (
-        <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 z-20">
+        <div className="absolute bottom-40 left-1/2 transform -translate-x-1/2 z-20">
           <Button
             variant="default"
             size="sm"
