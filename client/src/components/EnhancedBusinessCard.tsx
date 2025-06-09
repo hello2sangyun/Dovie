@@ -303,25 +303,25 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
                       </div>
                     )}
                     
-                    {(businessCard?.businessCard?.address || formData.address) && (
-                      <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                        <MapPin className="w-5 h-5 text-gray-500" />
-                        <span className="text-gray-700">{businessCard?.businessCard?.address || formData.address}</span>
+                    {((businessCard as any)?.businessCard?.address || formData.address) && (
+                      <div className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
+                        <MapPin className="w-4 h-4 text-gray-500" />
+                        <span className="text-sm text-gray-700">{(businessCard as any)?.businessCard?.address || formData.address}</span>
                       </div>
                     )}
                     
-                    {(businessCard?.businessCard?.description || formData.description) && (
-                      <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg">
-                        <p className="text-gray-700">{businessCard?.businessCard?.description || formData.description}</p>
+                    {((businessCard as any)?.businessCard?.description || formData.description) && (
+                      <div className="p-2 bg-gray-50 rounded-lg">
+                        <p className="text-sm text-gray-700">{(businessCard as any)?.businessCard?.description || formData.description}</p>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className="text-center py-8">
-                    <Building2 className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-500 mb-2">명함을 만들어보세요</h3>
-                    <p className="text-gray-400 mb-4">수동 생성 탭에서 명함 정보를 입력할 수 있습니다</p>
-                    <Button onClick={() => setActiveTab("create")}>
+                  <div className="text-center py-4">
+                    <Building2 className="w-8 h-8 mx-auto text-gray-300 mb-2" />
+                    <h3 className="text-base font-semibold text-gray-500 mb-1">명함을 만들어보세요</h3>
+                    <p className="text-sm text-gray-400 mb-3">수동 생성 탭에서 명함 정보를 입력할 수 있습니다</p>
+                    <Button onClick={() => setActiveTab("create")} className="h-8 text-xs">
                       명함 만들기
                     </Button>
                   </div>
@@ -331,21 +331,21 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
           </TabsContent>
 
           {/* Create Tab */}
-          <TabsContent value="create" className="space-y-6 overflow-y-auto max-h-[calc(100vh-200px)]">
-            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Edit3 className="w-5 h-5" />
+          <TabsContent value="create" className="space-y-3 overflow-y-auto max-h-[calc(100vh-120px)]">
+            <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg">
+              <CardHeader className="py-3">
+                <CardTitle className="flex items-center space-x-2 text-lg">
+                  <Edit3 className="w-4 h-4" />
                   <span>명함 정보 입력</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Profile Photo Upload */}
-                <div className="flex flex-col items-center space-y-4">
+              <CardContent className="space-y-3 px-4 pb-4">
+                {/* Compact Profile Photo Upload */}
+                <div className="flex flex-col items-center space-y-2">
                   <div className="relative">
-                    <Avatar className="w-24 h-24 border-4 border-white shadow-lg">
+                    <Avatar className="w-16 h-16 border-2 border-white shadow-md">
                       <AvatarImage src={formData.profileImageUrl} />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-2xl">
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-lg">
                         {(formData.fullName || "사용자")[0]}
                       </AvatarFallback>
                     </Avatar>
@@ -369,134 +369,134 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
                     onChange={handlePhotoUpload}
                     className="hidden"
                   />
-                  <p className="text-sm text-gray-500">사진을 클릭하여 변경</p>
+                  <p className="text-xs text-gray-500">사진을 클릭하여 변경</p>
                 </div>
 
-                {/* Form Fields */}
-                <div className="grid gap-4">
-                  <div className="grid grid-cols-2 gap-4">
+                {/* Compact Form Fields */}
+                <div className="grid gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <Label htmlFor="fullName">이름 *</Label>
+                      <Label htmlFor="fullName" className="text-xs">이름 *</Label>
                       <Input
                         id="fullName"
                         value={formData.fullName}
                         onChange={(e) => handleInputChange("fullName", e.target.value)}
                         placeholder="홍길동"
-                        className="mt-1"
+                        className="mt-1 h-8 text-sm"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="jobTitle">직책</Label>
+                      <Label htmlFor="jobTitle" className="text-xs">직책</Label>
                       <Input
                         id="jobTitle"
                         value={formData.jobTitle}
                         onChange={(e) => handleInputChange("jobTitle", e.target.value)}
                         placeholder="대표이사"
-                        className="mt-1"
+                        className="mt-1 h-8 text-sm"
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <Label htmlFor="companyName">회사명</Label>
+                      <Label htmlFor="companyName" className="text-xs">회사명</Label>
                       <Input
                         id="companyName"
                         value={formData.companyName}
                         onChange={(e) => handleInputChange("companyName", e.target.value)}
                         placeholder="(주)도비테크"
-                        className="mt-1"
+                        className="mt-1 h-8 text-sm"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="department">부서</Label>
+                      <Label htmlFor="department" className="text-xs">부서</Label>
                       <Input
                         id="department"
                         value={formData.department}
                         onChange={(e) => handleInputChange("department", e.target.value)}
                         placeholder="개발팀"
-                        className="mt-1"
+                        className="mt-1 h-8 text-sm"
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <Label htmlFor="email">이메일</Label>
+                      <Label htmlFor="email" className="text-xs">이메일</Label>
                       <Input
                         id="email"
                         type="email"
                         value={formData.email}
                         onChange={(e) => handleInputChange("email", e.target.value)}
                         placeholder="hello@example.com"
-                        className="mt-1"
+                        className="mt-1 h-8 text-sm"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="phoneNumber">전화번호</Label>
+                      <Label htmlFor="phoneNumber" className="text-xs">전화번호</Label>
                       <Input
                         id="phoneNumber"
                         value={formData.phoneNumber}
                         onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
                         placeholder="010-1234-5678"
-                        className="mt-1"
+                        className="mt-1 h-8 text-sm"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <Label htmlFor="website">웹사이트</Label>
+                    <Label htmlFor="website" className="text-xs">웹사이트</Label>
                     <Input
                       id="website"
                       value={formData.website}
                       onChange={(e) => handleInputChange("website", e.target.value)}
                       placeholder="https://company.com"
-                      className="mt-1"
+                      className="mt-1 h-8 text-sm"
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="address">주소</Label>
+                    <Label htmlFor="address" className="text-xs">주소</Label>
                     <Input
                       id="address"
                       value={formData.address}
                       onChange={(e) => handleInputChange("address", e.target.value)}
                       placeholder="서울시 강남구 테헤란로 123"
-                      className="mt-1"
+                      className="mt-1 h-8 text-sm"
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="description">소개</Label>
+                    <Label htmlFor="description" className="text-xs">소개</Label>
                     <Textarea
                       id="description"
                       value={formData.description}
                       onChange={(e) => handleInputChange("description", e.target.value)}
                       placeholder="간단한 소개를 입력해주세요"
-                      rows={3}
-                      className="mt-1"
+                      rows={2}
+                      className="mt-1 text-sm"
                     />
                   </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex space-x-3 pt-4">
+                {/* Compact Action Buttons */}
+                <div className="flex space-x-2 pt-3">
                   <Button 
                     onClick={handleSave} 
                     disabled={updateCardMutation.isPending}
-                    className="flex-1"
+                    className="flex-1 h-8 text-xs"
                   >
                     {updateCardMutation.isPending ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
                     ) : (
-                      <Save className="w-4 h-4 mr-2" />
+                      <Save className="w-3 h-3 mr-1" />
                     )}
                     저장하기
                   </Button>
                   <Button 
                     variant="outline" 
                     onClick={() => setActiveTab("view")}
-                    className="flex-1"
+                    className="flex-1 h-8 text-xs"
                   >
                     미리보기
                   </Button>
