@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -62,24 +62,27 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
 
   // Fetch business card data
   const { data: businessCard, isLoading } = useQuery({
-    queryKey: ["/api/business-cards"],
-    onSuccess: (data) => {
-      if (data?.businessCard) {
-        setFormData({
-          fullName: data.businessCard.fullName || "",
-          companyName: data.businessCard.companyName || "",
-          jobTitle: data.businessCard.jobTitle || "",
-          department: data.businessCard.department || "",
-          email: data.businessCard.email || "",
-          phoneNumber: data.businessCard.phoneNumber || "",
-          website: data.businessCard.website || "",
-          address: data.businessCard.address || "",
-          description: data.businessCard.description || "",
-          profileImageUrl: data.businessCard.profileImageUrl || ""
-        });
-      }
-    }
+    queryKey: ["/api/business-cards"]
   });
+
+  // Update form data when business card data changes
+  useEffect(() => {
+    if (businessCard && typeof businessCard === 'object' && 'businessCard' in businessCard) {
+      const card = (businessCard as any).businessCard;
+      setFormData({
+        fullName: card?.fullName || "",
+        companyName: card?.companyName || "",
+        jobTitle: card?.jobTitle || "",
+        department: card?.department || "",
+        email: card?.email || "",
+        phoneNumber: card?.phoneNumber || "",
+        website: card?.website || "",
+        address: card?.address || "",
+        description: card?.description || "",
+        profileImageUrl: card?.profileImageUrl || ""
+      });
+    }
+  }, [businessCard]);
 
   // Fetch share info
   const { data: shareData } = useQuery({
@@ -252,48 +255,48 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
                 <div className="flex justify-center mb-2">
                   <div className="relative">
                     <Avatar className="w-16 h-16 border-2 border-white shadow-md">
-                      <AvatarImage src={businessCard?.businessCard?.profileImageUrl || formData.profileImageUrl} />
+                      <AvatarImage src={(businessCard as any)?.businessCard?.profileImageUrl || formData.profileImageUrl} />
                       <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-lg">
-                        {(businessCard?.businessCard?.fullName || formData.fullName || "사용자")[0]}
+                        {((businessCard as any)?.businessCard?.fullName || formData.fullName || "사용자")[0]}
                       </AvatarFallback>
                     </Avatar>
                   </div>
                 </div>
                 <CardTitle className="text-xl text-gray-900 mb-1">
-                  {businessCard?.businessCard?.fullName || formData.fullName || "이름을 설정해주세요"}
+                  {(businessCard as any)?.businessCard?.fullName || formData.fullName || "이름을 설정해주세요"}
                 </CardTitle>
                 <p className="text-base text-blue-600 font-medium mb-1">
-                  {businessCard?.businessCard?.jobTitle || formData.jobTitle || "직책을 설정해주세요"}
+                  {(businessCard as any)?.businessCard?.jobTitle || formData.jobTitle || "직책을 설정해주세요"}
                 </p>
                 <p className="text-sm text-gray-600">
-                  {businessCard?.businessCard?.companyName || formData.companyName || "회사명을 설정해주세요"}
+                  {(businessCard as any)?.businessCard?.companyName || formData.companyName || "회사명을 설정해주세요"}
                 </p>
               </CardHeader>
               <CardContent className="space-y-2 px-4 pb-4">
-                {(businessCard?.businessCard || Object.values(formData).some(v => v)) ? (
-                  <div className="grid gap-4">
-                    {(businessCard?.businessCard?.email || formData.email) && (
-                      <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                        <Mail className="w-5 h-5 text-gray-500" />
-                        <span className="text-gray-700">{businessCard?.businessCard?.email || formData.email}</span>
+                {((businessCard as any)?.businessCard || Object.values(formData).some(v => v)) ? (
+                  <div className="grid gap-2">
+                    {((businessCard as any)?.businessCard?.email || formData.email) && (
+                      <div className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
+                        <Mail className="w-4 h-4 text-gray-500" />
+                        <span className="text-sm text-gray-700">{(businessCard as any)?.businessCard?.email || formData.email}</span>
                       </div>
                     )}
                     
-                    {(businessCard?.businessCard?.phoneNumber || formData.phoneNumber) && (
-                      <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                        <Phone className="w-5 h-5 text-gray-500" />
-                        <span className="text-gray-700">{businessCard?.businessCard?.phoneNumber || formData.phoneNumber}</span>
+                    {((businessCard as any)?.businessCard?.phoneNumber || formData.phoneNumber) && (
+                      <div className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
+                        <Phone className="w-4 h-4 text-gray-500" />
+                        <span className="text-sm text-gray-700">{(businessCard as any)?.businessCard?.phoneNumber || formData.phoneNumber}</span>
                       </div>
                     )}
                     
-                    {(businessCard?.businessCard?.website || formData.website) && (
-                      <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                        <Globe className="w-5 h-5 text-gray-500" />
+                    {((businessCard as any)?.businessCard?.website || formData.website) && (
+                      <div className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
+                        <Globe className="w-4 h-4 text-gray-500" />
                         <a 
-                          href={businessCard?.businessCard?.website || formData.website} 
+                          href={(businessCard as any)?.businessCard?.website || formData.website} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
+                          className="text-sm text-blue-600 hover:underline"
                         >
                           웹사이트 방문
                         </a>
