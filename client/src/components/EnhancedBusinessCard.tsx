@@ -331,15 +331,16 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
           </TabsContent>
 
           {/* Create Tab */}
-          <TabsContent value="create" className="space-y-3 overflow-y-auto max-h-[calc(100vh-120px)]">
-            <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg">
-              <CardHeader className="py-3">
-                <CardTitle className="flex items-center space-x-2 text-lg">
-                  <Edit3 className="w-4 h-4" />
-                  <span>명함 정보 입력</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 px-4 pb-4">
+          <TabsContent value="create" className="h-[calc(100vh-140px)] overflow-y-auto">
+            <div className="space-y-2 pb-8">
+              <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg">
+                <CardHeader className="py-2">
+                  <CardTitle className="flex items-center space-x-2 text-base">
+                    <Edit3 className="w-4 h-4" />
+                    <span>명함 정보 입력</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 px-3 pb-3">
                 {/* Compact Profile Photo Upload */}
                 <div className="flex flex-col items-center space-y-2">
                   <div className="relative">
@@ -501,8 +502,9 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
                     미리보기
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           {/* Share Tab */}
