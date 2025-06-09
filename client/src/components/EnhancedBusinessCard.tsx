@@ -224,10 +224,10 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-2">
-      <div className="max-w-md mx-auto space-y-3 pb-24">
+    <div className="h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
+      <div className="max-w-md mx-auto w-full flex flex-col h-full p-2">
         {/* Compact Header */}
-        <div className="flex items-center justify-between py-1">
+        <div className="flex items-center justify-between py-1 flex-shrink-0">
           <Button 
             variant="ghost" 
             onClick={onBack}
@@ -241,16 +241,17 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
         </div>
 
         {/* Compact Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-9">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col flex-1 min-h-0">
+          <TabsList className="grid w-full grid-cols-3 h-9 flex-shrink-0">
             <TabsTrigger value="view" className="text-xs">명함 보기</TabsTrigger>
             <TabsTrigger value="create" className="text-xs">수동 생성</TabsTrigger>
             <TabsTrigger value="share" className="text-xs">공유하기</TabsTrigger>
           </TabsList>
 
           {/* View Tab */}
-          <TabsContent value="view" className="space-y-3 overflow-y-auto max-h-[calc(100vh-120px)]">
-            <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg">
+          <TabsContent value="view" className="flex-1 overflow-y-auto pb-20" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div className="space-y-3">
+              <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg">
               <CardHeader className="text-center py-4 pb-2">
                 <div className="flex justify-center mb-2">
                   <div className="relative">
@@ -328,11 +329,12 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
                 )}
               </CardContent>
             </Card>
+            </div>
           </TabsContent>
 
           {/* Create Tab */}
-          <TabsContent value="create" className="overflow-y-auto" style={{ height: 'calc(100vh - 180px)', WebkitOverflowScrolling: 'touch' }}>
-            <div className="space-y-2 pb-16">
+          <TabsContent value="create" className="flex-1 overflow-y-auto pb-20" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div className="space-y-2">
               <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg">
                 <CardHeader className="py-2">
                   <CardTitle className="flex items-center space-x-2 text-base">
