@@ -4701,9 +4701,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Floating Button for Unread Messages - Moved much higher to avoid covering other buttons */}
+      {/* Floating Button for Unread Messages */}
       {showUnreadButton && firstUnreadMessageId && (
-        <div className="absolute bottom-60 left-1/2 transform -translate-x-1/2 z-20">
+        <div className="absolute bottom-20 right-4 z-20">
           <Button
             variant="default"
             size="sm"
@@ -5071,8 +5071,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   handleSendMessage();
                 }
               }}
-              className="resize-none min-h-[28px] max-h-[56px] py-1 px-2 text-base"
-              style={{ fontSize: '16px' }}
+              className="resize-none min-h-[28px] max-h-[56px] py-1 px-2 text-sm"
             />
             
             {/* # 태그 추천 */}
