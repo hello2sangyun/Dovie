@@ -154,6 +154,38 @@ END:VCARD`;
     URL.revokeObjectURL(url);
   };
 
+  // Crop image to square aspect ratio
+  const cropImageToSquare = (file: File): Promise<File> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        const size = Math.min(img.width, img.height);
+        canvas.width = size;
+        canvas.height = size;
+        
+        const x = (img.width - size) / 2;
+        const y = (img.height - size) / 2;
+        
+        ctx?.drawImage(img, x, y, size, size, 0, 0, size, size);
+        
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const croppedFile = new File([blob], file.name, {
+              type: file.type,
+              lastModified: Date.now(),
+            });
+            resolve(croppedFile);
+          }
+        }, file.type, 0.9);
+      };
+      
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   // Handle photo upload
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -169,10 +201,14 @@ END:VCARD`;
     }
 
     setIsUploading(true);
-    const formDataUpload = new FormData();
-    formDataUpload.append("file", file);
 
     try {
+      // Crop image to square before upload
+      const croppedFile = await cropImageToSquare(file);
+      
+      const formDataUpload = new FormData();
+      formDataUpload.append("file", croppedFile);
+
       const response = await fetch("/api/upload", {
         method: "POST",
         headers: {
@@ -200,7 +236,7 @@ END:VCARD`;
         
         toast({
           title: "사진 업로드 완료",
-          description: "프로필 사진이 업로드되었습니다.",
+          description: "프로필 사진이 정사각형으로 자동 조정되어 업로드되었습니다.",
         });
       } else {
         throw new Error("Upload failed");
