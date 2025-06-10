@@ -159,7 +159,21 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
 
       if (response.ok) {
         const result = await response.json();
-        setFormData(prev => ({ ...prev, profileImageUrl: result.url }));
+        const imageUrl = result.fileUrl || result.url;
+        console.log('Upload result:', result);
+        console.log('Setting image URL:', imageUrl);
+        
+        setFormData(prev => {
+          const newData = { ...prev, profileImageUrl: imageUrl };
+          console.log('Updated formData:', newData);
+          return newData;
+        });
+        
+        // Clear the file input to allow re-selection of the same file
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+        
         toast({
           title: "사진 업로드 완료",
           description: "프로필 사진이 업로드되었습니다.",
