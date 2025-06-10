@@ -917,34 +917,206 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const businessCard = await storage.getBusinessCard(share.userId);
       const user = await storage.getUser(share.userId);
       
-      // Simple HTML page for business card viewing
+      // Enhanced HTML page for business card viewing with contact save functionality
       const html = `
         <!DOCTYPE html>
-        <html>
+        <html lang="ko">
         <head>
-          <title>${businessCard?.fullName || user?.displayName || 'Business Card'}</title>
+          <title>${businessCard?.fullName || user?.displayName || '명함'} - 디지털 명함</title>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1">
+          <meta name="description" content="${businessCard?.fullName || user?.displayName}님의 디지털 명함입니다.">
           <style>
-            body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
-            .card { border: 1px solid #ddd; border-radius: 8px; padding: 20px; background: #f9f9f9; }
-            .name { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
-            .title { font-size: 18px; color: #666; margin-bottom: 10px; }
-            .company { font-size: 16px; margin-bottom: 15px; }
-            .contact-info { margin-bottom: 10px; }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { 
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              min-height: 100vh;
+              padding: 20px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+            .container { 
+              max-width: 400px; 
+              width: 100%; 
+              background: white;
+              border-radius: 16px;
+              box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+              overflow: hidden;
+            }
+            .header {
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              color: white;
+              padding: 30px 20px;
+              text-align: center;
+            }
+            .avatar {
+              width: 80px;
+              height: 80px;
+              border-radius: 50%;
+              background: rgba(255,255,255,0.3);
+              margin: 0 auto 15px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 32px;
+              font-weight: bold;
+            }
+            .name { font-size: 24px; font-weight: 600; margin-bottom: 5px; }
+            .title { font-size: 16px; opacity: 0.9; margin-bottom: 5px; }
+            .company { font-size: 14px; opacity: 0.8; }
+            .content { padding: 25px 20px; }
+            .contact-item {
+              display: flex;
+              align-items: center;
+              padding: 12px 0;
+              border-bottom: 1px solid #f0f0f0;
+            }
+            .contact-item:last-child { border-bottom: none; }
+            .contact-icon {
+              width: 20px;
+              height: 20px;
+              margin-right: 15px;
+              opacity: 0.7;
+            }
+            .contact-text {
+              flex: 1;
+              font-size: 14px;
+              color: #333;
+            }
+            .contact-link {
+              color: #667eea;
+              text-decoration: none;
+            }
+            .description {
+              margin-top: 20px;
+              padding-top: 20px;
+              border-top: 1px solid #f0f0f0;
+              font-size: 14px;
+              line-height: 1.5;
+              color: #666;
+            }
+            .save-button {
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              color: white;
+              border: none;
+              padding: 15px 30px;
+              border-radius: 25px;
+              font-size: 16px;
+              font-weight: 600;
+              cursor: pointer;
+              width: 100%;
+              margin: 20px 0;
+              transition: transform 0.2s;
+            }
+            .save-button:hover {
+              transform: translateY(-2px);
+            }
+            .save-button:active {
+              transform: translateY(0);
+            }
+            .footer {
+              text-align: center;
+              padding: 20px;
+              color: #999;
+              font-size: 12px;
+            }
           </style>
         </head>
         <body>
-          <div class="card">
-            <div class="name">${businessCard?.fullName || user?.displayName || 'Name not available'}</div>
-            <div class="title">${businessCard?.jobTitle || 'Position not available'}</div>
-            <div class="company">${businessCard?.companyName || 'Company not available'}</div>
-            ${businessCard?.email ? `<div class="contact-info">📧 ${businessCard.email}</div>` : ''}
-            ${businessCard?.phoneNumber ? `<div class="contact-info">📞 ${businessCard.phoneNumber}</div>` : ''}
-            ${businessCard?.website ? `<div class="contact-info">🌐 <a href="${businessCard.website}">${businessCard.website}</a></div>` : ''}
-            ${businessCard?.address ? `<div class="contact-info">📍 ${businessCard.address}</div>` : ''}
-            ${businessCard?.description ? `<div style="margin-top: 15px;">${businessCard.description}</div>` : ''}
+          <div class="container">
+            <div class="header">
+              <div class="avatar">${(businessCard?.fullName || user?.displayName || 'N')[0].toUpperCase()}</div>
+              <div class="name">${businessCard?.fullName || user?.displayName || '이름 없음'}</div>
+              <div class="title">${businessCard?.jobTitle || '직책 정보 없음'}</div>
+              <div class="company">${businessCard?.companyName || '회사 정보 없음'}</div>
+            </div>
+            
+            <div class="content">
+              ${businessCard?.email ? `
+                <div class="contact-item">
+                  <div class="contact-icon">📧</div>
+                  <div class="contact-text">
+                    <a href="mailto:${businessCard.email}" class="contact-link">${businessCard.email}</a>
+                  </div>
+                </div>
+              ` : ''}
+              
+              ${businessCard?.phoneNumber ? `
+                <div class="contact-item">
+                  <div class="contact-icon">📞</div>
+                  <div class="contact-text">
+                    <a href="tel:${businessCard.phoneNumber}" class="contact-link">${businessCard.phoneNumber}</a>
+                  </div>
+                </div>
+              ` : ''}
+              
+              ${businessCard?.website ? `
+                <div class="contact-item">
+                  <div class="contact-icon">🌐</div>
+                  <div class="contact-text">
+                    <a href="${businessCard.website}" target="_blank" class="contact-link">${businessCard.website}</a>
+                  </div>
+                </div>
+              ` : ''}
+              
+              ${businessCard?.address ? `
+                <div class="contact-item">
+                  <div class="contact-icon">📍</div>
+                  <div class="contact-text">${businessCard.address}</div>
+                </div>
+              ` : ''}
+              
+              ${businessCard?.description ? `
+                <div class="description">${businessCard.description}</div>
+              ` : ''}
+              
+              <button class="save-button" onclick="saveContact()">
+                📱 연락처에 저장하기
+              </button>
+            </div>
+            
+            <div class="footer">
+              Dovie Messenger - 디지털 명함
+            </div>
           </div>
+
+          <script>
+            function saveContact() {
+              const vcard = \`BEGIN:VCARD
+VERSION:3.0
+FN:${businessCard?.fullName || user?.displayName || ''}
+ORG:${businessCard?.companyName || ''}
+TITLE:${businessCard?.jobTitle || ''}
+EMAIL:${businessCard?.email || ''}
+TEL:${businessCard?.phoneNumber || ''}
+URL:${businessCard?.website || ''}
+ADR:;;${businessCard?.address || ''};;;;
+NOTE:${businessCard?.description || ''}
+END:VCARD\`;
+              
+              const blob = new Blob([vcard], { type: 'text/vcard' });
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = '${(businessCard?.fullName || user?.displayName || 'contact').replace(/[^a-zA-Z0-9가-힣]/g, '_')}.vcf';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              URL.revokeObjectURL(url);
+              
+              // Show success message
+              const button = document.querySelector('.save-button');
+              const originalText = button.innerHTML;
+              button.innerHTML = '✅ 연락처가 저장되었습니다!';
+              button.style.background = '#28a745';
+              setTimeout(() => {
+                button.innerHTML = originalText;
+                button.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+              }, 2000);
+            }
+          </script>
         </body>
         </html>
       `;

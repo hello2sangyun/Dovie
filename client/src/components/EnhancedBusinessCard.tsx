@@ -124,11 +124,35 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
       generateQRCode(data.shareUrl);
       navigator.clipboard.writeText(data.shareUrl);
       toast({
-        title: "공유 링크 생성",
-        description: "공유 링크가 클립보드에 복사되었습니다.",
+        title: "공유 링크 생성 및 복사 완료",
+        description: "링크가 자동으로 클립보드에 복사되었습니다.",
       });
     },
   });
+
+  // Generate vCard for contact download
+  const generateVCard = () => {
+    const card = (businessCard as any)?.businessCard || formData;
+    const vcard = `BEGIN:VCARD
+VERSION:3.0
+FN:${card.fullName || ''}
+ORG:${card.companyName || ''}
+TITLE:${card.jobTitle || ''}
+EMAIL:${card.email || ''}
+TEL:${card.phoneNumber || ''}
+URL:${card.website || ''}
+ADR:;;${card.address || ''};;;;
+NOTE:${card.description || ''}
+END:VCARD`;
+    
+    const blob = new Blob([vcard], { type: 'text/vcard' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${card.fullName || 'contact'}.vcf`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   // Handle photo upload
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -605,6 +629,29 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
                         </div>
                       </div>
                     )}
+
+                    {/* Quick Share Actions */}
+                    <div className="space-y-2">
+                      <Button
+                        onClick={() => {
+                          navigator.clipboard.writeText((shareData as any).shareUrl);
+                          toast({ title: "링크 복사 완료", description: "명함 링크가 클립보드에 복사되었습니다." });
+                        }}
+                        className="w-full h-10 text-sm"
+                      >
+                        <Share2 className="w-4 h-4 mr-2" />
+                        링크 공유하기
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        onClick={generateVCard}
+                        className="w-full h-10 text-sm"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        연락처 다운로드 (vCard)
+                      </Button>
+                    </div>
 
                     {/* Compact Share Stats */}
                     <div className="grid grid-cols-2 gap-2 pt-2 border-t">
