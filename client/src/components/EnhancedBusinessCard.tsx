@@ -361,7 +361,10 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
                 {/* Enhanced Profile Photo Upload */}
                 <div className="flex flex-col items-center space-y-3">
                   <div className="relative">
-                    <Avatar className="w-20 h-20 border-4 border-white shadow-lg">
+                    <Avatar 
+                      className="w-20 h-20 border-4 border-white shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
                       <AvatarImage src={formData.profileImageUrl} />
                       <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xl">
                         {(formData.fullName || "사용자")[0]}
@@ -383,12 +386,12 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/*"
-                    capture="environment"
+                    accept="image/*,image/heic,image/heif"
                     onChange={handlePhotoUpload}
                     className="hidden"
+                    multiple={false}
                   />
-                  <p className="text-sm text-gray-600 font-medium">사진을 클릭하여 변경</p>
+                  <p className="text-sm text-gray-600 font-medium">프로필 사진 선택</p>
                 </div>
 
                 {/* Optimized Form Fields */}
