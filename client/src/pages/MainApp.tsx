@@ -1197,11 +1197,7 @@ export default function MainApp() {
               <EnhancedBusinessCard />
             </div>
           )}
-          {activeMobileTab === "onepager" && (
-            <div className="h-full overflow-hidden">
-              <EnhancedBusinessCard />
-            </div>
-          )}
+
           {activeMobileTab === "explore" && (
             <div className="h-full bg-gradient-to-br from-blue-50 to-indigo-50 overflow-y-auto">
               <div className="p-6 space-y-6">
@@ -1396,10 +1392,9 @@ export default function MainApp() {
               
               {/* Enhanced floating tooltip - Always visible for mobile */}
               <div className="absolute bottom-20 -left-16 bg-blue-600/95 text-white text-sm px-4 py-2 rounded-xl whitespace-nowrap shadow-xl backdrop-blur-sm border border-white/20 font-medium">
-                {activeMobileTab === "onepager" ? "📸 명함 스캔" 
-                 : activeMobileTab === "chats" ? "👥 그룹 생성"
+                {activeMobileTab === "chats" ? "👥 그룹 생성"
                  : activeMobileTab === "contacts" ? "📇 연락처 추가"
-                 : "📄 One Pager"}
+                 : "📸 명함 스캔"}
                 <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-blue-600/95"></div>
               </div>
             </div>

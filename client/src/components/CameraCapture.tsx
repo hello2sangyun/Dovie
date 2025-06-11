@@ -4,7 +4,7 @@ import { Camera, X, RotateCcw, Check, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface CameraCaptureProps {
-  onCapture: (file: File) => void;
+  onCapture: (file: File) => void | Promise<void>;
   onClose: () => void;
   isOpen: boolean;
 }
