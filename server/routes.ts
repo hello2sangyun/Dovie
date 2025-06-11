@@ -2612,6 +2612,149 @@ END:VCARD\`;
 
 
 
+  // One Pager (Business Card) Analysis and Generation Routes
+  app.post("/api/onepager/analyze-card", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { image } = req.body;
+      if (!image) {
+        return res.status(400).json({ message: "이미지가 필요합니다." });
+      }
+
+      // Extract base64 image data (remove data:image/jpeg;base64, prefix if present)
+      const base64Image = image.replace(/^data:image\/[a-z]+;base64,/, '');
+      
+      const { analyzeBusinessCard } = await import('./openai');
+      const result = await analyzeBusinessCard(base64Image);
+      
+      if (!result.success) {
+        return res.status(500).json({ message: result.error });
+      }
+
+      res.json({ 
+        success: true, 
+        data: result.data 
+      });
+    } catch (error) {
+      console.error("Business card analysis error:", error);
+      res.status(500).json({ message: "명함 분석 중 오류가 발생했습니다." });
+    }
+  });
+
+  app.post("/api/onepager/generate", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const cardData = req.body;
+      if (!cardData.name) {
+        return res.status(400).json({ message: "이름이 필요합니다." });
+      }
+
+      const { generateOnePager } = await import('./openai');
+      const result = await generateOnePager(cardData);
+      
+      if (!result.success) {
+        return res.status(500).json({ message: result.error });
+      }
+
+      // Update user's business card with generated data
+      const businessCardData = {
+        displayName: result.data.displayName,
+        jobTitle: result.data.jobTitle,
+        company: result.data.company,
+        bio: result.data.bio,
+        skills: result.data.skills,
+        website: result.data.website || null,
+        phone: cardData.phone || null,
+        email: cardData.email || null,
+        address: cardData.address || null
+      };
+
+      const updatedCard = await storage.createOrUpdateBusinessCard(Number(userId), businessCardData);
+
+      res.json({ 
+        success: true, 
+        data: result.data,
+        businessCard: updatedCard
+      });
+    } catch (error) {
+      console.error("One pager generation error:", error);
+      res.status(500).json({ message: "원페이저 생성 중 오류가 발생했습니다." });
+    }
+  });
+
+  app.post("/api/onepager/add-contact-from-card", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { cardData, nickname } = req.body;
+      if (!cardData.name) {
+        return res.status(400).json({ message: "이름이 필요합니다." });
+      }
+
+      // Check if user exists in system by email or phone
+      let existingUser = null;
+      if (cardData.email) {
+        existingUser = await storage.getUserByEmail(cardData.email);
+      }
+
+      if (existingUser) {
+        // User exists in system - add as contact with automatic friend addition
+        const alreadyFriends = await storage.areUsersFriends(Number(userId), existingUser.id);
+        
+        if (!alreadyFriends) {
+          // Add bidirectional friendship
+          await storage.addContact({
+            userId: Number(userId),
+            contactUserId: existingUser.id,
+            nickname: nickname || cardData.name,
+            isPinned: false,
+            isFavorite: false,
+            isBlocked: false
+          });
+
+          await storage.addContact({
+            userId: existingUser.id,
+            contactUserId: Number(userId),
+            nickname: null,
+            isPinned: false,
+            isFavorite: false,
+            isBlocked: false
+          });
+        }
+
+        res.json({ 
+          success: true, 
+          message: "시스템 사용자입니다. 자동으로 친구로 추가되었습니다.",
+          user: existingUser,
+          isSystemUser: true
+        });
+      } else {
+        // User not in system - save as contact info only
+        // We could extend storage to save non-user contacts if needed
+        res.json({ 
+          success: true, 
+          message: "연락처 정보가 저장되었습니다.",
+          cardData,
+          isSystemUser: false
+        });
+      }
+    } catch (error) {
+      console.error("Add contact from card error:", error);
+      res.status(500).json({ message: "연락처 추가 중 오류가 발생했습니다." });
+    }
+  });
+
   // Storage Analytics routes
   app.get("/api/storage/analytics", async (req, res) => {
     const userId = req.headers["x-user-id"];

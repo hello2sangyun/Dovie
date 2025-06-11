@@ -357,3 +357,167 @@ export async function transcribeAudio(filePath: string): Promise<{
     };
   }
 }
+
+// 명함 이미지 분석 및 정보 추출
+export async function analyzeBusinessCard(base64Image: string): Promise<{
+  success: boolean;
+  data?: {
+    name: string;
+    title?: string;
+    company?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    website?: string;
+    additionalInfo?: string;
+  };
+  error?: string;
+}> {
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: `당신은 명함 이미지를 분석하여 정보를 추출하는 전문가입니다. 
+          명함에서 다음 정보를 추출해주세요:
+          - 이름 (name)
+          - 직책/직위 (title)
+          - 회사명 (company)
+          - 이메일 (email)
+          - 전화번호 (phone)
+          - 주소 (address)
+          - 웹사이트 (website)
+          - 기타 정보 (additionalInfo)
+          
+          JSON 형태로 응답해주세요. 정보가 없는 경우 null로 표시하세요.`
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "이 명함 이미지에서 정보를 추출해주세요."
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:image/jpeg;base64,${base64Image}`
+              }
+            }
+          ]
+        }
+      ],
+      response_format: { type: "json_object" },
+      max_tokens: 1000
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || "{}");
+    
+    return {
+      success: true,
+      data: {
+        name: result.name || "",
+        title: result.title || null,
+        company: result.company || null,
+        email: result.email || null,
+        phone: result.phone || null,
+        address: result.address || null,
+        website: result.website || null,
+        additionalInfo: result.additionalInfo || null
+      }
+    };
+  } catch (error) {
+    console.error('Business card analysis failed:', error);
+    return {
+      success: false,
+      error: `명함 분석 실패: ${error.message}`
+    };
+  }
+}
+
+// 추출된 명함 정보로 원페이저 생성
+export async function generateOnePager(cardData: {
+  name: string;
+  title?: string;
+  company?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  website?: string;
+  additionalInfo?: string;
+}): Promise<{
+  success: boolean;
+  data?: {
+    displayName: string;
+    jobTitle: string;
+    company: string;
+    bio: string;
+    skills: string[];
+    website?: string;
+    socialLinks?: { platform: string; url: string }[];
+  };
+  error?: string;
+}> {
+  try {
+    const prompt = `다음 명함 정보를 바탕으로 전문적인 원페이저(디지털 명함) 정보를 생성해주세요:
+
+명함 정보:
+- 이름: ${cardData.name}
+- 직책: ${cardData.title || '정보 없음'}
+- 회사: ${cardData.company || '정보 없음'}
+- 이메일: ${cardData.email || '정보 없음'}
+- 전화번호: ${cardData.phone || '정보 없음'}
+- 주소: ${cardData.address || '정보 없음'}
+- 웹사이트: ${cardData.website || '정보 없음'}
+- 기타: ${cardData.additionalInfo || '정보 없음'}
+
+다음 형태로 생성해주세요:
+- displayName: 전문적인 표시명
+- jobTitle: 직책/직위 (정보가 없으면 직종 추정)
+- company: 회사명 (정보가 없으면 "개인사업자" 또는 업종 추정)
+- bio: 2-3문장의 전문적인 자기소개 (업무 경험과 전문성 강조)
+- skills: 직책과 업종에 맞는 핵심 기술/역량 5-7개
+- website: 웹사이트 URL (있는 경우만)
+- socialLinks: 소셜미디어 링크 배열 (추정 가능한 경우만)
+
+JSON 형태로 응답해주세요.`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: "당신은 전문적인 디지털 명함(원페이저) 생성 전문가입니다. 주어진 명함 정보를 바탕으로 매력적이고 전문적인 프로필을 생성합니다."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" },
+      max_tokens: 1500
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || "{}");
+    
+    return {
+      success: true,
+      data: {
+        displayName: result.displayName || cardData.name,
+        jobTitle: result.jobTitle || cardData.title || "전문가",
+        company: result.company || cardData.company || "개인사업자",
+        bio: result.bio || `${cardData.name}님은 전문적인 업무 경험을 보유한 전문가입니다.`,
+        skills: Array.isArray(result.skills) ? result.skills : ["전문성", "소통", "문제해결"],
+        website: result.website || cardData.website || undefined,
+        socialLinks: Array.isArray(result.socialLinks) ? result.socialLinks : undefined
+      }
+    };
+  } catch (error) {
+    console.error('One pager generation failed:', error);
+    return {
+      success: false,
+      error: `원페이저 생성 실패: ${error.message}`
+    };
+  }
+}

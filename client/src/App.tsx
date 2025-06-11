@@ -12,6 +12,7 @@ import PhoneLogin from "@/pages/PhoneLogin";
 import MainApp from "@/pages/MainApp";
 import AdminPage from "@/pages/AdminPage";
 import FriendProfilePage from "@/pages/FriendProfilePage";
+import CardScannerPage from "@/pages/CardScannerPage";
 import NotFound from "@/pages/not-found";
 import { useEffect } from "react";
 
@@ -26,6 +27,7 @@ function Router() {
       <Route path="/app" component={MainApp} />
       <Route path="/admin" component={AdminPage} />
       <Route path="/friend/:userId" component={FriendProfilePage} />
+      <Route path="/card-scanner" component={CardScannerPage} />
       <Route component={NotFound} />
     </Switch>
   );
