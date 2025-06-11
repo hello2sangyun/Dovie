@@ -559,11 +559,25 @@ END:VCARD`;
                 ) : (
                   <div className="text-center py-4">
                     <Building2 className="w-8 h-8 mx-auto text-gray-300 mb-2" />
-                    <h3 className="text-base font-semibold text-gray-500 mb-1">명함을 만들어보세요</h3>
-                    <p className="text-sm text-gray-400 mb-3">수동 생성 탭에서 명함 정보를 입력할 수 있습니다</p>
-                    <Button onClick={() => setActiveTab("create")} className="h-8 text-xs">
-                      명함 만들기
-                    </Button>
+                    <h3 className="text-base font-semibold text-gray-500 mb-1">One Pager를 만들어보세요</h3>
+                    <p className="text-sm text-gray-400 mb-3">카메라로 명함을 스캔하거나 수동으로 정보를 입력하세요</p>
+                    <div className="flex gap-2 justify-center">
+                      <Button 
+                        onClick={() => setShowCamera(true)} 
+                        className="h-8 text-xs bg-blue-600 hover:bg-blue-700"
+                        disabled={isUploading}
+                      >
+                        <Camera className="w-3 h-3 mr-1" />
+                        {isUploading ? "스캔 중..." : "명함 스캔"}
+                      </Button>
+                      <Button 
+                        onClick={() => setActiveTab("create")} 
+                        variant="outline"
+                        className="h-8 text-xs"
+                      >
+                        수동 생성
+                      </Button>
+                    </div>
                   </div>
                 )}
               </CardContent>
@@ -909,6 +923,13 @@ END:VCARD`;
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Camera Capture Component */}
+      <CameraCapture
+        isOpen={showCamera}
+        onCapture={handleCameraCapture}
+        onClose={() => setShowCamera(false)}
+      />
     </div>
   );
 }

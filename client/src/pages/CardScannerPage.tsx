@@ -119,7 +119,7 @@ export default function CardScannerPage() {
         setOnePagerData(result.data);
         setStep('complete');
         toast({
-          title: "원페이저 생성 완료",
+          title: "One Pager 생성 완료",
           description: "디지털 명함이 성공적으로 생성되었습니다."
         });
       } else {
@@ -129,7 +129,7 @@ export default function CardScannerPage() {
       console.error("OnePager generation error:", error);
       toast({
         title: "생성 실패",
-        description: "원페이저 생성 중 오류가 발생했습니다. 다시 시도해주세요.",
+        description: "One Pager 생성 중 오류가 발생했습니다. 다시 시도해주세요.",
         variant: "destructive"
       });
     } finally {
@@ -161,7 +161,7 @@ export default function CardScannerPage() {
             명함 스캐너
           </h1>
           <p className="text-gray-600 dark:text-gray-300">
-            종이 명함을 촬영하여 자동으로 디지털 원페이저를 생성하세요
+            종이 명함을 촬영하여 자동으로 디지털 One Pager를 생성하세요
           </p>
         </div>
 
