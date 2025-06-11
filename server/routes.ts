@@ -2666,12 +2666,12 @@ END:VCARD\`;
 
       // Update user's business card with generated data
       const businessCardData = {
-        displayName: result.data.displayName,
-        jobTitle: result.data.jobTitle,
-        company: result.data.company,
-        bio: result.data.bio,
-        skills: result.data.skills,
-        website: result.data.website || null,
+        displayName: result.data?.displayName || cardData.name,
+        jobTitle: result.data?.jobTitle || cardData.title || "전문가",
+        company: result.data?.company || cardData.company || "개인사업자",
+        bio: result.data?.bio || `${cardData.name}님의 전문적인 프로필입니다.`,
+        skills: result.data?.skills || ["전문성", "소통", "문제해결"],
+        website: result.data?.website || cardData.website || null,
         phone: cardData.phone || null,
         email: cardData.email || null,
         address: cardData.address || null

@@ -23,7 +23,7 @@ import LinkedInSpacePage from "@/pages/LinkedInSpacePage";
 import EnhancedBusinessCard from "@/components/EnhancedBusinessCard";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, Building2, Shield, UserX } from "lucide-react";
+import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, Building2, Shield, UserX, Camera, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function MainApp() {
@@ -320,6 +320,16 @@ export default function MainApp() {
                 <span className="text-xs truncate">채팅방</span>
               </TabsTrigger>
               <TabsTrigger 
+                value="onepager"
+                className={cn(
+                  "py-2 px-3 text-sm font-medium rounded-none border-b-2 border-transparent flex-col items-center gap-1 min-w-0",
+                  "data-[state=active]:border-purple-600 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-600"
+                )}
+              >
+                <CreditCard className="h-4 w-4" />
+                <span className="text-xs truncate">원페이저</span>
+              </TabsTrigger>
+              <TabsTrigger 
                 value="archive"
                 className={cn(
                   "py-2 px-3 text-sm font-medium rounded-none border-b-2 border-transparent flex-col items-center gap-1 min-w-0",
@@ -367,6 +377,96 @@ export default function MainApp() {
               
 
               
+              <TabsContent value="onepager" className="h-full m-0">
+                <div className="h-full overflow-y-auto pb-24">
+                  <div className="p-4">
+                    {/* 원페이저 헤더 */}
+                    <div className="mb-6">
+                      <h2 className="text-xl font-bold text-gray-900 mb-2">원페이저 (One Pager)</h2>
+                      <p className="text-gray-600 text-sm">디지털 명함을 관리하고 명함을 스캔하여 자동으로 생성하세요</p>
+                    </div>
+
+                    {/* 내 원페이저 */}
+                    <div 
+                      className="mb-6 bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
+                      onClick={() => setRightPanelContent("business-card")}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-semibold text-gray-900">내 원페이저</h3>
+                        <CreditCard className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <p className="text-sm text-gray-600 mb-3">나의 디지털 명함을 확인하고 편집하세요</p>
+                      <div className="flex items-center text-sm text-blue-600">
+                        <span>프로필 보기</span>
+                        <MessageCircle className="w-4 h-4 ml-1" />
+                      </div>
+                    </div>
+
+                    {/* 명함 스캐너 */}
+                    <div className="mb-6">
+                      <h4 className="text-sm font-medium text-gray-600 mb-3">명함 스캐너</h4>
+                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <h3 className="font-semibold text-gray-900">종이 명함 스캔</h3>
+                            <p className="text-sm text-gray-600">AI 기반 자동 인식 및 원페이저 생성</p>
+                          </div>
+                          <Camera className="w-8 h-8 text-blue-600" />
+                        </div>
+                        <Button 
+                          onClick={() => window.location.href = '/card-scanner'}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                          명함 스캔 시작
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* 기능 안내 */}
+                    <div className="mb-6">
+                      <h4 className="text-sm font-medium text-gray-600 mb-3">주요 기능</h4>
+                      <div className="space-y-3">
+                        <div className="bg-white rounded-lg p-3 border border-gray-200">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                              <Camera className="w-4 h-4 text-green-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm text-gray-900">자동 명함 인식</p>
+                              <p className="text-xs text-gray-500">ChatGPT 기반 정보 추출</p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-white rounded-lg p-3 border border-gray-200">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                              <Users className="w-4 h-4 text-blue-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm text-gray-900">자동 친구 추가</p>
+                              <p className="text-xs text-gray-500">시스템 사용자 자동 연결</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-white rounded-lg p-3 border border-gray-200">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                              <MessageSquare className="w-4 h-4 text-purple-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm text-gray-900">DM 메시징</p>
+                              <p className="text-xs text-gray-500">연결된 친구와 직접 소통</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+
               <TabsContent value="archive" className="h-full m-0">
                 <div className="h-full flex items-center justify-center text-gray-500">
                   <p>저장소 내용은 우측 패널에서 확인하세요</p>

@@ -427,11 +427,11 @@ export async function analyzeBusinessCard(base64Image: string): Promise<{
         additionalInfo: result.additionalInfo || null
       }
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Business card analysis failed:', error);
     return {
       success: false,
-      error: `명함 분석 실패: ${error.message}`
+      error: `명함 분석 실패: ${error?.message || 'Unknown error'}`
     };
   }
 }
@@ -513,11 +513,11 @@ JSON 형태로 응답해주세요.`;
         socialLinks: Array.isArray(result.socialLinks) ? result.socialLinks : undefined
       }
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('One pager generation failed:', error);
     return {
       success: false,
-      error: `원페이저 생성 실패: ${error.message}`
+      error: `원페이저 생성 실패: ${error?.message || 'Unknown error'}`
     };
   }
 }

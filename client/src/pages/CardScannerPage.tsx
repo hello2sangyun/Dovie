@@ -66,21 +66,26 @@ export default function CardScannerPage() {
 
     setIsAnalyzing(true);
     try {
-      const response = await apiRequest("/api/onepager/analyze-card", {
+      const response = await fetch("/api/onepager/analyze-card", {
         method: "POST",
         body: JSON.stringify({ image: selectedImage }),
-        headers: { "Content-Type": "application/json" }
+        headers: { 
+          "Content-Type": "application/json",
+          "x-user-id": localStorage.getItem("userId") || ""
+        }
       });
 
-      if (response.success) {
-        setCardData(response.data);
+      const result = await response.json();
+
+      if (result.success) {
+        setCardData(result.data);
         setStep('edit');
         toast({
           title: "명함 분석 완료",
           description: "명함 정보가 성공적으로 추출되었습니다."
         });
       } else {
-        throw new Error(response.message || "분석 실패");
+        throw new Error(result.message || "분석 실패");
       }
     } catch (error) {
       console.error("Card analysis error:", error);
@@ -99,21 +104,26 @@ export default function CardScannerPage() {
 
     setIsGenerating(true);
     try {
-      const response = await apiRequest("/api/onepager/generate", {
+      const response = await fetch("/api/onepager/generate", {
         method: "POST",
         body: JSON.stringify(cardData),
-        headers: { "Content-Type": "application/json" }
+        headers: { 
+          "Content-Type": "application/json",
+          "x-user-id": localStorage.getItem("userId") || ""
+        }
       });
 
-      if (response.success) {
-        setOnePagerData(response.data);
+      const result = await response.json();
+
+      if (result.success) {
+        setOnePagerData(result.data);
         setStep('complete');
         toast({
           title: "원페이저 생성 완료",
           description: "디지털 명함이 성공적으로 생성되었습니다."
         });
       } else {
-        throw new Error(response.message || "생성 실패");
+        throw new Error(result.message || "생성 실패");
       }
     } catch (error) {
       console.error("OnePager generation error:", error);
