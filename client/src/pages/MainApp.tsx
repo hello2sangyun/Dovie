@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, Building2, Shield, UserX, Camera, CreditCard, Menu, User, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
+import CameraCapture from "@/components/CameraCapture";
 
 export default function MainApp() {
   const { user } = useAuth();
@@ -46,7 +47,101 @@ export default function MainApp() {
   const [messageDataForCommand, setMessageDataForCommand] = useState<any>(null);
   const [contactFilter, setContactFilter] = useState<number | null>(null);
   const [friendFilter, setFriendFilter] = useState<number | null>(null);
+  const [showCamera, setShowCamera] = useState(false);
   const { addToPreloadQueue } = useImagePreloader();
+
+  // Add contact mutation for business card scanning
+  const addContactMutation = useMutation({
+    mutationFn: (contactData: any) => 
+      apiRequest("/api/contacts", "POST", contactData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
+      toast({
+        title: "연락처 추가 완료",
+        description: "명함에서 추출한 정보로 연락처가 추가되었습니다.",
+      });
+    },
+    onError: (error) => {
+      console.error("Add contact error:", error);
+      toast({
+        variant: "destructive",
+        title: "연락처 추가 실패",
+        description: "연락처 추가 중 오류가 발생했습니다.",
+      });
+    },
+  });
+
+  // Handle camera capture for business card scanning
+  const handleCameraCapture = async (file: File) => {
+    try {
+      console.log('Starting business card analysis...', file.name, file.size);
+      
+      toast({
+        title: "명함 분석 중",
+        description: "AI가 명함 정보를 추출하고 있습니다...",
+      });
+      
+      // Create FormData and upload image
+      const formData = new FormData();
+      formData.append('image', file);
+
+      console.log('Sending request to /api/business-cards/analyze');
+      
+      const response = await fetch('/api/business-cards/analyze', {
+        method: 'POST',
+        headers: {
+          'x-user-id': localStorage.getItem('userId') || user?.id?.toString() || '',
+        },
+        body: formData,
+      });
+
+      console.log('Response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Response error:', errorText);
+        throw new Error(`분석 실패: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Analysis result:', result);
+      
+      if (result.success && result.analysis) {
+        console.log('Auto-adding contact with:', result.analysis);
+        
+        // Create contact data from analysis
+        const contactData = {
+          name: result.analysis.name || "Unknown",
+          email: result.analysis.email || "",
+          phone: result.analysis.phone || "",
+          company: result.analysis.company || "",
+          jobTitle: result.analysis.title || "",
+          notes: `명함에서 추출: ${result.analysis.additionalInfo || ""}`,
+        };
+        
+        // Add to contacts automatically
+        addContactMutation.mutate(contactData);
+        
+        // Switch to contacts tab to show the new contact
+        setActiveMobileTab("contacts");
+        
+        toast({
+          title: "명함 스캔 완료",
+          description: `${result.analysis.name || '새 연락처'}가 친구 목록에 추가되었습니다.`,
+        });
+      } else {
+        console.error('Analysis failed or no data:', result);
+        throw new Error(result.error || '분석된 정보가 없습니다.');
+      }
+    } catch (error) {
+      console.error('Camera capture error:', error);
+      toast({
+        variant: "destructive",
+        title: "스캔 실패",
+        description: error instanceof Error ? error.message : "명함 스캔 중 오류가 발생했습니다.",
+      });
+    }
+  };
 
   useWebSocket(user?.id);
 
@@ -1360,21 +1455,16 @@ export default function MainApp() {
 
               <Button
                 variant="ghost"
-                className={cn(
-                  "flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-200",
-                  activeMobileTab === "onepager" 
-                    ? "text-blue-600 bg-blue-50 scale-105" 
-                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-                )}
-                onClick={() => setActiveMobileTab("onepager")}
+                className="flex flex-col items-center py-1 px-2 rounded-2xl transition-all duration-300 hover:scale-105 relative"
+                onClick={() => setShowCamera(true)}
               >
-                <div className={cn(
-                  "p-1 rounded-lg transition-colors",
-                  activeMobileTab === "onepager" ? "bg-blue-100" : ""
-                )}>
-                  <CreditCard className="h-5 w-5" />
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 border-4 border-white hover:from-blue-600 hover:to-purple-700 transform hover:scale-110">
+                  <Camera className="h-7 w-7 text-white" />
                 </div>
-                <span className="text-xs mt-1 font-medium">One Pager</span>
+                <span className="text-xs mt-1 font-bold text-blue-600">명함 스캔</span>
+                
+                {/* Pulse animation ring */}
+                <div className="absolute inset-0 rounded-full border-2 border-blue-400 opacity-0 animate-ping"></div>
               </Button>
               
               <Button
@@ -1435,6 +1525,13 @@ export default function MainApp() {
         open={modals.createGroup}
         onClose={closeModals}
         onSuccess={handleGroupChatSuccess}
+      />
+
+      {/* Camera for business card scanning */}
+      <CameraCapture
+        isOpen={showCamera}
+        onCapture={handleCameraCapture}
+        onClose={() => setShowCamera(false)}
       />
 
     </div>
