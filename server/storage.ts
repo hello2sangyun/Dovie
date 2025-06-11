@@ -26,6 +26,7 @@ export interface IStorage {
   getContacts(userId: number): Promise<(Contact & { contactUser: User })[]>;
   addContact(contact: InsertContact): Promise<Contact>;
   removeContact(userId: number, contactUserId: number): Promise<void>;
+  removeContactById(userId: number, contactId: number): Promise<void>;
   updateContact(userId: number, contactUserId: number, updates: Partial<InsertContact>): Promise<Contact | undefined>;
   blockContact(userId: number, contactUserId: number): Promise<void>;
   unblockContact(userId: number, contactUserId: number): Promise<void>;

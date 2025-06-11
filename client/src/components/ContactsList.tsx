@@ -92,8 +92,21 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
 
   // Delete contact mutation
   const deleteContactMutation = useMutation({
-    mutationFn: async (contactUserId: number) => {
-      const response = await apiRequest(`/api/contacts/${contactUserId}`, "DELETE");
+    mutationFn: async (identifier: number) => {
+      // Check if this is a contactUserId or contactId based on the contact being deleted
+      const contact = contactToDelete;
+      if (!contact) throw new Error("No contact to delete");
+      
+      let endpoint: string;
+      if (contact.contactUserId) {
+        // Registered user - use contactUserId
+        endpoint = `/api/contacts/${contact.contactUserId}`;
+      } else {
+        // External contact - use contact ID
+        endpoint = `/api/contacts/by-id/${contact.id}`;
+      }
+      
+      const response = await apiRequest(endpoint, "DELETE");
       return response.json();
     },
     onSuccess: () => {
@@ -169,8 +182,8 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
 
   const confirmDeleteContact = () => {
     if (contactToDelete) {
-      // 외부 연락처는 contact ID로, 등록된 사용자는 contactUserId로 삭제
-      deleteContactMutation.mutate(contactToDelete.contactUserId || contactToDelete.id);
+      // The mutation will handle the logic based on the contactToDelete state
+      deleteContactMutation.mutate(0); // Parameter not used in the new implementation
       setShowDeleteConfirm(false);
       setContactToDelete(null);
     }
