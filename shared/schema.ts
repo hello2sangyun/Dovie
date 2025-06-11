@@ -32,8 +32,15 @@ export const users = pgTable("users", {
 export const contacts = pgTable("contacts", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
-  contactUserId: integer("contact_user_id").references(() => users.id).notNull(),
+  contactUserId: integer("contact_user_id").references(() => users.id), // Made nullable for external contacts
   nickname: text("nickname"),
+  // External contact fields for business card scanning
+  name: text("name"), // Full name from business card
+  email: text("email"), // Email from business card
+  phone: text("phone"), // Phone number from business card
+  company: text("company"), // Company name from business card
+  jobTitle: text("job_title"), // Job title from business card
+  notes: text("notes"), // Additional notes
   isPinned: boolean("is_pinned").default(false),
   isFavorite: boolean("is_favorite").default(false),
   isBlocked: boolean("is_blocked").default(false),

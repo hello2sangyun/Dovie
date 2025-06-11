@@ -420,10 +420,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const { contactUsername, contactUserId, nickname } = req.body;
-      console.log("POST /api/contacts - Request body:", { contactUsername, contactUserId, nickname });
+      const { contactUsername, contactUserId, nickname, name, email, phone, company, jobTitle, notes } = req.body;
+      console.log("POST /api/contacts - Request body:", req.body);
       console.log("POST /api/contacts - User ID from header:", userId);
       
+      // Check if this is business card data (has name, email, etc.)
+      if (name || email || phone || company) {
+        console.log("Creating external contact from business card data");
+        
+        // Create external contact directly in the database
+        const contactData = insertContactSchema.parse({
+          userId: Number(userId),
+          contactUserId: null, // External contact, not a registered user
+          nickname: name || "Unknown Contact",
+          name: name,
+          email: email,
+          phone: phone,
+          company: company,
+          jobTitle: jobTitle,
+          notes: notes,
+        });
+
+        console.log("Creating external contact with data:", contactData);
+        const contact = await storage.addContact(contactData);
+        console.log("External contact created successfully:", contact);
+        return res.json({ contact });
+      }
+      
+      // Original logic for adding existing users
       let contactUser;
 
       // Support both username and userId for adding contacts
