@@ -3864,6 +3864,7 @@ END:VCARD\`;
           profilePicture: users.profilePicture,
           phoneNumber: users.phoneNumber,
           email: users.email,
+          bio: users.bio,
           isOnline: users.isOnline,
           lastSeen: users.lastSeen
         })
@@ -3878,6 +3879,27 @@ END:VCARD\`;
     } catch (error) {
       console.error("Error fetching user profile:", error);
       res.status(500).json({ message: "Failed to fetch user profile" });
+    }
+  });
+
+  // Get user business card data
+  app.get("/api/users/:userId/business-card", async (req, res) => {
+    const { userId } = req.params;
+    
+    try {
+      const [businessCard] = await db
+        .select()
+        .from(businessCards)
+        .where(eq(businessCards.userId, parseInt(userId)));
+
+      if (!businessCard) {
+        return res.status(404).json({ message: "Business card not found" });
+      }
+
+      res.json(businessCard);
+    } catch (error) {
+      console.error("Error fetching business card:", error);
+      res.status(500).json({ message: "Failed to fetch business card" });
     }
   });
 

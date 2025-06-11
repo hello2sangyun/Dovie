@@ -29,6 +29,7 @@ function Router() {
       <Route path="/admin" component={AdminPage} />
       <Route path="/friend/:userId" component={FriendProfilePage} />
       <Route path="/card-scanner" component={CardScannerPage} />
+      <Route path="/share/:userId" component={SharePage} />
       <Route component={NotFound} />
     </Switch>
   );

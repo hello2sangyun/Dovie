@@ -185,7 +185,7 @@ END:VCARD`;
             <div className="flex items-center space-x-4 mb-4">
               <OptimizedAvatar
                 src={userProfile.profilePicture}
-                fallback={userProfile.displayName}
+                alt={userProfile.displayName}
                 className="h-16 w-16 border-2 border-white"
               />
               <div>
