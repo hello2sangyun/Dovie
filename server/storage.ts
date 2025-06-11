@@ -1,7 +1,7 @@
 import { 
   users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications,
   locationChatRooms, locationChatParticipants, locationChatMessages, userLocations,
-  fileUploads, fileDownloads, businessCards, businessProfiles, userPosts, businessCardShares,
+  fileUploads, fileDownloads, businessCards, businessProfiles, userPosts, businessCardShares, nfcExchanges,
   type User, type InsertUser, type Contact, type InsertContact,
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
   type Command, type InsertCommand, type MessageRead, type InsertMessageRead,
@@ -9,7 +9,8 @@ import {
   type LocationChatRoom, type InsertLocationChatRoom,
   type FileUpload, type InsertFileUpload, type FileDownload, type InsertFileDownload,
   type BusinessCard, type InsertBusinessCard, type BusinessProfile, type InsertBusinessProfile,
-  type UserPost, type InsertUserPost, type BusinessCardShare, type InsertBusinessCardShare
+  type UserPost, type InsertUserPost, type BusinessCardShare, type InsertBusinessCardShare,
+  type NfcExchange, type InsertNfcExchange
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, or, count, gt, lt, sql, inArray } from "drizzle-orm";
@@ -106,6 +107,11 @@ export interface IStorage {
   // User posts operations
   getUserPosts(userId: number): Promise<UserPost[]>;
   createUserPost(userId: number, postData: Partial<InsertUserPost>): Promise<UserPost>;
+
+  // NFC exchange operations
+  createNfcExchange(initiatorUserId: number, exchangeToken: string): Promise<NfcExchange>;
+  completeNfcExchange(exchangeToken: string, recipientUserId: number): Promise<NfcExchange | undefined>;
+  processAutomaticFriendAdd(exchange: NfcExchange): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1291,6 +1297,108 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
     
     return contact.length > 0;
+  }
+
+  // NFC exchange operations
+  async createNfcExchange(initiatorUserId: number, exchangeToken: string): Promise<NfcExchange> {
+    const initiatorBusinessCard = await this.getBusinessCard(initiatorUserId);
+    
+    const [exchange] = await db
+      .insert(nfcExchanges)
+      .values({
+        initiatorUserId,
+        recipientUserId: 0, // Will be set when completed
+        exchangeToken,
+        status: "pending",
+        initiatorBusinessCardId: initiatorBusinessCard?.id,
+        isAutomaticFriendAdd: true
+      })
+      .returning();
+    
+    return exchange;
+  }
+
+  async completeNfcExchange(exchangeToken: string, recipientUserId: number): Promise<NfcExchange | undefined> {
+    // Find the pending exchange
+    const [exchange] = await db
+      .select()
+      .from(nfcExchanges)
+      .where(and(
+        eq(nfcExchanges.exchangeToken, exchangeToken),
+        eq(nfcExchanges.status, "pending")
+      ))
+      .limit(1);
+
+    if (!exchange) {
+      return undefined;
+    }
+
+    // Prevent self-exchange
+    if (exchange.initiatorUserId === recipientUserId) {
+      await db
+        .update(nfcExchanges)
+        .set({ 
+          status: "failed",
+          completedAt: new Date()
+        })
+        .where(eq(nfcExchanges.id, exchange.id));
+      return undefined;
+    }
+
+    const recipientBusinessCard = await this.getBusinessCard(recipientUserId);
+
+    // Complete the exchange
+    const [completedExchange] = await db
+      .update(nfcExchanges)
+      .set({
+        recipientUserId,
+        recipientBusinessCardId: recipientBusinessCard?.id,
+        status: "completed",
+        completedAt: new Date()
+      })
+      .where(eq(nfcExchanges.id, exchange.id))
+      .returning();
+
+    // Process automatic friend addition
+    if (completedExchange.isAutomaticFriendAdd) {
+      await this.processAutomaticFriendAdd(completedExchange);
+    }
+
+    return completedExchange;
+  }
+
+  async processAutomaticFriendAdd(exchange: NfcExchange): Promise<void> {
+    const { initiatorUserId, recipientUserId } = exchange;
+    
+    if (!recipientUserId) return;
+
+    // Check if they're already friends
+    const alreadyFriends = await this.areUsersFriends(initiatorUserId, recipientUserId);
+    
+    if (!alreadyFriends) {
+      // Add bidirectional friendship
+      await Promise.all([
+        // Initiator adds recipient as contact
+        db.insert(contacts).values({
+          userId: initiatorUserId,
+          contactUserId: recipientUserId,
+          nickname: null,
+          isPinned: false,
+          isFavorite: false,
+          isBlocked: false
+        }).onConflictDoNothing(),
+        
+        // Recipient adds initiator as contact
+        db.insert(contacts).values({
+          userId: recipientUserId,
+          contactUserId: initiatorUserId,
+          nickname: null,
+          isPinned: false,
+          isFavorite: false,
+          isBlocked: false
+        }).onConflictDoNothing()
+      ]);
+    }
   }
 }
 

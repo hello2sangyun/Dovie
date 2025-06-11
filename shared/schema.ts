@@ -318,6 +318,20 @@ export const businessPostComments = pgTable("business_post_comments", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// NFC 교환 기록 테이블
+export const nfcExchanges = pgTable("nfc_exchanges", {
+  id: serial("id").primaryKey(),
+  initiatorUserId: integer("initiator_user_id").references(() => users.id).notNull(),
+  recipientUserId: integer("recipient_user_id").references(() => users.id).notNull(),
+  exchangeToken: text("exchange_token").notNull().unique(),
+  status: text("status").default("pending"), // pending, completed, failed
+  initiatorBusinessCardId: integer("initiator_business_card_id").references(() => businessCards.id),
+  recipientBusinessCardId: integer("recipient_business_card_id").references(() => businessCards.id),
+  isAutomaticFriendAdd: boolean("is_automatic_friend_add").default(true),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // 비즈니스 포스트 읽음 상태 테이블
 export const businessPostReads = pgTable("business_post_reads", {
   id: serial("id").primaryKey(),
@@ -825,6 +839,11 @@ export const insertCompanyProfileSchema = createInsertSchema(companyProfiles).om
   updatedAt: true,
 });
 
+export const insertNfcExchangeSchema = createInsertSchema(nfcExchanges).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Contact = typeof contacts.$inferSelect;
@@ -868,3 +887,5 @@ export type PostComment = typeof postComments.$inferSelect;
 export type InsertPostComment = z.infer<typeof insertPostCommentSchema>;
 export type CompanyProfile = typeof companyProfiles.$inferSelect;
 export type InsertCompanyProfile = z.infer<typeof insertCompanyProfileSchema>;
+export type NfcExchange = typeof nfcExchanges.$inferSelect;
+export type InsertNfcExchange = z.infer<typeof insertNfcExchangeSchema>;
