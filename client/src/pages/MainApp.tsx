@@ -1318,44 +1318,44 @@ export default function MainApp() {
               <Button
                 variant="ghost"
                 className={cn(
-                  "flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-200",
+                  "flex flex-col items-center py-3 px-4 rounded-xl transition-all duration-200 min-h-[56px] min-w-[64px]",
                   activeMobileTab === "contacts" 
-                    ? "text-blue-600 bg-blue-50 scale-105" 
-                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                    ? "text-blue-600 bg-blue-100 scale-110 shadow-lg" 
+                    : "text-gray-600 hover:text-gray-800 hover:bg-gray-100"
                 )}
                 onClick={() => setActiveMobileTab("contacts")}
               >
                 <div className={cn(
-                  "p-1 rounded-lg transition-colors",
-                  activeMobileTab === "contacts" ? "bg-blue-100" : ""
+                  "p-2 rounded-lg transition-colors",
+                  activeMobileTab === "contacts" ? "bg-blue-200" : ""
                 )}>
-                  <BookUser className="h-5 w-5" />
+                  <BookUser className="h-6 w-6" />
                 </div>
-                <span className="text-xs mt-1 font-medium">연락처</span>
+                <span className="text-xs mt-1 font-semibold">연락처</span>
               </Button>
               
               <Button
                 variant="ghost"
                 className={cn(
-                  "flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-200 relative",
+                  "flex flex-col items-center py-3 px-4 rounded-xl transition-all duration-200 relative min-h-[56px] min-w-[64px]",
                   activeMobileTab === "chats" 
-                    ? "text-blue-600 bg-blue-50 scale-105" 
-                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                    ? "text-blue-600 bg-blue-100 scale-110 shadow-lg" 
+                    : "text-gray-600 hover:text-gray-800 hover:bg-gray-100"
                 )}
                 onClick={() => setActiveMobileTab("chats")}
               >
                 <div className={cn(
-                  "p-1 rounded-lg transition-colors relative",
-                  activeMobileTab === "chats" ? "bg-blue-100" : ""
+                  "p-2 rounded-lg transition-colors relative",
+                  activeMobileTab === "chats" ? "bg-blue-200" : ""
                 )}>
-                  <MessageCircle className="h-5 w-5" />
+                  <MessageCircle className="h-6 w-6" />
                   {totalChatUnread > 0 && (
-                    <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-bold shadow-lg animate-pulse">
+                    <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-[20px] flex items-center justify-center font-bold shadow-lg animate-pulse">
                       {totalChatUnread > 9 ? '9+' : totalChatUnread}
                     </div>
                   )}
                 </div>
-                <span className="text-xs mt-1 font-medium">메시지</span>
+                <span className="text-xs mt-1 font-semibold">메시지</span>
               </Button>
 
               <Button
