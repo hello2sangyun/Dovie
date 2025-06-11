@@ -784,26 +784,24 @@ END:VCARD`;
                       </Button>
 
                       {/* NFC Share Button */}
-                      {isNfcSupported && (
-                        <Button
-                          onClick={isNfcSharing ? stopNfcSharing : shareViaUNFC}
-                          variant={isNfcSharing ? "destructive" : "default"}
-                          className="w-full h-10 text-sm"
-                          disabled={!shareData || !(shareData as any).shareUrl}
-                        >
-                          {isNfcSharing ? (
-                            <>
-                              <X className="w-4 h-4 mr-2" />
-                              NFC 공유 중지
-                            </>
-                          ) : (
-                            <>
-                              <Smartphone className="w-4 h-4 mr-2" />
-                              핸드폰 대고 공유하기
-                            </>
-                          )}
-                        </Button>
-                      )}
+                      <Button
+                        onClick={isNfcSharing ? stopNfcSharing : shareViaUNFC}
+                        variant={isNfcSharing ? "destructive" : "default"}
+                        className="w-full h-10 text-sm"
+                        disabled={!shareData || !(shareData as any).shareUrl}
+                      >
+                        {isNfcSharing ? (
+                          <>
+                            <X className="w-4 h-4 mr-2" />
+                            NFC 공유 중지
+                          </>
+                        ) : (
+                          <>
+                            <Smartphone className="w-4 h-4 mr-2" />
+                            핸드폰 대고 공유하기
+                          </>
+                        )}
+                      </Button>
 
                       {/* NFC Status Indicator */}
                       {isNfcSharing && (
