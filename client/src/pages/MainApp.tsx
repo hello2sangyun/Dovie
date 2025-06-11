@@ -1101,6 +1101,11 @@ export default function MainApp() {
               <EnhancedBusinessCard />
             </div>
           )}
+          {activeMobileTab === "onepager" && (
+            <div className="h-full overflow-hidden">
+              <EnhancedBusinessCard />
+            </div>
+          )}
           {activeMobileTab === "settings" && (
             <ModernSettingsPage isMobile={true} />
           )}
@@ -1140,6 +1145,17 @@ export default function MainApp() {
                 <span className="text-xs mt-0.5">채팅방</span>
               </Button>
 
+              <Button
+                variant="ghost"
+                className={cn(
+                  "flex flex-col items-center py-1 px-2",
+                  activeMobileTab === "onepager" ? "text-purple-600" : "text-gray-400"
+                )}
+                onClick={() => setActiveMobileTab("onepager")}
+              >
+                <CreditCard className="h-4 w-4" />
+                <span className="text-xs mt-0.5">원페이저</span>
+              </Button>
               <Button
                 variant="ghost"
                 className={cn(
