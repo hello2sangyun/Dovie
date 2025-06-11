@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Plus, Search, Star, MoreVertical, UserX, Trash2, Shield } from "lucide-react";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
+import QuickShareQR from "@/components/QuickShareQR";
 
 interface ContactsListProps {
   onAddContact: () => void;
@@ -266,14 +267,17 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       <div className="p-3 border-b border-gray-200">
         <div className="flex items-center justify-between mb-2">
           <h3 className="font-semibold text-gray-900 text-sm">연락처</h3>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-purple-600 hover:text-purple-700 h-7 w-7 p-0"
-            onClick={onAddContact}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center space-x-1">
+            <QuickShareQR trigger="icon" size="sm" className="h-7 w-7" />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-purple-600 hover:text-purple-700 h-7 w-7 p-0"
+              onClick={onAddContact}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
         
         <div className="relative mb-2">

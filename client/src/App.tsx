@@ -13,6 +13,7 @@ import MainApp from "@/pages/MainApp";
 import AdminPage from "@/pages/AdminPage";
 import FriendProfilePage from "@/pages/FriendProfilePage";
 import CardScannerPage from "@/pages/CardScannerPage";
+import SharePage from "@/pages/SharePage";
 import NotFound from "@/pages/not-found";
 import { useEffect } from "react";
 
