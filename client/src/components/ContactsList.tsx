@@ -266,7 +266,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     <div className="h-full flex flex-col">
       <div className="p-3 border-b border-gray-200">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold text-gray-900 text-sm">연락처</h3>
+          <h3 className="font-semibold text-gray-900 text-sm">Cabinet</h3>
           <div className="flex items-center space-x-1">
             <QuickShareQR trigger="icon" size="sm" className="h-7 w-7" />
             <Button
@@ -307,7 +307,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       {favoriteContacts.length > 0 && (
         <div className="px-3 py-2 border-b border-gray-100">
           <div className="flex items-center space-x-2 mb-2">
-            <h4 className="text-xs font-medium text-gray-600">즐겨찾기</h4>
+            <h4 className="text-xs font-medium text-gray-600">즐겨찾기 One Pager</h4>
           </div>
           <div className="flex space-x-3 overflow-x-auto scrollbar-none pb-1">
             {favoriteContacts.map((contact: any) => {

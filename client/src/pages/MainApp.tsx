@@ -380,8 +380,12 @@ export default function MainApp() {
           {/* Navigation Tabs */}
           <Tabs value={activeTab} onValueChange={(value) => {
             setActiveTab(value);
-            if (value === "archive" || value === "settings") {
+            if (value === "archive") {
               setRightPanelContent(value);
+              setSelectedChatRoom(null);
+            } else if (value === "settings") {
+              // Go directly to advanced settings
+              setRightPanelContent("settings");
               setSelectedChatRoom(null);
             } else {
               setRightPanelContent(null);
@@ -1202,61 +1206,49 @@ export default function MainApp() {
             <div className="h-full bg-gradient-to-br from-blue-50 to-indigo-50 overflow-y-auto">
               <div className="p-6 space-y-6">
                 <div className="text-center">
-                  <h1 className="text-2xl font-bold text-gray-900 mb-2">탐색</h1>
-                  <p className="text-gray-600">새로운 연결과 기회를 발견하세요</p>
+                  <h1 className="text-2xl font-bold text-gray-900 mb-2">Folder</h1>
+                  <p className="text-gray-600">채팅방에 업로드한 모든 자료를 확인하세요</p>
                 </div>
 
-                {/* Quick Actions */}
+                {/* File Categories */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div 
-                    className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer"
-                    onClick={() => setModals({ ...modals, addContact: true })}
-                  >
+                  <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
                     <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-3">
-                      <BookUser className="w-6 h-6 text-white" />
+                      <Archive className="w-6 h-6 text-white" />
                     </div>
-                    <h3 className="font-semibold text-gray-900 mb-1">연락처 추가</h3>
-                    <p className="text-sm text-gray-500">새로운 전문가와 연결</p>
+                    <h3 className="font-semibold text-gray-900 mb-1">문서</h3>
+                    <p className="text-sm text-gray-500">PDF, DOC, PPT 파일</p>
                   </div>
 
-                  <div 
-                    className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer"
-                    onClick={() => setActiveMobileTab("onepager")}
-                  >
+                  <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
                     <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-3">
-                      <CreditCard className="w-6 h-6 text-white" />
+                      <Camera className="w-6 h-6 text-white" />
                     </div>
-                    <h3 className="font-semibold text-gray-900 mb-1">명함 스캔</h3>
-                    <p className="text-sm text-gray-500">AI로 One Pager 생성</p>
+                    <h3 className="font-semibold text-gray-900 mb-1">이미지</h3>
+                    <p className="text-sm text-gray-500">사진, 스크린샷</p>
                   </div>
 
-                  <div 
-                    className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer"
-                    onClick={() => setModals({ ...modals, createGroup: true })}
-                  >
+                  <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
                     <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-3">
-                      <Users className="w-6 h-6 text-white" />
+                      <MessageCircle className="w-6 h-6 text-white" />
                     </div>
-                    <h3 className="font-semibold text-gray-900 mb-1">그룹 채팅</h3>
-                    <p className="text-sm text-gray-500">팀 채팅 생성</p>
+                    <h3 className="font-semibold text-gray-900 mb-1">음성</h3>
+                    <p className="text-sm text-gray-500">보이스 메시지</p>
                   </div>
 
-                  <div 
-                    className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer"
-                    onClick={() => setRightPanelContent("linkedin-space")}
-                  >
+                  <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
                     <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mb-3">
-                      <Building2 className="w-6 h-6 text-white" />
+                      <Search className="w-6 h-6 text-white" />
                     </div>
-                    <h3 className="font-semibold text-gray-900 mb-1">비즈니스</h3>
-                    <p className="text-sm text-gray-500">업계 동향</p>
+                    <h3 className="font-semibold text-gray-900 mb-1">기타</h3>
+                    <p className="text-sm text-gray-500">모든 파일 유형</p>
                   </div>
                 </div>
 
-                {/* Archive Section */}
+                {/* Uploaded Files List */}
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">저장된 콘텐츠</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">업로드된 파일</h3>
                     <Archive className="w-5 h-5 text-gray-400" />
                   </div>
                   <ArchiveList />
@@ -1266,88 +1258,7 @@ export default function MainApp() {
           )}
           
           {activeMobileTab === "more" && (
-            <div className="h-full bg-gradient-to-br from-gray-50 to-gray-100 overflow-y-auto">
-              <div className="p-6 space-y-6">
-                <div className="text-center">
-                  <h1 className="text-2xl font-bold text-gray-900 mb-2">더보기</h1>
-                  <p className="text-gray-600">설정 및 추가 기능</p>
-                </div>
-
-                {/* Profile Section */}
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                  <div className="flex items-center space-x-4 mb-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
-                      <User className="w-8 h-8 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900">{user?.displayName}</h3>
-                      <p className="text-sm text-gray-500">@{user?.username}</p>
-                    </div>
-                  </div>
-                  <Button 
-                    className="w-full"
-                    onClick={() => setRightPanelContent("profile-edit")}
-                  >
-                    프로필 편집
-                  </Button>
-                </div>
-
-                {/* Settings Menu */}
-                <div className="space-y-3">
-                  <div 
-                    className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer flex items-center space-x-4"
-                    onClick={() => setRightPanelContent("notifications")}
-                  >
-                    <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center">
-                      <Bell className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900">알림 설정</h3>
-                      <p className="text-sm text-gray-500">푸시 알림 관리</p>
-                    </div>
-                  </div>
-
-                  <div 
-                    className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer flex items-center space-x-4"
-                    onClick={() => setRightPanelContent("security")}
-                  >
-                    <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
-                      <Shield className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900">보안 설정</h3>
-                      <p className="text-sm text-gray-500">비밀번호 및 보안</p>
-                    </div>
-                  </div>
-
-                  <div 
-                    className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer flex items-center space-x-4"
-                    onClick={() => setRightPanelContent("account")}
-                  >
-                    <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-pink-500 rounded-lg flex items-center justify-center">
-                      <UserX className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900">차단된 연락처</h3>
-                      <p className="text-sm text-gray-500">차단 관리</p>
-                    </div>
-                  </div>
-
-                  <div 
-                    className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer flex items-center space-x-4"
-                    onClick={() => setActiveMobileTab("settings")}
-                  >
-                    <div className="w-10 h-10 bg-gradient-to-br from-gray-500 to-gray-600 rounded-lg flex items-center justify-center">
-                      <Settings className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900">고급 설정</h3>
-                      <p className="text-sm text-gray-500">전체 설정 메뉴</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <ModernSettingsPage isMobile={true} />
           )}
 
           {activeMobileTab === "settings" && (
