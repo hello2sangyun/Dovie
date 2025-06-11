@@ -22,8 +22,16 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 const upload = multer({
-  dest: uploadDir,
-  limits: { fileSize: 500 * 1024 * 1024 }, // 500MB limit for videos
+  storage: multer.memoryStorage(), // Store files in memory for processing
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit for images
+  fileFilter: (req, file, cb) => {
+    // Accept only image files
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'), false);
+    }
+  }
 });
 
 // WebSocket connection management
@@ -579,6 +587,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating business card:", error);
       res.status(500).json({ message: "Failed to update business card" });
+    }
+  });
+
+  // Business card analysis endpoint
+  app.post("/api/business-cards/analyze", upload.single('image'), async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      if (!req.file) {
+        return res.status(400).json({ success: false, error: "이미지 파일이 필요합니다." });
+      }
+
+      console.log('Processing business card image analysis...');
+      
+      // Convert uploaded file to base64
+      const base64Image = req.file.buffer.toString('base64');
+      
+      // Analyze business card with OpenAI
+      const { analyzeBusinessCard } = await import('./openai');
+      const analysisResult = await analyzeBusinessCard(base64Image);
+      
+      if (analysisResult.success) {
+        console.log('Business card analysis completed:', analysisResult.data);
+        res.json({ 
+          success: true, 
+          analysis: analysisResult.data 
+        });
+      } else {
+        console.error('Business card analysis failed:', analysisResult.error);
+        res.status(500).json({ 
+          success: false, 
+          error: analysisResult.error 
+        });
+      }
+    } catch (error) {
+      console.error("Business card analysis error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "명함 분석 중 오류가 발생했습니다." 
+      });
     }
   });
 

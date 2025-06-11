@@ -277,31 +277,52 @@ END:VCARD`;
     try {
       setIsUploading(true);
       
+      toast({
+        title: "명함 분석 중",
+        description: "AI가 명함 정보를 추출하고 있습니다...",
+      });
+      
       // Create FormData and upload image
       const formData = new FormData();
       formData.append('image', file);
 
       const response = await fetch('/api/business-cards/analyze', {
         method: 'POST',
+        headers: {
+          'x-user-id': localStorage.getItem('userId') || '',
+        },
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error(`업로드 실패: ${response.status}`);
+        throw new Error(`분석 실패: ${response.status}`);
       }
 
       const result = await response.json();
       
-      if (result.success) {
+      if (result.success && result.analysis) {
+        // Auto-fill the form with analyzed data
+        setFormData(prev => ({
+          ...prev,
+          fullName: result.analysis.name || "",
+          companyName: result.analysis.company || "",
+          jobTitle: result.analysis.title || "",
+          email: result.analysis.email || "",
+          phoneNumber: result.analysis.phone || "",
+          website: result.analysis.website || "",
+          address: result.analysis.address || "",
+          description: result.analysis.additionalInfo || ""
+        }));
+        
+        // Switch to edit tab
+        setActiveTab("create");
+        
         toast({
           title: "명함 스캔 완료",
-          description: "AI가 명함을 분석했습니다. One Pager가 자동 생성됩니다.",
+          description: `${result.analysis.name || '정보'}가 추출되었습니다. 확인 후 저장하세요.`,
         });
-        
-        // Navigate to card scanner page with the analysis result
-        window.location.href = `/card-scanner?analysis=${encodeURIComponent(JSON.stringify(result.analysis))}`;
       } else {
-        throw new Error(result.error || '분석 실패');
+        throw new Error(result.error || '분석된 정보가 없습니다.');
       }
     } catch (error) {
       console.error('Camera capture error:', error);
