@@ -32,6 +32,7 @@ import {
   Wifi
 } from "lucide-react";
 import QRCode from "qrcode";
+import CameraCapture from "@/components/CameraCapture";
 
 interface EnhancedBusinessCardProps {
   onBack?: () => void;
@@ -49,6 +50,7 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
   const [isUploading, setIsUploading] = useState(false);
   const [isNfcSupported, setIsNfcSupported] = useState(false);
   const [isNfcSharing, setIsNfcSharing] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
 
   // Form data state
   const [formData, setFormData] = useState({
@@ -256,6 +258,50 @@ END:VCARD`;
       title: "NFC 공유 중지",
       description: "NFC 공유가 중지되었습니다.",
     });
+  };
+
+  // Handle camera capture for business card scanning
+  const handleCameraCapture = async (file: File) => {
+    try {
+      setIsUploading(true);
+      
+      // Create FormData and upload image
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch('/api/business-cards/analyze', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`업로드 실패: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        toast({
+          title: "명함 스캔 완료",
+          description: "AI가 명함을 분석했습니다. One Pager가 자동 생성됩니다.",
+        });
+        
+        // Navigate to card scanner page with the analysis result
+        window.location.href = `/card-scanner?analysis=${encodeURIComponent(JSON.stringify(result.analysis))}`;
+      } else {
+        throw new Error(result.error || '분석 실패');
+      }
+    } catch (error) {
+      console.error('Camera capture error:', error);
+      toast({
+        variant: "destructive",
+        title: "스캔 실패",
+        description: error instanceof Error ? error.message : "명함 스캔 중 오류가 발생했습니다.",
+      });
+    } finally {
+      setIsUploading(false);
+      setShowCamera(false);
+    }
   };
 
   // Crop image to square aspect ratio

@@ -1136,7 +1136,7 @@ export default function MainApp() {
                       <CreditCard className="w-6 h-6 text-white" />
                     </div>
                     <h3 className="font-semibold text-gray-900 mb-1">명함 스캔</h3>
-                    <p className="text-sm text-gray-500">AI 자동 인식</p>
+                    <p className="text-sm text-gray-500">AI로 One Pager 생성</p>
                   </div>
 
                   <div 
@@ -1298,7 +1298,7 @@ export default function MainApp() {
                 {activeMobileTab === "onepager" ? "명함 스캔" 
                  : activeMobileTab === "chats" ? "그룹 생성"
                  : activeMobileTab === "contacts" ? "연락처 추가"
-                 : "원페이저"}
+                 : "One Pager"}
               </div>
             </div>
           </div>
@@ -1367,7 +1367,7 @@ export default function MainApp() {
                 )}>
                   <CreditCard className="h-5 w-5" />
                 </div>
-                <span className="text-xs mt-1 font-medium">원페이저</span>
+                <span className="text-xs mt-1 font-medium">One Pager</span>
               </Button>
               
               <Button
