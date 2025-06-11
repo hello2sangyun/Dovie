@@ -97,6 +97,18 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
     }
   }, []);
 
+  // Listen for camera scan trigger from floating action button
+  useEffect(() => {
+    const handleCameraScanTrigger = () => {
+      setShowCamera(true);
+    };
+
+    window.addEventListener('triggerCameraScan', handleCameraScanTrigger);
+    return () => {
+      window.removeEventListener('triggerCameraScan', handleCameraScanTrigger);
+    };
+  }, []);
+
   // Fetch share info
   const { data: shareData } = useQuery({
     queryKey: ["/api/business-cards/share-info"]
@@ -559,23 +571,24 @@ END:VCARD`;
                 ) : (
                   <div className="text-center py-4">
                     <Building2 className="w-8 h-8 mx-auto text-gray-300 mb-2" />
-                    <h3 className="text-base font-semibold text-gray-500 mb-1">One Pager를 만들어보세요</h3>
-                    <p className="text-sm text-gray-400 mb-3">카메라로 명함을 스캔하거나 수동으로 정보를 입력하세요</p>
-                    <div className="flex gap-2 justify-center">
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">One Pager를 만들어보세요</h3>
+                    <p className="text-sm text-gray-500 mb-4">카메라로 명함을 스캔하거나 수동으로 정보를 입력하세요</p>
+                    <div className="flex flex-col gap-3 justify-center">
                       <Button 
                         onClick={() => setShowCamera(true)} 
-                        className="h-8 text-xs bg-blue-600 hover:bg-blue-700"
+                        className="h-12 text-sm bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200"
                         disabled={isUploading}
                       >
-                        <Camera className="w-3 h-3 mr-1" />
-                        {isUploading ? "스캔 중..." : "명함 스캔"}
+                        <Camera className="w-5 h-5 mr-2" />
+                        {isUploading ? "스캔 중..." : "📸 카메라로 명함 스캔"}
                       </Button>
                       <Button 
                         onClick={() => setActiveTab("create")} 
                         variant="outline"
-                        className="h-8 text-xs"
+                        className="h-12 text-sm border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50"
                       >
-                        수동 생성
+                        <Edit3 className="w-5 h-5 mr-2" />
+                        ✏️ 수동으로 정보 입력
                       </Button>
                     </div>
                   </div>
@@ -902,18 +915,23 @@ END:VCARD`;
                   <div className="text-center py-4">
                     <QrCode className="w-8 h-8 mx-auto text-gray-300 mb-2" />
                     <h3 className="text-base font-semibold text-gray-500 mb-1">공유 링크가 없습니다</h3>
-                    <p className="text-sm text-gray-400 mb-3">명함을 공유할 수 있는 링크를 생성해보세요</p>
+                    <p className="text-sm text-gray-500 mb-4">명함을 공유할 수 있는 링크를 생성해보세요</p>
                     <Button 
                       onClick={() => createShareLinkMutation.mutate()}
                       disabled={createShareLinkMutation.isPending}
-                      className="h-8 text-xs"
+                      className="h-12 text-sm bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all duration-200"
                     >
                       {createShareLinkMutation.isPending ? (
-                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                          링크 생성 중...
+                        </>
                       ) : (
-                        <Share2 className="w-3 h-3 mr-1" />
+                        <>
+                          <Share2 className="w-5 h-5 mr-2" />
+                          🔗 공유 링크 생성하기
+                        </>
                       )}
-                      공유 링크 생성
                     </Button>
                   </div>
                 )}

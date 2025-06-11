@@ -1264,15 +1264,21 @@ export default function MainApp() {
           )}
         </div>
 
-        {/* Floating Action Button - Mobile Only */}
+        {/* Enhanced Floating Action Button - Mobile Only */}
         {!showMobileChat && (
-          <div className="fixed bottom-20 right-4 z-40 lg:hidden">
+          <div className="fixed bottom-20 right-4 z-50 lg:hidden">
             <div className="relative">
               <Button
-                className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200 border-0"
+                className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-2xl hover:shadow-3xl transition-all duration-300 border-4 border-white/20 active:scale-95"
+                style={{
+                  boxShadow: '0 25px 50px -12px rgba(59, 130, 246, 0.5)',
+                  filter: 'drop-shadow(0 0 20px rgba(59, 130, 246, 0.3))'
+                }}
                 onClick={() => {
                   if (activeMobileTab === "onepager") {
-                    setModals({ ...modals, addContact: true });
+                    // 명함 스캔 기능 실행
+                    const event = new CustomEvent('triggerCameraScan');
+                    window.dispatchEvent(event);
                   } else if (activeMobileTab === "chats") {
                     setModals({ ...modals, createGroup: true });
                   } else if (activeMobileTab === "contacts") {
@@ -1283,22 +1289,23 @@ export default function MainApp() {
                 }}
               >
                 {activeMobileTab === "onepager" ? (
-                  <Camera className="w-6 h-6 text-white" />
+                  <Camera className="w-8 h-8 text-white drop-shadow-lg" />
                 ) : activeMobileTab === "chats" ? (
-                  <Users className="w-6 h-6 text-white" />
+                  <Users className="w-8 h-8 text-white drop-shadow-lg" />
                 ) : activeMobileTab === "contacts" ? (
-                  <BookUser className="w-6 h-6 text-white" />
+                  <BookUser className="w-8 h-8 text-white drop-shadow-lg" />
                 ) : (
-                  <CreditCard className="w-6 h-6 text-white" />
+                  <CreditCard className="w-8 h-8 text-white drop-shadow-lg" />
                 )}
               </Button>
               
-              {/* Floating tooltip */}
-              <div className="absolute bottom-16 right-0 bg-black/80 text-white text-xs px-2 py-1 rounded whitespace-nowrap opacity-0 pointer-events-none transition-opacity">
-                {activeMobileTab === "onepager" ? "명함 스캔" 
-                 : activeMobileTab === "chats" ? "그룹 생성"
-                 : activeMobileTab === "contacts" ? "연락처 추가"
-                 : "One Pager"}
+              {/* Enhanced floating tooltip - Always visible for mobile */}
+              <div className="absolute bottom-20 -left-16 bg-blue-600/95 text-white text-sm px-4 py-2 rounded-xl whitespace-nowrap shadow-xl backdrop-blur-sm border border-white/20 font-medium">
+                {activeMobileTab === "onepager" ? "📸 명함 스캔" 
+                 : activeMobileTab === "chats" ? "👥 그룹 생성"
+                 : activeMobileTab === "contacts" ? "📇 연락처 추가"
+                 : "📄 One Pager"}
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-blue-600/95"></div>
               </div>
             </div>
           </div>
