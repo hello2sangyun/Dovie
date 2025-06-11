@@ -396,7 +396,7 @@ export default function MainApp() {
                 )}
               >
                 <Users className="h-4 w-4" />
-                <span className="text-xs truncate">연락처</span>
+                <span className="text-xs truncate">Cabinet</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="chats"
@@ -413,7 +413,7 @@ export default function MainApp() {
                     </div>
                   )}
                 </div>
-                <span className="text-xs truncate">채팅방</span>
+                <span className="text-xs truncate">DM</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="onepager"
@@ -433,7 +433,7 @@ export default function MainApp() {
                 )}
               >
                 <Archive className="h-4 w-4" />
-                <span className="text-xs truncate">저장소</span>
+                <span className="text-xs truncate">Folder</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="settings"
@@ -443,7 +443,7 @@ export default function MainApp() {
                 )}
               >
                 <Settings className="h-4 w-4" />
-                <span className="text-xs truncate">설정</span>
+                <span className="text-xs truncate">Setting</span>
               </TabsTrigger>
             </TabsList>
 
@@ -1375,7 +1375,7 @@ export default function MainApp() {
                 )}>
                   <BookUser className="h-6 w-6" />
                 </div>
-                <span className="text-xs mt-1 font-semibold">연락처</span>
+                <span className="text-xs mt-1 font-semibold">Cabinet</span>
               </Button>
               
               <Button
@@ -1399,7 +1399,7 @@ export default function MainApp() {
                     </div>
                   )}
                 </div>
-                <span className="text-xs mt-1 font-semibold">메시지</span>
+                <span className="text-xs mt-1 font-semibold">DM</span>
               </Button>
 
               <Button
@@ -1432,7 +1432,7 @@ export default function MainApp() {
                 )}>
                   <Search className="h-5 w-5" />
                 </div>
-                <span className="text-xs mt-1 font-medium">탐색</span>
+                <span className="text-xs mt-1 font-medium">Folder</span>
               </Button>
               
               <Button
@@ -1451,7 +1451,7 @@ export default function MainApp() {
                 )}>
                   <Menu className="h-5 w-5" />
                 </div>
-                <span className="text-xs mt-1 font-medium">더보기</span>
+                <span className="text-xs mt-1 font-medium">Setting</span>
               </Button>
             </div>
           </div>
