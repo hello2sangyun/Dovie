@@ -277,6 +277,8 @@ END:VCARD`;
     try {
       setIsUploading(true);
       
+      console.log('Starting business card analysis...', file.name, file.size);
+      
       toast({
         title: "명함 분석 중",
         description: "AI가 명함 정보를 추출하고 있습니다...",
@@ -286,35 +288,48 @@ END:VCARD`;
       const formData = new FormData();
       formData.append('image', file);
 
+      console.log('Sending request to /api/business-cards/analyze');
+      
       const response = await fetch('/api/business-cards/analyze', {
         method: 'POST',
         headers: {
-          'x-user-id': localStorage.getItem('userId') || '',
+          'x-user-id': localStorage.getItem('userId') || user?.id?.toString() || '',
         },
         body: formData,
       });
 
+      console.log('Response status:', response.status);
+
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Response error:', errorText);
         throw new Error(`분석 실패: ${response.status}`);
       }
 
       const result = await response.json();
+      console.log('Analysis result:', result);
       
       if (result.success && result.analysis) {
+        console.log('Auto-filling form with:', result.analysis);
+        
         // Auto-fill the form with analyzed data
-        setFormData(prev => ({
-          ...prev,
+        const newFormData = {
           fullName: result.analysis.name || "",
           companyName: result.analysis.company || "",
           jobTitle: result.analysis.title || "",
+          department: "",
           email: result.analysis.email || "",
           phoneNumber: result.analysis.phone || "",
           website: result.analysis.website || "",
           address: result.analysis.address || "",
-          description: result.analysis.additionalInfo || ""
-        }));
+          description: result.analysis.additionalInfo || "",
+          profileImageUrl: ""
+        };
         
-        // Switch to edit tab
+        console.log('Setting form data:', newFormData);
+        setFormData(newFormData);
+        
+        // Switch to create tab
         setActiveTab("create");
         
         toast({
@@ -322,6 +337,7 @@ END:VCARD`;
           description: `${result.analysis.name || '정보'}가 추출되었습니다. 확인 후 저장하세요.`,
         });
       } else {
+        console.error('Analysis failed or no data:', result);
         throw new Error(result.error || '분석된 정보가 없습니다.');
       }
     } catch (error) {
