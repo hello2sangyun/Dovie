@@ -497,92 +497,28 @@ END:VCARD`;
           <div className="w-16"></div>
         </div>
 
-        {/* Enhanced Tabs with Animated Center Button */}
+        {/* Enhanced Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col flex-1 min-h-0">
-          <div className="relative h-14 flex-shrink-0">
-            <TabsList className="grid w-full grid-cols-3 h-12 bg-white rounded-lg border border-gray-200 shadow-sm">
-              <TabsTrigger 
-                value="view" 
-                className="text-sm font-medium data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all duration-200"
-              >
-                명함 보기
-              </TabsTrigger>
-              <div className="relative"></div>
-              <TabsTrigger 
-                value="share" 
-                className="text-sm font-medium data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all duration-200"
-              >
-                공유하기
-              </TabsTrigger>
-            </TabsList>
-            
-            {/* Animated Center Button */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
-              {/* Ripple Effect */}
-              <div className={`
-                absolute inset-0 rounded-full
-                ${activeTab === "create" ? "animate-ping bg-green-400 opacity-75" : ""}
-              `}></div>
-              
-              <button
-                onClick={() => {
-                  if (activeTab === "create") {
-                    setShowCamera(true);
-                  } else {
-                    setActiveTab("create");
-                  }
-                }}
-                className={`
-                  relative w-16 h-16 rounded-full shadow-lg transition-all duration-500 ease-in-out transform 
-                  hover:scale-110 active:scale-95 hover:shadow-xl
-                  ${activeTab === "create" 
-                    ? "bg-gradient-to-r from-green-500 to-emerald-600 shadow-green-200" 
-                    : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-200"
-                  }
-                  border-4 border-white
-                `}
-                disabled={isUploading}
-              >
-                <div className="flex items-center justify-center text-white">
-                  {isUploading ? (
-                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  ) : activeTab === "create" ? (
-                    <div className="relative transform transition-transform duration-300 hover:scale-110">
-                      <Camera className="w-7 h-7 transition-all duration-300 drop-shadow-sm" />
-                      {/* Camera Flash Effect */}
-                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-pulse shadow-lg"></div>
-                      <div className="absolute -top-2 -right-2 w-5 h-5 bg-yellow-300 rounded-full animate-ping opacity-50"></div>
-                    </div>
-                  ) : (
-                    <div className="text-center transform transition-all duration-300 hover:scale-105">
-                      <Building2 className="w-5 h-5 mx-auto transition-transform duration-300 drop-shadow-sm" />
-                      <div className="text-xs font-bold mt-0.5 leading-none tracking-wider">ONE</div>
-                    </div>
-                  )}
-                </div>
-                
-                {/* Floating Particles for Camera Mode */}
-                {activeTab === "create" && (
-                  <>
-                    <div className="absolute -top-2 -left-2 w-2 h-2 bg-green-300 rounded-full animate-bounce delay-100 opacity-70"></div>
-                    <div className="absolute -bottom-2 -right-2 w-2 h-2 bg-emerald-300 rounded-full animate-bounce delay-200 opacity-70"></div>
-                    <div className="absolute -top-2 -right-2 w-1.5 h-1.5 bg-green-400 rounded-full animate-bounce delay-300 opacity-60"></div>
-                  </>
-                )}
-              </button>
-              
-              {/* Enhanced Tooltip */}
-              <div className={`
-                absolute top-full mt-3 left-1/2 transform -translate-x-1/2
-                bg-gray-900 text-white text-xs py-2 px-3 rounded-lg whitespace-nowrap
-                transition-all duration-300 pointer-events-none shadow-lg
-                ${activeTab === "create" ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
-              `}>
-                {activeTab === "create" ? "📸 카메라로 명함 스캔" : "One Pager 만들기"}
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-900"></div>
-              </div>
-            </div>
-          </div>
+          <TabsList className="grid w-full grid-cols-3 h-12 flex-shrink-0 bg-white rounded-lg border border-gray-200 shadow-sm">
+            <TabsTrigger 
+              value="view" 
+              className="text-sm font-medium data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all duration-200"
+            >
+              명함 보기
+            </TabsTrigger>
+            <TabsTrigger 
+              value="create" 
+              className="text-sm font-medium data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all duration-200"
+            >
+              수동 생성
+            </TabsTrigger>
+            <TabsTrigger 
+              value="share" 
+              className="text-sm font-medium data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all duration-200"
+            >
+              공유하기
+            </TabsTrigger>
+          </TabsList>
 
           {/* View Tab */}
           <TabsContent value="view" className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch', height: 'calc(100vh - 200px)' }}>
@@ -654,35 +590,27 @@ END:VCARD`;
                     )}
                   </div>
                 ) : (
-                  <div className="text-center py-8">
-                    <div className="relative">
-                      <Building2 className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">1</span>
-                      </div>
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-800 mb-2">One Pager 만들기</h3>
-                    <p className="text-sm text-gray-600 mb-6">가운데 버튼을 눌러 시작하세요</p>
-                    
-                    <div className="space-y-3 text-left bg-gray-50 rounded-lg p-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                          <Camera className="w-4 h-4 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-800">카메라 스캔</p>
-                          <p className="text-xs text-gray-600">명함을 촬영하여 자동 입력</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                          <Edit3 className="w-4 h-4 text-green-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-800">수동 입력</p>
-                          <p className="text-xs text-gray-600">직접 정보를 작성</p>
-                        </div>
-                      </div>
+                  <div className="text-center py-4">
+                    <Building2 className="w-8 h-8 mx-auto text-gray-300 mb-2" />
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">One Pager를 만들어보세요</h3>
+                    <p className="text-sm text-gray-500 mb-4">카메라로 명함을 스캔하거나 수동으로 정보를 입력하세요</p>
+                    <div className="flex flex-col gap-3 justify-center">
+                      <Button 
+                        onClick={() => setShowCamera(true)} 
+                        className="h-12 text-sm bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200"
+                        disabled={isUploading}
+                      >
+                        <Camera className="w-5 h-5 mr-2" />
+                        {isUploading ? "스캔 중..." : "📸 카메라로 명함 스캔"}
+                      </Button>
+                      <Button 
+                        onClick={() => setActiveTab("create")} 
+                        variant="outline"
+                        className="h-12 text-sm border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50"
+                      >
+                        <Edit3 className="w-5 h-5 mr-2" />
+                        ✏️ 수동으로 정보 입력
+                      </Button>
                     </div>
                   </div>
                 )}
