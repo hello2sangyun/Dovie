@@ -497,6 +497,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get individual contact by ID
+  app.get("/api/contacts/:contactId", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const contactId = Number(req.params.contactId);
+      const contact = await storage.getContactById(Number(userId), contactId);
+      
+      if (!contact) {
+        return res.status(404).json({ message: "Contact not found" });
+      }
+
+      res.json(contact);
+    } catch (error) {
+      console.error("Error fetching contact:", error);
+      res.status(500).json({ message: "Failed to fetch contact" });
+    }
+  });
+
   app.patch("/api/contacts/:contactId", async (req, res) => {
     const userId = req.headers["x-user-id"];
     if (!userId) {

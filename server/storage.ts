@@ -24,6 +24,7 @@ export interface IStorage {
 
   // Contact operations
   getContacts(userId: number): Promise<(Contact & { contactUser: User })[]>;
+  getContactById(userId: number, contactId: number): Promise<(Contact & { contactUser?: User }) | undefined>;
   addContact(contact: InsertContact): Promise<Contact>;
   removeContact(userId: number, contactUserId: number): Promise<void>;
   removeContactById(userId: number, contactId: number): Promise<void>;
@@ -141,6 +142,25 @@ export class DatabaseStorage implements IStorage {
       ...row.contacts,
       contactUser: row.users
     }));
+  }
+
+  async getContactById(userId: number, contactId: number): Promise<(Contact & { contactUser?: User }) | undefined> {
+    const result = await db
+      .select()
+      .from(contacts)
+      .leftJoin(users, eq(contacts.contactUserId, users.id))
+      .where(and(
+        eq(contacts.userId, userId),
+        eq(contacts.id, contactId)
+      ));
+
+    if (result.length === 0) return undefined;
+
+    const row = result[0];
+    return {
+      ...row.contacts,
+      contactUser: row.users || undefined
+    };
   }
 
   async addContact(contact: InsertContact): Promise<Contact> {

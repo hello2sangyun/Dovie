@@ -73,11 +73,9 @@ export default function BusinessCardDetail() {
         <Card className="bg-white shadow-xl border-0 overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white pb-6">
             <div className="flex items-center space-x-4">
-              <OptimizedAvatar
-                src={null}
-                fallback={getInitials(displayName)}
-                className="w-20 h-20 bg-white/20 text-white text-2xl font-bold ring-4 ring-white/30"
-              />
+              <div className="w-20 h-20 bg-white/20 text-white text-2xl font-bold ring-4 ring-white/30 rounded-full flex items-center justify-center">
+                {getInitials(displayName)}
+              </div>
               <div className="flex-1">
                 <h1 className="text-2xl font-bold">{displayName}</h1>
                 {contact.jobTitle && (
