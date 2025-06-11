@@ -158,7 +158,10 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
 
   const confirmBlockContact = () => {
     if (contactToBlock) {
-      blockContactMutation.mutate(contactToBlock.contactUserId);
+      // 외부 연락처는 차단할 수 없음 (등록된 사용자만 차단 가능)
+      if (contactToBlock.contactUserId) {
+        blockContactMutation.mutate(contactToBlock.contactUserId);
+      }
       setShowBlockConfirm(false);
       setContactToBlock(null);
     }
@@ -166,7 +169,8 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
 
   const confirmDeleteContact = () => {
     if (contactToDelete) {
-      deleteContactMutation.mutate(contactToDelete.contactUserId);
+      // 외부 연락처는 contact ID로, 등록된 사용자는 contactUserId로 삭제
+      deleteContactMutation.mutate(contactToDelete.contactUserId || contactToDelete.id);
       setShowDeleteConfirm(false);
       setContactToDelete(null);
     }
@@ -178,27 +182,42 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
 
   const filteredAndSortedContacts = regularContacts
     .filter((contact: any) => {
-      // 본인 계정 제외
-      if (contact.contactUser.id === user?.id) {
+      // 본인 계정 제외 (등록된 사용자의 경우만)
+      if (contact.contactUser && contact.contactUser.id === user?.id) {
         return false;
       }
       
       const searchLower = searchTerm.toLowerCase();
-      const nickname = contact.nickname || contact.contactUser.displayName;
+      // 외부 연락처와 등록된 사용자 모두 처리
+      const nickname = contact.nickname || contact.name || (contact.contactUser ? contact.contactUser.displayName : '');
+      const username = contact.contactUser ? contact.contactUser.username : '';
+      const email = contact.email || '';
+      const company = contact.company || '';
+      
       return nickname.toLowerCase().includes(searchLower) ||
-             contact.contactUser.username.toLowerCase().includes(searchLower);
+             username.toLowerCase().includes(searchLower) ||
+             email.toLowerCase().includes(searchLower) ||
+             company.toLowerCase().includes(searchLower);
     })
     .sort((a: any, b: any) => {
-      const aName = a.nickname || a.contactUser.displayName;
-      const bName = b.nickname || b.contactUser.displayName;
+      const aName = a.nickname || a.name || (a.contactUser ? a.contactUser.displayName : '');
+      const bName = b.nickname || b.name || (b.contactUser ? b.contactUser.displayName : '');
       
       switch (sortBy) {
         case "nickname":
           return aName.localeCompare(bName);
         case "username":
-          return a.contactUser.username.localeCompare(b.contactUser.username);
+          if (a.contactUser && b.contactUser) {
+            return a.contactUser.username.localeCompare(b.contactUser.username);
+          }
+          // 외부 연락처는 이름으로 정렬
+          return aName.localeCompare(bName);
         case "lastSeen":
-          return new Date(b.contactUser.lastSeen || 0).getTime() - new Date(a.contactUser.lastSeen || 0).getTime();
+          // 외부 연락처는 생성일자로, 등록된 사용자는 마지막 접속일로 정렬
+          if (a.contactUser && b.contactUser) {
+            return new Date(b.contactUser.lastSeen || 0).getTime() - new Date(a.contactUser.lastSeen || 0).getTime();
+          }
+          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
         default:
           return 0;
       }
@@ -275,27 +294,38 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
           </div>
           <div className="flex space-x-3 overflow-x-auto scrollbar-none pb-1">
             {favoriteContacts.map((contact: any) => {
-              const displayName = contact.nickname || contact.contactUser.displayName;
+              const isExternalContact = !contact.contactUserId;
+              const displayName = contact.nickname || contact.name || (contact.contactUser ? contact.contactUser.displayName : '');
               return (
                 <div key={contact.id} className="flex flex-col items-center space-y-1 flex-shrink-0">
                   <div 
                     className="relative cursor-pointer hover:opacity-75 transition-opacity"
-                    onClick={() => setLocation(`/friend/${contact.contactUserId}`)}
+                    onClick={() => {
+                      if (!isExternalContact) {
+                        setLocation(`/friend/${contact.contactUserId}`);
+                      }
+                    }}
                   >
                     <PrismAvatar
-                      src={contact.contactUser.profilePicture}
+                      src={isExternalContact ? null : contact.contactUser?.profilePicture}
                       fallback={getInitials(displayName)}
-                      hasNewPost={hasRecentPost(contact.contactUserId)}
+                      hasNewPost={isExternalContact ? false : hasRecentPost(contact.contactUserId)}
                       size="md"
                       className="shadow-md"
                     />
-                    {contact.contactUser.isOnline && (
+                    {!isExternalContact && contact.contactUser?.isOnline && (
                       <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full z-20"></div>
                     )}
                   </div>
                   <span 
                     className="text-xs text-gray-700 text-center max-w-[60px] truncate cursor-pointer hover:text-blue-600"
-                    onClick={() => onSelectContact(contact.contactUserId)}
+                    onClick={() => {
+                      if (isExternalContact) {
+                        console.log('External contact clicked:', contact);
+                      } else {
+                        onSelectContact(contact.contactUserId);
+                      }
+                    }}
                   >
                     {displayName}
                   </span>
@@ -312,7 +342,12 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
             {searchTerm ? "검색 결과가 없습니다" : "연락처가 없습니다"}
           </div>
         ) : (
-          filteredAndSortedContacts.map((contact: any) => (
+          filteredAndSortedContacts.map((contact: any) => {
+            // 외부 연락처인지 등록된 사용자인지 확인
+            const isExternalContact = !contact.contactUserId;
+            const displayName = contact.nickname || contact.name || (contact.contactUser ? contact.contactUser.displayName : '');
+            
+            return (
             <div
               key={contact.id}
               className="px-3 py-2 hover:bg-purple-50 border-b border-gray-100 transition-colors group"
@@ -320,19 +355,28 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
               <div className="flex items-center space-x-2">
                 <div 
                   className="cursor-pointer flex-1 flex items-center space-x-2"
-                  onClick={() => onSelectContact(contact.contactUserId)}
+                  onClick={() => {
+                    if (isExternalContact) {
+                      // 외부 연락처는 연락처 상세 보기로
+                      console.log('External contact clicked:', contact);
+                    } else {
+                      onSelectContact(contact.contactUserId);
+                    }
+                  }}
                 >
                   <div
                     className="cursor-pointer"
                     onClick={(e?: React.MouseEvent) => {
                       e?.stopPropagation();
-                      setLocation(`/friend/${contact.contactUserId}`);
+                      if (!isExternalContact) {
+                        setLocation(`/friend/${contact.contactUserId}`);
+                      }
                     }}
                   >
                     <PrismAvatar
-                      src={contact.contactUser.profilePicture}
-                      fallback={getInitials(contact.nickname || contact.contactUser.displayName)}
-                      hasNewPost={hasRecentPost(contact.contactUserId)}
+                      src={isExternalContact ? null : contact.contactUser?.profilePicture}
+                      fallback={getInitials(displayName)}
+                      hasNewPost={isExternalContact ? false : hasRecentPost(contact.contactUserId)}
                       size="sm"
                       className="hover:ring-2 hover:ring-blue-300 transition-all"
                     />
@@ -340,17 +384,40 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <p className="font-medium text-gray-900 truncate text-sm">
-                        {contact.nickname || contact.contactUser.displayName}
+                        {displayName}
                       </p>
-                      <div className={cn(
-                        "w-2 h-2 rounded-full ml-2 flex-shrink-0",
-                        contact.contactUser.isOnline ? "bg-green-500" : "bg-gray-300"
-                      )} />
+                      {!isExternalContact && (
+                        <div className={cn(
+                          "w-2 h-2 rounded-full ml-2 flex-shrink-0",
+                          contact.contactUser?.isOnline ? "bg-green-500" : "bg-gray-300"
+                        )} />
+                      )}
+                      {isExternalContact && (
+                        <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
+                          명함
+                        </span>
+                      )}
                     </div>
-                    <p className="text-xs text-gray-500 truncate">@{contact.contactUser.username}</p>
-                    <p className="text-xs text-gray-400 truncate">
-                      {getOnlineStatus(contact.contactUser)}
-                    </p>
+                    {isExternalContact ? (
+                      <>
+                        {contact.company && (
+                          <p className="text-xs text-gray-500 truncate">{contact.company}</p>
+                        )}
+                        {contact.jobTitle && (
+                          <p className="text-xs text-gray-400 truncate">{contact.jobTitle}</p>
+                        )}
+                        {contact.email && (
+                          <p className="text-xs text-gray-400 truncate">{contact.email}</p>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-xs text-gray-500 truncate">@{contact.contactUser?.username}</p>
+                        <p className="text-xs text-gray-400 truncate">
+                          {getOnlineStatus(contact.contactUser)}
+                        </p>
+                      </>
+                    )}
                   </div>
                 </div>
                 
@@ -420,7 +487,8 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                 </div>
               </div>
             </div>
-          ))
+            );
+          })
         )}
       </div>
 

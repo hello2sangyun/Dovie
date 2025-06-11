@@ -534,6 +534,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete contact by contact ID (for external contacts)
+  app.delete("/api/contacts/by-id/:contactId", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      await storage.removeContactById(Number(userId), Number(req.params.contactId));
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error removing contact by ID:", error);
+      res.status(500).json({ message: "Failed to remove contact" });
+    }
+  });
+
   // Block contact route
   app.post("/api/contacts/:contactUserId/block", async (req, res) => {
     const userId = req.headers["x-user-id"];

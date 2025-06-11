@@ -159,6 +159,15 @@ export class DatabaseStorage implements IStorage {
       ));
   }
 
+  async removeContactById(userId: number, contactId: number): Promise<void> {
+    await db
+      .delete(contacts)
+      .where(and(
+        eq(contacts.userId, userId),
+        eq(contacts.id, contactId)
+      ));
+  }
+
   async updateContact(userId: number, contactUserId: number, updates: Partial<InsertContact>): Promise<Contact | undefined>;
   async updateContact(userId: number, contactId: number, updates: Partial<InsertContact>, byId?: boolean): Promise<Contact | undefined>;
   async updateContact(userId: number, identifier: number, updates: Partial<InsertContact>, byId: boolean = false): Promise<Contact | undefined> {
