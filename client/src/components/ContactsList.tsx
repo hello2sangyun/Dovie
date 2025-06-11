@@ -338,7 +338,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                     className="text-xs text-gray-700 text-center max-w-[60px] truncate cursor-pointer hover:text-blue-600"
                     onClick={() => {
                       if (isExternalContact) {
-                        console.log('External contact clicked:', contact);
+                        setLocation(`/business-card/${contact.id}`);
                       } else {
                         onSelectContact(contact.contactUserId);
                       }
@@ -374,8 +374,8 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                   className="cursor-pointer flex-1 flex items-center space-x-2"
                   onClick={() => {
                     if (isExternalContact) {
-                      // 외부 연락처는 연락처 상세 보기로
-                      console.log('External contact clicked:', contact);
+                      // 외부 연락처는 One Pager 화면으로 이동
+                      setLocation(`/business-card/${contact.id}`);
                     } else {
                       onSelectContact(contact.contactUserId);
                     }
