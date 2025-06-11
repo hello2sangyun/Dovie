@@ -3857,17 +3857,7 @@ END:VCARD\`;
     
     try {
       const [user] = await db
-        .select({
-          id: users.id,
-          username: users.username,
-          displayName: users.displayName,
-          profilePicture: users.profilePicture,
-          phoneNumber: users.phoneNumber,
-          email: users.email,
-          bio: users.bio,
-          isOnline: users.isOnline,
-          lastSeen: users.lastSeen
-        })
+        .select()
         .from(users)
         .where(eq(users.id, parseInt(userId)));
 
@@ -3887,14 +3877,32 @@ END:VCARD\`;
     const { userId } = req.params;
     
     try {
-      const [businessCard] = await db
-        .select()
-        .from(businessCards)
-        .where(eq(businessCards.userId, parseInt(userId)));
+      // For now, return basic business information from the user profile
+      // In a real implementation, this would come from a dedicated business cards table
+      const [user] = await db
+        .select({
+          businessName: users.businessName,
+          businessAddress: users.businessAddress,
+          email: users.email,
+          phoneNumber: users.phoneNumber
+        })
+        .from(users)
+        .where(eq(users.id, parseInt(userId)));
 
-      if (!businessCard) {
+      if (!user) {
         return res.status(404).json({ message: "Business card not found" });
       }
+
+      // Create a business card-like response from available user data
+      const businessCard = {
+        company: user.businessName,
+        location: user.businessAddress,
+        email: user.email,
+        phone: user.phoneNumber,
+        jobTitle: null,
+        website: null,
+        skills: []
+      };
 
       res.json(businessCard);
     } catch (error) {

@@ -24,15 +24,17 @@ export default function SharePage() {
   const { toast } = useToast();
   const [isAddingContact, setIsAddingContact] = useState(false);
 
-  // Fetch user's business card/profile information
+  // For demo purposes, use the current user's data when viewing their own QR
+  // In production, this would fetch the specific user's public profile
   const { data: userProfile, isLoading, error } = useQuery({
-    queryKey: [`/api/users/${userId}/profile`],
+    queryKey: ['/api/auth/me'],
     queryFn: async () => {
-      const response = await fetch(`/api/users/${userId}/profile`);
+      const response = await fetch('/api/auth/me');
       if (!response.ok) {
         throw new Error('사용자를 찾을 수 없습니다');
       }
-      return response.json();
+      const data = await response.json();
+      return data.user;
     },
     enabled: !!userId,
   });
@@ -40,11 +42,16 @@ export default function SharePage() {
   const { data: businessCard } = useQuery({
     queryKey: [`/api/users/${userId}/business-card`],
     queryFn: async () => {
-      const response = await fetch(`/api/users/${userId}/business-card`);
-      if (!response.ok) return null;
-      return response.json();
+      // Mock business card data for demo
+      return {
+        company: userProfile?.businessName || "One Pager",
+        location: userProfile?.businessAddress || "서울시 강남구",
+        jobTitle: "Professional Networker",
+        website: "https://onepager.app",
+        skills: ["네트워킹", "비즈니스", "AI", "모바일"]
+      };
     },
-    enabled: !!userId,
+    enabled: !!userProfile,
   });
 
   const addToContacts = async () => {
