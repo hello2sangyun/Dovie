@@ -1128,6 +1128,177 @@ END:VCARD\`;
     }
   });
 
+  // NFC exchange routes
+  app.post("/api/nfc/start-exchange", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      // Generate unique exchange token
+      const exchangeToken = Array.from({ length: 32 }, () => 
+        Math.random().toString(36).charAt(2)
+      ).join('');
+
+      const exchange = await storage.createNfcExchange(Number(userId), exchangeToken);
+      
+      res.json({ 
+        exchange, 
+        exchangeToken,
+        exchangeUrl: `${req.protocol}://${req.get('host')}/nfc-exchange/${exchangeToken}`
+      });
+    } catch (error) {
+      console.error("Error starting NFC exchange:", error);
+      res.status(500).json({ message: "Failed to start NFC exchange" });
+    }
+  });
+
+  app.post("/api/nfc/complete-exchange", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    const { exchangeToken } = req.body;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    if (!exchangeToken) {
+      return res.status(400).json({ message: "Exchange token is required" });
+    }
+
+    try {
+      const completedExchange = await storage.completeNfcExchange(exchangeToken, Number(userId));
+      
+      if (!completedExchange) {
+        return res.status(404).json({ message: "Exchange not found or already completed" });
+      }
+
+      // Get user info for both parties
+      const [initiator, recipient] = await Promise.all([
+        storage.getUser(completedExchange.initiatorUserId),
+        storage.getUser(completedExchange.recipientUserId!)
+      ]);
+
+      res.json({ 
+        success: true,
+        exchange: completedExchange,
+        message: `${initiator?.displayName}님과 ${recipient?.displayName}님이 서로 친구로 추가되었습니다!`,
+        initiator: { id: initiator?.id, displayName: initiator?.displayName },
+        recipient: { id: recipient?.id, displayName: recipient?.displayName }
+      });
+    } catch (error) {
+      console.error("Error completing NFC exchange:", error);
+      res.status(500).json({ message: "Failed to complete NFC exchange" });
+    }
+  });
+
+  app.get("/nfc-exchange/:exchangeToken", async (req, res) => {
+    const { exchangeToken } = req.params;
+    
+    try {
+      // This endpoint serves a simple page for NFC exchange completion
+      const html = `
+        <!DOCTYPE html>
+        <html lang="ko">
+        <head>
+          <title>명함 교환 - Dovie Messenger</title>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { 
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              min-height: 100vh;
+              padding: 20px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+            .container { 
+              max-width: 400px; 
+              width: 100%; 
+              background: white;
+              border-radius: 16px;
+              box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+              padding: 30px 20px;
+              text-align: center;
+            }
+            .icon {
+              width: 80px;
+              height: 80px;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              border-radius: 50%;
+              margin: 0 auto 20px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 32px;
+              color: white;
+            }
+            h1 { font-size: 24px; margin-bottom: 10px; color: #333; }
+            p { color: #666; margin-bottom: 20px; line-height: 1.5; }
+            .button {
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              color: white;
+              border: none;
+              padding: 15px 30px;
+              border-radius: 25px;
+              font-size: 16px;
+              font-weight: 600;
+              cursor: pointer;
+              width: 100%;
+              margin: 10px 0;
+            }
+            .status { margin-top: 20px; padding: 15px; border-radius: 8px; }
+            .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+            .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="icon">📱</div>
+            <h1>명함 교환</h1>
+            <p>다른 사용자가 명함을 공유했습니다. 교환을 완료하여 서로 친구로 추가하세요!</p>
+            
+            <button class="button" onclick="completeExchange()">
+              명함 교환 완료하기
+            </button>
+            
+            <div id="status"></div>
+          </div>
+
+          <script>
+            async function completeExchange() {
+              const button = document.querySelector('.button');
+              const status = document.getElementById('status');
+              
+              button.disabled = true;
+              button.textContent = '교환 중...';
+              
+              try {
+                // In a real implementation, this would need authentication
+                // For now, we'll show a message directing to the app
+                status.innerHTML = '<div class="success">Dovie Messenger 앱에서 로그인한 후 이 링크를 다시 클릭해주세요.</div>';
+              } catch (error) {
+                status.innerHTML = '<div class="error">교환 중 오류가 발생했습니다.</div>';
+              } finally {
+                button.disabled = false;
+                button.textContent = '명함 교환 완료하기';
+              }
+            }
+          </script>
+        </body>
+        </html>
+      `;
+      
+      res.send(html);
+    } catch (error) {
+      console.error("Error displaying NFC exchange page:", error);
+      res.status(500).send("Error loading exchange page");
+    }
+  });
+
   // User posts routes
   app.get("/api/user-posts/:userId?", async (req, res) => {
     const userId = req.headers["x-user-id"];

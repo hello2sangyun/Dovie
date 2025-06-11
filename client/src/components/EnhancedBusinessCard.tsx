@@ -176,34 +176,28 @@ END:VCARD`;
       return;
     }
 
-    if (!shareData || !(shareData as any).shareUrl) {
-      toast({
-        variant: "destructive",
-        title: "공유 링크 없음",
-        description: "먼저 공유 링크를 생성해주세요.",
-      });
-      return;
-    }
-
     try {
       setIsNfcSharing(true);
+      
+      // Start NFC exchange on backend
+      const response = await apiRequest("/api/nfc/start-exchange", "POST");
+      const exchangeData = await response.json();
       
       // Create NDEF reader
       const ndef = new (window as any).NDEFReader();
       
-      // Prepare the message to write
-      const shareUrl = (shareData as any).shareUrl;
+      // Prepare the message to write with exchange URL
       const card = (businessCard as any)?.businessCard || formData;
       
       const message = {
         records: [
           {
             recordType: "url",
-            data: shareUrl
+            data: exchangeData.exchangeUrl
           },
           {
             recordType: "text",
-            data: `${card.fullName || ''}님의 디지털 명함`
+            data: `${card.fullName || ''}님의 디지털 명함 - 교환하여 친구 추가`
           }
         ]
       };
@@ -213,7 +207,7 @@ END:VCARD`;
       
       toast({
         title: "NFC 대기 중",
-        description: "다른 기기를 가까이 대어주세요. 명함이 자동으로 공유됩니다.",
+        description: "다른 기기를 가까이 대어주세요. 서로 자동으로 친구 추가됩니다.",
       });
 
       // Auto stop after 30 seconds
@@ -245,6 +239,12 @@ END:VCARD`;
             description: "NFC 공유 중 오류가 발생했습니다.",
           });
         }
+      } else {
+        toast({
+          variant: "destructive",
+          title: "교환 시작 실패",
+          description: "명함 교환을 시작할 수 없습니다.",
+        });
       }
     }
   };
