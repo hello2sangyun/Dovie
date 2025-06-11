@@ -1,12 +1,10 @@
 import { 
   users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications,
-  locationChatRooms, locationChatParticipants, locationChatMessages, userLocations,
   fileUploads, fileDownloads, businessCards, businessProfiles, userPosts, businessCardShares, nfcExchanges,
   type User, type InsertUser, type Contact, type InsertContact,
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
   type Command, type InsertCommand, type MessageRead, type InsertMessageRead,
   type PhoneVerification, type InsertPhoneVerification,
-  type LocationChatRoom, type InsertLocationChatRoom,
   type FileUpload, type InsertFileUpload, type FileDownload, type InsertFileDownload,
   type BusinessCard, type InsertBusinessCard, type BusinessProfile, type InsertBusinessProfile,
   type UserPost, type InsertUserPost, type BusinessCardShare, type InsertBusinessCardShare,
@@ -67,24 +65,7 @@ export interface IStorage {
   // Business user operations
   registerBusinessUser(userId: number, businessData: { businessName: string; businessAddress: string }): Promise<User | undefined>;
 
-  // Location-based chat operations
-  updateUserLocation(userId: number, location: { latitude: number; longitude: number; accuracy: number }): Promise<void>;
-  getNearbyLocationChatRooms(latitude: number, longitude: number, radius?: number): Promise<LocationChatRoom[]>;
-  createLocationChatRoom(userId: number, roomData: { name: string; latitude: number; longitude: number; address: string }): Promise<LocationChatRoom>;
-  joinLocationChatRoom(userId: number, roomId: number, profileData: { nickname: string; profileImageUrl?: string }): Promise<void>;
-  getLocationChatProfile(userId: number, roomId: number): Promise<{ nickname: string; profileImageUrl?: string } | undefined>;
-  
-  // Location chat message operations
-  getLocationChatMessages(roomId: number, limit?: number): Promise<any[]>;
-  createLocationChatMessage(roomId: number, senderId: number, messageData: any): Promise<any>;
-  
-  // 위치 기반 자동 관리
-  cleanupInactiveLocationChats(): Promise<void>;
-  cleanupEmptyLocationChats(): Promise<void>;
-  handleLocationBasedExit(): Promise<void>;
-  leaveLocationChatRoom(userId: number, roomId: number): Promise<void>;
-  deleteLocationChatRoom(roomId: number): Promise<void>;
-  checkLocationProximity(userId: number): Promise<{ roomId: number; distance: number; hasNewChats: boolean }[]>;
+
 
   // File storage analytics operations
   getStorageAnalytics(userId: number, timeRange: string): Promise<any>;
