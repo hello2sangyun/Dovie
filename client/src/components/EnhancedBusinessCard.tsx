@@ -27,7 +27,9 @@ import {
   Share2, 
   Copy,
   QrCode,
-  Download
+  Download,
+  Smartphone,
+  Wifi
 } from "lucide-react";
 import QRCode from "qrcode";
 
@@ -45,6 +47,8 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
   const [isEditing, setIsEditing] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
+  const [isNfcSupported, setIsNfcSupported] = useState(false);
+  const [isNfcSharing, setIsNfcSharing] = useState(false);
 
   // Form data state
   const [formData, setFormData] = useState({
@@ -83,6 +87,13 @@ export default function EnhancedBusinessCard({ onBack }: EnhancedBusinessCardPro
       });
     }
   }, [businessCard]);
+
+  // Check NFC support
+  useEffect(() => {
+    if ('NDEFReader' in window) {
+      setIsNfcSupported(true);
+    }
+  }, []);
 
   // Fetch share info
   const { data: shareData } = useQuery({
@@ -152,6 +163,99 @@ END:VCARD`;
     link.download = `${card.fullName || 'contact'}.vcf`;
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  // NFC sharing functionality
+  const shareViaUNFC = async () => {
+    if (!isNfcSupported) {
+      toast({
+        variant: "destructive",
+        title: "NFC 지원 안함",
+        description: "이 기기는 NFC를 지원하지 않습니다.",
+      });
+      return;
+    }
+
+    if (!shareData || !(shareData as any).shareUrl) {
+      toast({
+        variant: "destructive",
+        title: "공유 링크 없음",
+        description: "먼저 공유 링크를 생성해주세요.",
+      });
+      return;
+    }
+
+    try {
+      setIsNfcSharing(true);
+      
+      // Create NDEF reader
+      const ndef = new (window as any).NDEFReader();
+      
+      // Prepare the message to write
+      const shareUrl = (shareData as any).shareUrl;
+      const card = (businessCard as any)?.businessCard || formData;
+      
+      const message = {
+        records: [
+          {
+            recordType: "url",
+            data: shareUrl
+          },
+          {
+            recordType: "text",
+            data: `${card.fullName || ''}님의 디지털 명함`
+          }
+        ]
+      };
+
+      // Start writing to NFC tag/device
+      await ndef.write(message);
+      
+      toast({
+        title: "NFC 대기 중",
+        description: "다른 기기를 가까이 대어주세요. 명함이 자동으로 공유됩니다.",
+      });
+
+      // Auto stop after 30 seconds
+      setTimeout(() => {
+        setIsNfcSharing(false);
+      }, 30000);
+
+    } catch (error) {
+      console.error('NFC Error:', error);
+      setIsNfcSharing(false);
+      
+      if (error instanceof DOMException) {
+        if (error.name === 'NotAllowedError') {
+          toast({
+            variant: "destructive",
+            title: "NFC 권한 거부",
+            description: "NFC 사용 권한을 허용해주세요.",
+          });
+        } else if (error.name === 'NotSupportedError') {
+          toast({
+            variant: "destructive",
+            title: "NFC 지원 안함",
+            description: "이 기기는 NFC 쓰기를 지원하지 않습니다.",
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "NFC 오류",
+            description: "NFC 공유 중 오류가 발생했습니다.",
+          });
+        }
+      }
+    }
+  };
+
+  // Stop NFC sharing
+  const stopNfcSharing = () => {
+    setIsNfcSharing(false);
+    toast({
+      title: "NFC 공유 중지",
+      description: "NFC 공유가 중지되었습니다.",
+    });
   };
 
   // Crop image to square aspect ratio
@@ -678,6 +782,41 @@ END:VCARD`;
                         <Share2 className="w-4 h-4 mr-2" />
                         링크 공유하기
                       </Button>
+
+                      {/* NFC Share Button */}
+                      {isNfcSupported && (
+                        <Button
+                          onClick={isNfcSharing ? stopNfcSharing : shareViaUNFC}
+                          variant={isNfcSharing ? "destructive" : "default"}
+                          className="w-full h-10 text-sm"
+                          disabled={!shareData || !(shareData as any).shareUrl}
+                        >
+                          {isNfcSharing ? (
+                            <>
+                              <X className="w-4 h-4 mr-2" />
+                              NFC 공유 중지
+                            </>
+                          ) : (
+                            <>
+                              <Smartphone className="w-4 h-4 mr-2" />
+                              핸드폰 대고 공유하기
+                            </>
+                          )}
+                        </Button>
+                      )}
+
+                      {/* NFC Status Indicator */}
+                      {isNfcSharing && (
+                        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-center">
+                          <div className="flex items-center justify-center space-x-2 mb-2">
+                            <Wifi className="w-5 h-5 text-blue-600 animate-pulse" />
+                            <span className="text-sm font-medium text-blue-700">NFC 대기 중</span>
+                          </div>
+                          <p className="text-xs text-blue-600">
+                            다른 스마트폰을 이 기기 뒷면에 가까이 대어주세요
+                          </p>
+                        </div>
+                      )}
                       
                       <Button
                         variant="outline"
