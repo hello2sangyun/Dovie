@@ -61,6 +61,35 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
     enabled: !!user,
   });
 
+  const deleteFolderMutation = useMutation({
+    mutationFn: async (folderId: number) => {
+      return apiRequest(`/api/person-folders/${folderId}`, {
+        method: "DELETE",
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/person-folders"] });
+      toast({
+        title: "폴더 삭제됨",
+        description: "폴더가 성공적으로 삭제되었습니다.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "삭제 실패",
+        description: error?.message || "폴더 삭제에 실패했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteFolder = (folderId: number, folderName: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm(`"${folderName}" 폴더를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`)) {
+      deleteFolderMutation.mutate(folderId);
+    }
+  };
+
   const filteredFolders = folders.filter((folder: PersonFolder) =>
     (folder.folderName || folder.personName).toLowerCase().includes(searchTerm.toLowerCase()) ||
     folder.personName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -201,13 +230,24 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
                       <h3 className="font-medium text-gray-900 truncate text-sm">
                         {getContactDisplayName(folder)}
                       </h3>
-                      <div className="flex items-center text-xs text-gray-400 ml-2 flex-shrink-0">
-                        <span>
-                          {folder.itemCount > 0 
-                            ? `${folder.itemCount}개` 
-                            : "빈 폴더"
-                          }
-                        </span>
+                      <div className="flex items-center space-x-2">
+                        <div className="flex items-center text-xs text-gray-400 flex-shrink-0">
+                          <span>
+                            {folder.itemCount > 0 
+                              ? `${folder.itemCount}개` 
+                              : "빈 폴더"
+                            }
+                          </span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => handleDeleteFolder(folder.id, getContactDisplayName(folder), e)}
+                          className="h-6 w-6 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50"
+                          disabled={deleteFolderMutation.isPending}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
                       </div>
                     </div>
                     
