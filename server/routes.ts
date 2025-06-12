@@ -871,7 +871,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create or find person folder
       let folder = await storage.getPersonFolderByName(Number(userId), personName);
       if (!folder) {
-        folder = await storage.createPersonFolder(Number(userId), personName);
+        // Create a contact first for the business card
+        const contact = await storage.createContact(Number(userId), {
+          name: personName,
+          email: extractedData.email,
+          phone: extractedData.phone,
+          company: extractedData.company,
+          jobTitle: extractedData.jobTitle
+        });
+        
+        folder = await storage.createPersonFolder(Number(userId), contact.id, personName);
       }
 
       // Check if this business card belongs to an existing registered user
@@ -887,7 +896,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         mimeType: 'image/jpeg',
         title: `${personName}님의 명함`,
         description: `${extractedData.company} ${extractedData.jobTitle}`,
-        tags: [extractedData.company, extractedData.jobTitle].filter(Boolean),
+        tags: [extractedData.company || '', extractedData.jobTitle || ''].filter(tag => tag !== ''),
         businessCardData: JSON.stringify({
           ...extractedData,
           isRegisteredUser: !!existingUser,
