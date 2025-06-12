@@ -55,6 +55,7 @@ interface PersonFolderData {
     phone?: string;
     company?: string;
     jobTitle?: string;
+    contactUserId?: number | null;
   } | null;
 }
 
@@ -68,6 +69,29 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
+
+  // One Pager generation mutation
+  const generateOnePagerMutation = useMutation({
+    mutationFn: async (contactData: any) => {
+      return apiRequest(`/api/person-folders/${folderId}/generate-onepager`, "POST", {
+        contactData
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/person-folders", folderId, "items"] });
+      toast({
+        title: "One Pager 생성 완료",
+        description: "명함 정보를 바탕으로 One Pager가 생성되었습니다.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "One Pager 생성 실패",
+        description: error instanceof Error ? error.message : "One Pager 생성 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const { data: folder, isLoading: folderLoading, error: folderError } = useQuery<PersonFolderData>({
     queryKey: ["/api/person-folders", folderId],
@@ -223,21 +247,86 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
+        {/* Contact Information Card */}
+        {folder.contact && (
+          <div className="p-4 mx-4 mt-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-gray-900">연락처 정보</h3>
+              <div className="flex items-center space-x-2">
+                {folder.contact.contactUserId ? (
+                  <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                    ✓ Dovie 가입자
+                  </span>
+                ) : (
+                  <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
+                    미가입자
+                  </span>
+                )}
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              {folder.contact.name && (
+                <div>
+                  <span className="font-medium text-gray-700">이름:</span>
+                  <span className="ml-2 text-gray-900">{folder.contact.name}</span>
+                </div>
+              )}
+              {folder.contact.company && (
+                <div>
+                  <span className="font-medium text-gray-700">회사:</span>
+                  <span className="ml-2 text-gray-900">{folder.contact.company}</span>
+                </div>
+              )}
+              {folder.contact.jobTitle && (
+                <div>
+                  <span className="font-medium text-gray-700">직책:</span>
+                  <span className="ml-2 text-gray-900">{folder.contact.jobTitle}</span>
+                </div>
+              )}
+              {folder.contact.email && (
+                <div>
+                  <span className="font-medium text-gray-700">이메일:</span>
+                  <span className="ml-2 text-gray-900">{folder.contact.email}</span>
+                </div>
+              )}
+              {folder.contact.phone && (
+                <div>
+                  <span className="font-medium text-gray-700">전화번호:</span>
+                  <span className="ml-2 text-gray-900">{folder.contact.phone}</span>
+                </div>
+              )}
+            </div>
+            
+            {!folder.contact.contactUserId && (
+              <div className="mt-4 pt-3 border-t border-blue-200">
+                <p className="text-sm text-gray-600 mb-3">
+                  이 분은 아직 Dovie에 가입하지 않았습니다. 명함 정보를 바탕으로 One Pager를 생성할 수 있습니다.
+                </p>
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  One Pager 생성하기
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+
         {filteredItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-center px-4">
             <CreditCard className="w-16 h-16 text-gray-300 mb-4" />
             {items.length === 0 ? (
               <>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  폴더가 비어있습니다
+                  추가 파일이 없습니다
                 </h3>
                 <p className="text-gray-500 mb-6 max-w-sm">
-                  명함, One Pager, 채팅 파일을 추가하여 
+                  명함, 채팅 파일, 문서를 추가하여 
                   {folder.personName || folder.folderName || "이분"}님과의 모든 자료를 한 곳에 정리하세요.
                 </p>
                 <Button className="bg-blue-500 hover:bg-blue-600">
                   <Upload className="w-4 h-4 mr-2" />
-                  첫 파일 추가하기
+                  파일 추가하기
                 </Button>
               </>
             ) : (

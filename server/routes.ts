@@ -699,6 +699,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate One Pager from contact data endpoint
+  app.post("/api/person-folders/:folderId/generate-onepager", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const folderId = Number(req.params.folderId);
+      const { contactData } = req.body;
+
+      // Generate One Pager using OpenAI
+      const { generateOnePager } = await import('./openai');
+      const onePagerResult = await generateOnePager({
+        name: contactData.name,
+        title: contactData.jobTitle,
+        company: contactData.company,
+        email: contactData.email,
+        phone: contactData.phone,
+        address: contactData.address,
+        website: contactData.website
+      });
+
+      if (onePagerResult.success) {
+        // Create folder item for the One Pager
+        const folderItem = await storage.addFolderItem({
+          folderId,
+          itemType: 'one_pager',
+          title: `${contactData.name}님의 One Pager`,
+          description: onePagerResult.data?.bio || `${contactData.name}님의 프로필`,
+          tags: onePagerResult.data?.skills || []
+        });
+
+        res.json({ 
+          success: true, 
+          onePager: onePagerResult.data,
+          folderItem 
+        });
+      } else {
+        res.status(500).json({ 
+          success: false, 
+          error: onePagerResult.error 
+        });
+      }
+    } catch (error) {
+      console.error("One Pager generation error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "One Pager 생성 중 오류가 발생했습니다." 
+      });
+    }
+  });
+
   // Business card scanning endpoint
   app.post("/api/scan-business-card", (req, res, next) => {
     upload.single('image')(req, res, (err) => {

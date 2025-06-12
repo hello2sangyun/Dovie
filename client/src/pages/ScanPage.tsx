@@ -133,6 +133,27 @@ export default function ScanPage() {
 
       const folder = await folderResponse.json();
 
+      // Create folder item for the business card
+      const folderItemResponse = await fetch(`/api/person-folders/${folder.id}/items`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': user?.id.toString() || '',
+        },
+        body: JSON.stringify({
+          itemType: 'business_card',
+          title: `${scanData.name}님의 명함`,
+          description: `${scanData.company || ''} ${scanData.jobTitle || ''}`.trim(),
+          tags: [scanData.company, scanData.jobTitle].filter(Boolean),
+          // Store business card data in description for now
+          businessCardData: JSON.stringify(scanData)
+        }),
+      });
+
+      if (!folderItemResponse.ok) {
+        console.warn('Failed to create folder item, but folder creation succeeded');
+      }
+
       return { contactData, folder };
     },
     onSuccess: ({ contactData, folder }) => {
