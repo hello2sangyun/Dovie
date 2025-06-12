@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { OptimizedAvatar } from "@/components/OptimizedAvatar";
 import PrismAvatar from "@/components/PrismAvatar";
 import { 
@@ -18,7 +19,9 @@ import {
   MoreVertical,
   Clock,
   ChevronRight,
-  Trash2
+  Trash2,
+  Download,
+  X
 } from "lucide-react";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
@@ -56,6 +59,10 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedBusinessCard, setSelectedBusinessCard] = useState<{
+    imageUrl: string;
+    personName: string;
+  } | null>(null);
 
   const { data: folders = [], isLoading } = useQuery<PersonFolder[]>({
     queryKey: ["/api/person-folders"],
@@ -116,6 +123,15 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
       return parts.join(" • ") || folder.contact.phone || folder.contact.email || "";
     }
     return folder.folderName || "";
+  };
+
+  const handleDownloadBusinessCard = (imageUrl: string, personName: string) => {
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.download = `${personName}_명함.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (isLoading) {
@@ -310,6 +326,43 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
           </div>
         )}
       </div>
+
+      {/* Business Card Modal */}
+      <Dialog open={!!selectedBusinessCard} onOpenChange={() => setSelectedBusinessCard(null)}>
+        <DialogContent className="max-w-2xl p-6">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>{selectedBusinessCard?.personName}님의 명함</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (selectedBusinessCard) {
+                    handleDownloadBusinessCard(selectedBusinessCard.imageUrl, selectedBusinessCard.personName);
+                  }
+                }}
+                className="flex items-center gap-2"
+              >
+                <Download className="w-4 h-4" />
+                다운로드
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedBusinessCard && (
+            <div className="relative">
+              <img
+                src={selectedBusinessCard.imageUrl}
+                alt={`${selectedBusinessCard.personName}님의 명함`}
+                className="w-full h-auto rounded-lg border border-gray-200 shadow-lg"
+                onError={(e) => {
+                  e.currentTarget.src = '/api/placeholder/400/250';
+                }}
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
