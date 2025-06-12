@@ -133,7 +133,8 @@ export default function BusinessCardView({ folderId, onBack }: BusinessCardViewP
       });
       // TODO: Navigate to chat with the registered user ID
     } else {
-      console.log('Cannot send DM - user not registered or not verified');
+      // Show non-registered user message
+      alert('Dovie 이용자가 아닙니다');
     }
   };
 
@@ -199,9 +200,20 @@ export default function BusinessCardView({ folderId, onBack }: BusinessCardViewP
             
             {/* Name and Title */}
             <div className="mb-4">
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">
-                {personName}
-              </h1>
+              <div className="flex items-center gap-3 mb-1">
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {personName}
+                </h1>
+                {businessCardItem?.fileUrl && (
+                  <div className="w-12 h-8 border border-gray-200 rounded overflow-hidden shadow-sm bg-white">
+                    <img 
+                      src={businessCardItem.fileUrl} 
+                      alt="명함"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+              </div>
               <p className="text-lg text-gray-700 mb-1">
                 {businessCardData?.jobTitle || "직책 정보 없음"}
               </p>
@@ -220,25 +232,10 @@ export default function BusinessCardView({ folderId, onBack }: BusinessCardViewP
             <div className="flex flex-wrap gap-2 mb-4">
               <Button
                 onClick={handleDM}
-                disabled={!isRegisteredUser}
-                className={`flex-1 ${
-                  isRegisteredUser 
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                }`}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
               >
                 <MessageCircle className="w-4 h-4 mr-2" />
-                {isRegisteredUser ? 'DM 보내기' : '미가입자'}
-              </Button>
-              <Button
-                onClick={() => {
-                  // Show business card modal or action
-                  console.log('Show business card');
-                }}
-                variant="outline"
-                className="px-4"
-              >
-                <CreditCard className="w-4 h-4" />
+                DM 보내기
               </Button>
               <Button
                 onClick={handleCall}
