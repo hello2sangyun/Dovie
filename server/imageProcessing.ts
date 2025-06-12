@@ -6,34 +6,38 @@ import sharp from 'sharp';
  */
 export async function enhanceBusinessCardImage(imageBuffer: Buffer): Promise<Buffer> {
   try {
-    // Process the image to look like a clean scan
+    // Process the image to look like a clean paper scan
     const enhancedImage = await sharp(imageBuffer)
       // Resize to standard business card proportions if needed
-      .resize(800, 500, { 
+      .resize(1000, 630, { 
         fit: 'inside',
         withoutEnlargement: true
       })
-      // Convert to grayscale for better OCR (optional)
-      // .greyscale()
-      // Enhance contrast and brightness
-      .normalize()
-      // Apply slight sharpening
+      // Brighten the image slightly for better visibility
+      .modulate({
+        brightness: 1.1,  // 10% brighter
+        saturation: 1.05, // Slightly more saturated
+        hue: 0
+      })
+      // Enhance contrast gently without darkening
+      .normalize({
+        lower: 1,  // Keep lower bound light
+        upper: 99  // Prevent over-brightening
+      })
+      // Apply gentle sharpening for text clarity
       .sharpen({
-        sigma: 1.0,
+        sigma: 0.8,
         m1: 1.0,
-        m2: 2.0,
+        m2: 1.5,
         x1: 2.0,
         y2: 10.0,
         y3: 20.0
       })
-      // Adjust levels for better contrast
-      .linear(1.2, -20)
-      // Remove noise
-      .blur(0.3)
-      .sharpen()
-      // Convert back to JPEG with high quality
+      // Add subtle paper-like texture effect
+      .linear(1.05, 5)  // Gentle contrast boost with brightness offset
+      // Convert to high-quality JPEG
       .jpeg({ 
-        quality: 95,
+        quality: 92,
         progressive: true
       })
       .toBuffer();
@@ -56,7 +60,17 @@ export async function createBusinessCardThumbnail(imageBuffer: Buffer): Promise<
         fit: 'cover',
         position: 'center'
       })
-      .jpeg({ quality: 85 })
+      // Keep thumbnail bright and clear
+      .modulate({
+        brightness: 1.05,
+        saturation: 1.02
+      })
+      .sharpen({
+        sigma: 0.5,
+        m1: 1.0,
+        m2: 1.2
+      })
+      .jpeg({ quality: 88 })
       .toBuffer();
 
     return thumbnail;

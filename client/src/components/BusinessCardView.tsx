@@ -305,14 +305,16 @@ export default function BusinessCardView({ folderId, onBack }: BusinessCardViewP
                 className="relative cursor-pointer group overflow-hidden rounded-xl bg-white p-3 shadow-sm hover:shadow-md transition-all duration-200"
                 onClick={() => {
                   // Open business card in modal or new view
-                  const link = document.createElement('a');
-                  link.href = businessCardItem.fileUrl;
-                  link.target = '_blank';
-                  link.click();
+                  if (businessCardItem?.fileUrl) {
+                    const link = document.createElement('a');
+                    link.href = businessCardItem.fileUrl;
+                    link.target = '_blank';
+                    link.click();
+                  }
                 }}
               >
                 <img
-                  src={businessCardItem.fileUrl}
+                  src={businessCardItem.fileUrl!}
                   alt="명함"
                   className="w-full h-auto rounded-lg transition-all duration-200 group-hover:scale-[1.02]"
                   style={{ maxHeight: '200px', objectFit: 'contain' }}
@@ -330,10 +332,12 @@ export default function BusinessCardView({ folderId, onBack }: BusinessCardViewP
                   size="sm" 
                   className="flex-1 text-sm"
                   onClick={() => {
-                    const link = document.createElement('a');
-                    link.href = businessCardItem.fileUrl;
-                    link.target = '_blank';
-                    link.click();
+                    if (businessCardItem?.fileUrl) {
+                      const link = document.createElement('a');
+                      link.href = businessCardItem.fileUrl;
+                      link.target = '_blank';
+                      link.click();
+                    }
                   }}
                 >
                   <Eye className="w-4 h-4 mr-2" />
@@ -344,12 +348,14 @@ export default function BusinessCardView({ folderId, onBack }: BusinessCardViewP
                   size="sm" 
                   className="flex-1 text-sm"
                   onClick={() => {
-                    const link = document.createElement('a');
-                    link.href = businessCardItem.fileUrl;
-                    link.download = `${personName}_명함.jpg`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
+                    if (businessCardItem?.fileUrl) {
+                      const link = document.createElement('a');
+                      link.href = businessCardItem.fileUrl;
+                      link.download = `${personName}_명함.jpg`;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }
                   }}
                 >
                   <Download className="w-4 h-4 mr-2" />
