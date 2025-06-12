@@ -46,13 +46,21 @@ export default function ScanPage() {
       const formData = new FormData();
       formData.append("file", file);
       
+      const userId = localStorage.getItem("userId");
+      const headers: Record<string, string> = {};
+      if (userId) {
+        headers["x-user-id"] = userId;
+      }
+      
       const response = await fetch("/api/scan", {
         method: "POST",
+        headers,
         body: formData,
       });
       
       if (!response.ok) {
-        throw new Error(`스캔 실패: ${response.status}`);
+        const errorText = await response.text();
+        throw new Error(`스캔 실패: ${response.status} - ${errorText}`);
       }
       
       return await response.json();
