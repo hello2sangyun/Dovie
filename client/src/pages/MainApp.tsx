@@ -1151,7 +1151,7 @@ export default function MainApp() {
         </div>
 
         {/* Mobile Content with padding for fixed header and footer */}
-        <div className="flex-1 overflow-hidden pt-20 pb-14">
+        <div className="flex-1 overflow-hidden pt-20 pb-20">
           {activeMobileTab === "contacts" && (
             <ContactsList 
               onAddContact={() => openModal("addContact")}
@@ -1268,25 +1268,25 @@ export default function MainApp() {
 
         {/* Modern Mobile Bottom Navigation */}
         {!showMobileChat && activeMobileTab !== "digital-card" && (
-          <div className="bg-white/95 backdrop-blur-lg border-t border-gray-100 pb-safe pt-2 px-4 fixed bottom-0 left-0 right-0 z-50 lg:hidden shadow-lg">
-            <div className="flex justify-around items-center max-w-md mx-auto">
+          <div className="bg-white/95 backdrop-blur-lg border-t border-gray-100 pb-safe pt-3 px-2 fixed bottom-0 left-0 right-0 z-50 lg:hidden shadow-lg">
+            <div className="flex justify-around items-center max-w-md mx-auto h-16">
               <Button
                 variant="ghost"
                 className={cn(
-                  "flex flex-col items-center py-3 px-4 rounded-xl transition-all duration-200 min-h-[56px] min-w-[64px]",
+                  "flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-200 min-h-[60px] flex-1 max-w-[80px]",
                   activeMobileTab === "contacts" 
-                    ? "text-blue-600 bg-blue-100 scale-110 shadow-lg" 
-                    : "text-gray-600 hover:text-gray-800 hover:bg-gray-100"
+                    ? "text-blue-600 bg-blue-50 scale-105" 
+                    : "text-gray-600 hover:text-gray-800 hover:bg-gray-50"
                 )}
                 onClick={() => setActiveMobileTab("contacts")}
               >
                 <div className={cn(
-                  "p-2 rounded-lg transition-colors",
-                  activeMobileTab === "contacts" ? "bg-blue-200" : ""
+                  "p-1.5 rounded-lg transition-colors",
+                  activeMobileTab === "contacts" ? "bg-blue-100" : ""
                 )}>
-                  <BookUser className="h-6 w-6" />
+                  <BookUser className="h-5 w-5" />
                 </div>
-                <span className="text-xs mt-1 font-semibold">Cabinet</span>
+                <span className="text-xs mt-1 font-medium">Cabinet</span>
               </Button>
               
               <Button

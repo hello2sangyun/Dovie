@@ -13,7 +13,7 @@ import fs from "fs";
 import { encryptFileData, decryptFileData, hashFileName } from "./crypto";
 import { processCommand } from "./openai";
 import { db } from "./db";
-import { eq, and, inArray, desc, gte, isNull } from "drizzle-orm";
+import { eq, and, inArray, desc, gte, isNull, isNotNull } from "drizzle-orm";
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -3524,6 +3524,7 @@ END:VCARD\`;
       .where(
         and(
           eq(contacts.userId, currentUserId),
+          isNotNull(contacts.contactUserId), // contactUserId가 null이 아닌 경우만
           gte(userPosts.createdAt, new Date(Date.now() - 24 * 60 * 60 * 1000)), // 24시간 이내
           isNull(businessPostReads.id) // 읽지 않은 포스트만
         )
