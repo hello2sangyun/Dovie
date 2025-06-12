@@ -868,7 +868,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Determine person name from extracted data
       const personName = extractedData.name || "이름 미확인";
 
-      // Create or find person folder
+      // Create or find person folder - check by name first to prevent duplicates
       let folder = await storage.getPersonFolderByName(Number(userId), personName);
       if (!folder) {
         // Create a contact first for the business card

@@ -1163,12 +1163,20 @@ export class DatabaseStorage implements IStorage {
     }
   }
   // Person folder operations
-  async getPersonFolders(userId: number): Promise<(PersonFolder & { contact: Contact | null; itemCount: number })[]> {
+  async getPersonFolders(userId: number): Promise<(PersonFolder & { contact: Contact | null; itemCount: number; businessCardImage?: string })[]> {
     const result = await db
       .select({
         folder: personFolders,
         contact: contacts,
-        itemCount: sql<number>`COUNT(${folderItems.id})::int`.as('itemCount')
+        itemCount: sql<number>`COUNT(${folderItems.id})::int`.as('itemCount'),
+        businessCardImage: sql<string>`
+          (SELECT fi.file_url 
+           FROM folder_items fi 
+           WHERE fi.folder_id = ${personFolders.id} 
+           AND fi.item_type = 'business_card' 
+           ORDER BY fi.created_at ASC 
+           LIMIT 1)
+        `.as('businessCardImage')
       })
       .from(personFolders)
       .leftJoin(contacts, eq(personFolders.contactId, contacts.id))
@@ -1180,7 +1188,8 @@ export class DatabaseStorage implements IStorage {
     return result.map(row => ({
       ...row.folder,
       contact: row.contact,
-      itemCount: row.itemCount || 0
+      itemCount: row.itemCount || 0,
+      businessCardImage: row.businessCardImage || undefined
     }));
   }
 

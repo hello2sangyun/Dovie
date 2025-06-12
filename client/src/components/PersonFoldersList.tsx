@@ -33,6 +33,7 @@ interface PersonFolder {
   avatarUrl?: string;
   lastActivity: string;
   itemCount: number;
+  businessCardImage?: string;
   contact?: {
     id: number;
     name?: string;
@@ -235,9 +236,24 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-medium text-gray-900 truncate text-sm">
-                        {getContactDisplayName(folder)}
-                      </h3>
+                      <div className="flex items-center space-x-2">
+                        <h3 className="font-medium text-gray-900 truncate text-sm">
+                          {getContactDisplayName(folder)}
+                        </h3>
+                        {/* Business Card Image */}
+                        {folder.businessCardImage && (
+                          <div className="w-6 h-4 rounded-sm overflow-hidden border border-gray-200 flex-shrink-0">
+                            <img 
+                              src={folder.businessCardImage} 
+                              alt="명함"
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
                       <div className="flex items-center space-x-2">
                         <div className="flex items-center text-xs text-gray-400 flex-shrink-0">
                           <span>
