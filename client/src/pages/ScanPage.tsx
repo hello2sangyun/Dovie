@@ -161,15 +161,12 @@ export default function ScanPage() {
     setShowCamera(false);
   };
 
-  if (showCamera) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <CameraCapture 
-          onCapture={handleCameraCapture}
-        />
-      </div>
-    );
-  }
+  // Camera component is rendered conditionally with proper props
+  const cameraProps = {
+    onCapture: handleCameraCapture,
+    onClose: () => setShowCamera(false),
+    isOpen: showCamera
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -508,6 +505,13 @@ export default function ScanPage() {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Camera Component */}
+      <CameraCapture
+        onCapture={cameraProps.onCapture}
+        onClose={cameraProps.onClose}
+        isOpen={cameraProps.isOpen}
+      />
     </div>
   );
 }
