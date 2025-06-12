@@ -19,14 +19,34 @@ interface CropArea {
 export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
-  const [cropArea, setCropArea] = useState<CropArea>({ x: 50, y: 50, width: 200, height: 120 });
+  const [cropArea, setCropArea] = useState<CropArea>({ x: 0, y: 0, width: 0, height: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [imageLoaded, setImageLoaded] = useState(false);
 
   useEffect(() => {
     if (imageLoaded && canvasRef.current && imageRef.current) {
-      drawCanvas();
+      // Initialize crop area if not set
+      if (cropArea.width === 0 || cropArea.height === 0) {
+        const canvas = canvasRef.current;
+        const container = canvas.parentElement;
+        if (container) {
+          const containerRect = container.getBoundingClientRect();
+          const canvasWidth = containerRect.width;
+          const canvasHeight = (containerRect.width * imageRef.current.height) / imageRef.current.width;
+          
+          // Set initial crop area to center 80% of the image
+          const margin = 0.1;
+          setCropArea({
+            x: canvasWidth * margin,
+            y: canvasHeight * margin,
+            width: canvasWidth * 0.8,
+            height: canvasHeight * 0.8
+          });
+        }
+      } else {
+        drawCanvas();
+      }
     }
   }, [cropArea, imageLoaded]);
 
@@ -38,10 +58,13 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Set canvas size to match image display size
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
+    // Set canvas size to match container size
+    const container = canvas.parentElement;
+    if (container) {
+      const containerRect = container.getBoundingClientRect();
+      canvas.width = containerRect.width;
+      canvas.height = (containerRect.width * image.height) / image.width;
+    }
 
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -49,30 +72,41 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
     // Draw image
     ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
 
-    // Draw crop overlay
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    // Draw dark overlay everywhere except crop area
+    ctx.save();
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Use globalCompositeOperation to create transparent crop area
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.fillRect(cropArea.x, cropArea.y, cropArea.width, cropArea.height);
+    ctx.restore();
 
-    // Clear crop area
-    ctx.clearRect(cropArea.x, cropArea.y, cropArea.width, cropArea.height);
-
-    // Draw crop border
-    ctx.strokeStyle = '#3b82f6';
-    ctx.lineWidth = 2;
+    // Draw crop border with glow effect
+    ctx.strokeStyle = '#8b5cf6';
+    ctx.lineWidth = 3;
+    ctx.shadowColor = '#8b5cf6';
+    ctx.shadowBlur = 8;
     ctx.strokeRect(cropArea.x, cropArea.y, cropArea.width, cropArea.height);
+    ctx.shadowBlur = 0;
 
     // Draw corner handles
-    const handleSize = 12;
-    ctx.fillStyle = '#3b82f6';
+    const handleSize = 16;
+    ctx.fillStyle = '#8b5cf6';
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
     
-    // Top-left
-    ctx.fillRect(cropArea.x - handleSize/2, cropArea.y - handleSize/2, handleSize, handleSize);
-    // Top-right
-    ctx.fillRect(cropArea.x + cropArea.width - handleSize/2, cropArea.y - handleSize/2, handleSize, handleSize);
-    // Bottom-left
-    ctx.fillRect(cropArea.x - handleSize/2, cropArea.y + cropArea.height - handleSize/2, handleSize, handleSize);
-    // Bottom-right
-    ctx.fillRect(cropArea.x + cropArea.width - handleSize/2, cropArea.y + cropArea.height - handleSize/2, handleSize, handleSize);
+    const corners = [
+      [cropArea.x, cropArea.y],
+      [cropArea.x + cropArea.width, cropArea.y],
+      [cropArea.x, cropArea.y + cropArea.height],
+      [cropArea.x + cropArea.width, cropArea.y + cropArea.height]
+    ];
+    
+    corners.forEach(([x, y]) => {
+      ctx.fillRect(x - handleSize/2, y - handleSize/2, handleSize, handleSize);
+      ctx.strokeRect(x - handleSize/2, y - handleSize/2, handleSize, handleSize);
+    });
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -83,8 +117,12 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
+    // Scale coordinates to canvas size
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
     setIsDragging(true);
-    setDragStart({ x, y });
+    setDragStart({ x: x * scaleX, y: y * scaleY });
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -97,8 +135,14 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    const deltaX = x - dragStart.x;
-    const deltaY = y - dragStart.y;
+    // Scale coordinates to canvas size
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const scaledX = x * scaleX;
+    const scaledY = y * scaleY;
+
+    const deltaX = scaledX - dragStart.x;
+    const deltaY = scaledY - dragStart.y;
 
     setCropArea(prev => ({
       ...prev,
@@ -106,7 +150,7 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
       y: Math.max(0, Math.min(prev.y + deltaY, canvas.height - prev.height))
     }));
 
-    setDragStart({ x, y });
+    setDragStart({ x: scaledX, y: scaledY });
   };
 
   const handleMouseUp = () => {
@@ -115,21 +159,27 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
 
   const handleTouchStart = (e: React.TouchEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || e.touches.length === 0) return;
 
     const rect = canvas.getBoundingClientRect();
     const touch = e.touches[0];
     const x = touch.clientX - rect.left;
     const y = touch.clientY - rect.top;
 
+    // Scale coordinates to canvas size
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
     setIsDragging(true);
-    setDragStart({ x, y });
+    setDragStart({ x: x * scaleX, y: y * scaleY });
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     e.preventDefault();
-    if (!isDragging) return;
+    e.stopPropagation();
+    if (!isDragging || e.touches.length === 0) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -139,8 +189,14 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
     const x = touch.clientX - rect.left;
     const y = touch.clientY - rect.top;
 
-    const deltaX = x - dragStart.x;
-    const deltaY = y - dragStart.y;
+    // Scale coordinates to canvas size
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const scaledX = x * scaleX;
+    const scaledY = y * scaleY;
+
+    const deltaX = scaledX - dragStart.x;
+    const deltaY = scaledY - dragStart.y;
 
     setCropArea(prev => ({
       ...prev,
@@ -148,11 +204,12 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
       y: Math.max(0, Math.min(prev.y + deltaY, canvas.height - prev.height))
     }));
 
-    setDragStart({ x, y });
+    setDragStart({ x: scaledX, y: scaledY });
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragging(false);
   };
 

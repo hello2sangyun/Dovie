@@ -215,61 +215,83 @@ export default function ScanPage() {
           <p className="text-gray-600">명함을 촬영하거나 업로드하여 정보를 추출하세요</p>
         </div>
 
-        {/* Upload Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Upload className="w-5 h-5 mr-2 text-blue-600" />
-              명함 업로드
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-3">
-              <Button
-                onClick={() => setShowCamera(true)}
-                className="flex-1 bg-blue-600 hover:bg-blue-700"
-              >
-                <Camera className="w-4 h-4 mr-2" />
-                카메라로 촬영
-              </Button>
-              <Button
-                onClick={() => fileInputRef.current?.click()}
-                variant="outline"
-                className="flex-1"
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                파일 선택
-              </Button>
-            </div>
-            
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileSelect}
-              accept="image/*"
-              className="hidden"
-            />
-            
-            {imageUrl && (
-              <div className="space-y-4">
-                <div className="relative bg-gray-100 rounded-lg overflow-hidden">
-                  <img 
-                    src={imageUrl} 
-                    alt="명함 이미지" 
-                    className="w-full h-auto object-contain max-h-64"
-                  />
-                </div>
-                
-                {scanMutation.isPending && (
-                  <div className="text-center py-4">
-                    <Loader2 className="w-8 h-8 mx-auto animate-spin text-green-600" />
-                    <p className="mt-2 text-gray-600">AI가 명함을 분석하고 있습니다...</p>
-                  </div>
-                )}
+        {/* Upload Section - Hide when processing or showing results */}
+        {!showPreview && !showManualCrop && !scanResult && !isProcessing && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Upload className="w-5 h-5 mr-2 text-blue-600" />
+                명함 업로드
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => setShowCamera(true)}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                  disabled={isProcessing || scanMutation.isPending}
+                >
+                  <Camera className="w-4 h-4 mr-2" />
+                  카메라로 촬영
+                </Button>
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  variant="outline"
+                  className="flex-1"
+                  disabled={isProcessing || scanMutation.isPending}
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  파일 선택
+                </Button>
               </div>
-            )}
-          </CardContent>
-        </Card>
+              
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileSelect}
+                accept="image/*"
+                className="hidden"
+              />
+              
+              {imageUrl && (
+                <div className="space-y-4">
+                  <div className="relative bg-gray-100 rounded-lg overflow-hidden">
+                    <img 
+                      src={imageUrl} 
+                      alt="명함 이미지" 
+                      className="w-full h-auto object-contain max-h-64"
+                    />
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Processing Loading State */}
+        {(isProcessing || (scanMutation.isPending && !showPreview)) && (
+          <Card>
+            <CardContent className="py-12">
+              <div className="flex flex-col items-center justify-center space-y-6">
+                <div className="relative">
+                  <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+                </div>
+                <div className="text-center">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    {isProcessing ? "자동 크롭 처리 중..." : "명함 정보 분석 중..."}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {isProcessing ? "AI가 명함 영역을 자동으로 감지하고 있습니다" : "AI가 명함 정보를 추출하고 있습니다"}
+                  </p>
+                  <div className="mt-4 bg-gray-200 rounded-full h-2 w-64 mx-auto overflow-hidden">
+                    <div className="bg-purple-600 h-2 rounded-full animate-pulse transition-all duration-500" 
+                         style={{width: isProcessing ? '60%' : '90%'}}></div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Preview Mode */}
         {showPreview && croppedImageUrl && (
