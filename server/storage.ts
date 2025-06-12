@@ -1098,34 +1098,116 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createPersonFolder(folderData: InsertPersonFolder): Promise<PersonFolder> {
-    const [folder] = await db
-      .insert(personFolders)
-      .values(folderData)
-      .returning();
+    const [folder] = await db.insert(personFolders).values(folderData).returning();
     return folder;
   }
 
   async getPersonFolderById(userId: number, folderId: number): Promise<(PersonFolder & { contact: Contact; items: FolderItem[] }) | undefined> {
-    const folderResult = await db
-      .select()
+    const [folderResult] = await db
+      .select({
+        folder: personFolders,
+        contact: contacts
+      })
       .from(personFolders)
       .leftJoin(contacts, eq(personFolders.contactId, contacts.id))
       .where(and(
         eq(personFolders.id, folderId),
         eq(personFolders.userId, userId)
-      ))
-      .limit(1);
+      ));
 
-    if (folderResult.length === 0) return undefined;
+    if (!folderResult) return undefined;
 
-    const folderRow = folderResult[0];
-    const items = await this.getFolderItems(folderId);
+    const items = await db
+      .select()
+      .from(folderItems)
+      .where(eq(folderItems.folderId, folderId))
+      .orderBy(desc(folderItems.createdAt));
 
     return {
-      ...folderRow.person_folders,
-      contact: folderRow.contacts!,
+      ...folderResult.folder,
+      contact: folderResult.contact!,
       items
     };
+  }
+
+  async createOrFindPersonFolder(userId: number, contactId: number, personName: string): Promise<PersonFolder> {
+    // Try to find existing folder
+    const [existingFolder] = await db
+      .select()
+      .from(personFolders)
+      .where(and(
+        eq(personFolders.userId, userId),
+        eq(personFolders.contactId, contactId)
+      ));
+
+    if (existingFolder) {
+      return existingFolder;
+    }
+
+    // Create new folder
+    const folderName = personName || "새 연락처";
+    const [newFolder] = await db
+      .insert(personFolders)
+      .values({
+        userId,
+        contactId,
+        folderName,
+        lastActivity: new Date()
+      })
+      .returning();
+
+    return newFolder;
+  }
+
+  async getFolderItems(folderId: number): Promise<FolderItem[]> {
+    return await db
+      .select()
+      .from(folderItems)
+      .where(eq(folderItems.folderId, folderId))
+      .orderBy(desc(folderItems.createdAt));
+  }
+
+  async addFolderItem(itemData: InsertFolderItem): Promise<FolderItem> {
+    const [item] = await db.insert(folderItems).values(itemData).returning();
+    
+    // Update folder's last activity
+    await db
+      .update(personFolders)
+      .set({ lastActivity: new Date() })
+      .where(eq(personFolders.id, itemData.folderId));
+
+    return item;
+  }
+
+  async removeFolderItem(itemId: number): Promise<void> {
+    await db.delete(folderItems).where(eq(folderItems.id, itemId));
+  }
+
+  async updateFolderItemCount(folderId: number): Promise<void> {
+    // This is handled automatically via the getPersonFolders query
+    // No explicit action needed as we count items dynamically
+  }
+
+  // Contact creation for person folders
+  async createContact(userId: number, contactData: any): Promise<Contact> {
+    const [contact] = await db
+      .insert(contacts)
+      .values({
+        userId,
+        contactUserId: null,
+        name: contactData.name,
+        nickname: contactData.nickname || null,
+        email: contactData.email || null,
+        phone: contactData.phone || null,
+        company: contactData.company || null,
+        jobTitle: contactData.jobTitle || null,
+        isPinned: false,
+        isFavorite: false,
+        isBlocked: false
+      })
+      .returning();
+    
+    return contact;
   }
 
   async createOrFindPersonFolder(userId: number, contactId: number, personName: string): Promise<PersonFolder> {
