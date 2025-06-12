@@ -194,7 +194,7 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <h3 className="font-medium text-gray-900 truncate">
-                        {folder.folderName}
+                        {getContactDisplayName(folder)}
                       </h3>
                       <div className="flex items-center text-xs text-gray-500">
                         <Clock className="w-3 h-3 mr-1" />
@@ -206,7 +206,7 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
                     </div>
                     
                     <p className="text-sm text-gray-500 truncate mt-1">
-                      {getContactSubtitle(folder.contact)}
+                      {getContactSubtitle(folder)}
                     </p>
                     
                     <div className="flex items-center justify-between mt-2">

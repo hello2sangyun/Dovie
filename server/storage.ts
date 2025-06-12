@@ -1076,7 +1076,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
   // Person folder operations
-  async getPersonFolders(userId: number): Promise<(PersonFolder & { contact: Contact; itemCount: number })[]> {
+  async getPersonFolders(userId: number): Promise<(PersonFolder & { contact: Contact | null; itemCount: number })[]> {
     const result = await db
       .select({
         folder: personFolders,
@@ -1092,7 +1092,7 @@ export class DatabaseStorage implements IStorage {
 
     return result.map(row => ({
       ...row.folder,
-      contact: row.contact!,
+      contact: row.contact,
       itemCount: row.itemCount || 0
     }));
   }
