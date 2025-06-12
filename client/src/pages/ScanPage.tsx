@@ -46,7 +46,7 @@ export default function ScanPage() {
   const [folderCreated, setFolderCreated] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editedData, setEditedData] = useState<ScanResult | null>(null);
+  const [editedData, setEditedData] = useState<ScanResult>({});
 
   // AI scan mutation
   const scanMutation = useMutation({
@@ -133,9 +133,9 @@ export default function ScanPage() {
 
       const folder = await folderResponse.json();
 
-      return { contact, folder };
+      return { contactData, folder };
     },
-    onSuccess: ({ contact, folder }) => {
+    onSuccess: ({ contactData, folder }) => {
       setFolderCreated(true);
       queryClient.invalidateQueries({ queryKey: ['/api/person-folders'] });
       queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
@@ -188,10 +188,32 @@ export default function ScanPage() {
     scanMutation.mutate(selectedFile);
   };
 
+  const handleStartEdit = () => {
+    if (scanResult) {
+      setEditedData({ ...scanResult });
+      setIsEditing(true);
+    }
+  };
+
+  const handleSaveEdit = () => {
+    setScanResult(editedData);
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditedData({});
+    setIsEditing(false);
+  };
+
+  const handleEditChange = (field: keyof ScanResult, value: string) => {
+    setEditedData(prev => ({ ...prev, [field]: value }));
+  };
+
   const handleCreateFolder = () => {
-    if (!scanResult) return;
+    const dataToSave = isEditing ? editedData : scanResult;
+    if (!dataToSave) return;
     
-    createFolderMutation.mutate(scanResult);
+    createFolderMutation.mutate(dataToSave);
   };
 
   const handleReturnToCabinet = () => {
@@ -340,45 +362,122 @@ export default function ScanPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
+                {!isEditing && (
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={handleStartEdit}
+                      variant="outline"
+                      size="sm"
+                      className="border-gray-300"
+                    >
+                      <Edit2 className="w-4 h-4 mr-2" />
+                      정보 수정
+                    </Button>
+                  </div>
+                )}
+
+                {isEditing && (
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      onClick={handleCancelEdit}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      취소
+                    </Button>
+                    <Button
+                      onClick={handleSaveEdit}
+                      size="sm"
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      저장
+                    </Button>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {scanResult.name && (
+                  {(scanResult.name || isEditing) && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         이름
                       </label>
-                      <p className="text-gray-900">{scanResult.name}</p>
+                      {isEditing ? (
+                        <Input
+                          value={editedData.name || ''}
+                          onChange={(e) => handleEditChange('name', e.target.value)}
+                          placeholder="이름을 입력하세요"
+                        />
+                      ) : (
+                        <p className="text-gray-900">{scanResult.name}</p>
+                      )}
                     </div>
                   )}
-                  {scanResult.company && (
+                  {(scanResult.company || isEditing) && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         회사
                       </label>
-                      <p className="text-gray-900">{scanResult.company}</p>
+                      {isEditing ? (
+                        <Input
+                          value={editedData.company || ''}
+                          onChange={(e) => handleEditChange('company', e.target.value)}
+                          placeholder="회사명을 입력하세요"
+                        />
+                      ) : (
+                        <p className="text-gray-900">{scanResult.company}</p>
+                      )}
                     </div>
                   )}
-                  {scanResult.jobTitle && (
+                  {(scanResult.jobTitle || isEditing) && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         직책
                       </label>
-                      <p className="text-gray-900">{scanResult.jobTitle}</p>
+                      {isEditing ? (
+                        <Input
+                          value={editedData.jobTitle || ''}
+                          onChange={(e) => handleEditChange('jobTitle', e.target.value)}
+                          placeholder="직책을 입력하세요"
+                        />
+                      ) : (
+                        <p className="text-gray-900">{scanResult.jobTitle}</p>
+                      )}
                     </div>
                   )}
-                  {scanResult.email && (
+                  {(scanResult.email || isEditing) && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         이메일
                       </label>
-                      <p className="text-gray-900">{scanResult.email}</p>
+                      {isEditing ? (
+                        <Input
+                          value={editedData.email || ''}
+                          onChange={(e) => handleEditChange('email', e.target.value)}
+                          placeholder="이메일을 입력하세요"
+                          type="email"
+                        />
+                      ) : (
+                        <p className="text-gray-900">{scanResult.email}</p>
+                      )}
                     </div>
                   )}
-                  {scanResult.phone && (
+                  {(scanResult.phone || isEditing) && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         전화번호
                       </label>
-                      <p className="text-gray-900">{scanResult.phone}</p>
+                      {isEditing ? (
+                        <Input
+                          value={editedData.phone || ''}
+                          onChange={(e) => handleEditChange('phone', e.target.value)}
+                          placeholder="전화번호를 입력하세요"
+                          type="tel"
+                        />
+                      ) : (
+                        <p className="text-gray-900">{scanResult.phone}</p>
+                      )}
                     </div>
                   )}
                   {scanResult.website && (
