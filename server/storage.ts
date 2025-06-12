@@ -1284,10 +1284,12 @@ export class DatabaseStorage implements IStorage {
       .from(folderItems)
       .where(eq(folderItems.folderId, folderId));
 
-    await db
-      .update(personFolders)
-      .set({ itemCount: result.count })
-      .where(eq(personFolders.id, folderId));
+    if (result) {
+      await db
+        .update(personFolders)
+        .set({ itemCount: result.count })
+        .where(eq(personFolders.id, folderId));
+    }
   }
 }
 
