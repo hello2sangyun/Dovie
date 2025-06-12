@@ -256,17 +256,17 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
 
             {/* Right: Business Card */}
             {businessCardItem && businessCardItem.fileUrl && (
-              <div className="flex-shrink-0 w-96">
-                <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold text-gray-900">명함</h3>
-                    <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center">
-                      <CreditCard className="w-3 h-3 text-purple-600" />
+              <div className="flex-shrink-0 w-[480px] ml-auto">
+                <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-bold text-gray-900">명함</h3>
+                    <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
+                      <CreditCard className="w-4 h-4 text-purple-600" />
                     </div>
                   </div>
                   
                   <div 
-                    className="relative cursor-pointer group overflow-hidden rounded-xl border border-gray-100 bg-gray-50 p-2 hover:border-purple-200 transition-all duration-200"
+                    className="relative cursor-pointer group overflow-hidden rounded-2xl border border-gray-100 bg-gray-50 p-4 hover:border-purple-200 transition-all duration-200"
                     onClick={() => setSelectedBusinessCard({
                       imageUrl: businessCardItem.fileUrl!,
                       personName: folder.personName || folder.folderName || "명함"
@@ -275,33 +275,33 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
                     <img
                       src={businessCardItem.fileUrl}
                       alt="명함"
-                      className="w-full h-auto rounded-lg transition-all duration-200 group-hover:scale-[1.02]"
-                      style={{ minHeight: '200px', maxHeight: '280px', objectFit: 'contain' }}
+                      className="w-full h-auto rounded-xl transition-all duration-200 group-hover:scale-[1.02]"
+                      style={{ minHeight: '300px', maxHeight: '400px', objectFit: 'contain' }}
                     />
-                    <div className="absolute inset-0 bg-purple-600 bg-opacity-0 group-hover:bg-opacity-5 transition-all duration-200 rounded-xl flex items-center justify-center">
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white rounded-full p-3 shadow-md">
-                        <Eye className="w-5 h-5 text-purple-600" />
+                    <div className="absolute inset-0 bg-purple-600 bg-opacity-0 group-hover:bg-opacity-5 transition-all duration-200 rounded-2xl flex items-center justify-center">
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white rounded-full p-4 shadow-md">
+                        <Eye className="w-6 h-6 text-purple-600" />
                       </div>
                     </div>
                   </div>
                   
-                  <div className="flex gap-3 mt-4">
+                  <div className="flex gap-4 mt-6">
                     <Button 
                       variant="outline" 
-                      size="sm" 
-                      className="flex-1 border-purple-200 text-purple-600 hover:bg-purple-50 font-medium"
+                      size="lg" 
+                      className="flex-1 border-purple-200 text-purple-600 hover:bg-purple-50 font-medium h-12 text-base"
                       onClick={() => setSelectedBusinessCard({
                         imageUrl: businessCardItem.fileUrl!,
                         personName: folder.personName || folder.folderName || "명함"
                       })}
                     >
-                      <Eye className="w-4 h-4 mr-2" />
+                      <Eye className="w-5 h-5 mr-2" />
                       크게보기
                     </Button>
                     <Button 
                       variant="outline" 
-                      size="sm" 
-                      className="flex-1 border-gray-200 text-gray-600 hover:bg-gray-50 font-medium"
+                      size="lg" 
+                      className="flex-1 border-gray-200 text-gray-600 hover:bg-gray-50 font-medium h-12 text-base"
                       onClick={() => {
                         const link = document.createElement('a');
                         link.href = businessCardItem.fileUrl!;
@@ -311,7 +311,7 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
                         document.body.removeChild(link);
                       }}
                     >
-                      <Download className="w-4 h-4 mr-2" />
+                      <Download className="w-5 h-5 mr-2" />
                       저장하기
                     </Button>
                   </div>
