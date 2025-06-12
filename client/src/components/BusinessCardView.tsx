@@ -222,6 +222,16 @@ export default function BusinessCardView({ folderId, onBack }: BusinessCardViewP
                 {isRegisteredUser ? 'DM 보내기' : '미가입자'}
               </Button>
               <Button
+                onClick={() => {
+                  // Show business card modal or action
+                  console.log('Show business card');
+                }}
+                variant="outline"
+                className="px-4"
+              >
+                <CreditCard className="w-4 h-4" />
+              </Button>
+              <Button
                 onClick={handleCall}
                 disabled={!businessCardData?.phone}
                 variant="outline"
@@ -288,34 +298,6 @@ export default function BusinessCardView({ folderId, onBack }: BusinessCardViewP
             )}
           </div>
         </div>
-
-        {/* Business Card Preview - Small */}
-        {businessCardItem && (
-          <div className="bg-white mt-2 p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-semibold text-gray-900">명함</h3>
-              <div className="flex space-x-2">
-                <Button size="sm" variant="outline">
-                  <Eye className="w-4 h-4 mr-1" />
-                  크게보기
-                </Button>
-                <Button size="sm" variant="outline">
-                  <Download className="w-4 h-4 mr-1" />
-                  다운로드
-                </Button>
-              </div>
-            </div>
-            
-            {/* Small Business Card Preview */}
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-200 rounded-lg p-3">
-              <div className="text-center">
-                <p className="text-sm font-bold text-gray-900">{businessCardData?.name}</p>
-                <p className="text-xs text-blue-600">{businessCardData?.jobTitle}</p>
-                <p className="text-xs text-gray-700">{businessCardData?.company}</p>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Shared Files Section */}
         <div className="bg-white mt-2 p-4">
