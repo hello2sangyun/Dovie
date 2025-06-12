@@ -252,6 +252,11 @@ export default function ScanPage() {
       setOriginalImageDimensions({ width: img.width, height: img.height });
     };
     img.src = url;
+    
+    // Scroll to top to show crop interface
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
   };
 
   // Camera component is rendered conditionally with proper props
@@ -563,9 +568,9 @@ export default function ScanPage() {
           </Card>
         )}
 
-        {/* Crop Interface */}
+        {/* Crop Interface - Moved to top */}
         {showCropInterface && imageUrl && (
-          <Card>
+          <Card className="mb-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
                 <Edit2 className="w-5 h-5 text-blue-600" />
@@ -591,7 +596,7 @@ export default function ScanPage() {
                   />
                   {/* Crop overlay */}
                   <div 
-                    className="absolute border-2 border-blue-500 bg-blue-500/20 cursor-move select-none"
+                    className="absolute border-2 border-blue-500 bg-blue-500/20 cursor-move select-none touch-manipulation"
                     style={{
                       left: `${cropArea.x}%`,
                       top: `${cropArea.y}%`,
@@ -600,13 +605,15 @@ export default function ScanPage() {
                     }}
                     onMouseDown={(e) => {
                       e.preventDefault();
+                      e.stopPropagation();
                       const startX = e.clientX;
                       const startY = e.clientY;
                       const startCropX = cropArea.x;
                       const startCropY = cropArea.y;
                       
                       const handleMouseMove = (e: MouseEvent) => {
-                        const img = e.target?.closest('.relative')?.querySelector('img');
+                        const imgContainer = document.querySelector('.relative');
+                        const img = imgContainer?.querySelector('img');
                         if (!img) return;
                         
                         const rect = img.getBoundingClientRect();
@@ -628,10 +635,45 @@ export default function ScanPage() {
                       document.addEventListener('mousemove', handleMouseMove);
                       document.addEventListener('mouseup', handleMouseUp);
                     }}
+                    onTouchStart={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const touch = e.touches[0];
+                      const startX = touch.clientX;
+                      const startY = touch.clientY;
+                      const startCropX = cropArea.x;
+                      const startCropY = cropArea.y;
+                      
+                      const handleTouchMove = (e: TouchEvent) => {
+                        e.preventDefault();
+                        const touch = e.touches[0];
+                        const imgContainer = document.querySelector('.relative');
+                        const img = imgContainer?.querySelector('img');
+                        if (!img) return;
+                        
+                        const rect = img.getBoundingClientRect();
+                        const deltaX = ((touch.clientX - startX) / rect.width) * 100;
+                        const deltaY = ((touch.clientY - startY) / rect.height) * 100;
+                        
+                        setCropArea(prev => ({
+                          ...prev,
+                          x: Math.max(0, Math.min(100 - prev.width, startCropX + deltaX)),
+                          y: Math.max(0, Math.min(100 - prev.height, startCropY + deltaY))
+                        }));
+                      };
+                      
+                      const handleTouchEnd = () => {
+                        document.removeEventListener('touchmove', handleTouchMove);
+                        document.removeEventListener('touchend', handleTouchEnd);
+                      };
+                      
+                      document.addEventListener('touchmove', handleTouchMove, { passive: false });
+                      document.addEventListener('touchend', handleTouchEnd);
+                    }}
                   >
                     {/* Corner resize handles */}
                     <div 
-                      className="absolute -top-1 -left-1 w-3 h-3 bg-blue-500 border border-white cursor-nw-resize"
+                      className="absolute -top-2 -left-2 w-6 h-6 bg-blue-500 border-2 border-white cursor-nw-resize rounded-full touch-manipulation flex items-center justify-center"
                       onMouseDown={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
@@ -640,7 +682,8 @@ export default function ScanPage() {
                         const startCrop = { ...cropArea };
                         
                         const handleMouseMove = (e: MouseEvent) => {
-                          const img = e.target?.closest('.relative')?.querySelector('img');
+                          const imgContainer = document.querySelector('.relative');
+                          const img = imgContainer?.querySelector('img');
                           if (!img) return;
                           
                           const rect = img.getBoundingClientRect();
@@ -668,23 +711,69 @@ export default function ScanPage() {
                         document.addEventListener('mousemove', handleMouseMove);
                         document.addEventListener('mouseup', handleMouseUp);
                       }}
-                    ></div>
-                    <div 
-                      className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 border border-white cursor-ne-resize"
-                      onMouseDown={(e) => {
+                      onTouchStart={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
-                        const startX = e.clientX;
-                        const startY = e.clientY;
+                        const touch = e.touches[0];
+                        const startX = touch.clientX;
+                        const startY = touch.clientY;
                         const startCrop = { ...cropArea };
                         
-                        const handleMouseMove = (e: MouseEvent) => {
-                          const img = e.target?.closest('.relative')?.querySelector('img');
+                        const handleTouchMove = (e: TouchEvent) => {
+                          e.preventDefault();
+                          const touch = e.touches[0];
+                          const imgContainer = document.querySelector('.relative');
+                          const img = imgContainer?.querySelector('img');
                           if (!img) return;
                           
                           const rect = img.getBoundingClientRect();
-                          const deltaX = ((e.clientX - startX) / rect.width) * 100;
-                          const deltaY = ((e.clientY - startY) / rect.height) * 100;
+                          const deltaX = ((touch.clientX - startX) / rect.width) * 100;
+                          const deltaY = ((touch.clientY - startY) / rect.height) * 100;
+                          
+                          const newX = Math.max(0, Math.min(startCrop.x + startCrop.width - 10, startCrop.x + deltaX));
+                          const newY = Math.max(0, Math.min(startCrop.y + startCrop.height - 10, startCrop.y + deltaY));
+                          const newWidth = startCrop.width - (newX - startCrop.x);
+                          const newHeight = startCrop.height - (newY - startCrop.y);
+                          
+                          setCropArea({
+                            x: newX,
+                            y: newY,
+                            width: Math.max(10, newWidth),
+                            height: Math.max(10, newHeight)
+                          });
+                        };
+                        
+                        const handleTouchEnd = () => {
+                          document.removeEventListener('touchmove', handleTouchMove);
+                          document.removeEventListener('touchend', handleTouchEnd);
+                        };
+                        
+                        document.addEventListener('touchmove', handleTouchMove, { passive: false });
+                        document.addEventListener('touchend', handleTouchEnd);
+                      }}
+                    >
+                      <div className="w-1 h-1 bg-white rounded-full"></div>
+                    </div>
+                    <div 
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 border-2 border-white cursor-ne-resize rounded-full touch-manipulation flex items-center justify-center"
+                      onTouchStart={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        const touch = e.touches[0];
+                        const startX = touch.clientX;
+                        const startY = touch.clientY;
+                        const startCrop = { ...cropArea };
+                        
+                        const handleTouchMove = (e: TouchEvent) => {
+                          e.preventDefault();
+                          const touch = e.touches[0];
+                          const imgContainer = document.querySelector('.relative');
+                          const img = imgContainer?.querySelector('img');
+                          if (!img) return;
+                          
+                          const rect = img.getBoundingClientRect();
+                          const deltaX = ((touch.clientX - startX) / rect.width) * 100;
+                          const deltaY = ((touch.clientY - startY) / rect.height) * 100;
                           
                           const newY = Math.max(0, Math.min(startCrop.y + startCrop.height - 10, startCrop.y + deltaY));
                           const newWidth = Math.max(10, Math.min(100 - startCrop.x, startCrop.width + deltaX));
@@ -698,31 +787,37 @@ export default function ScanPage() {
                           });
                         };
                         
-                        const handleMouseUp = () => {
-                          document.removeEventListener('mousemove', handleMouseMove);
-                          document.removeEventListener('mouseup', handleMouseUp);
+                        const handleTouchEnd = () => {
+                          document.removeEventListener('touchmove', handleTouchMove);
+                          document.removeEventListener('touchend', handleTouchEnd);
                         };
                         
-                        document.addEventListener('mousemove', handleMouseMove);
-                        document.addEventListener('mouseup', handleMouseUp);
+                        document.addEventListener('touchmove', handleTouchMove, { passive: false });
+                        document.addEventListener('touchend', handleTouchEnd);
                       }}
-                    ></div>
+                    >
+                      <div className="w-1 h-1 bg-white rounded-full"></div>
+                    </div>
                     <div 
-                      className="absolute -bottom-1 -left-1 w-3 h-3 bg-blue-500 border border-white cursor-sw-resize"
-                      onMouseDown={(e) => {
+                      className="absolute -bottom-2 -left-2 w-6 h-6 bg-blue-500 border-2 border-white cursor-sw-resize rounded-full touch-manipulation flex items-center justify-center"
+                      onTouchStart={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
-                        const startX = e.clientX;
-                        const startY = e.clientY;
+                        const touch = e.touches[0];
+                        const startX = touch.clientX;
+                        const startY = touch.clientY;
                         const startCrop = { ...cropArea };
                         
-                        const handleMouseMove = (e: MouseEvent) => {
-                          const img = e.target?.closest('.relative')?.querySelector('img');
+                        const handleTouchMove = (e: TouchEvent) => {
+                          e.preventDefault();
+                          const touch = e.touches[0];
+                          const imgContainer = document.querySelector('.relative');
+                          const img = imgContainer?.querySelector('img');
                           if (!img) return;
                           
                           const rect = img.getBoundingClientRect();
-                          const deltaX = ((e.clientX - startX) / rect.width) * 100;
-                          const deltaY = ((e.clientY - startY) / rect.height) * 100;
+                          const deltaX = ((touch.clientX - startX) / rect.width) * 100;
+                          const deltaY = ((touch.clientY - startY) / rect.height) * 100;
                           
                           const newX = Math.max(0, Math.min(startCrop.x + startCrop.width - 10, startCrop.x + deltaX));
                           const newWidth = startCrop.width - (newX - startCrop.x);
@@ -736,31 +831,37 @@ export default function ScanPage() {
                           });
                         };
                         
-                        const handleMouseUp = () => {
-                          document.removeEventListener('mousemove', handleMouseMove);
-                          document.removeEventListener('mouseup', handleMouseUp);
+                        const handleTouchEnd = () => {
+                          document.removeEventListener('touchmove', handleTouchMove);
+                          document.removeEventListener('touchend', handleTouchEnd);
                         };
                         
-                        document.addEventListener('mousemove', handleMouseMove);
-                        document.addEventListener('mouseup', handleMouseUp);
+                        document.addEventListener('touchmove', handleTouchMove, { passive: false });
+                        document.addEventListener('touchend', handleTouchEnd);
                       }}
-                    ></div>
+                    >
+                      <div className="w-1 h-1 bg-white rounded-full"></div>
+                    </div>
                     <div 
-                      className="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 border border-white cursor-se-resize"
-                      onMouseDown={(e) => {
+                      className="absolute -bottom-2 -right-2 w-6 h-6 bg-blue-500 border-2 border-white cursor-se-resize rounded-full touch-manipulation flex items-center justify-center"
+                      onTouchStart={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
-                        const startX = e.clientX;
-                        const startY = e.clientY;
+                        const touch = e.touches[0];
+                        const startX = touch.clientX;
+                        const startY = touch.clientY;
                         const startCrop = { ...cropArea };
                         
-                        const handleMouseMove = (e: MouseEvent) => {
-                          const img = e.target?.closest('.relative')?.querySelector('img');
+                        const handleTouchMove = (e: TouchEvent) => {
+                          e.preventDefault();
+                          const touch = e.touches[0];
+                          const imgContainer = document.querySelector('.relative');
+                          const img = imgContainer?.querySelector('img');
                           if (!img) return;
                           
                           const rect = img.getBoundingClientRect();
-                          const deltaX = ((e.clientX - startX) / rect.width) * 100;
-                          const deltaY = ((e.clientY - startY) / rect.height) * 100;
+                          const deltaX = ((touch.clientX - startX) / rect.width) * 100;
+                          const deltaY = ((touch.clientY - startY) / rect.height) * 100;
                           
                           const newWidth = Math.max(10, Math.min(100 - startCrop.x, startCrop.width + deltaX));
                           const newHeight = Math.max(10, Math.min(100 - startCrop.y, startCrop.height + deltaY));
@@ -772,15 +873,17 @@ export default function ScanPage() {
                           });
                         };
                         
-                        const handleMouseUp = () => {
-                          document.removeEventListener('mousemove', handleMouseMove);
-                          document.removeEventListener('mouseup', handleMouseUp);
+                        const handleTouchEnd = () => {
+                          document.removeEventListener('touchmove', handleTouchMove);
+                          document.removeEventListener('touchend', handleTouchEnd);
                         };
                         
-                        document.addEventListener('mousemove', handleMouseMove);
-                        document.addEventListener('mouseup', handleMouseUp);
+                        document.addEventListener('touchmove', handleTouchMove, { passive: false });
+                        document.addEventListener('touchend', handleTouchEnd);
                       }}
-                    ></div>
+                    >
+                      <div className="w-1 h-1 bg-white rounded-full"></div>
+                    </div>
                   </div>
                 </div>
 
