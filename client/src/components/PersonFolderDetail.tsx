@@ -105,10 +105,14 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
   });
 
   // Console logging for debugging
+  console.log('PersonFolderDetail - folderId:', folderId);
+  console.log('PersonFolderDetail - user:', user?.id);
+  console.log('PersonFolderDetail - items query enabled:', !!user && !!folderId);
+  console.log('PersonFolderDetail - items data:', items);
+  console.log('PersonFolderDetail - items loading:', itemsLoading);
+  console.log('PersonFolderDetail - items error:', itemsError);
   if (folder) console.log('Folder data loaded:', folder);
   if (folderError) console.error('Error loading folder:', folderError);
-  if (items.length > 0) console.log('Folder items loaded:', items);
-  if (itemsError) console.error('Error loading folder items:', itemsError);
 
   const filteredItems = items.filter((item: FolderItem) =>
     item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
