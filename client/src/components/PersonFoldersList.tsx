@@ -43,6 +43,7 @@ interface PersonFolder {
 
 interface PersonFoldersListProps {
   onSelectFolder: (folderId: number) => void;
+  onScanCard?: () => void;
 }
 
 export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListProps) {

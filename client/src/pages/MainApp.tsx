@@ -1009,6 +1009,14 @@ export default function MainApp() {
                 </div>
               </div>
             </div>
+          ) : rightPanelContent?.startsWith("person-folder-") ? (
+            <PersonFolderDetail 
+              folderId={parseInt(rightPanelContent.replace("person-folder-", ""))}
+              onBack={() => {
+                setRightPanelContent(null);
+                setActiveTab("contacts");
+              }}
+            />
           ) : rightPanelContent === "linkedin-space" ? (
             <LinkedInSpacePage onBack={() => setRightPanelContent("digital-command")} />
           ) : rightPanelContent === "profile-edit" ? (

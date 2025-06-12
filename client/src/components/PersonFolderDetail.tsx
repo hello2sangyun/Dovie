@@ -38,6 +38,25 @@ interface FolderItem {
   createdAt: string;
 }
 
+interface PersonFolderData {
+  id: number;
+  userId: number;
+  contactId: number;
+  folderName: string;
+  avatarUrl?: string;
+  lastActivity: string;
+  itemCount: number;
+  contact: {
+    id: number;
+    name?: string;
+    nickname?: string;
+    email?: string;
+    phone?: string;
+    company?: string;
+    jobTitle?: string;
+  };
+}
+
 interface PersonFolderDetailProps {
   folderId: number;
   onBack: () => void;
@@ -49,7 +68,7 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { data: folder, isLoading: folderLoading } = useQuery({
+  const { data: folder, isLoading: folderLoading } = useQuery<PersonFolderData>({
     queryKey: ["/api/person-folders", folderId],
     enabled: !!user && !!folderId,
   });
