@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Camera, Upload, Scan, AlertCircle, Loader2 } from "lucide-react";
 import CameraCapture from "@/components/CameraCapture";
+import ImageCrop from "@/components/ImageCrop";
 import { apiRequest } from "@/lib/queryClient";
+import { useLocation } from "wouter";
 
 interface ScanResult {
   name?: string;
@@ -36,9 +38,12 @@ export default function ScanPage() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [showCamera, setShowCamera] = useState(false);
+  const [showCrop, setShowCrop] = useState(false);
+  const [croppedFile, setCroppedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   // Mutation for scanning business card
   const scanMutation = useMutation({
@@ -107,6 +112,7 @@ export default function ScanPage() {
     setImageUrl(url);
     setScanResult(null);
     setShowCamera(false);
+    setShowCrop(true); // Show crop interface after camera capture
   };
 
   const cameraProps = {
@@ -245,10 +251,10 @@ export default function ScanPage() {
               
               <div className="mt-6 space-y-3">
                 <Button
-                  onClick={() => window.location.href = "/"}
+                  onClick={() => setLocation("/cabinet")}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 >
-                  메인 화면으로 이동
+                  Cabinet으로 이동
                 </Button>
                 <Button
                   onClick={() => {
