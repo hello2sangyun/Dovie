@@ -65,36 +65,81 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
     imageUrl: string;
     personName: string;
   } | null>(null);
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [selectedFolders, setSelectedFolders] = useState<Set<number>>(new Set());
 
   const { data: folders = [], isLoading } = useQuery<PersonFolder[]>({
     queryKey: ["/api/person-folders"],
     enabled: !!user,
   });
 
-  const deleteFolderMutation = useMutation({
-    mutationFn: async (folderId: number) => {
-      return apiRequest(`/api/person-folders/${folderId}`, "DELETE");
+  const deleteMultipleFoldersMutation = useMutation({
+    mutationFn: async (folderIds: number[]) => {
+      // Delete folders one by one to ensure proper cleanup
+      const results = await Promise.allSettled(
+        folderIds.map(id => apiRequest(`/api/person-folders/${id}`, "DELETE"))
+      );
+      
+      const failed = results.filter(result => result.status === 'rejected');
+      if (failed.length > 0) {
+        throw new Error(`${failed.length}개 폴더 삭제 실패`);
+      }
+      
+      return results;
     },
-    onSuccess: () => {
+    onSuccess: (_, folderIds) => {
       queryClient.invalidateQueries({ queryKey: ["/api/person-folders"] });
+      setSelectedFolders(new Set());
+      setIsSelectMode(false);
       toast({
-        title: "폴더 삭제됨",
-        description: "폴더가 성공적으로 삭제되었습니다.",
+        title: "폴더 삭제 완료",
+        description: `${folderIds.length}개 폴더가 성공적으로 삭제되었습니다.`,
       });
     },
     onError: (error: any) => {
       toast({
         title: "삭제 실패",
-        description: error?.message || "폴더 삭제에 실패했습니다.",
+        description: error?.message || "일부 폴더 삭제에 실패했습니다.",
         variant: "destructive",
       });
     },
   });
 
-  const handleDeleteFolder = (folderId: number, folderName: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (confirm(`"${folderName}" 폴더를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`)) {
-      deleteFolderMutation.mutate(folderId);
+  const handleSelectFolder = (folderId: number) => {
+    const newSelected = new Set(selectedFolders);
+    if (newSelected.has(folderId)) {
+      newSelected.delete(folderId);
+    } else {
+      newSelected.add(folderId);
+    }
+    setSelectedFolders(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedFolders.size === filteredFolders.length) {
+      setSelectedFolders(new Set());
+    } else {
+      setSelectedFolders(new Set(filteredFolders.map(f => f.id)));
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedFolders.size === 0) return;
+    
+    const folderNames = filteredFolders
+      .filter(f => selectedFolders.has(f.id))
+      .map(f => f.personName || f.folderName || "이름 없음")
+      .join(", ");
+    
+    if (confirm(`선택한 ${selectedFolders.size}개 폴더를 삭제하시겠습니까?\n\n폴더: ${folderNames}\n\n이 작업은 되돌릴 수 없습니다.`)) {
+      deleteMultipleFoldersMutation.mutate(Array.from(selectedFolders));
+    }
+  };
+
+  const toggleSelectMode = () => {
+    setIsSelectMode(!isSelectMode);
+    if (isSelectMode) {
+      setSelectedFolders(new Set());
     }
   };
 
@@ -153,14 +198,70 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
       <div className="p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-semibold text-gray-900">Cabinet</h1>
-          <Button
-            onClick={() => setLocation("/scan")}
-            size="sm"
-            className="bg-blue-500 hover:bg-blue-600"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            명함 스캔
-          </Button>
+          <div className="flex items-center gap-2">
+            {!isSelectMode ? (
+              <>
+                <Button
+                  onClick={toggleSelectMode}
+                  variant="outline"
+                  size="sm"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  <CheckSquare className="w-4 h-4 mr-2" />
+                  선택
+                </Button>
+                <Button
+                  onClick={() => setLocation("/scan")}
+                  size="sm"
+                  className="bg-blue-500 hover:bg-blue-600"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  명함 스캔
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  onClick={handleSelectAll}
+                  variant="outline"
+                  size="sm"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  {selectedFolders.size === filteredFolders.length ? (
+                    <>
+                      <CheckSquare className="w-4 h-4 mr-2" />
+                      전체 해제
+                    </>
+                  ) : (
+                    <>
+                      <Square className="w-4 h-4 mr-2" />
+                      전체 선택
+                    </>
+                  )}
+                </Button>
+                {selectedFolders.size > 0 && (
+                  <Button
+                    onClick={handleDeleteSelected}
+                    size="sm"
+                    variant="destructive"
+                    disabled={deleteMultipleFoldersMutation.isPending}
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    {deleteMultipleFoldersMutation.isPending ? "삭제 중..." : `${selectedFolders.size}개 삭제`}
+                  </Button>
+                )}
+                <Button
+                  onClick={toggleSelectMode}
+                  variant="outline"
+                  size="sm"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  취소
+                </Button>
+              </>
+            )}
+          </div>
         </div>
         
         {/* Search */}
@@ -215,22 +316,38 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
               <div
                 key={folder.id}
                 onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log('Folder clicked:', folder.id, folder.personName);
-                  onSelectFolder(folder.id);
+                  if (isSelectMode) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleSelectFolder(folder.id);
+                  } else {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Folder clicked:', folder.id, folder.personName);
+                    onSelectFolder(folder.id);
+                  }
                 }}
-                onTouchEnd={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log('Folder touched:', folder.id, folder.personName);
-                  onSelectFolder(folder.id);
-                }}
-                className="bg-white border border-gray-100 rounded-lg p-3 hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer touch-manipulation select-none"
+                className={cn(
+                  "bg-white border rounded-lg p-3 transition-colors cursor-pointer touch-manipulation select-none",
+                  isSelectMode && selectedFolders.has(folder.id)
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-100 hover:bg-gray-50 active:bg-gray-100"
+                )}
                 role="button"
                 tabIndex={0}
               >
                 <div className="flex items-center space-x-3">
+                  {/* Selection Checkbox (only in select mode) */}
+                  {isSelectMode && (
+                    <div className="flex-shrink-0">
+                      {selectedFolders.has(folder.id) ? (
+                        <CheckSquare className="w-5 h-5 text-blue-500" />
+                      ) : (
+                        <Square className="w-5 h-5 text-gray-400" />
+                      )}
+                    </div>
+                  )}
+
                   {/* Avatar */}
                   <div className="relative flex-shrink-0">
                     {getContactDisplayName(folder) ? (
@@ -258,9 +375,11 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
                         <h3 className="font-medium text-gray-900 truncate text-sm">
                           {getContactDisplayName(folder)}
                         </h3>
-                        <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        {!isSelectMode && (
+                          <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        )}
                       </div>
-                      <div className="flex items-center space-x-2">
+                      {!isSelectMode && (
                         <div className="flex items-center text-xs text-gray-400 flex-shrink-0">
                           <span>
                             {folder.itemCount > 0 
@@ -269,16 +388,7 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
                             }
                           </span>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => handleDeleteFolder(folder.id, getContactDisplayName(folder), e)}
-                          className="h-6 w-6 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50"
-                          disabled={deleteFolderMutation.isPending}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
+                      )}
                     </div>
                     
                     <div className="flex items-center justify-between mt-0.5">
