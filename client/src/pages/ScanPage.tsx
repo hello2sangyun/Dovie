@@ -71,9 +71,12 @@ export default function ScanPage() {
     onSuccess: (data) => {
       setScanResult(data);
       setIsScanning(false);
+      setFolderCreated(true); // Mark folder as created since scan endpoint handles it
+      queryClient.invalidateQueries({ queryKey: ['/api/person-folders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
       toast({
         title: "스캔 완료",
-        description: "명함 정보를 성공적으로 추출했습니다.",
+        description: `${data.name}님의 폴더가 Cabinet에 추가되었습니다.`,
       });
     },
     onError: (error) => {
@@ -86,94 +89,7 @@ export default function ScanPage() {
     },
   });
 
-  // Create person folder mutation
-  const createFolderMutation = useMutation({
-    mutationFn: async (scanData: ScanResult) => {
-      // First create contact
-      const contactResponse = await fetch('/api/contacts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-user-id': user?.id.toString() || '',
-        },
-        body: JSON.stringify({
-          name: scanData.name,
-          company: scanData.company,
-          jobTitle: scanData.jobTitle,
-          email: scanData.email,
-          phone: scanData.phone,
-          website: scanData.website,
-          address: scanData.address,
-        }),
-      });
-
-      if (!contactResponse.ok) {
-        throw new Error('연락처 생성에 실패했습니다.');
-      }
-
-      const contactData = await contactResponse.json();
-      const contactId = contactData.contact?.id || contactData.id;
-
-      // Then create person folder
-      const folderResponse = await fetch('/api/person-folders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-user-id': user?.id.toString() || '',
-        },
-        body: JSON.stringify({
-          contactId: contactId,
-          folderName: scanData.name || scanData.company || '이름 없음',
-        }),
-      });
-
-      if (!folderResponse.ok) {
-        throw new Error('폴더 생성에 실패했습니다.');
-      }
-
-      const folder = await folderResponse.json();
-
-      // Create folder item for the business card
-      const folderItemResponse = await fetch(`/api/person-folders/${folder.id}/items`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-user-id': user?.id.toString() || '',
-        },
-        body: JSON.stringify({
-          itemType: 'business_card',
-          title: `${scanData.name}님의 명함`,
-          description: `${scanData.company || ''} ${scanData.jobTitle || ''}`.trim(),
-          tags: [scanData.company, scanData.jobTitle].filter(Boolean),
-          // Store business card data in description for now
-          businessCardData: JSON.stringify(scanData)
-        }),
-      });
-
-      if (!folderItemResponse.ok) {
-        console.warn('Failed to create folder item, but folder creation succeeded');
-      }
-
-      return { contactData, folder };
-    },
-    onSuccess: ({ contactData, folder }) => {
-      setFolderCreated(true);
-      queryClient.invalidateQueries({ queryKey: ['/api/person-folders'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
-      
-      toast({
-        title: "폴더 생성 완료", 
-        description: `${folder.person_name || folder.folder_name}님의 폴더가 Cabinet에 추가되었습니다.`,
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "폴더 생성 실패",
-        description: error instanceof Error ? error.message : "폴더 생성 중 오류가 발생했습니다.",
-        variant: "destructive",
-      });
-    },
-  });
+  // Remove redundant folder creation since scan endpoint handles everything
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -230,12 +146,7 @@ export default function ScanPage() {
     setEditedData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleCreateFolder = () => {
-    const dataToSave = isEditing ? editedData : scanResult;
-    if (!dataToSave) return;
-    
-    createFolderMutation.mutate(dataToSave);
-  };
+  // Remove handleCreateFolder since scan endpoint handles folder creation automatically
 
   const handleReturnToCabinet = () => {
     // Force refresh the person folders cache before navigating
@@ -255,7 +166,6 @@ export default function ScanPage() {
       <div className="min-h-screen bg-gray-50">
         <CameraCapture 
           onCapture={handleCameraCapture}
-          onCancel={() => setShowCamera(false)}
         />
       </div>
     );
@@ -538,26 +448,7 @@ export default function ScanPage() {
                   )}
                 </div>
 
-                {!folderCreated && !isEditing && (
-                  <Button
-                    onClick={handleCreateFolder}
-                    disabled={createFolderMutation.isPending}
-                    className="w-full bg-green-600 hover:bg-green-700"
-                    size="lg"
-                  >
-                    {createFolderMutation.isPending ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        폴더 생성 중...
-                      </>
-                    ) : (
-                      <>
-                        <FolderPlus className="w-4 h-4 mr-2" />
-                        Cabinet에 폴더 생성
-                      </>
-                    )}
-                  </Button>
-                )}
+                {/* Folder creation is now handled automatically by scan endpoint */}
 
                 {!folderCreated && isEditing && (
                   <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
