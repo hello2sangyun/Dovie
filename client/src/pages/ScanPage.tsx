@@ -480,17 +480,42 @@ export default function ScanPage() {
                       )}
                     </div>
                   )}
-                  {scanResult.website && (
+                  {(scanResult.website || isEditing) && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         웹사이트
                       </label>
-                      <p className="text-gray-900">{scanResult.website}</p>
+                      {isEditing ? (
+                        <Input
+                          value={editedData.website || ''}
+                          onChange={(e) => handleEditChange('website', e.target.value)}
+                          placeholder="웹사이트를 입력하세요"
+                          type="url"
+                        />
+                      ) : (
+                        <p className="text-gray-900">{scanResult.website}</p>
+                      )}
+                    </div>
+                  )}
+                  {(scanResult.address || isEditing) && (
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        주소
+                      </label>
+                      {isEditing ? (
+                        <Input
+                          value={editedData.address || ''}
+                          onChange={(e) => handleEditChange('address', e.target.value)}
+                          placeholder="주소를 입력하세요"
+                        />
+                      ) : (
+                        <p className="text-gray-900">{scanResult.address}</p>
+                      )}
                     </div>
                   )}
                 </div>
 
-                {!folderCreated ? (
+                {!folderCreated && !isEditing && (
                   <Button
                     onClick={handleCreateFolder}
                     disabled={createFolderMutation.isPending}
@@ -509,7 +534,15 @@ export default function ScanPage() {
                       </>
                     )}
                   </Button>
-                ) : (
+                )}
+
+                {!folderCreated && isEditing && (
+                  <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
+                    수정을 완료한 후 저장 버튼을 눌러 Cabinet에 폴더로 저장할 수 있습니다.
+                  </div>
+                )}
+
+                {folderCreated && (
                   <div className="text-center space-y-4">
                     <div className="flex items-center justify-center text-green-600">
                       <CheckCircle className="w-8 h-8 mr-2" />
