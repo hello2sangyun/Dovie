@@ -256,28 +256,7 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
                         <h3 className="font-medium text-gray-900 truncate text-sm">
                           {getContactDisplayName(folder)}
                         </h3>
-                        {/* Business Card Image */}
-                        {folder.businessCardImage && (
-                          <div 
-                            className="w-16 h-11 rounded-md overflow-hidden border border-gray-300 flex-shrink-0 cursor-pointer hover:border-purple-400 transition-colors shadow-sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedBusinessCard({
-                                imageUrl: folder.businessCardImage!,
-                                personName: folder.personName
-                              });
-                            }}
-                          >
-                            <img 
-                              src={folder.businessCardImage} 
-                              alt="명함"
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                              }}
-                            />
-                          </div>
-                        )}
+                        <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
                       </div>
                       <div className="flex items-center space-x-2">
                         <div className="flex items-center text-xs text-gray-400 flex-shrink-0">

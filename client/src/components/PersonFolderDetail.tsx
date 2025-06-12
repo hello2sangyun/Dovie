@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import PrismAvatar from "@/components/PrismAvatar";
 import { 
   ArrowLeft,
@@ -17,7 +18,8 @@ import {
   MoreVertical,
   Download,
   Trash2,
-  Eye
+  Eye,
+  X
 } from "lucide-react";
 import { cn, getInitials } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
@@ -34,6 +36,7 @@ interface FolderItem {
   title?: string;
   description?: string;
   tags?: string[];
+  businessCardData?: string;
   chatRoomId?: number;
   messageId?: number;
   createdAt: string;
@@ -70,6 +73,10 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedBusinessCard, setSelectedBusinessCard] = useState<{
+    imageUrl: string;
+    personName: string;
+  } | null>(null);
 
   // One Pager generation mutation
   const generateOnePagerMutation = useMutation({
@@ -113,6 +120,15 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
   console.log('PersonFolderDetail - items error:', itemsError);
   if (folder) console.log('Folder data loaded:', folder);
   if (folderError) console.error('Error loading folder:', folderError);
+
+  // Extract business card data and image
+  const businessCardItem = items.find(item => item.itemType === 'business_card');
+  let businessCardData = null;
+  try {
+    businessCardData = businessCardItem?.businessCardData ? JSON.parse(businessCardItem.businessCardData) : null;
+  } catch (error) {
+    console.error('Error parsing business card data:', error);
+  }
 
   const filteredItems = items.filter((item: FolderItem) =>
     item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -252,9 +268,12 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
-        {/* Contact Information Card */}
-        {folder.contact && (
-          <div className="p-4 mx-4 mt-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+        <div className="flex gap-6 p-4">
+          {/* Left Column - Contact Info and File List */}
+          <div className="flex-1 min-w-0">
+            {/* Contact Information Card */}
+            {folder.contact && (
+              <div className="p-4 mb-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-lg font-semibold text-gray-900">연락처 정보</h3>
               <div className="flex items-center space-x-2">
@@ -319,10 +338,11 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
                 </Button>
               </div>
             )}
-          </div>
-        )}
+            </div>
+          )}
 
-        {filteredItems.length === 0 ? (
+          {/* File List */}
+          {filteredItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-center px-4">
             <CreditCard className="w-16 h-16 text-gray-300 mb-4" />
             {items.length === 0 ? (
