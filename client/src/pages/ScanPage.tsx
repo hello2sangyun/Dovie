@@ -32,6 +32,20 @@ interface ScanResult {
   phone?: string;
   website?: string;
   address?: string;
+  fax?: string;
+  mobile?: string;
+  department?: string;
+  title?: string;
+  linkedIn?: string;
+  twitter?: string;
+  instagram?: string;
+  facebook?: string;
+  skype?: string;
+  whatsapp?: string;
+  telegram?: string;
+  wechat?: string;
+  line?: string;
+  [key: string]: string | undefined; // Allow any additional fields
 }
 
 export default function ScanPage() {
@@ -47,6 +61,9 @@ export default function ScanPage() {
   const [showCamera, setShowCamera] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState<ScanResult>({});
+  const [showCropInterface, setShowCropInterface] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [cropArea, setCropArea] = useState({ x: 0, y: 0, width: 100, height: 100 });
 
   // AI scan mutation
   const scanMutation = useMutation({
@@ -115,6 +132,10 @@ export default function ScanPage() {
       setSelectedFile(file);
       setScanResult(null);
       setFolderCreated(false);
+      // Create image URL for cropping
+      const url = URL.createObjectURL(file);
+      setImageUrl(url);
+      setShowCropInterface(true);
     }
   };
 
@@ -328,121 +349,66 @@ export default function ScanPage() {
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {(scanResult.name || isEditing) && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        이름
-                      </label>
-                      {isEditing ? (
-                        <Input
-                          value={editedData.name || ''}
-                          onChange={(e) => handleEditChange('name', e.target.value)}
-                          placeholder="이름을 입력하세요"
-                        />
-                      ) : (
-                        <p className="text-gray-900">{scanResult.name}</p>
-                      )}
-                    </div>
-                  )}
-                  {(scanResult.company || isEditing) && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        회사
-                      </label>
-                      {isEditing ? (
-                        <Input
-                          value={editedData.company || ''}
-                          onChange={(e) => handleEditChange('company', e.target.value)}
-                          placeholder="회사명을 입력하세요"
-                        />
-                      ) : (
-                        <p className="text-gray-900">{scanResult.company}</p>
-                      )}
-                    </div>
-                  )}
-                  {(scanResult.jobTitle || isEditing) && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        직책
-                      </label>
-                      {isEditing ? (
-                        <Input
-                          value={editedData.jobTitle || ''}
-                          onChange={(e) => handleEditChange('jobTitle', e.target.value)}
-                          placeholder="직책을 입력하세요"
-                        />
-                      ) : (
-                        <p className="text-gray-900">{scanResult.jobTitle}</p>
-                      )}
-                    </div>
-                  )}
-                  {(scanResult.email || isEditing) && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        이메일
-                      </label>
-                      {isEditing ? (
-                        <Input
-                          value={editedData.email || ''}
-                          onChange={(e) => handleEditChange('email', e.target.value)}
-                          placeholder="이메일을 입력하세요"
-                          type="email"
-                        />
-                      ) : (
-                        <p className="text-gray-900">{scanResult.email}</p>
-                      )}
-                    </div>
-                  )}
-                  {(scanResult.phone || isEditing) && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        전화번호
-                      </label>
-                      {isEditing ? (
-                        <Input
-                          value={editedData.phone || ''}
-                          onChange={(e) => handleEditChange('phone', e.target.value)}
-                          placeholder="전화번호를 입력하세요"
-                          type="tel"
-                        />
-                      ) : (
-                        <p className="text-gray-900">{scanResult.phone}</p>
-                      )}
-                    </div>
-                  )}
-                  {(scanResult.website || isEditing) && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        웹사이트
-                      </label>
-                      {isEditing ? (
-                        <Input
-                          value={editedData.website || ''}
-                          onChange={(e) => handleEditChange('website', e.target.value)}
-                          placeholder="웹사이트를 입력하세요"
-                          type="url"
-                        />
-                      ) : (
-                        <p className="text-gray-900">{scanResult.website}</p>
-                      )}
-                    </div>
-                  )}
-                  {(scanResult.address || isEditing) && (
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        주소
-                      </label>
-                      {isEditing ? (
-                        <Input
-                          value={editedData.address || ''}
-                          onChange={(e) => handleEditChange('address', e.target.value)}
-                          placeholder="주소를 입력하세요"
-                        />
-                      ) : (
-                        <p className="text-gray-900">{scanResult.address}</p>
-                      )}
-                    </div>
-                  )}
+                  {/* Dynamic field rendering - shows all available fields */}
+                  {Object.entries(scanResult).map(([key, value]) => {
+                    if (!value && !isEditing) return null;
+                    
+                    // Get Korean field names
+                    const getFieldLabel = (field: string) => {
+                      const labels: Record<string, string> = {
+                        name: '이름',
+                        company: '회사',
+                        jobTitle: '직책',
+                        title: '직함',
+                        department: '부서',
+                        email: '이메일',
+                        phone: '전화번호',
+                        mobile: '휴대폰',
+                        fax: '팩스',
+                        website: '웹사이트',
+                        address: '주소',
+                        linkedIn: 'LinkedIn',
+                        twitter: 'Twitter',
+                        instagram: 'Instagram',
+                        facebook: 'Facebook',
+                        skype: 'Skype',
+                        whatsapp: 'WhatsApp',
+                        telegram: 'Telegram',
+                        wechat: 'WeChat',
+                        line: 'Line'
+                      };
+                      return labels[field] || field.charAt(0).toUpperCase() + field.slice(1);
+                    };
+
+                    // Get input type for field
+                    const getInputType = (field: string) => {
+                      if (field === 'email') return 'email';
+                      if (field === 'phone' || field === 'mobile' || field === 'fax') return 'tel';
+                      if (field === 'website' || field.includes('url')) return 'url';
+                      return 'text';
+                    };
+
+                    // Determine if field should span full width
+                    const isFullWidth = key === 'address' || key === 'website' || key.includes('url');
+                    
+                    return (
+                      <div key={key} className={isFullWidth ? 'md:col-span-2' : ''}>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          {getFieldLabel(key)}
+                        </label>
+                        {isEditing ? (
+                          <Input
+                            value={editedData[key] || ''}
+                            onChange={(e) => handleEditChange(key, e.target.value)}
+                            placeholder={`${getFieldLabel(key)}을(를) 입력하세요`}
+                            type={getInputType(key)}
+                          />
+                        ) : (
+                          <p className="text-gray-900">{value}</p>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
 
                 {/* Folder creation is now handled automatically by scan endpoint */}
