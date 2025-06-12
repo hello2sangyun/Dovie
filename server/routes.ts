@@ -745,11 +745,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ success: false, error: "이미지 파일이 필요합니다." });
       }
 
-      console.log('Processing business card image analysis...');
+      console.log('Processing business card image analysis with AI auto-crop...');
       
-      // Process image for enhanced quality
-      const { processBusinessCardImage } = await import('./imageProcessing');
-      const processedImages = await processBusinessCardImage(req.file.buffer);
+      // Step 1: Detect business card boundaries using AI
+      const originalBase64 = req.file.buffer.toString('base64');
+      const { detectBusinessCardBounds } = await import('./openai');
+      const detectedBounds = await detectBusinessCardBounds(originalBase64);
+      
+      console.log('AI boundary detection result:', detectedBounds);
+
+      // Step 2: Process image with AI-guided cropping
+      const { processBusinessCardImageWithAI } = await import('./imageProcessing');
+      const processedImages = await processBusinessCardImageWithAI(req.file.buffer, detectedBounds || undefined);
       
       // Convert enhanced image to base64
       const base64Image = processedImages.enhanced.toString('base64');
