@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Camera, Upload, Scan, AlertCircle, Loader2 } from "lucide-react";
 import CameraCapture from "@/components/CameraCapture";
+import ImageCrop from "@/components/ImageCrop";
 
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
@@ -68,10 +69,20 @@ export default function ScanPage() {
       return await response.json();
     },
     onSuccess: (data) => {
-      setCroppedImageUrl(data.croppedImageUrl);
-      setCroppedFile(data.croppedFile);
-      setIsProcessing(false);
-      setShowPreview(true);
+      if (data.success) {
+        setCroppedImageUrl(data.croppedImageUrl);
+        // Convert base64 back to File for scanning
+        fetch(data.croppedImageUrl)
+          .then(res => res.blob())
+          .then(blob => {
+            const file = new File([blob], 'cropped-business-card.jpg', { type: 'image/jpeg' });
+            setCroppedFile(file);
+          });
+        setIsProcessing(false);
+        setShowPreview(true);
+      } else {
+        throw new Error(data.message || "Auto-crop failed");
+      }
     },
     onError: (error) => {
       console.error("Auto-crop error:", error);
@@ -260,7 +271,65 @@ export default function ScanPage() {
           </CardContent>
         </Card>
 
+        {/* Preview Mode */}
+        {showPreview && croppedImageUrl && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-purple-600">자동 크롭 결과</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex justify-center mb-6">
+                <img
+                  src={croppedImageUrl}
+                  alt="Cropped business card"
+                  className="max-w-full max-h-64 object-contain rounded-lg border border-gray-200"
+                />
+              </div>
+              <div className="space-y-3">
+                <Button 
+                  onClick={handleConfirmScan}
+                  disabled={scanMutation.isPending}
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  {scanMutation.isPending ? "스캔 중..." : "확인"}
+                </Button>
+                <Button 
+                  onClick={handleManualCrop}
+                  variant="outline"
+                  className="w-full border-purple-200 text-purple-600 hover:bg-purple-50"
+                >
+                  수동으로 영역 조정
+                </Button>
+                <Button 
+                  onClick={handleResetScan}
+                  variant="ghost"
+                  className="w-full text-gray-500 hover:text-gray-700"
+                >
+                  다시 촬영
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
+        {/* Manual Crop Mode */}
+        {showManualCrop && selectedFile && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-purple-600">명함 영역 조정</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ImageCrop
+                imageUrl={imageUrl!}
+                onCrop={handleCropComplete}
+                onCancel={() => {
+                  setShowManualCrop(false);
+                  setShowPreview(true);
+                }}
+              />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Scan Results */}
         {scanResult && (

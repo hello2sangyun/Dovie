@@ -966,7 +966,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Step 2: Process image with AI-guided cropping to remove background
       const { processBusinessCardImageWithAI } = await import('./imageProcessing');
-      const processedImages = await processBusinessCardImageWithAI(req.file.buffer, detectedBounds);
+      const processedImages = await processBusinessCardImageWithAI(req.file.buffer, detectedBounds || undefined);
 
       // Convert cropped image to base64 for frontend display
       const croppedBase64 = `data:image/jpeg;base64,${processedImages.enhanced.toString('base64')}`;
