@@ -880,9 +880,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const folderId = Number(req.params.folderId);
-      const itemData = req.body;
+      const itemData = { ...req.body, folderId };
       
-      const item = await storage.addFolderItem(folderId, itemData);
+      const item = await storage.addFolderItem(itemData);
       res.json(item);
     } catch (error) {
       console.error('Error adding folder item:', error);

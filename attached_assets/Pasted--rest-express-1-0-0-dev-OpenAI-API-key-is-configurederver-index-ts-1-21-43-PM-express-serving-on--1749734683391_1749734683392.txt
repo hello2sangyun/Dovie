@@ -1,0 +1,265 @@
+> rest-express@1.0.0 dev
+OpenAI API key is configurederver/index.ts
+1:21:43 PM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 8 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+1:21:52 PM [express] GET /api/unread-counts 200 in 5441ms :: {"unreadCounts":[]}
+1:21:53 PM [express] GET /api/auth/me 304 in 40ms :: {"user":{"id":91,"username":"strong","displayNa…
+1:21:58 PM [express] GET /api/unread-counts 304 in 1243ms :: {"unreadCounts":[]}
+1:22:02 PM [express] GET /api/contacts/recent-posts 400 in 1ms :: {"message":"Invalid contact ID"}
+1:22:03 PM [express] GET /api/contacts/recent-posts 400 in 0ms :: {"message":"Invalid contact ID"}
+1:22:04 PM [express] GET /api/unread-counts 304 in 1248ms :: {"unreadCounts":[]}
+1:22:05 PM [express] GET /api/contacts/recent-posts 400 in 1ms :: {"message":"Invalid contact ID"}
+1:22:08 PM [express] GET /api/auth/me 304 in 39ms :: {"user":{"id":91,"username":"strong","displayNa…
+1:22:11 PM [express] GET /api/unread-counts 304 in 1277ms :: {"unreadCounts":[]}
+1:22:15 PM [express] GET /api/auth/me 304 in 40ms :: {"user":{"id":91,"username":"strong","displayNa…
+1:22:27 PM [express] GET /api/auth/me 200 in 37ms :: {"user":{"id":91,"username":"strong","displayNa…
+1:22:31 PM [express] POST /api/auth/login 200 in 173ms :: {"user":{"id":91,"username":"strong","disp…
+1:22:31 PM [express] GET /api/contacts 304 in 44ms :: {"contacts":[{"id":55,"userId":91,"contactUser…
+1:22:31 PM [express] GET /api/chat-rooms 304 in 716ms :: {"chatRooms":[{"id":86,"name":"하이 테스트","isG…
+1:22:32 PM [express] GET /api/chat-rooms/86/messages 304 in 40ms :: {"messages":[{"id":360,"chatRoom…
+1:22:32 PM [express] GET /api/chat-rooms/85/messages 304 in 39ms :: {"messages":[]}
+1:22:32 PM [express] GET /api/chat-rooms/84/messages 304 in 38ms :: {"messages":[]}
+1:22:32 PM [express] GET /api/chat-rooms/83/messages 304 in 45ms :: {"messages":[{"id":343,"chatRoom…
+1:22:32 PM [express] GET /api/unread-counts 304 in 1267ms :: {"unreadCounts":[]}
+1:22:32 PM [express] GET /api/chat-rooms/69/messages 304 in 39ms :: {"messages":[]}
+1:22:34 PM [express] GET /api/person-folders 304 in 40ms :: [{"id":27,"userId":91,"contactId":82,"pe…
+1:22:36 PM [express] GET /api/person-folders 304 in 38ms :: [{"id":27,"userId":91,"contactId":82,"pe…
+1:22:36 PM [express] GET /api/person-folders 304 in 39ms :: [{"id":27,"userId":91,"contactId":82,"pe…
+1:22:38 PM [express] DELETE /api/person-folders/27 200 in 82ms :: {"success":true}
+1:22:38 PM [express] GET /api/person-folders 200 in 38ms :: []
+1:22:38 PM [express] GET /api/person-folders 200 in 42ms :: []
+1:22:38 PM [express] GET /api/person-folders 200 in 159ms :: []
+1:22:39 PM [express] GET /api/unread-counts 304 in 1363ms :: {"unreadCounts":[]}
+Processing business card image: IMG_3155.jpg 154936 bytes
+Starting business card analysis with OpenAI Vision API
+Business card analysis completed successfully: {
+  name: 'Stan Lee',
+  company: 'CB Engineering',
+  jobTitle: 'Managing director',
+  email: 'hello2sagyun@gmail.com',
+  phone: '+36 70 356 66 30',
+  address: 'H-2900 Komárom, Bánki Donát u. 4.'
+}
+1:22:49 PM [express] POST /api/scan-business-card 200 in 6022ms :: {"name":"Stan Lee","company":"CB …
+POST /api/contacts - Request body: {
+  name: 'Stan Lee',
+  company: 'CB Engineering',
+  jobTitle: 'Managing director',
+  email: 'hello2sagyun@gmail.com',
+  phone: '+36 70 356 66 30',
+  address: 'H-2900 Komárom, Bánki Donát u. 4.'
+}
+POST /api/contacts - User ID from header: 91
+Creating external contact from business card data
+Creating external contact with data: {
+  userId: 91,
+  contactUserId: null,
+  nickname: 'Stan Lee',
+  name: 'Stan Lee',
+  email: 'hello2sagyun@gmail.com',
+  phone: '+36 70 356 66 30',
+  company: 'CB Engineering',
+  jobTitle: 'Managing director',
+  notes: undefined
+}
+External contact created successfully: {
+  id: 83,
+  userId: 91,
+  contactUserId: null,
+  nickname: 'Stan Lee',
+  name: 'Stan Lee',
+  email: 'hello2sagyun@gmail.com',
+  phone: '+36 70 356 66 30',
+  company: 'CB Engineering',
+  jobTitle: 'Managing director',
+  notes: null,
+  isPinned: false,
+  isFavorite: false,
+  isBlocked: false,
+  createdAt: 2025-06-12T13:22:51.710Z
+}
+1:22:51 PM [express] POST /api/contacts 200 in 164ms :: {"contact":{"id":83,"userId":91,"contactUser…
+createPersonFolder called with: { userId: 91, contactId: 83, folderName: 'Stan Lee' }
+Executing direct pool query: 
+        INSERT INTO person_folders (user_id, contact_id, person_name, folder_name, last_activity, item_count, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, NOW(), 0, NOW(), NOW())
+        RETURNING *
+      
+With values: [ 91, 83, 'Stan Lee', 'Stan Lee' ]
+Created folder: {
+  id: 28,
+  user_id: 91,
+  contact_id: 83,
+  person_name: 'Stan Lee',
+  created_at: 2025-06-12T13:22:51.882Z,
+  updated_at: 2025-06-12T13:22:51.882Z,
+  folder_name: 'Stan Lee',
+  avatar_url: null,
+  last_activity: 2025-06-12T13:22:51.882Z,
+  item_count: 0
+}
+1:22:51 PM [express] POST /api/person-folders 200 in 40ms :: {"id":28,"user_id":91,"contact_id":83,"…
+Error adding folder item: error: null value in column "folder_id" of relation "folder_items" violates not-null constraint
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.addFolderItem (/home/runner/workspace/server/storage.ts:1284:20)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:885:20) {
+  length: 333,
+  severity: 'ERROR',
+  code: '23502',
+  detail: 'Failing row contains (1, null, null, null, null, 2025-06-12 13:22:52.048585, null, null, null, null, null, null, null, 2025-06-12 13:22:52.048585).',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'folder_items',
+  column: 'folder_id',
+  dataType: undefined,
+  constraint: undefined,
+  file: 'execMain.c',
+  line: '2006',
+  routine: 'ExecConstraints'
+}
+1:22:52 PM [express] POST /api/person-folders/28/items 500 in 66ms :: {"message":"Failed to add fold…
+1:22:53 PM [express] GET /api/contacts 200 in 155ms :: {"contacts":[{"id":55,"userId":91,"contactUse…
+1:22:53 PM [express] GET /api/person-folders 200 in 160ms :: [{"id":28,"userId":91,"contactId":83,"p…
+1:22:55 PM [express] GET /api/person-folders 304 in 40ms :: [{"id":28,"userId":91,"contactId":83,"pe…
+1:22:55 PM [express] GET /api/person-folders 304 in 38ms :: [{"id":28,"userId":91,"contactId":83,"pe…
+1:22:58 PM [express] GET /api/auth/me 200 in 36ms :: {"user":{"id":91,"username":"strong","displayNa…
+1:22:59 PM [express] GET /api/unread-counts 304 in 1246ms :: {"unreadCounts":[]}
+1:23:00 PM [express] GET /api/contacts/recent-posts 400 in 1ms :: {"message":"Invalid contact ID"}
+1:23:01 PM [express] GET /api/contacts/recent-posts 400 in 1ms :: {"message":"Invalid contact ID"}
+1:23:03 PM [express] GET /api/contacts/recent-posts 400 in 1ms :: {"message":"Invalid contact ID"}
+1:23:06 PM [express] GET /api/unread-counts 304 in 1249ms :: {"unreadCounts":[]}
+1:23:07 PM [express] GET /api/commands 304 in 51ms :: {"commands":[{"id":38,"userId":91,"chatRoomId"…
+1:23:08 PM [express] GET /api/contacts/recent-posts 400 in 0ms :: {"message":"Invalid contact ID"}
+1:23:09 PM [express] GET /api/contacts/recent-posts 400 in 1ms :: {"message":"Invalid contact ID"}
+1:23:12 PM [express] GET /api/contacts/recent-posts 400 in 1ms :: {"message":"Invalid contact ID"}
+1:23:12 PM [express] GET /api/unread-counts 304 in 1255ms :: {"unreadCounts":[]}
+1:23:16 PM [express] GET /api/auth/me 200 in 38ms :: {"user":{"id":91,"username":"strong","displayNa…
+Processing business card image: IMG_3155.jpg 154936 bytes
+Starting business card analysis with OpenAI Vision API
+Business card analysis completed successfully: {
+  name: 'Stan Lee',
+  company: 'CB Engineering',
+  jobTitle: 'Managing Director',
+  email: 'hello2sagyun@gmail.com',
+  phone: '+36 70 356 66 30',
+  address: 'H-2900 Komárom, Bánki Donát u. 4.'
+}
+1:23:25 PM [express] POST /api/scan-business-card 200 in 5439ms :: {"name":"Stan Lee","company":"CB …
+POST /api/contacts - Request body: {
+  name: 'Stan Lee',
+  company: 'CB Engineering',
+  jobTitle: 'Managing Director',
+  email: 'hello2sagyun@gmail.com',
+  phone: '+36 70 356 66 30',
+  address: 'H-2900 Komárom, Bánki Donát u. 4.'
+}
+POST /api/contacts - User ID from header: 91
+Creating external contact from business card data
+Creating external contact with data: {
+  userId: 91,
+  contactUserId: null,
+  nickname: 'Stan Lee',
+  name: 'Stan Lee',
+  email: 'hello2sagyun@gmail.com',
+  phone: '+36 70 356 66 30',
+  company: 'CB Engineering',
+  jobTitle: 'Managing Director',
+  notes: undefined
+}
+External contact created successfully: {
+  id: 84,
+  userId: 91,
+  contactUserId: null,
+  nickname: 'Stan Lee',
+  name: 'Stan Lee',
+  email: 'hello2sagyun@gmail.com',
+  phone: '+36 70 356 66 30',
+  company: 'CB Engineering',
+  jobTitle: 'Managing Director',
+  notes: null,
+  isPinned: false,
+  isFavorite: false,
+  isBlocked: false,
+  createdAt: 2025-06-12T13:23:28.236Z
+}
+1:23:28 PM [express] POST /api/contacts 200 in 166ms :: {"contact":{"id":84,"userId":91,"contactUser…
+createPersonFolder called with: { userId: 91, contactId: 84, folderName: 'Stan Lee' }
+Executing direct pool query: 
+        INSERT INTO person_folders (user_id, contact_id, person_name, folder_name, last_activity, item_count, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, NOW(), 0, NOW(), NOW())
+        RETURNING *
+      
+With values: [ 91, 84, 'Stan Lee', 'Stan Lee' ]
+Created folder: {
+  id: 29,
+  user_id: 91,
+  contact_id: 84,
+  person_name: 'Stan Lee',
+  created_at: 2025-06-12T13:23:28.410Z,
+  updated_at: 2025-06-12T13:23:28.410Z,
+  folder_name: 'Stan Lee',
+  avatar_url: null,
+  last_activity: 2025-06-12T13:23:28.410Z,
+  item_count: 0
+}
+1:23:28 PM [express] POST /api/person-folders 200 in 41ms :: {"id":29,"user_id":91,"contact_id":84,"…
+Error adding folder item: error: null value in column "folder_id" of relation "folder_items" violates not-null constraint
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.addFolderItem (/home/runner/workspace/server/storage.ts:1284:20)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:885:20) {
+  length: 333,
+  severity: 'ERROR',
+  code: '23502',
+  detail: 'Failing row contains (2, null, null, null, null, 2025-06-12 13:23:28.578885, null, null, null, null, null, null, null, 2025-06-12 13:23:28.578885).',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'folder_items',
+  column: 'folder_id',
+  dataType: undefined,
+  constraint: undefined,
+  file: 'execMain.c',
+  line: '2006',
+  routine: 'ExecConstraints'
+}
+1:23:28 PM [express] POST /api/person-folders/29/items 500 in 40ms :: {"message":"Failed to add fold…
+1:23:29 PM [express] GET /api/contacts 200 in 160ms :: {"contacts":[{"id":55,"userId":91,"contactUse…
+1:23:29 PM [express] GET /api/person-folders 200 in 156ms :: [{"id":29,"userId":91,"contactId":84,"p…
+1:23:30 PM [express] GET /api/chat-rooms 200 in 795ms :: {"chatRooms":[{"id":86,"name":"하이 테스트","isG…
+1:23:30 PM [express] GET /api/chat-rooms/86/messages 304 in 38ms :: {"messages":[{"id":360,"chatRoom…
+1:23:30 PM [express] GET /api/chat-rooms/85/messages 304 in 37ms :: {"messages":[]}
+1:23:30 PM [express] GET /api/chat-rooms/84/messages 304 in 37ms :: {"messages":[]}
+1:23:31 PM [express] GET /api/chat-rooms/83/messages 304 in 43ms :: {"messages":[{"id":343,"chatRoom…
+1:23:31 PM [express] GET /api/unread-counts 304 in 1405ms :: {"unreadCounts":[]}
+1:23:31 PM [express] GET /api/chat-rooms/69/messages 304 in 38ms :: {"messages":[]}
+1:23:37 PM [express] GET /api/unread-counts 304 in 1197ms :: {"unreadCounts":[]}
+1:23:37 PM [express] GET /api/person-folders 304 in 38ms :: [{"id":29,"userId":91,"contactId":84,"pe…
+1:23:37 PM [express] GET /api/person-folders 304 in 41ms :: [{"id":29,"userId":91,"contactId":84,"pe…
+1:23:38 PM [express] GET /api/person-folders 304 in 38ms :: [{"id":29,"userId":91,"contactId":84,"pe…
+1:23:38 PM [express] GET /api/person-folders 304 in 38ms :: [{"id":29,"userId":91,"contactId":84,"pe…
+1:23:45 PM [express] GET /api/auth/me 304 in 37ms :: {"user":{"id":91,"username":"strong","displayNa…
+1:24:17 PM [express] GET /api/auth/me 200 in 149ms :: {"user":{"id":91,"username":"strong","displayN…
+1:24:18 PM [express] DELETE /api/person-folders/28 200 in 73ms :: {"success":true}
+1:24:18 PM [express] GET /api/person-folders 200 in 38ms :: [{"id":29,"userId":91,"contactId":84,"pe…
+1:24:19 PM [express] GET /api/person-folders 304 in 37ms :: [{"id":29,"userId":91,"contactId":84,"pe…
+1:24:19 PM [express] GET /api/person-folders 200 in 37ms :: [{"id":29,"userId":91,"contactId":84,"pe…
+1:24:19 PM [express] GET /api/person-folders 200 in 160ms :: [{"id":29,"userId":91,"contactId":84,"p…
+1:24:19 PM [express] GET /api/person-folders 304 in 38ms :: [{"id":29,"userId":91,"contactId":84,"pe…
+1:24:21 PM [express] DELETE /api/person-folders/29 200 in 73ms :: {"success":true}
+1:24:21 PM [express] GET /api/person-folders 200 in 38ms :: []
+1:24:22 PM [express] GET /api/person-folders 200 in 156ms :: []
+1:24:22 PM [express] GET /api/person-folders 200 in 160ms :: []
+1:24:22 PM [express] GET /api/unread-counts 304 in 1261ms :: {"unreadCounts":[]}
