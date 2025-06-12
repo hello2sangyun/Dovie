@@ -862,7 +862,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const imageUrl = `/uploads/business-cards/${imageFileName}`;
       
       // Save enhanced image to disk
-      await require('fs').promises.writeFile(imagePath, processedImages.enhanced);
+      const fs = await import('fs');
+      await fs.promises.writeFile(imagePath, processedImages.enhanced);
 
       // Determine person name from extracted data
       const personName = extractedData.name || "이름 미확인";

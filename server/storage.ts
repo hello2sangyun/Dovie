@@ -1289,6 +1289,17 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(folderItems.createdAt));
   }
 
+  async getPersonFolderByName(userId: number, personName: string): Promise<PersonFolder | undefined> {
+    const [folder] = await db
+      .select()
+      .from(personFolders)
+      .where(and(
+        eq(personFolders.userId, userId),
+        eq(personFolders.personName, personName)
+      ));
+    return folder;
+  }
+
   async addFolderItem(itemData: InsertFolderItem): Promise<FolderItem> {
     const [item] = await db.insert(folderItems).values(itemData).returning();
     
