@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import CameraCapture from "@/components/CameraCapture";
 import { 
   Camera, 
@@ -16,7 +17,10 @@ import {
   FileImage,
   Loader2,
   FolderPlus,
-  ImagePlus
+  ImagePlus,
+  Edit2,
+  Save,
+  X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +45,8 @@ export default function ScanPage() {
   const [isScanning, setIsScanning] = useState(false);
   const [folderCreated, setFolderCreated] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedData, setEditedData] = useState<ScanResult | null>(null);
 
   // AI scan mutation
   const scanMutation = useMutation({
@@ -105,7 +111,8 @@ export default function ScanPage() {
         throw new Error('연락처 생성에 실패했습니다.');
       }
 
-      const contact = await contactResponse.json();
+      const contactData = await contactResponse.json();
+      const contactId = contactData.contact?.id || contactData.id;
 
       // Then create person folder
       const folderResponse = await fetch('/api/person-folders', {
@@ -115,7 +122,7 @@ export default function ScanPage() {
           'x-user-id': user?.id.toString() || '',
         },
         body: JSON.stringify({
-          contactId: contact.id,
+          contactId: contactId,
           folderName: scanData.name || scanData.company || '이름 없음',
         }),
       });
