@@ -26,7 +26,7 @@ import EnhancedBusinessCard from "@/components/EnhancedBusinessCard";
 import MobileOptimizedBusinessCard from "@/components/MobileOptimizedBusinessCard";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, Building2, Shield, UserX, Camera, CreditCard, Menu, User, Bell, FolderOpen } from "lucide-react";
+import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, Building2, Shield, UserX, Camera, CreditCard, Menu, User, Bell, FolderOpen, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CameraCapture from "@/components/CameraCapture";
 
@@ -1181,10 +1181,10 @@ export default function MainApp() {
 
         {/* Mobile Content with padding for fixed header and footer */}
         <div className="flex-1 overflow-hidden pt-20 pb-20">
-          {activeMobileTab === "contacts" && (
+          {activeMobileTab === "cabinet" && (
             <div className="h-full overflow-y-auto bg-gray-50">
               <div className="p-4 space-y-4">
-                {/* One Pager 명함 스캐너 - 모바일용 */}
+                {/* One Pager 명함 스캐너 - 통합된 Cabinet */}
                 <div className="bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 rounded-xl p-4 border-2 border-purple-300 shadow-lg">
                   <div className="flex items-center gap-2 mb-3">
                     <h3 className="font-semibold text-gray-900">One Pager 명함 스캐너</h3>
@@ -1205,13 +1205,6 @@ export default function MainApp() {
                       <Camera className="w-4 h-4 mr-2" />
                       명함 스캔 시작
                     </Button>
-                    <Button 
-                      onClick={() => setActiveMobileTab('cabinet')}
-                      variant="outline"
-                      className="border-purple-300 text-purple-600 hover:bg-purple-50"
-                    >
-                      <FolderOpen className="w-4 h-4" />
-                    </Button>
                   </div>
                   
                   <div className="mt-3 text-xs text-gray-500 bg-white/50 rounded-lg p-2">
@@ -1219,39 +1212,51 @@ export default function MainApp() {
                   </div>
                 </div>
 
-                <ContactsList 
-                  onAddContact={() => openModal("addContact")}
-                  onSelectContact={(contactUserId) => {
-                    // 해당 친구와의 채팅방 찾기 또는 생성 (모바일)
-                    const contact = (contactsData as any)?.contacts?.find((c: any) => c.contactUserId === contactUserId);
-                    if (contact) {
-                      createOrFindChatRoom(contactUserId, contact.contactUser);
-                      setActiveMobileTab("chats");
-                    }
-                  }}
-                />
-              </div>
-            </div>
-          )}
-          {activeMobileTab === "cabinet" && (
-            <div className="h-full overflow-y-auto bg-gray-50">
-              <div className="p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h1 className="text-xl font-bold text-gray-900">Cabinet</h1>
-                  <Button 
-                    onClick={() => window.location.href = '/scan'}
-                    size="sm"
-                    className="bg-purple-600 hover:bg-purple-700"
-                  >
-                    <Camera className="w-4 h-4 mr-1" />
-                    스캔
-                  </Button>
+                {/* Person Folders Section */}
+                <div className="bg-white rounded-xl p-4 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold text-gray-900">개인별 폴더</h2>
+                    <Button 
+                      onClick={() => window.location.href = '/scan'}
+                      size="sm"
+                      variant="outline"
+                      className="border-purple-300 text-purple-600 hover:bg-purple-50"
+                    >
+                      <Camera className="w-4 h-4 mr-1" />
+                      추가
+                    </Button>
+                  </div>
+                  
+                  <PersonFoldersList onSelectFolder={(folderId) => {
+                    console.log('Selected folder:', folderId);
+                  }} />
                 </div>
-                
-                <PersonFoldersList onSelectFolder={(folderId) => {
-                  // Handle folder selection for mobile
-                  console.log('Selected folder:', folderId);
-                }} />
+
+                {/* Contacts Section */}
+                <div className="bg-white rounded-xl p-4 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold text-gray-900">연락처</h2>
+                    <Button 
+                      onClick={() => openModal("addContact")}
+                      size="sm"
+                      variant="outline"
+                    >
+                      <Users className="w-4 h-4 mr-1" />
+                      추가
+                    </Button>
+                  </div>
+                  
+                  <ContactsList 
+                    onAddContact={() => openModal("addContact")}
+                    onSelectContact={(contactUserId) => {
+                      const contact = (contactsData as any)?.contacts?.find((c: any) => c.contactUserId === contactUserId);
+                      if (contact) {
+                        createOrFindChatRoom(contactUserId, contact.contactUser);
+                        setActiveMobileTab("chats");
+                      }
+                    }}
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -1379,24 +1384,7 @@ export default function MainApp() {
                 <span className="text-xs mt-1 font-medium">Cabinet</span>
               </Button>
               
-              <Button
-                variant="ghost"
-                className={cn(
-                  "flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-200 min-h-[60px] flex-1 max-w-[80px]",
-                  activeMobileTab === "contacts" 
-                    ? "text-blue-600 bg-blue-50 scale-105" 
-                    : "text-gray-600 hover:text-gray-800 hover:bg-gray-50"
-                )}
-                onClick={() => setActiveMobileTab("contacts")}
-              >
-                <div className={cn(
-                  "p-1.5 rounded-lg transition-colors",
-                  activeMobileTab === "contacts" ? "bg-blue-100" : ""
-                )}>
-                  <BookUser className="h-5 w-5" />
-                </div>
-                <span className="text-xs mt-1 font-medium">연락처</span>
-              </Button>
+
               
               <Button
                 variant="ghost"
