@@ -103,6 +103,7 @@ export interface IStorage {
   createPersonFolder(userId: number, contactId: number, folderName: string): Promise<PersonFolder>;
   getPersonFolderById(userId: number, folderId: number): Promise<(PersonFolder & { contact: Contact; items: FolderItem[] }) | undefined>;
   createOrFindPersonFolder(userId: number, contactId: number, personName: string): Promise<PersonFolder>;
+  deletePersonFolder(userId: number, folderId: number): Promise<void>;
   
   // Folder item operations
   getFolderItems(folderId: number): Promise<FolderItem[]>;
@@ -1177,6 +1178,21 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     return newFolder;
+  }
+
+  async deletePersonFolder(userId: number, folderId: number): Promise<void> {
+    // First delete all folder items
+    await db
+      .delete(folderItems)
+      .where(eq(folderItems.folderId, folderId));
+
+    // Then delete the folder itself (with user verification)
+    await db
+      .delete(personFolders)
+      .where(and(
+        eq(personFolders.id, folderId),
+        eq(personFolders.userId, userId)
+      ));
   }
 
   async getFolderItems(folderId: number): Promise<FolderItem[]> {

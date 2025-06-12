@@ -17,7 +17,8 @@ import {
   Mic,
   MoreVertical,
   Clock,
-  ChevronRight
+  ChevronRight,
+  Trash2
 } from "lucide-react";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";

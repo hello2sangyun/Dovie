@@ -803,6 +803,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/person-folders/:folderId", async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string;
+      if (!userId) {
+        return res.status(401).json({ message: "User ID required" });
+      }
+
+      const folderId = Number(req.params.folderId);
+      await storage.deletePersonFolder(Number(userId), folderId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting person folder:', error);
+      res.status(500).json({ message: "Failed to delete folder" });
+    }
+  });
+
   app.post("/api/person-folders/:folderId/items", async (req, res) => {
     try {
       const userId = req.headers['x-user-id'] as string;
