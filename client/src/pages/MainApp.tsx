@@ -24,7 +24,7 @@ import EnhancedBusinessCard from "@/components/EnhancedBusinessCard";
 import MobileOptimizedBusinessCard from "@/components/MobileOptimizedBusinessCard";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, Building2, Shield, UserX, Camera, CreditCard, Menu, User, Bell } from "lucide-react";
+import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, Building2, Shield, UserX, Camera, CreditCard, Menu, User, Bell, FolderOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CameraCapture from "@/components/CameraCapture";
 
@@ -1292,56 +1292,53 @@ export default function MainApp() {
               <Button
                 variant="ghost"
                 className={cn(
-                  "flex flex-col items-center py-3 px-4 rounded-xl transition-all duration-200 relative min-h-[56px] min-w-[64px]",
+                  "flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-200 relative min-h-[60px] flex-1 max-w-[80px]",
                   activeMobileTab === "chats" 
-                    ? "text-blue-600 bg-blue-100 scale-110 shadow-lg" 
-                    : "text-gray-600 hover:text-gray-800 hover:bg-gray-100"
+                    ? "text-blue-600 bg-blue-50 scale-105" 
+                    : "text-gray-600 hover:text-gray-800 hover:bg-gray-50"
                 )}
                 onClick={() => setActiveMobileTab("chats")}
               >
                 <div className={cn(
-                  "p-2 rounded-lg transition-colors relative",
-                  activeMobileTab === "chats" ? "bg-blue-200" : ""
+                  "p-1.5 rounded-lg transition-colors relative",
+                  activeMobileTab === "chats" ? "bg-blue-100" : ""
                 )}>
-                  <MessageCircle className="h-6 w-6" />
+                  <MessageCircle className="h-5 w-5" />
                   {totalChatUnread > 0 && (
-                    <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-[20px] flex items-center justify-center font-bold shadow-lg animate-pulse">
+                    <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[16px] h-[16px] flex items-center justify-center font-bold text-[10px]">
                       {totalChatUnread > 9 ? '9+' : totalChatUnread}
                     </div>
                   )}
                 </div>
-                <span className="text-xs mt-1 font-semibold">DM</span>
+                <span className="text-xs mt-1 font-medium">DM</span>
               </Button>
 
               <Button
                 variant="ghost"
-                className="flex flex-col items-center py-1 px-2 rounded-2xl transition-all duration-300 hover:scale-105 relative"
+                className="flex flex-col items-center py-2 px-2 rounded-2xl transition-all duration-300 hover:scale-105 relative min-h-[60px]"
                 onClick={() => setShowCamera(true)}
               >
-                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 border-4 border-white hover:from-blue-600 hover:to-purple-700 transform hover:scale-110">
-                  <Camera className="h-7 w-7 text-white" />
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-white hover:from-blue-600 hover:to-purple-700">
+                  <Camera className="h-6 w-6 text-white" />
                 </div>
                 <span className="text-xs mt-1 font-bold text-blue-600">명함 스캔</span>
-                
-                {/* Pulse animation ring */}
-                <div className="absolute inset-0 rounded-full border-2 border-blue-400 opacity-0 animate-ping"></div>
               </Button>
               
               <Button
                 variant="ghost"
                 className={cn(
-                  "flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-200",
+                  "flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-200 min-h-[60px] flex-1 max-w-[80px]",
                   activeMobileTab === "explore" 
                     ? "text-blue-600 bg-blue-50 scale-105" 
-                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                    : "text-gray-600 hover:text-gray-800 hover:bg-gray-50"
                 )}
                 onClick={() => setActiveMobileTab("explore")}
               >
                 <div className={cn(
-                  "p-1 rounded-lg transition-colors",
+                  "p-1.5 rounded-lg transition-colors",
                   activeMobileTab === "explore" ? "bg-blue-100" : ""
                 )}>
-                  <Search className="h-5 w-5" />
+                  <FolderOpen className="h-5 w-5" />
                 </div>
                 <span className="text-xs mt-1 font-medium">Folder</span>
               </Button>
@@ -1349,18 +1346,18 @@ export default function MainApp() {
               <Button
                 variant="ghost"
                 className={cn(
-                  "flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-200",
+                  "flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-200 min-h-[60px] flex-1 max-w-[80px]",
                   activeMobileTab === "more" 
                     ? "text-blue-600 bg-blue-50 scale-105" 
-                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                    : "text-gray-600 hover:text-gray-800 hover:bg-gray-50"
                 )}
                 onClick={() => setActiveMobileTab("more")}
               >
                 <div className={cn(
-                  "p-1 rounded-lg transition-colors",
+                  "p-1.5 rounded-lg transition-colors",
                   activeMobileTab === "more" ? "bg-blue-100" : ""
                 )}>
-                  <Menu className="h-5 w-5" />
+                  <Settings className="h-5 w-5" />
                 </div>
                 <span className="text-xs mt-1 font-medium">Setting</span>
               </Button>
