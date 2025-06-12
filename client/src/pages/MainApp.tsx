@@ -461,6 +461,14 @@ export default function MainApp() {
                   }}
                 />
               </TabsContent>
+
+              <TabsContent value="cabinet" className="h-full m-0">
+                <PersonFoldersList 
+                  onSelectFolder={(folderId) => {
+                    setRightPanelContent(`person-folder-${folderId}`);
+                  }}
+                />
+              </TabsContent>
               
               <TabsContent value="chats" className="h-full m-0">
                 <ChatsList 
