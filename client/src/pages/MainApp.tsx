@@ -75,6 +75,7 @@ export default function MainApp() {
   const [friendFilter, setFriendFilter] = useState<number | null>(null);
   const [showCamera, setShowCamera] = useState(false);
   const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null);
+  const [showMobileFolderModal, setShowMobileFolderModal] = useState(false);
   const { addToPreloadQueue } = useImagePreloader();
 
   // Add contact mutation for business card scanning
