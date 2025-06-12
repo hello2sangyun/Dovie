@@ -69,27 +69,21 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { data: folder, isLoading: folderLoading } = useQuery<PersonFolderData>({
+  const { data: folder, isLoading: folderLoading, error: folderError } = useQuery<PersonFolderData>({
     queryKey: ["/api/person-folders", folderId],
     enabled: !!user && !!folderId,
-    onSuccess: (data) => {
-      console.log('Folder data loaded:', data);
-    },
-    onError: (error) => {
-      console.error('Error loading folder:', error);
-    }
   });
 
-  const { data: items = [], isLoading: itemsLoading } = useQuery<FolderItem[]>({
+  const { data: items = [], isLoading: itemsLoading, error: itemsError } = useQuery<FolderItem[]>({
     queryKey: ["/api/person-folders", folderId, "items"],
     enabled: !!user && !!folderId,
-    onSuccess: (data) => {
-      console.log('Folder items loaded:', data);
-    },
-    onError: (error) => {
-      console.error('Error loading folder items:', error);
-    }
   });
+
+  // Console logging for debugging
+  if (folder) console.log('Folder data loaded:', folder);
+  if (folderError) console.error('Error loading folder:', folderError);
+  if (items.length > 0) console.log('Folder items loaded:', items);
+  if (itemsError) console.error('Error loading folder items:', itemsError);
 
   const filteredItems = items.filter((item: FolderItem) =>
     item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
