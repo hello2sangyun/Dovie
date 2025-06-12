@@ -1244,7 +1244,7 @@ export default function MainApp() {
                   </div>
                   
                   <PersonFoldersList onSelectFolder={(folderId) => {
-                    console.log('Selected folder:', folderId);
+                    setRightPanelContent(`person-folder-${folderId}`);
                   }} />
                 </div>
 
