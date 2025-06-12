@@ -444,15 +444,15 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
 
           {/* Right Column - Business Card Display */}
           {businessCardItem && (
-            <div className="w-80 flex-shrink-0">
+            <div className="w-96 flex-shrink-0">
               <div className="sticky top-4">
-                <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">명함</h3>
+                <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-6">명함</h3>
                   
                   {businessCardItem.fileUrl ? (
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                       <div 
-                        className="relative cursor-pointer group"
+                        className="relative cursor-pointer group overflow-hidden rounded-xl"
                         onClick={() => setSelectedBusinessCard({
                           imageUrl: businessCardItem.fileUrl!,
                           personName: folder.personName || folder.folderName || "명함"
@@ -461,32 +461,38 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
                         <img
                           src={businessCardItem.fileUrl}
                           alt="명함"
-                          className="w-full h-auto rounded-lg border border-gray-200 group-hover:shadow-lg transition-shadow"
+                          className="w-full h-auto rounded-xl border-2 border-gray-100 group-hover:border-blue-300 group-hover:shadow-xl transition-all duration-300 transform group-hover:scale-[1.02]"
+                          style={{ minHeight: '200px', maxHeight: '400px', objectFit: 'contain' }}
                         />
-                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all rounded-lg flex items-center justify-center">
-                          <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Eye className="w-8 h-8 text-white" />
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 rounded-xl flex items-center justify-center">
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white bg-opacity-90 rounded-full p-3">
+                            <Eye className="w-6 h-6 text-gray-800" />
+                          </div>
+                        </div>
+                        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <div className="bg-white bg-opacity-90 rounded-full p-2">
+                            <Download className="w-4 h-4 text-gray-700" />
                           </div>
                         </div>
                       </div>
                       
-                      <div className="flex gap-2">
+                      <div className="flex gap-3">
                         <Button 
                           variant="outline" 
-                          size="sm" 
-                          className="flex-1"
+                          size="lg" 
+                          className="flex-1 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border-blue-200 text-blue-700 font-medium"
                           onClick={() => setSelectedBusinessCard({
                             imageUrl: businessCardItem.fileUrl!,
                             personName: folder.personName || folder.folderName || "명함"
                           })}
                         >
-                          <Eye className="w-4 h-4 mr-2" />
+                          <Eye className="w-5 h-5 mr-2" />
                           확대보기
                         </Button>
                         <Button 
                           variant="outline" 
-                          size="sm" 
-                          className="flex-1"
+                          size="lg" 
+                          className="flex-1 bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 border-green-200 text-green-700 font-medium"
                           onClick={() => {
                             const link = document.createElement('a');
                             link.href = businessCardItem.fileUrl!;
@@ -496,7 +502,7 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
                             document.body.removeChild(link);
                           }}
                         >
-                          <Download className="w-4 h-4 mr-2" />
+                          <Download className="w-5 h-5 mr-2" />
                           다운로드
                         </Button>
                       </div>
@@ -516,37 +522,52 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
 
       {/* Business Card Modal */}
       <Dialog open={!!selectedBusinessCard} onOpenChange={() => setSelectedBusinessCard(null)}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>{selectedBusinessCard?.personName} 명함</DialogTitle>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-2xl font-semibold text-gray-900">
+              {selectedBusinessCard?.personName} 명함
+            </DialogTitle>
           </DialogHeader>
           {selectedBusinessCard && (
-            <div className="space-y-4">
-              <div className="relative">
+            <div className="space-y-6">
+              <div className="relative bg-gray-50 rounded-xl p-4 flex items-center justify-center overflow-hidden">
                 <img
                   src={selectedBusinessCard.imageUrl}
                   alt="명함 확대보기"
-                  className="w-full h-auto rounded-lg"
+                  className="max-w-full max-h-[60vh] h-auto rounded-lg shadow-lg border border-gray-200"
+                  style={{ objectFit: 'contain' }}
                 />
               </div>
-              <div className="flex justify-end gap-2">
-                <Button 
-                  variant="outline"
-                  onClick={() => {
-                    const link = document.createElement('a');
-                    link.href = selectedBusinessCard.imageUrl;
-                    link.download = `${selectedBusinessCard.personName}_명함.jpg`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                  }}
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  다운로드
-                </Button>
-                <Button variant="outline" onClick={() => setSelectedBusinessCard(null)}>
-                  닫기
-                </Button>
+              <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                <div className="text-sm text-gray-600">
+                  클릭하여 다운로드하거나 모달을 닫으세요
+                </div>
+                <div className="flex gap-3">
+                  <Button 
+                    variant="outline"
+                    size="lg"
+                    className="bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 border-green-200 text-green-700 font-medium"
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = selectedBusinessCard.imageUrl;
+                      link.download = `${selectedBusinessCard.personName}_명함.jpg`;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                  >
+                    <Download className="w-5 h-5 mr-2" />
+                    다운로드
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="lg"
+                    onClick={() => setSelectedBusinessCard(null)}
+                  >
+                    <X className="w-5 h-5 mr-2" />
+                    닫기
+                  </Button>
+                </div>
               </div>
             </div>
           )}
