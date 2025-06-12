@@ -12,7 +12,7 @@ import {
   type NfcExchange, type InsertNfcExchange, type PersonFolder, type InsertPersonFolder,
   type FolderItem, type InsertFolderItem
 } from "@shared/schema";
-import { db } from "./db";
+import { db, pool } from "./db";
 import { eq, and, desc, asc, like, or, count, gt, lt, sql, inArray } from "drizzle-orm";
 import { encryptText, decryptText } from "./crypto";
 
@@ -1100,26 +1100,26 @@ export class DatabaseStorage implements IStorage {
   async createPersonFolder(userId: number, contactId: number, folderName: string): Promise<PersonFolder> {
     console.log('createPersonFolder called with:', { userId, contactId, folderName });
     
-    const insertData = {
-      userId,
-      contactId,
-      personName: folderName,
-      folderName,
-      lastActivity: new Date(),
-      itemCount: 0
-    };
-    
-    console.log('Insert data:', insertData);
-    
-    const [folder] = await db.insert(personFolders).values({
-      user_id: userId,
-      contact_id: contactId,
-      person_name: folderName,
-      folder_name: folderName,
-      last_activity: new Date(),
-      item_count: 0
-    } as any).returning();
-    return folder;
+    try {
+      // Use pool connection directly to bypass ORM issues
+      const query = `
+        INSERT INTO person_folders (user_id, contact_id, person_name, folder_name, last_activity, item_count, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, NOW(), 0, NOW(), NOW())
+        RETURNING *
+      `;
+      
+      console.log('Executing direct pool query:', query);
+      console.log('With values:', [userId, contactId, folderName, folderName]);
+      
+      const result = await pool.query(query, [userId, contactId, folderName, folderName]);
+      
+      const folder = result.rows[0] as PersonFolder;
+      console.log('Created folder:', folder);
+      return folder;
+    } catch (error) {
+      console.error('Pool query error:', error);
+      throw error;
+    }
   }
 
   async getPersonFolderById(userId: number, folderId: number): Promise<(PersonFolder & { contact: Contact; items: FolderItem[] }) | undefined> {
