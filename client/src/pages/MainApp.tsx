@@ -1270,10 +1270,9 @@ export default function MainApp() {
                   </div>
                   
                   <PersonFoldersList onSelectFolder={(folderId) => {
-                    console.log('MainApp: Folder selected, setting right panel:', folderId);
-                    console.log('Current rightPanelContent:', rightPanelContent);
-                    setRightPanelContent(`person-folder-${folderId}`);
-                    console.log('New rightPanelContent should be:', `person-folder-${folderId}`);
+                    console.log('Mobile: Folder selected:', folderId);
+                    setSelectedFolderId(folderId);
+                    setShowMobileFolderModal(true);
                   }} />
                 </div>
 
@@ -1527,6 +1526,21 @@ export default function MainApp() {
       />
 
       {/* Camera for business card scanning */}
+      {/* Mobile Folder Detail Modal */}
+      {showMobileFolderModal && selectedFolderId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 lg:hidden">
+          <div className="absolute inset-0 bg-white">
+            <PersonFolderDetail
+              folderId={selectedFolderId}
+              onBack={() => {
+                setShowMobileFolderModal(false);
+                setSelectedFolderId(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
       <CameraCapture
         isOpen={showCamera}
         onCapture={handleCameraCapture}
