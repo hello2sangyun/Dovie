@@ -1877,6 +1877,47 @@ END:VCARD\`;
     }
   });
 
+  // Serve files from subdirectories (business-cards, etc.)
+  app.get("/uploads/:subfolder/:filename", async (req, res) => {
+    try {
+      const { subfolder, filename } = req.params;
+      const filePath = path.join(uploadDir, subfolder, filename);
+      
+      // 파일이 존재하는지 확인
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ message: "File not found" });
+      }
+      
+      // 비즈니스 카드 이미지는 암호화되지 않았으므로 직접 제공
+      if (subfolder === 'business-cards') {
+        const fileBuffer = fs.readFileSync(filePath);
+        const ext = path.extname(filename).toLowerCase();
+        let contentType = 'application/octet-stream';
+        
+        if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
+        else if (ext === '.png') contentType = 'image/png';
+        else if (ext === '.gif') contentType = 'image/gif';
+        else if (ext === '.webp') contentType = 'image/webp';
+        
+        res.set({
+          'Content-Type': contentType,
+          'Content-Length': fileBuffer.length,
+          'Cache-Control': 'public, max-age=31536000',
+          'Access-Control-Allow-Origin': '*',
+          'Cross-Origin-Resource-Policy': 'cross-origin'
+        });
+        
+        return res.send(fileBuffer);
+      }
+      
+      // 다른 파일들은 기존 로직 적용
+      return res.status(404).json({ message: "File not found" });
+    } catch (error) {
+      console.error('Subdirectory file serving error:', error);
+      return res.status(500).json({ message: "File serving error" });
+    }
+  });
+
   // Serve files (both encrypted and unencrypted)
   app.get("/uploads/:filename", async (req, res) => {
     try {
