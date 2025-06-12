@@ -700,7 +700,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Business card scanning endpoint
-  app.post("/api/scan-business-card", upload.single('image'), async (req, res) => {
+  app.post("/api/scan-business-card", (req, res, next) => {
+    upload.single('image')(req, res, (err) => {
+      if (err) {
+        console.error('Multer error:', err);
+        return res.status(400).json({ message: "File upload error: " + err.message });
+      }
+      next();
+    });
+  }, async (req, res) => {
     try {
       const userId = req.headers['x-user-id'] as string;
       if (!userId) {
@@ -710,6 +718,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!req.file) {
         return res.status(400).json({ message: "Image file is required" });
       }
+
+      console.log('Processing business card image:', req.file.originalname, req.file.size, 'bytes');
 
       // Convert image to base64 for OpenAI Vision API
       const base64Image = req.file.buffer.toString('base64');
