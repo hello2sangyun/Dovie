@@ -532,6 +532,82 @@ JSON 형태로 응답해주세요.`;
   }
 }
 
+// Detect business card boundaries automatically using OpenAI Vision
+export async function detectBusinessCardBounds(base64Image: string): Promise<{
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+} | null> {
+  try {
+    console.log("Starting automatic business card boundary detection");
+    
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `You are a computer vision expert that detects business card boundaries in images. 
+          Analyze the image and detect the rectangular boundary of the business card.
+          Return the coordinates as a JSON object with x, y, width, height as percentages (0-100) of the image dimensions.
+          If no clear business card boundary is detected, return {"bounds": null}.
+          The business card should be a rectangular object with clear edges, typically containing text and contact information.
+          Be precise with the boundary detection to include the entire card but exclude background areas.`
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "Detect the business card boundary in this image and return coordinates as JSON with x, y, width, height as percentages (0-100). Return {\"bounds\": null} if no clear business card is found."
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:image/jpeg;base64,${base64Image}`
+              }
+            }
+          ]
+        }
+      ],
+      response_format: { type: "json_object" },
+      max_tokens: 200
+    });
+
+    const content = response.choices[0].message.content;
+    if (!content) {
+      return null;
+    }
+
+    const result = JSON.parse(content);
+    console.log("Boundary detection result:", result);
+    
+    // Check if bounds were detected
+    if (result.bounds === null || !result.x || !result.y || !result.width || !result.height) {
+      console.log("No business card boundary detected");
+      return null;
+    }
+
+    // Validate and normalize the coordinates
+    const bounds = {
+      x: Math.max(0, Math.min(100, parseFloat(result.x))),
+      y: Math.max(0, Math.min(100, parseFloat(result.y))),
+      width: Math.max(1, Math.min(100, parseFloat(result.width))),
+      height: Math.max(1, Math.min(100, parseFloat(result.height)))
+    };
+
+    // Ensure bounds don't exceed image boundaries
+    bounds.width = Math.min(bounds.width, 100 - bounds.x);
+    bounds.height = Math.min(bounds.height, 100 - bounds.y);
+
+    console.log("Normalized bounds:", bounds);
+    return bounds;
+  } catch (error: any) {
+    console.error("Error detecting business card bounds:", error);
+    return null;
+  }
+}
+
 // Business card information extraction using OpenAI Vision API
 export async function extractBusinessCardInfo(base64Image: string): Promise<BusinessCardData> {
   try {

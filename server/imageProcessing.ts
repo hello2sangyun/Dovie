@@ -236,3 +236,99 @@ export async function processBusinessCardImage(imageBuffer: Buffer): Promise<{
     };
   }
 }
+
+/**
+ * Auto-crop business card using AI-detected boundaries
+ */
+export async function autoCropBusinessCardWithAI(imageBuffer: Buffer, bounds: {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}): Promise<Buffer> {
+  try {
+    console.log("Auto-cropping business card with AI-detected bounds:", bounds);
+    
+    // Get image metadata
+    const image = sharp(imageBuffer);
+    const metadata = await image.metadata();
+    
+    if (!metadata.width || !metadata.height) {
+      throw new Error("Could not determine image dimensions");
+    }
+    
+    // Convert percentage bounds to pixel coordinates
+    const cropX = Math.round((bounds.x / 100) * metadata.width);
+    const cropY = Math.round((bounds.y / 100) * metadata.height);
+    const cropWidth = Math.round((bounds.width / 100) * metadata.width);
+    const cropHeight = Math.round((bounds.height / 100) * metadata.height);
+    
+    // Ensure crop dimensions are valid
+    const finalCropWidth = Math.min(cropWidth, metadata.width - cropX);
+    const finalCropHeight = Math.min(cropHeight, metadata.height - cropY);
+    
+    console.log(`Cropping to: x=${cropX}, y=${cropY}, w=${finalCropWidth}, h=${finalCropHeight}`);
+    
+    const croppedBuffer = await image
+      .extract({
+        left: cropX,
+        top: cropY,
+        width: finalCropWidth,
+        height: finalCropHeight
+      })
+      .jpeg({ quality: 98 })
+      .toBuffer();
+    
+    console.log("AI-guided auto-crop completed successfully");
+    return croppedBuffer;
+  } catch (error) {
+    console.error("Error in AI-guided auto-crop:", error);
+    // Return original if cropping fails
+    return imageBuffer;
+  }
+}
+
+/**
+ * Complete business card processing pipeline with AI-guided cropping
+ */
+export async function processBusinessCardImageWithAI(imageBuffer: Buffer, bounds?: {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}): Promise<{
+  enhanced: Buffer;
+  thumbnail: Buffer;
+  original: Buffer;
+}> {
+  try {
+    console.log("Starting AI-guided business card image processing pipeline");
+    
+    let processedBuffer = imageBuffer;
+    
+    // Apply AI-guided crop if bounds are provided
+    if (bounds) {
+      processedBuffer = await autoCropBusinessCardWithAI(imageBuffer, bounds);
+    } else {
+      // Fallback to traditional auto-crop
+      processedBuffer = await autoCropBusinessCard(imageBuffer);
+    }
+    
+    // Enhance the cropped image
+    const enhancedBuffer = await enhanceBusinessCardImage(processedBuffer);
+    
+    // Create thumbnail
+    const thumbnailBuffer = await createBusinessCardThumbnail(enhancedBuffer);
+    
+    console.log("AI-guided business card processing pipeline completed successfully");
+    
+    return {
+      enhanced: enhancedBuffer,
+      thumbnail: thumbnailBuffer,
+      original: imageBuffer
+    };
+  } catch (error) {
+    console.error("Error in AI-guided business card processing pipeline:", error);
+    throw error;
+  }
+}
