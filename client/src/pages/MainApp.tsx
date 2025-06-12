@@ -1277,31 +1277,7 @@ export default function MainApp() {
                   }} />
                 </div>
 
-                {/* Contacts Section */}
-                <div className="bg-white rounded-xl p-4 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold text-gray-900">연락처</h2>
-                    <Button 
-                      onClick={() => openModal("addContact")}
-                      size="sm"
-                      variant="outline"
-                    >
-                      <Users className="w-4 h-4 mr-1" />
-                      추가
-                    </Button>
-                  </div>
-                  
-                  <ContactsList 
-                    onAddContact={() => openModal("addContact")}
-                    onSelectContact={(contactUserId) => {
-                      const contact = (contactsData as any)?.contacts?.find((c: any) => c.contactUserId === contactUserId);
-                      if (contact) {
-                        createOrFindChatRoom(contactUserId, contact.contactUser);
-                        setActiveMobileTab("chats");
-                      }
-                    }}
-                  />
-                </div>
+
               </div>
             </div>
           )}
