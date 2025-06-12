@@ -111,16 +111,6 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
     enabled: !!user && !!folderId,
   });
 
-  // Console logging for debugging
-  console.log('PersonFolderDetail - folderId:', folderId);
-  console.log('PersonFolderDetail - user:', user?.id);
-  console.log('PersonFolderDetail - items query enabled:', !!user && !!folderId);
-  console.log('PersonFolderDetail - items data:', items);
-  console.log('PersonFolderDetail - items loading:', itemsLoading);
-  console.log('PersonFolderDetail - items error:', itemsError);
-  if (folder) console.log('Folder data loaded:', folder);
-  if (folderError) console.error('Error loading folder:', folderError);
-
   // Extract business card data and image
   const businessCardItem = items.find(item => item.itemType === 'business_card');
   let businessCardData = null;
@@ -274,183 +264,294 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
             {/* Contact Information Card */}
             {folder.contact && (
               <div className="p-4 mb-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-semibold text-gray-900">연락처 정보</h3>
-              <div className="flex items-center space-x-2">
-                {folder.contact.contactUserId ? (
-                  <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                    ✓ Dovie 가입자
-                  </span>
-                ) : (
-                  <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
-                    미가입자
-                  </span>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-semibold text-gray-900">연락처 정보</h3>
+                  <div className="flex items-center space-x-2">
+                    {folder.contact.contactUserId ? (
+                      <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                        ✓ Dovie 가입자
+                      </span>
+                    ) : (
+                      <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
+                        미가입자
+                      </span>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                  {folder.contact.name && (
+                    <div>
+                      <span className="font-medium text-gray-700">이름:</span>
+                      <span className="ml-2 text-gray-900">{folder.contact.name}</span>
+                    </div>
+                  )}
+                  {folder.contact.company && (
+                    <div>
+                      <span className="font-medium text-gray-700">회사:</span>
+                      <span className="ml-2 text-gray-900">{folder.contact.company}</span>
+                    </div>
+                  )}
+                  {folder.contact.jobTitle && (
+                    <div>
+                      <span className="font-medium text-gray-700">직책:</span>
+                      <span className="ml-2 text-gray-900">{folder.contact.jobTitle}</span>
+                    </div>
+                  )}
+                  {folder.contact.email && (
+                    <div>
+                      <span className="font-medium text-gray-700">이메일:</span>
+                      <span className="ml-2 text-gray-900">{folder.contact.email}</span>
+                    </div>
+                  )}
+                  {folder.contact.phone && (
+                    <div>
+                      <span className="font-medium text-gray-700">전화번호:</span>
+                      <span className="ml-2 text-gray-900">{folder.contact.phone}</span>
+                    </div>
+                  )}
+                </div>
+                
+                {!folder.contact.contactUserId && (
+                  <div className="mt-4 pt-3 border-t border-blue-200">
+                    <p className="text-sm text-gray-600 mb-3">
+                      이 분은 아직 Dovie에 가입하지 않았습니다. 명함 정보를 바탕으로 One Pager를 생성할 수 있습니다.
+                    </p>
+                    <Button 
+                      size="sm" 
+                      className="bg-blue-600 hover:bg-blue-700"
+                      onClick={() => generateOnePagerMutation.mutate(folder.contact)}
+                      disabled={generateOnePagerMutation.isPending}
+                    >
+                      <CreditCard className="w-4 h-4 mr-2" />
+                      {generateOnePagerMutation.isPending ? "생성 중..." : "One Pager 생성하기"}
+                    </Button>
+                  </div>
                 )}
               </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-              {folder.contact.name && (
-                <div>
-                  <span className="font-medium text-gray-700">이름:</span>
-                  <span className="ml-2 text-gray-900">{folder.contact.name}</span>
-                </div>
-              )}
-              {folder.contact.company && (
-                <div>
-                  <span className="font-medium text-gray-700">회사:</span>
-                  <span className="ml-2 text-gray-900">{folder.contact.company}</span>
-                </div>
-              )}
-              {folder.contact.jobTitle && (
-                <div>
-                  <span className="font-medium text-gray-700">직책:</span>
-                  <span className="ml-2 text-gray-900">{folder.contact.jobTitle}</span>
-                </div>
-              )}
-              {folder.contact.email && (
-                <div>
-                  <span className="font-medium text-gray-700">이메일:</span>
-                  <span className="ml-2 text-gray-900">{folder.contact.email}</span>
-                </div>
-              )}
-              {folder.contact.phone && (
-                <div>
-                  <span className="font-medium text-gray-700">전화번호:</span>
-                  <span className="ml-2 text-gray-900">{folder.contact.phone}</span>
-                </div>
-              )}
-            </div>
-            
-            {!folder.contact.contactUserId && (
-              <div className="mt-4 pt-3 border-t border-blue-200">
-                <p className="text-sm text-gray-600 mb-3">
-                  이 분은 아직 Dovie에 가입하지 않았습니다. 명함 정보를 바탕으로 One Pager를 생성할 수 있습니다.
-                </p>
-                <Button 
-                  size="sm" 
-                  className="bg-blue-600 hover:bg-blue-700"
-                  onClick={() => generateOnePagerMutation.mutate(folder.contact)}
-                  disabled={generateOnePagerMutation.isPending}
-                >
-                  <CreditCard className="w-4 h-4 mr-2" />
-                  {generateOnePagerMutation.isPending ? "생성 중..." : "One Pager 생성하기"}
-                </Button>
+            )}
+
+            {/* File List */}
+            {filteredItems.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-64 text-center px-4">
+                <CreditCard className="w-16 h-16 text-gray-300 mb-4" />
+                {items.length === 0 ? (
+                  <>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      추가 파일이 없습니다
+                    </h3>
+                    <p className="text-gray-500 mb-6 max-w-sm">
+                      명함, 채팅 파일, 문서를 추가하여 
+                      {folder.personName || folder.folderName || "이분"}님과의 모든 자료를 한 곳에 정리하세요.
+                    </p>
+                    <Button className="bg-blue-500 hover:bg-blue-600">
+                      <Upload className="w-4 h-4 mr-2" />
+                      파일 추가하기
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      검색 결과가 없습니다
+                    </h3>
+                    <p className="text-gray-500">
+                      다른 검색어를 시도해보세요.
+                    </p>
+                  </>
+                )}
               </div>
-            )}
-            </div>
-          )}
-
-          {/* File List */}
-          {filteredItems.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-center px-4">
-            <CreditCard className="w-16 h-16 text-gray-300 mb-4" />
-            {items.length === 0 ? (
-              <>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  추가 파일이 없습니다
-                </h3>
-                <p className="text-gray-500 mb-6 max-w-sm">
-                  명함, 채팅 파일, 문서를 추가하여 
-                  {folder.personName || folder.folderName || "이분"}님과의 모든 자료를 한 곳에 정리하세요.
-                </p>
-                <Button className="bg-blue-500 hover:bg-blue-600">
-                  <Upload className="w-4 h-4 mr-2" />
-                  파일 추가하기
-                </Button>
-              </>
             ) : (
-              <>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  검색 결과가 없습니다
-                </h3>
-                <p className="text-gray-500">
-                  다른 검색어를 시도해보세요.
-                </p>
-              </>
-            )}
-          </div>
-        ) : (
-          <div className="p-4 space-y-3">
-            {filteredItems.map((item: FolderItem) => (
-              <div
-                key={item.id}
-                className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-start space-x-3">
-                  {/* Item Icon */}
-                  <div className="flex-shrink-0">
-                    {getItemIcon(item.itemType)}
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium text-gray-900 truncate">
-                        {item.title || item.fileName || '제목 없음'}
-                      </h4>
-                      <div className="flex items-center space-x-2">
-                        <Button variant="ghost" size="sm">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <Download className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    {item.description && (
-                      <p className="text-sm text-gray-600 truncate mt-1">
-                        {item.description}
-                      </p>
-                    )}
-                    
-                    <div className="flex items-center justify-between mt-2">
-                      <div className="flex items-center space-x-4 text-xs text-gray-500">
-                        <span className="flex items-center">
-                          <span className="bg-gray-100 px-2 py-1 rounded">
-                            {getItemTypeLabel(item.itemType)}
-                          </span>
-                        </span>
-                        {item.fileSize && (
-                          <span>{formatFileSize(item.fileSize)}</span>
-                        )}
-                        <span>
-                          {formatDistanceToNow(new Date(item.createdAt), {
-                            addSuffix: true,
-                            locale: ko
-                          })}
-                        </span>
-                      </div>
-                      
-                      {item.tags && item.tags.length > 0 && (
-                        <div className="flex items-center space-x-1">
-                          {item.tags.slice(0, 2).map((tag, index) => (
-                            <span
-                              key={index}
-                              className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded"
-                            >
-                              {tag}
+              <div className="space-y-3">
+                {filteredItems.map((item: FolderItem) => (
+                  <div key={item.id} className="bg-white border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start space-x-3 flex-1">
+                        <div className="flex-shrink-0 mt-1">
+                          {getItemIcon(item.itemType)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-sm font-medium text-gray-900 truncate">
+                              {item.title || item.fileName || "제목 없음"}
+                            </h4>
+                            <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
+                              {getItemTypeLabel(item.itemType)}
                             </span>
-                          ))}
-                          {item.tags.length > 2 && (
-                            <span className="text-xs text-gray-400">
-                              +{item.tags.length - 2}
-                            </span>
+                          </div>
+                          {item.description && (
+                            <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                              {item.description}
+                            </p>
+                          )}
+                          <div className="flex items-center justify-between mt-2">
+                            <div className="flex items-center text-xs text-gray-400">
+                              <span>
+                                {(() => {
+                                  try {
+                                    const date = new Date(item.createdAt);
+                                    if (isNaN(date.getTime())) {
+                                      return "날짜 정보 없음";
+                                    }
+                                    return formatDistanceToNow(date, {
+                                      addSuffix: true,
+                                      locale: ko
+                                    });
+                                  } catch (error) {
+                                    return "날짜 정보 없음";
+                                  }
+                                })()}
+                              </span>
+                              {item.fileSize && (
+                                <span className="ml-2">
+                                  • {formatFileSize(item.fileSize)}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <Download className="w-4 h-4" />
+                              </Button>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-red-500">
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                          {item.tags && item.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {item.tags.slice(0, 3).map((tag, index) => (
+                                <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700">
+                                  {tag}
+                                </span>
+                              ))}
+                              {item.tags.length > 3 && (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-500">
+                                  +{item.tags.length - 2}
+                                </span>
+                              )}
+                            </div>
                           )}
                         </div>
-                      )}
+                      </div>
                     </div>
                   </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Right Column - Business Card Display */}
+          {businessCardItem && (
+            <div className="w-80 flex-shrink-0">
+              <div className="sticky top-4">
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">명함</h3>
+                  
+                  {businessCardItem.fileUrl ? (
+                    <div className="space-y-4">
+                      <div 
+                        className="relative cursor-pointer group"
+                        onClick={() => setSelectedBusinessCard({
+                          imageUrl: businessCardItem.fileUrl!,
+                          personName: folder.personName || folder.folderName || "명함"
+                        })}
+                      >
+                        <img
+                          src={businessCardItem.fileUrl}
+                          alt="명함"
+                          className="w-full h-auto rounded-lg border border-gray-200 group-hover:shadow-lg transition-shadow"
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all rounded-lg flex items-center justify-center">
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Eye className="w-8 h-8 text-white" />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => setSelectedBusinessCard({
+                            imageUrl: businessCardItem.fileUrl!,
+                            personName: folder.personName || folder.folderName || "명함"
+                          })}
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          확대보기
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => {
+                            const link = document.createElement('a');
+                            link.href = businessCardItem.fileUrl!;
+                            link.download = `${folder.personName || folder.folderName || "명함"}_명함.jpg`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          }}
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          다운로드
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center text-gray-500 py-8">
+                      <CreditCard className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                      <p>명함 이미지를 불러올 수 없습니다</p>
+                    </div>
+                  )}
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Business Card Modal */}
+      <Dialog open={!!selectedBusinessCard} onOpenChange={() => setSelectedBusinessCard(null)}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>{selectedBusinessCard?.personName} 명함</DialogTitle>
+          </DialogHeader>
+          {selectedBusinessCard && (
+            <div className="space-y-4">
+              <div className="relative">
+                <img
+                  src={selectedBusinessCard.imageUrl}
+                  alt="명함 확대보기"
+                  className="w-full h-auto rounded-lg"
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = selectedBusinessCard.imageUrl;
+                    link.download = `${selectedBusinessCard.personName}_명함.jpg`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  다운로드
+                </Button>
+                <Button variant="outline" onClick={() => setSelectedBusinessCard(null)}>
+                  닫기
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
