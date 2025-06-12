@@ -37,6 +37,16 @@ const upload = multer({
 // WebSocket connection management
 const connections = new Map<number, WebSocket>();
 
+// Authentication middleware
+const requireAuth = (req: any, res: any, next: any) => {
+  const userId = req.headers["x-user-id"];
+  if (!userId) {
+    return res.status(401).json({ message: "Not authenticated" });
+  }
+  req.userId = Number(userId);
+  next();
+};
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.post("/api/auth/test-login", async (req, res) => {
@@ -928,6 +938,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Business card scanning error:', error);
       res.status(500).json({ message: "Failed to scan business card" });
+    }
+  });
+
+  // Simplified scan endpoint for basic business card extraction
+  app.post("/api/scan", requireAuth, upload.single('file'), async (req: any, res) => {
+    try {
+      const userId = req.userId;
+
+      if (!req.file) {
+        return res.status(400).json({ message: "Image file is required" });
+      }
+
+      console.log('Processing business card scan:', req.file.originalname, req.file.size, 'bytes');
+
+      // Process image for enhanced quality
+      const { processBusinessCardImage } = await import('./imageProcessing');
+      const processedImages = await processBusinessCardImage(req.file.buffer);
+
+      // Convert enhanced image to base64 for OpenAI Vision API
+      const base64Image = processedImages.enhanced.toString('base64');
+
+      // Use OpenAI Vision API to extract business card information
+      const extractedData = await extractBusinessCardInfo(base64Image);
+
+      // Store the enhanced image
+      const timestamp = Date.now();
+      const imageFileName = `business-card-${userId}-${timestamp}.jpg`;
+      const businessCardsDir = path.join(uploadDir, 'business-cards');
+      if (!fs.existsSync(businessCardsDir)) {
+        fs.mkdirSync(businessCardsDir, { recursive: true });
+      }
+      const imagePath = path.join(businessCardsDir, imageFileName);
+      const imageUrl = `/uploads/business-cards/${imageFileName}`;
+      
+      // Save enhanced image to disk
+      await fs.promises.writeFile(imagePath, processedImages.enhanced);
+
+      // Determine person name from extracted data
+      const personName = extractedData.name || "이름 미확인";
+
+      // Create or find person folder
+      let folder = await storage.getPersonFolderByName(Number(userId), personName);
+      if (!folder) {
+        // Create a contact first for the business card
+        const contact = await storage.createContact(Number(userId), {
+          name: personName,
+          email: extractedData.email,
+          phone: extractedData.phone,
+          company: extractedData.company,
+          jobTitle: extractedData.jobTitle
+        });
+        
+        folder = await storage.createPersonFolder(Number(userId), contact.id, personName);
+      }
+
+      // Create folder item with business card data
+      const folderItem = await storage.addFolderItem({
+        folderId: folder.id,
+        itemType: 'business_card',
+        fileName: imageFileName,
+        fileUrl: imageUrl,
+        fileSize: processedImages.enhanced.length,
+        mimeType: 'image/jpeg',
+        title: `${personName}님의 명함`,
+        description: `${extractedData.company} ${extractedData.jobTitle}`,
+        tags: [extractedData.company || '', extractedData.jobTitle || ''].filter(tag => tag !== ''),
+        businessCardData: JSON.stringify(extractedData)
+      });
+
+      res.json({
+        success: true,
+        extractedData,
+        imageUrl,
+        folderId: folder.id,
+        folderItemId: folderItem.id
+      });
+
+    } catch (error) {
+      console.error('Business card scanning error:', error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to scan business card",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 
