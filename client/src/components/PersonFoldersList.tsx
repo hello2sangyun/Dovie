@@ -259,7 +259,7 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
                         {/* Business Card Image */}
                         {folder.businessCardImage && (
                           <div 
-                            className="w-12 h-8 rounded-md overflow-hidden border border-gray-300 flex-shrink-0 cursor-pointer hover:border-purple-400 transition-colors"
+                            className="w-16 h-11 rounded-md overflow-hidden border border-gray-300 flex-shrink-0 cursor-pointer hover:border-purple-400 transition-colors shadow-sm"
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedBusinessCard({
