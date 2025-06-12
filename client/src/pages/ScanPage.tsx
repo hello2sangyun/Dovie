@@ -84,9 +84,13 @@ export default function ScanPage() {
   const createFolderMutation = useMutation({
     mutationFn: async (scanData: ScanResult) => {
       // First create contact
-      const contact = await apiRequest('/api/contacts', {
+      const contactResponse = await fetch('/api/contacts', {
         method: 'POST',
-        body: {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': user?.id.toString() || '',
+        },
+        body: JSON.stringify({
           name: scanData.name,
           company: scanData.company,
           jobTitle: scanData.jobTitle,
@@ -94,31 +98,33 @@ export default function ScanPage() {
           phone: scanData.phone,
           website: scanData.website,
           address: scanData.address,
-        },
+        }),
       });
+
+      if (!contactResponse.ok) {
+        throw new Error('연락처 생성에 실패했습니다.');
+      }
+
+      const contact = await contactResponse.json();
 
       // Then create person folder
-      const folder = await apiRequest('/api/person-folders', {
+      const folderResponse = await fetch('/api/person-folders', {
         method: 'POST',
-        body: {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': user?.id.toString() || '',
+        },
+        body: JSON.stringify({
           contactId: contact.id,
           folderName: scanData.name || scanData.company || '이름 없음',
-        },
+        }),
       });
 
-      // Add business card as first item to folder
-      await apiRequest(`/api/person-folders/${folder.id}/items`, {
-        method: 'POST',
-        body: {
-          itemType: 'business_card',
-          title: `${scanData.name || '이름 없음'}의 명함`,
-          description: `${scanData.company || ''} ${scanData.jobTitle || ''}`.trim(),
-          tags: ['명함', 'AI 스캔'],
-          fileName: selectedFile?.name,
-          mimeType: selectedFile?.type,
-          fileSize: selectedFile?.size,
-        },
-      });
+      if (!folderResponse.ok) {
+        throw new Error('폴더 생성에 실패했습니다.');
+      }
+
+      const folder = await folderResponse.json();
 
       return { contact, folder };
     },
@@ -128,8 +134,8 @@ export default function ScanPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
       
       toast({
-        title: "폴더 생성 완료",
-        description: `${folder.folderName}님의 폴더가 Cabinet에 추가되었습니다.`,
+        title: "폴더 생성 완료", 
+        description: `${folder.person_name || folder.folder_name}님의 폴더가 Cabinet에 추가되었습니다.`,
       });
     },
     onError: (error) => {
