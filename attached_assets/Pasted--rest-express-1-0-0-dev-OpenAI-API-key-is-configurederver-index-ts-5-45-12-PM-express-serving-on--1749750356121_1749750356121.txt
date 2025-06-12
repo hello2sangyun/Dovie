@@ -1,0 +1,42 @@
+> rest-express@1.0.0 dev
+OpenAI API key is configurederver/index.ts
+5:45:12 PM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 8 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+5:45:20 PM [express] GET /api/auth/me 304 in 42ms :: {"user":{"id":91,"username":"strong","displayNa…
+5:45:29 PM [express] GET /api/auth/me 304 in 39ms :: {"user":{"id":91,"username":"strong","displayNa…
+5:45:32 PM [express] POST /api/auth/login 200 in 215ms :: {"user":{"id":91,"username":"strong","disp…
+5:45:32 PM [express] GET /api/contacts 304 in 42ms :: {"contacts":[{"id":55,"userId":91,"contactUser…
+5:45:33 PM [express] GET /api/chat-rooms 304 in 824ms :: {"chatRooms":[{"id":86,"name":"하이 테스트","isG…
+5:45:33 PM [express] GET /api/chat-rooms/86/messages 304 in 38ms :: {"messages":[{"id":360,"chatRoom…
+5:45:34 PM [express] GET /api/chat-rooms/85/messages 304 in 37ms :: {"messages":[]}
+5:45:34 PM [express] GET /api/chat-rooms/84/messages 304 in 39ms :: {"messages":[]}
+5:45:34 PM [express] GET /api/unread-counts 304 in 1344ms :: {"unreadCounts":[]}
+5:45:34 PM [express] GET /api/chat-rooms/83/messages 304 in 42ms :: {"messages":[{"id":343,"chatRoom…
+5:45:34 PM [express] GET /api/person-folders 304 in 42ms :: [{"id":48,"userId":91,"contactId":103,"p…
+5:45:34 PM [express] GET /api/chat-rooms/69/messages 304 in 41ms :: {"messages":[]}
+Fetching folder items for folderId: 48
+5:45:35 PM [express] GET /api/person-folders 304 in 40ms :: [{"id":48,"userId":91,"contactId":103,"p…
+Found folder items: 1 [
+  {
+    id: 21,
+    folderId: 48,
+    itemType: 'business_card',
+    fileName: 'business-card-91-1749750133919.jpg',
+    fileUrl: '/uploads/business-cards/business-card-91-1749750133919.jpg',
+    fileSize: 117650,
+    mimeType: 'image/jpeg',
+    title: 'Stan Lee님의 명함',
+    description: 'CB Engineering Managing director',
+    tags: [ 'CB Engineering', 'Managing director' ],
+    businessCardData: '{"company":"CB Engineering","name":"Stan Lee","jobTitle":"Managing director","email":"hello2sagyun@gmail.com","phone":"+36 70 356 66 30","address":"H-2900 Komárom, Bánki Donát u. 4.","isRegisteredUser":true,"registeredUserId":91,"registeredUserDisplayName":"이상윤","canSendDM":true}',
+    chatRoomId: null,
+    messageId: null,
+    createdAt: 2025-06-12T17:42:14.305Z,
+    updatedAt: 2025-06-12T17:42:14.305Z
+  }
+]
+5:45:35 PM [express] GET /api/person-folders/48/items 304 in 43ms :: [{"id":21,"folderId":48,"itemTy…
+5:45:40 PM [express] GET /api/unread-counts 304 in 1229ms :: {"unreadCounts":[]}
+5:45:51 PM [express] GET /api/auth/me 304 in 156ms :: {"user":{"id":91,"username":"strong","displayN…

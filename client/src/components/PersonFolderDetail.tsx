@@ -210,38 +210,105 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
           </Button>
         </div>
 
-        {/* Folder Info */}
-        <div className="flex items-center space-x-3 mb-4">
-          <PrismAvatar
-            fallback={getInitials(folder.personName || folder.folderName || "Unknown")}
-            size="lg"
-            className="w-16 h-16"
-          />
-          <div className="flex-1">
-            <h1 className="text-xl font-semibold text-gray-900">{folder.personName || folder.folderName || "이름 없음"}</h1>
-            <p className="text-sm text-gray-500">
-              {folder.contact?.company && (
-                <span>{folder.contact.company} • </span>
-              )}
-              {folder.contact?.jobTitle || folder.contact?.phone}
-            </p>
-            <p className="text-xs text-gray-400 mt-1">
-              마지막 활동: {(() => {
-                try {
-                  const date = new Date(folder.lastActivity);
-                  if (isNaN(date.getTime())) {
+        {/* Folder Info - Two Column Layout */}
+        <div className="flex items-start justify-between mb-4 gap-6">
+          {/* Left: Profile Info */}
+          <div className="flex items-center space-x-3 flex-1">
+            <PrismAvatar
+              fallback={getInitials(folder.personName || folder.folderName || "Unknown")}
+              size="lg"
+              className="w-16 h-16"
+            />
+            <div className="flex-1">
+              <h1 className="text-xl font-semibold text-gray-900">{folder.personName || folder.folderName || "이름 없음"}</h1>
+              <p className="text-sm text-gray-500">
+                {folder.contact?.company && (
+                  <span>{folder.contact.company} • </span>
+                )}
+                {folder.contact?.jobTitle || folder.contact?.phone}
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                마지막 활동: {(() => {
+                  try {
+                    const date = new Date(folder.lastActivity);
+                    if (isNaN(date.getTime())) {
+                      return "날짜 정보 없음";
+                    }
+                    return formatDistanceToNow(date, {
+                      addSuffix: true,
+                      locale: ko
+                    });
+                  } catch (error) {
                     return "날짜 정보 없음";
                   }
-                  return formatDistanceToNow(date, {
-                    addSuffix: true,
-                    locale: ko
-                  });
-                } catch (error) {
-                  return "날짜 정보 없음";
-                }
-              })()}
-            </p>
+                })()}
+              </p>
+            </div>
           </div>
+
+          {/* Right: Business Card */}
+          {businessCardItem && businessCardItem.fileUrl && (
+            <div className="flex-shrink-0 w-80">
+              <div className="bg-white border-2 border-gray-200 rounded-xl p-4 shadow-sm">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">명함</h3>
+                <div 
+                  className="relative cursor-pointer group overflow-hidden rounded-lg"
+                  onClick={() => setSelectedBusinessCard({
+                    imageUrl: businessCardItem.fileUrl!,
+                    personName: folder.personName || folder.folderName || "명함"
+                  })}
+                >
+                  <img
+                    src={businessCardItem.fileUrl}
+                    alt="명함"
+                    className="w-full h-auto rounded-lg border border-gray-100 group-hover:border-blue-300 group-hover:shadow-lg transition-all duration-300 transform group-hover:scale-[1.02]"
+                    style={{ minHeight: '160px', maxHeight: '240px', objectFit: 'contain' }}
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 rounded-lg flex items-center justify-center">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white bg-opacity-90 rounded-full p-3">
+                      <Eye className="w-6 h-6 text-gray-800" />
+                    </div>
+                  </div>
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="bg-white bg-opacity-90 rounded-full p-1.5">
+                      <Download className="w-4 h-4 text-gray-700" />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex gap-2 mt-3">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border-blue-200 text-blue-700 font-medium"
+                    onClick={() => setSelectedBusinessCard({
+                      imageUrl: businessCardItem.fileUrl!,
+                      personName: folder.personName || folder.folderName || "명함"
+                    })}
+                  >
+                    <Eye className="w-4 h-4 mr-1" />
+                    확대
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1 bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 border-green-200 text-green-700 font-medium"
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = businessCardItem.fileUrl!;
+                      link.download = `${folder.personName || folder.folderName || "명함"}_명함.jpg`;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                  >
+                    <Download className="w-4 h-4 mr-1" />
+                    저장
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         
         {/* Search */}
@@ -442,81 +509,7 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
             )}
           </div>
 
-          {/* Right Column - Business Card Display */}
-          {businessCardItem && (
-            <div className="w-96 flex-shrink-0">
-              <div className="sticky top-4">
-                <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-6">명함</h3>
-                  
-                  {businessCardItem.fileUrl ? (
-                    <div className="space-y-6">
-                      <div 
-                        className="relative cursor-pointer group overflow-hidden rounded-xl"
-                        onClick={() => setSelectedBusinessCard({
-                          imageUrl: businessCardItem.fileUrl!,
-                          personName: folder.personName || folder.folderName || "명함"
-                        })}
-                      >
-                        <img
-                          src={businessCardItem.fileUrl}
-                          alt="명함"
-                          className="w-full h-auto rounded-xl border-2 border-gray-100 group-hover:border-blue-300 group-hover:shadow-xl transition-all duration-300 transform group-hover:scale-[1.02]"
-                          style={{ minHeight: '200px', maxHeight: '400px', objectFit: 'contain' }}
-                        />
-                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 rounded-xl flex items-center justify-center">
-                          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white bg-opacity-90 rounded-full p-3">
-                            <Eye className="w-6 h-6 text-gray-800" />
-                          </div>
-                        </div>
-                        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <div className="bg-white bg-opacity-90 rounded-full p-2">
-                            <Download className="w-4 h-4 text-gray-700" />
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex gap-3">
-                        <Button 
-                          variant="outline" 
-                          size="lg" 
-                          className="flex-1 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border-blue-200 text-blue-700 font-medium"
-                          onClick={() => setSelectedBusinessCard({
-                            imageUrl: businessCardItem.fileUrl!,
-                            personName: folder.personName || folder.folderName || "명함"
-                          })}
-                        >
-                          <Eye className="w-5 h-5 mr-2" />
-                          확대보기
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="lg" 
-                          className="flex-1 bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 border-green-200 text-green-700 font-medium"
-                          onClick={() => {
-                            const link = document.createElement('a');
-                            link.href = businessCardItem.fileUrl!;
-                            link.download = `${folder.personName || folder.folderName || "명함"}_명함.jpg`;
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                          }}
-                        >
-                          <Download className="w-5 h-5 mr-2" />
-                          다운로드
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center text-gray-500 py-8">
-                      <CreditCard className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                      <p>명함 이미지를 불러올 수 없습니다</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
+
         </div>
       </div>
 
