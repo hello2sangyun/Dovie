@@ -72,11 +72,23 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
   const { data: folder, isLoading: folderLoading } = useQuery<PersonFolderData>({
     queryKey: ["/api/person-folders", folderId],
     enabled: !!user && !!folderId,
+    onSuccess: (data) => {
+      console.log('Folder data loaded:', data);
+    },
+    onError: (error) => {
+      console.error('Error loading folder:', error);
+    }
   });
 
   const { data: items = [], isLoading: itemsLoading } = useQuery<FolderItem[]>({
     queryKey: ["/api/person-folders", folderId, "items"],
     enabled: !!user && !!folderId,
+    onSuccess: (data) => {
+      console.log('Folder items loaded:', data);
+    },
+    onError: (error) => {
+      console.error('Error loading folder items:', error);
+    }
   });
 
   const filteredItems = items.filter((item: FolderItem) =>
@@ -185,10 +197,20 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
               {folder.contact?.jobTitle || folder.contact?.phone}
             </p>
             <p className="text-xs text-gray-400 mt-1">
-              마지막 활동: {formatDistanceToNow(new Date(folder.lastActivity), {
-                addSuffix: true,
-                locale: ko
-              })}
+              마지막 활동: {(() => {
+                try {
+                  const date = new Date(folder.lastActivity);
+                  if (isNaN(date.getTime())) {
+                    return "날짜 정보 없음";
+                  }
+                  return formatDistanceToNow(date, {
+                    addSuffix: true,
+                    locale: ko
+                  });
+                } catch (error) {
+                  return "날짜 정보 없음";
+                }
+              })()}
             </p>
           </div>
         </div>
