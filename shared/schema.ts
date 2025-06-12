@@ -413,6 +413,7 @@ export const folderItems = pgTable("folder_items", {
   title: text("title"),
   description: text("description"),
   tags: text("tags").array(),
+  businessCardData: text("business_card_data"), // JSON string for business card extracted data
   chatRoomId: integer("chat_room_id").references(() => chatRooms.id), // 채팅방에서 온 파일의 경우
   messageId: integer("message_id").references(() => messages.id), // 메시지에서 온 파일의 경우
   createdAt: timestamp("created_at").defaultNow().notNull(),
