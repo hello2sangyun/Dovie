@@ -9,6 +9,7 @@ import VaultLogo from "@/components/VaultLogo";
 import ContactsList from "@/components/ContactsList";
 import PersonFoldersList from "@/components/PersonFoldersList";
 import PersonFolderDetail from "@/components/PersonFolderDetail";
+import BusinessCardView from "@/components/BusinessCardView";
 import ChatsList from "@/components/ChatsList";
 import ArchiveList from "@/components/ArchiveList";
 import ChatArea from "@/components/ChatArea";
@@ -1076,7 +1077,7 @@ export default function MainApp() {
               </div>
             </div>
           ) : rightPanelContent?.startsWith("person-folder-") ? (
-            <PersonFolderDetail 
+            <BusinessCardView 
               folderId={parseInt(rightPanelContent.replace("person-folder-", ""))}
               onBack={() => {
                 setRightPanelContent(null);
@@ -1530,7 +1531,7 @@ export default function MainApp() {
       {showMobileFolderModal && selectedFolderId && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 lg:hidden">
           <div className="absolute inset-0 bg-white">
-            <PersonFolderDetail
+            <BusinessCardView
               folderId={selectedFolderId}
               onBack={() => {
                 setShowMobileFolderModal(false);
