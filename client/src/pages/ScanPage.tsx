@@ -349,11 +349,10 @@ export default function ScanPage() {
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Dynamic field rendering - shows all available fields */}
-                  {Object.entries(scanResult).map(([key, value]) => {
-                    if (!value && !isEditing) return null;
-                    
-                    // Get Korean field names
+                  {/* Ordered field rendering - specific order: 이름, 직책, 전화번호, 이메일, 회사, 주소 */}
+                  {(() => {
+                    // Define field order and configuration
+                    const fieldOrder = ['name', 'jobTitle', 'phone', 'email', 'company', 'address'];
                     const getFieldLabel = (field: string) => {
                       const labels: Record<string, string> = {
                         name: '이름',
@@ -380,7 +379,6 @@ export default function ScanPage() {
                       return labels[field] || field.charAt(0).toUpperCase() + field.slice(1);
                     };
 
-                    // Get input type for field
                     const getInputType = (field: string) => {
                       if (field === 'email') return 'email';
                       if (field === 'phone' || field === 'mobile' || field === 'fax') return 'tel';
@@ -388,27 +386,79 @@ export default function ScanPage() {
                       return 'text';
                     };
 
-                    // Determine if field should span full width
-                    const isFullWidth = key === 'address' || key === 'website' || key.includes('url');
-                    
-                    return (
-                      <div key={key} className={isFullWidth ? 'md:col-span-2' : ''}>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          {getFieldLabel(key)}
-                        </label>
-                        {isEditing ? (
-                          <Input
-                            value={editedData[key] || ''}
-                            onChange={(e) => handleEditChange(key, e.target.value)}
-                            placeholder={`${getFieldLabel(key)}을(를) 입력하세요`}
-                            type={getInputType(key)}
-                          />
-                        ) : (
-                          <p className="text-gray-900">{value}</p>
-                        )}
-                      </div>
-                    );
-                  })}
+                    // First show priority fields in order
+                    const priorityFields = fieldOrder.map(key => {
+                      const value = scanResult[key];
+                      if (!value && !isEditing) return null;
+                      
+                      const isFullWidth = key === 'address' || key === 'website' || key.includes('url');
+                      
+                      return (
+                        <div key={key} className={isFullWidth ? 'md:col-span-2' : ''}>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            {getFieldLabel(key)}
+                          </label>
+                          {isEditing ? (
+                            <Input
+                              value={editedData[key] || ''}
+                              onChange={(e) => handleEditChange(key, e.target.value)}
+                              placeholder={`${getFieldLabel(key)}을(를) 입력하세요`}
+                              type={getInputType(key)}
+                            />
+                          ) : (
+                            key === 'address' && value ? (
+                              <button
+                                onClick={() => window.open(`https://maps.google.com/maps?q=${encodeURIComponent(value)}`, '_blank')}
+                                className="text-blue-600 hover:text-blue-800 underline text-left"
+                              >
+                                {value}
+                              </button>
+                            ) : (
+                              <p className="text-gray-900">{value}</p>
+                            )
+                          )}
+                        </div>
+                      );
+                    }).filter(Boolean);
+
+                    // Then show remaining fields
+                    const remainingFields = Object.entries(scanResult)
+                      .filter(([key]) => !fieldOrder.includes(key))
+                      .map(([key, value]) => {
+                        if (!value && !isEditing) return null;
+                        
+                        const isFullWidth = key === 'address' || key === 'website' || key.includes('url');
+                        
+                        return (
+                          <div key={key} className={isFullWidth ? 'md:col-span-2' : ''}>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {getFieldLabel(key)}
+                            </label>
+                            {isEditing ? (
+                              <Input
+                                value={editedData[key] || ''}
+                                onChange={(e) => handleEditChange(key, e.target.value)}
+                                placeholder={`${getFieldLabel(key)}을(를) 입력하세요`}
+                                type={getInputType(key)}
+                              />
+                            ) : (
+                              key === 'address' && value ? (
+                                <button
+                                  onClick={() => window.open(`https://maps.google.com/maps?q=${encodeURIComponent(value)}`, '_blank')}
+                                  className="text-blue-600 hover:text-blue-800 underline text-left"
+                                >
+                                  {value}
+                                </button>
+                              ) : (
+                                <p className="text-gray-900">{value}</p>
+                              )
+                            )}
+                          </div>
+                        );
+                      }).filter(Boolean);
+
+                    return [...priorityFields, ...remainingFields];
+                  })()}
                 </div>
 
                 {/* Folder creation is now handled automatically by scan endpoint */}

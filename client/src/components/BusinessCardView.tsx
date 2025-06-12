@@ -265,15 +265,14 @@ export default function BusinessCardView({ folderId, onBack }: BusinessCardViewP
           </div>
         </div>
 
-        {/* Contact Information Card - Dynamic Fields */}
+        {/* Contact Information Card - Ordered Fields */}
         <div className="bg-white mt-2 p-4">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">연락처 정보</h3>
           <div className="space-y-4">
-            {businessCardData && Object.entries(businessCardData).filter(([key, value]) => 
-              value && key !== 'isRegisteredUser' && key !== 'registeredUserId' && key !== 'registeredUserDisplayName' && key !== 'canSendDM'
-            ).map(([key, value]) => {
+            {businessCardData && (() => {
+              // Define field order: 이름, 직책, 전화번호, 이메일, 회사, 주소
+              const fieldOrder = ['name', 'jobTitle', 'phone', 'email', 'company', 'address'];
               
-              // Get field display info
               const getFieldInfo = (field: string) => {
                 const fieldConfig: Record<string, { label: string; icon: any; bgColor: string; iconColor: string }> = {
                   name: { label: '이름', icon: User, bgColor: 'bg-gray-50', iconColor: 'text-gray-600' },
@@ -306,21 +305,77 @@ export default function BusinessCardView({ folderId, onBack }: BusinessCardViewP
                 };
               };
 
-              const fieldInfo = getFieldInfo(key);
-              const IconComponent = fieldInfo.icon;
+              // First show priority fields in order
+              const priorityFields = fieldOrder
+                .filter(key => {
+                  const value = businessCardData[key as keyof typeof businessCardData];
+                  return value && key !== 'isRegisteredUser' && key !== 'registeredUserId' && key !== 'registeredUserDisplayName' && key !== 'canSendDM';
+                })
+                .map(key => {
+                  const value = businessCardData[key as keyof typeof businessCardData];
+                  const fieldInfo = getFieldInfo(key);
+                  const IconComponent = fieldInfo.icon;
 
-              return (
-                <div key={key} className="flex items-center space-x-3">
-                  <div className={`w-10 h-10 ${fieldInfo.bgColor} rounded-lg flex items-center justify-center`}>
-                    <IconComponent className={`w-5 h-5 ${fieldInfo.iconColor}`} />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-500">{fieldInfo.label}</p>
-                    <p className="font-medium text-gray-900">{value}</p>
-                  </div>
-                </div>
-              );
-            })}
+                  return (
+                    <div key={key} className="flex items-center space-x-3">
+                      <div className={`w-10 h-10 ${fieldInfo.bgColor} rounded-lg flex items-center justify-center`}>
+                        <IconComponent className={`w-5 h-5 ${fieldInfo.iconColor}`} />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-500">{fieldInfo.label}</p>
+                        {key === 'address' && value ? (
+                          <button
+                            onClick={() => window.open(`https://maps.google.com/maps?q=${encodeURIComponent(String(value))}`, '_blank')}
+                            className="font-medium text-blue-600 hover:text-blue-800 underline text-left"
+                          >
+                            {String(value)}
+                          </button>
+                        ) : (
+                          <p className="font-medium text-gray-900">{String(value)}</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                });
+
+              // Then show remaining fields
+              const remainingFields = Object.entries(businessCardData)
+                .filter(([key, value]) => 
+                  value && 
+                  !fieldOrder.includes(key) && 
+                  key !== 'isRegisteredUser' && 
+                  key !== 'registeredUserId' && 
+                  key !== 'registeredUserDisplayName' && 
+                  key !== 'canSendDM'
+                )
+                .map(([key, value]) => {
+                  const fieldInfo = getFieldInfo(key);
+                  const IconComponent = fieldInfo.icon;
+
+                  return (
+                    <div key={key} className="flex items-center space-x-3">
+                      <div className={`w-10 h-10 ${fieldInfo.bgColor} rounded-lg flex items-center justify-center`}>
+                        <IconComponent className={`w-5 h-5 ${fieldInfo.iconColor}`} />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-500">{fieldInfo.label}</p>
+                        {key === 'address' && value ? (
+                          <button
+                            onClick={() => window.open(`https://maps.google.com/maps?q=${encodeURIComponent(String(value))}`, '_blank')}
+                            className="font-medium text-blue-600 hover:text-blue-800 underline text-left"
+                          >
+                            {String(value)}
+                          </button>
+                        ) : (
+                          <p className="font-medium text-gray-900">{String(value)}</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                });
+
+              return [...priorityFields, ...remainingFields];
+            })()}
           </div>
         </div>
 
