@@ -36,6 +36,18 @@ export default function MainApp() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("chats");
   const [activeMobileTab, setActiveMobileTab] = useState("chats");
+
+  // Handle URL parameters for tab navigation
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    if (tabParam && ['contacts', 'chats', 'archive', 'settings'].includes(tabParam)) {
+      setActiveTab(tabParam);
+      setActiveMobileTab(tabParam);
+      // Clear URL parameters after handling
+      window.history.replaceState({}, '', '/app');
+    }
+  }, []);
   const [showSettings, setShowSettings] = useState(false);
   const [selectedChatRoom, setSelectedChatRoom] = useState<number | null>(null);
   const [rightPanelContent, setRightPanelContent] = useState<string | null>(null);

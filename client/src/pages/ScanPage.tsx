@@ -217,7 +217,7 @@ export default function ScanPage() {
   };
 
   const handleReturnToCabinet = () => {
-    setLocation('/');
+    setLocation('/app?tab=contacts');
   };
 
   const handleCameraCapture = (file: File) => {
