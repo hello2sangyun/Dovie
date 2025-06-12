@@ -511,7 +511,7 @@ export default function MainApp() {
                           <Camera className="w-8 h-8 text-blue-600" />
                         </div>
                         <Button 
-                          onClick={() => window.location.href = '/card-scanner'}
+                          onClick={() => window.location.href = '/scan'}
                           className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                         >
                           명함 스캔 시작

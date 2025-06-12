@@ -699,6 +699,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Business card scanning endpoint
+  app.post("/api/scan-business-card", upload.single('image'), async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string;
+      if (!userId) {
+        return res.status(401).json({ message: "User ID required" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: "Image file is required" });
+      }
+
+      // Convert image to base64 for OpenAI Vision API
+      const base64Image = req.file.buffer.toString('base64');
+
+      // Use OpenAI Vision API to extract business card information
+      const extractedData = await extractBusinessCardInfo(base64Image);
+
+      res.json(extractedData);
+    } catch (error) {
+      console.error('Business card scanning error:', error);
+      res.status(500).json({ message: "Failed to scan business card" });
+    }
+  });
+
   // Business profile routes
   app.get("/api/business-profiles/:userId?", async (req, res) => {
     const userId = req.headers["x-user-id"];
