@@ -441,6 +441,78 @@ export default function ScanPage() {
           </Card>
         )}
 
+        {/* Crop Interface */}
+        {showCropInterface && imageUrl && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <Edit2 className="w-5 h-5 text-blue-600" />
+                명함 영역 선택
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600">
+                  명함 부분을 정확히 선택해주세요. 드래그하여 영역을 조정할 수 있습니다.
+                </p>
+                
+                {/* Image with crop overlay */}
+                <div className="relative bg-gray-100 rounded-lg overflow-hidden">
+                  <img 
+                    src={imageUrl} 
+                    alt="명함 이미지" 
+                    className="w-full h-auto max-h-96 object-contain"
+                  />
+                  {/* Crop overlay */}
+                  <div 
+                    className="absolute border-2 border-blue-500 bg-blue-500/20 cursor-move"
+                    style={{
+                      left: `${cropArea.x}%`,
+                      top: `${cropArea.y}%`,
+                      width: `${cropArea.width}%`,
+                      height: `${cropArea.height}%`
+                    }}
+                  >
+                    {/* Resize handles */}
+                    <div className="absolute -top-1 -left-1 w-3 h-3 bg-blue-500 border border-white cursor-nw-resize"></div>
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 border border-white cursor-ne-resize"></div>
+                    <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-blue-500 border border-white cursor-sw-resize"></div>
+                    <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 border border-white cursor-se-resize"></div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => {
+                      setShowCropInterface(false);
+                      setImageUrl(null);
+                      setCropArea({ x: 0, y: 0, width: 100, height: 100 });
+                    }}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    취소
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      // Apply crop and proceed with scan
+                      setShowCropInterface(false);
+                      if (selectedFile) {
+                        handleScan();
+                      }
+                    }}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    영역 확정 후 스캔
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Instructions */}
         <Card>
           <CardHeader>

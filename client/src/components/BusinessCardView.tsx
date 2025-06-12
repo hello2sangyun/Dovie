@@ -20,7 +20,16 @@ import {
   UserX,
   MessageCircle,
   Image,
-  Mic
+  Mic,
+  Briefcase,
+  Users,
+  Smartphone,
+  Printer,
+  Globe,
+  Link,
+  Camera,
+  Send,
+  Info
 } from "lucide-react";
 
 interface FolderItem {
@@ -256,43 +265,62 @@ export default function BusinessCardView({ folderId, onBack }: BusinessCardViewP
           </div>
         </div>
 
-        {/* Contact Information Card */}
+        {/* Contact Information Card - Dynamic Fields */}
         <div className="bg-white mt-2 p-4">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">연락처 정보</h3>
           <div className="space-y-4">
-            {businessCardData?.email && (
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                  <Mail className="w-5 h-5 text-blue-600" />
+            {businessCardData && Object.entries(businessCardData).filter(([key, value]) => 
+              value && key !== 'isRegisteredUser' && key !== 'registeredUserId' && key !== 'registeredUserDisplayName' && key !== 'canSendDM'
+            ).map(([key, value]) => {
+              
+              // Get field display info
+              const getFieldInfo = (field: string) => {
+                const fieldConfig: Record<string, { label: string; icon: any; bgColor: string; iconColor: string }> = {
+                  name: { label: '이름', icon: User, bgColor: 'bg-gray-50', iconColor: 'text-gray-600' },
+                  company: { label: '회사', icon: Building2, bgColor: 'bg-purple-50', iconColor: 'text-purple-600' },
+                  jobTitle: { label: '직책', icon: User, bgColor: 'bg-orange-50', iconColor: 'text-orange-600' },
+                  title: { label: '직함', icon: User, bgColor: 'bg-orange-50', iconColor: 'text-orange-600' },
+                  department: { label: '부서', icon: Building2, bgColor: 'bg-indigo-50', iconColor: 'text-indigo-600' },
+                  email: { label: '이메일', icon: Mail, bgColor: 'bg-blue-50', iconColor: 'text-blue-600' },
+                  phone: { label: '전화번호', icon: Phone, bgColor: 'bg-green-50', iconColor: 'text-green-600' },
+                  mobile: { label: '휴대폰', icon: Phone, bgColor: 'bg-green-50', iconColor: 'text-green-600' },
+                  fax: { label: '팩스', icon: Phone, bgColor: 'bg-gray-50', iconColor: 'text-gray-600' },
+                  website: { label: '웹사이트', icon: Link, bgColor: 'bg-cyan-50', iconColor: 'text-cyan-600' },
+                  address: { label: '주소', icon: MapPin, bgColor: 'bg-red-50', iconColor: 'text-red-600' },
+                  linkedIn: { label: 'LinkedIn', icon: Link, bgColor: 'bg-blue-50', iconColor: 'text-blue-600' },
+                  twitter: { label: 'Twitter', icon: MessageCircle, bgColor: 'bg-sky-50', iconColor: 'text-sky-600' },
+                  instagram: { label: 'Instagram', icon: Image, bgColor: 'bg-pink-50', iconColor: 'text-pink-600' },
+                  facebook: { label: 'Facebook', icon: MessageCircle, bgColor: 'bg-blue-50', iconColor: 'text-blue-600' },
+                  skype: { label: 'Skype', icon: Video, bgColor: 'bg-blue-50', iconColor: 'text-blue-600' },
+                  whatsapp: { label: 'WhatsApp', icon: MessageCircle, bgColor: 'bg-green-50', iconColor: 'text-green-600' },
+                  telegram: { label: 'Telegram', icon: MessageCircle, bgColor: 'bg-blue-50', iconColor: 'text-blue-600' },
+                  wechat: { label: 'WeChat', icon: MessageCircle, bgColor: 'bg-green-50', iconColor: 'text-green-600' },
+                  line: { label: 'Line', icon: MessageCircle, bgColor: 'bg-green-50', iconColor: 'text-green-600' }
+                };
+                
+                return fieldConfig[field] || { 
+                  label: field.charAt(0).toUpperCase() + field.slice(1), 
+                  icon: User, 
+                  bgColor: 'bg-gray-50', 
+                  iconColor: 'text-gray-600' 
+                };
+              };
+
+              const fieldInfo = getFieldInfo(key);
+              const IconComponent = fieldInfo.icon;
+
+              return (
+                <div key={key} className="flex items-center space-x-3">
+                  <div className={`w-10 h-10 ${fieldInfo.bgColor} rounded-lg flex items-center justify-center`}>
+                    <IconComponent className={`w-5 h-5 ${fieldInfo.iconColor}`} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-500">{fieldInfo.label}</p>
+                    <p className="font-medium text-gray-900">{value}</p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm text-gray-500">이메일</p>
-                  <p className="font-medium text-gray-900">{businessCardData.email}</p>
-                </div>
-              </div>
-            )}
-            {businessCardData?.phone && (
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
-                  <Phone className="w-5 h-5 text-green-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-gray-500">전화번호</p>
-                  <p className="font-medium text-gray-900">{businessCardData.phone}</p>
-                </div>
-              </div>
-            )}
-            {businessCardData?.company && (
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center">
-                  <Building2 className="w-5 h-5 text-purple-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-gray-500">회사</p>
-                  <p className="font-medium text-gray-900">{businessCardData.company}</p>
-                </div>
-              </div>
-            )}
+              );
+            })}
           </div>
         </div>
 
