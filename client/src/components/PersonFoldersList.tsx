@@ -236,13 +236,22 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center justify-between w-full">
                         <h3 className="font-medium text-gray-900 truncate text-sm">
                           {getContactDisplayName(folder)}
                         </h3>
                         {/* Business Card Image */}
                         {folder.businessCardImage && (
-                          <div className="w-6 h-4 rounded-sm overflow-hidden border border-gray-200 flex-shrink-0">
+                          <div 
+                            className="w-12 h-8 rounded-md overflow-hidden border border-gray-300 flex-shrink-0 cursor-pointer hover:border-purple-400 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedBusinessCard({
+                                imageUrl: folder.businessCardImage!,
+                                personName: folder.personName
+                              });
+                            }}
+                          >
                             <img 
                               src={folder.businessCardImage} 
                               alt="명함"
