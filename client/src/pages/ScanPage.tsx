@@ -38,8 +38,7 @@ export default function ScanPage() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [showCamera, setShowCamera] = useState(false);
-  const [showCrop, setShowCrop] = useState(false);
-  const [croppedFile, setCroppedFile] = useState<File | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -97,32 +96,13 @@ export default function ScanPage() {
       const url = URL.createObjectURL(file);
       setImageUrl(url);
       setScanResult(null);
+      
+      // Auto-scan immediately with AI boundary detection
+      scanMutation.mutate(file);
     }
   };
 
-  const handleScan = () => {
-    const fileToScan = croppedFile || selectedFile;
-    if (fileToScan) {
-      scanMutation.mutate(fileToScan);
-    }
-  };
 
-  const handleCropComplete = (croppedFile: File) => {
-    setCroppedFile(croppedFile);
-    const url = URL.createObjectURL(croppedFile);
-    setImageUrl(url);
-    setShowCrop(false);
-    
-    toast({
-      title: "영역 선택 완료",
-      description: "명함 영역이 선택되었습니다. 이제 스캔을 진행하세요.",
-    });
-  };
-
-  const handleCropCancel = () => {
-    setShowCrop(false);
-    setCroppedFile(null);
-  };
 
   const handleCameraCapture = (file: File) => {
     setSelectedFile(file);
@@ -130,7 +110,9 @@ export default function ScanPage() {
     setImageUrl(url);
     setScanResult(null);
     setShowCamera(false);
-    setShowCrop(true); // Show crop interface after camera capture
+    
+    // Auto-scan immediately with AI boundary detection
+    scanMutation.mutate(file);
   };
 
   const cameraProps = {
@@ -193,36 +175,18 @@ export default function ScanPage() {
                   />
                 </div>
                 
-                <Button
-                  onClick={handleScan}
-                  disabled={scanMutation.isPending}
-                  className="w-full bg-green-600 hover:bg-green-700"
-                >
-                  {scanMutation.isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      스캔 중...
-                    </>
-                  ) : (
-                    <>
-                      <Scan className="w-4 h-4 mr-2" />
-                      명함 스캔하기
-                    </>
-                  )}
-                </Button>
+                {scanMutation.isPending && (
+                  <div className="text-center py-4">
+                    <Loader2 className="w-8 h-8 mx-auto animate-spin text-green-600" />
+                    <p className="mt-2 text-gray-600">AI가 명함을 분석하고 있습니다...</p>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Crop Interface */}
-        {showCrop && imageUrl && (
-          <ImageCrop
-            imageUrl={imageUrl}
-            onCrop={handleCropComplete}
-            onCancel={handleCropCancel}
-          />
-        )}
+
 
         {/* Scan Results */}
         {scanResult && (
@@ -288,8 +252,6 @@ export default function ScanPage() {
                     setScanResult(null);
                     setSelectedFile(null);
                     setImageUrl(null);
-                    setCroppedFile(null);
-                    setShowCrop(false);
                   }}
                   variant="outline"
                   className="w-full"
