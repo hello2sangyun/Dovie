@@ -82,18 +82,15 @@ export default function BusinessCardView({ folderId, onBack }: BusinessCardViewP
 
   // Extract business card data
   const businessCardItem = items.find(item => item.itemType === 'business_card');
-  console.log('BusinessCardView - businessCardItem:', businessCardItem);
-  console.log('BusinessCardView - businessCardData string:', businessCardItem?.businessCardData);
   
   let businessCardData = null;
   try {
     businessCardData = businessCardItem?.businessCardData ? JSON.parse(businessCardItem.businessCardData) : null;
   } catch (error) {
-    console.error('BusinessCardView - Error parsing business card data:', error);
+    console.error('Error parsing business card data:', error);
     businessCardData = null;
   }
   
-  console.log('BusinessCardView - parsed businessCardData:', businessCardData);
   const personName = businessCardData?.name || folder?.personName || "이름 없음";
   
   // Check if contact is a registered user
