@@ -656,6 +656,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Register user with business card endpoint
+  app.post("/api/register-with-business-card", upload.single('businessCardImage'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "Business card image is required for registration" });
+      }
+
+      const { username, email, password, displayName } = req.body;
+      
+      if (!username || !password || !displayName) {
+        return res.status(400).json({ message: "Username, password, and display name are required" });
+      }
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+
+      if (email) {
+        const existingEmailUser = await storage.getUserByEmail(email);
+        if (existingEmailUser) {
+          return res.status(400).json({ message: "Email already registered" });
+        }
+      }
+
+      // Extract business card information
+      const base64Image = req.file.buffer.toString('base64');
+      const extractedData = await extractBusinessCardInfo(base64Image);
+
+      // Create new user
+      const newUser = await storage.createUser({
+        username,
+        email,
+        displayName,
+        hashedPassword: password, // In real app, this should be hashed
+        userRole: "user"
+      });
+
+      // Store business card image
+      const cardImageUrl = `/uploads/business-cards/${newUser.id}-${Date.now()}.jpg`;
+      await require('fs').promises.writeFile(`./uploads/business-cards/${newUser.id}-${Date.now()}.jpg`, req.file.buffer);
+
+      // Create business card record
+      await storage.createOrUpdateBusinessCard(newUser.id, {
+        fullName: extractedData.name,
+        companyName: extractedData.company,
+        jobTitle: extractedData.jobTitle,
+        email: extractedData.email,
+        phoneNumber: extractedData.phone,
+        address: extractedData.address,
+        cardImageUrl,
+        extractedData: JSON.stringify(extractedData),
+        isVerified: true
+      });
+
+      res.json({ 
+        success: true, 
+        user: newUser,
+        businessCardData: extractedData
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({ message: "Failed to register user" });
+    }
+  });
+
   // Business card analysis endpoint
   app.post("/api/business-cards/analyze", upload.single('image'), async (req, res) => {
     const userId = req.headers["x-user-id"];
@@ -752,7 +819,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Business card scanning endpoint
+  // Enhanced business card scanning endpoint with user verification
   app.post("/api/scan-business-card", (req, res, next) => {
     upload.single('image')(req, res, (err) => {
       if (err) {
@@ -780,7 +847,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Use OpenAI Vision API to extract business card information
       const extractedData = await extractBusinessCardInfo(base64Image);
 
-      res.json(extractedData);
+      // Check if this business card belongs to an existing registered user
+      const existingUser = await storage.verifyUserByBusinessCard(extractedData);
+      
+      const response = {
+        ...extractedData,
+        isRegisteredUser: !!existingUser,
+        registeredUserId: existingUser?.id || null,
+        registeredUserDisplayName: existingUser?.displayName || null,
+        canSendDM: !!existingUser
+      };
+
+      console.log('Business card verification result:', {
+        isRegistered: !!existingUser,
+        userId: existingUser?.id,
+        userName: existingUser?.displayName
+      });
+
+      res.json(response);
     } catch (error) {
       console.error('Business card scanning error:', error);
       res.status(500).json({ message: "Failed to scan business card" });

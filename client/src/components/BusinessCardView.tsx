@@ -93,8 +93,10 @@ export default function BusinessCardView({ folderId, onBack }: BusinessCardViewP
   
   const personName = businessCardData?.name || folder?.personName || "이름 없음";
   
-  // Check if contact is a registered user
-  const isRegisteredUser = folder?.contact?.contactUserId !== null;
+  // Check if contact is a registered user (enhanced with business card verification)
+  const isRegisteredUser = businessCardData?.isRegisteredUser || 
+                           businessCardData?.canSendDM || 
+                           folder?.contact?.contactUserId !== null;
   
   // Get shared files from DM
   const sharedFiles = items.filter(item => item.itemType !== 'business_card');

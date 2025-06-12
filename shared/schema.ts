@@ -239,7 +239,7 @@ export const fileDownloads = pgTable("file_downloads", {
 
 export const businessCards = pgTable("business_cards", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull().unique(), // One business card per user
   fullName: text("full_name"),
   companyName: text("company_name"),
   jobTitle: text("job_title"),
@@ -250,10 +250,12 @@ export const businessCards = pgTable("business_cards", {
   website: text("website"),
   address: text("address"),
   description: text("description"),
-  cardImageUrl: text("card_image_url"),
+  cardImageUrl: text("card_image_url"), // Original uploaded business card image
   profileImageUrl: text("profile_image_url"), // Profile photo for manual creation
   extractedText: text("extracted_text"), // OCR로 추출된 원본 텍스트
-  isDefault: boolean("is_default").default(false),
+  extractedData: text("extracted_data"), // JSON string of extracted business card data
+  isDefault: boolean("is_default").default(true),
+  isVerified: boolean("is_verified").default(false), // Whether the business card is verified
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -79,6 +79,8 @@ export interface IStorage {
   // Business card operations
   getBusinessCard(userId: number): Promise<BusinessCard | undefined>;
   createOrUpdateBusinessCard(userId: number, cardData: Partial<InsertBusinessCard>): Promise<BusinessCard>;
+  verifyUserByBusinessCard(cardData: any): Promise<User | undefined>;
+  findUserByBusinessCardData(name: string, email?: string, phone?: string, company?: string): Promise<User | undefined>;
   
   // Business profile operations
   getBusinessProfile(userId: number): Promise<BusinessProfile | undefined>;
@@ -859,6 +861,90 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return newCard;
     }
+  }
+
+  async verifyUserByBusinessCard(cardData: any): Promise<User | undefined> {
+    // First try to find exact match by email if available
+    if (cardData.email) {
+      const userByEmail = await this.findUserByBusinessCardData(cardData.name, cardData.email);
+      if (userByEmail) return userByEmail;
+    }
+
+    // Then try by phone number if available
+    if (cardData.phone) {
+      const userByPhone = await this.findUserByBusinessCardData(cardData.name, undefined, cardData.phone);
+      if (userByPhone) return userByPhone;
+    }
+
+    // Finally try by name and company combination
+    if (cardData.company) {
+      const userByCompany = await this.findUserByBusinessCardData(cardData.name, undefined, undefined, cardData.company);
+      if (userByCompany) return userByCompany;
+    }
+
+    return undefined;
+  }
+
+  async findUserByBusinessCardData(name: string, email?: string, phone?: string, company?: string): Promise<User | undefined> {
+    // Build query conditions based on available data
+    const conditions = [];
+
+    if (email) {
+      // Check business cards with matching email
+      const cardsByEmail = await db
+        .select({ userId: businessCards.userId })
+        .from(businessCards)
+        .where(eq(businessCards.email, email));
+      
+      if (cardsByEmail.length > 0) {
+        const [user] = await db
+          .select()
+          .from(users)
+          .where(eq(users.id, cardsByEmail[0].userId));
+        if (user) return user;
+      }
+    }
+
+    if (phone) {
+      // Clean phone number for comparison (remove spaces, dashes, etc)
+      const cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
+      
+      const cardsByPhone = await db
+        .select({ userId: businessCards.userId })
+        .from(businessCards)
+        .where(like(businessCards.phoneNumber, `%${cleanPhone.slice(-8)}%`)); // Match last 8 digits
+      
+      if (cardsByPhone.length > 0) {
+        const [user] = await db
+          .select()
+          .from(users)
+          .where(eq(users.id, cardsByPhone[0].userId));
+        if (user) return user;
+      }
+    }
+
+    if (name && company) {
+      // Check by name and company combination
+      const cardsByNameCompany = await db
+        .select({ userId: businessCards.userId })
+        .from(businessCards)
+        .where(
+          and(
+            like(businessCards.fullName, `%${name}%`),
+            like(businessCards.companyName, `%${company}%`)
+          )
+        );
+      
+      if (cardsByNameCompany.length > 0) {
+        const [user] = await db
+          .select()
+          .from(users)
+          .where(eq(users.id, cardsByNameCompany[0].userId));
+        if (user) return user;
+      }
+    }
+
+    return undefined;
   }
 
   // Business profile operations
