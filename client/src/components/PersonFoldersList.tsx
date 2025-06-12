@@ -63,9 +63,7 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
 
   const deleteFolderMutation = useMutation({
     mutationFn: async (folderId: number) => {
-      return apiRequest(`/api/person-folders/${folderId}`, {
-        method: "DELETE",
-      });
+      return apiRequest(`/api/person-folders/${folderId}`, "DELETE");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/person-folders"] });
