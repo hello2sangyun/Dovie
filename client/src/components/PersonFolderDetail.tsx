@@ -42,7 +42,7 @@ interface PersonFolderData {
   id: number;
   userId: number;
   contactId?: number | null;
-  personName?: string;
+  personName: string;
   folderName?: string;
   avatarUrl?: string;
   lastActivity: string;
