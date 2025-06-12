@@ -41,12 +41,13 @@ interface FolderItem {
 interface PersonFolderData {
   id: number;
   userId: number;
-  contactId: number;
-  folderName: string;
+  contactId?: number | null;
+  personName?: string;
+  folderName?: string;
   avatarUrl?: string;
   lastActivity: string;
   itemCount: number;
-  contact: {
+  contact?: {
     id: number;
     name?: string;
     nickname?: string;
@@ -54,7 +55,7 @@ interface PersonFolderData {
     phone?: string;
     company?: string;
     jobTitle?: string;
-  };
+  } | null;
 }
 
 interface PersonFolderDetailProps {
@@ -171,12 +172,12 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
         {/* Folder Info */}
         <div className="flex items-center space-x-3 mb-4">
           <PrismAvatar
-            fallback={getInitials(folder.folderName)}
+            fallback={getInitials(folder.personName || folder.folderName || "Unknown")}
             size="lg"
             className="w-16 h-16"
           />
           <div className="flex-1">
-            <h1 className="text-xl font-semibold text-gray-900">{folder.folderName}</h1>
+            <h1 className="text-xl font-semibold text-gray-900">{folder.personName || folder.folderName || "이름 없음"}</h1>
             <p className="text-sm text-gray-500">
               {folder.contact?.company && (
                 <span>{folder.contact.company} • </span>
@@ -216,7 +217,7 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
                 </h3>
                 <p className="text-gray-500 mb-6 max-w-sm">
                   명함, One Pager, 채팅 파일을 추가하여 
-                  {folder.folderName}님과의 모든 자료를 한 곳에 정리하세요.
+                  {folder.personName || folder.folderName || "이분"}님과의 모든 자료를 한 곳에 정리하세요.
                 </p>
                 <Button className="bg-blue-500 hover:bg-blue-600">
                   <Upload className="w-4 h-4 mr-2" />

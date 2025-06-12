@@ -774,9 +774,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const folderId = Number(req.params.folderId);
-      const folder = await storage.getPersonFolderById(folderId);
+      const folder = await storage.getPersonFolderById(Number(userId), folderId);
       
-      if (!folder || folder.userId !== Number(userId)) {
+      if (!folder) {
         return res.status(404).json({ message: "Folder not found" });
       }
 
