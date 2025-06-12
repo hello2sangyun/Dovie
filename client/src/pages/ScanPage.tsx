@@ -217,7 +217,9 @@ export default function ScanPage() {
   };
 
   const handleReturnToCabinet = () => {
-    setLocation('/app?tab=contacts');
+    // Force refresh the person folders cache before navigating
+    queryClient.invalidateQueries({ queryKey: ['/api/person-folders'] });
+    setLocation('/app?tab=contacts&refresh=true');
   };
 
   const handleCameraCapture = (file: File) => {

@@ -41,13 +41,25 @@ export default function MainApp() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const tabParam = urlParams.get('tab');
+    const refreshParam = urlParams.get('refresh');
+    
     if (tabParam && ['contacts', 'chats', 'archive', 'settings'].includes(tabParam)) {
       setActiveTab(tabParam);
       setActiveMobileTab(tabParam);
+      
+      // Force refresh data if refresh parameter is present
+      if (refreshParam === 'true') {
+        // Add small delay to ensure proper cache invalidation timing
+        setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: ['/api/person-folders'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
+        }, 100);
+      }
+      
       // Clear URL parameters after handling
       window.history.replaceState({}, '', '/app');
     }
-  }, []);
+  }, [queryClient]);
   const [showSettings, setShowSettings] = useState(false);
   const [selectedChatRoom, setSelectedChatRoom] = useState<number | null>(null);
   const [rightPanelContent, setRightPanelContent] = useState<string | null>(null);
