@@ -948,6 +948,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Auto-crop endpoint for business card background removal
+  app.post("/api/auto-crop", upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "Image file is required" });
+      }
+
+      console.log('Processing auto-crop for business card:', req.file.originalname, req.file.size, 'bytes');
+
+      // Step 1: Detect business card boundaries using AI
+      const originalBase64 = req.file.buffer.toString('base64');
+      const { detectBusinessCardBounds } = await import('./openai');
+      const detectedBounds = await detectBusinessCardBounds(originalBase64);
+      
+      console.log('AI boundary detection result:', detectedBounds);
+
+      // Step 2: Process image with AI-guided cropping to remove background
+      const { processBusinessCardImageWithAI } = await import('./imageProcessing');
+      const processedImages = await processBusinessCardImageWithAI(req.file.buffer, detectedBounds);
+
+      // Convert cropped image to base64 for frontend display
+      const croppedBase64 = `data:image/jpeg;base64,${processedImages.enhanced.toString('base64')}`;
+      
+      // Save the cropped image temporarily
+      const timestamp = Date.now();
+      const tempFileName = `temp-cropped-${timestamp}.jpg`;
+      const tempPath = path.join(uploadDir, 'temp', tempFileName);
+      
+      // Ensure temp directory exists
+      const tempDir = path.join(uploadDir, 'temp');
+      if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir, { recursive: true });
+      }
+      
+      await fs.promises.writeFile(tempPath, processedImages.enhanced);
+
+      res.json({
+        success: true,
+        croppedImageUrl: croppedBase64,
+        tempFileName: tempFileName
+      });
+
+    } catch (error) {
+      console.error('Auto-crop error:', error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to auto-crop business card",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   // Simplified scan endpoint for basic business card extraction
   app.post("/api/scan", requireAuth, upload.single('file'), async (req: any, res) => {
     try {

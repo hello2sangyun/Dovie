@@ -36,13 +36,53 @@ interface ScanResult {
 export default function ScanPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [croppedImageUrl, setCroppedImageUrl] = useState<string | null>(null);
+  const [croppedFile, setCroppedFile] = useState<File | null>(null);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [showCamera, setShowCamera] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [showManualCrop, setShowManualCrop] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
+
+  // Mutation for auto-cropping business card
+  const autoCropMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      const response = await fetch("/api/auto-crop", {
+        method: "POST",
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`자동 크롭 실패: ${response.status} - ${errorText}`);
+      }
+      
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      setCroppedImageUrl(data.croppedImageUrl);
+      setCroppedFile(data.croppedFile);
+      setIsProcessing(false);
+      setShowPreview(true);
+    },
+    onError: (error) => {
+      console.error("Auto-crop error:", error);
+      setIsProcessing(false);
+      toast({
+        title: "자동 크롭 실패",
+        description: "명함 영역 자동 감지에 실패했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
 
   // Mutation for scanning business card
   const scanMutation = useMutation({
@@ -71,9 +111,11 @@ export default function ScanPage() {
     },
     onSuccess: (data) => {
       setScanResult(data.extractedData);
+      setShowPreview(false);
+      setShowManualCrop(false);
       toast({
-        title: "스캔 완료",
-        description: "명함 정보가 성공적으로 추출되었습니다.",
+        title: "저장되었습니다",
+        description: "명함 정보가 성공적으로 저장되었습니다.",
       });
       
       // Invalidate person folders to refresh the list
@@ -96,9 +138,10 @@ export default function ScanPage() {
       const url = URL.createObjectURL(file);
       setImageUrl(url);
       setScanResult(null);
+      setIsProcessing(true);
       
-      // Auto-scan immediately with AI boundary detection
-      scanMutation.mutate(file);
+      // Auto-crop to remove background
+      autoCropMutation.mutate(file);
     }
   };
 
@@ -110,9 +153,40 @@ export default function ScanPage() {
     setImageUrl(url);
     setScanResult(null);
     setShowCamera(false);
+    setIsProcessing(true);
     
-    // Auto-scan immediately with AI boundary detection
-    scanMutation.mutate(file);
+    // Auto-crop to remove background
+    autoCropMutation.mutate(file);
+  };
+
+  const handleConfirmScan = () => {
+    if (croppedFile) {
+      scanMutation.mutate(croppedFile);
+    }
+  };
+
+  const handleManualCrop = () => {
+    setShowPreview(false);
+    setShowManualCrop(true);
+  };
+
+  const handleCropComplete = (newCroppedFile: File) => {
+    setCroppedFile(newCroppedFile);
+    const url = URL.createObjectURL(newCroppedFile);
+    setCroppedImageUrl(url);
+    setShowManualCrop(false);
+    setShowPreview(true);
+  };
+
+  const handleResetScan = () => {
+    setScanResult(null);
+    setSelectedFile(null);
+    setImageUrl(null);
+    setCroppedImageUrl(null);
+    setCroppedFile(null);
+    setShowPreview(false);
+    setShowManualCrop(false);
+    setIsProcessing(false);
   };
 
   const cameraProps = {
