@@ -564,8 +564,11 @@ export async function extractBusinessCardInfo(base64Image: string): Promise<Busi
       max_tokens: 1000,
     });
 
-    const extractedText = response.choices[0].message.content;
+    console.log("OpenAI Response:", JSON.stringify(response, null, 2));
+    
+    const extractedText = response.choices[0]?.message?.content;
     if (!extractedText) {
+      console.error("OpenAI response structure:", response);
       throw new Error("No content received from OpenAI");
     }
 

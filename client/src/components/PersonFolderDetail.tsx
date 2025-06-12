@@ -100,7 +100,7 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
   });
 
   const { data: items = [], isLoading: itemsLoading, error: itemsError } = useQuery<FolderItem[]>({
-    queryKey: ["/api/person-folders", folderId, "items"],
+    queryKey: [`/api/person-folders/${folderId}/items`],
     enabled: !!user && !!folderId,
   });
 
