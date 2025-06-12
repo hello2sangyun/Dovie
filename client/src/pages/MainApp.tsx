@@ -7,6 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useImagePreloader } from "@/hooks/useImagePreloader";
 import VaultLogo from "@/components/VaultLogo";
 import ContactsList from "@/components/ContactsList";
+import PersonFoldersList from "@/components/PersonFoldersList";
+import PersonFolderDetail from "@/components/PersonFolderDetail";
 import ChatsList from "@/components/ChatsList";
 import ArchiveList from "@/components/ArchiveList";
 import ChatArea from "@/components/ChatArea";
@@ -399,7 +401,7 @@ export default function MainApp() {
                   "data-[state=active]:border-purple-600 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-600"
                 )}
               >
-                <Users className="h-4 w-4" />
+                <FolderOpen className="h-4 w-4" />
                 <span className="text-xs truncate">Cabinet</span>
               </TabsTrigger>
               <TabsTrigger 
@@ -453,14 +455,9 @@ export default function MainApp() {
 
             <div className="flex-1 overflow-hidden">
               <TabsContent value="contacts" className="h-full m-0">
-                <ContactsList 
-                  onAddContact={() => openModal("addContact")}
-                  onSelectContact={(contactUserId) => {
-                    // Find the contact user data
-                    const contact = (contactsData as any)?.contacts?.find((c: any) => c.contactUserId === contactUserId);
-                    if (contact) {
-                      createOrFindChatRoom(contactUserId, contact.contactUser);
-                    }
+                <PersonFoldersList 
+                  onSelectFolder={(folderId) => {
+                    setRightPanelContent(`person-folder-${folderId}`);
                   }}
                 />
               </TabsContent>

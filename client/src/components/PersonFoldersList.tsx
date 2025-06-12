@@ -52,7 +52,7 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
   const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { data: folders = [], isLoading } = useQuery({
+  const { data: folders = [], isLoading } = useQuery<PersonFolder[]>({
     queryKey: ["/api/person-folders"],
     enabled: !!user,
   });
@@ -165,7 +165,7 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
                   <div className="relative">
                     {folder.contact.name ? (
                       <PrismAvatar
-                        name={getContactDisplayName(folder.contact)}
+                        fallback={getInitials(getContactDisplayName(folder.contact))}
                         size="md"
                         className="w-12 h-12"
                       />
