@@ -100,7 +100,7 @@ export interface IStorage {
 
   // Person folder operations
   getPersonFolders(userId: number): Promise<(PersonFolder & { contact: Contact; itemCount: number })[]>;
-  createPersonFolder(folderData: InsertPersonFolder): Promise<PersonFolder>;
+  createPersonFolder(userId: number, contactId: number, folderName: string): Promise<PersonFolder>;
   getPersonFolderById(userId: number, folderId: number): Promise<(PersonFolder & { contact: Contact; items: FolderItem[] }) | undefined>;
   createOrFindPersonFolder(userId: number, contactId: number, personName: string): Promise<PersonFolder>;
   
@@ -1097,8 +1097,21 @@ export class DatabaseStorage implements IStorage {
     }));
   }
 
-  async createPersonFolder(folderData: InsertPersonFolder): Promise<PersonFolder> {
-    const [folder] = await db.insert(personFolders).values(folderData).returning();
+  async createPersonFolder(userId: number, contactId: number, folderName: string): Promise<PersonFolder> {
+    console.log('createPersonFolder called with:', { userId, contactId, folderName });
+    
+    const insertData = {
+      userId,
+      contactId,
+      personName: folderName,
+      folderName,
+      lastActivity: new Date(),
+      itemCount: 0
+    };
+    
+    console.log('Insert data:', insertData);
+    
+    const [folder] = await db.insert(personFolders).values(insertData).returning();
     return folder;
   }
 
