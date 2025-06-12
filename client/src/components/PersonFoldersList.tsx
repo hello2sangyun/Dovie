@@ -21,7 +21,9 @@ import {
   ChevronRight,
   Trash2,
   Download,
-  X
+  X,
+  CheckSquare,
+  Square
 } from "lucide-react";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";

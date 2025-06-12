@@ -244,13 +244,13 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
       cropCanvas.height
     );
 
-    // Convert to blob and create file
+    // Convert to blob with high quality to preserve image details
     cropCanvas.toBlob((blob) => {
       if (blob) {
         const file = new File([blob], 'cropped-business-card.jpg', { type: 'image/jpeg' });
         onCrop(file);
       }
-    }, 'image/jpeg', 0.95);
+    }, 'image/jpeg', 0.98);
   };
 
   return (
@@ -275,7 +275,7 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
           />
           <canvas
             ref={canvasRef}
-            className="w-full h-auto border border-gray-200 rounded-lg cursor-move touch-none"
+            className="w-full h-auto border border-gray-200 rounded-lg cursor-move"
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
@@ -284,8 +284,9 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
             style={{ 
-              aspectRatio: '4/3',
-              maxHeight: '400px'
+              maxHeight: '400px',
+              touchAction: 'none',
+              userSelect: 'none'
             }}
           />
         </div>

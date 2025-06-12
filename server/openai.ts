@@ -547,19 +547,34 @@ export async function detectBusinessCardBounds(base64Image: string): Promise<{
       messages: [
         {
           role: "system",
-          content: `You are a computer vision expert that detects business card boundaries in images. 
-          Analyze the image and detect the rectangular boundary of the business card.
-          Return the coordinates as a JSON object with x, y, width, height as percentages (0-100) of the image dimensions.
-          If no clear business card boundary is detected, return {"bounds": null}.
-          The business card should be a rectangular object with clear edges, typically containing text and contact information.
-          Be precise with the boundary detection to include the entire card but exclude background areas.`
+          content: `You are an expert business card detection system. Your task is to find the exact rectangular boundary of a business card in the image.
+
+          Important guidelines:
+          - Look for a rectangular card with text, logos, or contact information
+          - The card may be at any angle or position in the image  
+          - Focus on the card's physical edges, not just text areas
+          - Include the entire card surface including margins and borders
+          - Exclude backgrounds, hands, desks, or other objects completely
+          - If the card occupies most of the image, reflect that accurately
+          - Business cards are typically rectangular with a 3.5:2 or similar aspect ratio
+          
+          Return JSON in this exact format:
+          {
+            "x": number (left edge percentage 0-100),
+            "y": number (top edge percentage 0-100), 
+            "width": number (width percentage 0-100),
+            "height": number (height percentage 0-100),
+            "confidence": number (0-100)
+          }
+          
+          If no business card is clearly visible, return: {"bounds": null, "confidence": 0}`
         },
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: "Detect the business card boundary in this image and return coordinates as JSON with x, y, width, height as percentages (0-100). Return {\"bounds\": null} if no clear business card is found."
+              text: "Analyze this image carefully and detect the precise rectangular boundaries of the business card. Focus on finding the actual card edges that define the complete card area, including any white space or margins within the card itself."
             },
             {
               type: "image_url",
@@ -571,7 +586,7 @@ export async function detectBusinessCardBounds(base64Image: string): Promise<{
         }
       ],
       response_format: { type: "json_object" },
-      max_tokens: 200
+      max_tokens: 300
     });
 
     const content = response.choices[0].message.content;
@@ -582,9 +597,9 @@ export async function detectBusinessCardBounds(base64Image: string): Promise<{
     const result = JSON.parse(content);
     console.log("Boundary detection result:", result);
     
-    // Check if bounds were detected
-    if (result.bounds === null || !result.x || !result.y || !result.width || !result.height) {
-      console.log("No business card boundary detected");
+    // Check if bounds were detected with confidence threshold
+    if (result.bounds === null || !result.x || !result.y || !result.width || !result.height || (result.confidence && result.confidence < 60)) {
+      console.log("No reliable business card boundary detected");
       return null;
     }
 
@@ -592,15 +607,22 @@ export async function detectBusinessCardBounds(base64Image: string): Promise<{
     const bounds = {
       x: Math.max(0, Math.min(100, parseFloat(result.x))),
       y: Math.max(0, Math.min(100, parseFloat(result.y))),
-      width: Math.max(1, Math.min(100, parseFloat(result.width))),
-      height: Math.max(1, Math.min(100, parseFloat(result.height)))
+      width: Math.max(5, Math.min(100, parseFloat(result.width))),
+      height: Math.max(5, Math.min(100, parseFloat(result.height)))
     };
 
     // Ensure bounds don't exceed image boundaries
     bounds.width = Math.min(bounds.width, 100 - bounds.x);
     bounds.height = Math.min(bounds.height, 100 - bounds.y);
 
-    console.log("Normalized bounds:", bounds);
+    // Validate reasonable card proportions (business cards are typically 3.5:2 ratio)
+    const aspectRatio = bounds.width / bounds.height;
+    if (aspectRatio < 0.5 || aspectRatio > 3.0) {
+      console.log("Detected bounds have unrealistic aspect ratio:", aspectRatio);
+      // Don't return null, but log the warning
+    }
+
+    console.log(`Normalized bounds: x=${bounds.x}%, y=${bounds.y}%, w=${bounds.width}%, h=${bounds.height}%, confidence=${result.confidence || 'N/A'}`);
     return bounds;
   } catch (error: any) {
     console.error("Error detecting business card bounds:", error);
