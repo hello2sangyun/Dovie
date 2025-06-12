@@ -737,10 +737,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('Processing business card image analysis...');
       
-      // Convert uploaded file to base64
-      const base64Image = req.file.buffer.toString('base64');
+      // Process image for enhanced quality
+      const { processBusinessCardImage } = await import('./imageProcessing');
+      const processedImages = await processBusinessCardImage(req.file.buffer);
       
-      // Analyze business card with OpenAI
+      // Convert enhanced image to base64
+      const base64Image = processedImages.enhanced.toString('base64');
+      
+      // Analyze business card with OpenAI using enhanced image
       const { analyzeBusinessCard } = await import('./openai');
       const analysisResult = await analyzeBusinessCard(base64Image);
       
@@ -841,27 +845,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('Processing business card image:', req.file.originalname, req.file.size, 'bytes');
 
-      // Convert image to base64 for OpenAI Vision API
-      const base64Image = req.file.buffer.toString('base64');
+      // Process image for enhanced quality
+      const { processBusinessCardImage } = await import('./imageProcessing');
+      const processedImages = await processBusinessCardImage(req.file.buffer);
 
-      // Use OpenAI Vision API to extract business card information
+      // Convert enhanced image to base64 for OpenAI Vision API
+      const base64Image = processedImages.enhanced.toString('base64');
+
+      // Use OpenAI Vision API to extract business card information from enhanced image
       const extractedData = await extractBusinessCardInfo(base64Image);
+
+      // Store the enhanced image
+      const timestamp = Date.now();
+      const imageFileName = `business-card-${userId}-${timestamp}.jpg`;
+      const imagePath = `./uploads/business-cards/${imageFileName}`;
+      const imageUrl = `/uploads/business-cards/${imageFileName}`;
+      
+      // Save enhanced image to disk
+      await require('fs').promises.writeFile(imagePath, processedImages.enhanced);
+
+      // Determine person name from extracted data
+      const personName = extractedData.name || "이름 미확인";
+
+      // Create or find person folder
+      let folder = await storage.getPersonFolderByName(Number(userId), personName);
+      if (!folder) {
+        folder = await storage.createPersonFolder(Number(userId), personName);
+      }
 
       // Check if this business card belongs to an existing registered user
       const existingUser = await storage.verifyUserByBusinessCard(extractedData);
       
+      // Create folder item with business card data including verification info and image
+      const folderItem = await storage.addFolderItem({
+        folderId: folder.id,
+        itemType: 'business_card',
+        fileName: imageFileName,
+        fileUrl: imageUrl,
+        fileSize: processedImages.enhanced.length,
+        mimeType: 'image/jpeg',
+        title: `${personName}님의 명함`,
+        description: `${extractedData.company} ${extractedData.jobTitle}`,
+        tags: [extractedData.company, extractedData.jobTitle].filter(Boolean),
+        businessCardData: JSON.stringify({
+          ...extractedData,
+          isRegisteredUser: !!existingUser,
+          registeredUserId: existingUser?.id || null,
+          registeredUserDisplayName: existingUser?.displayName || null,
+          canSendDM: !!existingUser
+        })
+      });
+
       const response = {
         ...extractedData,
         isRegisteredUser: !!existingUser,
         registeredUserId: existingUser?.id || null,
         registeredUserDisplayName: existingUser?.displayName || null,
-        canSendDM: !!existingUser
+        canSendDM: !!existingUser,
+        imageUrl,
+        folderId: folder.id,
+        folderItemId: folderItem.id
       };
 
       console.log('Business card verification result:', {
         isRegistered: !!existingUser,
         userId: existingUser?.id,
-        userName: existingUser?.displayName
+        userName: existingUser?.displayName,
+        imageStored: imageUrl
       });
 
       res.json(response);
