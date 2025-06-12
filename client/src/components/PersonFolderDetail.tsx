@@ -248,11 +248,11 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
 
           {/* Right: Business Card */}
           {businessCardItem && businessCardItem.fileUrl && (
-            <div className="flex-shrink-0 w-80">
+            <div className="flex-shrink-0 w-80 ml-auto">
               <div className="bg-white border-2 border-gray-200 rounded-xl p-4 shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">명함</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3 text-right">명함</h3>
                 <div 
-                  className="relative cursor-pointer group overflow-hidden rounded-lg"
+                  className="relative cursor-pointer group overflow-hidden rounded-lg ml-auto"
                   onClick={() => setSelectedBusinessCard({
                     imageUrl: businessCardItem.fileUrl!,
                     personName: folder.personName || folder.folderName || "명함"
@@ -261,7 +261,7 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
                   <img
                     src={businessCardItem.fileUrl}
                     alt="명함"
-                    className="w-full h-auto rounded-lg border border-gray-100 group-hover:border-blue-300 group-hover:shadow-lg transition-all duration-300 transform group-hover:scale-[1.02]"
+                    className="w-full h-auto rounded-lg border border-gray-100 group-hover:border-blue-300 group-hover:shadow-lg transition-all duration-300 transform group-hover:scale-[1.02] ml-auto"
                     style={{ minHeight: '160px', maxHeight: '240px', objectFit: 'contain' }}
                   />
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 rounded-lg flex items-center justify-center">
@@ -276,11 +276,11 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
                   </div>
                 </div>
                 
-                <div className="flex gap-2 mt-3">
+                <div className="flex gap-2 mt-3 justify-end">
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="flex-1 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border-blue-200 text-blue-700 font-medium"
+                    className="bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border-blue-200 text-blue-700 font-medium"
                     onClick={() => setSelectedBusinessCard({
                       imageUrl: businessCardItem.fileUrl!,
                       personName: folder.personName || folder.folderName || "명함"
@@ -292,7 +292,7 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="flex-1 bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 border-green-200 text-green-700 font-medium"
+                    className="bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 border-green-200 text-green-700 font-medium"
                     onClick={() => {
                       const link = document.createElement('a');
                       link.href = businessCardItem.fileUrl!;
