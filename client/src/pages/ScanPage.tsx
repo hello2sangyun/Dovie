@@ -242,6 +242,26 @@ export default function ScanPage() {
                   </div>
                 )}
               </div>
+              
+              <div className="mt-6 space-y-3">
+                <Button
+                  onClick={() => window.location.href = "/"}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  메인 화면으로 이동
+                </Button>
+                <Button
+                  onClick={() => {
+                    setScanResult(null);
+                    setSelectedFile(null);
+                    setImageUrl(null);
+                  }}
+                  variant="outline"
+                  className="w-full"
+                >
+                  새로운 명함 스캔
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
