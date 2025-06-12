@@ -283,6 +283,374 @@ export default function ScanPage() {
           <div /> {/* Spacer */}
         </div>
 
+        {/* Crop Interface - Now positioned at top */}
+        {showCropInterface && imageUrl && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <Edit2 className="w-5 h-5 text-blue-600" />
+                명함 영역 선택
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600">
+                  명함 부분을 정확히 선택해주세요. 파란색 영역을 드래그하여 조정하거나 모서리를 당겨서 크기를 변경하세요.
+                </p>
+                
+                {/* Image with crop overlay */}
+                <div className="relative bg-gray-100 rounded-lg overflow-hidden mx-auto max-w-md">
+                  <img 
+                    src={imageUrl} 
+                    alt="명함 이미지" 
+                    className="w-full h-auto object-contain"
+                    onLoad={(e) => {
+                      const img = e.target as HTMLImageElement;
+                      setOriginalImageDimensions({ width: img.naturalWidth, height: img.naturalHeight });
+                    }}
+                  />
+                  {/* Crop overlay */}
+                  <div 
+                    className="absolute border-2 border-blue-500 bg-blue-500/20 cursor-move select-none touch-manipulation"
+                    style={{
+                      left: `${cropArea.x}%`,
+                      top: `${cropArea.y}%`,
+                      width: `${cropArea.width}%`,
+                      height: `${cropArea.height}%`
+                    }}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const startX = e.clientX;
+                      const startY = e.clientY;
+                      const startCropX = cropArea.x;
+                      const startCropY = cropArea.y;
+                      
+                      const handleMouseMove = (e: MouseEvent) => {
+                        const imgContainer = document.querySelector('.relative');
+                        const img = imgContainer?.querySelector('img');
+                        if (!img) return;
+                        
+                        const rect = img.getBoundingClientRect();
+                        const deltaX = ((e.clientX - startX) / rect.width) * 100;
+                        const deltaY = ((e.clientY - startY) / rect.height) * 100;
+                        
+                        setCropArea(prev => ({
+                          ...prev,
+                          x: Math.max(0, Math.min(100 - prev.width, startCropX + deltaX)),
+                          y: Math.max(0, Math.min(100 - prev.height, startCropY + deltaY))
+                        }));
+                      };
+                      
+                      const handleMouseUp = () => {
+                        document.removeEventListener('mousemove', handleMouseMove);
+                        document.removeEventListener('mouseup', handleMouseUp);
+                      };
+                      
+                      document.addEventListener('mousemove', handleMouseMove);
+                      document.addEventListener('mouseup', handleMouseUp);
+                    }}
+                    onTouchStart={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const touch = e.touches[0];
+                      const startX = touch.clientX;
+                      const startY = touch.clientY;
+                      const startCropX = cropArea.x;
+                      const startCropY = cropArea.y;
+                      
+                      const handleTouchMove = (e: TouchEvent) => {
+                        e.preventDefault();
+                        const touch = e.touches[0];
+                        const imgContainer = document.querySelector('.relative');
+                        const img = imgContainer?.querySelector('img');
+                        if (!img) return;
+                        
+                        const rect = img.getBoundingClientRect();
+                        const deltaX = ((touch.clientX - startX) / rect.width) * 100;
+                        const deltaY = ((touch.clientY - startY) / rect.height) * 100;
+                        
+                        setCropArea(prev => ({
+                          ...prev,
+                          x: Math.max(0, Math.min(100 - prev.width, startCropX + deltaX)),
+                          y: Math.max(0, Math.min(100 - prev.height, startCropY + deltaY))
+                        }));
+                      };
+                      
+                      const handleTouchEnd = () => {
+                        document.removeEventListener('touchmove', handleTouchMove);
+                        document.removeEventListener('touchend', handleTouchEnd);
+                      };
+                      
+                      document.addEventListener('touchmove', handleTouchMove, { passive: false });
+                      document.addEventListener('touchend', handleTouchEnd);
+                    }}
+                  >
+                    {/* Corner resize handles */}
+                    <div 
+                      className="absolute -top-2 -left-2 w-6 h-6 bg-blue-500 border-2 border-white cursor-nw-resize rounded-full touch-manipulation flex items-center justify-center"
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        const startX = e.clientX;
+                        const startY = e.clientY;
+                        const startCrop = { ...cropArea };
+                        
+                        const handleMouseMove = (e: MouseEvent) => {
+                          const imgContainer = document.querySelector('.relative');
+                          const img = imgContainer?.querySelector('img');
+                          if (!img) return;
+                          
+                          const rect = img.getBoundingClientRect();
+                          const deltaX = ((e.clientX - startX) / rect.width) * 100;
+                          const deltaY = ((e.clientY - startY) / rect.height) * 100;
+                          
+                          const newX = Math.max(0, Math.min(startCrop.x + startCrop.width - 10, startCrop.x + deltaX));
+                          const newY = Math.max(0, Math.min(startCrop.y + startCrop.height - 10, startCrop.y + deltaY));
+                          const newWidth = startCrop.width - (newX - startCrop.x);
+                          const newHeight = startCrop.height - (newY - startCrop.y);
+                          
+                          setCropArea({
+                            x: newX,
+                            y: newY,
+                            width: Math.max(10, newWidth),
+                            height: Math.max(10, newHeight)
+                          });
+                        };
+                        
+                        const handleMouseUp = () => {
+                          document.removeEventListener('mousemove', handleMouseMove);
+                          document.removeEventListener('mouseup', handleMouseUp);
+                        };
+                        
+                        document.addEventListener('mousemove', handleMouseMove);
+                        document.addEventListener('mouseup', handleMouseUp);
+                      }}
+                      onTouchStart={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        const touch = e.touches[0];
+                        const startX = touch.clientX;
+                        const startY = touch.clientY;
+                        const startCrop = { ...cropArea };
+                        
+                        const handleTouchMove = (e: TouchEvent) => {
+                          e.preventDefault();
+                          const touch = e.touches[0];
+                          const imgContainer = document.querySelector('.relative');
+                          const img = imgContainer?.querySelector('img');
+                          if (!img) return;
+                          
+                          const rect = img.getBoundingClientRect();
+                          const deltaX = ((touch.clientX - startX) / rect.width) * 100;
+                          const deltaY = ((touch.clientY - startY) / rect.height) * 100;
+                          
+                          const newX = Math.max(0, Math.min(startCrop.x + startCrop.width - 10, startCrop.x + deltaX));
+                          const newY = Math.max(0, Math.min(startCrop.y + startCrop.height - 10, startCrop.y + deltaY));
+                          const newWidth = startCrop.width - (newX - startCrop.x);
+                          const newHeight = startCrop.height - (newY - startCrop.y);
+                          
+                          setCropArea({
+                            x: newX,
+                            y: newY,
+                            width: Math.max(10, newWidth),
+                            height: Math.max(10, newHeight)
+                          });
+                        };
+                        
+                        const handleTouchEnd = () => {
+                          document.removeEventListener('touchmove', handleTouchMove);
+                          document.removeEventListener('touchend', handleTouchEnd);
+                        };
+                        
+                        document.addEventListener('touchmove', handleTouchMove, { passive: false });
+                        document.addEventListener('touchend', handleTouchEnd);
+                      }}
+                    >
+                      <div className="w-1 h-1 bg-white rounded-full"></div>
+                    </div>
+                    <div 
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 border-2 border-white cursor-ne-resize rounded-full touch-manipulation flex items-center justify-center"
+                      onTouchStart={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        const touch = e.touches[0];
+                        const startX = touch.clientX;
+                        const startY = touch.clientY;
+                        const startCrop = { ...cropArea };
+                        
+                        const handleTouchMove = (e: TouchEvent) => {
+                          e.preventDefault();
+                          const touch = e.touches[0];
+                          const imgContainer = document.querySelector('.relative');
+                          const img = imgContainer?.querySelector('img');
+                          if (!img) return;
+                          
+                          const rect = img.getBoundingClientRect();
+                          const deltaX = ((touch.clientX - startX) / rect.width) * 100;
+                          const deltaY = ((touch.clientY - startY) / rect.height) * 100;
+                          
+                          const newY = Math.max(0, Math.min(startCrop.y + startCrop.height - 10, startCrop.y + deltaY));
+                          const newWidth = Math.max(10, Math.min(100 - startCrop.x, startCrop.width + deltaX));
+                          const newHeight = startCrop.height - (newY - startCrop.y);
+                          
+                          setCropArea({
+                            ...startCrop,
+                            y: newY,
+                            width: newWidth,
+                            height: Math.max(10, newHeight)
+                          });
+                        };
+                        
+                        const handleTouchEnd = () => {
+                          document.removeEventListener('touchmove', handleTouchMove);
+                          document.removeEventListener('touchend', handleTouchEnd);
+                        };
+                        
+                        document.addEventListener('touchmove', handleTouchMove, { passive: false });
+                        document.addEventListener('touchend', handleTouchEnd);
+                      }}
+                    >
+                      <div className="w-1 h-1 bg-white rounded-full"></div>
+                    </div>
+                    <div 
+                      className="absolute -bottom-2 -left-2 w-6 h-6 bg-blue-500 border-2 border-white cursor-sw-resize rounded-full touch-manipulation flex items-center justify-center"
+                      onTouchStart={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        const touch = e.touches[0];
+                        const startX = touch.clientX;
+                        const startY = touch.clientY;
+                        const startCrop = { ...cropArea };
+                        
+                        const handleTouchMove = (e: TouchEvent) => {
+                          e.preventDefault();
+                          const touch = e.touches[0];
+                          const imgContainer = document.querySelector('.relative');
+                          const img = imgContainer?.querySelector('img');
+                          if (!img) return;
+                          
+                          const rect = img.getBoundingClientRect();
+                          const deltaX = ((touch.clientX - startX) / rect.width) * 100;
+                          const deltaY = ((touch.clientY - startY) / rect.height) * 100;
+                          
+                          const newX = Math.max(0, Math.min(startCrop.x + startCrop.width - 10, startCrop.x + deltaX));
+                          const newWidth = startCrop.width - (newX - startCrop.x);
+                          const newHeight = Math.max(10, Math.min(100 - startCrop.y, startCrop.height + deltaY));
+                          
+                          setCropArea({
+                            ...startCrop,
+                            x: newX,
+                            width: Math.max(10, newWidth),
+                            height: newHeight
+                          });
+                        };
+                        
+                        const handleTouchEnd = () => {
+                          document.removeEventListener('touchmove', handleTouchMove);
+                          document.removeEventListener('touchend', handleTouchEnd);
+                        };
+                        
+                        document.addEventListener('touchmove', handleTouchMove, { passive: false });
+                        document.addEventListener('touchend', handleTouchEnd);
+                      }}
+                    >
+                      <div className="w-1 h-1 bg-white rounded-full"></div>
+                    </div>
+                    <div 
+                      className="absolute -bottom-2 -right-2 w-6 h-6 bg-blue-500 border-2 border-white cursor-se-resize rounded-full touch-manipulation flex items-center justify-center"
+                      onTouchStart={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        const touch = e.touches[0];
+                        const startX = touch.clientX;
+                        const startY = touch.clientY;
+                        const startCrop = { ...cropArea };
+                        
+                        const handleTouchMove = (e: TouchEvent) => {
+                          e.preventDefault();
+                          const touch = e.touches[0];
+                          const imgContainer = document.querySelector('.relative');
+                          const img = imgContainer?.querySelector('img');
+                          if (!img) return;
+                          
+                          const rect = img.getBoundingClientRect();
+                          const deltaX = ((touch.clientX - startX) / rect.width) * 100;
+                          const deltaY = ((touch.clientY - startY) / rect.height) * 100;
+                          
+                          const newWidth = Math.max(10, Math.min(100 - startCrop.x, startCrop.width + deltaX));
+                          const newHeight = Math.max(10, Math.min(100 - startCrop.y, startCrop.height + deltaY));
+                          
+                          setCropArea({
+                            ...startCrop,
+                            width: newWidth,
+                            height: newHeight
+                          });
+                        };
+                        
+                        const handleTouchEnd = () => {
+                          document.removeEventListener('touchmove', handleTouchMove);
+                          document.removeEventListener('touchend', handleTouchEnd);
+                        };
+                        
+                        document.addEventListener('touchmove', handleTouchMove, { passive: false });
+                        document.addEventListener('touchend', handleTouchEnd);
+                      }}
+                    >
+                      <div className="w-1 h-1 bg-white rounded-full"></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Preset crop options */}
+                <div className="flex gap-2 justify-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCropArea({ x: 10, y: 10, width: 80, height: 50 })}
+                  >
+                    전체
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCropArea({ x: 15, y: 20, width: 70, height: 40 })}
+                  >
+                    중앙
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCropArea({ x: 20, y: 25, width: 60, height: 35 })}
+                  >
+                    명함만
+                  </Button>
+                </div>
+
+                {/* Process button */}
+                <Button
+                  onClick={handleCropAndProcess}
+                  disabled={isScanning}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  size="lg"
+                >
+                  {isScanning ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      AI로 분석 중...
+                    </>
+                  ) : (
+                    <>
+                      <Scissors className="w-4 h-4 mr-2" />
+                      선택한 영역 처리하기
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Upload Card */}
         <Card className="mb-6">
           <CardHeader>
@@ -567,21 +935,6 @@ export default function ScanPage() {
             </CardContent>
           </Card>
         )}
-
-        {/* Crop Interface - Moved to top */}
-        {showCropInterface && imageUrl && (
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3">
-                <Edit2 className="w-5 h-5 text-blue-600" />
-                명함 영역 선택
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <p className="text-sm text-gray-600">
-                  명함 부분을 정확히 선택해주세요. 파란색 영역을 드래그하여 조정하거나 모서리를 당겨서 크기를 변경하세요.
-                </p>
                 
                 {/* Image with crop overlay */}
                 <div className="relative bg-gray-100 rounded-lg overflow-hidden mx-auto max-w-md">

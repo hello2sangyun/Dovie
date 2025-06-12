@@ -6,39 +6,54 @@ import sharp from 'sharp';
  */
 export async function enhanceBusinessCardImage(imageBuffer: Buffer): Promise<Buffer> {
   try {
-    // Process the image to look like a clean paper scan
+    // Advanced image enhancement for maximum text clarity and professional appearance
     const enhancedImage = await sharp(imageBuffer)
-      // Resize to standard business card proportions if needed
-      .resize(1000, 630, { 
+      // Resize to high-resolution business card proportions
+      .resize(1200, 756, { 
         fit: 'inside',
-        withoutEnlargement: true
+        withoutEnlargement: true,
+        kernel: sharp.kernel.lanczos3  // High-quality resampling
       })
-      // Brighten the image slightly for better visibility
+      // Auto white balance correction
+      .normalize({
+        lower: 2,   // Remove dark noise
+        upper: 98   // Prevent overexposure
+      })
+      // Advanced color correction for professional scan appearance
       .modulate({
-        brightness: 1.1,  // 10% brighter
-        saturation: 1.05, // Slightly more saturated
+        brightness: 1.25,  // Significantly brighter for better visibility
+        saturation: 1.1,   // Enhanced color vibrancy
         hue: 0
       })
-      // Enhance contrast gently without darkening
-      .normalize({
-        lower: 1,  // Keep lower bound light
-        upper: 99  // Prevent over-brightening
-      })
-      // Apply gentle sharpening for text clarity
+      // Gamma correction to lift shadows and improve text contrast
+      .gamma(1.4)
+      // Advanced sharpening for crystal-clear text
       .sharpen({
-        sigma: 0.8,
+        sigma: 1.5,     // Stronger sharpening
         m1: 1.0,
-        m2: 1.5,
+        m2: 3.0,        // More aggressive text enhancement
         x1: 2.0,
-        y2: 10.0,
-        y3: 20.0
+        y2: 8.0,
+        y3: 15.0
       })
-      // Add subtle paper-like texture effect
-      .linear(1.05, 5)  // Gentle contrast boost with brightness offset
-      // Convert to high-quality JPEG
+      // Additional contrast enhancement
+      .linear(1.15, 8)  // Stronger contrast with brightness offset
+      // Remove any remaining noise
+      .median(1)
+      // Final sharpening pass for text clarity
+      .sharpen({
+        sigma: 0.5,
+        m1: 1.0,
+        m2: 1.8
+      })
+      // Convert to highest quality JPEG with optimized settings
       .jpeg({ 
-        quality: 92,
-        progressive: true
+        quality: 98,
+        progressive: true,
+        mozjpeg: true,
+        trellisQuantisation: true,
+        overshootDeringing: true,
+        optimizeScans: true
       })
       .toBuffer();
 
@@ -108,53 +123,60 @@ export async function autoCropBusinessCard(imageBuffer: Buffer): Promise<Buffer>
       })
       .toBuffer();
 
-    // Step 2: Shadow removal and color restoration
+    // Step 2: Advanced shadow removal and white balance correction
     const shadowRemoved = await sharp(processed)
-      // Brighten dark areas (removes shadows)
+      // Auto white balance correction first
+      .normalize({
+        lower: 3,   // Remove dark shadows
+        upper: 97   // Prevent overexposure
+      })
+      // Advanced brightness and color correction
       .modulate({
-        brightness: 1.2,    // 20% brighter
-        saturation: 1.15,   // More vibrant colors
+        brightness: 1.3,    // 30% brighter for better visibility
+        saturation: 1.2,    // Enhanced color vibrancy
         hue: 0
       })
-      // Gamma correction to lift shadows without affecting highlights
-      .gamma(1.3)
-      // Normalize to improve contrast while preserving colors
-      .normalize({
-        lower: 1,   // Keep some dark areas
-        upper: 99   // Prevent overexposure
-      })
-      // Apply unsharp mask for text clarity
+      // Strong gamma correction to lift shadows
+      .gamma(1.5)
+      // Additional white balance adjustment
+      .linear(1.2, 10)  // Stronger contrast with brightness offset
+      // Advanced sharpening for maximum text clarity
       .sharpen({
-        sigma: 1.2,
+        sigma: 1.8,     // Stronger sharpening
         m1: 1.0,
-        m2: 2.5,
+        m2: 3.5,        // More aggressive enhancement
         x1: 2.0,
-        y2: 10.0,
-        y3: 20.0
+        y2: 6.0,
+        y3: 12.0
       })
       .toBuffer();
 
-    // Step 3: Final cleanup and optimization
+    // Step 3: Final optimization for maximum quality
     const final = await sharp(shadowRemoved)
-      // Resize to optimal business card dimensions if too large
-      .resize(1000, 630, {
+      // Resize to high-resolution business card dimensions
+      .resize(1200, 756, {
         fit: 'inside',
-        withoutEnlargement: true
+        withoutEnlargement: true,
+        kernel: sharp.kernel.lanczos3
       })
-      // Final color adjustment to restore natural tones
-      .linear(1.05, 3)  // Gentle contrast with slight brightness
-      // Remove any remaining artifacts
-      .blur(0.3)
+      // Final white balance and contrast adjustment
+      .linear(1.25, 12)  // Strong contrast with brightness
+      // Remove any remaining noise while preserving text sharpness
+      .median(1)
+      // Final aggressive sharpening for crystal-clear text
       .sharpen({
-        sigma: 0.8,
+        sigma: 1.0,
         m1: 1.0,
-        m2: 1.8
+        m2: 2.5
       })
-      // High quality output
+      // Maximum quality output
       .jpeg({
-        quality: 95,
+        quality: 98,
         progressive: true,
-        mozjpeg: true
+        mozjpeg: true,
+        trellisQuantisation: true,
+        overshootDeringing: true,
+        optimizeScans: true
       })
       .toBuffer();
 
