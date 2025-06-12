@@ -63,7 +63,49 @@ export default function ScanPage() {
   const [editedData, setEditedData] = useState<ScanResult>({});
   const [showCropInterface, setShowCropInterface] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [cropArea, setCropArea] = useState({ x: 0, y: 0, width: 100, height: 100 });
+  const [cropArea, setCropArea] = useState({ x: 10, y: 10, width: 80, height: 80 });
+  const [originalImageDimensions, setOriginalImageDimensions] = useState({ width: 0, height: 0 });
+
+  // Function to crop image based on crop area
+  const cropImage = (file: File, cropArea: { x: number; y: number; width: number; height: number }): Promise<File> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const image = new Image();
+      
+      image.onload = () => {
+        // Calculate actual crop coordinates
+        const cropX = (cropArea.x / 100) * image.width;
+        const cropY = (cropArea.y / 100) * image.height;
+        const cropWidth = (cropArea.width / 100) * image.width;
+        const cropHeight = (cropArea.height / 100) * image.height;
+        
+        // Set canvas size to cropped dimensions
+        canvas.width = cropWidth;
+        canvas.height = cropHeight;
+        
+        // Draw cropped image
+        ctx?.drawImage(
+          image,
+          cropX, cropY, cropWidth, cropHeight,
+          0, 0, cropWidth, cropHeight
+        );
+        
+        // Convert canvas to blob and create file
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const croppedFile = new File([blob], file.name, {
+              type: file.type,
+              lastModified: Date.now()
+            });
+            resolve(croppedFile);
+          }
+        }, file.type);
+      };
+      
+      image.src = URL.createObjectURL(file);
+    });
+  };
 
   // AI scan mutation
   const scanMutation = useMutation({
@@ -139,11 +181,29 @@ export default function ScanPage() {
     }
   };
 
-  const handleScan = () => {
+  const handleScan = async () => {
     if (!selectedFile) return;
     
     setIsScanning(true);
-    scanMutation.mutate(selectedFile);
+    
+    // If crop interface was shown, crop the image first
+    let fileToScan = selectedFile;
+    if (showCropInterface) {
+      try {
+        fileToScan = await cropImage(selectedFile, cropArea);
+      } catch (error) {
+        console.error('Cropping failed:', error);
+        toast({
+          title: "이미지 처리 실패",
+          description: "이미지 자르기에 실패했습니다.",
+          variant: "destructive",
+        });
+        setIsScanning(false);
+        return;
+      }
+    }
+    
+    scanMutation.mutate(fileToScan);
   };
 
   const handleStartEdit = () => {
@@ -180,6 +240,18 @@ export default function ScanPage() {
     setScanResult(null);
     setFolderCreated(false);
     setShowCamera(false);
+    
+    // Show crop interface for camera captured images too
+    const url = URL.createObjectURL(file);
+    setImageUrl(url);
+    setShowCropInterface(true);
+    
+    // Get image dimensions for proper cropping
+    const img = new Image();
+    img.onload = () => {
+      setOriginalImageDimensions({ width: img.width, height: img.height });
+    };
+    img.src = url;
   };
 
   // Camera component is rendered conditionally with proper props
@@ -503,32 +575,238 @@ export default function ScanPage() {
             <CardContent>
               <div className="space-y-4">
                 <p className="text-sm text-gray-600">
-                  명함 부분을 정확히 선택해주세요. 드래그하여 영역을 조정할 수 있습니다.
+                  명함 부분을 정확히 선택해주세요. 파란색 영역을 드래그하여 조정하거나 모서리를 당겨서 크기를 변경하세요.
                 </p>
                 
                 {/* Image with crop overlay */}
-                <div className="relative bg-gray-100 rounded-lg overflow-hidden">
+                <div className="relative bg-gray-100 rounded-lg overflow-hidden mx-auto max-w-md">
                   <img 
                     src={imageUrl} 
                     alt="명함 이미지" 
-                    className="w-full h-auto max-h-96 object-contain"
+                    className="w-full h-auto object-contain"
+                    onLoad={(e) => {
+                      const img = e.target as HTMLImageElement;
+                      setOriginalImageDimensions({ width: img.naturalWidth, height: img.naturalHeight });
+                    }}
                   />
                   {/* Crop overlay */}
                   <div 
-                    className="absolute border-2 border-blue-500 bg-blue-500/20 cursor-move"
+                    className="absolute border-2 border-blue-500 bg-blue-500/20 cursor-move select-none"
                     style={{
                       left: `${cropArea.x}%`,
                       top: `${cropArea.y}%`,
                       width: `${cropArea.width}%`,
                       height: `${cropArea.height}%`
                     }}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      const startX = e.clientX;
+                      const startY = e.clientY;
+                      const startCropX = cropArea.x;
+                      const startCropY = cropArea.y;
+                      
+                      const handleMouseMove = (e: MouseEvent) => {
+                        const img = e.target?.closest('.relative')?.querySelector('img');
+                        if (!img) return;
+                        
+                        const rect = img.getBoundingClientRect();
+                        const deltaX = ((e.clientX - startX) / rect.width) * 100;
+                        const deltaY = ((e.clientY - startY) / rect.height) * 100;
+                        
+                        setCropArea(prev => ({
+                          ...prev,
+                          x: Math.max(0, Math.min(100 - prev.width, startCropX + deltaX)),
+                          y: Math.max(0, Math.min(100 - prev.height, startCropY + deltaY))
+                        }));
+                      };
+                      
+                      const handleMouseUp = () => {
+                        document.removeEventListener('mousemove', handleMouseMove);
+                        document.removeEventListener('mouseup', handleMouseUp);
+                      };
+                      
+                      document.addEventListener('mousemove', handleMouseMove);
+                      document.addEventListener('mouseup', handleMouseUp);
+                    }}
                   >
-                    {/* Resize handles */}
-                    <div className="absolute -top-1 -left-1 w-3 h-3 bg-blue-500 border border-white cursor-nw-resize"></div>
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 border border-white cursor-ne-resize"></div>
-                    <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-blue-500 border border-white cursor-sw-resize"></div>
-                    <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 border border-white cursor-se-resize"></div>
+                    {/* Corner resize handles */}
+                    <div 
+                      className="absolute -top-1 -left-1 w-3 h-3 bg-blue-500 border border-white cursor-nw-resize"
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        const startX = e.clientX;
+                        const startY = e.clientY;
+                        const startCrop = { ...cropArea };
+                        
+                        const handleMouseMove = (e: MouseEvent) => {
+                          const img = e.target?.closest('.relative')?.querySelector('img');
+                          if (!img) return;
+                          
+                          const rect = img.getBoundingClientRect();
+                          const deltaX = ((e.clientX - startX) / rect.width) * 100;
+                          const deltaY = ((e.clientY - startY) / rect.height) * 100;
+                          
+                          const newX = Math.max(0, Math.min(startCrop.x + startCrop.width - 10, startCrop.x + deltaX));
+                          const newY = Math.max(0, Math.min(startCrop.y + startCrop.height - 10, startCrop.y + deltaY));
+                          const newWidth = startCrop.width - (newX - startCrop.x);
+                          const newHeight = startCrop.height - (newY - startCrop.y);
+                          
+                          setCropArea({
+                            x: newX,
+                            y: newY,
+                            width: Math.max(10, newWidth),
+                            height: Math.max(10, newHeight)
+                          });
+                        };
+                        
+                        const handleMouseUp = () => {
+                          document.removeEventListener('mousemove', handleMouseMove);
+                          document.removeEventListener('mouseup', handleMouseUp);
+                        };
+                        
+                        document.addEventListener('mousemove', handleMouseMove);
+                        document.addEventListener('mouseup', handleMouseUp);
+                      }}
+                    ></div>
+                    <div 
+                      className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 border border-white cursor-ne-resize"
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        const startX = e.clientX;
+                        const startY = e.clientY;
+                        const startCrop = { ...cropArea };
+                        
+                        const handleMouseMove = (e: MouseEvent) => {
+                          const img = e.target?.closest('.relative')?.querySelector('img');
+                          if (!img) return;
+                          
+                          const rect = img.getBoundingClientRect();
+                          const deltaX = ((e.clientX - startX) / rect.width) * 100;
+                          const deltaY = ((e.clientY - startY) / rect.height) * 100;
+                          
+                          const newY = Math.max(0, Math.min(startCrop.y + startCrop.height - 10, startCrop.y + deltaY));
+                          const newWidth = Math.max(10, Math.min(100 - startCrop.x, startCrop.width + deltaX));
+                          const newHeight = startCrop.height - (newY - startCrop.y);
+                          
+                          setCropArea({
+                            ...startCrop,
+                            y: newY,
+                            width: newWidth,
+                            height: Math.max(10, newHeight)
+                          });
+                        };
+                        
+                        const handleMouseUp = () => {
+                          document.removeEventListener('mousemove', handleMouseMove);
+                          document.removeEventListener('mouseup', handleMouseUp);
+                        };
+                        
+                        document.addEventListener('mousemove', handleMouseMove);
+                        document.addEventListener('mouseup', handleMouseUp);
+                      }}
+                    ></div>
+                    <div 
+                      className="absolute -bottom-1 -left-1 w-3 h-3 bg-blue-500 border border-white cursor-sw-resize"
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        const startX = e.clientX;
+                        const startY = e.clientY;
+                        const startCrop = { ...cropArea };
+                        
+                        const handleMouseMove = (e: MouseEvent) => {
+                          const img = e.target?.closest('.relative')?.querySelector('img');
+                          if (!img) return;
+                          
+                          const rect = img.getBoundingClientRect();
+                          const deltaX = ((e.clientX - startX) / rect.width) * 100;
+                          const deltaY = ((e.clientY - startY) / rect.height) * 100;
+                          
+                          const newX = Math.max(0, Math.min(startCrop.x + startCrop.width - 10, startCrop.x + deltaX));
+                          const newWidth = startCrop.width - (newX - startCrop.x);
+                          const newHeight = Math.max(10, Math.min(100 - startCrop.y, startCrop.height + deltaY));
+                          
+                          setCropArea({
+                            ...startCrop,
+                            x: newX,
+                            width: Math.max(10, newWidth),
+                            height: newHeight
+                          });
+                        };
+                        
+                        const handleMouseUp = () => {
+                          document.removeEventListener('mousemove', handleMouseMove);
+                          document.removeEventListener('mouseup', handleMouseUp);
+                        };
+                        
+                        document.addEventListener('mousemove', handleMouseMove);
+                        document.addEventListener('mouseup', handleMouseUp);
+                      }}
+                    ></div>
+                    <div 
+                      className="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 border border-white cursor-se-resize"
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        const startX = e.clientX;
+                        const startY = e.clientY;
+                        const startCrop = { ...cropArea };
+                        
+                        const handleMouseMove = (e: MouseEvent) => {
+                          const img = e.target?.closest('.relative')?.querySelector('img');
+                          if (!img) return;
+                          
+                          const rect = img.getBoundingClientRect();
+                          const deltaX = ((e.clientX - startX) / rect.width) * 100;
+                          const deltaY = ((e.clientY - startY) / rect.height) * 100;
+                          
+                          const newWidth = Math.max(10, Math.min(100 - startCrop.x, startCrop.width + deltaX));
+                          const newHeight = Math.max(10, Math.min(100 - startCrop.y, startCrop.height + deltaY));
+                          
+                          setCropArea({
+                            ...startCrop,
+                            width: newWidth,
+                            height: newHeight
+                          });
+                        };
+                        
+                        const handleMouseUp = () => {
+                          document.removeEventListener('mousemove', handleMouseMove);
+                          document.removeEventListener('mouseup', handleMouseUp);
+                        };
+                        
+                        document.addEventListener('mousemove', handleMouseMove);
+                        document.addEventListener('mouseup', handleMouseUp);
+                      }}
+                    ></div>
                   </div>
+                </div>
+
+                {/* Preset crop options */}
+                <div className="flex gap-2 justify-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCropArea({ x: 5, y: 5, width: 90, height: 90 })}
+                  >
+                    전체
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCropArea({ x: 15, y: 25, width: 70, height: 50 })}
+                  >
+                    명함 크기
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCropArea({ x: 10, y: 10, width: 80, height: 80 })}
+                  >
+                    정사각형
+                  </Button>
                 </div>
 
                 <div className="flex gap-3">
@@ -536,7 +814,8 @@ export default function ScanPage() {
                     onClick={() => {
                       setShowCropInterface(false);
                       setImageUrl(null);
-                      setCropArea({ x: 0, y: 0, width: 100, height: 100 });
+                      setSelectedFile(null);
+                      setCropArea({ x: 10, y: 10, width: 80, height: 80 });
                     }}
                     variant="outline"
                     className="flex-1"
