@@ -3498,6 +3498,112 @@ END:VCARD\`;
     }
   });
 
+  // Person folder endpoints
+  app.get("/api/person-folders", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const folders = await storage.getPersonFolders(Number(userId));
+      res.json(folders);
+    } catch (error) {
+      console.error("Error fetching person folders:", error);
+      res.status(500).json({ message: "Failed to fetch person folders" });
+    }
+  });
+
+  app.get("/api/person-folders/:folderId", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const folderId = Number(req.params.folderId);
+      if (isNaN(folderId)) {
+        return res.status(400).json({ message: "Invalid folder ID" });
+      }
+
+      const folder = await storage.getPersonFolderById(Number(userId), folderId);
+      if (!folder) {
+        return res.status(404).json({ message: "Folder not found" });
+      }
+
+      res.json(folder);
+    } catch (error) {
+      console.error("Error fetching person folder:", error);
+      res.status(500).json({ message: "Failed to fetch person folder" });
+    }
+  });
+
+  app.post("/api/person-folders", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { contactId, folderName } = req.body;
+      
+      if (!contactId || !folderName) {
+        return res.status(400).json({ message: "contactId and folderName are required" });
+      }
+
+      const folder = await storage.createPersonFolder({
+        userId: Number(userId),
+        contactId,
+        folderName,
+        lastActivity: new Date(),
+        itemCount: 0
+      });
+
+      res.json(folder);
+    } catch (error) {
+      console.error("Error creating person folder:", error);
+      res.status(500).json({ message: "Failed to create person folder" });
+    }
+  });
+
+  app.post("/api/person-folders/:folderId/items", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const folderId = Number(req.params.folderId);
+      if (isNaN(folderId)) {
+        return res.status(400).json({ message: "Invalid folder ID" });
+      }
+
+      const { itemType, itemId, fileName, fileUrl, fileSize, mimeType, title, description, tags } = req.body;
+
+      if (!itemType) {
+        return res.status(400).json({ message: "itemType is required" });
+      }
+
+      const item = await storage.addFolderItem({
+        folderId,
+        itemType,
+        itemId,
+        fileName,
+        fileUrl,
+        fileSize,
+        mimeType,
+        title,
+        description,
+        tags
+      });
+
+      res.json(item);
+    } catch (error) {
+      console.error("Error adding folder item:", error);
+      res.status(500).json({ message: "Failed to add folder item" });
+    }
+  });
+
   // 친구들의 최근 포스팅 상태 조회 API (읽지 않은 포스트만)
   app.get("/api/contacts/recent-posts", async (req, res) => {
     const userId = req.headers["x-user-id"];

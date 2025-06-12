@@ -1,6 +1,7 @@
 import { 
   users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications,
   fileUploads, fileDownloads, businessCards, businessProfiles, userPosts, businessCardShares, nfcExchanges,
+  personFolders, folderItems,
   type User, type InsertUser, type Contact, type InsertContact,
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
   type Command, type InsertCommand, type MessageRead, type InsertMessageRead,
@@ -8,7 +9,8 @@ import {
   type FileUpload, type InsertFileUpload, type FileDownload, type InsertFileDownload,
   type BusinessCard, type InsertBusinessCard, type BusinessProfile, type InsertBusinessProfile,
   type UserPost, type InsertUserPost, type BusinessCardShare, type InsertBusinessCardShare,
-  type NfcExchange, type InsertNfcExchange
+  type NfcExchange, type InsertNfcExchange, type PersonFolder, type InsertPersonFolder,
+  type FolderItem, type InsertFolderItem
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, or, count, gt, lt, sql, inArray } from "drizzle-orm";
@@ -95,6 +97,18 @@ export interface IStorage {
   createNfcExchange(initiatorUserId: number, exchangeToken: string): Promise<NfcExchange>;
   completeNfcExchange(exchangeToken: string, recipientUserId: number): Promise<NfcExchange | undefined>;
   processAutomaticFriendAdd(exchange: NfcExchange): Promise<void>;
+
+  // Person folder operations
+  getPersonFolders(userId: number): Promise<(PersonFolder & { contact: Contact; itemCount: number })[]>;
+  createPersonFolder(folderData: InsertPersonFolder): Promise<PersonFolder>;
+  getPersonFolderById(userId: number, folderId: number): Promise<(PersonFolder & { contact: Contact; items: FolderItem[] }) | undefined>;
+  createOrFindPersonFolder(userId: number, contactId: number, personName: string): Promise<PersonFolder>;
+  
+  // Folder item operations
+  getFolderItems(folderId: number): Promise<FolderItem[]>;
+  addFolderItem(itemData: InsertFolderItem): Promise<FolderItem>;
+  removeFolderItem(itemId: number): Promise<void>;
+  updateFolderItemCount(folderId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1060,6 +1074,138 @@ export class DatabaseStorage implements IStorage {
         }).onConflictDoNothing()
       ]);
     }
+  }
+  // Person folder operations
+  async getPersonFolders(userId: number): Promise<(PersonFolder & { contact: Contact; itemCount: number })[]> {
+    const result = await db
+      .select({
+        folder: personFolders,
+        contact: contacts,
+        itemCount: sql<number>`COUNT(${folderItems.id})::int`.as('itemCount')
+      })
+      .from(personFolders)
+      .leftJoin(contacts, eq(personFolders.contactId, contacts.id))
+      .leftJoin(folderItems, eq(personFolders.id, folderItems.folderId))
+      .where(eq(personFolders.userId, userId))
+      .groupBy(personFolders.id, contacts.id)
+      .orderBy(desc(personFolders.lastActivity));
+
+    return result.map(row => ({
+      ...row.folder,
+      contact: row.contact!,
+      itemCount: row.itemCount || 0
+    }));
+  }
+
+  async createPersonFolder(folderData: InsertPersonFolder): Promise<PersonFolder> {
+    const [folder] = await db
+      .insert(personFolders)
+      .values(folderData)
+      .returning();
+    return folder;
+  }
+
+  async getPersonFolderById(userId: number, folderId: number): Promise<(PersonFolder & { contact: Contact; items: FolderItem[] }) | undefined> {
+    const folderResult = await db
+      .select()
+      .from(personFolders)
+      .leftJoin(contacts, eq(personFolders.contactId, contacts.id))
+      .where(and(
+        eq(personFolders.id, folderId),
+        eq(personFolders.userId, userId)
+      ))
+      .limit(1);
+
+    if (folderResult.length === 0) return undefined;
+
+    const folderRow = folderResult[0];
+    const items = await this.getFolderItems(folderId);
+
+    return {
+      ...folderRow.person_folders,
+      contact: folderRow.contacts!,
+      items
+    };
+  }
+
+  async createOrFindPersonFolder(userId: number, contactId: number, personName: string): Promise<PersonFolder> {
+    // 기존 폴더가 있는지 확인
+    const [existingFolder] = await db
+      .select()
+      .from(personFolders)
+      .where(and(
+        eq(personFolders.userId, userId),
+        eq(personFolders.contactId, contactId)
+      ))
+      .limit(1);
+
+    if (existingFolder) {
+      return existingFolder;
+    }
+
+    // 새 폴더 생성
+    return this.createPersonFolder({
+      userId,
+      contactId,
+      folderName: personName,
+      lastActivity: new Date(),
+      itemCount: 0
+    });
+  }
+
+  // Folder item operations
+  async getFolderItems(folderId: number): Promise<FolderItem[]> {
+    return await db
+      .select()
+      .from(folderItems)
+      .where(eq(folderItems.folderId, folderId))
+      .orderBy(desc(folderItems.createdAt));
+  }
+
+  async addFolderItem(itemData: InsertFolderItem): Promise<FolderItem> {
+    const [item] = await db
+      .insert(folderItems)
+      .values(itemData)
+      .returning();
+
+    // 폴더의 아이템 수 업데이트
+    await this.updateFolderItemCount(itemData.folderId);
+    
+    // 폴더의 마지막 활동 시간 업데이트
+    await db
+      .update(personFolders)
+      .set({ lastActivity: new Date() })
+      .where(eq(personFolders.id, itemData.folderId));
+
+    return item;
+  }
+
+  async removeFolderItem(itemId: number): Promise<void> {
+    const [item] = await db
+      .select()
+      .from(folderItems)
+      .where(eq(folderItems.id, itemId))
+      .limit(1);
+
+    if (item) {
+      await db
+        .delete(folderItems)
+        .where(eq(folderItems.id, itemId));
+      
+      await this.updateFolderItemCount(item.folderId);
+    }
+  }
+
+  async updateFolderItemCount(folderId: number): Promise<void> {
+    const [result] = await db
+      .select({ count: sql<number>`COUNT(*)::int`.as('count') })
+      .from(folderItems)
+      .where(eq(folderItems.folderId, folderId));
+
+    await db
+      .update(personFolders)
+      .set({ itemCount: result.count })
+      .where(eq(personFolders.id, folderId));
   }
 }
 
