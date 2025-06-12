@@ -406,7 +406,6 @@ export const folderItems = pgTable("folder_items", {
   id: serial("id").primaryKey(),
   folderId: integer("folder_id").references(() => personFolders.id).notNull(),
   itemType: text("item_type").notNull(), // 'business_card', 'one_pager', 'chat_file', 'document'
-  itemId: integer("item_id"), // 연결된 아이템의 ID (nullable, 파일의 경우)
   fileName: text("file_name"),
   fileUrl: text("file_url"),
   fileSize: integer("file_size"),

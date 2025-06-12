@@ -195,11 +195,21 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
             {filteredFolders.map((folder: PersonFolder) => (
               <div
                 key={folder.id}
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   console.log('Folder clicked:', folder.id, folder.personName);
                   onSelectFolder(folder.id);
                 }}
-                className="bg-white border border-gray-100 rounded-lg p-3 hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer"
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Folder touched:', folder.id, folder.personName);
+                  onSelectFolder(folder.id);
+                }}
+                className="bg-white border border-gray-100 rounded-lg p-3 hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer touch-manipulation select-none"
+                role="button"
+                tabIndex={0}
               >
                 <div className="flex items-center space-x-3">
                   {/* Avatar */}

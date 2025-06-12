@@ -27,7 +27,6 @@ interface FolderItem {
   id: number;
   folderId: number;
   itemType: 'business_card' | 'one_pager' | 'chat_file' | 'document' | 'image' | 'audio';
-  itemId?: number;
   fileName?: string;
   fileUrl?: string;
   fileSize?: number;
@@ -35,6 +34,8 @@ interface FolderItem {
   title?: string;
   description?: string;
   tags?: string[];
+  chatRoomId?: number;
+  messageId?: number;
   createdAt: string;
 }
 
