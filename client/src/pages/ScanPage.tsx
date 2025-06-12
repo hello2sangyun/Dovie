@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import CameraCapture from "@/components/CameraCapture";
 import { 
   Camera, 
   Upload, 
@@ -14,7 +15,8 @@ import {
   AlertCircle,
   FileImage,
   Loader2,
-  FolderPlus
+  FolderPlus,
+  ImagePlus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +40,7 @@ export default function ScanPage() {
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [folderCreated, setFolderCreated] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
 
   // AI scan mutation
   const scanMutation = useMutation({
@@ -182,6 +185,13 @@ export default function ScanPage() {
     setLocation('/');
   };
 
+  const handleCameraCapture = (file: File) => {
+    setSelectedFile(file);
+    setScanResult(null);
+    setFolderCreated(false);
+    setShowCamera(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-2xl mx-auto">
@@ -233,7 +243,7 @@ export default function ScanPage() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <Upload className="w-12 h-12 text-gray-400 mx-auto" />
+                    <Camera className="w-12 h-12 text-gray-400 mx-auto" />
                     <div>
                       <p className="text-lg font-medium text-gray-900">
                         명함 이미지를 업로드하세요
@@ -242,13 +252,23 @@ export default function ScanPage() {
                         JPG, PNG, WEBP 파일 (최대 10MB)
                       </p>
                     </div>
-                    <Button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      <Upload className="w-4 h-4 mr-2" />
-                      이미지 선택
-                    </Button>
+                    <div className="flex gap-3 justify-center">
+                      <Button
+                        onClick={() => setShowCamera(true)}
+                        className="bg-purple-600 hover:bg-purple-700"
+                      >
+                        <Camera className="w-4 h-4 mr-2" />
+                        카메라로 촬영
+                      </Button>
+                      <Button
+                        onClick={() => fileInputRef.current?.click()}
+                        variant="outline"
+                        className="border-blue-300 text-blue-600 hover:bg-blue-50"
+                      >
+                        <ImagePlus className="w-4 h-4 mr-2" />
+                        갤러리에서 선택
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
