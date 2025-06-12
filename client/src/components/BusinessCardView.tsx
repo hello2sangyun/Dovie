@@ -296,6 +296,70 @@ export default function BusinessCardView({ folderId, onBack }: BusinessCardViewP
           </div>
         </div>
 
+        {/* Business Card Section */}
+        {businessCardItem?.fileUrl && (
+          <div className="bg-white mt-2 p-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">명함</h3>
+            <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
+              <div 
+                className="relative cursor-pointer group overflow-hidden rounded-xl bg-white p-3 shadow-sm hover:shadow-md transition-all duration-200"
+                onClick={() => {
+                  // Open business card in modal or new view
+                  const link = document.createElement('a');
+                  link.href = businessCardItem.fileUrl;
+                  link.target = '_blank';
+                  link.click();
+                }}
+              >
+                <img
+                  src={businessCardItem.fileUrl}
+                  alt="명함"
+                  className="w-full h-auto rounded-lg transition-all duration-200 group-hover:scale-[1.02]"
+                  style={{ maxHeight: '200px', objectFit: 'contain' }}
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-5 transition-all duration-200 rounded-xl flex items-center justify-center">
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white rounded-full p-2 shadow-lg">
+                    <Eye className="w-4 h-4 text-gray-700" />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex gap-2 mt-3">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1 text-sm"
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = businessCardItem.fileUrl;
+                    link.target = '_blank';
+                    link.click();
+                  }}
+                >
+                  <Eye className="w-4 h-4 mr-2" />
+                  크게보기
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1 text-sm"
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = businessCardItem.fileUrl;
+                    link.download = `${personName}_명함.jpg`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  저장하기
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Shared Files Section */}
         <div className="bg-white mt-2 p-4">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">공유 파일</h3>
