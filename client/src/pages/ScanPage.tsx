@@ -192,6 +192,17 @@ export default function ScanPage() {
     setShowCamera(false);
   };
 
+  if (showCamera) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <CameraCapture 
+          onCapture={handleCameraCapture}
+          onCancel={() => setShowCamera(false)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-2xl mx-auto">
