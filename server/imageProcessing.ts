@@ -89,27 +89,96 @@ export async function autoCropBusinessCard(imageBuffer: Buffer): Promise<Buffer>
     // Get image metadata
     const metadata = await sharp(imageBuffer).metadata();
     
-    // Apply edge detection and auto-crop logic
+    if (!metadata.width || !metadata.height) {
+      return imageBuffer;
+    }
+
+    // Step 1: Intelligent background removal and cropping
     const processed = await sharp(imageBuffer)
-      // Convert to grayscale for edge detection
-      .greyscale()
-      // Apply edge enhancement
-      .convolve({
-        width: 3,
-        height: 3,
-        kernel: [-1, -1, -1, -1, 8, -1, -1, -1, -1]
+      // Remove noise first
+      .median(2)
+      // Auto-trim background (removes pure black/white borders)
+      .trim({
+        background: '#000000',
+        threshold: 30
       })
-      // Threshold to create binary image
-      .threshold(128)
-      // Convert back to color
-      .toColorspace('srgb')
-      .jpeg({ quality: 90 })
+      .trim({
+        background: '#ffffff', 
+        threshold: 30
+      })
       .toBuffer();
 
-    return processed;
+    // Step 2: Shadow removal and color restoration
+    const shadowRemoved = await sharp(processed)
+      // Brighten dark areas (removes shadows)
+      .modulate({
+        brightness: 1.2,    // 20% brighter
+        saturation: 1.15,   // More vibrant colors
+        hue: 0
+      })
+      // Gamma correction to lift shadows without affecting highlights
+      .gamma(1.3)
+      // Normalize to improve contrast while preserving colors
+      .normalize({
+        lower: 1,   // Keep some dark areas
+        upper: 99   // Prevent overexposure
+      })
+      // Apply unsharp mask for text clarity
+      .sharpen({
+        sigma: 1.2,
+        m1: 1.0,
+        m2: 2.5,
+        x1: 2.0,
+        y2: 10.0,
+        y3: 20.0
+      })
+      .toBuffer();
+
+    // Step 3: Final cleanup and optimization
+    const final = await sharp(shadowRemoved)
+      // Resize to optimal business card dimensions if too large
+      .resize(1000, 630, {
+        fit: 'inside',
+        withoutEnlargement: true
+      })
+      // Final color adjustment to restore natural tones
+      .linear(1.05, 3)  // Gentle contrast with slight brightness
+      // Remove any remaining artifacts
+      .blur(0.3)
+      .sharpen({
+        sigma: 0.8,
+        m1: 1.0,
+        m2: 1.8
+      })
+      // High quality output
+      .jpeg({
+        quality: 95,
+        progressive: true,
+        mozjpeg: true
+      })
+      .toBuffer();
+
+    return final;
   } catch (error) {
     console.error('Error auto-cropping business card:', error);
-    return imageBuffer;
+    
+    // Fallback: basic shadow removal without cropping
+    try {
+      const basicCleanup = await sharp(imageBuffer)
+        .modulate({
+          brightness: 1.15,
+          saturation: 1.1
+        })
+        .gamma(1.2)
+        .normalize()
+        .sharpen()
+        .jpeg({ quality: 92 })
+        .toBuffer();
+      return basicCleanup;
+    } catch (fallbackError) {
+      console.error('Fallback processing failed:', fallbackError);
+      return imageBuffer;
+    }
   }
 }
 
