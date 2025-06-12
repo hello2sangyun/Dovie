@@ -167,7 +167,10 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
             {filteredFolders.map((folder: PersonFolder) => (
               <div
                 key={folder.id}
-                onClick={() => onSelectFolder(folder.id)}
+                onClick={() => {
+                  console.log('Folder clicked:', folder.id, folder.personName);
+                  onSelectFolder(folder.id);
+                }}
                 className="bg-white border border-gray-100 rounded-lg p-3 hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer"
               >
                 <div className="flex items-center space-x-3">

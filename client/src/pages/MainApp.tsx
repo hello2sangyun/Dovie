@@ -472,6 +472,7 @@ export default function MainApp() {
                 ) : (
                   <PersonFoldersList 
                     onSelectFolder={(folderId) => {
+                      console.log('Mobile: Folder selected:', folderId);
                       setSelectedFolderId(folderId);
                     }}
                   />
@@ -1244,6 +1245,7 @@ export default function MainApp() {
                   </div>
                   
                   <PersonFoldersList onSelectFolder={(folderId) => {
+                    console.log('MainApp: Folder selected, setting right panel:', folderId);
                     setRightPanelContent(`person-folder-${folderId}`);
                   }} />
                 </div>
