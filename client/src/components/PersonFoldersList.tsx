@@ -16,7 +16,8 @@ import {
   Image, 
   Mic,
   MoreVertical,
-  Clock
+  Clock,
+  ChevronRight
 } from "lucide-react";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
@@ -162,30 +163,30 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
             )}
           </div>
         ) : (
-          <div className="p-4 space-y-3">
+          <div className="p-3 space-y-1">
             {filteredFolders.map((folder: PersonFolder) => (
               <div
                 key={folder.id}
                 onClick={() => onSelectFolder(folder.id)}
-                className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                className="bg-white border border-gray-100 rounded-lg p-3 hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer"
               >
                 <div className="flex items-center space-x-3">
                   {/* Avatar */}
-                  <div className="relative">
+                  <div className="relative flex-shrink-0">
                     {getContactDisplayName(folder) ? (
                       <PrismAvatar
                         fallback={getInitials(getContactDisplayName(folder))}
-                        size="md"
-                        className="w-12 h-12"
+                        size="sm"
+                        className="w-9 h-9"
                       />
                     ) : (
-                      <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
-                        <FolderOpen className="w-6 h-6 text-gray-400" />
+                      <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center">
+                        <FolderOpen className="w-4 h-4 text-gray-400" />
                       </div>
                     )}
                     {folder.itemCount > 0 && (
-                      <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                        {folder.itemCount}
+                      <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-medium">
+                        {folder.itemCount > 99 ? '99+' : folder.itemCount}
                       </div>
                     )}
                   </div>
@@ -193,45 +194,38 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-medium text-gray-900 truncate">
+                      <h3 className="font-medium text-gray-900 truncate text-sm">
                         {getContactDisplayName(folder)}
                       </h3>
-                      <div className="flex items-center text-xs text-gray-500">
-                        <Clock className="w-3 h-3 mr-1" />
-                        {formatDistanceToNow(new Date(folder.lastActivity), {
-                          addSuffix: true,
-                          locale: ko
-                        })}
-                      </div>
-                    </div>
-                    
-                    <p className="text-sm text-gray-500 truncate mt-1">
-                      {getContactSubtitle(folder)}
-                    </p>
-                    
-                    <div className="flex items-center justify-between mt-2">
-                      <div className="flex items-center space-x-4 text-xs text-gray-500">
-                        <span className="flex items-center">
-                          {getItemTypeIcon(folder.itemCount)}
-                          <span className="ml-1">
-                            {folder.itemCount > 0 
-                              ? `${folder.itemCount}개 항목` 
-                              : "빈 폴더"
-                            }
-                          </span>
+                      <div className="flex items-center text-xs text-gray-400 ml-2 flex-shrink-0">
+                        <span>
+                          {folder.itemCount > 0 
+                            ? `${folder.itemCount}개` 
+                            : "빈 폴더"
+                          }
                         </span>
                       </div>
-                      
-                      <div className="flex items-center space-x-1">
-                        {folder.itemCount > 0 && (
-                          <>
-                            <FileText className="w-3 h-3 text-gray-400" />
-                            <Image className="w-3 h-3 text-gray-400" />
-                            <Mic className="w-3 h-3 text-gray-400" />
-                          </>
-                        )}
+                    </div>
+                    
+                    <div className="flex items-center justify-between mt-0.5">
+                      <p className="text-xs text-gray-500 truncate">
+                        {getContactSubtitle(folder) || "연락처 정보 없음"}
+                      </p>
+                      <div className="flex items-center text-xs text-gray-400 ml-2 flex-shrink-0">
+                        <Clock className="w-3 h-3 mr-1" />
+                        <span>
+                          {formatDistanceToNow(new Date(folder.lastActivity), {
+                            addSuffix: true,
+                            locale: ko
+                          })}
+                        </span>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Arrow indicator */}
+                  <div className="flex-shrink-0">
+                    <ChevronRight className="w-4 h-4 text-gray-300" />
                   </div>
                 </div>
               </div>

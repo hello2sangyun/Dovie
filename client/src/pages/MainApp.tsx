@@ -50,6 +50,7 @@ export default function MainApp() {
   const [contactFilter, setContactFilter] = useState<number | null>(null);
   const [friendFilter, setFriendFilter] = useState<number | null>(null);
   const [showCamera, setShowCamera] = useState(false);
+  const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null);
   const { addToPreloadQueue } = useImagePreloader();
 
   // Add contact mutation for business card scanning
@@ -463,11 +464,18 @@ export default function MainApp() {
               </TabsContent>
 
               <TabsContent value="cabinet" className="h-full m-0">
-                <PersonFoldersList 
-                  onSelectFolder={(folderId) => {
-                    setRightPanelContent(`person-folder-${folderId}`);
-                  }}
-                />
+                {selectedFolderId ? (
+                  <PersonFolderDetail
+                    folderId={selectedFolderId}
+                    onBack={() => setSelectedFolderId(null)}
+                  />
+                ) : (
+                  <PersonFoldersList 
+                    onSelectFolder={(folderId) => {
+                      setSelectedFolderId(folderId);
+                    }}
+                  />
+                )}
               </TabsContent>
               
               <TabsContent value="chats" className="h-full m-0">
