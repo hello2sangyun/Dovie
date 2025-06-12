@@ -848,7 +848,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const folderId = Number(req.params.folderId);
+      console.log('Fetching folder items for folderId:', folderId);
       const items = await storage.getFolderItems(folderId);
+      console.log('Found folder items:', items.length, items);
       res.json(items);
     } catch (error) {
       console.error('Error fetching folder items:', error);

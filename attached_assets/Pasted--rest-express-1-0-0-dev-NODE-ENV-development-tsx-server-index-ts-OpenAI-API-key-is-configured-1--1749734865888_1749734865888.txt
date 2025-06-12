@@ -1,0 +1,119 @@
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+OpenAI API key is configured
+1:25:53 PM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 8 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#read1:26:02 PM [express] GET /api/auth/me 304 in 41ms :: {"user":{"id":91,"username":"strong","displayNa…
+1:26:59 PM [express] GET /api/unread-counts 304 in 1350ms :: {"unreadCounts":[]}
+1:27:03 PM [express] GET /api/auth/me 304 in 37ms :: {"user":{"id":91,"username":"strong","displayNa…
+1:27:09 PM [express] POST /api/auth/login 200 in 186ms :: {"user":{"id":91,"username":"strong","disp…
+1:27:10 PM [express] GET /api/contacts 304 in 161ms :: {"contacts":[{"id":55,"userId":91,"contactUse…
+1:27:10 PM [express] GET /api/chat-rooms 304 in 698ms :: {"chatRooms":[{"id":86,"name":"하이 테스트","isG…
+1:27:10 PM [express] GET /api/person-folders 200 in 39ms :: []
+1:27:11 PM [express] GET /api/chat-rooms/86/messages 304 in 40ms :: {"messages":[{"id":360,"chatRoom…
+1:27:11 PM [express] GET /api/chat-rooms/85/messages 304 in 37ms :: {"messages":[]}
+1:27:11 PM [express] GET /api/chat-rooms/84/messages 304 in 39ms :: {"messages":[]}
+1:27:11 PM [express] GET /api/chat-rooms/83/messages 304 in 49ms :: {"messages":[{"id":343,"chatRoom…
+1:27:11 PM [express] GET /api/chat-rooms/69/messages 304 in 37ms :: {"messages":[]}
+1:27:11 PM [express] GET /api/unread-counts 304 in 1375ms :: {"unreadCounts":[]}
+Processing business card image: IMG_3155.jpg 154936 bytes
+Starting business card analysis with OpenAI Vision API
+Business card analysis completed successfully: {
+  name: 'Stan Lee',
+  company: 'CB Engineering',
+  jobTitle: 'Managing director',
+  email: 'hello2sagyun@gmail.com',
+  phone: '+36 70 356 66 30',
+  address: 'H-2900 Komárom, Bánki Donát u. 4.'
+}
+1:27:20 PM [express] POST /api/scan-business-card 200 in 5360ms :: {"name":"Stan Lee","company":"CB …
+POST /api/contacts - Request body: {
+  name: 'Stan Lee',
+  company: 'CB Engineering',
+  jobTitle: 'Managing director',
+  email: 'hello2sagyun@gmail.com',
+  phone: '+36 70 356 66 30',
+  address: 'H-2900 Komárom, Bánki Donát u. 4.'
+}
+POST /api/contacts - User ID from header: 91
+Creating external contact from business card data
+Creating external contact with data: {
+  userId: 91,
+  contactUserId: null,
+  nickname: 'Stan Lee',
+  name: 'Stan Lee',
+  email: 'hello2sagyun@gmail.com',
+  phone: '+36 70 356 66 30',
+  company: 'CB Engineering',
+  jobTitle: 'Managing director',
+  notes: undefined
+}
+External contact created successfully: {
+  id: 85,
+  userId: 91,
+  contactUserId: null,
+  nickname: 'Stan Lee',
+  name: 'Stan Lee',
+  email: 'hello2sagyun@gmail.com',
+  phone: '+36 70 356 66 30',
+  company: 'CB Engineering',
+  jobTitle: 'Managing director',
+  notes: null,
+  isPinned: false,
+  isFavorite: false,
+  isBlocked: false,
+  createdAt: 2025-06-12T13:27:22.928Z
+}
+1:27:22 PM [express] POST /api/contacts 200 in 168ms :: {"contact":{"id":85,"userId":91,"contactUser…
+createPersonFolder called with: { userId: 91, contactId: 85, folderName: 'Stan Lee' }
+Executing direct pool query: 
+        INSERT INTO person_folders (user_id, contact_id, person_name, folder_name, last_activity, item_count, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, NOW(), 0, NOW(), NOW())
+        RETURNING *
+      
+With values: [ 91, 85, 'Stan Lee', 'Stan Lee' ]
+Created folder: {
+  id: 30,
+  user_id: 91,
+  contact_id: 85,
+  person_name: 'Stan Lee',
+  created_at: 2025-06-12T13:27:23.101Z,
+  updated_at: 2025-06-12T13:27:23.101Z,
+  folder_name: 'Stan Lee',
+  avatar_url: null,
+  last_activity: 2025-06-12T13:27:23.101Z,
+  item_count: 0
+}
+1:27:23 PM [express] POST /api/person-folders 200 in 48ms :: {"id":30,"user_id":91,"contact_id":85,"…
+Creating folder item with data: {
+  "itemType": "business_card",
+  "title": "Stan Lee님의 명함",
+  "description": "CB Engineering Managing director",
+  "tags": [
+    "CB Engineering",
+    "Managing director"
+  ],
+  "businessCardData": "{\"name\":\"Stan Lee\",\"company\":\"CB Engineering\",\"jobTitle\":\"Managing director\",\"email\":\"hello2sagyun@gmail.com\",\"phone\":\"+36 70 356 66 30\",\"address\":\"H-2900 Komárom, Bánki Donát u. 4.\"}",
+  "folderId": 30
+}
+folderId from params: 30
+req.body: {
+  "itemType": "business_card",
+  "title": "Stan Lee님의 명함",
+  "description": "CB Engineering Managing director",
+  "tags": [
+    "CB Engineering",
+    "Managing director"
+  ],
+  "businessCardData": "{\"name\":\"Stan Lee\",\"company\":\"CB Engineering\",\"jobTitle\":\"Managing director\",\"email\":\"hello2sagyun@gmail.com\",\"phone\":\"+36 70 356 66 30\",\"address\":\"H-2900 Komárom, Bánki Donát u. 4.\"}"
+}
+1:27:23 PM [express] POST /api/person-folders/30/items 200 in 152ms :: {"id":3,"folderId":30,"itemTy…
+1:27:24 PM [express] GET /api/person-folders 200 in 38ms :: [{"id":30,"userId":91,"contactId":85,"pe…
+1:27:24 PM [express] GET /api/contacts 200 in 155ms :: {"contacts":[{"id":55,"userId":91,"contactUse…
+1:27:26 PM [express] GET /api/person-folders 304 in 39ms :: [{"id":30,"userId":91,"contactId":85,"pe…
+1:27:26 PM [express] GET /api/person-folders 304 in 39ms :: [{"id":30,"userId":91,"contactId":85,"pe…
+1:27:30 PM [express] GET /api/unread-counts 304 in 1192ms :: {"unreadCounts":[]}
+1:27:33 PM [express] GET /api/auth/me 304 in 37ms :: {"user":{"id":91,"username":"strong","displayNa…
+1:27:37 PM [express] GET /api/unread-counts 304 in 1207ms :: {"unreadCounts":[]}
