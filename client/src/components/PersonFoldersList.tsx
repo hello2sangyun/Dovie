@@ -25,12 +25,13 @@ import { ko } from "date-fns/locale";
 interface PersonFolder {
   id: number;
   userId: number;
-  contactId: number;
-  folderName: string;
+  contactId?: number | null;
+  personName: string;
+  folderName?: string;
   avatarUrl?: string;
   lastActivity: string;
   itemCount: number;
-  contact: {
+  contact?: {
     id: number;
     name?: string;
     nickname?: string;
@@ -38,7 +39,7 @@ interface PersonFolder {
     phone?: string;
     company?: string;
     jobTitle?: string;
-  };
+  } | null;
 }
 
 interface PersonFoldersListProps {
@@ -59,9 +60,10 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
   });
 
   const filteredFolders = folders.filter((folder: PersonFolder) =>
-    folder.folderName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    folder.contact.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    folder.contact.company?.toLowerCase().includes(searchTerm.toLowerCase())
+    (folder.folderName || folder.personName).toLowerCase().includes(searchTerm.toLowerCase()) ||
+    folder.personName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    folder.contact?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    folder.contact?.company?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getItemTypeIcon = (itemCount: number) => {
@@ -69,15 +71,21 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
     return <FolderOpen className="w-5 h-5 text-blue-500" />;
   };
 
-  const getContactDisplayName = (contact: PersonFolder['contact']) => {
-    return contact.nickname || contact.name || contact.email || "이름 없음";
+  const getContactDisplayName = (folder: PersonFolder) => {
+    if (folder.contact) {
+      return folder.contact.nickname || folder.contact.name || folder.contact.email || folder.personName;
+    }
+    return folder.personName || "이름 없음";
   };
 
-  const getContactSubtitle = (contact: PersonFolder['contact']) => {
-    const parts = [];
-    if (contact.jobTitle) parts.push(contact.jobTitle);
-    if (contact.company) parts.push(contact.company);
-    return parts.join(" • ") || contact.phone || contact.email || "";
+  const getContactSubtitle = (folder: PersonFolder) => {
+    if (folder.contact) {
+      const parts = [];
+      if (folder.contact.jobTitle) parts.push(folder.contact.jobTitle);
+      if (folder.contact.company) parts.push(folder.contact.company);
+      return parts.join(" • ") || folder.contact.phone || folder.contact.email || "";
+    }
+    return folder.folderName || "";
   };
 
   if (isLoading) {
@@ -164,9 +172,9 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
                 <div className="flex items-center space-x-3">
                   {/* Avatar */}
                   <div className="relative">
-                    {folder.contact.name ? (
+                    {getContactDisplayName(folder) ? (
                       <PrismAvatar
-                        fallback={getInitials(getContactDisplayName(folder.contact))}
+                        fallback={getInitials(getContactDisplayName(folder))}
                         size="md"
                         className="w-12 h-12"
                       />
