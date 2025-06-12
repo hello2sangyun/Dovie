@@ -303,9 +303,14 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
                 <p className="text-sm text-gray-600 mb-3">
                   이 분은 아직 Dovie에 가입하지 않았습니다. 명함 정보를 바탕으로 One Pager를 생성할 수 있습니다.
                 </p>
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                <Button 
+                  size="sm" 
+                  className="bg-blue-600 hover:bg-blue-700"
+                  onClick={() => generateOnePagerMutation.mutate(folder.contact)}
+                  disabled={generateOnePagerMutation.isPending}
+                >
                   <CreditCard className="w-4 h-4 mr-2" />
-                  One Pager 생성하기
+                  {generateOnePagerMutation.isPending ? "생성 중..." : "One Pager 생성하기"}
                 </Button>
               </div>
             )}
