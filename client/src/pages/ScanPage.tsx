@@ -101,9 +101,27 @@ export default function ScanPage() {
   };
 
   const handleScan = () => {
-    if (selectedFile) {
-      scanMutation.mutate(selectedFile);
+    const fileToScan = croppedFile || selectedFile;
+    if (fileToScan) {
+      scanMutation.mutate(fileToScan);
     }
+  };
+
+  const handleCropComplete = (croppedFile: File) => {
+    setCroppedFile(croppedFile);
+    const url = URL.createObjectURL(croppedFile);
+    setImageUrl(url);
+    setShowCrop(false);
+    
+    toast({
+      title: "영역 선택 완료",
+      description: "명함 영역이 선택되었습니다. 이제 스캔을 진행하세요.",
+    });
+  };
+
+  const handleCropCancel = () => {
+    setShowCrop(false);
+    setCroppedFile(null);
   };
 
   const handleCameraCapture = (file: File) => {
@@ -197,6 +215,15 @@ export default function ScanPage() {
           </CardContent>
         </Card>
 
+        {/* Crop Interface */}
+        {showCrop && imageUrl && (
+          <ImageCrop
+            imageUrl={imageUrl}
+            onCrop={handleCropComplete}
+            onCancel={handleCropCancel}
+          />
+        )}
+
         {/* Scan Results */}
         {scanResult && (
           <Card>
@@ -261,6 +288,8 @@ export default function ScanPage() {
                     setScanResult(null);
                     setSelectedFile(null);
                     setImageUrl(null);
+                    setCroppedFile(null);
+                    setShowCrop(false);
                   }}
                   variant="outline"
                   className="w-full"
