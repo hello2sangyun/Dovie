@@ -204,15 +204,6 @@ export default function BusinessCardView({ folderId, onBack }: BusinessCardViewP
                 <h1 className="text-2xl font-bold text-gray-900">
                   {personName}
                 </h1>
-                {businessCardItem?.fileUrl && (
-                  <div className="w-12 h-8 border border-gray-200 rounded overflow-hidden shadow-sm bg-white">
-                    <img 
-                      src={businessCardItem.fileUrl} 
-                      alt="명함"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
               </div>
               <p className="text-lg text-gray-700 mb-1">
                 {businessCardData?.jobTitle || "직책 정보 없음"}
