@@ -1182,17 +1182,78 @@ export default function MainApp() {
         {/* Mobile Content with padding for fixed header and footer */}
         <div className="flex-1 overflow-hidden pt-20 pb-20">
           {activeMobileTab === "contacts" && (
-            <ContactsList 
-              onAddContact={() => openModal("addContact")}
-              onSelectContact={(contactUserId) => {
-                // 해당 친구와의 채팅방 찾기 또는 생성 (모바일)
-                const contact = (contactsData as any)?.contacts?.find((c: any) => c.contactUserId === contactUserId);
-                if (contact) {
-                  createOrFindChatRoom(contactUserId, contact.contactUser);
-                  setActiveMobileTab("chats");
-                }
-              }}
-            />
+            <div className="h-full overflow-y-auto bg-gray-50">
+              <div className="p-4 space-y-4">
+                {/* One Pager 명함 스캐너 - 모바일용 */}
+                <div className="bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 rounded-xl p-4 border-2 border-purple-300 shadow-lg">
+                  <div className="flex items-center gap-2 mb-3">
+                    <h3 className="font-semibold text-gray-900">One Pager 명함 스캐너</h3>
+                    <span className="px-2 py-1 bg-red-500 text-white text-xs rounded-full animate-pulse">NEW!</span>
+                  </div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="text-sm text-gray-600">ChatGPT Vision으로 명함을 스캔하고 개인별 폴더를 자동 생성</p>
+                    </div>
+                    <Camera className="w-8 h-8 text-purple-600 animate-bounce" />
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={() => window.location.href = '/scan'}
+                      className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium text-sm"
+                    >
+                      <Camera className="w-4 h-4 mr-2" />
+                      명함 스캔 시작
+                    </Button>
+                    <Button 
+                      onClick={() => setActiveMobileTab('cabinet')}
+                      variant="outline"
+                      className="border-purple-300 text-purple-600 hover:bg-purple-50"
+                    >
+                      <FolderOpen className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  
+                  <div className="mt-3 text-xs text-gray-500 bg-white/50 rounded-lg p-2">
+                    ✨ 새로운 기능: 명함을 스캔하면 자동으로 개인별 폴더가 생성되고 연락처 정보가 저장됩니다
+                  </div>
+                </div>
+
+                <ContactsList 
+                  onAddContact={() => openModal("addContact")}
+                  onSelectContact={(contactUserId) => {
+                    // 해당 친구와의 채팅방 찾기 또는 생성 (모바일)
+                    const contact = (contactsData as any)?.contacts?.find((c: any) => c.contactUserId === contactUserId);
+                    if (contact) {
+                      createOrFindChatRoom(contactUserId, contact.contactUser);
+                      setActiveMobileTab("chats");
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          )}
+          {activeMobileTab === "cabinet" && (
+            <div className="h-full overflow-y-auto bg-gray-50">
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h1 className="text-xl font-bold text-gray-900">Cabinet</h1>
+                  <Button 
+                    onClick={() => window.location.href = '/scan'}
+                    size="sm"
+                    className="bg-purple-600 hover:bg-purple-700"
+                  >
+                    <Camera className="w-4 h-4 mr-1" />
+                    스캔
+                  </Button>
+                </div>
+                
+                <PersonFoldersList onSelectFolder={(folderId) => {
+                  // Handle folder selection for mobile
+                  console.log('Selected folder:', folderId);
+                }} />
+              </div>
+            </div>
           )}
           {activeMobileTab === "chats" && !showMobileChat && (
             <ChatsList 
@@ -1303,6 +1364,25 @@ export default function MainApp() {
                 variant="ghost"
                 className={cn(
                   "flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-200 min-h-[60px] flex-1 max-w-[80px]",
+                  activeMobileTab === "cabinet" 
+                    ? "text-blue-600 bg-blue-50 scale-105" 
+                    : "text-gray-600 hover:text-gray-800 hover:bg-gray-50"
+                )}
+                onClick={() => setActiveMobileTab("cabinet")}
+              >
+                <div className={cn(
+                  "p-1.5 rounded-lg transition-colors",
+                  activeMobileTab === "cabinet" ? "bg-blue-100" : ""
+                )}>
+                  <Archive className="h-5 w-5" />
+                </div>
+                <span className="text-xs mt-1 font-medium">Cabinet</span>
+              </Button>
+              
+              <Button
+                variant="ghost"
+                className={cn(
+                  "flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-200 min-h-[60px] flex-1 max-w-[80px]",
                   activeMobileTab === "contacts" 
                     ? "text-blue-600 bg-blue-50 scale-105" 
                     : "text-gray-600 hover:text-gray-800 hover:bg-gray-50"
@@ -1315,7 +1395,7 @@ export default function MainApp() {
                 )}>
                   <BookUser className="h-5 w-5" />
                 </div>
-                <span className="text-xs mt-1 font-medium">Cabinet</span>
+                <span className="text-xs mt-1 font-medium">연락처</span>
               </Button>
               
               <Button
