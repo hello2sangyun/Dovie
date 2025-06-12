@@ -124,9 +124,16 @@ export default function BusinessCardView({ folderId, onBack }: BusinessCardViewP
   };
 
   const handleDM = () => {
-    if (isRegisteredUser) {
-      // Navigate to DM with this user
-      console.log('Open DM with registered user');
+    if (isRegisteredUser && businessCardData?.registeredUserId) {
+      // Navigate to DM with verified registered user
+      console.log('Opening DM with verified user:', {
+        userId: businessCardData.registeredUserId,
+        userName: businessCardData.registeredUserDisplayName,
+        name: businessCardData.name
+      });
+      // TODO: Navigate to chat with the registered user ID
+    } else {
+      console.log('Cannot send DM - user not registered or not verified');
     }
   };
 
