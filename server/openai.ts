@@ -20,6 +20,16 @@ export interface CommandResponse {
   type: 'text' | 'json';
 }
 
+export interface BusinessCardData {
+  name?: string;
+  company?: string;
+  jobTitle?: string;
+  email?: string;
+  phone?: string;
+  website?: string;
+  address?: string;
+}
+
 // /translate command - translate text to specified language
 export async function translateText(text: string, targetLanguage: string = 'English'): Promise<CommandResponse> {
   try {
@@ -519,5 +529,52 @@ JSON 형태로 응답해주세요.`;
       success: false,
       error: `원페이저 생성 실패: ${error?.message || 'Unknown error'}`
     };
+  }
+}
+
+// Business card information extraction using OpenAI Vision API
+export async function extractBusinessCardInfo(base64Image: string): Promise<BusinessCardData> {
+  try {
+    console.log("Starting business card analysis with OpenAI Vision API");
+    
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `You are a professional business card information extractor. Analyze the business card image and extract all relevant information. Return the result as a JSON object with the following fields: name, company, jobTitle, email, phone, website, address. Only include fields that are clearly visible on the card. If a field is not present or unclear, omit it from the response.`
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "Please extract all information from this business card image and return it as JSON."
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:image/jpeg;base64,${base64Image}`
+              }
+            }
+          ]
+        }
+      ],
+      response_format: { type: "json_object" },
+      max_tokens: 1000,
+    });
+
+    const extractedText = response.choices[0].message.content;
+    if (!extractedText) {
+      throw new Error("No content received from OpenAI");
+    }
+
+    const businessCardData = JSON.parse(extractedText) as BusinessCardData;
+    console.log("Business card analysis completed successfully:", businessCardData);
+    
+    return businessCardData;
+  } catch (error: any) {
+    console.error("Business card extraction error:", error);
+    throw new Error(`Failed to extract business card information: ${error.message}`);
   }
 }

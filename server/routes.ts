@@ -5,7 +5,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, insertUserPostSchema, insertPostLikeSchema, insertPostCommentSchema, insertCompanyChannelSchema, insertCompanyProfileSchema, locationChatRooms, chatRooms, chatParticipants, userPosts, postLikes, postComments, companyChannels, companyChannelFollowers, companyChannelAdmins, users, businessProfiles, contacts, businessPostReads, businessPosts, businessPostLikes, companyProfiles } from "@shared/schema";
 import { sql } from "drizzle-orm";
-import { translateText, transcribeAudio } from "./openai";
+import { translateText, transcribeAudio, extractBusinessCardInfo } from "./openai";
 import bcrypt from "bcryptjs";
 import multer from "multer";
 import path from "path";
@@ -721,6 +721,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Business card scanning error:', error);
       res.status(500).json({ message: "Failed to scan business card" });
+    }
+  });
+
+  // Person folder routes for One Pager system
+  app.get("/api/person-folders", async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string;
+      if (!userId) {
+        return res.status(401).json({ message: "User ID required" });
+      }
+
+      const folders = await storage.getPersonFolders(Number(userId));
+      res.json(folders);
+    } catch (error) {
+      console.error('Error fetching person folders:', error);
+      res.status(500).json({ message: "Failed to fetch person folders" });
+    }
+  });
+
+  app.post("/api/person-folders", async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string;
+      if (!userId) {
+        return res.status(401).json({ message: "User ID required" });
+      }
+
+      const { contactId, folderName } = req.body;
+      const folder = await storage.createPersonFolder(Number(userId), contactId, folderName);
+      res.json(folder);
+    } catch (error) {
+      console.error('Error creating person folder:', error);
+      res.status(500).json({ message: "Failed to create person folder" });
+    }
+  });
+
+  app.get("/api/person-folders/:folderId", async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string;
+      if (!userId) {
+        return res.status(401).json({ message: "User ID required" });
+      }
+
+      const folderId = Number(req.params.folderId);
+      const folder = await storage.getPersonFolderById(folderId);
+      
+      if (!folder || folder.userId !== Number(userId)) {
+        return res.status(404).json({ message: "Folder not found" });
+      }
+
+      res.json(folder);
+    } catch (error) {
+      console.error('Error fetching person folder:', error);
+      res.status(500).json({ message: "Failed to fetch person folder" });
+    }
+  });
+
+  app.get("/api/person-folders/:folderId/items", async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string;
+      if (!userId) {
+        return res.status(401).json({ message: "User ID required" });
+      }
+
+      const folderId = Number(req.params.folderId);
+      const items = await storage.getFolderItems(folderId);
+      res.json(items);
+    } catch (error) {
+      console.error('Error fetching folder items:', error);
+      res.status(500).json({ message: "Failed to fetch folder items" });
+    }
+  });
+
+  app.post("/api/person-folders/:folderId/items", async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string;
+      if (!userId) {
+        return res.status(401).json({ message: "User ID required" });
+      }
+
+      const folderId = Number(req.params.folderId);
+      const itemData = req.body;
+      
+      const item = await storage.addFolderItem(folderId, itemData);
+      res.json(item);
+    } catch (error) {
+      console.error('Error adding folder item:', error);
+      res.status(500).json({ message: "Failed to add folder item" });
+    }
+  });
+
+  // Contact management for person folders
+  app.post("/api/contacts", async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string;
+      if (!userId) {
+        return res.status(401).json({ message: "User ID required" });
+      }
+
+      const contactData = req.body;
+      const contact = await storage.createContact(Number(userId), contactData);
+      res.json(contact);
+    } catch (error) {
+      console.error('Error creating contact:', error);
+      res.status(500).json({ message: "Failed to create contact" });
     }
   });
 
