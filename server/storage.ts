@@ -1111,7 +1111,14 @@ export class DatabaseStorage implements IStorage {
     
     console.log('Insert data:', insertData);
     
-    const [folder] = await db.insert(personFolders).values(insertData).returning();
+    const [folder] = await db.insert(personFolders).values({
+      user_id: userId,
+      contact_id: contactId,
+      person_name: folderName,
+      folder_name: folderName,
+      last_activity: new Date(),
+      item_count: 0
+    } as any).returning();
     return folder;
   }
 

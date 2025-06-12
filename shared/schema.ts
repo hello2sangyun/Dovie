@@ -391,8 +391,9 @@ export const companyProfiles = pgTable("company_profiles", {
 export const personFolders = pgTable("person_folders", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(), // 폴더 소유자
-  contactId: integer("contact_id").references(() => contacts.id).notNull(), // 연결된 연락처
-  folderName: text("folder_name").notNull(), // 폴더 이름 (사람 이름)
+  contactId: integer("contact_id").references(() => contacts.id), // 연결된 연락처
+  personName: text("person_name").notNull(), // 사람 이름 (필수)
+  folderName: text("folder_name"), // 폴더 이름 (선택)
   avatarUrl: text("avatar_url"), // 폴더 아바타 이미지
   lastActivity: timestamp("last_activity").defaultNow(),
   itemCount: integer("item_count").default(0), // 폴더 내 총 아이템 수
