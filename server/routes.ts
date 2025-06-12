@@ -506,6 +506,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const contactId = Number(req.params.contactId);
+      if (isNaN(contactId)) {
+        return res.status(400).json({ message: "Invalid contact ID" });
+      }
+      
       const contact = await storage.getContactById(Number(userId), contactId);
       
       if (!contact) {

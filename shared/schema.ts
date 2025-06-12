@@ -387,6 +387,38 @@ export const companyProfiles = pgTable("company_profiles", {
   uniqueUserCompany: unique().on(table.userId),
 }));
 
+// 사람별 폴더 테이블
+export const personFolders = pgTable("person_folders", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(), // 폴더 소유자
+  contactId: integer("contact_id").references(() => contacts.id).notNull(), // 연결된 연락처
+  folderName: text("folder_name").notNull(), // 폴더 이름 (사람 이름)
+  avatarUrl: text("avatar_url"), // 폴더 아바타 이미지
+  lastActivity: timestamp("last_activity").defaultNow(),
+  itemCount: integer("item_count").default(0), // 폴더 내 총 아이템 수
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// 폴더 아이템 테이블 (명함, One Pager, 파일 등)
+export const folderItems = pgTable("folder_items", {
+  id: serial("id").primaryKey(),
+  folderId: integer("folder_id").references(() => personFolders.id).notNull(),
+  itemType: text("item_type").notNull(), // 'business_card', 'one_pager', 'chat_file', 'document'
+  itemId: integer("item_id"), // 연결된 아이템의 ID (nullable, 파일의 경우)
+  fileName: text("file_name"),
+  fileUrl: text("file_url"),
+  fileSize: integer("file_size"),
+  mimeType: text("mime_type"),
+  title: text("title"),
+  description: text("description"),
+  tags: text("tags").array(),
+  chatRoomId: integer("chat_room_id").references(() => chatRooms.id), // 채팅방에서 온 파일의 경우
+  messageId: integer("message_id").references(() => messages.id), // 메시지에서 온 파일의 경우
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const usersRelations = relations(users, ({ many }) => ({
   contacts: many(contacts, { relationName: "userContacts" }),
   contactOf: many(contacts, { relationName: "contactUser" }),
@@ -662,6 +694,33 @@ export const businessProfilesRelations = relations(businessProfiles, ({ one }) =
   }),
 }));
 
+export const personFoldersRelations = relations(personFolders, ({ one, many }) => ({
+  user: one(users, {
+    fields: [personFolders.userId],
+    references: [users.id],
+  }),
+  contact: one(contacts, {
+    fields: [personFolders.contactId],
+    references: [contacts.id],
+  }),
+  items: many(folderItems),
+}));
+
+export const folderItemsRelations = relations(folderItems, ({ one }) => ({
+  folder: one(personFolders, {
+    fields: [folderItems.folderId],
+    references: [personFolders.id],
+  }),
+  chatRoom: one(chatRooms, {
+    fields: [folderItems.chatRoomId],
+    references: [chatRooms.id],
+  }),
+  message: one(messages, {
+    fields: [folderItems.messageId],
+    references: [messages.id],
+  }),
+}));
+
 export const userPostsRelations = relations(userPosts, ({ one, many }) => ({
   user: one(users, {
     fields: [userPosts.userId],
@@ -851,6 +910,18 @@ export const insertNfcExchangeSchema = createInsertSchema(nfcExchanges).omit({
   createdAt: true,
 });
 
+export const insertPersonFolderSchema = createInsertSchema(personFolders).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertFolderItemSchema = createInsertSchema(folderItems).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Contact = typeof contacts.$inferSelect;
@@ -896,3 +967,7 @@ export type CompanyProfile = typeof companyProfiles.$inferSelect;
 export type InsertCompanyProfile = z.infer<typeof insertCompanyProfileSchema>;
 export type NfcExchange = typeof nfcExchanges.$inferSelect;
 export type InsertNfcExchange = z.infer<typeof insertNfcExchangeSchema>;
+export type PersonFolder = typeof personFolders.$inferSelect;
+export type InsertPersonFolder = z.infer<typeof insertPersonFolderSchema>;
+export type FolderItem = typeof folderItems.$inferSelect;
+export type InsertFolderItem = z.infer<typeof insertFolderItemSchema>;
