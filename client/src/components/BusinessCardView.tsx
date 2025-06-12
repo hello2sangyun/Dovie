@@ -296,41 +296,33 @@ export default function BusinessCardView({ folderId, onBack }: BusinessCardViewP
           </div>
         </div>
 
-        {/* Business Card Section */}
+        {/* Business Card Section - Enhanced Design */}
         {businessCardItem?.fileUrl && (
-          <div className="bg-white mt-2 p-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">명함</h3>
-            <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
-              <div 
-                className="relative cursor-pointer group overflow-hidden rounded-xl bg-white p-3 shadow-sm hover:shadow-md transition-all duration-200"
-                onClick={() => {
-                  // Open business card in modal or new view
-                  if (businessCardItem?.fileUrl) {
-                    const link = document.createElement('a');
-                    link.href = businessCardItem.fileUrl;
-                    link.target = '_blank';
-                    link.click();
-                  }
-                }}
-              >
-                <img
-                  src={businessCardItem.fileUrl!}
-                  alt="명함"
-                  className="w-full h-auto rounded-lg transition-all duration-200 group-hover:scale-[1.02]"
-                  style={{ maxHeight: '200px', objectFit: 'contain' }}
-                />
-                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-5 transition-all duration-200 rounded-xl flex items-center justify-center">
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white rounded-full p-2 shadow-lg">
-                    <Eye className="w-4 h-4 text-gray-700" />
-                  </div>
+          <div className="bg-white mt-2 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-900 flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
+                  <CreditCard className="w-4 h-4 text-white" />
                 </div>
+                명함
+              </h3>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-sm text-gray-500">디지털 명함</span>
               </div>
+            </div>
+            
+            {/* Business Card Display with Enhanced Visual Design */}
+            <div className="relative">
+              {/* Decorative Background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 rounded-3xl opacity-60"></div>
+              <div className="absolute top-4 right-4 w-20 h-20 bg-gradient-to-br from-purple-200 to-blue-200 rounded-full opacity-20"></div>
+              <div className="absolute bottom-6 left-6 w-12 h-12 bg-gradient-to-br from-blue-200 to-indigo-200 rounded-full opacity-30"></div>
               
-              <div className="flex gap-2 mt-3">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="flex-1 text-sm"
+              {/* Main Card Container */}
+              <div className="relative bg-white rounded-3xl p-6 shadow-lg border border-gray-100">
+                <div 
+                  className="relative cursor-pointer group overflow-hidden rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 p-4 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                   onClick={() => {
                     if (businessCardItem?.fileUrl) {
                       const link = document.createElement('a');
@@ -340,27 +332,81 @@ export default function BusinessCardView({ folderId, onBack }: BusinessCardViewP
                     }
                   }}
                 >
-                  <Eye className="w-4 h-4 mr-2" />
-                  크게보기
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="flex-1 text-sm"
-                  onClick={() => {
-                    if (businessCardItem?.fileUrl) {
-                      const link = document.createElement('a');
-                      link.href = businessCardItem.fileUrl;
-                      link.download = `${personName}_명함.jpg`;
-                      document.body.appendChild(link);
-                      link.click();
-                      document.body.removeChild(link);
-                    }
-                  }}
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  저장하기
-                </Button>
+                  {/* Business Card Image */}
+                  <div className="relative bg-white rounded-xl p-3 shadow-sm">
+                    <img
+                      src={businessCardItem.fileUrl!}
+                      alt="명함"
+                      className="w-full h-auto rounded-lg transition-all duration-300 group-hover:scale-105"
+                      style={{ maxHeight: '220px', objectFit: 'contain' }}
+                    />
+                    
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-600/0 via-blue-600/0 to-indigo-600/0 group-hover:from-purple-600/10 group-hover:via-blue-600/5 group-hover:to-indigo-600/10 transition-all duration-300 rounded-xl flex items-center justify-center">
+                      <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-90 group-hover:scale-100">
+                        <div className="bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg border border-white/20">
+                          <Eye className="w-5 h-5 text-gray-700" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Card Info Badge */}
+                  <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 shadow-sm border border-white/20">
+                    <span className="text-xs font-medium text-gray-600">고화질</span>
+                  </div>
+                </div>
+                
+                {/* Action Buttons with Enhanced Design */}
+                <div className="flex gap-3 mt-6">
+                  <Button 
+                    variant="outline" 
+                    size="lg" 
+                    className="flex-1 h-12 border-2 border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-300 font-medium transition-all duration-200 rounded-xl"
+                    onClick={() => {
+                      if (businessCardItem?.fileUrl) {
+                        const link = document.createElement('a');
+                        link.href = businessCardItem.fileUrl;
+                        link.target = '_blank';
+                        link.click();
+                      }
+                    }}
+                  >
+                    <Eye className="w-5 h-5 mr-2" />
+                    크게보기
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="lg" 
+                    className="flex-1 h-12 border-2 border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300 font-medium transition-all duration-200 rounded-xl"
+                    onClick={() => {
+                      if (businessCardItem?.fileUrl) {
+                        const link = document.createElement('a');
+                        link.href = businessCardItem.fileUrl;
+                        link.download = `${personName}_명함.jpg`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }
+                    }}
+                  >
+                    <Download className="w-5 h-5 mr-2" />
+                    저장하기
+                  </Button>
+                </div>
+                
+                {/* Additional Info */}
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2 text-gray-500">
+                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
+                      <span>AI로 스캔됨</span>
+                    </div>
+                    <div className="text-gray-400">
+                      {new Date().toLocaleDateString('ko-KR')}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
