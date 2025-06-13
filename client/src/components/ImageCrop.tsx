@@ -110,106 +110,128 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    // Scale coordinates to canvas size
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
+    const position = getEventPosition(e);
+    if (!position) return;
 
     setIsDragging(true);
-    setDragStart({ x: x * scaleX, y: y * scaleY });
+    setDragStart(position);
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging) return;
 
+    const position = getEventPosition(e);
+    if (!position) return;
+
+    const deltaX = position.x - dragStart.x;
+    const deltaY = position.y - dragStart.y;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    // Convert to canvas coordinates
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    // Scale coordinates to canvas size
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-    const scaledX = x * scaleX;
-    const scaledY = y * scaleY;
-
-    const deltaX = scaledX - dragStart.x;
-    const deltaY = scaledY - dragStart.y;
 
     setCropArea(prev => ({
       ...prev,
-      x: Math.max(0, Math.min(prev.x + deltaX, canvas.width - prev.width)),
-      y: Math.max(0, Math.min(prev.y + deltaY, canvas.height - prev.height))
+      x: Math.max(0, Math.min(prev.x + (deltaX * scaleX), canvas.width - prev.width)),
+      y: Math.max(0, Math.min(prev.y + (deltaY * scaleY), canvas.height - prev.height))
     }));
 
-    setDragStart({ x: scaledX, y: scaledY });
+    setDragStart(position);
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
   };
 
+  // Unified touch/mouse handling function
+  const getEventPosition = (e: React.TouchEvent | React.MouseEvent) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+
+    const rect = canvas.getBoundingClientRect();
+    let clientX: number, clientY: number;
+
+    if ('touches' in e) {
+      if (e.touches.length === 0) return null;
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+
+    // Use canvas display size instead of internal size for better scaling
+    return { x, y };
+  };
+
   const handleTouchStart = (e: React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const canvas = canvasRef.current;
-    if (!canvas || e.touches.length === 0) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const touch = e.touches[0];
-    const x = touch.clientX - rect.left;
-    const y = touch.clientY - rect.top;
-
-    // Scale coordinates to canvas size
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
     
+    const position = getEventPosition(e);
+    if (!position) return;
+
+    console.log('Touch start:', position);
     setIsDragging(true);
-    setDragStart({ x: x * scaleX, y: y * scaleY });
+    setDragStart(position);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!isDragging || e.touches.length === 0) return;
+    
+    if (!isDragging) return;
+    
+    const position = getEventPosition(e);
+    if (!position) return;
+
+    const deltaX = position.x - dragStart.x;
+    const deltaY = position.y - dragStart.y;
+
+    console.log('Touch move delta:', { deltaX, deltaY });
 
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    // Convert to canvas coordinates
     const rect = canvas.getBoundingClientRect();
-    const touch = e.touches[0];
-    const x = touch.clientX - rect.left;
-    const y = touch.clientY - rect.top;
-
-    // Scale coordinates to canvas size
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-    const scaledX = x * scaleX;
-    const scaledY = y * scaleY;
 
-    const deltaX = scaledX - dragStart.x;
-    const deltaY = scaledY - dragStart.y;
+    setCropArea(prev => {
+      const newX = Math.max(0, Math.min(prev.x + (deltaX * scaleX), canvas.width - prev.width));
+      const newY = Math.max(0, Math.min(prev.y + (deltaY * scaleY), canvas.height - prev.height));
+      
+      console.log('Updating crop area:', { 
+        oldX: prev.x, 
+        oldY: prev.y, 
+        newX, 
+        newY, 
+        deltaX: deltaX * scaleX, 
+        deltaY: deltaY * scaleY 
+      });
+      
+      return {
+        ...prev,
+        x: newX,
+        y: newY
+      };
+    });
 
-    setCropArea(prev => ({
-      ...prev,
-      x: Math.max(0, Math.min(prev.x + deltaX, canvas.width - prev.width)),
-      y: Math.max(0, Math.min(prev.y + deltaY, canvas.height - prev.height))
-    }));
-
-    setDragStart({ x: scaledX, y: scaledY });
+    setDragStart(position);
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    console.log('Touch end');
     setIsDragging(false);
   };
 
@@ -283,10 +305,14 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
+            onTouchCancel={handleTouchEnd}
             style={{ 
               maxHeight: '400px',
               touchAction: 'none',
-              userSelect: 'none'
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              MozUserSelect: 'none',
+              msUserSelect: 'none'
             }}
           />
         </div>
