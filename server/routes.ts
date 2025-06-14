@@ -1452,6 +1452,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Business card duplicate detection
+  app.post("/api/business-cards/check-duplicate", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { name, company, phone, email } = req.body;
+      
+      // Get existing business cards for this user
+      const existingCards = await db
+        .select()
+        .from(folder_items)
+        .where(
+          and(
+            eq(folder_items.itemType, 'business_card'),
+            inArray(folder_items.folderId, 
+              db.select({ id: person_folders.id })
+                .from(person_folders)
+                .where(eq(person_folders.userId, Number(userId)))
+            )
+          )
+        );
+
+      // Check for duplicates
+      for (const card of existingCards) {
+        if (card.businessCardData) {
+          const cardData = JSON.parse(card.businessCardData);
+          
+          // Exact match
+          if (cardData.name === name && 
+              cardData.company === company && 
+              cardData.phone === phone && 
+              cardData.email === email) {
+            return res.json({
+              isDuplicate: true,
+              duplicateType: 'exact',
+              existingCard: card,
+              existingCardData: cardData
+            });
+          }
+          
+          // Similar match (same name or same company+phone)
+          if ((cardData.name === name && cardData.company === company) ||
+              (cardData.phone === phone && phone && cardData.company === company)) {
+            return res.json({
+              isDuplicate: true,
+              duplicateType: 'similar',
+              existingCard: card,
+              existingCardData: cardData,
+              differences: {
+                name: cardData.name !== name ? { existing: cardData.name, new: name } : null,
+                company: cardData.company !== company ? { existing: cardData.company, new: company } : null,
+                phone: cardData.phone !== phone ? { existing: cardData.phone, new: phone } : null,
+                email: cardData.email !== email ? { existing: cardData.email, new: email } : null,
+                jobTitle: cardData.jobTitle !== req.body.jobTitle ? { existing: cardData.jobTitle, new: req.body.jobTitle } : null,
+                address: cardData.address !== req.body.address ? { existing: cardData.address, new: req.body.address } : null,
+              }
+            });
+          }
+        }
+      }
+
+      res.json({ isDuplicate: false });
+    } catch (error) {
+      console.error("Error checking business card duplicate:", error);
+      res.status(500).json({ message: "Failed to check duplicate" });
+    }
+  });
+
+  // Business card merge
+  app.post("/api/business-cards/merge", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { existingCardId, newCardData } = req.body;
+      
+      // Update the existing card with merged data
+      await db
+        .update(folder_items)
+        .set({
+          businessCardData: JSON.stringify(newCardData),
+          title: `${newCardData.name}님의 명함`,
+          description: `${newCardData.jobTitle} • ${newCardData.company}`,
+          updatedAt: new Date()
+        })
+        .where(eq(folder_items.id, existingCardId));
+
+      res.json({ success: true, message: "명함이 성공적으로 병합되었습니다." });
+    } catch (error) {
+      console.error("Error merging business card:", error);
+      res.status(500).json({ message: "Failed to merge business card" });
+    }
+  });
+
   // Business card sharing routes
   app.post("/api/business-cards/share", async (req, res) => {
     const userId = req.headers["x-user-id"];

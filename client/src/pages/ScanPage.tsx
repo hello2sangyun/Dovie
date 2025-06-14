@@ -47,6 +47,8 @@ export default function ScanPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [memo, setMemo] = useState<string>("");
   const [isSavingMemo, setIsSavingMemo] = useState(false);
+  const [duplicateCheck, setDuplicateCheck] = useState<any>(null);
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
