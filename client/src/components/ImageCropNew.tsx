@@ -192,7 +192,7 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
     console.log('Touch start position:', position);
   };
 
-  // Touch move handler
+  // Touch move handler - optimized for performance
   const handleTouchMove = (e: React.TouchEvent) => {
     e.preventDefault();
     
@@ -204,60 +204,59 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
     const deltaX = position.x - dragStart.x;
     const deltaY = position.y - dragStart.y;
 
-    console.log('Touch move delta:', { deltaX, deltaY });
-
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    if (isResizing && resizeHandle) {
-      // Handle resizing
-      setCropArea(prev => {
-        let newArea = { ...prev };
-        
-        switch (resizeHandle) {
-          case 'tl':
-            newArea.x = Math.max(0, prev.x + deltaX);
-            newArea.y = Math.max(0, prev.y + deltaY);
-            newArea.width = prev.width - deltaX;
-            newArea.height = prev.height - deltaY;
-            break;
-          case 'tr':
-            newArea.y = Math.max(0, prev.y + deltaY);
-            newArea.width = prev.width + deltaX;
-            newArea.height = prev.height - deltaY;
-            break;
-          case 'bl':
-            newArea.x = Math.max(0, prev.x + deltaX);
-            newArea.width = prev.width - deltaX;
-            newArea.height = prev.height + deltaY;
-            break;
-          case 'br':
-            newArea.width = prev.width + deltaX;
-            newArea.height = prev.height + deltaY;
-            break;
-        }
+    // Use requestAnimationFrame for smooth movement
+    requestAnimationFrame(() => {
+      if (isResizing && resizeHandle) {
+        // Handle resizing
+        setCropArea(prev => {
+          let newArea = { ...prev };
+          
+          switch (resizeHandle) {
+            case 'tl':
+              newArea.x = Math.max(0, prev.x + deltaX);
+              newArea.y = Math.max(0, prev.y + deltaY);
+              newArea.width = prev.width - deltaX;
+              newArea.height = prev.height - deltaY;
+              break;
+            case 'tr':
+              newArea.y = Math.max(0, prev.y + deltaY);
+              newArea.width = prev.width + deltaX;
+              newArea.height = prev.height - deltaY;
+              break;
+            case 'bl':
+              newArea.x = Math.max(0, prev.x + deltaX);
+              newArea.width = prev.width - deltaX;
+              newArea.height = prev.height + deltaY;
+              break;
+            case 'br':
+              newArea.width = prev.width + deltaX;
+              newArea.height = prev.height + deltaY;
+              break;
+          }
 
-        // Ensure minimum size and stay within canvas bounds
-        newArea.width = Math.max(50, Math.min(newArea.width, canvas.width - newArea.x));
-        newArea.height = Math.max(50, Math.min(newArea.height, canvas.height - newArea.y));
+          // Ensure minimum size and stay within canvas bounds
+          newArea.width = Math.max(50, Math.min(newArea.width, canvas.width - newArea.x));
+          newArea.height = Math.max(50, Math.min(newArea.height, canvas.height - newArea.y));
 
-        return newArea;
-      });
-    } else if (isDragging) {
-      // Handle dragging
-      setCropArea(prev => {
-        const newX = Math.max(0, Math.min(prev.x + deltaX, canvas.width - prev.width));
-        const newY = Math.max(0, Math.min(prev.y + deltaY, canvas.height - prev.height));
-        
-        console.log('New crop position:', { newX, newY });
-        
-        return {
-          ...prev,
-          x: newX,
-          y: newY
-        };
-      });
-    }
+          return newArea;
+        });
+      } else if (isDragging) {
+        // Handle dragging with improved performance
+        setCropArea(prev => {
+          const newX = Math.max(0, Math.min(prev.x + deltaX, canvas.width - prev.width));
+          const newY = Math.max(0, Math.min(prev.y + deltaY, canvas.height - prev.height));
+          
+          return {
+            ...prev,
+            x: newX,
+            y: newY
+          };
+        });
+      }
+    });
 
     setDragStart(position);
   };

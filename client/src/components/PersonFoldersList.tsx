@@ -73,8 +73,8 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
   const { data: folders = [], isLoading } = useQuery<PersonFolder[]>({
     queryKey: ["/api/person-folders"],
     enabled: !!user,
-    staleTime: 30000, // Keep data fresh for 30s
-    refetchInterval: false, // Disable automatic refetching
+    staleTime: 5000, // Reduce stale time to refresh more frequently
+    refetchInterval: 10000, // Re-enable polling every 10s for folder updates
   });
 
   const deleteMultipleFoldersMutation = useMutation({

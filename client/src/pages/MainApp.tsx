@@ -151,6 +151,9 @@ export default function MainApp() {
         // Add to contacts automatically
         addContactMutation.mutate(contactData);
         
+        // Refresh Cabinet folders to show new business card folder
+        queryClient.invalidateQueries({ queryKey: ["/api/person-folders"] });
+        
         // Switch to contacts tab to show the new contact
         setActiveMobileTab("contacts");
         
