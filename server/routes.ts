@@ -1270,18 +1270,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log('Bulk deleting person folders:', folderIds);
+      console.log('Folder IDs types:', folderIds.map(id => ({ id, type: typeof id, isNaN: isNaN(Number(id)) })));
 
       const deletedFolders = [];
       
       for (const folderId of folderIds) {
         try {
+          console.log(`Processing folder ID: ${folderId}, type: ${typeof folderId}`);
           const numericFolderId = Number(folderId);
-          if (isNaN(numericFolderId)) {
-            console.error(`Invalid folder ID: ${folderId}`);
+          if (isNaN(numericFolderId) || numericFolderId <= 0) {
+            console.error(`Invalid folder ID: ${folderId}, converted to: ${numericFolderId}`);
             continue;
           }
+          console.log(`Deleting folder ${numericFolderId} for user ${userId}`);
           await storage.deletePersonFolder(Number(userId), numericFolderId);
           deletedFolders.push(numericFolderId);
+          console.log(`Successfully deleted folder ${numericFolderId}`);
         } catch (error) {
           console.error(`Error deleting folder ${folderId}:`, error);
         }

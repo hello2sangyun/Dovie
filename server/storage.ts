@@ -1286,6 +1286,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deletePersonFolder(userId: number, folderId: number): Promise<void> {
+    console.log(`Storage deletePersonFolder called with userId: ${userId} (type: ${typeof userId}), folderId: ${folderId} (type: ${typeof folderId})`);
+    
+    // Validate inputs
+    if (isNaN(userId) || isNaN(folderId) || userId <= 0 || folderId <= 0) {
+      throw new Error(`Invalid parameters: userId=${userId}, folderId=${folderId}`);
+    }
+
     // First delete all folder items
     await db
       .delete(folderItems)
@@ -1298,6 +1305,8 @@ export class DatabaseStorage implements IStorage {
         eq(personFolders.id, folderId),
         eq(personFolders.userId, userId)
       ));
+      
+    console.log(`Successfully deleted folder ${folderId} for user ${userId}`);
   }
 
   async getFolderItems(folderId: number): Promise<FolderItem[]> {
