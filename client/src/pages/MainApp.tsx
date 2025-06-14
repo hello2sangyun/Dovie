@@ -543,50 +543,6 @@ export default function MainApp() {
                       </div>
                     </div>
 
-                    {/* One Pager 명함 스캐너 - 새로운 기능! */}
-                    <div className="mb-6">
-                      <div className="flex items-center gap-2 mb-3">
-                        <h4 className="text-sm font-medium text-gray-600">One Pager 명함 스캐너</h4>
-                        <span className="px-2 py-1 bg-red-500 text-white text-xs rounded-full animate-pulse">NEW!</span>
-                      </div>
-                      <div className="bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 rounded-xl p-4 border-2 border-purple-300 shadow-lg">
-                        <div className="flex items-center justify-between mb-3">
-                          <div>
-                            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                              <CreditCard className="w-5 h-5 text-purple-600" />
-                              AI 명함 인식 & 자동 폴더 생성
-                            </h3>
-                            <p className="text-sm text-gray-600">ChatGPT Vision으로 명함을 스캔하고 개인별 폴더를 자동 생성</p>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <Camera className="w-8 h-8 text-purple-600 animate-bounce" />
-                            <span className="text-xs text-purple-600 mt-1">스캔</span>
-                          </div>
-                        </div>
-                        
-                        <div className="flex gap-2">
-                          <Button 
-                            onClick={() => window.location.href = '/scan'}
-                            className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium"
-                          >
-                            <Camera className="w-4 h-4 mr-2" />
-                            명함 스캔 시작
-                          </Button>
-                          <Button 
-                            onClick={() => setActiveTab('cabinet')}
-                            variant="outline"
-                            className="border-purple-300 text-purple-600 hover:bg-purple-50"
-                          >
-                            <FolderOpen className="w-4 h-4" />
-                          </Button>
-                        </div>
-                        
-                        <div className="mt-3 text-xs text-gray-500 bg-white/50 rounded-lg p-2">
-                          ✨ 새로운 기능: 명함을 스캔하면 자동으로 개인별 폴더가 생성되고 연락처 정보가 저장됩니다
-                        </div>
-                      </div>
-                    </div>
-
                     {/* 기능 안내 */}
                     <div className="mb-6">
                       <h4 className="text-sm font-medium text-gray-600 mb-3">주요 기능</h4>

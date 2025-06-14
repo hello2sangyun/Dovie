@@ -151,6 +151,7 @@ Dovie Messenger is a modern, secure messaging application built with a full-stac
   * Image processing optimization with reduced JPEG quality (85% vs 98%)
   * Static file serving with 1-year aggressive caching for images
   * Optimized Sharp image processing pipeline with faster cubic kernel
+- June 14, 2025: UI cleanup - Removed "One Pager 명함 스캐너" container box from Cabinet tab for cleaner interface per user request
 
 ## User Preferences
 
