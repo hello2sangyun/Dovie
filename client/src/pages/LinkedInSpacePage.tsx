@@ -340,37 +340,43 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
                   {post.attachments && Array.isArray(post.attachments) && post.attachments.length > 0 && (
                     <div className="mb-4">
                       {post.attachments.map((attachment, index) => {
-                        console.log('Rendering attachment:', attachment, 'for post:', post.id);
+                        console.log('🔍 DEBUG - Rendering attachment:', attachment, 'for post:', post.id, 'type:', typeof attachment);
                         
                         if (typeof attachment === 'string' && attachment.trim()) {
+                          const imageUrl = attachment.startsWith('/') ? attachment : `/${attachment}`;
+                          console.log('🔍 DEBUG - Final image URL:', imageUrl);
+                          
                           return (
                             <div key={`${post.id}-${index}`} className="mb-2">
                               <img
-                                src={attachment}
-                                alt={`이미지 첨부파일 ${index + 1}`}
-                                className="w-full max-w-full h-auto max-h-96 object-contain rounded-lg border border-gray-200 shadow-sm"
+                                src={imageUrl}
+                                alt={`첨부파일 ${index + 1}`}
+                                className="w-full h-auto max-h-96 object-contain rounded-lg border border-gray-200 shadow-md bg-white"
                                 style={{ 
                                   display: 'block',
-                                  backgroundColor: '#f8f9fa'
+                                  minHeight: '100px',
+                                  backgroundColor: '#ffffff'
                                 }}
                                 onLoad={(e) => {
-                                  console.log('✅ Image loaded successfully:', attachment);
+                                  console.log('✅ SUCCESS - Image loaded:', imageUrl);
                                   const img = e.target as HTMLImageElement;
-                                  img.style.backgroundColor = 'transparent';
+                                  console.log('✅ Image dimensions:', img.naturalWidth, 'x', img.naturalHeight);
                                 }}
                                 onError={(e) => {
-                                  console.error('❌ Image failed to load:', attachment);
+                                  console.error('❌ FAILED - Image load error:', imageUrl);
+                                  console.error('❌ Error event:', e);
                                   const img = e.target as HTMLImageElement;
                                   img.style.display = 'none';
                                   
                                   // Create fallback element
                                   const fallback = document.createElement('div');
-                                  fallback.className = 'flex items-center justify-center p-4 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300';
+                                  fallback.className = 'flex items-center justify-center p-8 bg-red-50 rounded-lg border-2 border-red-200';
                                   fallback.innerHTML = `
                                     <div class="text-center">
-                                      <div class="text-gray-400 text-2xl mb-2">🖼️</div>
-                                      <p class="text-sm text-gray-500">이미지를 불러올 수 없습니다</p>
-                                      <p class="text-xs text-gray-400">${attachment}</p>
+                                      <div class="text-red-400 text-4xl mb-2">❌</div>
+                                      <p class="text-sm text-red-600 font-medium">이미지 로드 실패</p>
+                                      <p class="text-xs text-red-500 mt-1">${imageUrl}</p>
+                                      <button onclick="location.reload()" class="mt-2 px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600">새로고침</button>
                                     </div>
                                   `;
                                   img.parentNode?.insertBefore(fallback, img);
@@ -380,6 +386,7 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
                           );
                         }
                         
+                        console.log('⚠️ SKIP - Invalid attachment:', attachment);
                         return null;
                       })}
                     </div>
