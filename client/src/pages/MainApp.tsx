@@ -1187,46 +1187,17 @@ export default function MainApp() {
           {activeMobileTab === "cabinet" && (
             <div className="h-full overflow-y-auto bg-gray-50">
               <div className="p-4 space-y-4">
-                {/* One Pager 명함 스캐너 - 통합된 Cabinet */}
-                <div className="bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 rounded-xl p-4 border-2 border-purple-300 shadow-lg">
-                  <div className="flex items-center gap-2 mb-3">
-                    <h3 className="font-semibold text-gray-900">One Pager 명함 스캐너</h3>
-                    <span className="px-2 py-1 bg-red-500 text-white text-xs rounded-full animate-pulse">NEW!</span>
-                  </div>
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <p className="text-sm text-gray-600">ChatGPT Vision으로 명함을 스캔하고 개인별 폴더를 자동 생성</p>
-                    </div>
-                    <Camera className="w-8 h-8 text-purple-600 animate-bounce" />
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={() => window.location.href = '/scan'}
-                      className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium text-sm"
-                    >
-                      <Camera className="w-4 h-4 mr-2" />
-                      명함 스캔 시작
-                    </Button>
-                  </div>
-                  
-                  <div className="mt-3 text-xs text-gray-500 bg-white/50 rounded-lg p-2">
-                    ✨ 새로운 기능: 명함을 스캔하면 자동으로 개인별 폴더가 생성되고 연락처 정보가 저장됩니다
-                  </div>
-                </div>
-
                 {/* Person Folders Section */}
                 <div className="bg-white rounded-xl p-4 shadow-sm">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold text-gray-900">개인별 폴더</h2>
+                    <h2 className="text-lg font-semibold text-gray-900">Cabinet</h2>
                     <Button 
                       onClick={() => window.location.href = '/scan'}
                       size="sm"
-                      variant="outline"
-                      className="border-purple-300 text-purple-600 hover:bg-purple-50"
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
                     >
-                      <Camera className="w-4 h-4 mr-1" />
-                      추가
+                      <Plus className="w-4 h-4 mr-1" />
+                      명함 스캔
                     </Button>
                   </div>
                   
