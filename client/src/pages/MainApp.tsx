@@ -16,6 +16,7 @@ import ChatArea from "@/components/ChatArea";
 import AddContactModal from "@/components/AddContactModal";
 import CommandModal from "@/components/CommandModal";
 import CreateGroupChatModal from "@/components/CreateGroupChatModal";
+import MyOnePagerPage from "@/components/MyOnePagerPage";
 
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
@@ -404,9 +405,31 @@ export default function MainApp() {
         <div className="w-96 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col">
           {/* Header */}
           <div className="p-4 border-b border-gray-200 dark:border-gray-700 purple-gradient">
-            <div className="flex items-center justify-center space-x-3">
-              <VaultLogo size="sm" />
-              <h1 className="text-xl font-bold text-white">Dovie Messenger</h1>
+            <div className="flex items-center justify-between">
+              {/* Profile Image on Left */}
+              <div 
+                className="w-10 h-10 rounded-full bg-white/20 cursor-pointer hover:bg-white/30 transition-colors flex items-center justify-center"
+                onClick={() => setRightPanelContent("my-onepager")}
+              >
+                {user?.profilePicture ? (
+                  <img 
+                    src={user.profilePicture} 
+                    alt="Profile" 
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                ) : (
+                  <User className="w-5 h-5 text-white" />
+                )}
+              </div>
+              
+              {/* Logo and Title */}
+              <div className="flex items-center space-x-3">
+                <VaultLogo size="sm" />
+                <h1 className="text-xl font-bold text-white">Dovie</h1>
+              </div>
+              
+              {/* Placeholder for balance */}
+              <div className="w-10"></div>
             </div>
           </div>
 
@@ -1172,10 +1195,28 @@ export default function MainApp() {
         {/* Fixed Mobile Header */}
         <div className="flex-shrink-0 purple-gradient p-4 text-white fixed top-0 left-0 right-0 z-50 lg:hidden">
           <div className="flex items-center justify-between">
+            {/* Profile Image on Left */}
+            <div 
+              className="w-10 h-10 rounded-full bg-white/20 cursor-pointer hover:bg-white/30 transition-colors flex items-center justify-center"
+              onClick={() => setActiveMobileTab("my-onepager")}
+            >
+              {user?.profilePicture ? (
+                <img 
+                  src={user.profilePicture} 
+                  alt="Profile" 
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+              ) : (
+                <User className="w-5 h-5 text-white" />
+              )}
+            </div>
+            
+            {/* Logo and Title */}
             <div className="flex items-center space-x-3">
               <VaultLogo size="sm" />
-              <h1 className="text-lg font-bold">Dovie Messenger</h1>
+              <h1 className="text-lg font-bold">Dovie</h1>
             </div>
+            
             <Button variant="ghost" size="sm" className="text-white">
               <Search className="h-5 w-5" />
             </Button>
