@@ -143,17 +143,7 @@ export default function ModernSettingsPage({ isMobile = false }: ModernSettingsP
             
             <Card 
               className="bg-white/80 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group active:scale-95"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Business Card clicked');
-                setActiveView('business-card');
-              }}
-              onTouchEnd={(e) => {
-                e.preventDefault();
-                console.log('Business Card touched');
-                setActiveView('business-card');
-              }}
+              onClick={() => setActiveView('business-card')}
             >
               <CardContent className="p-4">
                 <div className="flex items-center space-x-3">
