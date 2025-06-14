@@ -31,7 +31,8 @@ interface ScanResult {
   telegram?: string;
   wechat?: string;
   line?: string;
-  [key: string]: string | undefined;
+  folderId?: number;
+  [key: string]: string | number | undefined;
 }
 
 export default function ScanPage() {
@@ -44,6 +45,8 @@ export default function ScanPage() {
   const [showPreview, setShowPreview] = useState(false);
   const [showManualCrop, setShowManualCrop] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [memo, setMemo] = useState<string>("");
+  const [isSavingMemo, setIsSavingMemo] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -141,6 +144,52 @@ export default function ScanPage() {
       });
     },
   });
+
+  // Mutation for saving memo to folder
+  const saveMemoMutation = useMutation({
+    mutationFn: async ({ folderId, memo }: { folderId: number; memo: string }) => {
+      return apiRequest(`/api/person-folders/${folderId}/memo`, "POST", { memo });
+    },
+    onSuccess: () => {
+      toast({
+        title: "메모 저장 완료",
+        description: "메모가 폴더에 저장되었습니다.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/person-folders"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "메모 저장 실패",
+        description: "메모 저장 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSaveMemo = async () => {
+    if (!memo.trim() || !scanResult?.folderId) return;
+    
+    setIsSavingMemo(true);
+    try {
+      await saveMemoMutation.mutateAsync({
+        folderId: scanResult.folderId,
+        memo: memo.trim()
+      });
+      setMemo("");
+    } finally {
+      setIsSavingMemo(false);
+    }
+  };
+
+  const handleGoToCabinet = () => {
+    // Force refresh the Cabinet folder list before navigation
+    queryClient.invalidateQueries({ queryKey: ["/api/person-folders"] });
+    queryClient.refetchQueries({ queryKey: ["/api/person-folders"] });
+    
+    setTimeout(() => {
+      setLocation("/app");
+    }, 100); // Small delay to ensure queries start
+  };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -405,9 +454,37 @@ export default function ScanPage() {
                 )}
               </div>
               
+              {/* Memo Input Section */}
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  메모 추가
+                </label>
+                <textarea
+                  value={memo}
+                  onChange={(e) => setMemo(e.target.value)}
+                  placeholder="이 명함에 대한 메모를 입력하세요..."
+                  className="w-full p-3 border border-gray-300 rounded-md resize-none"
+                  rows={3}
+                />
+                <Button
+                  onClick={handleSaveMemo}
+                  disabled={!memo.trim() || isSavingMemo}
+                  className="mt-2 w-full bg-green-600 hover:bg-green-700 text-white"
+                >
+                  {isSavingMemo ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      메모 저장 중...
+                    </>
+                  ) : (
+                    "메모 저장"
+                  )}
+                </Button>
+              </div>
+              
               <div className="mt-6 space-y-3">
                 <Button
-                  onClick={() => setLocation("/cabinet")}
+                  onClick={handleGoToCabinet}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   Cabinet으로 이동
@@ -417,6 +494,7 @@ export default function ScanPage() {
                     setScanResult(null);
                     setSelectedFile(null);
                     setImageUrl(null);
+                    setMemo("");
                   }}
                   variant="outline"
                   className="w-full"
