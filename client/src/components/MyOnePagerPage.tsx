@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -53,7 +53,7 @@ export default function MyOnePagerPage({ onBack }: MyOnePagerPageProps) {
   });
 
   // 폼 데이터 초기화
-  useState(() => {
+  useEffect(() => {
     if (businessCard) {
       setFormData({
         name: businessCard.name || "",
@@ -117,11 +117,7 @@ export default function MyOnePagerPage({ onBack }: MyOnePagerPageProps) {
     formDataWithImage.append('image', imageFile);
     
     // OCR API 호출
-    apiRequest("/api/business-cards/scan", "POST", formDataWithImage, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    })
+    apiRequest("/api/business-cards/scan", "POST", formDataWithImage)
     .then(response => response.json())
     .then(data => {
       if (data.extractedData) {
@@ -177,7 +173,7 @@ export default function MyOnePagerPage({ onBack }: MyOnePagerPageProps) {
     return (
       <CameraCapture
         onCapture={handleCameraCapture}
-        onCancel={() => setShowCamera(false)}
+        onClose={() => setShowCamera(false)}
         title="내 명함 등록"
         subtitle="명함을 촬영하여 정보를 자동으로 입력하세요"
       />
@@ -405,7 +401,7 @@ export default function MyOnePagerPage({ onBack }: MyOnePagerPageProps) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => copyToClipboard(businessCard.email)}
+                        onClick={() => copyToClipboard(businessCard.email || "")}
                       >
                         <Copy className="w-4 h-4" />
                       </Button>
@@ -421,7 +417,7 @@ export default function MyOnePagerPage({ onBack }: MyOnePagerPageProps) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => copyToClipboard(businessCard.phone)}
+                        onClick={() => copyToClipboard(businessCard.phone || "")}
                       >
                         <Copy className="w-4 h-4" />
                       </Button>

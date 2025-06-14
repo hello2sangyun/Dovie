@@ -1069,6 +1069,8 @@ export default function MainApp() {
             />
           ) : rightPanelContent === "linkedin-space" ? (
             <LinkedInSpacePage onBack={() => setRightPanelContent("digital-command")} />
+          ) : rightPanelContent === "my-onepager" ? (
+            <MyOnePagerPage onBack={() => setRightPanelContent(null)} />
           ) : rightPanelContent === "profile-edit" ? (
             <div className="flex-1 bg-gray-50 overflow-y-auto">
               <div className="max-w-4xl mx-auto p-6">
@@ -1357,6 +1359,12 @@ export default function MainApp() {
 
           {activeMobileTab === "settings" && (
             <ModernSettingsPage isMobile={true} />
+          )}
+
+          {activeMobileTab === "my-onepager" && (
+            <div className="h-full overflow-hidden">
+              <MyOnePagerPage onBack={() => setActiveMobileTab("cabinet")} />
+            </div>
           )}
         </div>
 
