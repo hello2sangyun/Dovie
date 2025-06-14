@@ -801,6 +801,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Save memo to person folder endpoint
+  app.post("/api/person-folders/:folderId/memo", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const folderId = Number(req.params.folderId);
+      const { memo } = req.body;
+
+      if (!memo || memo.trim() === "") {
+        return res.status(400).json({ message: "Memo content is required" });
+      }
+
+      // Verify folder belongs to user
+      const folder = await storage.getPersonFolderById(Number(userId), folderId);
+      if (!folder) {
+        return res.status(404).json({ message: "Folder not found" });
+      }
+
+      // Create folder item for the memo
+      const folderItem = await storage.addFolderItem({
+        folderId,
+        itemType: 'memo',
+        title: '메모',
+        description: memo.trim(),
+        tags: ['memo']
+      });
+
+      res.json({ 
+        success: true, 
+        folderItem,
+        message: "메모가 저장되었습니다." 
+      });
+
+    } catch (error) {
+      console.error("Memo save error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "메모 저장 중 오류가 발생했습니다." 
+      });
+    }
+  });
+
   // Generate One Pager from contact data endpoint
   app.post("/api/person-folders/:folderId/generate-onepager", async (req, res) => {
     const userId = req.headers["x-user-id"];
