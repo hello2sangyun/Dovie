@@ -4372,7 +4372,13 @@ END:VCARD\`;
         .where(eq(userPosts.userId, parseInt(userId as string)))
         .orderBy(desc(userPosts.createdAt));
 
-      res.json(posts);
+      // Process posts to ensure attachments are proper arrays
+      const processedPosts = posts.map(post => ({
+        ...post,
+        attachments: post.attachments || []
+      }));
+
+      res.json(processedPosts);
     } catch (error) {
       console.error("Error fetching user posts:", error);
       res.status(500).json({ message: "포스트를 가져오는 중 오류가 발생했습니다." });
