@@ -200,15 +200,25 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
           <h1 className="text-xl font-semibold text-gray-900">Cabinet</h1>
           <div className="flex items-center gap-2">
             {!isSelectMode ? (
-              <Button
-                onClick={toggleSelectMode}
-                variant="outline"
-                size="sm"
-                className="border-gray-300 text-gray-700 hover:bg-gray-50"
-              >
-                <CheckSquare className="w-4 h-4 mr-2" />
-                선택
-              </Button>
+              <>
+                <Button
+                  onClick={toggleSelectMode}
+                  variant="outline"
+                  size="sm"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  <CheckSquare className="w-4 h-4 mr-2" />
+                  선택
+                </Button>
+                <Button
+                  onClick={() => setLocation("/scan")}
+                  size="sm"
+                  className="bg-blue-500 hover:bg-blue-600"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  명함 스캔
+                </Button>
+              </>
             ) : (
               <>
                 <Button
