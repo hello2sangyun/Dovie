@@ -124,7 +124,10 @@ export default function ScanPage() {
       return await response.json();
     },
     onSuccess: (data) => {
-      setScanResult(data.extractedData);
+      setScanResult({
+        ...data.extractedData,
+        folderId: data.folderId
+      });
       setShowPreview(false);
       setShowManualCrop(false);
       toast({
