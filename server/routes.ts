@@ -1263,39 +1263,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "User ID required" });
       }
 
+      const numericUserId = Number(userId);
+      if (isNaN(numericUserId) || numericUserId <= 0) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
       const { folderIds } = req.body;
       
       if (!folderIds || !Array.isArray(folderIds) || folderIds.length === 0) {
         return res.status(400).json({ message: "Folder IDs are required" });
       }
 
-      console.log('Bulk deleting person folders:', folderIds);
-      console.log('Folder IDs types:', folderIds.map(id => ({ id, type: typeof id, isNaN: isNaN(Number(id)) })));
+      // Pre-validate all folder IDs
+      const validatedFolderIds = [];
+      for (const folderId of folderIds) {
+        const numericFolderId = Number(folderId);
+        if (isNaN(numericFolderId) || numericFolderId <= 0 || !Number.isInteger(numericFolderId)) {
+          console.error(`Invalid folder ID received: ${folderId} (type: ${typeof folderId})`);
+          return res.status(400).json({ 
+            message: `Invalid folder ID: ${folderId}. All folder IDs must be positive integers.` 
+          });
+        }
+        validatedFolderIds.push(numericFolderId);
+      }
+
+      console.log('Bulk deleting validated person folders:', validatedFolderIds);
 
       const deletedFolders = [];
+      const errors = [];
       
-      for (const folderId of folderIds) {
+      for (const folderId of validatedFolderIds) {
         try {
-          console.log(`Processing folder ID: ${folderId}, type: ${typeof folderId}`);
-          const numericFolderId = Number(folderId);
-          if (isNaN(numericFolderId) || numericFolderId <= 0) {
-            console.error(`Invalid folder ID: ${folderId}, converted to: ${numericFolderId}`);
-            continue;
-          }
-          console.log(`Deleting folder ${numericFolderId} for user ${userId}`);
-          await storage.deletePersonFolder(Number(userId), numericFolderId);
-          deletedFolders.push(numericFolderId);
-          console.log(`Successfully deleted folder ${numericFolderId}`);
+          console.log(`Deleting folder ${folderId} for user ${numericUserId}`);
+          await storage.deletePersonFolder(numericUserId, folderId);
+          deletedFolders.push(folderId);
+          console.log(`Successfully deleted folder ${folderId}`);
         } catch (error) {
           console.error(`Error deleting folder ${folderId}:`, error);
+          errors.push({ folderId, error: error instanceof Error ? error.message : 'Unknown error' });
         }
       }
 
-      res.json({ 
-        success: true, 
-        deletedFolders,
-        message: `${deletedFolders.length}개 폴더가 성공적으로 삭제되었습니다.`
-      });
+      if (errors.length > 0) {
+        res.status(207).json({ 
+          success: false,
+          deletedFolders,
+          errors,
+          message: `${deletedFolders.length}개 폴더 삭제 완료, ${errors.length}개 실패`
+        });
+      } else {
+        res.json({ 
+          success: true, 
+          deletedFolders,
+          message: `${deletedFolders.length}개 폴더가 성공적으로 삭제되었습니다.`
+        });
+      }
     } catch (error) {
       console.error('Error in bulk delete:', error);
       res.status(500).json({ message: "Failed to bulk delete folders" });

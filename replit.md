@@ -138,6 +138,12 @@ Dovie Messenger is a modern, secure messaging application built with a full-stac
 ## Changelog
 - June 14, 2025: Initial setup
 - June 14, 2025: Fixed bulk deletion error with proper number validation and improved mobile UX/UI with larger touch targets and better responsive design
+- June 14, 2025: Major AI functionality expansion:
+  * Enhanced OCR accuracy with multi-language support (Korean, English, Japanese)
+  * Intelligent automatic tag generation based on industry and job function
+  * Contact priority analysis with follow-up recommendations
+  * Improved business card data extraction with structured tagging
+  * Complete folder deletion bug fix with comprehensive validation
 
 ## User Preferences
 
