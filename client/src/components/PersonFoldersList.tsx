@@ -124,7 +124,23 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
       .join(", ");
     
     if (confirm(`선택한 ${selectedFolders.size}개 폴더를 삭제하시겠습니까?\n\n폴더: ${folderNames}\n\n이 작업은 되돌릴 수 없습니다.`)) {
-      deleteMultipleFoldersMutation.mutate(Array.from(selectedFolders));
+      const folderIdsArray = Array.from(selectedFolders);
+      console.log('Deleting folder IDs:', folderIdsArray);
+      console.log('Folder IDs types:', folderIdsArray.map(id => ({ id, type: typeof id, isValid: Number.isInteger(id) && id > 0 })));
+      
+      // Validate all IDs before sending
+      const validIds = folderIdsArray.filter(id => Number.isInteger(id) && id > 0);
+      if (validIds.length !== folderIdsArray.length) {
+        console.error('Some folder IDs are invalid:', folderIdsArray);
+        toast({
+          title: "삭제 실패",
+          description: "잘못된 폴더 ID가 감지되었습니다.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      deleteMultipleFoldersMutation.mutate(validIds);
     }
   };
 

@@ -379,6 +379,10 @@ export async function analyzeBusinessCard(base64Image: string): Promise<{
     phone?: string;
     address?: string;
     website?: string;
+    industry?: string;
+    department?: string;
+    tags?: string[];
+    language?: string;
     additionalInfo?: string;
   };
   error?: string;
@@ -389,18 +393,26 @@ export async function analyzeBusinessCard(base64Image: string): Promise<{
       messages: [
         {
           role: "system",
-          content: `당신은 명함 이미지를 분석하여 정보를 추출하는 전문가입니다. 
-          명함에서 다음 정보를 추출해주세요:
-          - 이름 (name)
-          - 직책/직위 (title)
-          - 회사명 (company)
-          - 이메일 (email)
-          - 전화번호 (phone)
-          - 주소 (address)
-          - 웹사이트 (website)
-          - 기타 정보 (additionalInfo)
+          content: `You are an expert at analyzing business cards from multiple languages including Korean, English, Japanese, Chinese, and other languages. 
+          Extract the following information from the business card with high accuracy:
+          - name: Person's full name
+          - title: Job title/position  
+          - company: Company/organization name
+          - email: Email address
+          - phone: Phone number (format consistently)
+          - address: Physical address
+          - website: Website URL
+          - industry: Industry category (e.g., "Technology", "Finance", "Healthcare", "Education", "Manufacturing", "Consulting", "Real Estate", "Legal", "Marketing", "Retail")
+          - department: Department/division if mentioned
+          - tags: Array of relevant tags based on industry, role, and company type
           
-          JSON 형태로 응답해주세요. 정보가 없는 경우 null로 표시하세요.`
+          For multi-language cards:
+          - Detect the primary language(s) used
+          - Preserve original text formatting when possible
+          - Handle mixed scripts (e.g., Korean company name with English email)
+          - Normalize phone numbers to international format when country is identifiable
+          
+          Return response in JSON format. Use null for missing information. Ensure tags are relevant and specific to the person's role and industry.`
         },
         {
           role: "user",
@@ -677,5 +689,175 @@ export async function extractBusinessCardInfo(base64Image: string): Promise<Busi
   } catch (error: any) {
     console.error("Business card extraction error:", error);
     throw new Error(`Failed to extract business card information: ${error.message}`);
+  }
+}
+
+// Generate intelligent tags based on business card data
+export async function generateSmartTags(businessCardData: BusinessCardData): Promise<string[]> {
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: `You are an expert at generating relevant tags for business contacts based on their professional information. 
+          Generate 3-8 specific, useful tags that help categorize and find this contact later.
+          
+          Consider:
+          - Industry-specific terms
+          - Job function/role level
+          - Company type/size indicators
+          - Geographic location if relevant
+          - Specialization areas
+          - Technology stack (for tech contacts)
+          - Professional interests/focus areas
+          
+          Return only an array of strings in JSON format: ["tag1", "tag2", "tag3"]
+          
+          Make tags concise (1-3 words), specific, and professionally relevant.`
+        },
+        {
+          role: "user",
+          content: `Generate smart tags for this contact:
+          Name: ${businessCardData.name || 'N/A'}
+          Company: ${businessCardData.company || 'N/A'}
+          Job Title: ${businessCardData.jobTitle || 'N/A'}
+          Industry: ${businessCardData.industry || 'N/A'}
+          Email: ${businessCardData.email || 'N/A'}
+          Phone: ${businessCardData.phone || 'N/A'}
+          Website: ${businessCardData.website || 'N/A'}
+          Address: ${businessCardData.address || 'N/A'}`
+        }
+      ],
+      response_format: { type: "json_object" },
+      max_tokens: 200
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || '{"tags": []}');
+    return Array.isArray(result) ? result : (result.tags || []);
+  } catch (error: any) {
+    console.error("Tag generation error:", error);
+    // Return basic fallback tags based on available data
+    const fallbackTags = [];
+    if (businessCardData.industry) fallbackTags.push(businessCardData.industry);
+    if (businessCardData.company) fallbackTags.push(businessCardData.company);
+    if (businessCardData.jobTitle) {
+      if (businessCardData.jobTitle.toLowerCase().includes('manager')) fallbackTags.push('Management');
+      if (businessCardData.jobTitle.toLowerCase().includes('developer')) fallbackTags.push('Technology');
+      if (businessCardData.jobTitle.toLowerCase().includes('sales')) fallbackTags.push('Sales');
+    }
+    return fallbackTags.slice(0, 5);
+  }
+}
+
+// Analyze contact priority and suggest follow-up actions
+export async function analyzeContactPriority(contacts: Array<{
+  id: number;
+  name: string;
+  company?: string;
+  jobTitle?: string;
+  industry?: string;
+  tags?: string[];
+  lastContactDate?: Date;
+  createdAt: Date;
+}>): Promise<Array<{
+  contactId: number;
+  priority: 'high' | 'medium' | 'low';
+  reason: string;
+  suggestedAction: string;
+  daysSinceLastContact?: number;
+}>> {
+  try {
+    const contactAnalysis = contacts.map(contact => ({
+      id: contact.id,
+      name: contact.name,
+      company: contact.company || 'N/A',
+      jobTitle: contact.jobTitle || 'N/A',
+      industry: contact.industry || 'N/A',
+      tags: contact.tags || [],
+      daysSinceCreated: Math.floor((Date.now() - contact.createdAt.getTime()) / (1000 * 60 * 60 * 24)),
+      daysSinceLastContact: contact.lastContactDate 
+        ? Math.floor((Date.now() - contact.lastContactDate.getTime()) / (1000 * 60 * 60 * 24))
+        : null
+    }));
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: `You are an expert at analyzing business contacts and suggesting follow-up priorities.
+          
+          Analyze each contact and assign priority levels based on:
+          - Industry importance and networking value
+          - Job title/seniority level
+          - Time since last contact (if available)
+          - Time since first meeting
+          - Professional relevance
+          
+          Priority Levels:
+          - HIGH: Key decision makers, valuable industry connections, or overdue follow-ups
+          - MEDIUM: Important contacts worth maintaining regular contact
+          - LOW: General networking contacts for occasional touch-base
+          
+          Suggested Actions:
+          - "Schedule meeting" for high-value prospects
+          - "Send follow-up message" for recent connections
+          - "Share relevant content" for industry peers
+          - "Check-in call" for existing relationships
+          - "Send connection request" for new contacts
+          
+          Return JSON array with: [{"contactId": number, "priority": string, "reason": string, "suggestedAction": string, "daysSinceLastContact": number}]`
+        },
+        {
+          role: "user",
+          content: `Analyze these contacts for follow-up priority:
+          ${JSON.stringify(contactAnalysis, null, 2)}`
+        }
+      ],
+      response_format: { type: "json_object" },
+      max_tokens: 1000
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || '{"priorities": []}');
+    return result.priorities || result || [];
+  } catch (error: any) {
+    console.error("Contact priority analysis error:", error);
+    // Return basic priority analysis as fallback
+    return contacts.map(contact => {
+      const daysSinceCreated = Math.floor((Date.now() - contact.createdAt.getTime()) / (1000 * 60 * 60 * 24));
+      const daysSinceLastContact = contact.lastContactDate 
+        ? Math.floor((Date.now() - contact.lastContactDate.getTime()) / (1000 * 60 * 60 * 24))
+        : null;
+      
+      let priority: 'high' | 'medium' | 'low' = 'low';
+      let reason = 'General networking contact';
+      let suggestedAction = 'Send connection message';
+      
+      // Simple heuristic-based priority
+      if (contact.jobTitle?.toLowerCase().includes('ceo') || 
+          contact.jobTitle?.toLowerCase().includes('founder') ||
+          contact.jobTitle?.toLowerCase().includes('director')) {
+        priority = 'high';
+        reason = 'Senior executive - high networking value';
+        suggestedAction = 'Schedule meeting';
+      } else if (daysSinceLastContact && daysSinceLastContact > 30) {
+        priority = 'medium';
+        reason = `No contact for ${daysSinceLastContact} days`;
+        suggestedAction = 'Send follow-up message';
+      } else if (daysSinceCreated <= 7) {
+        priority = 'medium';
+        reason = 'Recent connection - maintain momentum';
+        suggestedAction = 'Send follow-up message';
+      }
+      
+      return {
+        contactId: contact.id,
+        priority,
+        reason,
+        suggestedAction,
+        daysSinceLastContact
+      };
+    });
   }
 }
