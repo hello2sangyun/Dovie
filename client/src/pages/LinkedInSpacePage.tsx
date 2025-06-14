@@ -337,18 +337,51 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
                   </p>
                   
                   {/* 첨부 파일 표시 */}
-                  {post.attachments && post.attachments.length > 0 && (
-                    <div className="mb-4 rounded-lg overflow-hidden">
-                      <div className="grid grid-cols-1 gap-1">
-                        {post.attachments.map((attachment, index) => (
-                          <img
-                            key={index}
-                            src={attachment}
-                            alt="Post attachment"
-                            className="w-full h-auto max-h-96 object-cover"
-                          />
-                        ))}
-                      </div>
+                  {post.attachments && Array.isArray(post.attachments) && post.attachments.length > 0 && (
+                    <div className="mb-4">
+                      {post.attachments.map((attachment, index) => {
+                        console.log('Rendering attachment:', attachment, 'for post:', post.id);
+                        
+                        if (typeof attachment === 'string' && attachment.trim()) {
+                          return (
+                            <div key={`${post.id}-${index}`} className="mb-2">
+                              <img
+                                src={attachment}
+                                alt={`이미지 첨부파일 ${index + 1}`}
+                                className="w-full max-w-full h-auto max-h-96 object-contain rounded-lg border border-gray-200 shadow-sm"
+                                style={{ 
+                                  display: 'block',
+                                  backgroundColor: '#f8f9fa'
+                                }}
+                                onLoad={(e) => {
+                                  console.log('✅ Image loaded successfully:', attachment);
+                                  const img = e.target as HTMLImageElement;
+                                  img.style.backgroundColor = 'transparent';
+                                }}
+                                onError={(e) => {
+                                  console.error('❌ Image failed to load:', attachment);
+                                  const img = e.target as HTMLImageElement;
+                                  img.style.display = 'none';
+                                  
+                                  // Create fallback element
+                                  const fallback = document.createElement('div');
+                                  fallback.className = 'flex items-center justify-center p-4 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300';
+                                  fallback.innerHTML = `
+                                    <div class="text-center">
+                                      <div class="text-gray-400 text-2xl mb-2">🖼️</div>
+                                      <p class="text-sm text-gray-500">이미지를 불러올 수 없습니다</p>
+                                      <p class="text-xs text-gray-400">${attachment}</p>
+                                    </div>
+                                  `;
+                                  img.parentNode?.insertBefore(fallback, img);
+                                }}
+                              />
+                            </div>
+                          );
+                        }
+                        
+                        return null;
+                      })}
                     </div>
                   )}
                   
