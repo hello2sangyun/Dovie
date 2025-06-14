@@ -623,55 +623,34 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUnreadCounts(userId: number): Promise<{ chatRoomId: number; unreadCount: number }[]> {
-    // Get all chat rooms the user participates in
-    const userChatRooms = await db
-      .select({
-        chatRoomId: chatParticipants.chatRoomId,
-      })
-      .from(chatParticipants)
-      .where(eq(chatParticipants.userId, userId));
+    // Single optimized query to get unread counts using CTEs
+    const result = await db.execute(sql`
+      WITH user_rooms AS (
+        SELECT chat_room_id 
+        FROM chat_participants 
+        WHERE user_id = ${userId}
+      ),
+      read_positions AS (
+        SELECT 
+          mr.chat_room_id,
+          COALESCE(mr.last_read_message_id, 0) as last_read_id
+        FROM user_rooms ur
+        LEFT JOIN message_reads mr ON mr.chat_room_id = ur.chat_room_id AND mr.user_id = ${userId}
+      ),
+      unread_counts AS (
+        SELECT 
+          rp.chat_room_id,
+          COUNT(m.id) as unread_count
+        FROM read_positions rp
+        LEFT JOIN messages m ON m.chat_room_id = rp.chat_room_id AND m.id > rp.last_read_id
+        GROUP BY rp.chat_room_id
+        HAVING COUNT(m.id) > 0
+      )
+      SELECT chat_room_id as "chatRoomId", unread_count as "unreadCount"
+      FROM unread_counts
+    `);
 
-    const unreadCounts = [];
-
-    for (const room of userChatRooms) {
-      // Get the last read message for this chat room
-      const [readRecord] = await db
-        .select()
-        .from(messageReads)
-        .where(and(
-          eq(messageReads.userId, userId),
-          eq(messageReads.chatRoomId, room.chatRoomId)
-        ));
-
-      let unreadCount = 0;
-      if (!readRecord) {
-        // No read record exists, count all messages
-        const [countResult] = await db
-          .select({ count: count(messages.id) })
-          .from(messages)
-          .where(eq(messages.chatRoomId, room.chatRoomId));
-        unreadCount = countResult.count;
-      } else {
-        // Count messages after the last read message
-        const [countResult] = await db
-          .select({ count: count(messages.id) })
-          .from(messages)
-          .where(and(
-            eq(messages.chatRoomId, room.chatRoomId),
-            gt(messages.id, readRecord.lastReadMessageId || 0)
-          ));
-        unreadCount = countResult.count;
-      }
-
-      if (unreadCount > 0) {
-        unreadCounts.push({
-          chatRoomId: room.chatRoomId,
-          unreadCount,
-        });
-      }
-    }
-
-    return unreadCounts;
+    return result.rows as { chatRoomId: number; unreadCount: number }[];
   }
 
   async createPhoneVerification(verification: InsertPhoneVerification): Promise<PhoneVerification> {

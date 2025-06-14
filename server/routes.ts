@@ -2346,6 +2346,13 @@ END:VCARD\`;
 
     try {
       const unreadCounts = await storage.getUnreadCounts(Number(userId));
+      
+      // Aggressive caching for better performance
+      res.set({
+        'Cache-Control': 'private, max-age=15, stale-while-revalidate=30',
+        'ETag': `"unread-${userId}-${unreadCounts.length}"`
+      });
+      
       res.json({ unreadCounts });
     } catch (error) {
       res.status(500).json({ message: "Failed to get unread counts" });

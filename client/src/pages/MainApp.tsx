@@ -226,11 +226,12 @@ export default function MainApp() {
     }
   }, [(chatRoomsData as any)?.chatRooms, queryClient]);
 
-  // Get unread counts
+  // Get unread counts (optimized interval)
   const { data: unreadCountsData } = useQuery({
     queryKey: ["/api/unread-counts"],
     enabled: !!user,
-    refetchInterval: 5000,
+    refetchInterval: 15000, // Reduced from 5s to 15s
+    staleTime: 10000, // Keep data fresh for 10s
   });
 
   // Optimized profile image preloading with debounce and limits
