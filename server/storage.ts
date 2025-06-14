@@ -222,6 +222,15 @@ export class DatabaseStorage implements IStorage {
     return contact || undefined;
   }
 
+  async updateContactById(contactId: number, updates: Partial<InsertContact>): Promise<Contact | undefined> {
+    const [contact] = await db
+      .update(contacts)
+      .set(updates)
+      .where(eq(contacts.id, contactId))
+      .returning();
+    return contact || undefined;
+  }
+
   async blockContact(userId: number, contactUserId: number): Promise<void> {
     await db
       .update(contacts)

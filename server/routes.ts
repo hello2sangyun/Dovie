@@ -1236,7 +1236,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
 
           if (Object.keys(updateContactData).length > 0) {
-            await storage.updateContact(folder.contactId, updateContactData);
+            await storage.updateContactById(folder.contactId, updateContactData);
             updatedFolders.push(folderId);
           }
         } catch (error) {
