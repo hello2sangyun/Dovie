@@ -439,19 +439,6 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
             onTouchEnd={handleTouchEnd}
             onTouchCancel={handleTouchEnd}
             onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-            style={{
-              touchAction: 'none',
-              userSelect: 'none',
-              WebkitUserSelect: 'none',
-              cursor: isResizing 
-                ? (resizeHandle === 'tl' || resizeHandle === 'br' ? 'nw-resize' : 'ne-resize')
-                : isDragging 
-                ? 'grabbing' 
-                : 'grab'
-            }}
             onMouseMove={(e) => {
               if (!isDragging && !isResizing) {
                 const position = getEventPosition(e);
@@ -468,6 +455,18 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
                 }
               }
               handleMouseMove(e);
+            }}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            style={{
+              touchAction: 'none',
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              cursor: isResizing 
+                ? (resizeHandle === 'tl' || resizeHandle === 'br' ? 'nw-resize' : 'ne-resize')
+                : isDragging 
+                ? 'grabbing' 
+                : 'grab'
             }}
           />
         </div>
