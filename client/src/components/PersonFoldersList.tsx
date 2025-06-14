@@ -77,17 +77,7 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
 
   const deleteMultipleFoldersMutation = useMutation({
     mutationFn: async (folderIds: number[]) => {
-      // Delete folders one by one to ensure proper cleanup
-      const results = await Promise.allSettled(
-        folderIds.map(id => apiRequest(`/api/person-folders/${id}`, "DELETE"))
-      );
-      
-      const failed = results.filter(result => result.status === 'rejected');
-      if (failed.length > 0) {
-        throw new Error(`${failed.length}개 폴더 삭제 실패`);
-      }
-      
-      return results;
+      return apiRequest("/api/person-folders/bulk", "DELETE", { folderIds });
     },
     onSuccess: (_, folderIds) => {
       queryClient.invalidateQueries({ queryKey: ["/api/person-folders"] });

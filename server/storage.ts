@@ -31,6 +31,7 @@ export interface IStorage {
   removeContact(userId: number, contactUserId: number): Promise<void>;
   removeContactById(userId: number, contactId: number): Promise<void>;
   updateContact(userId: number, contactUserId: number, updates: Partial<InsertContact>): Promise<Contact | undefined>;
+  updateContactById(contactId: number, updates: Partial<InsertContact>): Promise<Contact | undefined>;
   blockContact(userId: number, contactUserId: number): Promise<void>;
   unblockContact(userId: number, contactUserId: number): Promise<void>;
   getBlockedContacts(userId: number): Promise<(Contact & { contactUser: User })[]>;

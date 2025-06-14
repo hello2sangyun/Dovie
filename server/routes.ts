@@ -1193,6 +1193,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Bulk edit person folders
+  app.post("/api/person-folders/bulk-edit", async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string;
+      if (!userId) {
+        return res.status(401).json({ message: "User ID required" });
+      }
+
+      const { folderIds, editData } = req.body;
+      
+      if (!folderIds || !Array.isArray(folderIds) || folderIds.length === 0) {
+        return res.status(400).json({ message: "Folder IDs are required" });
+      }
+
+      if (!editData || Object.keys(editData).length === 0) {
+        return res.status(400).json({ message: "Edit data is required" });
+      }
+
+      console.log('Bulk editing person folders:', folderIds, editData);
+
+      // Update each folder's associated contact with the provided data
+      const updatedFolders = [];
+      
+      for (const folderId of folderIds) {
+        try {
+          // Get the folder to access its contact
+          const folder = await storage.getPersonFolderById(Number(userId), folderId);
+          if (!folder || !folder.contactId) {
+            console.warn(`Folder ${folderId} not found or has no contact`);
+            continue;
+          }
+
+          // Update the contact with bulk edit data
+          const updateContactData: any = {};
+          if (editData.company) updateContactData.company = editData.company;
+          if (editData.jobTitle) updateContactData.jobTitle = editData.jobTitle;
+          if (editData.notes) updateContactData.notes = editData.notes;
+          if (editData.category) updateContactData.category = editData.category;
+          if (editData.tags && editData.tags.length > 0) {
+            updateContactData.tags = JSON.stringify(editData.tags);
+          }
+
+          if (Object.keys(updateContactData).length > 0) {
+            await storage.updateContact(folder.contactId, updateContactData);
+            updatedFolders.push(folderId);
+          }
+        } catch (error) {
+          console.error(`Error updating folder ${folderId}:`, error);
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        updatedFolders,
+        message: `${updatedFolders.length}개 폴더가 성공적으로 업데이트되었습니다.`
+      });
+    } catch (error) {
+      console.error('Error in bulk edit:', error);
+      res.status(500).json({ message: "Failed to bulk edit folders" });
+    }
+  });
+
+  // Delete multiple person folders
+  app.delete("/api/person-folders/bulk", async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string;
+      if (!userId) {
+        return res.status(401).json({ message: "User ID required" });
+      }
+
+      const { folderIds } = req.body;
+      
+      if (!folderIds || !Array.isArray(folderIds) || folderIds.length === 0) {
+        return res.status(400).json({ message: "Folder IDs are required" });
+      }
+
+      console.log('Bulk deleting person folders:', folderIds);
+
+      const deletedFolders = [];
+      
+      for (const folderId of folderIds) {
+        try {
+          await storage.deletePersonFolder(Number(userId), folderId);
+          deletedFolders.push(folderId);
+        } catch (error) {
+          console.error(`Error deleting folder ${folderId}:`, error);
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        deletedFolders,
+        message: `${deletedFolders.length}개 폴더가 성공적으로 삭제되었습니다.`
+      });
+    } catch (error) {
+      console.error('Error in bulk delete:', error);
+      res.status(500).json({ message: "Failed to bulk delete folders" });
+    }
+  });
+
   // Contact management for person folders
   app.post("/api/contacts", async (req, res) => {
     try {
