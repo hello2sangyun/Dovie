@@ -3,7 +3,7 @@ import express from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, insertUserPostSchema, insertPostLikeSchema, insertPostCommentSchema, insertCompanyChannelSchema, insertCompanyProfileSchema, locationChatRooms, chatRooms, chatParticipants, userPosts, postLikes, postComments, companyChannels, companyChannelFollowers, companyChannelAdmins, users, businessProfiles, contacts, businessPostReads, businessPosts, businessPostLikes, companyProfiles } from "@shared/schema";
+import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, insertUserPostSchema, insertPostLikeSchema, insertPostCommentSchema, insertCompanyChannelSchema, insertCompanyProfileSchema, locationChatRooms, chatRooms, chatParticipants, userPosts, postLikes, postComments, companyChannels, companyChannelFollowers, companyChannelAdmins, users, businessProfiles, contacts, businessPostReads, businessPosts, businessPostLikes, companyProfiles, personFolders, folderItems } from "@shared/schema";
 import { sql } from "drizzle-orm";
 import { translateText, transcribeAudio, extractBusinessCardInfo } from "./openai";
 import bcrypt from "bcryptjs";
@@ -1465,14 +1465,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get existing business cards for this user
       const existingCards = await db
         .select()
-        .from(folder_items)
+        .from(folderItems)
         .where(
           and(
-            eq(folder_items.itemType, 'business_card'),
-            inArray(folder_items.folderId, 
-              db.select({ id: person_folders.id })
-                .from(person_folders)
-                .where(eq(person_folders.userId, Number(userId)))
+            eq(folderItems.itemType, 'business_card'),
+            inArray(folderItems.folderId, 
+              db.select({ id: personFolders.id })
+                .from(personFolders)
+                .where(eq(personFolders.userId, Number(userId)))
             )
           )
         );
@@ -1535,14 +1535,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Update the existing card with merged data
       await db
-        .update(folder_items)
+        .update(folderItems)
         .set({
           businessCardData: JSON.stringify(newCardData),
           title: `${newCardData.name}님의 명함`,
           description: `${newCardData.jobTitle} • ${newCardData.company}`,
           updatedAt: new Date()
         })
-        .where(eq(folder_items.id, existingCardId));
+        .where(eq(folderItems.id, existingCardId));
 
       res.json({ success: true, message: "명함이 성공적으로 병합되었습니다." });
     } catch (error) {

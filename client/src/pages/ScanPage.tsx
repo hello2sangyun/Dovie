@@ -3,9 +3,17 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, Upload, Scan, AlertCircle, Loader2 } from "lucide-react";
+import { Camera, Upload, Scan, AlertCircle, Loader2, RefreshCw, Merge } from "lucide-react";
 import CameraCapture from "@/components/CameraCapture";
 import ImageCrop from "@/components/ImageCropNew";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
@@ -100,6 +108,46 @@ export default function ScanPage() {
     },
   });
 
+  // Mutation for checking duplicates
+  const checkDuplicateMutation = useMutation({
+    mutationFn: async (extractedData: any) => {
+      const userId = localStorage.getItem("userId");
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (userId) {
+        headers["x-user-id"] = userId;
+      }
+      
+      const response = await fetch("/api/business-cards/check-duplicate", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(extractedData),
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`중복 확인 실패: ${response.status} - ${errorText}`);
+      }
+      
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      if (data.isDuplicate) {
+        setDuplicateCheck(data);
+        setShowDuplicateDialog(true);
+      } else {
+        // No duplicate, proceed with saving
+        proceedWithSave();
+      }
+    },
+    onError: (error) => {
+      console.error("Duplicate check error:", error);
+      // If duplicate check fails, proceed with saving
+      proceedWithSave();
+    },
+  });
+
   // Mutation for scanning business card
   const scanMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -126,19 +174,22 @@ export default function ScanPage() {
       return await response.json();
     },
     onSuccess: (data) => {
+      // First check for duplicates before saving
+      const extractedData = {
+        name: data.extractedData.name,
+        company: data.extractedData.company,
+        phone: data.extractedData.phone,
+        email: data.extractedData.email,
+      };
+      
+      // Store the full scan result for later use
       setScanResult({
         ...data.extractedData,
         folderId: data.folderId
       });
-      setShowPreview(false);
-      setShowManualCrop(false);
-      toast({
-        title: "저장되었습니다",
-        description: "명함 정보가 성공적으로 저장되었습니다.",
-      });
       
-      // Invalidate person folders to refresh the list
-      queryClient.invalidateQueries({ queryKey: ["/api/person-folders"] });
+      // Check for duplicates
+      checkDuplicateMutation.mutate(extractedData);
     },
     onError: (error) => {
       console.error("Scan error:", error);
@@ -149,6 +200,84 @@ export default function ScanPage() {
       });
     },
   });
+
+  // Mutation for merging business cards
+  const mergeMutation = useMutation({
+    mutationFn: async ({ existingCardId, newCardData }: { existingCardId: number; newCardData: any }) => {
+      const userId = localStorage.getItem("userId");
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (userId) {
+        headers["x-user-id"] = userId;
+      }
+      
+      const response = await fetch("/api/business-cards/merge", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ existingCardId, newCardData }),
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`병합 실패: ${response.status} - ${errorText}`);
+      }
+      
+      return await response.json();
+    },
+    onSuccess: () => {
+      setShowDuplicateDialog(false);
+      setDuplicateCheck(null);
+      proceedWithSave();
+    },
+    onError: (error) => {
+      console.error("Merge error:", error);
+      toast({
+        title: "병합 실패",
+        description: "명함 병합 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Function to proceed with saving (no duplicates found)
+  const proceedWithSave = () => {
+    setShowPreview(false);
+    setShowManualCrop(false);
+    toast({
+      title: "저장되었습니다",
+      description: "명함 정보가 성공적으로 저장되었습니다.",
+    });
+    
+    // Invalidate person folders to refresh the list
+    queryClient.invalidateQueries({ queryKey: ["/api/person-folders"] });
+  };
+
+  // Handle duplicate dialog actions
+  const handleMergeCards = () => {
+    if (duplicateCheck && scanResult) {
+      mergeMutation.mutate({
+        existingCardId: duplicateCheck.existingCard.id,
+        newCardData: scanResult,
+      });
+    }
+  };
+
+  const handleKeepExisting = () => {
+    setShowDuplicateDialog(false);
+    setDuplicateCheck(null);
+    toast({
+      title: "기존 명함 유지",
+      description: "기존에 저장된 명함을 유지합니다.",
+    });
+    setLocation("/");
+  };
+
+  const handleSaveAsNew = () => {
+    setShowDuplicateDialog(false);
+    setDuplicateCheck(null);
+    proceedWithSave();
+  };
 
   // Mutation for saving memo to folder
   const saveMemoMutation = useMutation({
@@ -548,6 +677,115 @@ export default function ScanPage() {
         onClose={cameraProps.onClose}
         isOpen={cameraProps.isOpen}
       />
+
+      {/* Duplicate Detection Dialog */}
+      <Dialog open={showDuplicateDialog} onOpenChange={setShowDuplicateDialog}>
+        <DialogContent className="max-w-md mx-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center text-lg font-semibold">
+              <AlertCircle className="w-5 h-5 mr-2 text-yellow-500" />
+              중복 명함 발견
+            </DialogTitle>
+            <DialogDescription className="text-sm text-gray-600">
+              이미 저장된 명함과 유사한 정보가 발견되었습니다.
+            </DialogDescription>
+          </DialogHeader>
+
+          {duplicateCheck && (
+            <div className="py-4 space-y-4">
+              {/* Existing Card Info */}
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <h4 className="font-medium text-gray-800 mb-2">기존 명함</h4>
+                <div className="space-y-1 text-sm text-gray-600">
+                  <p><span className="font-medium">이름:</span> {duplicateCheck.existingCard.businessCardData ? JSON.parse(duplicateCheck.existingCard.businessCardData).name : '정보 없음'}</p>
+                  <p><span className="font-medium">회사:</span> {duplicateCheck.existingCard.businessCardData ? JSON.parse(duplicateCheck.existingCard.businessCardData).company : '정보 없음'}</p>
+                  <p><span className="font-medium">연락처:</span> {duplicateCheck.existingCard.businessCardData ? JSON.parse(duplicateCheck.existingCard.businessCardData).phone : '정보 없음'}</p>
+                </div>
+              </div>
+
+              {/* New Card Info */}
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <h4 className="font-medium text-gray-800 mb-2">새로 스캔한 명함</h4>
+                <div className="space-y-1 text-sm text-gray-600">
+                  <p><span className="font-medium">이름:</span> {scanResult?.name || '정보 없음'}</p>
+                  <p><span className="font-medium">회사:</span> {scanResult?.company || '정보 없음'}</p>
+                  <p><span className="font-medium">연락처:</span> {scanResult?.phone || '정보 없음'}</p>
+                </div>
+              </div>
+
+              {duplicateCheck.duplicateType === 'exact' && (
+                <div className="bg-yellow-50 p-3 rounded-lg">
+                  <p className="text-sm text-yellow-800">
+                    <strong>완전 일치:</strong> 이미 저장된 명함과 동일한 정보입니다.
+                  </p>
+                </div>
+              )}
+
+              {duplicateCheck.duplicateType === 'similar' && (
+                <div className="bg-blue-50 p-3 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    <strong>유사한 명함:</strong> 기존 명함과 일부 정보가 다릅니다. 병합하면 새로운 정보로 업데이트됩니다.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter className="flex flex-col space-y-2">
+            {duplicateCheck?.duplicateType === 'exact' ? (
+              <>
+                <Button
+                  onClick={handleKeepExisting}
+                  className="w-full bg-gray-600 hover:bg-gray-700 text-white"
+                >
+                  기존 명함 유지
+                </Button>
+                <Button
+                  onClick={handleSaveAsNew}
+                  variant="outline"
+                  className="w-full"
+                >
+                  새로운 명함으로 저장
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  onClick={handleMergeCards}
+                  disabled={mergeMutation.isPending}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {mergeMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      병합 중...
+                    </>
+                  ) : (
+                    <>
+                      <Merge className="w-4 h-4 mr-2" />
+                      명함 정보 병합
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={handleKeepExisting}
+                  variant="outline"
+                  className="w-full"
+                >
+                  기존 명함 유지
+                </Button>
+                <Button
+                  onClick={handleSaveAsNew}
+                  variant="outline"
+                  className="w-full"
+                >
+                  새로운 명함으로 저장
+                </Button>
+              </>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
