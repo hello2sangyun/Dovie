@@ -188,36 +188,54 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
     <div className="flex flex-col h-full bg-white">
       {/* Header */}
       <div className="p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-semibold text-gray-900">Cabinet</h1>
-          <div className="flex items-center gap-2">
-            {!isSelectMode ? (
-              <>
-                <Button
-                  onClick={toggleSelectMode}
-                  variant="outline"
-                  size="sm"
-                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
-                >
-                  <CheckSquare className="w-4 h-4 mr-2" />
-                  선택
-                </Button>
-                <Button
-                  onClick={() => setLocation("/scan")}
-                  size="sm"
-                  className="bg-blue-500 hover:bg-blue-600"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  명함 스캔
-                </Button>
-              </>
-            ) : (
-              <>
+        <div className="flex flex-col gap-4">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-semibold text-gray-900">Cabinet</h1>
+            {!isSelectMode && (
+              <Button
+                onClick={() => setLocation("/scan")}
+                size="sm"
+                className="bg-blue-500 hover:bg-blue-600 h-10 px-4"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                명함 스캔
+              </Button>
+            )}
+          </div>
+          
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              type="text"
+              placeholder="사람 이름, 회사명으로 검색..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-gray-50 border-gray-200 h-12 text-base"
+            />
+          </div>
+          
+          {/* Mobile-optimized Actions */}
+          {!isSelectMode ? (
+            <div className="flex justify-center">
+              <Button
+                onClick={toggleSelectMode}
+                variant="outline"
+                className="border-gray-300 text-gray-700 hover:bg-gray-50 h-10 px-6"
+              >
+                <CheckSquare className="w-4 h-4 mr-2" />
+                선택하기
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {/* Selection Controls */}
+              <div className="flex items-center justify-between">
                 <Button
                   onClick={handleSelectAll}
                   variant="outline"
-                  size="sm"
-                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50 h-10 px-4"
                 >
                   {selectedFolders.size === filteredFolders.length ? (
                     <>
@@ -231,52 +249,40 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
                     </>
                   )}
                 </Button>
-                {selectedFolders.size > 0 && (
-                  <>
-                    <Button
-                      onClick={() => setShowBulkEdit(true)}
-                      size="sm"
-                      variant="outline"
-                      className="border-blue-300 text-blue-700 hover:bg-blue-50"
-                    >
-                      <FileText className="w-4 h-4 mr-2" />
-                      {`${selectedFolders.size}개 편집`}
-                    </Button>
-                    <Button
-                      onClick={handleDeleteSelected}
-                      size="sm"
-                      variant="destructive"
-                      disabled={deleteMultipleFoldersMutation.isPending}
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      {deleteMultipleFoldersMutation.isPending ? "삭제 중..." : `${selectedFolders.size}개 삭제`}
-                    </Button>
-                  </>
-                )}
                 <Button
                   onClick={toggleSelectMode}
                   variant="outline"
-                  size="sm"
-                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50 h-10 px-4"
                 >
                   <X className="w-4 h-4 mr-2" />
                   취소
                 </Button>
-              </>
-            )}
-          </div>
-        </div>
-        
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            type="text"
-            placeholder="사람 이름, 회사명으로 검색..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-gray-50 border-gray-200"
-          />
+              </div>
+              
+              {/* Action Buttons - Full Width for Mobile */}
+              {selectedFolders.size > 0 && (
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => setShowBulkEdit(true)}
+                    variant="outline"
+                    className="flex-1 border-blue-300 text-blue-700 hover:bg-blue-50 h-12"
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    {`${selectedFolders.size}개 편집`}
+                  </Button>
+                  <Button
+                    onClick={handleDeleteSelected}
+                    variant="destructive"
+                    disabled={deleteMultipleFoldersMutation.isPending}
+                    className="flex-1 h-12"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    {deleteMultipleFoldersMutation.isPending ? "삭제 중..." : `${selectedFolders.size}개 삭제`}
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -331,7 +337,7 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
                   }
                 }}
                 className={cn(
-                  "bg-white border rounded-lg p-3 transition-colors cursor-pointer touch-manipulation select-none",
+                  "bg-white border rounded-lg p-4 transition-colors cursor-pointer touch-manipulation select-none min-h-[76px]",
                   isSelectMode && selectedFolders.has(folder.id)
                     ? "border-blue-500 bg-blue-50"
                     : "border-gray-100 hover:bg-gray-50 active:bg-gray-100"
@@ -339,14 +345,14 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
                 role="button"
                 tabIndex={0}
               >
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-4">
                   {/* Selection Checkbox (only in select mode) */}
                   {isSelectMode && (
                     <div className="flex-shrink-0">
                       {selectedFolders.has(folder.id) ? (
-                        <CheckSquare className="w-5 h-5 text-blue-500" />
+                        <CheckSquare className="w-6 h-6 text-blue-500" />
                       ) : (
-                        <Square className="w-5 h-5 text-gray-400" />
+                        <Square className="w-6 h-6 text-gray-400" />
                       )}
                     </div>
                   )}
@@ -356,16 +362,16 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
                     {getContactDisplayName(folder) ? (
                       <PrismAvatar
                         fallback={getInitials(getContactDisplayName(folder))}
-                        size="sm"
-                        className="w-9 h-9"
+                        size="md"
+                        className="w-12 h-12"
                       />
                     ) : (
-                      <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center">
-                        <FolderOpen className="w-4 h-4 text-gray-400" />
+                      <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                        <FolderOpen className="w-5 h-5 text-gray-400" />
                       </div>
                     )}
                     {folder.itemCount > 0 && (
-                      <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-medium">
+                      <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
                         {folder.itemCount > 99 ? '99+' : folder.itemCount}
                       </div>
                     )}

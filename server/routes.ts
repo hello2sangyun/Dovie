@@ -1275,8 +1275,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       for (const folderId of folderIds) {
         try {
-          await storage.deletePersonFolder(Number(userId), folderId);
-          deletedFolders.push(folderId);
+          const numericFolderId = Number(folderId);
+          if (isNaN(numericFolderId)) {
+            console.error(`Invalid folder ID: ${folderId}`);
+            continue;
+          }
+          await storage.deletePersonFolder(Number(userId), numericFolderId);
+          deletedFolders.push(numericFolderId);
         } catch (error) {
           console.error(`Error deleting folder ${folderId}:`, error);
         }

@@ -136,7 +136,8 @@ Dovie Messenger is a modern, secure messaging application built with a full-stac
 - `NODE_ENV`: Environment flag (development/production)
 
 ## Changelog
-- June 14, 2025. Initial setup
+- June 14, 2025: Initial setup
+- June 14, 2025: Fixed bulk deletion error with proper number validation and improved mobile UX/UI with larger touch targets and better responsive design
 
 ## User Preferences
 
