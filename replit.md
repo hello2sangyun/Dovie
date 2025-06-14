@@ -144,6 +144,13 @@ Dovie Messenger is a modern, secure messaging application built with a full-stac
   * Contact priority analysis with follow-up recommendations
   * Improved business card data extraction with structured tagging
   * Complete folder deletion bug fix with comprehensive validation
+- June 14, 2025: Comprehensive performance optimization:
+  * Database query optimization with CTE-based unread counts and limits
+  * API response caching with 15-30 second TTL for static data
+  * Reduced client query intervals from 5s to 15s with stale time management
+  * Image processing optimization with reduced JPEG quality (85% vs 98%)
+  * Static file serving with 1-year aggressive caching for images
+  * Optimized Sharp image processing pipeline with faster cubic kernel
 
 ## User Preferences
 

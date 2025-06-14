@@ -623,16 +623,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUnreadCounts(userId: number): Promise<{ chatRoomId: number; unreadCount: number }[]> {
-    // Single optimized query to get unread counts using CTEs
+    // Ultra-optimized query with minimal database load
     const result = await db.execute(sql`
       WITH user_rooms AS (
         SELECT chat_room_id 
         FROM chat_participants 
         WHERE user_id = ${userId}
+        LIMIT 50
       ),
       read_positions AS (
         SELECT 
-          mr.chat_room_id,
+          ur.chat_room_id,
           COALESCE(mr.last_read_message_id, 0) as last_read_id
         FROM user_rooms ur
         LEFT JOIN message_reads mr ON mr.chat_room_id = ur.chat_room_id AND mr.user_id = ${userId}
@@ -640,14 +641,16 @@ export class DatabaseStorage implements IStorage {
       unread_counts AS (
         SELECT 
           rp.chat_room_id,
-          COUNT(m.id) as unread_count
+          COUNT(CASE WHEN m.id > rp.last_read_id THEN 1 END) as unread_count
         FROM read_positions rp
-        LEFT JOIN messages m ON m.chat_room_id = rp.chat_room_id AND m.id > rp.last_read_id
-        GROUP BY rp.chat_room_id
-        HAVING COUNT(m.id) > 0
+        LEFT JOIN messages m ON m.chat_room_id = rp.chat_room_id
+        GROUP BY rp.chat_room_id, rp.last_read_id
+        HAVING COUNT(CASE WHEN m.id > rp.last_read_id THEN 1 END) > 0
       )
       SELECT chat_room_id as "chatRoomId", unread_count as "unreadCount"
       FROM unread_counts
+      ORDER BY unread_count DESC
+      LIMIT 20
     `);
 
     return result.rows as { chatRoomId: number; unreadCount: number }[];
