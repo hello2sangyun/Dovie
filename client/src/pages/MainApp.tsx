@@ -35,8 +35,8 @@ export default function MainApp() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState("chats");
-  const [activeMobileTab, setActiveMobileTab] = useState("chats");
+  const [activeTab, setActiveTab] = useState("contacts");
+  const [activeMobileTab, setActiveMobileTab] = useState("cabinet");
 
   // Handle URL parameters for tab navigation
   useEffect(() => {
@@ -1303,6 +1303,12 @@ export default function MainApp() {
               </div>
             </div>
           )}
+
+          {activeMobileTab === "network" && (
+            <div className="h-full overflow-hidden">
+              <LinkedInSpacePage />
+            </div>
+          )}
           
           {activeMobileTab === "more" && (
             <ModernSettingsPage isMobile={true} />
@@ -1364,13 +1370,21 @@ export default function MainApp() {
 
               <Button
                 variant="ghost"
-                className="flex flex-col items-center py-2 px-2 rounded-2xl transition-all duration-300 hover:scale-105 relative min-h-[60px]"
-                onClick={() => setShowCamera(true)}
+                className={cn(
+                  "flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-200 min-h-[60px] flex-1 max-w-[80px]",
+                  activeMobileTab === "network" 
+                    ? "text-blue-600 bg-blue-50 scale-105" 
+                    : "text-gray-600 hover:text-gray-800 hover:bg-gray-50"
+                )}
+                onClick={() => setActiveMobileTab("network")}
               >
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-white hover:from-blue-600 hover:to-purple-700">
-                  <Camera className="h-6 w-6 text-white" />
+                <div className={cn(
+                  "p-1.5 rounded-lg transition-colors",
+                  activeMobileTab === "network" ? "bg-blue-100" : ""
+                )}>
+                  <Building2 className="h-5 w-5" />
                 </div>
-                <span className="text-xs mt-1 font-bold text-blue-600">명함 스캔</span>
+                <span className="text-xs mt-1 font-medium">Network</span>
               </Button>
               
               <Button
