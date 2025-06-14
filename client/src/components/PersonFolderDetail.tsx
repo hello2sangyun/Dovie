@@ -19,7 +19,8 @@ import {
   Download,
   Trash2,
   Eye,
-  X
+  X,
+  Folder
 } from "lucide-react";
 import { cn, getInitials } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
@@ -73,6 +74,7 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedBusinessCard, setSelectedBusinessCard] = useState<{
     imageUrl: string;
     personName: string;
@@ -142,11 +144,28 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
     console.error('Error parsing business card data:', error);
   }
 
-  const filteredItems = items.filter((item: FolderItem) =>
-    item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.fileName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Group items by category
+  const groupedItems = {
+    명함: items.filter(item => item.itemType === 'business_card'),
+    메모: items.filter(item => item.itemType === 'memo'),
+    문서: items.filter(item => ['document', 'one_pager'].includes(item.itemType)),
+    이미지: items.filter(item => item.itemType === 'image'),
+    음성: items.filter(item => item.itemType === 'audio'),
+    채팅파일: items.filter(item => item.itemType === 'chat_file'),
+  };
+
+  // Filter items for search if no category is selected
+  const filteredItems = selectedCategory 
+    ? (groupedItems[selectedCategory as keyof typeof groupedItems] || []).filter((item: FolderItem) =>
+        item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.fileName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : items.filter((item: FolderItem) =>
+        item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.fileName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
 
   const getItemIcon = (itemType: string) => {
     switch (itemType) {
@@ -248,51 +267,27 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
                 className="w-20 h-20 border-2 border-purple-100"
               />
               <div className="flex-1">
-                <h1 className="text-2xl font-bold text-gray-900 mb-1">{folder.personName || folder.folderName || "이름 없음"}</h1>
-                <p className="text-base text-gray-600 mb-2">
-                  {folder.contact?.jobTitle && (
-                    <span className="font-medium">{folder.contact.jobTitle}</span>
-                  )}
-                  {folder.contact?.company && folder.contact?.jobTitle && <span className="mx-2">•</span>}
-                  {folder.contact?.company && (
-                    <span className="text-purple-600 font-medium">{folder.contact.company}</span>
-                  )}
-                </p>
-                <div className="flex items-center text-sm text-gray-500">
-                  <span>마지막 활동:</span>
-                  <span className="ml-1">
-                    {(() => {
-                      try {
-                        const date = new Date(folder.lastActivity);
-                        if (isNaN(date.getTime())) {
-                          return "정보 없음";
-                        }
-                        return formatDistanceToNow(date, {
-                          addSuffix: true,
-                          locale: ko
-                        });
-                      } catch (error) {
-                        return "정보 없음";
-                      }
-                    })()}
-                  </span>
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                  {folder.personName || folder.folderName || "Unknown"}
+                </h1>
+                <div className="flex items-center gap-4 text-sm text-gray-600">
+                  <div className="flex items-center gap-1">
+                    <FileText className="w-4 h-4" />
+                    <span>{items.length}개 항목</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span>마지막 활동: {formatDistanceToNow(new Date(folder.lastActivity), { addSuffix: true, locale: ko })}</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Right: Business Card */}
-            {businessCardItem && businessCardItem.fileUrl && (
-              <div className="flex-shrink-0 w-[480px] ml-auto">
-                <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-bold text-gray-900">명함</h3>
-                    <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
-                      <CreditCard className="w-4 h-4 text-purple-600" />
-                    </div>
-                  </div>
-                  
+            {/* Right: Business Card Display */}
+            {businessCardItem && (
+              <div className="flex-shrink-0 w-80">
+                <div className="bg-gradient-to-br from-purple-50 to-indigo-100 rounded-2xl p-6 border border-purple-200">
                   <div 
-                    className="relative cursor-pointer group overflow-hidden rounded-2xl border border-gray-100 bg-gray-50 p-4 hover:border-purple-200 transition-all duration-200"
+                    className="relative group cursor-pointer"
                     onClick={() => setSelectedBusinessCard({
                       imageUrl: businessCardItem.fileUrl!,
                       personName: folder.personName || folder.folderName || "명함"
@@ -362,7 +357,7 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
         <div className="flex gap-6 p-4">
-          {/* Left Column - Contact Info and File List */}
+          {/* Left Column - Contact Info and Folder Structure */}
           <div className="flex-1 min-w-0">
             {/* Contact Information Card */}
             {folder.contact && (
@@ -409,21 +404,19 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
                   )}
                   {folder.contact.phone && (
                     <div>
-                      <span className="font-medium text-gray-700">전화번호:</span>
+                      <span className="font-medium text-gray-700">전화:</span>
                       <span className="ml-2 text-gray-900">{folder.contact.phone}</span>
                     </div>
                   )}
                 </div>
-                
-                {!folder.contact.contactUserId && (
+
+                {businessCardData && (
                   <div className="mt-4 pt-3 border-t border-blue-200">
-                    <p className="text-sm text-gray-600 mb-3">
-                      이 분은 아직 Dovie에 가입하지 않았습니다. 명함 정보를 바탕으로 One Pager를 생성할 수 있습니다.
-                    </p>
                     <Button 
+                      variant="outline" 
                       size="sm" 
-                      className="bg-blue-600 hover:bg-blue-700"
-                      onClick={() => generateOnePagerMutation.mutate(folder.contact)}
+                      className="border-blue-300 text-blue-600 hover:bg-blue-50"
+                      onClick={() => generateOnePagerMutation.mutate(businessCardData)}
                       disabled={generateOnePagerMutation.isPending}
                     >
                       <CreditCard className="w-4 h-4 mr-2" />
@@ -434,146 +427,177 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
               </div>
             )}
 
-            {/* File List */}
-            {filteredItems.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-64 text-center px-4">
-                <CreditCard className="w-16 h-16 text-gray-300 mb-4" />
-                {items.length === 0 ? (
-                  <>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      추가 파일이 없습니다
-                    </h3>
-                    <p className="text-gray-500 mb-6 max-w-sm">
-                      명함, 채팅 파일, 문서를 추가하여 
-                      {folder.personName || folder.folderName || "이분"}님과의 모든 자료를 한 곳에 정리하세요.
-                    </p>
-                    <Button className="bg-blue-500 hover:bg-blue-600">
-                      <Upload className="w-4 h-4 mr-2" />
-                      파일 추가하기
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      검색 결과가 없습니다
-                    </h3>
-                    <p className="text-gray-500">
-                      다른 검색어를 시도해보세요.
-                    </p>
-                  </>
+            {/* Folder Structure */}
+            <div className="bg-white border border-gray-100 rounded-lg p-4 mb-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <Folder className="w-5 h-5 mr-2 text-purple-600" />
+                  폴더
+                </h3>
+                {selectedCategory && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setSelectedCategory(null)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    전체보기
+                  </Button>
                 )}
               </div>
-            ) : (
-              <div className="space-y-3">
-                {filteredItems.map((item: FolderItem) => (
-                  <div key={item.id} className="bg-white border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start space-x-3 flex-1">
-                        <div className="flex-shrink-0 mt-1">
-                          {getItemIcon(item.itemType)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <h4 className="text-sm font-medium text-gray-900 truncate">
-                              {item.title || item.fileName || "제목 없음"}
-                            </h4>
-                            <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
-                              {getItemTypeLabel(item.itemType)}
-                            </span>
-                          </div>
-                          {item.description && (
-                            <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-                              {item.description}
-                            </p>
-                          )}
-                          <div className="flex items-center justify-between mt-2">
-                            <div className="flex items-center text-xs text-gray-400">
-                              <span>
-                                {(() => {
-                                  try {
-                                    const date = new Date(item.createdAt);
-                                    if (isNaN(date.getTime())) {
-                                      return "날짜 정보 없음";
-                                    }
-                                    return formatDistanceToNow(date, {
-                                      addSuffix: true,
-                                      locale: ko
-                                    });
-                                  } catch (error) {
-                                    return "날짜 정보 없음";
-                                  }
-                                })()}
-                              </span>
-                              {item.fileSize && (
-                                <span className="ml-2">
-                                  • {formatFileSize(item.fileSize)}
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              {item.itemType === 'memo' ? (
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="h-8 w-8 p-0"
-                                  onClick={() => {
-                                    toast({
-                                      title: "메모 내용",
-                                      description: item.description || "메모 내용이 없습니다.",
-                                    });
-                                  }}
-                                >
-                                  <Eye className="w-4 h-4" />
-                                </Button>
-                              ) : (
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                  <Eye className="w-4 h-4" />
-                                </Button>
-                              )}
-                              {item.itemType !== 'memo' && (
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                  <Download className="w-4 h-4" />
-                                </Button>
-                              )}
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
-                                onClick={() => {
-                                  if (window.confirm(`"${item.title || item.fileName || '이 항목'}"을(를) 삭제하시겠습니까?`)) {
-                                    deleteItemMutation.mutate(item.id);
-                                  }
-                                }}
-                                disabled={deleteItemMutation.isPending}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </div>
-                          {item.tags && item.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {item.tags.slice(0, 3).map((tag, index) => (
-                                <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700">
-                                  {tag}
-                                </span>
-                              ))}
-                              {item.tags.length > 3 && (
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-500">
-                                  +{item.tags.length - 2}
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </div>
+
+              {!selectedCategory ? (
+                // Category Grid View
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {Object.entries(groupedItems).map(([category, categoryItems]) => (
+                    <button
+                      key={category}
+                      onClick={() => setSelectedCategory(category)}
+                      className="flex flex-col items-center p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 hover:border-purple-300"
+                    >
+                      <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mb-2">
+                        {category === '명함' && <CreditCard className="w-5 h-5 text-purple-600" />}
+                        {category === '메모' && <FileText className="w-5 h-5 text-yellow-600" />}
+                        {category === '문서' && <FileText className="w-5 h-5 text-green-600" />}
+                        {category === '이미지' && <Image className="w-5 h-5 text-purple-600" />}
+                        {category === '음성' && <Mic className="w-5 h-5 text-orange-600" />}
+                        {category === '채팅파일' && <MessageCircle className="w-5 h-5 text-indigo-600" />}
                       </div>
-                    </div>
+                      <span className="text-sm font-medium text-gray-700">{category}</span>
+                      <span className="text-xs text-gray-500 mt-1">{categoryItems.length}개</span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                // Category Items View
+                <>
+                  <div className="mb-4">
+                    <h4 className="text-md font-medium text-gray-800 mb-2">{selectedCategory}</h4>
+                    <p className="text-sm text-gray-500">
+                      {(groupedItems[selectedCategory as keyof typeof groupedItems] || []).length}개의 항목
+                    </p>
                   </div>
-                ))}
-              </div>
-            )}
+                  
+                  {filteredItems.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-32 text-center">
+                      <FileText className="w-12 h-12 text-gray-300 mb-3" />
+                      <p className="text-gray-500">
+                        {searchTerm ? "검색 결과가 없습니다" : `${selectedCategory} 항목이 없습니다`}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {filteredItems.map((item: FolderItem) => (
+                        <div key={item.id} className="bg-gray-50 border border-gray-100 rounded-lg p-4 hover:bg-gray-100 transition-colors">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start space-x-3 flex-1">
+                              <div className="flex-shrink-0 mt-1">
+                                {getItemIcon(item.itemType)}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="text-sm font-medium text-gray-900 truncate">
+                                    {item.title || item.fileName || "제목 없음"}
+                                  </h4>
+                                  <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
+                                    {getItemTypeLabel(item.itemType)}
+                                  </span>
+                                </div>
+                                {item.description && (
+                                  <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                                    {item.description}
+                                  </p>
+                                )}
+                                <div className="flex items-center justify-between mt-2">
+                                  <div className="flex items-center text-xs text-gray-400">
+                                    <span>
+                                      {(() => {
+                                        try {
+                                          const date = new Date(item.createdAt);
+                                          if (isNaN(date.getTime())) {
+                                            return "날짜 정보 없음";
+                                          }
+                                          return formatDistanceToNow(date, {
+                                            addSuffix: true,
+                                            locale: ko
+                                          });
+                                        } catch (error) {
+                                          return "날짜 정보 없음";
+                                        }
+                                      })()}
+                                    </span>
+                                    {item.fileSize && (
+                                      <span className="ml-2">
+                                        • {formatFileSize(item.fileSize)}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center space-x-1">
+                                    {item.itemType === 'memo' ? (
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm" 
+                                        className="h-8 w-8 p-0"
+                                        onClick={() => {
+                                          toast({
+                                            title: "메모 내용",
+                                            description: item.description || "메모 내용이 없습니다.",
+                                          });
+                                        }}
+                                      >
+                                        <Eye className="w-4 h-4" />
+                                      </Button>
+                                    ) : (
+                                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                        <Eye className="w-4 h-4" />
+                                      </Button>
+                                    )}
+                                    {item.itemType !== 'memo' && (
+                                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                        <Download className="w-4 h-4" />
+                                      </Button>
+                                    )}
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
+                                      onClick={() => {
+                                        if (window.confirm(`"${item.title || item.fileName || '이 항목'}"을(를) 삭제하시겠습니까?`)) {
+                                          deleteItemMutation.mutate(item.id);
+                                        }
+                                      }}
+                                      disabled={deleteItemMutation.isPending}
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                                {item.tags && item.tags.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 mt-2">
+                                    {item.tags.slice(0, 3).map((tag, index) => (
+                                      <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700">
+                                        {tag}
+                                      </span>
+                                    ))}
+                                    {item.tags.length > 3 && (
+                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-500">
+                                        +{item.tags.length - 2}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
-
-
         </div>
       </div>
 
