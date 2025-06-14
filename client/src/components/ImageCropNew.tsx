@@ -27,6 +27,7 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [imageLoaded, setImageLoaded] = useState(false);
   const [touchActive, setTouchActive] = useState(false);
+  const [lastUpdateTime, setLastUpdateTime] = useState(0);
 
   useEffect(() => {
     if (imageLoaded) {
@@ -54,13 +55,17 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
     canvas.width = containerWidth;
     canvas.height = containerWidth / aspectRatio;
     
-    // Initialize crop area to 80% of center
-    const margin = containerWidth * 0.1;
+    // Initialize crop area optimized for business cards (3.5:2 ratio)
+    const margin = containerWidth * 0.05;
+    const cropWidth = containerWidth - (margin * 2);
+    const businessCardRatio = 3.5 / 2; // Standard business card ratio
+    const cropHeight = Math.min(cropWidth / businessCardRatio, (containerWidth / aspectRatio) - (margin * 2));
+    
     setCropArea({
       x: margin,
-      y: margin,
-      width: containerWidth - (margin * 2),
-      height: (containerWidth / aspectRatio) - (margin * 2)
+      y: ((containerWidth / aspectRatio) - cropHeight) / 2, // Center vertically
+      width: cropWidth,
+      height: cropHeight
     });
   };
 
@@ -192,11 +197,14 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
     console.log('Touch start position:', position);
   };
 
-  // Touch move handler - optimized for performance
+  // Touch move handler - optimized with throttling for smooth performance
   const handleTouchMove = (e: React.TouchEvent) => {
     e.preventDefault();
     
     if ((!isDragging && !isResizing) || !touchActive) return;
+    
+    const now = Date.now();
+    if (now - lastUpdateTime < 16) return; // Throttle to ~60fps
     
     const position = getEventPosition(e);
     if (!position) return;
@@ -207,58 +215,57 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Use requestAnimationFrame for smooth movement
-    requestAnimationFrame(() => {
-      if (isResizing && resizeHandle) {
-        // Handle resizing
-        setCropArea(prev => {
-          let newArea = { ...prev };
-          
-          switch (resizeHandle) {
-            case 'tl':
-              newArea.x = Math.max(0, prev.x + deltaX);
-              newArea.y = Math.max(0, prev.y + deltaY);
-              newArea.width = prev.width - deltaX;
-              newArea.height = prev.height - deltaY;
-              break;
-            case 'tr':
-              newArea.y = Math.max(0, prev.y + deltaY);
-              newArea.width = prev.width + deltaX;
-              newArea.height = prev.height - deltaY;
-              break;
-            case 'bl':
-              newArea.x = Math.max(0, prev.x + deltaX);
-              newArea.width = prev.width - deltaX;
-              newArea.height = prev.height + deltaY;
-              break;
-            case 'br':
-              newArea.width = prev.width + deltaX;
-              newArea.height = prev.height + deltaY;
-              break;
-          }
+    // Direct state update for better performance
+    if (isResizing && resizeHandle) {
+      // Handle resizing
+      setCropArea(prev => {
+        let newArea = { ...prev };
+        
+        switch (resizeHandle) {
+          case 'tl':
+            newArea.x = Math.max(0, prev.x + deltaX);
+            newArea.y = Math.max(0, prev.y + deltaY);
+            newArea.width = prev.width - deltaX;
+            newArea.height = prev.height - deltaY;
+            break;
+          case 'tr':
+            newArea.y = Math.max(0, prev.y + deltaY);
+            newArea.width = prev.width + deltaX;
+            newArea.height = prev.height - deltaY;
+            break;
+          case 'bl':
+            newArea.x = Math.max(0, prev.x + deltaX);
+            newArea.width = prev.width - deltaX;
+            newArea.height = prev.height + deltaY;
+            break;
+          case 'br':
+            newArea.width = prev.width + deltaX;
+            newArea.height = prev.height + deltaY;
+            break;
+        }
 
-          // Ensure minimum size and stay within canvas bounds
-          newArea.width = Math.max(50, Math.min(newArea.width, canvas.width - newArea.x));
-          newArea.height = Math.max(50, Math.min(newArea.height, canvas.height - newArea.y));
+        // Ensure minimum size and stay within canvas bounds
+        newArea.width = Math.max(50, Math.min(newArea.width, canvas.width - newArea.x));
+        newArea.height = Math.max(50, Math.min(newArea.height, canvas.height - newArea.y));
 
-          return newArea;
-        });
-      } else if (isDragging) {
-        // Handle dragging with improved performance
-        setCropArea(prev => {
-          const newX = Math.max(0, Math.min(prev.x + deltaX, canvas.width - prev.width));
-          const newY = Math.max(0, Math.min(prev.y + deltaY, canvas.height - prev.height));
-          
-          return {
-            ...prev,
-            x: newX,
-            y: newY
-          };
-        });
-      }
-    });
+        return newArea;
+      });
+    } else if (isDragging) {
+      // Handle dragging with direct calculation
+      setCropArea(prev => {
+        const newX = Math.max(0, Math.min(prev.x + deltaX, canvas.width - prev.width));
+        const newY = Math.max(0, Math.min(prev.y + deltaY, canvas.height - prev.height));
+        
+        return {
+          ...prev,
+          x: newX,
+          y: newY
+        };
+      });
+    }
 
     setDragStart(position);
+    setLastUpdateTime(now);
   };
 
   // Touch end handler
