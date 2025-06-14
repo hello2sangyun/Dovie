@@ -73,24 +73,43 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
         headers["x-user-id"] = userId;
       }
 
-      // Convert FormData to JSON for space posts
-      const content = formData.get('content') as string;
+      // Use FormData for file uploads, otherwise use JSON
+      const hasFiles = selectedFiles.length > 0;
       
-      const response = await fetch('/api/space/posts', {
-        method: 'POST',
-        headers: {
-          ...headers,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ content }),
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`포스트 작성 실패: ${response.status} - ${errorText}`);
+      if (hasFiles) {
+        // Use the regular posts endpoint for file uploads
+        const response = await fetch('/api/posts', {
+          method: 'POST',
+          headers,
+          body: formData,
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`포스트 작성 실패: ${response.status} - ${errorText}`);
+        }
+        
+        return await response.json();
+      } else {
+        // Use space posts endpoint for text-only posts
+        const content = formData.get('content') as string;
+        
+        const response = await fetch('/api/space/posts', {
+          method: 'POST',
+          headers: {
+            ...headers,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ content }),
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`포스트 작성 실패: ${response.status} - ${errorText}`);
+        }
+        
+        return await response.json();
       }
-      
-      return await response.json();
     },
     onSuccess: () => {
       setPostContent('');

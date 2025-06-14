@@ -4588,15 +4588,14 @@ END:VCARD\`;
         // 파일들을 암호화하여 저장
         for (const file of files) {
           try {
-            // 파일이 실제로 존재하고 크기가 0보다 큰지 확인
-            if (!fs.existsSync(file.path) || fs.statSync(file.path).size === 0) {
-              console.log("Empty or missing file, skipping:", file.originalname);
+            // Memory storage에서는 file.buffer를 사용
+            if (!file.buffer || file.buffer.length === 0) {
+              console.log("Empty file buffer, skipping:", file.originalname);
               continue;
             }
             
             // 파일 내용을 암호화
-            const fileBuffer = fs.readFileSync(file.path);
-            const encryptedData = encryptFileData(fileBuffer);
+            const encryptedData = encryptFileData(file.buffer);
             
             // 암호화된 파일명 생성
             const encryptedFileName = hashFileName(file.originalname);
@@ -4604,9 +4603,6 @@ END:VCARD\`;
             
             // 암호화된 데이터를 파일로 저장
             fs.writeFileSync(encryptedFilePath, encryptedData, 'utf8');
-            
-            // 원본 임시 파일 삭제
-            fs.unlinkSync(file.path);
             
             attachments.push(`/uploads/${encryptedFileName}`);
             console.log("Successfully processed file:", file.originalname, "->", encryptedFileName);
