@@ -48,6 +48,20 @@ const requireAuth = (req: any, res: any, next: any) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Static file serving with optimized caching
+  app.use('/uploads', express.static('uploads', {
+    maxAge: '1y', // Cache for 1 year
+    etag: true,
+    lastModified: true,
+    cacheControl: true,
+    setHeaders: (res, path) => {
+      // Aggressive caching for images
+      if (path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.png') || path.endsWith('.webp')) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      }
+    }
+  }));
+
   // Auth routes
   app.post("/api/auth/test-login", async (req, res) => {
     try {

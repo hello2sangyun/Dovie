@@ -8,11 +8,11 @@ export async function enhanceBusinessCardImage(imageBuffer: Buffer): Promise<Buf
   try {
     // Advanced image enhancement for maximum text clarity and professional appearance
     const enhancedImage = await sharp(imageBuffer)
-      // Resize to high-resolution business card proportions
-      .resize(1200, 756, { 
+      // Optimized resize for faster processing
+      .resize(1000, 630, { 
         fit: 'inside',
         withoutEnlargement: true,
-        kernel: sharp.kernel.lanczos3  // High-quality resampling
+        kernel: sharp.kernel.cubic  // Faster than lanczos3
       })
       // Auto white balance correction
       .normalize({
@@ -46,14 +46,11 @@ export async function enhanceBusinessCardImage(imageBuffer: Buffer): Promise<Buf
         m1: 1.0,
         m2: 1.8
       })
-      // Convert to highest quality JPEG with optimized settings
+      // Convert to optimized JPEG for faster processing
       .jpeg({ 
-        quality: 98,
+        quality: 85,
         progressive: true,
-        mozjpeg: true,
-        trellisQuantisation: true,
-        overshootDeringing: true,
-        optimizeScans: true
+        mozjpeg: true
       })
       .toBuffer();
 
@@ -85,7 +82,7 @@ export async function createBusinessCardThumbnail(imageBuffer: Buffer): Promise<
         m1: 1.0,
         m2: 1.2
       })
-      .jpeg({ quality: 88 })
+      .jpeg({ quality: 75 })
       .toBuffer();
 
     return thumbnail;
