@@ -339,20 +339,16 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
                   
                   {/* 첨부 파일 표시 */}
                   {post.attachments && Array.isArray(post.attachments) && post.attachments.length > 0 && (
-                    <div className="mb-4">
+                    <div className="mb-4 space-y-2">
                       {post.attachments.map((attachment, index) => {
                         if (typeof attachment === 'string' && attachment.trim()) {
                           return (
-                            <div key={`${post.id}-${index}`} className="mb-2">
-                              <img
-                                src={attachment}
-                                alt="첨부 이미지"
-                                className="w-full h-auto max-h-96 object-cover rounded-lg shadow-sm"
-                                loading="lazy"
-                                crossOrigin="anonymous"
-                                referrerPolicy="no-referrer"
-                              />
-                            </div>
+                            <PostImage
+                              key={`${post.id}-${index}`}
+                              src={attachment}
+                              alt={`포스트 이미지 ${index + 1}`}
+                              className="w-full"
+                            />
                           );
                         }
                         return null;
