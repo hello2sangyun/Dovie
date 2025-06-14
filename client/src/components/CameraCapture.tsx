@@ -6,10 +6,10 @@ import { useToast } from "@/hooks/use-toast";
 interface CameraCaptureProps {
   onCapture: (file: File) => void | Promise<void>;
   onClose: () => void;
-  isOpen: boolean;
+  isOpen?: boolean;
 }
 
-export default function CameraCapture({ onCapture, onClose, isOpen }: CameraCaptureProps) {
+export default function CameraCapture({ onCapture, onClose, isOpen = true }: CameraCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);

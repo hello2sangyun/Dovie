@@ -496,6 +496,16 @@ END:VCARD`;
     );
   }
 
+  // Show camera screen when activated
+  if (showCamera) {
+    return (
+      <CameraCapture
+        onCapture={handleCameraCapture}
+        onClose={() => setShowCamera(false)}
+      />
+    );
+  }
+
   return (
     <div className="h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
       <div className="max-w-md mx-auto w-full flex flex-col h-full p-2">
@@ -608,16 +618,16 @@ END:VCARD`;
                 ) : (
                   <div className="text-center py-4">
                     <Building2 className="w-8 h-8 mx-auto text-gray-300 mb-2" />
-                    <h3 className="text-lg font-semibold text-gray-700 mb-2">One Pager를 만들어보세요</h3>
-                    <p className="text-sm text-gray-500 mb-4">카메라로 명함을 스캔하거나 수동으로 정보를 입력하세요</p>
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">내 명함을 등록해보세요</h3>
+                    <p className="text-sm text-gray-500 mb-4">카메라로 내 명함을 촬영하거나 수동으로 정보를 입력하세요</p>
                     <div className="flex flex-col gap-3 justify-center">
                       <Button 
                         onClick={() => setShowCamera(true)} 
-                        className="h-12 text-sm bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200"
+                        className="h-14 text-base bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-200 font-semibold"
                         disabled={isUploading}
                       >
-                        <Camera className="w-5 h-5 mr-2" />
-                        {isUploading ? "스캔 중..." : "📸 카메라로 명함 스캔"}
+                        <Camera className="w-6 h-6 mr-3" />
+                        {isUploading ? "스캔 중..." : "내 명함 등록"}
                       </Button>
                       <Button 
                         onClick={() => setActiveTab("create")} 
@@ -625,7 +635,7 @@ END:VCARD`;
                         className="h-12 text-sm border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50"
                       >
                         <Edit3 className="w-5 h-5 mr-2" />
-                        ✏️ 수동으로 정보 입력
+                        수동으로 정보 입력
                       </Button>
                     </div>
                   </div>
@@ -979,12 +989,7 @@ END:VCARD`;
         </Tabs>
       </div>
 
-      {/* Camera Capture Component */}
-      <CameraCapture
-        isOpen={showCamera}
-        onCapture={handleCameraCapture}
-        onClose={() => setShowCamera(false)}
-      />
+
     </div>
   );
 }
