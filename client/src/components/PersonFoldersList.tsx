@@ -28,6 +28,7 @@ import {
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
+import BulkEditModal from "@/components/BulkEditModal";
 
 interface PersonFolder {
   id: number;
@@ -67,6 +68,7 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
   } | null>(null);
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedFolders, setSelectedFolders] = useState<Set<number>>(new Set());
+  const [showBulkEdit, setShowBulkEdit] = useState(false);
 
   const { data: folders = [], isLoading } = useQuery<PersonFolder[]>({
     queryKey: ["/api/person-folders"],
@@ -240,15 +242,26 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
                   )}
                 </Button>
                 {selectedFolders.size > 0 && (
-                  <Button
-                    onClick={handleDeleteSelected}
-                    size="sm"
-                    variant="destructive"
-                    disabled={deleteMultipleFoldersMutation.isPending}
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    {deleteMultipleFoldersMutation.isPending ? "삭제 중..." : `${selectedFolders.size}개 삭제`}
-                  </Button>
+                  <>
+                    <Button
+                      onClick={() => setShowBulkEdit(true)}
+                      size="sm"
+                      variant="outline"
+                      className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                    >
+                      <FileText className="w-4 h-4 mr-2" />
+                      {`${selectedFolders.size}개 편집`}
+                    </Button>
+                    <Button
+                      onClick={handleDeleteSelected}
+                      size="sm"
+                      variant="destructive"
+                      disabled={deleteMultipleFoldersMutation.isPending}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      {deleteMultipleFoldersMutation.isPending ? "삭제 중..." : `${selectedFolders.size}개 삭제`}
+                    </Button>
+                  </>
                 )}
                 <Button
                   onClick={toggleSelectMode}
@@ -454,6 +467,18 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Bulk Edit Modal */}
+      <BulkEditModal
+        isOpen={showBulkEdit}
+        onClose={() => setShowBulkEdit(false)}
+        selectedFolders={selectedFolders}
+        folders={filteredFolders}
+        onComplete={() => {
+          setSelectedFolders(new Set());
+          setIsSelectMode(false);
+        }}
+      />
     </div>
   );
 }
