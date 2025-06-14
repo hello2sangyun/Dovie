@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Camera, Upload, Scan, AlertCircle, Loader2 } from "lucide-react";
 import CameraCapture from "@/components/CameraCapture";
-import ImageCrop from "@/components/ImageCrop";
+import ImageCrop from "@/components/ImageCropNew";
 
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
