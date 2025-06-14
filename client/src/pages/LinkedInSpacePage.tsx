@@ -67,13 +67,27 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
   // 포스트 생성 뮤테이션
   const createPostMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      const response = await fetch('/api/posts', {
+      const userId = localStorage.getItem("userId");
+      const headers: Record<string, string> = {};
+      if (userId) {
+        headers["x-user-id"] = userId;
+      }
+
+      // Convert FormData to JSON for space posts
+      const content = formData.get('content') as string;
+      
+      const response = await fetch('/api/space/posts', {
         method: 'POST',
-        body: formData,
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ content }),
       });
       
       if (!response.ok) {
-        throw new Error('Failed to create post');
+        const errorText = await response.text();
+        throw new Error(`포스트 작성 실패: ${response.status} - ${errorText}`);
       }
       
       return await response.json();
@@ -81,17 +95,20 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
     onSuccess: () => {
       setPostContent('');
       setSelectedFiles([]);
-      queryClient.invalidateQueries({ queryKey: ['/api/business/feed'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/posts/user'] });
+    },
+    onError: (error) => {
+      console.error('Post creation error:', error);
     },
   });
 
   // 좋아요 토글 뮤테이션
   const toggleLikeMutation = useMutation({
     mutationFn: async (postId: number) => {
-      return apiRequest(`/api/posts/${postId}/like`, 'POST');
+      return apiRequest(`/api/space/posts/${postId}/like`, 'POST');
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/business/feed'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/posts/user'] });
     },
   });
 

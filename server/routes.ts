@@ -4690,7 +4690,7 @@ END:VCARD\`;
         // 좋아요 수 감소
         await db.update(userPosts)
           .set({ 
-            likesCount: sql`${userPosts.likesCount} - 1`
+            likeCount: sql`${userPosts.likeCount} - 1`
           })
           .where(eq(userPosts.id, parseInt(postId)));
 
@@ -4706,7 +4706,7 @@ END:VCARD\`;
         // 좋아요 수 증가
         await db.update(userPosts)
           .set({ 
-            likesCount: sql`${userPosts.likesCount} + 1`
+            likeCount: sql`${userPosts.likeCount} + 1`
           })
           .where(eq(userPosts.id, parseInt(postId)));
 
