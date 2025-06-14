@@ -22,6 +22,8 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
   const containerRef = useRef<HTMLDivElement>(null);
   const [cropArea, setCropArea] = useState<CropArea>({ x: 50, y: 50, width: 200, height: 200 });
   const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizeHandle, setResizeHandle] = useState<'tl' | 'tr' | 'bl' | 'br' | null>(null);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [imageLoaded, setImageLoaded] = useState(false);
   const [touchActive, setTouchActive] = useState(false);
@@ -134,6 +136,36 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
     };
   };
 
+  // Check if position is on a resize handle
+  const getResizeHandle = (position: { x: number; y: number }) => {
+    const handleSize = 20;
+    const tolerance = handleSize / 2;
+
+    const corners = {
+      tl: { x: cropArea.x, y: cropArea.y },
+      tr: { x: cropArea.x + cropArea.width, y: cropArea.y },
+      bl: { x: cropArea.x, y: cropArea.y + cropArea.height },
+      br: { x: cropArea.x + cropArea.width, y: cropArea.y + cropArea.height }
+    };
+
+    for (const [handle, corner] of Object.entries(corners)) {
+      if (Math.abs(position.x - corner.x) <= tolerance && 
+          Math.abs(position.y - corner.y) <= tolerance) {
+        return handle as 'tl' | 'tr' | 'bl' | 'br';
+      }
+    }
+
+    return null;
+  };
+
+  // Check if position is inside crop area for dragging
+  const isInsideCropArea = (position: { x: number; y: number }) => {
+    return position.x >= cropArea.x && 
+           position.x <= cropArea.x + cropArea.width &&
+           position.y >= cropArea.y && 
+           position.y <= cropArea.y + cropArea.height;
+  };
+
   // Touch start handler
   const handleTouchStart = (e: React.TouchEvent) => {
     e.preventDefault();
@@ -142,8 +174,20 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
     const position = getEventPosition(e);
     if (!position) return;
 
+    // Check if touching a resize handle
+    const handle = getResizeHandle(position);
+    if (handle) {
+      setIsResizing(true);
+      setResizeHandle(handle);
+      console.log('Starting resize with handle:', handle);
+    } else if (isInsideCropArea(position)) {
+      setIsDragging(true);
+      console.log('Starting drag');
+    } else {
+      return; // Don't start any interaction if outside crop area
+    }
+
     setTouchActive(true);
-    setIsDragging(true);
     setDragStart(position);
     console.log('Touch start position:', position);
   };
@@ -152,7 +196,7 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
   const handleTouchMove = (e: React.TouchEvent) => {
     e.preventDefault();
     
-    if (!isDragging || !touchActive) return;
+    if ((!isDragging && !isResizing) || !touchActive) return;
     
     const position = getEventPosition(e);
     if (!position) return;
@@ -165,18 +209,55 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    setCropArea(prev => {
-      const newX = Math.max(0, Math.min(prev.x + deltaX, canvas.width - prev.width));
-      const newY = Math.max(0, Math.min(prev.y + deltaY, canvas.height - prev.height));
-      
-      console.log('New crop position:', { newX, newY });
-      
-      return {
-        ...prev,
-        x: newX,
-        y: newY
-      };
-    });
+    if (isResizing && resizeHandle) {
+      // Handle resizing
+      setCropArea(prev => {
+        let newArea = { ...prev };
+        
+        switch (resizeHandle) {
+          case 'tl':
+            newArea.x = Math.max(0, prev.x + deltaX);
+            newArea.y = Math.max(0, prev.y + deltaY);
+            newArea.width = prev.width - deltaX;
+            newArea.height = prev.height - deltaY;
+            break;
+          case 'tr':
+            newArea.y = Math.max(0, prev.y + deltaY);
+            newArea.width = prev.width + deltaX;
+            newArea.height = prev.height - deltaY;
+            break;
+          case 'bl':
+            newArea.x = Math.max(0, prev.x + deltaX);
+            newArea.width = prev.width - deltaX;
+            newArea.height = prev.height + deltaY;
+            break;
+          case 'br':
+            newArea.width = prev.width + deltaX;
+            newArea.height = prev.height + deltaY;
+            break;
+        }
+
+        // Ensure minimum size and stay within canvas bounds
+        newArea.width = Math.max(50, Math.min(newArea.width, canvas.width - newArea.x));
+        newArea.height = Math.max(50, Math.min(newArea.height, canvas.height - newArea.y));
+
+        return newArea;
+      });
+    } else if (isDragging) {
+      // Handle dragging
+      setCropArea(prev => {
+        const newX = Math.max(0, Math.min(prev.x + deltaX, canvas.width - prev.width));
+        const newY = Math.max(0, Math.min(prev.y + deltaY, canvas.height - prev.height));
+        
+        console.log('New crop position:', { newX, newY });
+        
+        return {
+          ...prev,
+          x: newX,
+          y: newY
+        };
+      });
+    }
 
     setDragStart(position);
   };
@@ -186,6 +267,8 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
     e.preventDefault();
     console.log('Touch end');
     setIsDragging(false);
+    setIsResizing(false);
+    setResizeHandle(null);
     setTouchActive(false);
   };
 
@@ -194,12 +277,22 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
     const position = getEventPosition(e);
     if (!position) return;
 
-    setIsDragging(true);
+    // Check if clicking on a resize handle
+    const handle = getResizeHandle(position);
+    if (handle) {
+      setIsResizing(true);
+      setResizeHandle(handle);
+    } else if (isInsideCropArea(position)) {
+      setIsDragging(true);
+    } else {
+      return; // Don't start any interaction if outside crop area
+    }
+
     setDragStart(position);
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
+    if (!isDragging && !isResizing) return;
 
     const position = getEventPosition(e);
     if (!position) return;
@@ -210,17 +303,56 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    setCropArea(prev => ({
-      ...prev,
-      x: Math.max(0, Math.min(prev.x + deltaX, canvas.width - prev.width)),
-      y: Math.max(0, Math.min(prev.y + deltaY, canvas.height - prev.height))
-    }));
+    if (isResizing && resizeHandle) {
+      // Handle resizing
+      setCropArea(prev => {
+        let newArea = { ...prev };
+        
+        switch (resizeHandle) {
+          case 'tl':
+            newArea.x = Math.max(0, prev.x + deltaX);
+            newArea.y = Math.max(0, prev.y + deltaY);
+            newArea.width = prev.width - deltaX;
+            newArea.height = prev.height - deltaY;
+            break;
+          case 'tr':
+            newArea.y = Math.max(0, prev.y + deltaY);
+            newArea.width = prev.width + deltaX;
+            newArea.height = prev.height - deltaY;
+            break;
+          case 'bl':
+            newArea.x = Math.max(0, prev.x + deltaX);
+            newArea.width = prev.width - deltaX;
+            newArea.height = prev.height + deltaY;
+            break;
+          case 'br':
+            newArea.width = prev.width + deltaX;
+            newArea.height = prev.height + deltaY;
+            break;
+        }
+
+        // Ensure minimum size and stay within canvas bounds
+        newArea.width = Math.max(50, Math.min(newArea.width, canvas.width - newArea.x));
+        newArea.height = Math.max(50, Math.min(newArea.height, canvas.height - newArea.y));
+
+        return newArea;
+      });
+    } else if (isDragging) {
+      // Handle dragging
+      setCropArea(prev => ({
+        ...prev,
+        x: Math.max(0, Math.min(prev.x + deltaX, canvas.width - prev.width)),
+        y: Math.max(0, Math.min(prev.y + deltaY, canvas.height - prev.height))
+      }));
+    }
 
     setDragStart(position);
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
+    setIsResizing(false);
+    setResizeHandle(null);
   };
 
   // Crop handler
@@ -314,7 +446,28 @@ export default function ImageCrop({ imageUrl, onCrop, onCancel }: ImageCropProps
               touchAction: 'none',
               userSelect: 'none',
               WebkitUserSelect: 'none',
-              cursor: isDragging ? 'grabbing' : 'grab'
+              cursor: isResizing 
+                ? (resizeHandle === 'tl' || resizeHandle === 'br' ? 'nw-resize' : 'ne-resize')
+                : isDragging 
+                ? 'grabbing' 
+                : 'grab'
+            }}
+            onMouseMove={(e) => {
+              if (!isDragging && !isResizing) {
+                const position = getEventPosition(e);
+                if (position) {
+                  const handle = getResizeHandle(position);
+                  if (handle) {
+                    e.currentTarget.style.cursor = 
+                      (handle === 'tl' || handle === 'br') ? 'nw-resize' : 'ne-resize';
+                  } else if (isInsideCropArea(position)) {
+                    e.currentTarget.style.cursor = 'grab';
+                  } else {
+                    e.currentTarget.style.cursor = 'default';
+                  }
+                }
+              }
+              handleMouseMove(e);
             }}
           />
         </div>
