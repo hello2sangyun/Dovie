@@ -1,16 +1,11 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useAuth } from "@/hooks/useAuth";
-import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 
 import { 
   Heart, 
@@ -18,22 +13,12 @@ import {
   Share2, 
   MoreHorizontal, 
   ArrowLeft,
-  Building2,
-  Users,
-  Verified,
   Camera,
-  FileText,
-  Link as LinkIcon,
-  Briefcase,
-  MapPin,
-  Calendar,
-  Edit3,
-  ThumbsUp,
   Video,
   X,
   ImageIcon,
-  Eye,
-  Settings
+  Settings,
+  ThumbsUp
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
@@ -58,22 +43,6 @@ interface BusinessPost {
   };
 }
 
-interface CompanyProfile {
-  id: number;
-  userId: number;
-  companyName: string;
-  industry?: string;
-  location?: string;
-  description?: string;
-  website?: string;
-  logoUrl?: string;
-  bannerUrl?: string;
-  employeeCount?: string;
-  foundedYear?: number;
-  visitorCount?: number;
-  followerCount?: number;
-}
-
 interface LinkedInSpacePageProps {
   onBack?: () => void;
 }
@@ -81,97 +50,38 @@ interface LinkedInSpacePageProps {
 export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [, setLocation] = useLocation();
   const [postContent, setPostContent] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [profileForm, setProfileForm] = useState({
-    companyName: '',
-    industry: '',
-    location: '',
-    description: '',
-    website: '',
-    employeeCount: '',
-    foundedYear: new Date().getFullYear()
-  });
 
-  // 기존 user posts API 사용
-  const { data: postsData, isLoading } = useQuery({
-    queryKey: ['/api/posts/user'],
+  // Use business feed API for main feed view
+  const { data: feedData, isLoading } = useQuery({
+    queryKey: ['/api/business/feed'],
     enabled: !!user,
+    staleTime: 15000,
   });
 
-  // 회사 프로필 조회
-  const { data: companyProfile } = useQuery({
-    queryKey: ['/api/company-profile'],
-    enabled: !!user,
-  });
+  const feedPosts = feedData?.posts || [];
 
-  // 회사 프로필 업데이트 시 폼 초기화
-  useEffect(() => {
-    if (companyProfile && typeof companyProfile === 'object') {
-      const profile = companyProfile as CompanyProfile;
-      setProfileForm({
-        companyName: profile.companyName || '',
-        industry: profile.industry || '',
-        location: profile.location || '',
-        description: profile.description || '',
-        website: profile.website || '',
-        employeeCount: profile.employeeCount || '',
-        foundedYear: profile.foundedYear || new Date().getFullYear()
-      });
-    }
-  }, [companyProfile]);
-
-  // 회사 프로필 업데이트 뮤테이션
-  const updateCompanyProfileMutation = useMutation({
-    mutationFn: async (profileData: typeof profileForm) => {
-      return apiRequest('/api/company-profile', 'POST', profileData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/company-profile'] });
-      setIsEditingProfile(false);
-    },
-  });
-
-  // 회사 방문자 추가 뮤테이션
-  const addVisitorMutation = useMutation({
-    mutationFn: async () => {
-      return apiRequest('/api/company-profile/visit', 'POST');
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/company-profile'] });
-    },
-  });
-
-  // 회사 팔로우/언팔로우 뮤테이션
-  const toggleFollowMutation = useMutation({
-    mutationFn: async () => {
-      return apiRequest('/api/company-profile/follow', 'POST');
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/company-profile'] });
-    },
-  });
-
-  // 포스트 작성 뮤테이션
+  // 포스트 생성 뮤테이션
   const createPostMutation = useMutation({
     mutationFn: async (formData: FormData) => {
       const response = await fetch('/api/posts', {
         method: 'POST',
-        headers: {
-          'x-user-id': user?.id?.toString() || '',
-        },
         body: formData,
       });
-      return response.json();
+      
+      if (!response.ok) {
+        throw new Error('Failed to create post');
+      }
+      
+      return await response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/posts/user'] });
       setPostContent('');
       setSelectedFiles([]);
+      queryClient.invalidateQueries({ queryKey: ['/api/business/feed'] });
     },
   });
 
@@ -181,47 +91,32 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
       return apiRequest(`/api/posts/${postId}/like`, 'POST');
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/posts/user'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/business/feed'] });
     },
   });
 
-  // 포스트 읽음 상태 기록 뮤테이션
-  const markPostAsReadMutation = useMutation({
-    mutationFn: async (postId: number) => {
-      return apiRequest(`/api/posts/${postId}/mark-read`, 'POST');
-    },
-    onSuccess: () => {
-      // 최근 포스트 데이터 새로고침
-      queryClient.invalidateQueries({ queryKey: ['/api/contacts/recent-posts'] });
-    },
-  });
+  const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    setSelectedFiles(prev => [...prev, ...files]);
+  }, []);
 
-  // 포스트 클릭 핸들러 (읽음 상태 기록)
-  const handlePostClick = (postId: number) => {
-    markPostAsReadMutation.mutate(postId);
-  };
+  const handleRemoveFile = useCallback((index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  }, []);
 
-  const handleCreatePost = () => {
-    if (!postContent.trim()) return;
-    
+  const handleSubmitPost = useCallback(() => {
+    if (!postContent.trim() && selectedFiles.length === 0) return;
+
     const formData = new FormData();
     formData.append('content', postContent);
+    formData.append('postType', 'business');
     
     selectedFiles.forEach((file) => {
       formData.append('files', file);
     });
-    
+
     createPostMutation.mutate(formData);
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    setSelectedFiles(prev => [...prev, ...files]);
-  };
-
-  const removeFile = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
-  };
+  }, [postContent, selectedFiles, createPostMutation]);
 
   const isVideo = (file: File) => {
     return file.type.startsWith('video/');
@@ -231,215 +126,29 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
     return file.type.startsWith('image/');
   };
 
-  const posts = Array.isArray(postsData) ? postsData : [];
-
   return (
-    <div 
-      className="w-full bg-gray-50" 
-      style={{ 
-        height: '100vh', 
-        overflowY: 'auto', 
-        WebkitOverflowScrolling: 'touch',
-        position: 'relative'
-      }}
-    >
-      {/* 토스 스타일 헤더 */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div className="max-w-2xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => onBack ? onBack() : setLocation("/contacts")}
-                className="w-8 h-8 p-0 rounded-full hover:bg-gray-100"
-              >
-                <ArrowLeft className="w-5 h-5 text-gray-700" />
-              </Button>
-              <h1 className="text-lg font-bold text-gray-900">비즈니스 공간</h1>
-            </div>
-          </div>
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      {/* 상단 헤더 */}
+      <div className="flex items-center justify-between p-4 bg-white border-b border-gray-200">
+        <div className="flex items-center">
+          {onBack && (
+            <Button variant="ghost" size="sm" onClick={onBack} className="mr-2">
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+          )}
+          <h1 className="text-lg font-semibold text-gray-900">Dovie 네트워크</h1>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button variant="ghost" size="sm">
+            <Settings className="w-4 h-4" />
+          </Button>
         </div>
       </div>
 
-      <div className="w-full max-w-2xl mx-auto pb-40" style={{ paddingTop: '0px' }}>
-        {/* 회사 프로필 카드 */}
-        <div className="bg-white mx-4 mt-4 rounded-2xl overflow-hidden shadow-sm border border-gray-100">
-          {/* 배너 헤더 */}
-          <div className="h-32 bg-gradient-to-r from-blue-500 to-indigo-600 relative">
-            <div className="absolute top-4 right-4">
-              <Dialog open={isEditingProfile} onOpenChange={setIsEditingProfile}>
-                <DialogTrigger asChild>
-                  <Button size="sm" className="bg-black/20 hover:bg-black/30 text-white border-0 rounded-full text-xs px-3 py-1.5">
-                    <Settings className="w-3 h-3 mr-1" />
-                    편집
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>회사 프로필 편집</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="companyName">회사명</Label>
-                      <Input
-                        id="companyName"
-                        value={profileForm.companyName}
-                        onChange={(e) => setProfileForm(prev => ({ ...prev, companyName: e.target.value }))}
-                        placeholder="회사명을 입력하세요"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="industry">업종</Label>
-                      <Input
-                        id="industry"
-                        value={profileForm.industry}
-                        onChange={(e) => setProfileForm(prev => ({ ...prev, industry: e.target.value }))}
-                        placeholder="예: IT/소프트웨어"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="location">위치</Label>
-                      <Input
-                        id="location"
-                        value={profileForm.location}
-                        onChange={(e) => setProfileForm(prev => ({ ...prev, location: e.target.value }))}
-                        placeholder="예: 대한민국 서울"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="description">회사 설명</Label>
-                      <Textarea
-                        id="description"
-                        value={profileForm.description}
-                        onChange={(e) => setProfileForm(prev => ({ ...prev, description: e.target.value }))}
-                        placeholder="회사에 대해 간단히 설명해주세요"
-                        rows={3}
-                      />
-                    </div>
-                    <div className="flex space-x-2">
-                      <div className="flex-1">
-                        <Label htmlFor="employeeCount">직원 수</Label>
-                        <Input
-                          id="employeeCount"
-                          value={profileForm.employeeCount}
-                          onChange={(e) => setProfileForm(prev => ({ ...prev, employeeCount: e.target.value }))}
-                          placeholder="예: 1-10명"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <Label htmlFor="foundedYear">설립년도</Label>
-                        <Input
-                          id="foundedYear"
-                          type="number"
-                          value={profileForm.foundedYear}
-                          onChange={(e) => setProfileForm(prev => ({ ...prev, foundedYear: parseInt(e.target.value) }))}
-                          placeholder="예: 2020"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="website">웹사이트</Label>
-                      <Input
-                        id="website"
-                        value={profileForm.website}
-                        onChange={(e) => setProfileForm(prev => ({ ...prev, website: e.target.value }))}
-                        placeholder="https://example.com"
-                      />
-                    </div>
-                    <div className="flex space-x-2 pt-4">
-                      <Button 
-                        onClick={() => setIsEditingProfile(false)}
-                        variant="outline"
-                        className="flex-1"
-                      >
-                        취소
-                      </Button>
-                      <Button 
-                        onClick={() => updateCompanyProfileMutation.mutate(profileForm)}
-                        disabled={updateCompanyProfileMutation.isPending}
-                        className="flex-1"
-                      >
-                        저장
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </div>
-          
-          {/* 회사 정보 */}
-          <div className="px-5 pb-6">
-            <div className="flex items-start justify-between -mt-10">
-              <div className="flex items-center space-x-3">
-                <Avatar className="w-20 h-20 border-4 border-white shadow-lg">
-                  <AvatarImage src={(companyProfile as CompanyProfile)?.logoUrl || user?.profilePicture || undefined} />
-                  <AvatarFallback className="text-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold">
-                    {((companyProfile as CompanyProfile)?.companyName || user?.displayName)?.[0]}
-                  </AvatarFallback>
-                </Avatar>
-              </div>
-            </div>
-            
-            <div className="mt-3">
-              <h2 className="text-lg font-bold text-gray-900 mb-1">
-                {(companyProfile as CompanyProfile)?.companyName || user?.displayName}
-              </h2>
-              <p className="text-sm text-gray-600 mb-2">
-                {(companyProfile as CompanyProfile)?.industry || '비즈니스 전문가'}
-              </p>
-              <p className="text-xs text-gray-500 flex items-center">
-                <MapPin className="w-3 h-3 mr-1" />
-                {(companyProfile as CompanyProfile)?.location || '대한민국'}
-              </p>
-              {(companyProfile as CompanyProfile)?.description && (
-                <p className="text-sm text-gray-700 mt-3">
-                  {(companyProfile as CompanyProfile).description}
-                </p>
-              )}
-            </div>
-            
-            {/* 통계 */}
-            <div className="flex justify-around mt-6 pt-4 border-t border-gray-100">
-              <div className="text-center">
-                <div className="text-lg font-bold text-gray-900">
-                  {(companyProfile as CompanyProfile)?.visitorCount || 0}
-                </div>
-                <div className="text-xs text-gray-500">방문자</div>
-              </div>
-              <div className="text-center">
-                <div className="text-lg font-bold text-gray-900">
-                  {(companyProfile as CompanyProfile)?.followerCount || 0}
-                </div>
-                <div className="text-xs text-gray-500">좋아요</div>
-              </div>
-              <div className="text-center">
-                <div className="text-lg font-bold text-gray-900">{posts.length}</div>
-                <div className="text-xs text-gray-500">게시물</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 토스 스타일 탭 */}
-        <div className="mx-4 mt-4">
-          <div className="bg-white rounded-2xl p-1 shadow-sm border border-gray-100">
-            <div className="flex">
-              <button className="flex-1 py-3 px-4 rounded-xl bg-blue-50 text-blue-600 font-semibold text-sm">
-                게시물
-              </button>
-              <button className="flex-1 py-3 px-4 rounded-xl text-gray-500 font-medium text-sm">
-                정보
-              </button>
-              <button className="flex-1 py-3 px-4 rounded-xl text-gray-500 font-medium text-sm">
-                활동
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* 토스 스타일 포스트 작성 */}
+      {/* 스크롤 가능한 콘텐츠 */}
+      <div className="flex-1 overflow-y-auto pb-20">
+        
+        {/* 포스트 작성 카드 */}
         <div className="mx-4 mt-4 bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
           <div className="flex space-x-3">
             <Avatar className="w-10 h-10 flex-shrink-0">
@@ -448,38 +157,43 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
                 {user?.displayName?.[0]}
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1 min-w-0">
-              <textarea
+            <div className="flex-1">
+              <Textarea
                 value={postContent}
                 onChange={(e) => setPostContent(e.target.value)}
-                placeholder="무엇을 공유하고 싶나요?"
-                className="w-full p-0 border-0 resize-none focus:outline-none bg-transparent text-sm placeholder-gray-400 min-h-[80px]"
-                style={{ touchAction: 'manipulation' }}
-                rows={3}
+                placeholder="무슨 일이 일어나고 있나요?"
+                className="min-h-[80px] border-none p-0 resize-none focus:ring-0 text-base placeholder:text-gray-400"
               />
+              
+              {/* 첨부 파일 미리보기 */}
               {selectedFiles.length > 0 && (
-                <div className="mt-3 space-y-2">
+                <div className="mt-3 grid grid-cols-2 gap-2">
                   {selectedFiles.map((file, index) => (
                     <div key={index} className="relative">
-                      {isImage(file) && (
-                        <img 
-                          src={URL.createObjectURL(file)} 
-                          alt="선택된 이미지" 
-                          className="w-full h-auto rounded-xl border border-gray-200"
-                        />
-                      )}
-                      {isVideo(file) && (
-                        <video 
-                          src={URL.createObjectURL(file)}
-                          className="w-full h-auto rounded-xl border border-gray-200"
-                          controls
-                        />
-                      )}
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => removeFile(index)}
-                        className="absolute top-2 right-2 w-6 h-6 p-0 bg-black/50 hover:bg-black/70 text-white rounded-full"
+                      <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                        {isImage(file) ? (
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt="Preview"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : isVideo(file) ? (
+                          <video
+                            src={URL.createObjectURL(file)}
+                            className="w-full h-full object-cover"
+                            controls
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <span className="text-sm text-gray-500">{file.name}</span>
+                          </div>
+                        )}
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="absolute top-1 right-1 w-6 h-6 p-0 rounded-full"
+                        onClick={() => handleRemoveFile(index)}
                       >
                         <X className="w-3 h-3" />
                       </Button>
@@ -487,173 +201,157 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
                   ))}
                 </div>
               )}
-              
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                <div className="flex space-x-4">
-                  <button 
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center text-gray-600 hover:text-blue-600 transition-colors text-sm"
-                  >
-                    <Camera className="w-4 h-4 mr-1" />
-                    사진
-                  </button>
-                  <button 
-                    onClick={() => videoInputRef.current?.click()}
-                    className="flex items-center text-gray-600 hover:text-purple-600 transition-colors text-sm"
-                  >
-                    <Video className="w-4 h-4 mr-1" />
-                    동영상
-                  </button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleFileSelect}
-                    className="hidden"
-                  />
-                  <input
-                    ref={videoInputRef}
-                    type="file"
-                    accept="video/*"
-                    multiple
-                    onChange={handleFileSelect}
-                    className="hidden"
-                  />
-                </div>
-                <Button 
-                  onClick={handleCreatePost}
-                  disabled={!postContent.trim() || createPostMutation.isPending}
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {createPostMutation.isPending ? '게시 중...' : '게시'}
-                </Button>
-              </div>
             </div>
+          </div>
+          
+          {/* 액션 버튼들 */}
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+            <div className="flex items-center space-x-4">
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center space-x-2 text-blue-600 hover:bg-blue-50"
+              >
+                <ImageIcon className="w-4 h-4" />
+                <span className="text-sm">사진</span>
+              </Button>
+              
+              <input
+                ref={videoInputRef}
+                type="file"
+                multiple
+                accept="video/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => videoInputRef.current?.click()}
+                className="flex items-center space-x-2 text-green-600 hover:bg-green-50"
+              >
+                <Video className="w-4 h-4" />
+                <span className="text-sm">동영상</span>
+              </Button>
+            </div>
+            
+            <Button
+              onClick={handleSubmitPost}
+              disabled={(!postContent.trim() && selectedFiles.length === 0) || createPostMutation.isPending}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full text-sm font-medium"
+            >
+              {createPostMutation.isPending ? '게시 중...' : '게시'}
+            </Button>
           </div>
         </div>
 
-        {/* 토스 스타일 게시물 피드 */}
-        <div className="mx-4 mt-4 space-y-3">
+        {/* 포스트 피드 */}
+        <div className="space-y-4 mt-4">
           {isLoading ? (
-            <div className="space-y-3">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-                  <div className="animate-pulse">
-                    <div className="flex items-center space-x-3 mb-4">
-                      <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
-                      <div className="space-y-2">
-                        <div className="h-3 bg-gray-200 rounded w-24"></div>
-                        <div className="h-2 bg-gray-200 rounded w-16"></div>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="h-3 bg-gray-200 rounded"></div>
-                      <div className="h-3 bg-gray-200 rounded w-4/5"></div>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
-          ) : posts.length === 0 ? (
-            <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-gray-100">
-              <div className="text-gray-300 mb-4">
-                <FileText className="w-12 h-12 mx-auto" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-600 mb-2">아직 게시물이 없어요</h3>
-              <p className="text-gray-500 text-sm">
-                첫 번째 게시물을 작성해보세요
-              </p>
+          ) : feedPosts.length === 0 ? (
+            <div className="mx-4 bg-white rounded-2xl p-8 shadow-sm border border-gray-100 text-center">
+              <p className="text-gray-500">아직 게시물이 없습니다.</p>
+              <p className="text-sm text-gray-400 mt-1">첫 번째 게시물을 작성해보세요!</p>
             </div>
           ) : (
-            posts.map((post: BusinessPost) => (
-              <div key={post.id} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-                <div className="flex items-start space-x-3">
-                  <Avatar className="w-10 h-10">
-                    <AvatarImage src={post.user?.profilePicture || undefined} />
-                    <AvatarFallback className="bg-gray-100 text-gray-700 font-semibold text-sm">
-                      {post.user?.displayName?.[0] || user?.displayName?.[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between mb-3">
+            feedPosts.map((post: BusinessPost) => (
+              <Card key={post.id} className="mx-4 rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="w-10 h-10">
+                        <AvatarImage src={post.user?.profilePicture || undefined} />
+                        <AvatarFallback className="bg-gray-100 text-gray-700 font-semibold text-sm">
+                          {post.user?.displayName?.[0] || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
                       <div>
-                        <h4 className="font-semibold text-gray-900 text-sm">
-                          {post.user?.displayName || user?.displayName}
-                        </h4>
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          {new Date(post.createdAt).toLocaleDateString('ko-KR', {
-                            month: 'long',
-                            day: 'numeric'
-                          })}
+                        <h3 className="font-semibold text-gray-900 text-sm">
+                          {post.user?.displayName || '사용자'}
+                        </h3>
+                        <p className="text-xs text-gray-500">
+                          {new Date(post.createdAt).toLocaleDateString('ko-KR')}
                         </p>
                       </div>
-                      <button className="text-gray-400 hover:text-gray-600 p-1">
-                        <MoreHorizontal className="w-4 h-4" />
-                      </button>
                     </div>
-                    
-                    <div className="mb-4">
-                      <p className="text-gray-800 leading-relaxed text-sm">
-                        {post.content}
-                      </p>
-                      
-                      {/* 첨부파일 표시 */}
-                      {post.attachments && post.attachments.length > 0 && (
-                        <div className="mt-3 space-y-2">
-                          {post.attachments.map((attachment, index) => {
-                            const isImageFile = attachment.match(/\.(jpg|jpeg|png|gif|webp)$/i);
-                            const isVideoFile = attachment.match(/\.(mp4|webm|mov|avi)$/i);
-                            
-                            return (
-                              <div key={index} className="rounded-xl overflow-hidden border border-gray-200">
-                                {isImageFile && (
-                                  <img 
-                                    src={attachment}
-                                    alt="첨부 이미지"
-                                    className="w-full h-auto max-h-96 object-cover"
-                                    onError={(e) => {
-                                      console.error('Image failed to load:', attachment);
-                                      e.currentTarget.style.display = 'none';
-                                    }}
-                                    loading="lazy"
-                                  />
-                                )}
-                                {isVideoFile && (
-                                  <video 
-                                    src={attachment}
-                                    className="w-full h-auto"
-                                    controls
-                                  />
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                      <div className="flex space-x-6">
-                        <button 
-                          onClick={() => toggleLikeMutation.mutate(post.id)}
-                          className="flex items-center space-x-1 text-gray-600 hover:text-blue-600 transition-colors text-xs"
-                        >
-                          <ThumbsUp className="w-4 h-4" />
-                          <span>{post.likeCount}</span>
-                        </button>
-                        <button className="flex items-center space-x-1 text-gray-600 hover:text-blue-600 transition-colors text-xs">
-                          <MessageCircle className="w-4 h-4" />
-                          <span>{post.commentCount}</span>
-                        </button>
-                        <button className="flex items-center space-x-1 text-gray-600 hover:text-blue-600 transition-colors text-xs">
-                          <Share2 className="w-4 h-4" />
-                        </button>
+                    <Button variant="ghost" size="sm">
+                      <MoreHorizontal className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                
+                <CardContent className="pt-0">
+                  {post.title && (
+                    <h2 className="font-semibold text-gray-900 mb-2">{post.title}</h2>
+                  )}
+                  <p className="text-gray-700 text-sm leading-relaxed mb-4">
+                    {post.content}
+                  </p>
+                  
+                  {/* 첨부 파일 표시 */}
+                  {post.attachments && post.attachments.length > 0 && (
+                    <div className="mb-4 rounded-lg overflow-hidden">
+                      <div className="grid grid-cols-1 gap-1">
+                        {post.attachments.map((attachment, index) => (
+                          <img
+                            key={index}
+                            src={attachment}
+                            alt="Post attachment"
+                            className="w-full h-auto max-h-96 object-cover"
+                          />
+                        ))}
                       </div>
                     </div>
+                  )}
+                  
+                  <Separator className="mb-3" />
+                  
+                  {/* 액션 버튼들 */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-6">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleLikeMutation.mutate(post.id)}
+                        className="flex items-center space-x-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-lg"
+                      >
+                        <ThumbsUp className="w-4 h-4" />
+                        <span className="text-sm">{post.likeCount}</span>
+                      </Button>
+                      
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex items-center space-x-2 text-gray-500 hover:text-green-600 hover:bg-green-50 p-2 rounded-lg"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        <span className="text-sm">{post.commentCount}</span>
+                      </Button>
+                      
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex items-center space-x-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 p-2 rounded-lg"
+                      >
+                        <Share2 className="w-4 h-4" />
+                        <span className="text-sm">{post.shareCount}</span>
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))
           )}
         </div>
