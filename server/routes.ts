@@ -4774,6 +4774,42 @@ END:VCARD\`;
     }
   });
 
+  // Business feed API - get all posts for main feed view
+  app.get("/api/business/feed", async (req, res) => {
+    try {
+      // Get all user posts with user information for main feed
+      const posts = await db
+        .select({
+          id: userPosts.id,
+          userId: userPosts.userId,
+          content: userPosts.content,
+          title: userPosts.title,
+          postType: userPosts.postType,
+          attachments: userPosts.attachments,
+          likeCount: userPosts.likeCount,
+          commentCount: userPosts.commentCount,
+          shareCount: userPosts.shareCount,
+          createdAt: userPosts.createdAt,
+          updatedAt: userPosts.updatedAt,
+          user: {
+            id: users.id,
+            username: users.username,
+            displayName: users.displayName,
+            profilePicture: users.profilePicture
+          }
+        })
+        .from(userPosts)
+        .leftJoin(users, eq(userPosts.userId, users.id))
+        .orderBy(desc(userPosts.createdAt))
+        .limit(50);
+
+      res.json({ posts });
+    } catch (error) {
+      console.error("Error fetching business feed:", error);
+      res.status(500).json({ message: "Failed to fetch business feed" });
+    }
+  });
+
   // Get user business card data
   app.get("/api/users/:userId/business-card", async (req, res) => {
     const { userId } = req.params;

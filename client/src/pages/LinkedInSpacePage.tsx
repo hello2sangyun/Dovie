@@ -55,14 +55,14 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
-  // Use business feed API for main feed view
-  const { data: feedData, isLoading } = useQuery({
-    queryKey: ['/api/business/feed'],
+  // Use existing posts API for main feed view
+  const { data: postsData, isLoading } = useQuery({
+    queryKey: ['/api/posts/user'],
     enabled: !!user,
     staleTime: 15000,
   });
 
-  const feedPosts = feedData?.posts || [];
+  const feedPosts = Array.isArray(postsData) ? postsData : [];
 
   // 포스트 생성 뮤테이션
   const createPostMutation = useMutation({

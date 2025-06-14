@@ -28,7 +28,7 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">Dovie Messenger</h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-2">Dovie</h1>
         <p className="text-gray-600 text-lg mb-8">안전하고 스마트한 메신저</p>
         
         {/* 로딩 애니메이션 */}

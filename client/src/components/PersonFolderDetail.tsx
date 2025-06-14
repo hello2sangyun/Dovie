@@ -28,7 +28,7 @@ import { ko } from "date-fns/locale";
 interface FolderItem {
   id: number;
   folderId: number;
-  itemType: 'business_card' | 'one_pager' | 'chat_file' | 'document' | 'image' | 'audio';
+  itemType: 'business_card' | 'one_pager' | 'chat_file' | 'document' | 'image' | 'audio' | 'memo';
   fileName?: string;
   fileUrl?: string;
   fileSize?: number;
