@@ -374,11 +374,6 @@ export default function PersonFoldersList({ onSelectFolder }: PersonFoldersListP
                         <FolderOpen className="w-5 h-5 text-gray-400" />
                       </div>
                     )}
-                    {folder.itemCount > 0 && (
-                      <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
-                        {folder.itemCount > 99 ? '99+' : folder.itemCount}
-                      </div>
-                    )}
                   </div>
 
                   {/* Content */}
