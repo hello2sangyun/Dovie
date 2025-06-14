@@ -759,28 +759,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ success: false, error: "이미지 파일이 필요합니다." });
       }
 
-      console.log('Processing business card image analysis with AI auto-crop...');
+      console.log('Starting business card analysis...', {
+        userId,
+        fileSize: req.file.size,
+        mimeType: req.file.mimetype
+      });
       
-      // Step 1: Detect business card boundaries using AI
+      // Directly analyze business card with OpenAI (simplified version)
       const originalBase64 = req.file.buffer.toString('base64');
-      const { detectBusinessCardBounds } = await import('./openai');
-      const detectedBounds = await detectBusinessCardBounds(originalBase64);
-      
-      console.log('AI boundary detection result:', detectedBounds);
-
-      // Step 2: Process image with AI-guided cropping
-      const { processBusinessCardImageWithAI } = await import('./imageProcessing');
-      const processedImages = await processBusinessCardImageWithAI(req.file.buffer, detectedBounds || undefined);
-      
-      // Convert enhanced image to base64
-      const base64Image = processedImages.enhanced.toString('base64');
-      
-      // Analyze business card with OpenAI using enhanced image
       const { analyzeBusinessCard } = await import('./openai');
-      const analysisResult = await analyzeBusinessCard(base64Image);
+      
+      console.log('Calling OpenAI analysis...');
+      const analysisResult = await analyzeBusinessCard(originalBase64);
+      
+      console.log('Analysis result:', analysisResult);
       
       if (analysisResult.success) {
-        console.log('Business card analysis completed:', analysisResult.data);
+        console.log('Business card analysis completed successfully:', analysisResult.data);
         res.json({ 
           success: true, 
           analysis: analysisResult.data 
@@ -789,14 +784,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error('Business card analysis failed:', analysisResult.error);
         res.status(500).json({ 
           success: false, 
-          error: analysisResult.error 
+          error: analysisResult.error || "분석에 실패했습니다." 
         });
       }
     } catch (error) {
       console.error("Business card analysis error:", error);
       res.status(500).json({ 
         success: false, 
-        error: "명함 분석 중 오류가 발생했습니다." 
+        error: `명함 분석 중 오류가 발생했습니다: ${error.message}` 
       });
     }
   });

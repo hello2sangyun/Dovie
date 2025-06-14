@@ -87,18 +87,27 @@ export default function CameraCapture({ onCapture, onClose, isOpen = true }: Cam
   };
 
   const confirmCapture = () => {
-    if (!capturedImage || !canvasRef.current) return;
+    if (!capturedImage) return;
 
-    canvasRef.current.toBlob((blob) => {
-      if (blob) {
+    // Convert data URL to blob
+    fetch(capturedImage)
+      .then(res => res.blob())
+      .then(blob => {
         const file = new File([blob], `business-card-${Date.now()}.jpg`, {
           type: 'image/jpeg',
           lastModified: Date.now(),
         });
         onCapture(file);
         onClose();
-      }
-    }, 'image/jpeg', 0.9);
+      })
+      .catch(error => {
+        console.error('Failed to convert image:', error);
+        toast({
+          variant: "destructive",
+          title: "오류",
+          description: "이미지 처리 중 오류가 발생했습니다.",
+        });
+      });
   };
 
   const retakePhoto = () => {
