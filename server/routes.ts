@@ -3225,12 +3225,25 @@ END:VCARD\`;
 
       // 일반 파일의 경우 복호화 시도
       try {
-        const encryptedData = await fs.promises.readFile(filePath, 'utf8');
-        const decryptedBuffer = decryptFileData(encryptedData);
-        
-        res.set('Content-Type', contentType);
-        res.set('Cache-Control', 'public, max-age=31536000');
-        res.send(decryptedBuffer);
+        // 이미지 파일인 경우 바이너리로 읽어서 복호화
+        if (contentType.startsWith('image/')) {
+          const encryptedData = await fs.promises.readFile(filePath, 'utf8');
+          const decryptedBuffer = decryptFileData(encryptedData);
+          
+          res.set('Content-Type', contentType);
+          res.set('Cache-Control', 'public, max-age=31536000, immutable');
+          res.set('Access-Control-Allow-Origin', '*');
+          res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+          res.send(decryptedBuffer);
+        } else {
+          // 텍스트 파일 등은 UTF-8로 복호화
+          const encryptedData = await fs.promises.readFile(filePath, 'utf8');
+          const decryptedBuffer = decryptFileData(encryptedData);
+          
+          res.set('Content-Type', contentType);
+          res.set('Cache-Control', 'public, max-age=31536000');
+          res.send(decryptedBuffer);
+        }
       } catch (decryptError) {
         console.log('Decryption failed, serving raw file:', filename);
         // 복호화 실패 시 원본 파일 그대로 서빙
