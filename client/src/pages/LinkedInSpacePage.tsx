@@ -127,9 +127,9 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col h-screen bg-gray-50">
       {/* 상단 헤더 */}
-      <div className="flex items-center justify-between p-4 bg-white border-b border-gray-200">
+      <div className="flex items-center justify-between p-4 bg-white border-b border-gray-200 flex-shrink-0">
         <div className="flex items-center">
           {onBack && (
             <Button variant="ghost" size="sm" onClick={onBack} className="mr-2">
@@ -146,7 +146,7 @@ export default function LinkedInSpacePage({ onBack }: LinkedInSpacePageProps) {
       </div>
 
       {/* 스크롤 가능한 콘텐츠 */}
-      <div className="flex-1 overflow-y-auto pb-20">
+      <div className="flex-1 overflow-y-auto pb-20" style={{ maxHeight: 'calc(100vh - 140px)' }}>
         
         {/* 포스트 작성 카드 */}
         <div className="mx-4 mt-4 bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
