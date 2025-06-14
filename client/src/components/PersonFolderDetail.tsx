@@ -101,6 +101,28 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
     },
   });
 
+  // Item deletion mutation
+  const deleteItemMutation = useMutation({
+    mutationFn: async (itemId: number) => {
+      return apiRequest(`/api/person-folders/${folderId}/items/${itemId}`, "DELETE");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/person-folders", folderId, "items"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/person-folders"] });
+      toast({
+        title: "항목 삭제 완료",
+        description: "선택한 항목이 삭제되었습니다.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "삭제 실패",
+        description: error instanceof Error ? error.message : "항목 삭제 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const { data: folder, isLoading: folderLoading, error: folderError } = useQuery<PersonFolderData>({
     queryKey: ["/api/person-folders", folderId],
     enabled: !!user && !!folderId,
@@ -139,6 +161,8 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
         return <Mic className="w-5 h-5 text-orange-500" />;
       case 'chat_file':
         return <MessageCircle className="w-5 h-5 text-indigo-500" />;
+      case 'memo':
+        return <FileText className="w-5 h-5 text-yellow-500" />;
       default:
         return <FileText className="w-5 h-5 text-gray-500" />;
     }
@@ -158,6 +182,8 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
         return '음성';
       case 'chat_file':
         return '채팅 파일';
+      case 'memo':
+        return '메모';
       default:
         return '파일';
     }
@@ -485,14 +511,42 @@ export default function PersonFolderDetail({ folderId, onBack }: PersonFolderDet
                               )}
                             </div>
                             <div className="flex items-center space-x-1">
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <Eye className="w-4 h-4" />
-                              </Button>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <Download className="w-4 h-4" />
-                              </Button>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-red-500">
-                                <MoreVertical className="w-4 h-4" />
+                              {item.itemType === 'memo' ? (
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-8 w-8 p-0"
+                                  onClick={() => {
+                                    toast({
+                                      title: "메모 내용",
+                                      description: item.description || "메모 내용이 없습니다.",
+                                    });
+                                  }}
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </Button>
+                              ) : (
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <Eye className="w-4 h-4" />
+                                </Button>
+                              )}
+                              {item.itemType !== 'memo' && (
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <Download className="w-4 h-4" />
+                                </Button>
+                              )}
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
+                                onClick={() => {
+                                  if (window.confirm(`"${item.title || item.fileName || '이 항목'}"을(를) 삭제하시겠습니까?`)) {
+                                    deleteItemMutation.mutate(item.id);
+                                  }
+                                }}
+                                disabled={deleteItemMutation.isPending}
+                              >
+                                <Trash2 className="w-4 h-4" />
                               </Button>
                             </div>
                           </div>

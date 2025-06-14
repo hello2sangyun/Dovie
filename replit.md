@@ -156,6 +156,8 @@ Dovie Messenger is a modern, secure messaging application built with a full-stac
 - June 14, 2025: Enhanced memo functionality - Added memo input after business card scanning with server-side storage and automatic Cabinet folder refresh
 - June 14, 2025: Interface improvement - Removed redundant scanner container box from Cabinet tab, streamlined to clean title and scan button only
 - June 14, 2025: Navigation restructure - Set Cabinet as default page for all users, replaced scan tab with Network tab for business SNS functionality using existing LinkedInSpacePage component
+- June 14, 2025: Service rebranding - Changed name from "Dovie Messenger" to just "Dovie" throughout application including logos, landing page, and all user-facing text
+- June 14, 2025: Enhanced memo functionality - Added proper memo viewing and deletion capabilities in folder shared files section with dedicated memo icon, viewing via toast notifications, and confirmation-based deletion
 
 ## User Preferences
 
