@@ -152,61 +152,7 @@ export const pollVotes = pgTable("poll_votes", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Location-based chat rooms
-export const locationChatRooms = pgTable("location_chat_rooms", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  latitude: decimal("latitude", { precision: 10, scale: 8 }).notNull(),
-  longitude: decimal("longitude", { precision: 11, scale: 8 }).notNull(),
-  radius: integer("radius").default(50), // meters - 기본 50미터 반경
-  address: text("address"),
-  isOfficial: boolean("is_official").default(false),
-  businessOwnerId: integer("business_owner_id").references(() => users.id),
-  autoDeleteAt: timestamp("auto_delete_at"),
-  isActive: boolean("is_active").default(true),
-  maxParticipants: integer("max_participants").default(100),
-  participantCount: integer("participant_count").default(0),
-  lastActivity: timestamp("last_activity").defaultNow(),
-  createdAt: timestamp("created_at").defaultNow(),
-});
 
-export const locationChatParticipants = pgTable("location_chat_participants", {
-  id: serial("id").primaryKey(),
-  locationChatRoomId: integer("location_chat_room_id").references(() => locationChatRooms.id).notNull(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  nickname: text("nickname"),
-  profileImageUrl: text("profile_image_url"),
-  joinedAt: timestamp("joined_at").defaultNow(),
-  lastSeen: timestamp("last_seen").defaultNow(),
-  isMuted: boolean("is_muted").default(false),
-  isBlocked: boolean("is_blocked").default(false),
-}, (table) => ({
-  uniqueParticipant: unique().on(table.locationChatRoomId, table.userId),
-}));
-
-export const locationChatMessages = pgTable("location_chat_messages", {
-  id: serial("id").primaryKey(),
-  locationChatRoomId: integer("location_chat_room_id").references(() => locationChatRooms.id).notNull(),
-  senderId: integer("sender_id").references(() => users.id).notNull(),
-  content: text("content").notNull(),
-  messageType: text("message_type").default("text"), // text, image, voice, file
-  fileName: text("file_name"),
-  fileSize: integer("file_size"),
-  voiceDuration: integer("voice_duration"),
-  detectedLanguage: text("detected_language"),
-  confidence: text("confidence"),
-  isSystemMessage: boolean("is_system_message").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-export const userLocations = pgTable("user_locations", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull().unique(),
-  latitude: decimal("latitude", { precision: 10, scale: 8 }).notNull(),
-  longitude: decimal("longitude", { precision: 11, scale: 8 }).notNull(),
-  accuracy: decimal("accuracy", { precision: 8, scale: 2 }),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
 
 export const fileUploads = pgTable("file_uploads", {
   id: serial("id").primaryKey(),
@@ -372,10 +318,6 @@ export const usersRelations = relations(users, ({ many }) => ({
   chatParticipants: many(chatParticipants),
   sentMessages: many(messages),
   commands: many(commands),
-  ownedLocationChatRooms: many(locationChatRooms),
-  locationChatParticipants: many(locationChatParticipants),
-  locationChatMessages: many(locationChatMessages),
-  userLocation: many(userLocations),
   businessCards: many(businessCards),
 }));
 
@@ -462,44 +404,7 @@ export const commandsRelations = relations(commands, ({ one }) => ({
   }),
 }));
 
-// Location chat relations
-export const locationChatRoomsRelations = relations(locationChatRooms, ({ one, many }) => ({
-  businessOwner: one(users, {
-    fields: [locationChatRooms.businessOwnerId],
-    references: [users.id],
-  }),
-  participants: many(locationChatParticipants),
-  messages: many(locationChatMessages),
-}));
 
-export const locationChatParticipantsRelations = relations(locationChatParticipants, ({ one }) => ({
-  locationChatRoom: one(locationChatRooms, {
-    fields: [locationChatParticipants.locationChatRoomId],
-    references: [locationChatRooms.id],
-  }),
-  user: one(users, {
-    fields: [locationChatParticipants.userId],
-    references: [users.id],
-  }),
-}));
-
-export const locationChatMessagesRelations = relations(locationChatMessages, ({ one }) => ({
-  locationChatRoom: one(locationChatRooms, {
-    fields: [locationChatMessages.locationChatRoomId],
-    references: [locationChatRooms.id],
-  }),
-  sender: one(users, {
-    fields: [locationChatMessages.senderId],
-    references: [users.id],
-  }),
-}));
-
-export const userLocationsRelations = relations(userLocations, ({ one }) => ({
-  user: one(users, {
-    fields: [userLocations.userId],
-    references: [users.id],
-  }),
-}));
 
 export const fileUploadsRelations = relations(fileUploads, ({ one, many }) => ({
   user: one(users, {
@@ -745,28 +650,7 @@ export const insertPhoneVerificationSchema = createInsertSchema(phoneVerificatio
   createdAt: true,
 });
 
-export const insertLocationChatRoomSchema = createInsertSchema(locationChatRooms).omit({
-  id: true,
-  createdAt: true,
-  participantCount: true,
-  lastActivity: true,
-});
 
-export const insertLocationChatParticipantSchema = createInsertSchema(locationChatParticipants).omit({
-  id: true,
-  joinedAt: true,
-  lastSeen: true,
-});
-
-export const insertLocationChatMessageSchema = createInsertSchema(locationChatMessages).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertUserLocationSchema = createInsertSchema(userLocations).omit({
-  id: true,
-  updatedAt: true,
-});
 
 export const insertFileUploadSchema = createInsertSchema(fileUploads).omit({
   id: true,
