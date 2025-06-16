@@ -236,8 +236,38 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(users, eq(chatParticipants.userId, users.id))
       .where(inArray(chatParticipants.chatRoomId, chatRoomIds));
 
-    // Simple fallback - skip last messages for now to improve performance
+    // Get last messages for each chat room
     const lastMessageByRoom = new Map<number, Message & { sender: User }>();
+    
+    for (const chatRoomId of chatRoomIds) {
+      const [lastMessage] = await db
+        .select({
+          id: messages.id,
+          chatRoomId: messages.chatRoomId,
+          senderId: messages.senderId,
+          content: messages.content,
+          messageType: messages.messageType,
+          createdAt: messages.createdAt,
+          sender: users
+        })
+        .from(messages)
+        .innerJoin(users, eq(messages.senderId, users.id))
+        .where(eq(messages.chatRoomId, chatRoomId))
+        .orderBy(desc(messages.createdAt))
+        .limit(1);
+      
+      if (lastMessage) {
+        lastMessageByRoom.set(chatRoomId, {
+          id: lastMessage.id,
+          chatRoomId: lastMessage.chatRoomId,
+          senderId: lastMessage.senderId,
+          content: decryptText(lastMessage.content),
+          messageType: lastMessage.messageType,
+          createdAt: lastMessage.createdAt,
+          sender: lastMessage.sender
+        });
+      }
+    }
 
     // Group participants by chat room
     const participantsByRoom = new Map<number, User[]>();
