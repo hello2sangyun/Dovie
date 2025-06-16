@@ -28,6 +28,32 @@
   animation: gradient-rotate 3s linear infinite;
 }
 
+/* 음성 녹음 애니메이션 */
+@keyframes waveform {
+  0%, 100% { height: 20px; }
+  50% { height: 45px; }
+}
+
+.waveform-bar {
+  animation: waveform 1.5s ease-in-out infinite;
+}
+
+.animation-delay-200 {
+  animation-delay: 200ms;
+}
+
+.animation-delay-400 {
+  animation-delay: 400ms;
+}
+
+.animation-delay-600 {
+  animation-delay: 600ms;
+}
+
+.animation-delay-800 {
+  animation-delay: 800ms;
+}
+
 :root {
   --background: 0 0% 100%;
   --foreground: 224 71.4% 4.1%;

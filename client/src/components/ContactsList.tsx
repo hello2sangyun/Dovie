@@ -601,11 +601,40 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
 
       {/* 음성 녹음 상태 표시 */}
       {isRecording && recordingContact && (
-        <div className="fixed top-4 right-4 z-50 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2 animate-pulse">
-          <Mic className="h-4 w-4" />
-          <span className="text-sm font-medium">
-            {recordingContact.nickname || recordingContact.contactUser.displayName}에게 음성 메시지 녹음 중...
-          </span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-gradient-to-br from-red-500 to-red-600 text-white p-8 rounded-2xl shadow-2xl flex flex-col items-center space-y-4 max-w-sm mx-4">
+            {/* 마이크 아이콘과 펄스 애니메이션 */}
+            <div className="relative">
+              <div className="absolute inset-0 bg-red-400 rounded-full animate-ping opacity-75"></div>
+              <div className="absolute inset-2 bg-red-300 rounded-full animate-ping opacity-50 animation-delay-200"></div>
+              <div className="relative bg-red-600 p-4 rounded-full">
+                <Mic className="h-8 w-8 text-white" />
+              </div>
+            </div>
+            
+            {/* 음성 파형 애니메이션 */}
+            <div className="flex items-center space-x-1">
+              <div className="w-1 bg-white/80 rounded-full waveform-bar" style={{animationDelay: '0ms'}}></div>
+              <div className="w-1 bg-white/80 rounded-full waveform-bar" style={{animationDelay: '150ms'}}></div>
+              <div className="w-1 bg-white/80 rounded-full waveform-bar" style={{animationDelay: '300ms'}}></div>
+              <div className="w-1 bg-white/80 rounded-full waveform-bar" style={{animationDelay: '450ms'}}></div>
+              <div className="w-1 bg-white/80 rounded-full waveform-bar" style={{animationDelay: '600ms'}}></div>
+              <div className="w-1 bg-white/80 rounded-full waveform-bar" style={{animationDelay: '750ms'}}></div>
+              <div className="w-1 bg-white/80 rounded-full waveform-bar" style={{animationDelay: '900ms'}}></div>
+            </div>
+            
+            <div className="text-center">
+              <p className="text-lg font-semibold">
+                {recordingContact.nickname || recordingContact.contactUser.displayName}
+              </p>
+              <p className="text-sm text-red-100 mt-1">
+                음성 메시지 녹음 중...
+              </p>
+              <p className="text-xs text-red-200 mt-2">
+                손을 떼면 자동으로 전송됩니다
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
