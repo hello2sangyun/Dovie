@@ -1225,7 +1225,7 @@ export default function MainApp() {
             <div className="flex-1 flex items-center justify-center bg-gray-50">
               <div className="text-center">
                 <VaultLogo size="lg" className="mx-auto mb-4 opacity-50" />
-                <p className="text-gray-500 text-lg">채팅방을 선택하여 대화를 시작하세요</p>
+                <p className="text-gray-500 text-lg">채팅방을 선택해야 대화를 시작하세요</p>
               </div>
             </div>
           )}

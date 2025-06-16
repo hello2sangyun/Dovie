@@ -134,12 +134,13 @@ Dovie Messenger is a modern, secure messaging application built with a full-stac
   * Removed Cabinet, Network, and My Space functionality
   * Simplified to core messaging features: chat rooms, contacts, and settings
   * Created SimpleChatApp component focused on real-time messaging
-- June 16, 2025: **Rollback to Deployed Business Card Platform Version**:
-  * Restored full Dovie business card platform functionality
-  * Re-enabled Cabinet (default page), Network, and business card scanning
-  * Restored MainApp component with complete navigation structure
-  * Re-implemented business card analysis endpoint with OpenAI integration
-  * Returned to person-based folder organization system
+- June 16, 2025: **Rollback to Vault Messenger Desktop Version**:
+  * Switched from business card platform to Vault Messenger interface
+  * Implemented desktop-first layout with left sidebar navigation
+  * Updated navigation tabs to Korean: 연락처 (Contacts), 채팅방 (Chat Rooms), 자료실 (Archive), 설정 (Settings)
+  * Added user profile section with "프로필 저장" button in contacts tab
+  * Modified main content area to show "채팅방을 선택해야 대화를 시작하세요" message
+  * Changed app title from "Dovie" to "Vault Messenger"
 
 ## User Preferences
 
