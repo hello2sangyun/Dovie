@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
-  const { setUser, requestLocationPermission } = useAuth();
+  const { setUser } = useAuth();
   const { toast } = useToast();
   
   const [formData, setFormData] = useState({
@@ -51,8 +51,6 @@ export default function LoginPage() {
         return;
       }
       
-      // 위치정보 권한 요청 (Auth context에서 처리)
-      requestLocationPermission();
       
       // 프로필이 완성되지 않은 경우 프로필 설정 페이지로
       if (!data.user.isProfileComplete) {
