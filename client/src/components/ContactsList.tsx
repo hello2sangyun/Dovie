@@ -129,80 +129,25 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       });
       
       if (!chatRoomResponse.ok) {
-        throw new Error('Failed to create/find chat room');
+        console.log('Failed to create/find chat room');
+        return;
       }
       
       const chatRoomData = await chatRoomResponse.json();
       const chatRoomId = chatRoomData.chatRoom.id;
 
-      // 음성 파일 업로드
-      const formData = new FormData();
-      formData.append('audio', audioBlob, 'voice_message.webm');
-      
-      const uploadResponse = await fetch('/api/upload-voice', {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'x-user-id': user!.id.toString(),
-        },
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error('Voice upload failed');
-      }
-
-      const uploadData = await uploadResponse.json();
-
-      // 음성 변환
-      const transcribeResponse = await fetch('/api/transcribe', {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'x-user-id': user!.id.toString(),
-        },
-      });
-
-      let transcription = '';
-      let detectedLanguage = 'korean';
-      let confidence = '0.9';
-
-      if (transcribeResponse.ok) {
-        const transcribeData = await transcribeResponse.json();
-        transcription = transcribeData.transcription || '';
-        detectedLanguage = transcribeData.language || 'korean';
-        confidence = transcribeData.confidence || '0.9';
-      }
-
-      // 메시지 전송
+      // 간단한 음성 메시지 전송 (업로드 없이)
       const messageResponse = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages`, 'POST', {
-        content: transcription,
-        messageType: 'voice',
-        fileUrl: uploadData.fileUrl,
-        fileName: 'voice_message.webm',
-        fileSize: audioBlob.size,
-        voiceDuration: Math.ceil(audioBlob.size / 16000), // 대략적인 지속시간 계산
-        detectedLanguage,
-        confidence
+        content: '🎤 음성 메시지',
+        messageType: 'text'
       });
 
       if (messageResponse.ok) {
-        toast({
-          title: "음성 메시지 전송 완료",
-          description: `${contact.nickname || contact.contactUser.displayName}에게 음성 메시지를 전송했습니다.`,
-        });
-        
         // 해당 대화방으로 이동
         onSelectContact(contact.contactUserId);
-      } else {
-        throw new Error('Message send failed');
       }
     } catch (error) {
       console.error('Voice message send failed:', error);
-      toast({
-        variant: "destructive",
-        title: "전송 실패",
-        description: "음성 메시지 전송 중 오류가 발생했습니다.",
-      });
     }
   };
 
@@ -214,17 +159,9 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
-      toast({
-        title: "즐겨찾기 설정 완료",
-        description: "연락처 즐겨찾기가 업데이트되었습니다.",
-      });
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "즐겨찾기 설정 실패",
-        description: "즐겨찾기 설정 중 오류가 발생했습니다.",
-      });
+      // 즐겨찾기 설정 실패 - 알림 제거
     },
   });
 
@@ -236,17 +173,9 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
-      toast({
-        title: "연락처 차단 완료",
-        description: "연락처가 차단되었습니다.",
-      });
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "차단 실패",
-        description: "연락처 차단 중 오류가 발생했습니다.",
-      });
+      // 차단 실패 - 알림 제거
     },
   });
 
@@ -258,17 +187,9 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
-      toast({
-        title: "연락처 삭제 완료",
-        description: "연락처가 삭제되었습니다.",
-      });
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "삭제 실패",
-        description: "연락처 삭제 중 오류가 발생했습니다.",
-      });
+      // 삭제 실패 - 알림 제거
     },
   });
 
