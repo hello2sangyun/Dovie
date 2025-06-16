@@ -32,6 +32,9 @@ export default function LoginPage() {
       return response.json();
     },
     onSuccess: (data) => {
+      console.log("로그인 성공, 사용자 데이터:", data.user);
+      
+      // 사용자 정보 설정
       setUser(data.user);
       localStorage.setItem("userId", data.user.id.toString());
       
@@ -43,7 +46,8 @@ export default function LoginPage() {
       
       // 관리자 계정 체크
       if (formData.email === "master@master.com") {
-        setLocation("/admin");
+        console.log("관리자 로그인 - /admin으로 이동");
+        window.location.href = "/admin";
         toast({
           title: "관리자 로그인",
           description: "관리자 페이지로 이동합니다.",
@@ -51,16 +55,17 @@ export default function LoginPage() {
         return;
       }
       
-      
       // 프로필이 완성되지 않은 경우 프로필 설정 페이지로
       if (!data.user.isProfileComplete) {
-        setLocation("/profile-setup");
+        console.log("프로필 미완성 - /profile-setup으로 이동");
+        window.location.href = "/profile-setup";
         toast({
           title: "로그인 성공",
           description: "프로필을 완성해주세요!",
         });
       } else {
-        setLocation("/app");
+        console.log("프로필 완성됨 - /app으로 이동");
+        window.location.href = "/app";
         toast({
           title: "로그인 성공",
           description: `${data.user.displayName}님 환영합니다!`,
