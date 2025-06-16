@@ -59,18 +59,19 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes cache
-      gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
+      staleTime: 30 * 1000, // 30초 캐시로 줄여서 더 빠른 응답
+      gcTime: 5 * 60 * 1000, // 5분 가비지 컬렉션
       retry: (failureCount: number, error: any) => {
         if (error?.message?.includes('404')) return false;
-        return failureCount < 2;
+        return failureCount < 1; // 재시도 횟수 줄임
       },
       refetchOnMount: false,
-      refetchOnReconnect: 'always',
+      refetchOnReconnect: false, // 재연결 시 자동 새로고침 비활성화
+      networkMode: 'always', // 네트워크 상태와 관계없이 요청
     },
     mutations: {
-      retry: 1,
-      gcTime: 1000 * 60 * 5, // 5 minutes for mutations
+      retry: 0, // 뮤테이션 재시도 비활성화로 빠른 응답
+      networkMode: 'always',
     },
   },
 });
