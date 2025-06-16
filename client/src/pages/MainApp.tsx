@@ -222,16 +222,7 @@ export default function MainApp() {
 
   const handleChatRoomSelect = (chatRoomId: number) => {
     setSelectedChatRoom(chatRoomId);
-    setSelectedLocationChatRoom(null);
-    setIsLocationChatActive(false);
     setActiveTab("chats");
-  };
-
-  const handleLocationChatRoomSelect = (chatRoomId: number) => {
-    setSelectedLocationChatRoom(chatRoomId);
-    setSelectedChatRoom(null);
-    setIsLocationChatActive(true);
-    setActiveTab("nearby");
   };
 
   const closeModals = () => {
