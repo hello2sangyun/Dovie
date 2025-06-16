@@ -219,10 +219,7 @@ export class DatabaseStorage implements IStorage {
       .select({ chatRoom: chatRooms })
       .from(chatParticipants)
       .innerJoin(chatRooms, eq(chatParticipants.chatRoomId, chatRooms.id))
-      .where(and(
-        eq(chatParticipants.userId, userId),
-        eq(chatRooms.isLocationChat, false) // 주변챗 제외
-      ))
+      .where(eq(chatParticipants.userId, userId))
       .orderBy(desc(chatRooms.isPinned), desc(chatRooms.createdAt));
 
     if (userChatRooms.length === 0) return [];
@@ -783,115 +780,6 @@ export class DatabaseStorage implements IStorage {
     }
 
     return sql`${fileUploads.uploadedAt} >= ${startDate}`;
-  }
-
-  async checkLocationProximity(userId: number): Promise<{ roomId: number; distance: number; hasNewChats: boolean }[]> {
-    const userLocation = await db.select()
-      .from(userLocations)
-      .where(eq(userLocations.userId, userId));
-
-    if (!userLocation.length) return [];
-
-    const { latitude: userLat, longitude: userLng } = userLocation[0];
-    
-    // 주변 50미터 내 채팅방 찾기
-    const nearbyRooms = await db.select({
-      id: locationChatRooms.id,
-      name: locationChatRooms.name,
-      latitude: locationChatRooms.latitude,
-      longitude: locationChatRooms.longitude,
-      radius: locationChatRooms.radius,
-      participantCount: locationChatRooms.participantCount,
-      lastActivity: locationChatRooms.lastActivity,
-    })
-    .from(locationChatRooms)
-    .where(eq(locationChatRooms.isActive, true));
-
-    const proximityResults = [];
-    for (const room of nearbyRooms) {
-      const distance = this.calculateDistance(
-        parseFloat(userLat.toString()),
-        parseFloat(userLng.toString()),
-        parseFloat(room.latitude.toString()),
-        parseFloat(room.longitude.toString())
-      );
-
-      if (distance <= (room.radius || 50)) {
-        // 사용자가 이미 참여하고 있는지 확인
-        const isParticipant = await db.select()
-          .from(locationChatParticipants)
-          .where(
-            and(
-              eq(locationChatParticipants.userId, userId),
-              eq(locationChatParticipants.locationChatRoomId, room.id)
-            )
-          );
-
-        const hasNewChats = !isParticipant.length;
-        
-        proximityResults.push({
-          roomId: room.id,
-          distance,
-          hasNewChats
-        });
-      }
-    }
-
-    return proximityResults;
-  }
-
-  async getLocationChatMessages(roomId: number, limit: number = 50): Promise<any[]> {
-    const messages = await db
-      .select({
-        id: locationChatMessages.id,
-        content: locationChatMessages.content,
-        messageType: locationChatMessages.messageType,
-        fileName: locationChatMessages.fileName,
-        fileSize: locationChatMessages.fileSize,
-        voiceDuration: locationChatMessages.voiceDuration,
-        detectedLanguage: locationChatMessages.detectedLanguage,
-        createdAt: locationChatMessages.createdAt,
-        senderId: locationChatMessages.senderId,
-        locationChatRoomId: locationChatMessages.locationChatRoomId,
-        sender: {
-          id: users.id,
-          displayName: users.displayName,
-          profilePicture: users.profilePicture
-        },
-        senderProfile: {
-          nickname: locationChatParticipants.nickname,
-          profileImageUrl: locationChatParticipants.profileImageUrl
-        }
-      })
-      .from(locationChatMessages)
-      .innerJoin(users, eq(locationChatMessages.senderId, users.id))
-      .leftJoin(locationChatParticipants, and(
-        eq(locationChatParticipants.userId, locationChatMessages.senderId),
-        eq(locationChatParticipants.locationChatRoomId, roomId)
-      ))
-      .where(eq(locationChatMessages.locationChatRoomId, roomId))
-      .orderBy(desc(locationChatMessages.createdAt))
-      .limit(limit);
-
-    return messages.reverse();
-  }
-
-  async createLocationChatMessage(roomId: number, senderId: number, messageData: any): Promise<any> {
-    const [message] = await db
-      .insert(locationChatMessages)
-      .values({
-        locationChatRoomId: roomId,
-        senderId: senderId,
-        content: messageData.content,
-        messageType: messageData.messageType || "text",
-        fileName: messageData.fileName,
-        fileSize: messageData.fileSize,
-        voiceDuration: messageData.voiceDuration,
-        detectedLanguage: messageData.detectedLanguage
-      })
-      .returning();
-
-    return message;
   }
 
   // Business card operations

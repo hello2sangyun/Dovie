@@ -17,7 +17,6 @@ import ScrollIndicator from "@/components/ScrollIndicator";
 import PerformanceMonitor from "@/components/PerformanceMonitor";
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
-import NearbyChats from "@/components/NearbyChats";
 import BlockedContactsPage from "@/components/BlockedContactsPage";
 import SimpleSpacePage from "@/pages/SimpleSpacePage";
 import LinkedInSpacePage from "@/pages/LinkedInSpacePage";
@@ -35,9 +34,7 @@ export default function MainApp() {
   const [showSettings, setShowSettings] = useState(false);
   const [selectedChatRoom, setSelectedChatRoom] = useState<number | null>(null);
   const [rightPanelContent, setRightPanelContent] = useState<string | null>(null);
-  const [selectedLocationChatRoom, setSelectedLocationChatRoom] = useState<number | null>(null);
   const [showMobileChat, setShowMobileChat] = useState(false);
-  const [isLocationChatActive, setIsLocationChatActive] = useState(false);
   const [modals, setModals] = useState({
     addContact: false,
     command: false,
@@ -395,9 +392,7 @@ export default function MainApp() {
                 />
               </TabsContent>
               
-              <TabsContent value="nearby" className="h-full m-0">
-                <NearbyChats onChatRoomSelect={handleLocationChatRoomSelect} />
-              </TabsContent>
+
               
               <TabsContent value="archive" className="h-full m-0">
                 <div className="h-full flex items-center justify-center text-gray-500">
@@ -1011,35 +1006,16 @@ export default function MainApp() {
               onClearFriendFilter={() => setFriendFilter(null)}
             />
           )}
-          {activeMobileTab === "nearby" && (
-            <NearbyChats onChatRoomSelect={(chatId) => {
-              console.log('Nearby chat selected:', chatId);
-              setSelectedLocationChatRoom(chatId);
-              setSelectedChatRoom(null);
-              setIsLocationChatActive(true);
-              setShowMobileChat(true);
-              setActiveMobileTab("nearby"); // 탭 상태 유지
-              console.log('State after selection:', {
-                selectedLocationChatRoom: chatId,
-                selectedChatRoom: null,
-                showMobileChat: true,
-                activeMobileTab: "nearby"
-              });
-            }} />
-          )}
-          {showMobileChat && (selectedChatRoom || selectedLocationChatRoom) && (
+          {showMobileChat && selectedChatRoom && (
             <div className="h-full flex flex-col overflow-hidden">
               <div className="flex-1 min-h-0">
                 <ChatArea 
-                  chatRoomId={selectedChatRoom || selectedLocationChatRoom!}
+                  chatRoomId={selectedChatRoom}
                   onCreateCommand={handleCreateCommand}
                   showMobileHeader={true}
-                  isLocationChat={!!selectedLocationChatRoom}
                   onBackClick={() => {
                     setShowMobileChat(false);
                     setSelectedChatRoom(null);
-                    setSelectedLocationChatRoom(null);
-                    setIsLocationChatActive(false);
                   }}
                 />
               </div>
