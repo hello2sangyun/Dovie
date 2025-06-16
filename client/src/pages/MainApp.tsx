@@ -399,8 +399,8 @@ export default function MainApp() {
 
   return (
     <div className="fixed inset-0 bg-white dark:bg-gray-900">
-      {/* Desktop Layout - Hidden for now to match deployed version */}
-      <div className="hidden h-full">
+      {/* Desktop Layout */}
+      <div className="flex h-full">
         {/* Sidebar */}
         <div className="w-96 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col">
           {/* Header */}
@@ -425,7 +425,7 @@ export default function MainApp() {
               {/* Logo and Title */}
               <div className="flex items-center space-x-3">
                 <VaultLogo size="sm" />
-                <h1 className="text-xl font-bold text-white">Dovie</h1>
+                <h1 className="text-xl font-bold text-white">Vault Messenger</h1>
               </div>
               
               {/* Placeholder for balance */}
@@ -455,8 +455,8 @@ export default function MainApp() {
                   "data-[state=active]:border-purple-600 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-600"
                 )}
               >
-                <FolderOpen className="h-4 w-4" />
-                <span className="text-xs truncate">Cabinet</span>
+                <BookUser className="h-4 w-4" />
+                <span className="text-xs truncate">연락처</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="chats"
@@ -466,24 +466,14 @@ export default function MainApp() {
                 )}
               >
                 <div className="relative">
-                  <MessageSquare className="h-4 w-4" />
+                  <MessageCircle className="h-4 w-4" />
                   {totalChatUnread > 0 && (
                     <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[16px] h-[16px] flex items-center justify-center font-medium">
                       {totalChatUnread > 99 ? '99+' : totalChatUnread}
                     </div>
                   )}
                 </div>
-                <span className="text-xs truncate">DM</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="onepager"
-                className={cn(
-                  "py-2 px-3 text-sm font-medium rounded-none border-b-2 border-transparent flex-col items-center gap-1 min-w-0",
-                  "data-[state=active]:border-purple-600 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-600"
-                )}
-              >
-                <CreditCard className="h-4 w-4" />
-                <span className="text-xs truncate">원페이저</span>
+                <span className="text-xs truncate">채팅방</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="archive"
@@ -493,7 +483,7 @@ export default function MainApp() {
                 )}
               >
                 <Archive className="h-4 w-4" />
-                <span className="text-xs truncate">Folder</span>
+                <span className="text-xs truncate">자료실</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="settings"
@@ -503,17 +493,67 @@ export default function MainApp() {
                 )}
               >
                 <Settings className="h-4 w-4" />
-                <span className="text-xs truncate">Setting</span>
+                <span className="text-xs truncate">설정</span>
               </TabsTrigger>
             </TabsList>
 
             <div className="flex-1 overflow-hidden">
               <TabsContent value="contacts" className="h-full m-0">
-                <PersonFoldersList 
-                  onSelectFolder={(folderId) => {
-                    setRightPanelContent(`person-folder-${folderId}`);
-                  }}
-                />
+                <div className="h-full flex flex-col">
+                  {/* 설정 Header */}
+                  <div className="p-4 border-b">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Settings className="h-5 w-5 text-purple-600" />
+                      <h2 className="text-lg font-semibold">설정</h2>
+                    </div>
+                  </div>
+                  
+                  {/* Profile Section */}
+                  <div className="p-4 space-y-4">
+                    <div className="flex items-center gap-2 mb-4">
+                      <User className="h-4 w-4" />
+                      <span className="font-medium">프로필</span>
+                    </div>
+                    
+                    {/* User Profile */}
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
+                      <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white font-medium">
+                        {user?.displayName?.[0] || '사'}
+                      </div>
+                      <div>
+                        <div className="font-medium">{user?.displayName || '이상윤'}</div>
+                        <div className="text-sm text-gray-500">@{user?.username || 'hello2sangyun_314'}</div>
+                      </div>
+                    </div>
+                    
+                    {/* 프로필 저장 Button */}
+                    <Button 
+                      className="w-full purple-gradient text-white hover:opacity-90"
+                      onClick={() => {
+                        // Profile save logic here
+                      }}
+                    >
+                      프로필 저장
+                    </Button>
+                  </div>
+                  
+                  {/* App Info */}
+                  <div className="mt-auto p-4 border-t">
+                    <div className="flex items-center justify-center gap-2 text-gray-400">
+                      <VaultLogo size="sm" />
+                      <div className="text-center">
+                        <div className="text-sm font-medium">Vault Messenger</div>
+                        <div className="text-xs">내가 개발한 메신저</div>
+                        <div className="text-xs">개발 및 디자인 작업을 해보세요!</div>
+                      </div>
+                    </div>
+                    <div className="mt-2 text-center">
+                      <button className="text-red-500 text-sm hover:underline">
+                        로그아웃
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </TabsContent>
 
               <TabsContent value="cabinet" className="h-full m-0">
@@ -1192,8 +1232,8 @@ export default function MainApp() {
         </div>
       </div>
 
-      {/* Mobile Layout - Now used for all screen sizes to match deployed version */}
-      <div className="h-full flex flex-col">
+      {/* Mobile Layout - Hidden to show desktop version */}
+      <div className="hidden h-full flex flex-col">
         {/* Fixed Mobile Header */}
         <div className="flex-shrink-0 purple-gradient p-4 text-white fixed top-0 left-0 right-0 z-50">
           <div className="flex items-center justify-between">
