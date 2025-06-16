@@ -25,9 +25,9 @@ interface ExtendedWebSocket extends WebSocket {
 }
 
 // Store WebSocket connections
-const connections = new Set<WebSocket>();
-const roomConnections = new Map<number, Set<WebSocket>>();
-const userConnections = new Map<number, WebSocket>();
+const connections = new Set<ExtendedWebSocket>();
+const roomConnections = new Map<number, Set<ExtendedWebSocket>>();
+const userConnections = new Map<number, ExtendedWebSocket>();
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -35,7 +35,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // WebSocket server
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
 
-  wss.on('connection', (ws) => {
+  wss.on('connection', (ws: ExtendedWebSocket) => {
     console.log('WebSocket connection established');
     connections.add(ws);
     
@@ -71,7 +71,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   function broadcastToRoom(chatRoomId: number, data: any) {
     if (roomConnections.has(chatRoomId)) {
-      roomConnections.get(chatRoomId)!.forEach((ws) => {
+      const connections = Array.from(roomConnections.get(chatRoomId)!);
+      connections.forEach((ws) => {
         if (ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify(data));
         }
