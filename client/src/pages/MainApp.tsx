@@ -695,63 +695,7 @@ export default function MainApp() {
               setRightPanelContent(null);
               setActiveTab("settings");
             }} />
-          ) : rightPanelContent === "digital-command" ? (
-            <div className="flex-1 bg-gray-50 overflow-y-auto">
-              <div className="max-w-4xl mx-auto p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h1 className="text-2xl font-bold text-gray-900">디지털 명함</h1>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setRightPanelContent(null);
-                      setActiveTab("settings");
-                    }}
-                  >
-                    뒤로 가기
-                  </Button>
-                </div>
-                <div className="space-y-6">
-                  <div className="bg-white rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">내 명함 정보</h3>
-                    <div className="space-y-4">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
-                          <BookUser className="w-8 h-8 text-white" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-900">{user?.displayName}</h4>
-                          <p className="text-gray-600">@{user?.username}</p>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">이름</label>
-                          <p className="text-gray-900">{user?.displayName}</p>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">사용자명</label>
-                          <p className="text-gray-900">@{user?.username}</p>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">이메일</label>
-                          <p className="text-gray-900">{user?.email || "미설정"}</p>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">회사</label>
-                          <p className="text-gray-900">미설정</p>
-                        </div>
-                      </div>
-                      <Button 
-                        className="w-full"
-                        onClick={() => setRightPanelContent("profile-edit")}
-                      >
-                        명함 정보 수정
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+
           ) : rightPanelContent === "notifications" ? (
             <div className="flex-1 bg-gray-50 overflow-y-auto">
               <div className="max-w-4xl mx-auto p-6">

@@ -176,25 +176,7 @@ export const fileDownloads = pgTable("file_downloads", {
   userAgent: text("user_agent")
 });
 
-export const businessCards = pgTable("business_cards", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  fullName: text("full_name"),
-  companyName: text("company_name"),
-  jobTitle: text("job_title"),
-  department: text("department"),
-  email: text("email"),
-  phoneNumber: text("phone_number"),
-  fax: text("fax"),
-  website: text("website"),
-  address: text("address"),
-  description: text("description"),
-  cardImageUrl: text("card_image_url"),
-  extractedText: text("extracted_text"), // OCR로 추출된 원본 텍스트
-  isDefault: boolean("is_default").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
+// Business Cards table removed - Digital business card functionality disabled
 
 // 회사 채널 테이블
 export const companyChannels = pgTable("company_channels", {
@@ -318,8 +300,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   chatParticipants: many(chatParticipants),
   sentMessages: many(messages),
   commands: many(commands),
-
-  businessCards: many(businessCards),
+  // businessCards relation removed - digital business card functionality disabled
 }));
 
 export const contactsRelations = relations(contacts, ({ one }) => ({
@@ -532,12 +513,7 @@ export const postComments = pgTable("post_comments", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const businessCardsRelations = relations(businessCards, ({ one }) => ({
-  user: one(users, {
-    fields: [businessCards.userId],
-    references: [users.id],
-  }),
-}));
+// Business card relations removed - digital business card functionality disabled
 
 export const businessProfilesRelations = relations(businessProfiles, ({ one }) => ({
   user: one(users, {
@@ -663,11 +639,7 @@ export const insertFileDownloadSchema = createInsertSchema(fileDownloads).omit({
   downloadedAt: true,
 });
 
-export const insertBusinessCardSchema = createInsertSchema(businessCards).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
+// Business card schema removed - digital business card functionality disabled
 
 export const insertBusinessProfileSchema = createInsertSchema(businessProfiles).omit({
   id: true,
@@ -681,10 +653,7 @@ export const insertUserPostSchema = createInsertSchema(userPosts).omit({
   updatedAt: true,
 });
 
-export const insertBusinessCardShareSchema = createInsertSchema(businessCardShares).omit({
-  id: true,
-  createdAt: true,
-});
+// Business card share schema removed - digital business card functionality disabled
 
 export const insertCompanyChannelSchema = createInsertSchema(companyChannels).omit({
   id: true,
@@ -729,8 +698,7 @@ export type FileUpload = typeof fileUploads.$inferSelect;
 export type InsertFileUpload = z.infer<typeof insertFileUploadSchema>;
 export type FileDownload = typeof fileDownloads.$inferSelect;
 export type InsertFileDownload = z.infer<typeof insertFileDownloadSchema>;
-export type BusinessCard = typeof businessCards.$inferSelect;
-export type InsertBusinessCard = z.infer<typeof insertBusinessCardSchema>;
+// Business card types removed - digital business card functionality disabled
 export type BusinessProfile = typeof businessProfiles.$inferSelect;
 export type InsertBusinessProfile = z.infer<typeof insertBusinessProfileSchema>;
 export type UserPost = typeof userPosts.$inferSelect;
