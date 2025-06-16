@@ -1,0 +1,84 @@
+2025-05-31T06:06:36Z info: Deployment: 6690f6b0-7c68-4f44-95e6-82e134b0cb94
+2025-05-31T06:06:36Z info: Build: ccc48636-16a1-450b-ae94-867cbc100d34
+2025-05-31T06:06:36Z info: Connecting to builder
+2025-05-31T06:06:40Z info: Builder connected
+2025-05-31T06:06:40Z info: Installing packages
+2025-05-31T06:06:40Z info: Starting Build
+
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+
+vite v5.4.14 building for production...
+
+transforming...
+
+Browserslist: browsers data (caniuse-lite) is 7 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+
+✓ 2637 modules transformed.
+
+rendering chunks...
+
+computing gzip size...
+
+../dist/public/index.html                                      1.04 kB │ gzip:   0.60 kB
+
+../dist/public/assets/dovie_logo_transparent-DP75By51.png    266.37 kB
+
+../dist/public/assets/index-B0Py7lI2.css                      95.07 kB │ gzip:  16.16 kB
+
+../dist/public/assets/qr-scanner-worker.min-D85Z9gVD.js       43.95 kB │ gzip:  10.40 kB
+
+../dist/public/assets/index-BHnEASYZ.js                    1,034.48 kB │ gzip: 302.19 kB
+
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+
+✓ built in 10.15s
+
+▲ [WARNING] Using direct eval with a bundler is not recommended and may cause problems [direct-eval]
+
+    server/openai.ts:90:19:
+      90 │     const result = eval(sanitizedExpression);
+         ╵                    ~~~~
+
+  You can read more about direct eval and bundling here: https://esbuild.github.io/link/direct-eval
+
+
+1 warning
+
+
+  dist/index.js  95.0kb
+
+⚡ Done in 295ms
+
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 11.4.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.4.1
+npm notice To update run: npm install -g npm@11.4.1
+npm notice
+
+2025-05-31T06:06:55Z info: Pushing pid1 binary layer...
+2025-05-31T06:06:57Z info: Created pid1 binary layer
+2025-05-31T06:06:58Z info: Pushing Repl layer...
+2025-05-31T06:06:58Z info: Pushing hosting layer...
+2025-05-31T06:06:58Z info: Nix layers for this Repl are uncached.
+2025-05-31T06:06:58Z info: Pushing nix-0 layer...
+2025-05-31T06:06:59Z info: Created hosting layer
+2025-05-31T06:07:34Z info: Created Repl layer
+2025-05-31T06:08:17Z info: Created nix-0 layer
+2025-05-31T06:08:17Z info: uploading image for cached layer
+2025-05-31T06:08:17Z info: pushed cache image manifest
+2025-05-31T06:08:18Z info: pushed cache soci index manifest
+2025-05-31T06:08:18Z info: uploading cached layer
+2025-05-31T06:08:18Z info: successfully uploaded cached layer
+2025-05-31T06:08:18Z info: Pushed image manifest
+2025-05-31T06:08:19Z info: Pushed soci index manifest
+2025-05-31T06:08:23Z info: Creating Autoscale service
+2025-05-31T06:09:47Z info: Waiting for service to be ready
+2025-05-31T06:09:49Z info: Deployment successful

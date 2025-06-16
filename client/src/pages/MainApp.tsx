@@ -399,8 +399,8 @@ export default function MainApp() {
 
   return (
     <div className="fixed inset-0 bg-white dark:bg-gray-900">
-      {/* Desktop Layout */}
-      <div className="flex h-full">
+      {/* Desktop Layout - Hidden for now to match deployed version */}
+      <div className="hidden h-full">
         {/* Sidebar */}
         <div className="w-96 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col">
           {/* Header */}
@@ -1232,8 +1232,8 @@ export default function MainApp() {
         </div>
       </div>
 
-      {/* Mobile Layout - Hidden to show desktop version */}
-      <div className="hidden h-full flex flex-col">
+      {/* Mobile Layout - Now used for all screen sizes to match deployed version */}
+      <div className="h-full flex flex-col">
         {/* Fixed Mobile Header */}
         <div className="flex-shrink-0 purple-gradient p-4 text-white fixed top-0 left-0 right-0 z-50">
           <div className="flex items-center justify-between">
@@ -1256,7 +1256,7 @@ export default function MainApp() {
             {/* Logo and Title */}
             <div className="flex items-center space-x-3">
               <VaultLogo size="sm" />
-              <h1 className="text-lg font-bold">Dovie</h1>
+              <h1 className="text-lg font-bold">Dovie Messenger</h1>
             </div>
             
             <Button variant="ghost" size="sm" className="text-white">
@@ -1265,8 +1265,95 @@ export default function MainApp() {
           </div>
         </div>
 
-        {/* Mobile Content with padding for fixed header and footer */}
-        <div className="flex-1 overflow-hidden pt-20 pb-20">
+        {/* Top Navigation Tabs */}
+        <div className="flex-shrink-0 bg-white border-b border-gray-200 fixed top-16 left-0 right-0 z-40">
+          <div className="flex">
+            <Button
+              variant="ghost"
+              className={cn(
+                "flex-1 py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent",
+                activeMobileTab === "contacts" && "border-purple-600 bg-purple-50 text-purple-600"
+              )}
+              onClick={() => setActiveMobileTab("contacts")}
+            >
+              연락처
+            </Button>
+            <Button
+              variant="ghost"
+              className={cn(
+                "flex-1 py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent",
+                activeMobileTab === "chats" && "border-purple-600 bg-purple-50 text-purple-600"
+              )}
+              onClick={() => setActiveMobileTab("chats")}
+            >
+              채팅방
+            </Button>
+            <Button
+              variant="ghost"
+              className={cn(
+                "flex-1 py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent",
+                activeMobileTab === "cabinet" && "border-purple-600 bg-purple-50 text-purple-600"
+              )}
+              onClick={() => setActiveMobileTab("cabinet")}
+            >
+              자료실
+            </Button>
+            <Button
+              variant="ghost"
+              className={cn(
+                "flex-1 py-3 px-4 text-sm font-medium rounded-none border-b-2 border-transparent",
+                activeMobileTab === "settings" && "border-purple-600 bg-purple-50 text-purple-600"
+              )}
+              onClick={() => setActiveMobileTab("settings")}
+            >
+              설정
+            </Button>
+          </div>
+        </div>
+
+        {/* Mobile Content with padding for fixed header, tabs and footer */}
+        <div className="flex-1 overflow-hidden pt-32 pb-20">
+          {activeMobileTab === "contacts" && (
+            <div className="h-full overflow-y-auto bg-gray-50">
+              <div className="p-4 space-y-4">
+                {/* 연락처 Header */}
+                <div className="bg-white rounded-xl p-4 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold text-gray-900">연락처</h2>
+                    <Button 
+                      size="sm"
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                    </Button>
+                  </div>
+                  
+                  {/* Search Bar */}
+                  <div className="relative mb-4">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <input
+                      type="text"
+                      placeholder="검색..."
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  
+                  {/* 즐겨찾기 Section */}
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <ChevronDown className="h-4 w-4 text-gray-500" />
+                      <span className="text-sm font-medium text-gray-700">즐겨찾기</span>
+                    </div>
+                  </div>
+                  
+                  {/* Empty State */}
+                  <div className="text-center py-8">
+                    <p className="text-gray-500 text-sm">연락처가 없습니다</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           {activeMobileTab === "cabinet" && (
             <div className="h-full overflow-y-auto bg-gray-50">
               <div className="p-4 space-y-4">
@@ -1296,18 +1383,26 @@ export default function MainApp() {
             </div>
           )}
           {activeMobileTab === "chats" && !showMobileChat && (
-            <ChatsList 
-              onSelectChat={(chatId) => {
-                setSelectedChatRoom(chatId);
-                setShowMobileChat(true);
-              }}
-              selectedChatId={selectedChatRoom}
-              onCreateGroup={() => setModals({ ...modals, createGroup: true })}
-              contactFilter={contactFilter || undefined}
-              onClearFilter={() => setContactFilter(null)}
-              friendFilter={friendFilter}
-              onClearFriendFilter={() => setFriendFilter(null)}
-            />
+            <div className="h-full flex flex-col">
+              {/* Chat List Header */}
+              <div className="bg-white p-4 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-900">채팅방</h2>
+              </div>
+              
+              {/* Center Message */}
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="mb-4">
+                    <div className="w-16 h-16 mx-auto bg-purple-100 rounded-full flex items-center justify-center">
+                      <svg className="w-8 h-8 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                      </svg>
+                    </div>
+                  </div>
+                  <p className="text-gray-500 text-sm">채팅방을 선택해야 대화를 시작하세요</p>
+                </div>
+              </div>
+            </div>
           )}
           {showMobileChat && selectedChatRoom && (
             <div className="h-full flex flex-col overflow-hidden">
