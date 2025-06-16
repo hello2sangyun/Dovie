@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -10,13 +10,6 @@ import { OptimizedAvatar } from "@/components/OptimizedAvatar";
 import PrismAvatar from "@/components/PrismAvatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger,
-  DropdownMenuSeparator 
-} from "@/components/ui/dropdown-menu";
-import { 
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -26,7 +19,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, Star, MoreVertical, UserX, Trash2, Shield } from "lucide-react";
+import ContactItem from "@/components/ContactItem";
+import { Plus, Search, Star } from "lucide-react";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 
 interface ContactsListProps {
@@ -146,15 +140,24 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     return recentPosts.some((post: any) => post.userId === userId);
   };
 
-  const handleBlockContact = (contact: any) => {
+  // Optimized callback functions
+  const handleToggleFavorite = useCallback((contactId: number, isPinned: boolean) => {
+    toggleFavoriteMutation.mutate({ contactId, isPinned });
+  }, [toggleFavoriteMutation]);
+
+  const handleBlockContact = useCallback((contact: any) => {
     setContactToBlock(contact);
     setShowBlockConfirm(true);
-  };
+  }, []);
 
-  const handleDeleteContact = (contact: any) => {
+  const handleDeleteContact = useCallback((contact: any) => {
     setContactToDelete(contact);
     setShowDeleteConfirm(true);
-  };
+  }, []);
+
+  const handleViewProfile = useCallback((contactUserId: number) => {
+    setLocation(`/friend/${contactUserId}`);
+  }, [setLocation]);
 
   const confirmBlockContact = () => {
     if (contactToBlock) {
@@ -172,37 +175,41 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     }
   };
 
-  // 즐겨찾기 친구와 일반 친구 분리
-  const favoriteContacts = contacts.filter((contact: any) => contact.isPinned);
-  const regularContacts = contacts.filter((contact: any) => !contact.isPinned);
-
-  const filteredAndSortedContacts = regularContacts
-    .filter((contact: any) => {
-      // 본인 계정 제외
-      if (contact.contactUser.id === user?.id) {
-        return false;
-      }
+  // Memoized contact processing for performance
+  const { favoriteContacts, filteredAndSortedContacts } = useMemo(() => {
+    if (!contacts) return { favoriteContacts: [], filteredAndSortedContacts: [] };
+    
+    const favorites = contacts.filter((contact: any) => contact.isPinned);
+    const regular = contacts
+      .filter((contact: any) => {
+        // 본인 계정 제외
+        if (contact.contactUser.id === user?.id || contact.isPinned) {
+          return false;
+        }
+        
+        const searchLower = searchTerm.toLowerCase();
+        const nickname = contact.nickname || contact.contactUser.displayName;
+        return nickname.toLowerCase().includes(searchLower) ||
+               contact.contactUser.username.toLowerCase().includes(searchLower);
+      })
+      .sort((a: any, b: any) => {
+        const aName = a.nickname || a.contactUser.displayName;
+        const bName = b.nickname || b.contactUser.displayName;
+        
+        switch (sortBy) {
+          case "nickname":
+            return aName.localeCompare(bName);
+          case "username":
+            return a.contactUser.username.localeCompare(b.contactUser.username);
+          case "lastSeen":
+            return new Date(b.contactUser.lastSeen || 0).getTime() - new Date(a.contactUser.lastSeen || 0).getTime();
+          default:
+            return 0;
+        }
+      });
       
-      const searchLower = searchTerm.toLowerCase();
-      const nickname = contact.nickname || contact.contactUser.displayName;
-      return nickname.toLowerCase().includes(searchLower) ||
-             contact.contactUser.username.toLowerCase().includes(searchLower);
-    })
-    .sort((a: any, b: any) => {
-      const aName = a.nickname || a.contactUser.displayName;
-      const bName = b.nickname || b.contactUser.displayName;
-      
-      switch (sortBy) {
-        case "nickname":
-          return aName.localeCompare(bName);
-        case "username":
-          return a.contactUser.username.localeCompare(b.contactUser.username);
-        case "lastSeen":
-          return new Date(b.contactUser.lastSeen || 0).getTime() - new Date(a.contactUser.lastSeen || 0).getTime();
-        default:
-          return 0;
-      }
-    });
+    return { favoriteContacts: favorites, filteredAndSortedContacts: regular };
+  }, [contacts, searchTerm, sortBy, user?.id]);
 
   const getInitials = (name: string) => {
     return name.charAt(0).toUpperCase();
@@ -313,113 +320,15 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
           </div>
         ) : (
           filteredAndSortedContacts.map((contact: any) => (
-            <div
+            <ContactItem
               key={contact.id}
-              className="px-3 py-2 hover:bg-purple-50 border-b border-gray-100 transition-colors group"
-            >
-              <div className="flex items-center space-x-2">
-                <div 
-                  className="cursor-pointer flex-1 flex items-center space-x-2"
-                  onClick={() => onSelectContact(contact.contactUserId)}
-                >
-                  <div
-                    className="cursor-pointer"
-                    onClick={(e?: React.MouseEvent) => {
-                      e?.stopPropagation();
-                      setLocation(`/friend/${contact.contactUserId}`);
-                    }}
-                  >
-                    <PrismAvatar
-                      src={contact.contactUser.profilePicture}
-                      fallback={getInitials(contact.nickname || contact.contactUser.displayName)}
-                      hasNewPost={hasRecentPost(contact.contactUserId)}
-                      size="sm"
-                      className="hover:ring-2 hover:ring-blue-300 transition-all"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <p className="font-medium text-gray-900 truncate text-sm">
-                        {contact.nickname || contact.contactUser.displayName}
-                      </p>
-                      <div className={cn(
-                        "w-2 h-2 rounded-full ml-2 flex-shrink-0",
-                        contact.contactUser.isOnline ? "bg-green-500" : "bg-gray-300"
-                      )} />
-                    </div>
-                    <p className="text-xs text-gray-500 truncate">@{contact.contactUser.username}</p>
-                    <p className="text-xs text-gray-400 truncate">
-                      {getOnlineStatus(contact.contactUser)}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-1">
-                  {/* 즐겨찾기 버튼 */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={cn(
-                      "h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity",
-                      contact.isPinned && "opacity-100"
-                    )}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleFavoriteMutation.mutate({
-                        contactId: contact.id,
-                        isPinned: !contact.isPinned
-                      });
-                    }}
-                  >
-                    <Star 
-                      className={cn(
-                        "h-4 w-4",
-                        contact.isPinned 
-                          ? "fill-yellow-400 text-yellow-400" 
-                          : "text-gray-400 hover:text-yellow-400"
-                      )} 
-                    />
-                  </Button>
-
-                  {/* 옵션 메뉴 */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <MoreVertical className="h-4 w-4 text-gray-400" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleBlockContact(contact);
-                        }}
-                        className="text-orange-600"
-                      >
-                        <Shield className="h-4 w-4 mr-2" />
-                        차단하기
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteContact(contact);
-                        }}
-                        className="text-red-600"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        삭제하기
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-            </div>
+              contact={contact}
+              onSelectContact={onSelectContact}
+              onToggleFavorite={handleToggleFavorite}
+              onBlockContact={handleBlockContact}
+              onDeleteContact={handleDeleteContact}
+              onViewProfile={handleViewProfile}
+            />
           ))
         )}
       </div>

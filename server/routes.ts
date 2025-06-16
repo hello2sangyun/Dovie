@@ -267,7 +267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Contact routes
+  // Contact routes with performance optimization
   app.get("/api/contacts", async (req, res) => {
     const userId = req.headers["x-user-id"];
     if (!userId) {
@@ -275,9 +275,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
+      console.time(`Get contacts for user ${userId}`);
       const contacts = await storage.getContacts(Number(userId));
+      console.timeEnd(`Get contacts for user ${userId}`);
+      
+      // Set cache headers for better performance
+      res.set('Cache-Control', 'private, max-age=30');
       res.json({ contacts });
     } catch (error) {
+      console.error("Contact retrieval error:", error);
       res.status(500).json({ message: "Failed to get contacts" });
     }
   });
