@@ -354,21 +354,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 주변 채팅방 근접 알림 체크
-  app.get("/api/location/check-proximity", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
 
-    try {
-      const proximityResults = await storage.checkLocationProximity(Number(userId));
-      const hasNewChats = proximityResults.filter(r => r.hasNewChats);
-      res.json({ hasNewChats, proximityResults });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to check proximity" });
-    }
-  });
 
   // 위치 벗어남 체크
   app.get("/api/location/check-exit", async (req, res) => {

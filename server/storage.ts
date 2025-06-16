@@ -810,26 +810,6 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  // 위치 기반 자동 관리 메소드들
-  async cleanupInactiveLocationChats(): Promise<void> {
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-    
-    // 1시간 이상 비활성이고 비즈니스 계정이 아닌 채팅방 삭제
-    const inactiveRooms = await db.select({ id: locationChatRooms.id })
-      .from(locationChatRooms)
-      .where(
-        and(
-          eq(locationChatRooms.isActive, true),
-          eq(locationChatRooms.isOfficial, false),
-          sql`${locationChatRooms.lastActivity} < ${oneHourAgo}`
-        )
-      );
-
-    for (const room of inactiveRooms) {
-      await this.deleteLocationChatRoom(room.id);
-    }
-  }
-
   async cleanupEmptyLocationChats(): Promise<void> {
     // 참여자가 0명인 채팅방 삭제
     const emptyRooms = await db.select({ id: locationChatRooms.id })
