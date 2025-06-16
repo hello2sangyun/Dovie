@@ -59,6 +59,7 @@ export const chatRooms = pgTable("chat_rooms", {
 
   createdBy: integer("created_by").references(() => users.id).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const chatParticipants = pgTable("chat_participants", {
