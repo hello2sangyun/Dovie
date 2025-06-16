@@ -162,6 +162,12 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Cleaned up state management to remove location-based variables
   - Removed MapPin icon import and all location-related UI elements
   - Fixed syntax errors and maintained core chat functionality
+- June 16, 2025: Fixed critical login authentication issues:
+  - Resolved selectedLocationChatRoom undefined variable error in MainApp.tsx
+  - Fixed React Query cache invalidation for immediate user state updates
+  - Optimized authentication flow with proper localStorage and state synchronization
+  - Corrected password hash for hello2sangyun@gmail.com account (password: sangyun)
+  - Login now successfully redirects to main application interface
 
 ## User Preferences
 
