@@ -222,15 +222,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/chat-rooms/:chatRoomId/messages", upload.single('file'), async (req, res) => {
     const userId = req.headers["x-user-id"];
     if (!userId) {
+      console.error("Message API: No user ID in headers");
       return res.status(401).json({ message: "Not authenticated" });
     }
 
+    console.log("Message API: Received request", {
+      chatRoomId: req.params.chatRoomId,
+      userId,
+      hasFile: !!req.file,
+      body: req.body
+    });
+
     try {
       const chatRoomId = Number(req.params.chatRoomId);
+      
+      if (!chatRoomId || isNaN(chatRoomId)) {
+        console.error("Message API: Invalid chat room ID", req.params.chatRoomId);
+        return res.status(400).json({ message: "Invalid chat room ID" });
+      }
+
       let messageData: any = {
         chatRoomId,
         senderId: Number(userId),
         messageType: 'text',
+        content: '', // 기본값 설정
       };
 
       if (req.file) {
@@ -253,8 +268,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         messageData.content = req.body.content;
       }
 
+      // 메시지 내용 검증
+      if (!messageData.content || messageData.content.trim().length === 0) {
+        console.error("Message API: Empty message content");
+        return res.status(400).json({ message: "Message content cannot be empty" });
+      }
+
+      console.log("Message API: Creating message with data", messageData);
+
       const message = await storage.createMessage(insertMessageSchema.parse(messageData));
       
+      console.log("Message API: Message created successfully", { messageId: message.id });
+
       broadcastToRoom(chatRoomId, {
         type: 'new_message',
         message: message,
@@ -263,7 +288,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message });
     } catch (error) {
       console.error("Message creation error:", error);
-      res.status(500).json({ message: "Failed to create message" });
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      res.status(500).json({ message: "Failed to create message", error: errorMessage });
     }
   });
 

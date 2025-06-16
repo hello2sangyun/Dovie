@@ -290,8 +290,17 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     mutationFn: async (messageData: any) => {
       const endpoint = `/api/chat-rooms/${chatRoomId}/messages`;
       
-      const response = await apiRequest(endpoint, "POST", messageData);
-      return response.json();
+      console.log("Sending message:", messageData);
+      
+      try {
+        const response = await apiRequest(endpoint, "POST", messageData);
+        const result = await response.json();
+        console.log("Message sent successfully:", result);
+        return result;
+      } catch (error) {
+        console.error("Message send error:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms", chatRoomId, "messages"] });
