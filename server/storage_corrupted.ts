@@ -64,6 +64,8 @@ export interface IStorage {
   // Business user operations
   registerBusinessUser(userId: number, businessData: { businessName: string; businessAddress: string }): Promise<User | undefined>;
 
+
+
   // File storage analytics operations
   getStorageAnalytics(userId: number, timeRange: string): Promise<any>;
   trackFileUpload(fileData: { userId: number; chatRoomId?: number; fileName: string; originalName: string; fileSize: number; fileType: string; filePath: string }): Promise<void>;
@@ -112,26 +114,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined> {
-    const [updatedUser] = await db
+    const [user] = await db
       .update(users)
       .set(updates)
       .where(eq(users.id, id))
       .returning();
-    return updatedUser || undefined;
+    return user || undefined;
   }
 
   async getContacts(userId: number): Promise<(Contact & { contactUser: User })[]> {
-    const result = await db.select({
-      contacts,
-      users
-    })
-    .from(contacts)
-    .innerJoin(users, eq(contacts.contactUserId, users.id))
-    .where(and(
-      eq(contacts.userId, userId),
-      eq(contacts.isBlocked, false)
-    ))
-    .orderBy(asc(users.displayName));
+    const result = await db
+      .select()
+      .from(contacts)
+      .innerJoin(users, eq(contacts.contactUserId, users.id))
+      .where(eq(contacts.userId, userId))
+      .orderBy(asc(users.displayName));
     
     return result.map(row => ({
       ...row.contacts,
@@ -156,25 +153,25 @@ export class DatabaseStorage implements IStorage {
       ));
   }
 
-  async updateContact(userId: number, contactUserId: number, updates: Partial<InsertContact>): Promise<Contact | undefined> {
-    const [updatedContact] = await db
+  async updateContact(userId: number, contactUserId: number, updates: Partial<InsertContact>): Promise<Contact | undefined>;
+  async updateContact(userId: number, contactId: number, updates: Partial<InsertContact>, byId?: boolean): Promise<Contact | undefined>;
+  async updateContact(userId: number, identifier: number, updates: Partial<InsertContact>, byId: boolean = false): Promise<Contact | undefined> {
+    const whereCondition = byId 
+      ? and(eq(contacts.userId, userId), eq(contacts.id, identifier))
+      : and(eq(contacts.userId, userId), eq(contacts.contactUserId, identifier));
+
+    const [contact] = await db
       .update(contacts)
       .set(updates)
-      .where(and(
-        eq(contacts.userId, userId),
-        eq(contacts.contactUserId, contactUserId)
-      ))
+      .where(whereCondition)
       .returning();
-    return updatedContact || undefined;
+    return contact || undefined;
   }
 
   async blockContact(userId: number, contactUserId: number): Promise<void> {
     await db
       .update(contacts)
-      .set({
-        isBlocked: true,
-        updatedAt: new Date()
-      })
+      .set({ isBlocked: true })
       .where(and(
         eq(contacts.userId, userId),
         eq(contacts.contactUserId, contactUserId)
@@ -184,10 +181,7 @@ export class DatabaseStorage implements IStorage {
   async unblockContact(userId: number, contactUserId: number): Promise<void> {
     await db
       .update(contacts)
-      .set({
-        isBlocked: false,
-        updatedAt: new Date()
-      })
+      .set({ isBlocked: false })
       .where(and(
         eq(contacts.userId, userId),
         eq(contacts.contactUserId, contactUserId)
@@ -195,27 +189,33 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getBlockedContacts(userId: number): Promise<(Contact & { contactUser: User })[]> {
-    const result = await db.select({
-      contacts,
-      users
-    })
-    .from(contacts)
-    .innerJoin(users, eq(contacts.contactUserId, users.id))
-    .where(and(
-      eq(contacts.userId, userId),
-      eq(contacts.isBlocked, true)
-    ))
-    .orderBy(asc(users.displayName));
+    console.log("Getting blocked contacts for user:", userId);
     
-    return result.map(row => ({
+    const result = await db
+      .select()
+      .from(contacts)
+      .innerJoin(users, eq(contacts.contactUserId, users.id))
+      .where(and(
+        eq(contacts.userId, userId),
+        eq(contacts.isBlocked, true)
+      ))
+      .orderBy(asc(users.displayName));
+    
+    console.log("Blocked contacts query result:", result);
+    
+    const mappedResult = result.map(row => ({
       ...row.contacts,
       contactUser: row.users
     }));
+    
+    console.log("Mapped blocked contacts:", mappedResult);
+    
+    return mappedResult;
   }
 
   async getChatRooms(userId: number): Promise<(ChatRoom & { participants: User[], lastMessage?: Message & { sender: User } })[]> {
     try {
-      // Get user's chat rooms
+      // 사용자가 참여한 채팅방 조회
       const userChatRooms = await db.select({
         id: chatRooms.id,
         name: chatRooms.name,
@@ -229,10 +229,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(chatParticipants.userId, userId))
       .orderBy(desc(chatRooms.isPinned), desc(chatRooms.createdAt));
 
-      // Get details for each chat room
+      // 각 채팅방에 대해 참가자와 마지막 메시지 조회
       const chatRoomsWithDetails = await Promise.all(
         userChatRooms.map(async (room) => {
-          // Get participants
+          // 참가자 조회
           const participants = await db.select({
             id: users.id,
             username: users.username,
@@ -246,7 +246,7 @@ export class DatabaseStorage implements IStorage {
           .innerJoin(users, eq(chatParticipants.userId, users.id))
           .where(eq(chatParticipants.chatRoomId, room.id));
 
-          // Get last message
+          // 마지막 메시지 조회
           const lastMessages = await db.select({
             id: messages.id,
             senderId: messages.senderId,
@@ -288,31 +288,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getChatRoomById(chatRoomId: number): Promise<(ChatRoom & { participants: User[] }) | undefined> {
+  }
+
+  async getChatRoomById(chatRoomId: number): Promise<(ChatRoom & { participants: User[] }) | undefined> {
     const [chatRoom] = await db
       .select()
       .from(chatRooms)
       .where(eq(chatRooms.id, chatRoomId));
 
-    if (!chatRoom) {
-      return undefined;
-    }
+    if (!chatRoom) return undefined;
 
-    const participants = await db.select({
-      id: users.id,
-      username: users.username,
-      displayName: users.displayName,
-      email: users.email,
-      profilePicture: users.profilePicture,
-      userRole: users.userRole,
-      isOnline: users.isOnline
-    })
-    .from(chatParticipants)
-    .innerJoin(users, eq(chatParticipants.userId, users.id))
-    .where(eq(chatParticipants.chatRoomId, chatRoomId));
+    // Get participants for this chat room
+    const participants = await db
+      .select({ user: users })
+      .from(chatParticipants)
+      .innerJoin(users, eq(chatParticipants.userId, users.id))
+      .where(eq(chatParticipants.chatRoomId, chatRoomId));
 
     return {
       ...chatRoom,
-      participants
+      participants: participants.map(({ user }) => user)
     };
   }
 
@@ -323,95 +318,130 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     // Add participants
-    await db.insert(chatParticipants).values(
-      participantIds.map(userId => ({
-        chatRoomId: newChatRoom.id,
-        userId,
-        joinedAt: new Date()
-      }))
-    );
+    const participantData = participantIds.map(userId => ({
+      chatRoomId: newChatRoom.id,
+      userId
+    }));
+
+    await db.insert(chatParticipants).values(participantData);
 
     return newChatRoom;
   }
 
   async deleteChatRoom(chatRoomId: number, userId: number): Promise<void> {
-    await db.delete(chatRooms).where(
-      and(
+    // Only allow deletion if user is the creator
+    await db
+      .delete(chatRooms)
+      .where(and(
         eq(chatRooms.id, chatRoomId),
         eq(chatRooms.createdBy, userId)
-      )
-    );
+      ));
   }
 
   async updateChatRoom(chatRoomId: number, updates: Partial<InsertChatRoom>): Promise<ChatRoom | undefined> {
-    const [updatedChatRoom] = await db
+    const [chatRoom] = await db
       .update(chatRooms)
       .set(updates)
       .where(eq(chatRooms.id, chatRoomId))
       .returning();
-    return updatedChatRoom || undefined;
+    return chatRoom || undefined;
   }
 
   async leaveChatRoom(chatRoomId: number, userId: number, saveFiles: boolean): Promise<void> {
+    // Remove user from chat participants
     await db
       .delete(chatParticipants)
       .where(and(
         eq(chatParticipants.chatRoomId, chatRoomId),
         eq(chatParticipants.userId, userId)
       ));
+
+    // Handle files based on saveFiles flag
+    if (saveFiles) {
+      // Move files to user's archive/storage
+      // For now, we'll just mark them as archived
+      await db
+        .update(commands)
+        .set({ chatRoomId: null }) // Remove from chat room but keep for user
+        .where(and(
+          eq(commands.chatRoomId, chatRoomId),
+          eq(commands.userId, userId)
+        ));
+    } else {
+      // Delete user's commands/files from this chat room
+      await db
+        .delete(commands)
+        .where(and(
+          eq(commands.chatRoomId, chatRoomId),
+          eq(commands.userId, userId)
+        ));
+    }
+
+    // Check if chat room is empty and delete if needed
+    const remainingParticipants = await db
+      .select()
+      .from(chatParticipants)
+      .where(eq(chatParticipants.chatRoomId, chatRoomId));
+
+    if (remainingParticipants.length === 0) {
+      // Never delete chat rooms that might have messages
+      // Just mark the chat room as inactive
+      await db
+        .update(chatRooms)
+        .set({ 
+          name: `[삭제된 채팅방]`,
+          isGroup: false 
+        })
+        .where(eq(chatRooms.id, chatRoomId));
+    }
   }
 
   async getMessages(chatRoomId: number, limit: number = 50): Promise<(Message & { sender: User })[]> {
-    const result = await db.select({
-      messages,
-      users
-    })
-    .from(messages)
-    .innerJoin(users, eq(messages.senderId, users.id))
-    .where(eq(messages.chatRoomId, chatRoomId))
-    .orderBy(desc(messages.createdAt))
-    .limit(limit);
+    const result = await db
+      .select()
+      .from(messages)
+      .innerJoin(users, eq(messages.senderId, users.id))
+      .where(eq(messages.chatRoomId, chatRoomId))
+      .orderBy(desc(messages.createdAt))
+      .limit(limit);
 
     return result.map(row => ({
       ...row.messages,
-      content: row.messages.content ? decryptText(row.messages.content) : row.messages.content,
+      content: decryptText(row.messages.content), // 메시지 내용 복호화
       sender: row.users
-    }));
+    })).reverse();
   }
 
   async createMessage(message: InsertMessage): Promise<Message> {
-    const messageToInsert = {
+    // 메시지 내용 암호화
+    const encryptedMessage = {
       ...message,
-      content: message.content ? encryptText(message.content) : message.content
+      content: encryptText(message.content)
     };
-
+    
     const [newMessage] = await db
       .insert(messages)
-      .values(messageToInsert)
+      .values(encryptedMessage)
       .returning();
-    return newMessage;
+    
+    // 반환할 때는 복호화해서 반환
+    return {
+      ...newMessage,
+      content: decryptText(newMessage.content)
+    };
   }
 
   async getMessageById(messageId: number): Promise<(Message & { sender: User }) | undefined> {
-    const result = await db.select({
-      messages,
-      users
-    })
-    .from(messages)
-    .innerJoin(users, eq(messages.senderId, users.id))
-    .where(eq(messages.id, messageId))
-    .limit(1);
+    const [result] = await db
+      .select()
+      .from(messages)
+      .innerJoin(users, eq(messages.senderId, users.id))
+      .where(eq(messages.id, messageId));
 
-    if (result.length === 0) {
-      return undefined;
-    }
-
-    const row = result[0];
-    return {
-      ...row.messages,
-      content: row.messages.content ? decryptText(row.messages.content) : row.messages.content,
-      sender: row.users
-    };
+    return result ? {
+      ...result.messages,
+      sender: result.users
+    } : undefined;
   }
 
   async updateMessage(messageId: number, updates: Partial<InsertMessage>): Promise<Message | undefined> {
@@ -420,23 +450,26 @@ export class DatabaseStorage implements IStorage {
       .set(updates)
       .where(eq(messages.id, messageId))
       .returning();
-    return updatedMessage || undefined;
+
+    return updatedMessage;
   }
 
   async getCommands(userId: number, chatRoomId?: number): Promise<(Command & { originalSender?: User })[]> {
-    const conditions = [eq(commands.userId, userId)];
+    let whereCondition = eq(commands.userId, userId);
+
     if (chatRoomId) {
-      conditions.push(eq(commands.chatRoomId, chatRoomId));
+      whereCondition = and(
+        eq(commands.userId, userId),
+        eq(commands.chatRoomId, chatRoomId)
+      );
     }
 
-    const result = await db.select({
-      commands,
-      users
-    })
-    .from(commands)
-    .leftJoin(users, eq(commands.originalSenderId, users.id))
-    .where(and(...conditions))
-    .orderBy(desc(commands.createdAt));
+    const result = await db
+      .select()
+      .from(commands)
+      .leftJoin(users, eq(commands.originalSenderId, users.id))
+      .where(whereCondition)
+      .orderBy(desc(commands.createdAt));
 
     return result.map(row => ({
       ...row.commands,
@@ -445,11 +478,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCommand(command: InsertCommand): Promise<Command> {
+    // 저장된 텍스트가 있으면 암호화
+    const encryptedCommand = {
+      ...command,
+      savedText: command.savedText ? encryptText(command.savedText) : command.savedText
+    };
+    
     const [newCommand] = await db
       .insert(commands)
-      .values(command)
+      .values(encryptedCommand)
       .returning();
-    return newCommand;
+    
+    // 반환할 때는 복호화해서 반환
+    return {
+      ...newCommand,
+      savedText: newCommand.savedText ? decryptText(newCommand.savedText) : newCommand.savedText
+    };
   }
 
   async deleteCommand(commandId: number, userId: number): Promise<void> {
@@ -474,20 +518,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchCommands(userId: number, searchTerm: string): Promise<(Command & { originalSender?: User })[]> {
-    const result = await db.select({
-      commands,
-      users
-    })
-    .from(commands)
-    .leftJoin(users, eq(commands.originalSenderId, users.id))
-    .where(and(
-      eq(commands.userId, userId),
-      or(
-        like(commands.commandName, `%${searchTerm}%`),
-        like(commands.response, `%${searchTerm}%`)
-      )
-    ))
-    .orderBy(desc(commands.createdAt));
+    const result = await db
+      .select()
+      .from(commands)
+      .leftJoin(users, eq(commands.originalSenderId, users.id))
+      .where(and(
+        eq(commands.userId, userId),
+        or(
+          like(commands.commandName, `%${searchTerm}%`),
+          like(commands.fileName, `%${searchTerm}%`),
+          like(commands.savedText, `%${searchTerm}%`)
+        )
+      ))
+      .orderBy(desc(commands.createdAt));
 
     return result.map(row => ({
       ...row.commands,
@@ -496,47 +539,66 @@ export class DatabaseStorage implements IStorage {
   }
 
   async markMessagesAsRead(userId: number, chatRoomId: number, lastMessageId: number): Promise<void> {
-    await db
-      .insert(messageReads)
-      .values({
-        userId,
-        chatRoomId,
-        lastReadMessageId: lastMessageId,
-        readAt: new Date()
-      })
-      .onConflictDoUpdate({
-        target: [messageReads.userId, messageReads.chatRoomId],
-        set: {
+    // 기존 레코드가 있는지 확인
+    const [existingRecord] = await db
+      .select()
+      .from(messageReads)
+      .where(and(
+        eq(messageReads.userId, userId),
+        eq(messageReads.chatRoomId, chatRoomId)
+      ));
+
+    if (existingRecord) {
+      // 업데이트
+      await db
+        .update(messageReads)
+        .set({
           lastReadMessageId: lastMessageId,
-          readAt: new Date()
-        }
-      });
+          lastReadAt: new Date(),
+        })
+        .where(and(
+          eq(messageReads.userId, userId),
+          eq(messageReads.chatRoomId, chatRoomId)
+        ));
+    } else {
+      // 새로 삽입
+      await db
+        .insert(messageReads)
+        .values({
+          userId,
+          chatRoomId,
+          lastReadMessageId: lastMessageId,
+        });
+    }
   }
 
   async getUnreadCounts(userId: number): Promise<{ chatRoomId: number; unreadCount: number }[]> {
+    // 단일 SQL 쿼리로 최적화하여 성능 개선
     const result = await db.execute(sql`
       SELECT 
-        cr.id as chat_room_id,
-        COALESCE(COUNT(m.id) - COALESCE(mr.last_read_message_id, 0), 0) as unread_count
+        cp.chat_room_id as chatRoomId,
+        COALESCE(
+          (SELECT COUNT(*) 
+           FROM messages m 
+           WHERE m.chat_room_id = cp.chat_room_id 
+           AND (mr.last_read_message_id IS NULL OR m.id > mr.last_read_message_id)
+          ), 
+          0
+        ) as unreadCount
       FROM chat_participants cp
-      JOIN chat_rooms cr ON cp.chat_room_id = cr.id
-      LEFT JOIN message_reads mr ON mr.user_id = cp.user_id AND mr.chat_room_id = cr.id
-      LEFT JOIN messages m ON m.chat_room_id = cr.id
+      LEFT JOIN message_reads mr ON cp.chat_room_id = mr.chat_room_id AND mr.user_id = ${userId}
       WHERE cp.user_id = ${userId}
-      GROUP BY cr.id, mr.last_read_message_id
+      HAVING unreadCount > 0
     `);
 
-    return result.map((row: any) => ({
-      chatRoomId: row.chat_room_id,
-      unreadCount: parseInt(row.unread_count) || 0
+    return (result as unknown as any[]).map(row => ({
+      chatRoomId: row.chatRoomId as number,
+      unreadCount: row.unreadCount as number
     }));
   }
 
   async createPhoneVerification(verification: InsertPhoneVerification): Promise<PhoneVerification> {
-    const [newVerification] = await db
-      .insert(phoneVerifications)
-      .values(verification)
-      .returning();
+    const [newVerification] = await db.insert(phoneVerifications).values(verification).returning();
     return newVerification;
   }
 
@@ -547,16 +609,16 @@ export class DatabaseStorage implements IStorage {
       .where(and(
         eq(phoneVerifications.phoneNumber, phoneNumber),
         eq(phoneVerifications.verificationCode, verificationCode),
-        eq(phoneVerifications.used, false),
+        eq(phoneVerifications.isVerified, false),
         gt(phoneVerifications.expiresAt, new Date())
       ));
-    return verification || undefined;
+    return verification;
   }
 
   async markPhoneVerificationAsUsed(id: number): Promise<void> {
     await db
       .update(phoneVerifications)
-      .set({ used: true })
+      .set({ isVerified: true })
       .where(eq(phoneVerifications.id, id));
   }
 
@@ -569,57 +631,116 @@ export class DatabaseStorage implements IStorage {
   async registerBusinessUser(userId: number, businessData: { businessName: string; businessAddress: string }): Promise<User | undefined> {
     const [updatedUser] = await db
       .update(users)
-      .set({ userRole: 'business' })
+      .set({
+        userRole: "business",
+        businessName: businessData.businessName,
+        businessAddress: businessData.businessAddress,
+        isBusinessVerified: false
+      })
       .where(eq(users.id, userId))
       .returning();
+    
     return updatedUser || undefined;
   }
 
+
+
+
+
   async getStorageAnalytics(userId: number, timeRange: string): Promise<any> {
-    let startDate: Date;
-    const now = new Date();
+    const timeCondition = this.getTimeCondition(timeRange);
     
-    switch (timeRange) {
-      case 'week':
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        break;
-      case 'month':
-        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        break;
-      case 'year':
-        startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-        break;
-      default:
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    }
-
-    const uploads = await db
-      .select()
+    // Get user's file uploads with chat room info
+    const userFileUploads = await db
+      .select({
+        id: fileUploads.id,
+        fileName: fileUploads.fileName,
+        originalName: fileUploads.originalName,
+        fileSize: fileUploads.fileSize,
+        fileType: fileUploads.fileType,
+        uploadedAt: fileUploads.uploadedAt,
+        chatRoomName: chatRooms.name,
+        chatRoomId: fileUploads.chatRoomId
+      })
       .from(fileUploads)
-      .where(and(
-        eq(fileUploads.userId, userId),
-        gt(fileUploads.uploadedAt, startDate)
-      ));
+      .leftJoin(chatRooms, eq(fileUploads.chatRoomId, chatRooms.id))
+      .where(
+        and(
+          eq(fileUploads.userId, userId),
+          eq(fileUploads.isDeleted, false),
+          timeCondition || sql`true`
+        )
+      );
 
+    // Get download logs for user's files
     const downloads = await db
-      .select()
+      .select({
+        id: fileDownloads.id,
+        fileName: fileUploads.fileName,
+        downloaderName: users.displayName,
+        downloadedAt: fileDownloads.downloadedAt,
+        ipAddress: fileDownloads.ipAddress,
+        fileUploadId: fileDownloads.fileUploadId
+      })
       .from(fileDownloads)
-      .where(and(
-        eq(fileDownloads.userId, userId),
-        gt(fileDownloads.downloadedAt, startDate)
-      ));
+      .innerJoin(fileUploads, eq(fileDownloads.fileUploadId, fileUploads.id))
+      .innerJoin(users, eq(fileDownloads.userId, users.id))
+      .where(eq(fileUploads.userId, userId));
+
+    // Calculate totals and breakdowns
+    const totalSize = userFileUploads.reduce((sum: number, file: any) => sum + file.fileSize, 0);
+    
+    const typeBreakdown = {
+      images: 0,
+      documents: 0,
+      audio: 0,
+      video: 0,
+      other: 0
+    };
+
+    userFileUploads.forEach((file: any) => {
+      if (file.fileType.startsWith('image/')) {
+        typeBreakdown.images += file.fileSize;
+      } else if (file.fileType.startsWith('video/')) {
+        typeBreakdown.video += file.fileSize;
+      } else if (file.fileType.startsWith('audio/')) {
+        typeBreakdown.audio += file.fileSize;
+      } else if (file.fileType.includes('document') || file.fileType.includes('pdf') || file.fileType.includes('text')) {
+        typeBreakdown.documents += file.fileSize;
+      } else {
+        typeBreakdown.other += file.fileSize;
+      }
+    });
+
+    // Chat room breakdown
+    const chatRoomMap = new Map();
+    userFileUploads.forEach((file: any) => {
+      const roomName = file.chatRoomName || '개인 파일';
+      if (!chatRoomMap.has(roomName)) {
+        chatRoomMap.set(roomName, { roomName, fileCount: 0, totalSize: 0 });
+      }
+      const room = chatRoomMap.get(roomName);
+      room.fileCount++;
+      room.totalSize += file.fileSize;
+    });
 
     return {
-      uploads: uploads.length,
-      downloads: downloads.length,
-      totalSize: uploads.reduce((sum, upload) => sum + (upload.fileSize || 0), 0)
+      totalSize,
+      typeBreakdown,
+      chatRoomBreakdown: Array.from(chatRoomMap.values()),
+      recentDownloads: downloads.slice(0, 20) // Latest 20 downloads
     };
   }
 
   async trackFileUpload(fileData: { userId: number; chatRoomId?: number; fileName: string; originalName: string; fileSize: number; fileType: string; filePath: string }): Promise<void> {
     await db.insert(fileUploads).values({
-      ...fileData,
-      uploadedAt: new Date()
+      userId: fileData.userId,
+      chatRoomId: fileData.chatRoomId || null,
+      fileName: fileData.fileName,
+      originalName: fileData.originalName,
+      fileSize: fileData.fileSize,
+      fileType: fileData.fileType,
+      filePath: fileData.filePath
     });
   }
 
@@ -627,66 +748,96 @@ export class DatabaseStorage implements IStorage {
     await db.insert(fileDownloads).values({
       fileUploadId,
       userId,
-      ipAddress,
-      userAgent,
-      downloadedAt: new Date()
+      ipAddress: ipAddress || null,
+      userAgent: userAgent || null
     });
   }
 
+  private getTimeCondition(timeRange: string) {
+    const now = new Date();
+    let startDate: Date;
+
+    switch (timeRange) {
+      case 'week':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case 'year':
+        startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        break;
+      default: // month
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    }
+
+    return sql`${fileUploads.uploadedAt} >= ${startDate}`;
+  }
+
+  // Business card operations
   async getBusinessCard(userId: number): Promise<BusinessCard | undefined> {
-    const [card] = await db
-      .select()
-      .from(businessCards)
-      .where(eq(businessCards.userId, userId));
+    const [card] = await db.select().from(businessCards).where(eq(businessCards.userId, userId));
     return card || undefined;
   }
 
   async createOrUpdateBusinessCard(userId: number, cardData: Partial<InsertBusinessCard>): Promise<BusinessCard> {
-    const [card] = await db
-      .insert(businessCards)
-      .values({ ...cardData, userId })
-      .onConflictDoUpdate({
-        target: businessCards.userId,
-        set: cardData
-      })
-      .returning();
-    return card;
+    const existingCard = await this.getBusinessCard(userId);
+    
+    if (existingCard) {
+      const [updatedCard] = await db
+        .update(businessCards)
+        .set({ ...cardData, updatedAt: new Date() })
+        .where(eq(businessCards.userId, userId))
+        .returning();
+      return updatedCard;
+    } else {
+      const [newCard] = await db
+        .insert(businessCards)
+        .values({ ...cardData, userId })
+        .returning();
+      return newCard;
+    }
   }
 
+  // Business profile operations
   async getBusinessProfile(userId: number): Promise<BusinessProfile | undefined> {
-    const [profile] = await db
-      .select()
-      .from(businessProfiles)
-      .where(eq(businessProfiles.userId, userId));
+    const [profile] = await db.select().from(businessProfiles).where(eq(businessProfiles.userId, userId));
     return profile || undefined;
   }
 
   async createOrUpdateBusinessProfile(userId: number, profileData: Partial<InsertBusinessProfile>): Promise<BusinessProfile> {
-    const [profile] = await db
-      .insert(businessProfiles)
-      .values({ ...profileData, userId })
-      .onConflictDoUpdate({
-        target: businessProfiles.userId,
-        set: profileData
-      })
-      .returning();
-    return profile;
+    const existingProfile = await this.getBusinessProfile(userId);
+    
+    if (existingProfile) {
+      const [updatedProfile] = await db
+        .update(businessProfiles)
+        .set({ ...profileData, updatedAt: new Date() })
+        .where(eq(businessProfiles.userId, userId))
+        .returning();
+      return updatedProfile;
+    } else {
+      const [newProfile] = await db
+        .insert(businessProfiles)
+        .values({ ...profileData, userId })
+        .returning();
+      return newProfile;
+    }
   }
 
+  // Business card sharing operations
   async createBusinessCardShare(userId: number): Promise<BusinessCardShare> {
-    const shareToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
+    // Generate unique share token
+    const shareToken = Array.from({ length: 32 }, () => 
+      Math.random().toString(36).charAt(2)
+    ).join('');
 
     const [share] = await db
       .insert(businessCardShares)
       .values({
         userId,
         shareToken,
-        expiresAt,
-        viewCount: 0,
-        isActive: true
+        isActive: true,
+        allowDownload: true
       })
       .returning();
+    
     return share;
   }
 
@@ -696,18 +847,17 @@ export class DatabaseStorage implements IStorage {
       .from(businessCardShares)
       .where(and(
         eq(businessCardShares.shareToken, shareToken),
-        eq(businessCardShares.isActive, true),
-        gt(businessCardShares.expiresAt, new Date())
+        eq(businessCardShares.isActive, true)
       ));
-
+    
     if (share) {
       // Increment view count
       await db
         .update(businessCardShares)
-        .set({ viewCount: (share.viewCount || 0) + 1 })
+        .set({ viewCount: share.viewCount + 1 })
         .where(eq(businessCardShares.id, share.id));
     }
-
+    
     return share || undefined;
   }
 
@@ -721,31 +871,43 @@ export class DatabaseStorage implements IStorage {
       ))
       .orderBy(desc(businessCardShares.createdAt))
       .limit(1);
+    
     return share || undefined;
   }
 
+  // User posts operations
   async getUserPosts(userId: number): Promise<UserPost[]> {
     const posts = await db
       .select()
       .from(userPosts)
       .where(eq(userPosts.userId, userId))
       .orderBy(desc(userPosts.createdAt));
+    
     return posts;
   }
 
   async createUserPost(userId: number, postData: Partial<InsertUserPost>): Promise<UserPost> {
     const [post] = await db
       .insert(userPosts)
-      .values({
-        userId,
-        content: postData.content || '',
-        postType: postData.postType || 'text',
-        likeCount: 0,
-        commentCount: 0,
-        shareCount: 0
-      })
+      .values({ ...postData, userId })
       .returning();
+    
     return post;
+  }
+
+  // 사용자들이 친구인지 확인
+  async areUsersFriends(userId1: number, userId2: number): Promise<boolean> {
+    const contact = await db.select()
+      .from(contacts)
+      .where(
+        or(
+          and(eq(contacts.userId, userId1), eq(contacts.contactUserId, userId2)),
+          and(eq(contacts.userId, userId2), eq(contacts.contactUserId, userId1))
+        )
+      )
+      .limit(1);
+    
+    return contact.length > 0;
   }
 }
 
