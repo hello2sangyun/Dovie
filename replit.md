@@ -168,6 +168,10 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Optimized authentication flow with proper localStorage and state synchronization
   - Corrected password hash for hello2sangyun@gmail.com account (password: sangyun)
   - Login now successfully redirects to main application interface
+- June 16, 2025: Completed location permission removal:
+  - Eliminated remaining geolocation API calls in useWeather.tsx hook
+  - Replaced location-based weather with default Seoul weather data
+  - No location permissions are now requested by the application
 
 ## User Preferences
 
