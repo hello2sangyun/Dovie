@@ -355,9 +355,7 @@ export default function MainApp() {
                 />
               </TabsContent>
               
-              <TabsContent value="nearby" className="h-full m-0">
-                <NearbyChats onChatRoomSelect={handleLocationChatRoomSelect} />
-              </TabsContent>
+
               
               <TabsContent value="archive" className="h-full m-0">
                 <div className="h-full flex items-center justify-center text-gray-500">
@@ -971,35 +969,17 @@ export default function MainApp() {
               onClearFriendFilter={() => setFriendFilter(null)}
             />
           )}
-          {activeMobileTab === "nearby" && (
-            <NearbyChats onChatRoomSelect={(chatId) => {
-              console.log('Nearby chat selected:', chatId);
-              setSelectedLocationChatRoom(chatId);
-              setSelectedChatRoom(null);
-              setIsLocationChatActive(true);
-              setShowMobileChat(true);
-              setActiveMobileTab("nearby"); // 탭 상태 유지
-              console.log('State after selection:', {
-                selectedLocationChatRoom: chatId,
-                selectedChatRoom: null,
-                showMobileChat: true,
-                activeMobileTab: "nearby"
-              });
-            }} />
-          )}
-          {showMobileChat && (selectedChatRoom || selectedLocationChatRoom) && (
+
+          {showMobileChat && selectedChatRoom && (
             <div className="h-full flex flex-col overflow-hidden">
               <div className="flex-1 min-h-0">
                 <ChatArea 
-                  chatRoomId={selectedChatRoom || selectedLocationChatRoom!}
+                  chatRoomId={selectedChatRoom}
                   onCreateCommand={handleCreateCommand}
                   showMobileHeader={true}
-                  isLocationChat={!!selectedLocationChatRoom}
                   onBackClick={() => {
                     setShowMobileChat(false);
                     setSelectedChatRoom(null);
-                    setSelectedLocationChatRoom(null);
-                    setIsLocationChatActive(false);
                   }}
                 />
               </div>
@@ -1044,27 +1024,7 @@ export default function MainApp() {
                 </div>
                 <span className="text-xs mt-0.5">채팅방</span>
               </Button>
-              <Button
-                variant="ghost"
-                className={cn(
-                  "flex flex-col items-center py-1 px-2 relative",
-                  activeMobileTab === "nearby" ? "text-purple-600" : "text-gray-400"
-                )}
-                onClick={() => {
-                  setActiveMobileTab("nearby");
-                  // NEW 알림 클릭시 제거 로직은 NearbyChats 컴포넌트에서 처리
-                }}
-              >
-                <div className="relative">
-                  <MapPin className="h-4 w-4" />
-                  {totalNearbyUnread > 0 && (
-                    <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[16px] h-[16px] flex items-center justify-center font-medium">
-                      {totalNearbyUnread > 9 ? '9+' : totalNearbyUnread}
-                    </div>
-                  )}
-                </div>
-                <span className="text-xs mt-0.5">주변챗</span>
-              </Button>
+
               <Button
                 variant="ghost"
                 className={cn(
