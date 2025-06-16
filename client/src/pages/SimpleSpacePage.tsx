@@ -95,7 +95,7 @@ export default function SimpleSpacePage() {
     post.companyChannel?.companyName?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Separate search results for My Space
+  // Separate search results for Business Space
   const searchResults = {
     companies: searchQuery && activeTab === "feed" ? companyPages.companies || [] : [],
     posts: filteredPosts
@@ -167,7 +167,7 @@ export default function SimpleSpacePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col pb-24">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <ScrollIndicator />
       {/* Fixed Header */}
       <div className="sticky top-0 z-20 bg-white border-b shadow-sm">

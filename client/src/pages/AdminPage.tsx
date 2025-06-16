@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
+import ScrollIndicator from "@/components/ScrollIndicator";
+import PerformanceMonitor from "@/components/PerformanceMonitor";
 import { queryClient } from "@/lib/queryClient";
 import { 
   Activity, 
@@ -142,6 +143,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <ScrollIndicator />
       {/* 헤더 */}
       <div className="bg-white border-b px-6 py-4">
         <div className="flex items-center justify-between">
@@ -414,6 +416,7 @@ export default function AdminPage() {
 
           {/* 성능 탭 */}
           <TabsContent value="performance" className="space-y-6">
+            <PerformanceMonitor showDetailed={true} />
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>

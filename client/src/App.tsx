@@ -12,11 +12,6 @@ import PhoneLogin from "@/pages/PhoneLogin";
 import MainApp from "@/pages/MainApp";
 import AdminPage from "@/pages/AdminPage";
 import FriendProfilePage from "@/pages/FriendProfilePage";
-import CardScannerPage from "@/pages/CardScannerPage";
-import ScanPage from "@/pages/ScanPage";
-import SharePage from "@/pages/SharePage";
-import BusinessCardDetail from "@/pages/BusinessCardDetail";
-import CabinetPage from "@/pages/CabinetPage";
 import NotFound from "@/pages/not-found";
 import { useEffect } from "react";
 
@@ -31,11 +26,6 @@ function Router() {
       <Route path="/app" component={MainApp} />
       <Route path="/admin" component={AdminPage} />
       <Route path="/friend/:userId" component={FriendProfilePage} />
-      <Route path="/card-scanner" component={CardScannerPage} />
-      <Route path="/scan" component={ScanPage} />
-      <Route path="/cabinet" component={CabinetPage} />
-      <Route path="/share/:userId" component={SharePage} />
-      <Route path="/business-card/:contactId" component={BusinessCardDetail} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -3,9 +3,9 @@ import express from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, insertUserPostSchema, insertPostLikeSchema, insertPostCommentSchema, insertCompanyChannelSchema, insertCompanyProfileSchema, locationChatRooms, chatRooms, chatParticipants, userPosts, postLikes, postComments, companyChannels, companyChannelFollowers, companyChannelAdmins, users, businessProfiles, contacts, businessPostReads, businessPosts, businessPostLikes, companyProfiles, personFolders, folderItems } from "@shared/schema";
+import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, insertUserPostSchema, insertPostLikeSchema, insertPostCommentSchema, insertCompanyChannelSchema, insertCompanyProfileSchema, locationChatRooms, chatRooms, chatParticipants, userPosts, postLikes, postComments, companyChannels, companyChannelFollowers, companyChannelAdmins, users, businessProfiles, contacts, businessPostReads, businessPosts, businessPostLikes, companyProfiles } from "@shared/schema";
 import { sql } from "drizzle-orm";
-import { translateText, transcribeAudio, extractBusinessCardInfo } from "./openai";
+import { translateText, transcribeAudio } from "./openai";
 import bcrypt from "bcryptjs";
 import multer from "multer";
 import path from "path";
@@ -13,7 +13,7 @@ import fs from "fs";
 import { encryptFileData, decryptFileData, hashFileName } from "./crypto";
 import { processCommand } from "./openai";
 import { db } from "./db";
-import { eq, and, inArray, desc, gte, isNull, isNotNull } from "drizzle-orm";
+import { eq, and, inArray, desc, gte, isNull } from "drizzle-orm";
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -22,46 +22,14 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 const upload = multer({
-  storage: multer.memoryStorage(), // Store files in memory for processing
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit for images
-  fileFilter: (req, file, cb) => {
-    // Accept only image files
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed'), false);
-    }
-  }
+  dest: uploadDir,
+  limits: { fileSize: 500 * 1024 * 1024 }, // 500MB limit for videos
 });
 
 // WebSocket connection management
 const connections = new Map<number, WebSocket>();
 
-// Authentication middleware
-const requireAuth = (req: any, res: any, next: any) => {
-  const userId = req.headers["x-user-id"];
-  if (!userId) {
-    return res.status(401).json({ message: "Not authenticated" });
-  }
-  req.userId = Number(userId);
-  next();
-};
-
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Static file serving with optimized caching
-  app.use('/uploads', express.static('uploads', {
-    maxAge: '1y', // Cache for 1 year
-    etag: true,
-    lastModified: true,
-    cacheControl: true,
-    setHeaders: (res, path) => {
-      // Aggressive caching for images
-      if (path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.png') || path.endsWith('.webp')) {
-        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-      }
-    }
-  }));
-
   // Auth routes
   app.post("/api/auth/test-login", async (req, res) => {
     try {
@@ -386,13 +354,199 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 주변 채팅방 근접 알림 체크
+  app.get("/api/location/check-proximity", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
 
+    try {
+      const proximityResults = await storage.checkLocationProximity(Number(userId));
+      const hasNewChats = proximityResults.filter(r => r.hasNewChats);
+      res.json({ hasNewChats, proximityResults });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to check proximity" });
+    }
+  });
 
+  // 위치 벗어남 체크
+  app.get("/api/location/check-exit", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
 
+    try {
+      // 실제 구현에서는 사용자의 현재 위치와 참여 중인 채팅방 위치를 비교
+      const shouldExit = false; 
+      const roomId = null; 
+      
+      res.json({ shouldExit, roomId });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to check exit" });
+    }
+  });
 
+  // 주변챗 자동 퇴장
+  app.post("/api/location/chat-rooms/:roomId/leave", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
 
+    try {
+      await storage.leaveLocationChatRoom(Number(userId), Number(req.params.roomId));
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to leave location chat room" });
+    }
+  });
 
+  // Location-based chat routes
+  app.post("/api/location/update", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
 
+    try {
+      const { latitude, longitude, accuracy } = req.body;
+      
+      if (!latitude || !longitude) {
+        return res.status(400).json({ message: "위도와 경도가 필요합니다." });
+      }
+
+      await storage.updateUserLocation(Number(userId), {
+        latitude: Number(latitude),
+        longitude: Number(longitude),
+        accuracy: Number(accuracy) || 0
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Location update error:", error);
+      res.status(500).json({ message: "위치 정보 업데이트에 실패했습니다." });
+    }
+  });
+
+  app.get("/api/location/nearby-chats", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { latitude, longitude, radius } = req.query;
+      
+      if (!latitude || !longitude) {
+        return res.status(400).json({ message: "위도와 경도가 필요합니다." });
+      }
+
+      const chatRooms = await storage.getNearbyLocationChatRooms(
+        Number(latitude),
+        Number(longitude),
+        Number(radius) || 100
+      );
+
+      res.json({ chatRooms });
+    } catch (error) {
+      console.error("Nearby chats error:", error);
+      res.status(500).json({ message: "주변 채팅방을 가져올 수 없습니다." });
+    }
+  });
+
+  app.post("/api/location/chat-rooms", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { name, latitude, longitude, address } = req.body;
+      
+      if (!name || !latitude || !longitude) {
+        return res.status(400).json({ message: "채팅방 이름, 위도, 경도가 필요합니다." });
+      }
+
+      const chatRoom = await storage.createLocationChatRoom(Number(userId), {
+        name,
+        latitude: Number(latitude),
+        longitude: Number(longitude),
+        address: address || "위치 정보 없음"
+      });
+
+      res.json({ chatRoom });
+    } catch (error) {
+      console.error("Create location chat room error:", error);
+      res.status(500).json({ message: "채팅방 생성에 실패했습니다." });
+    }
+  });
+
+  app.post("/api/location/chat-rooms/:roomId/join", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const roomId = Number(req.params.roomId);
+      
+      // Get location chat room details
+      const locationRoom = await db.select().from(locationChatRooms).where(eq(locationChatRooms.id, roomId)).limit(1);
+      
+      if (locationRoom.length === 0) {
+        return res.status(404).json({ message: "채팅방을 찾을 수 없습니다." });
+      }
+
+      // Get profile data from request body
+      const { nickname, profileImageUrl } = req.body;
+      
+      if (!nickname || !nickname.trim()) {
+        return res.status(400).json({ message: "닉네임이 필요합니다." });
+      }
+
+      // Join location chat room with profile data
+      await storage.joinLocationChatRoom(Number(userId), roomId, {
+        nickname: nickname.trim(),
+        profileImageUrl
+      });
+
+      // For nearby chats, return the location room ID directly
+      // Don't create regular chat rooms for location-based chats
+      res.json({ 
+        success: true, 
+        chatRoomId: roomId, // Use location chat room ID directly
+        locationChatRoomId: roomId,
+        isLocationChat: true
+      });
+    } catch (error) {
+      console.error("Join location chat room error:", error);
+      res.status(500).json({ message: "채팅방 입장에 실패했습니다." });
+    }
+  });
+
+  // Get user's profile for a specific location chat room
+  app.get("/api/location/chat-rooms/:roomId/profile", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const roomId = Number(req.params.roomId);
+      const profile = await storage.getLocationChatProfile(Number(userId), roomId);
+      
+      if (profile) {
+        res.json(profile);
+      } else {
+        res.status(404).json({ message: "프로필을 찾을 수 없습니다." });
+      }
+    } catch (error) {
+      console.error("Get location chat profile error:", error);
+      res.status(500).json({ message: "프로필 조회에 실패했습니다." });
+    }
+  });
 
   // User routes
   app.put("/api/users/:id", async (req, res) => {
@@ -420,7 +574,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Location chat messages routes
+  app.get("/api/location/chat-rooms/:roomId/messages", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
 
+    try {
+      const roomId = Number(req.params.roomId);
+      
+      // Verify user is participant in location chat
+      const profile = await storage.getLocationChatProfile(Number(userId), roomId);
+      if (!profile) {
+        return res.status(403).json({ message: "Not a participant in this location chat" });
+      }
+
+      // Get messages from location chat room
+      const messages = await storage.getLocationChatMessages(roomId);
+      res.json({ messages });
+    } catch (error) {
+      console.error("Get location messages error:", error);
+      res.status(500).json({ message: "Failed to get messages" });
+    }
+  });
+
+  app.post("/api/location/chat-rooms/:roomId/messages", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const roomId = Number(req.params.roomId);
+      
+      // Verify user is participant in location chat
+      const profile = await storage.getLocationChatProfile(Number(userId), roomId);
+      if (!profile) {
+        return res.status(403).json({ message: "Not a participant in this location chat" });
+      }
+
+      const messageData = req.body;
+      const newMessage = await storage.createLocationChatMessage(roomId, Number(userId), {
+        content: messageData.content,
+        messageType: messageData.messageType || "text",
+        fileName: messageData.fileName,
+        fileSize: messageData.fileSize,
+        voiceDuration: messageData.voiceDuration,
+        detectedLanguage: messageData.detectedLanguage
+      });
+
+      // For location chat, create response with profile info
+      const user = await storage.getUser(Number(userId));
+      const messageWithSender = {
+        ...newMessage,
+        sender: user,
+        senderProfile: profile
+      };
+
+      // Broadcast to location chat participants via WebSocket
+      broadcastToRoom(roomId, {
+        type: "new_message",
+        message: messageWithSender,
+        isLocationChat: true
+      });
+
+      res.json({ message: messageWithSender });
+    } catch (error) {
+      console.error("Location message creation error:", error);
+      res.status(500).json({ message: "Failed to send message" });
+    }
+  });
 
   // Contact routes
   app.get("/api/contacts", async (req, res) => {
@@ -444,34 +668,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const { contactUsername, contactUserId, nickname, name, email, phone, company, jobTitle, notes } = req.body;
-      console.log("POST /api/contacts - Request body:", req.body);
+      const { contactUsername, contactUserId, nickname } = req.body;
+      console.log("POST /api/contacts - Request body:", { contactUsername, contactUserId, nickname });
       console.log("POST /api/contacts - User ID from header:", userId);
       
-      // Check if this is business card data (has name, email, etc.)
-      if (name || email || phone || company) {
-        console.log("Creating external contact from business card data");
-        
-        // Create external contact directly in the database
-        const contactData = insertContactSchema.parse({
-          userId: Number(userId),
-          contactUserId: null, // External contact, not a registered user
-          nickname: name || "Unknown Contact",
-          name: name,
-          email: email,
-          phone: phone,
-          company: company,
-          jobTitle: jobTitle,
-          notes: notes,
-        });
-
-        console.log("Creating external contact with data:", contactData);
-        const contact = await storage.addContact(contactData);
-        console.log("External contact created successfully:", contact);
-        return res.json({ contact });
-      }
-      
-      // Original logic for adding existing users
       let contactUser;
 
       // Support both username and userId for adding contacts
@@ -521,32 +721,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get individual contact by ID
-  app.get("/api/contacts/:contactId", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      const contactId = Number(req.params.contactId);
-      if (isNaN(contactId)) {
-        return res.status(400).json({ message: "Invalid contact ID" });
-      }
-      
-      const contact = await storage.getContactById(Number(userId), contactId);
-      
-      if (!contact) {
-        return res.status(404).json({ message: "Contact not found" });
-      }
-
-      res.json(contact);
-    } catch (error) {
-      console.error("Error fetching contact:", error);
-      res.status(500).json({ message: "Failed to fetch contact" });
-    }
-  });
-
   app.patch("/api/contacts/:contactId", async (req, res) => {
     const userId = req.headers["x-user-id"];
     if (!userId) {
@@ -580,22 +754,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.removeContact(Number(userId), Number(req.params.contactUserId));
       res.json({ success: true });
     } catch (error) {
-      res.status(500).json({ message: "Failed to remove contact" });
-    }
-  });
-
-  // Delete contact by contact ID (for external contacts)
-  app.delete("/api/contacts/by-id/:contactId", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      await storage.removeContactById(Number(userId), Number(req.params.contactId));
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error removing contact by ID:", error);
       res.status(500).json({ message: "Failed to remove contact" });
     }
   });
@@ -656,7 +814,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const targetUserId = req.params.userId && !isNaN(Number(req.params.userId)) ? Number(req.params.userId) : Number(userId);
+      const targetUserId = req.params.userId ? Number(req.params.userId) : Number(userId);
       const businessCard = await storage.getBusinessCard(targetUserId);
       res.json({ businessCard });
     } catch (error) {
@@ -677,741 +835,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating business card:", error);
       res.status(500).json({ message: "Failed to update business card" });
-    }
-  });
-
-  // Register user with business card endpoint
-  app.post("/api/register-with-business-card", upload.single('businessCardImage'), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ message: "Business card image is required for registration" });
-      }
-
-      const { username, email, password, displayName } = req.body;
-      
-      if (!username || !password || !displayName) {
-        return res.status(400).json({ message: "Username, password, and display name are required" });
-      }
-
-      // Check if user already exists
-      const existingUser = await storage.getUserByUsername(username);
-      if (existingUser) {
-        return res.status(400).json({ message: "Username already exists" });
-      }
-
-      if (email) {
-        const existingEmailUser = await storage.getUserByEmail(email);
-        if (existingEmailUser) {
-          return res.status(400).json({ message: "Email already registered" });
-        }
-      }
-
-      // Extract business card information
-      const base64Image = req.file.buffer.toString('base64');
-      const extractedData = await extractBusinessCardInfo(base64Image);
-
-      // Create new user
-      const newUser = await storage.createUser({
-        username,
-        email,
-        displayName,
-        hashedPassword: password, // In real app, this should be hashed
-        userRole: "user"
-      });
-
-      // Store business card image
-      const cardImageUrl = `/uploads/business-cards/${newUser.id}-${Date.now()}.jpg`;
-      await require('fs').promises.writeFile(`./uploads/business-cards/${newUser.id}-${Date.now()}.jpg`, req.file.buffer);
-
-      // Create business card record
-      await storage.createOrUpdateBusinessCard(newUser.id, {
-        fullName: extractedData.name,
-        companyName: extractedData.company,
-        jobTitle: extractedData.jobTitle,
-        email: extractedData.email,
-        phoneNumber: extractedData.phone,
-        address: extractedData.address,
-        cardImageUrl,
-        extractedData: JSON.stringify(extractedData),
-        isVerified: true
-      });
-
-      res.json({ 
-        success: true, 
-        user: newUser,
-        businessCardData: extractedData
-      });
-    } catch (error) {
-      console.error("Registration error:", error);
-      res.status(500).json({ message: "Failed to register user" });
-    }
-  });
-
-  // Business card analysis endpoint
-  app.post("/api/business-cards/analyze", upload.single('image'), async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      if (!req.file) {
-        return res.status(400).json({ success: false, error: "이미지 파일이 필요합니다." });
-      }
-
-      console.log('Starting business card analysis...', {
-        userId,
-        fileSize: req.file.size,
-        mimeType: req.file.mimetype
-      });
-      
-      // Directly analyze business card with OpenAI (simplified version)
-      const originalBase64 = req.file.buffer.toString('base64');
-      const { analyzeBusinessCard } = await import('./openai');
-      
-      console.log('Calling OpenAI analysis...');
-      const analysisResult = await analyzeBusinessCard(originalBase64);
-      
-      console.log('Analysis result:', analysisResult);
-      
-      if (analysisResult.success) {
-        console.log('Business card analysis completed successfully:', analysisResult.data);
-        res.json({ 
-          success: true, 
-          analysis: analysisResult.data 
-        });
-      } else {
-        console.error('Business card analysis failed:', analysisResult.error);
-        res.status(500).json({ 
-          success: false, 
-          error: analysisResult.error || "분석에 실패했습니다." 
-        });
-      }
-    } catch (error) {
-      console.error("Business card analysis error:", error);
-      res.status(500).json({ 
-        success: false, 
-        error: `명함 분석 중 오류가 발생했습니다: ${error.message}` 
-      });
-    }
-  });
-
-  // Save memo to person folder endpoint
-  app.post("/api/person-folders/:folderId/memo", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      const folderId = Number(req.params.folderId);
-      const { memo } = req.body;
-
-      if (!memo || memo.trim() === "") {
-        return res.status(400).json({ message: "Memo content is required" });
-      }
-
-      // Verify folder belongs to user
-      const folder = await storage.getPersonFolderById(Number(userId), folderId);
-      if (!folder) {
-        return res.status(404).json({ message: "Folder not found" });
-      }
-
-      // Create folder item for the memo
-      const folderItem = await storage.addFolderItem({
-        folderId,
-        itemType: 'memo',
-        title: '메모',
-        description: memo.trim(),
-        tags: ['memo']
-      });
-
-      res.json({ 
-        success: true, 
-        folderItem,
-        message: "메모가 저장되었습니다." 
-      });
-
-    } catch (error) {
-      console.error("Memo save error:", error);
-      res.status(500).json({ 
-        success: false, 
-        error: "메모 저장 중 오류가 발생했습니다." 
-      });
-    }
-  });
-
-  // Generate One Pager from contact data endpoint
-  app.post("/api/person-folders/:folderId/generate-onepager", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      const folderId = Number(req.params.folderId);
-      const { contactData } = req.body;
-
-      // Generate One Pager using OpenAI
-      const { generateOnePager } = await import('./openai');
-      const onePagerResult = await generateOnePager({
-        name: contactData.name,
-        title: contactData.jobTitle,
-        company: contactData.company,
-        email: contactData.email,
-        phone: contactData.phone,
-        address: contactData.address,
-        website: contactData.website
-      });
-
-      if (onePagerResult.success) {
-        // Create folder item for the One Pager
-        const folderItem = await storage.addFolderItem({
-          folderId,
-          itemType: 'one_pager',
-          title: `${contactData.name}님의 One Pager`,
-          description: onePagerResult.data?.bio || `${contactData.name}님의 프로필`,
-          tags: onePagerResult.data?.skills || []
-        });
-
-        res.json({ 
-          success: true, 
-          onePager: onePagerResult.data,
-          folderItem 
-        });
-      } else {
-        res.status(500).json({ 
-          success: false, 
-          error: onePagerResult.error 
-        });
-      }
-    } catch (error) {
-      console.error("One Pager generation error:", error);
-      res.status(500).json({ 
-        success: false, 
-        error: "One Pager 생성 중 오류가 발생했습니다." 
-      });
-    }
-  });
-
-  // Enhanced business card scanning endpoint with user verification
-  app.post("/api/scan-business-card", (req, res, next) => {
-    upload.single('image')(req, res, (err) => {
-      if (err) {
-        console.error('Multer error:', err);
-        return res.status(400).json({ message: "File upload error: " + err.message });
-      }
-      next();
-    });
-  }, async (req, res) => {
-    try {
-      const userId = req.headers['x-user-id'] as string;
-      if (!userId) {
-        return res.status(401).json({ message: "User ID required" });
-      }
-
-      if (!req.file) {
-        return res.status(400).json({ message: "Image file is required" });
-      }
-
-      console.log('Processing business card image:', req.file.originalname, req.file.size, 'bytes');
-
-      // Process image for enhanced quality
-      const { processBusinessCardImage } = await import('./imageProcessing');
-      const processedImages = await processBusinessCardImage(req.file.buffer);
-
-      // Convert enhanced image to base64 for OpenAI Vision API
-      const base64Image = processedImages.enhanced.toString('base64');
-
-      // Use OpenAI Vision API to extract business card information from enhanced image
-      const extractedData = await extractBusinessCardInfo(base64Image);
-
-      // Store the enhanced image
-      const timestamp = Date.now();
-      const imageFileName = `business-card-${userId}-${timestamp}.jpg`;
-      const imagePath = `./uploads/business-cards/${imageFileName}`;
-      const imageUrl = `/uploads/business-cards/${imageFileName}`;
-      
-      // Save enhanced image to disk
-      const fs = await import('fs');
-      await fs.promises.writeFile(imagePath, processedImages.enhanced);
-
-      // Determine person name from extracted data
-      const personName = extractedData.name || "이름 미확인";
-
-      // Create or find person folder - check by name first to prevent duplicates
-      let folder = await storage.getPersonFolderByName(Number(userId), personName);
-      if (!folder) {
-        // Create a contact first for the business card
-        const contact = await storage.createContact(Number(userId), {
-          name: personName,
-          email: extractedData.email,
-          phone: extractedData.phone,
-          company: extractedData.company,
-          jobTitle: extractedData.jobTitle
-        });
-        
-        folder = await storage.createPersonFolder(Number(userId), contact.id, personName);
-      }
-
-      // Check if this business card belongs to an existing registered user
-      const existingUser = await storage.verifyUserByBusinessCard(extractedData);
-      
-      // Create folder item with business card data including verification info and image
-      const folderItem = await storage.addFolderItem({
-        folderId: folder.id,
-        itemType: 'business_card',
-        fileName: imageFileName,
-        fileUrl: imageUrl,
-        fileSize: processedImages.enhanced.length,
-        mimeType: 'image/jpeg',
-        title: `${personName}님의 명함`,
-        description: `${extractedData.company} ${extractedData.jobTitle}`,
-        tags: [extractedData.company || '', extractedData.jobTitle || ''].filter(tag => tag !== ''),
-        businessCardData: JSON.stringify({
-          ...extractedData,
-          isRegisteredUser: !!existingUser,
-          registeredUserId: existingUser?.id || null,
-          registeredUserDisplayName: existingUser?.displayName || null,
-          canSendDM: !!existingUser
-        })
-      });
-
-      const response = {
-        ...extractedData,
-        isRegisteredUser: !!existingUser,
-        registeredUserId: existingUser?.id || null,
-        registeredUserDisplayName: existingUser?.displayName || null,
-        canSendDM: !!existingUser,
-        imageUrl,
-        folderId: folder.id,
-        folderItemId: folderItem.id
-      };
-
-      console.log('Business card verification result:', {
-        isRegistered: !!existingUser,
-        userId: existingUser?.id,
-        userName: existingUser?.displayName,
-        imageStored: imageUrl
-      });
-
-      res.json(response);
-    } catch (error) {
-      console.error('Business card scanning error:', error);
-      res.status(500).json({ message: "Failed to scan business card" });
-    }
-  });
-
-  // Auto-crop endpoint for business card background removal
-  app.post("/api/auto-crop", upload.single('file'), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ message: "Image file is required" });
-      }
-
-      console.log('Processing auto-crop for business card:', req.file.originalname, req.file.size, 'bytes');
-
-      // Step 1: Detect business card boundaries using AI
-      const originalBase64 = req.file.buffer.toString('base64');
-      const { detectBusinessCardBounds } = await import('./openai');
-      const detectedBounds = await detectBusinessCardBounds(originalBase64);
-      
-      console.log('AI boundary detection result:', detectedBounds);
-
-      // Step 2: Process image with AI-guided cropping to remove background
-      const { processBusinessCardImageWithAI } = await import('./imageProcessing');
-      const processedImages = await processBusinessCardImageWithAI(req.file.buffer, detectedBounds || undefined);
-
-      // Convert cropped image to base64 for frontend display
-      const croppedBase64 = `data:image/jpeg;base64,${processedImages.enhanced.toString('base64')}`;
-      
-      // Save the cropped image temporarily
-      const timestamp = Date.now();
-      const tempFileName = `temp-cropped-${timestamp}.jpg`;
-      const tempPath = path.join(uploadDir, 'temp', tempFileName);
-      
-      // Ensure temp directory exists
-      const tempDir = path.join(uploadDir, 'temp');
-      if (!fs.existsSync(tempDir)) {
-        fs.mkdirSync(tempDir, { recursive: true });
-      }
-      
-      await fs.promises.writeFile(tempPath, processedImages.enhanced);
-
-      res.json({
-        success: true,
-        croppedImageUrl: croppedBase64,
-        tempFileName: tempFileName
-      });
-
-    } catch (error) {
-      console.error('Auto-crop error:', error);
-      res.status(500).json({ 
-        success: false,
-        message: "Failed to auto-crop business card",
-        error: error instanceof Error ? error.message : "Unknown error"
-      });
-    }
-  });
-
-  // Simplified scan endpoint for basic business card extraction
-  app.post("/api/scan", requireAuth, upload.single('file'), async (req: any, res) => {
-    try {
-      const userId = req.userId;
-
-      if (!req.file) {
-        return res.status(400).json({ message: "Image file is required" });
-      }
-
-      console.log('Processing business card scan:', req.file.originalname, req.file.size, 'bytes');
-
-      // Process image for enhanced quality
-      const { processBusinessCardImage } = await import('./imageProcessing');
-      const processedImages = await processBusinessCardImage(req.file.buffer);
-
-      // Convert enhanced image to base64 for OpenAI Vision API
-      const base64Image = processedImages.enhanced.toString('base64');
-
-      // Use OpenAI Vision API to extract business card information
-      const extractedData = await extractBusinessCardInfo(base64Image);
-
-      // Store the enhanced image
-      const timestamp = Date.now();
-      const imageFileName = `business-card-${userId}-${timestamp}.jpg`;
-      const businessCardsDir = path.join(uploadDir, 'business-cards');
-      if (!fs.existsSync(businessCardsDir)) {
-        fs.mkdirSync(businessCardsDir, { recursive: true });
-      }
-      const imagePath = path.join(businessCardsDir, imageFileName);
-      const imageUrl = `/uploads/business-cards/${imageFileName}`;
-      
-      // Save enhanced image to disk
-      await fs.promises.writeFile(imagePath, processedImages.enhanced);
-
-      // Determine person name from extracted data
-      const personName = extractedData.name || "이름 미확인";
-
-      // Create or find person folder
-      let folder = await storage.getPersonFolderByName(Number(userId), personName);
-      if (!folder) {
-        // Create a contact first for the business card
-        const contact = await storage.createContact(Number(userId), {
-          name: personName,
-          email: extractedData.email,
-          phone: extractedData.phone,
-          company: extractedData.company,
-          jobTitle: extractedData.jobTitle
-        });
-        
-        folder = await storage.createPersonFolder(Number(userId), contact.id, personName);
-      }
-
-      // Create folder item with business card data
-      const folderItem = await storage.addFolderItem({
-        folderId: folder.id,
-        itemType: 'business_card',
-        fileName: imageFileName,
-        fileUrl: imageUrl,
-        fileSize: processedImages.enhanced.length,
-        mimeType: 'image/jpeg',
-        title: `${personName}님의 명함`,
-        description: `${extractedData.company} ${extractedData.jobTitle}`,
-        tags: [extractedData.company || '', extractedData.jobTitle || ''].filter(tag => tag !== ''),
-        businessCardData: JSON.stringify(extractedData)
-      });
-
-      res.json({
-        success: true,
-        extractedData,
-        imageUrl,
-        folderId: folder.id,
-        folderItemId: folderItem.id
-      });
-
-    } catch (error) {
-      console.error('Business card scanning error:', error);
-      res.status(500).json({ 
-        success: false,
-        message: "Failed to scan business card",
-        error: error instanceof Error ? error.message : "Unknown error"
-      });
-    }
-  });
-
-  // Person folder routes for One Pager system
-  app.get("/api/person-folders", async (req, res) => {
-    try {
-      const userId = req.headers['x-user-id'] as string;
-      if (!userId) {
-        return res.status(401).json({ message: "User ID required" });
-      }
-
-      const folders = await storage.getPersonFolders(Number(userId));
-      res.json(folders);
-    } catch (error) {
-      console.error('Error fetching person folders:', error);
-      res.status(500).json({ message: "Failed to fetch person folders" });
-    }
-  });
-
-  app.post("/api/person-folders", async (req, res) => {
-    try {
-      const userId = req.headers['x-user-id'] as string;
-      if (!userId) {
-        return res.status(401).json({ message: "User ID required" });
-      }
-
-      const { contactId, folderName } = req.body;
-      const folder = await storage.createPersonFolder(Number(userId), contactId, folderName);
-      res.json(folder);
-    } catch (error) {
-      console.error('Error creating person folder:', error);
-      res.status(500).json({ message: "Failed to create person folder" });
-    }
-  });
-
-  app.get("/api/person-folders/:folderId", async (req, res) => {
-    try {
-      const userId = req.headers['x-user-id'] as string;
-      if (!userId) {
-        return res.status(401).json({ message: "User ID required" });
-      }
-
-      const folderId = Number(req.params.folderId);
-      const folder = await storage.getPersonFolderById(Number(userId), folderId);
-      
-      if (!folder) {
-        return res.status(404).json({ message: "Folder not found" });
-      }
-
-      res.json(folder);
-    } catch (error) {
-      console.error('Error fetching person folder:', error);
-      res.status(500).json({ message: "Failed to fetch person folder" });
-    }
-  });
-
-  app.get("/api/person-folders/:folderId/items", async (req, res) => {
-    try {
-      const userId = req.headers['x-user-id'] as string;
-      if (!userId) {
-        return res.status(401).json({ message: "User ID required" });
-      }
-
-      const folderId = Number(req.params.folderId);
-      console.log('Fetching folder items for folderId:', folderId);
-      const items = await storage.getFolderItems(folderId);
-      console.log('Found folder items:', items.length, items);
-      res.json(items);
-    } catch (error) {
-      console.error('Error fetching folder items:', error);
-      res.status(500).json({ message: "Failed to fetch folder items" });
-    }
-  });
-
-  // Delete multiple person folders (MUST come before single folder route)
-  app.delete("/api/person-folders/bulk", async (req, res) => {
-    try {
-      const userId = req.headers['x-user-id'] as string;
-      if (!userId) {
-        return res.status(401).json({ message: "User ID required" });
-      }
-
-      const numericUserId = Number(userId);
-      if (isNaN(numericUserId) || numericUserId <= 0) {
-        return res.status(400).json({ message: "Invalid user ID" });
-      }
-
-      const { folderIds } = req.body;
-      
-      if (!folderIds || !Array.isArray(folderIds) || folderIds.length === 0) {
-        return res.status(400).json({ message: "Folder IDs are required" });
-      }
-
-      // Pre-validate all folder IDs
-      const validatedFolderIds = [];
-      for (const folderId of folderIds) {
-        const numericFolderId = Number(folderId);
-        if (isNaN(numericFolderId) || numericFolderId <= 0 || !Number.isInteger(numericFolderId)) {
-          console.error(`Invalid folder ID received: ${folderId} (type: ${typeof folderId})`);
-          return res.status(400).json({ 
-            message: `Invalid folder ID: ${folderId}. All folder IDs must be positive integers.` 
-          });
-        }
-        validatedFolderIds.push(numericFolderId);
-      }
-
-      console.log('Bulk deleting validated person folders:', validatedFolderIds);
-
-      const deletedFolders = [];
-      const errors = [];
-      
-      for (const folderId of validatedFolderIds) {
-        try {
-          console.log(`Deleting folder ${folderId} for user ${numericUserId}`);
-          await storage.deletePersonFolder(numericUserId, folderId);
-          deletedFolders.push(folderId);
-          console.log(`Successfully deleted folder ${folderId}`);
-        } catch (error) {
-          console.error(`Error deleting folder ${folderId}:`, error);
-          errors.push({ folderId, error: error instanceof Error ? error.message : 'Unknown error' });
-        }
-      }
-
-      if (errors.length > 0) {
-        res.status(207).json({ 
-          success: false,
-          deletedFolders,
-          errors,
-          message: `${deletedFolders.length}개 폴더 삭제 완료, ${errors.length}개 실패`
-        });
-      } else {
-        res.json({ 
-          success: true, 
-          deletedFolders,
-          message: `${deletedFolders.length}개 폴더가 성공적으로 삭제되었습니다.`
-        });
-      }
-    } catch (error) {
-      console.error('Error in bulk delete:', error);
-      res.status(500).json({ message: "Failed to bulk delete folders" });
-    }
-  });
-
-  // Delete single person folder (MUST come after bulk route)
-  app.delete("/api/person-folders/:folderId", async (req, res) => {
-    try {
-      const userId = req.headers['x-user-id'] as string;
-      if (!userId) {
-        return res.status(401).json({ message: "User ID required" });
-      }
-
-      const numericUserId = Number(userId);
-      if (isNaN(numericUserId) || numericUserId <= 0) {
-        return res.status(400).json({ message: "Invalid user ID" });
-      }
-
-      const folderIdParam = req.params.folderId;
-      console.log(`Single folder deletion - folderIdParam: "${folderIdParam}" (type: ${typeof folderIdParam})`);
-      
-      const folderId = Number(folderIdParam);
-      if (isNaN(folderId) || folderId <= 0 || !Number.isInteger(folderId)) {
-        console.error(`Invalid folder ID parameter: "${folderIdParam}" converted to: ${folderId}`);
-        return res.status(400).json({ 
-          message: `Invalid folder ID: ${folderIdParam}. Must be a positive integer.` 
-        });
-      }
-
-      console.log(`Deleting single folder ${folderId} for user ${numericUserId}`);
-      await storage.deletePersonFolder(numericUserId, folderId);
-      console.log(`Successfully deleted single folder ${folderId}`);
-      res.json({ success: true });
-    } catch (error) {
-      console.error('Error deleting person folder:', error);
-      res.status(500).json({ message: "Failed to delete folder" });
-    }
-  });
-
-  app.post("/api/person-folders/:folderId/items", async (req, res) => {
-    try {
-      const userId = req.headers['x-user-id'] as string;
-      if (!userId) {
-        return res.status(401).json({ message: "User ID required" });
-      }
-
-      const folderId = Number(req.params.folderId);
-      const itemData = { ...req.body, folderId };
-      
-      console.log('Creating folder item with data:', JSON.stringify(itemData, null, 2));
-      console.log('folderId from params:', folderId);
-      console.log('req.body:', JSON.stringify(req.body, null, 2));
-      
-      const item = await storage.addFolderItem(itemData);
-      res.json(item);
-    } catch (error) {
-      console.error('Error adding folder item:', error);
-      res.status(500).json({ message: "Failed to add folder item" });
-    }
-  });
-
-  // Bulk edit person folders
-  app.post("/api/person-folders/bulk-edit", async (req, res) => {
-    try {
-      const userId = req.headers['x-user-id'] as string;
-      if (!userId) {
-        return res.status(401).json({ message: "User ID required" });
-      }
-
-      const { folderIds, editData } = req.body;
-      
-      if (!folderIds || !Array.isArray(folderIds) || folderIds.length === 0) {
-        return res.status(400).json({ message: "Folder IDs are required" });
-      }
-
-      if (!editData || Object.keys(editData).length === 0) {
-        return res.status(400).json({ message: "Edit data is required" });
-      }
-
-      console.log('Bulk editing person folders:', folderIds, editData);
-
-      // Update each folder's associated contact with the provided data
-      const updatedFolders = [];
-      
-      for (const folderId of folderIds) {
-        try {
-          // Get the folder to access its contact
-          const folder = await storage.getPersonFolderById(Number(userId), folderId);
-          if (!folder || !folder.contactId) {
-            console.warn(`Folder ${folderId} not found or has no contact`);
-            continue;
-          }
-
-          // Update the contact with bulk edit data
-          const updateContactData: any = {};
-          if (editData.company) updateContactData.company = editData.company;
-          if (editData.jobTitle) updateContactData.jobTitle = editData.jobTitle;
-          if (editData.notes) updateContactData.notes = editData.notes;
-          if (editData.category) updateContactData.category = editData.category;
-          if (editData.tags && editData.tags.length > 0) {
-            updateContactData.tags = JSON.stringify(editData.tags);
-          }
-
-          if (Object.keys(updateContactData).length > 0) {
-            await storage.updateContactById(folder.contactId, updateContactData);
-            updatedFolders.push(folderId);
-          }
-        } catch (error) {
-          console.error(`Error updating folder ${folderId}:`, error);
-        }
-      }
-
-      res.json({ 
-        success: true, 
-        updatedFolders,
-        message: `${updatedFolders.length}개 폴더가 성공적으로 업데이트되었습니다.`
-      });
-    } catch (error) {
-      console.error('Error in bulk edit:', error);
-      res.status(500).json({ message: "Failed to bulk edit folders" });
-    }
-  });
-
-
-
-  // Contact management for person folders
-  app.post("/api/contacts", async (req, res) => {
-    try {
-      const userId = req.headers['x-user-id'] as string;
-      if (!userId) {
-        return res.status(401).json({ message: "User ID required" });
-      }
-
-      const contactData = req.body;
-      const contact = await storage.createContact(Number(userId), contactData);
-      res.json(contact);
-    } catch (error) {
-      console.error('Error creating contact:', error);
-      res.status(500).json({ message: "Failed to create contact" });
     }
   });
 
@@ -1444,105 +867,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating business profile:", error);
       res.status(500).json({ message: "Failed to update business profile" });
-    }
-  });
-
-  // Business card duplicate detection
-  app.post("/api/business-cards/check-duplicate", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      const { name, company, phone, email } = req.body;
-      
-      // Get existing business cards for this user
-      const existingCards = await db
-        .select()
-        .from(folderItems)
-        .where(
-          and(
-            eq(folderItems.itemType, 'business_card'),
-            inArray(folderItems.folderId, 
-              db.select({ id: personFolders.id })
-                .from(personFolders)
-                .where(eq(personFolders.userId, Number(userId)))
-            )
-          )
-        );
-
-      // Check for duplicates
-      for (const card of existingCards) {
-        if (card.businessCardData) {
-          const cardData = JSON.parse(card.businessCardData);
-          
-          // Exact match
-          if (cardData.name === name && 
-              cardData.company === company && 
-              cardData.phone === phone && 
-              cardData.email === email) {
-            return res.json({
-              isDuplicate: true,
-              duplicateType: 'exact',
-              existingCard: card,
-              existingCardData: cardData
-            });
-          }
-          
-          // Similar match (same name or same company+phone)
-          if ((cardData.name === name && cardData.company === company) ||
-              (cardData.phone === phone && phone && cardData.company === company)) {
-            return res.json({
-              isDuplicate: true,
-              duplicateType: 'similar',
-              existingCard: card,
-              existingCardData: cardData,
-              differences: {
-                name: cardData.name !== name ? { existing: cardData.name, new: name } : null,
-                company: cardData.company !== company ? { existing: cardData.company, new: company } : null,
-                phone: cardData.phone !== phone ? { existing: cardData.phone, new: phone } : null,
-                email: cardData.email !== email ? { existing: cardData.email, new: email } : null,
-                jobTitle: cardData.jobTitle !== req.body.jobTitle ? { existing: cardData.jobTitle, new: req.body.jobTitle } : null,
-                address: cardData.address !== req.body.address ? { existing: cardData.address, new: req.body.address } : null,
-              }
-            });
-          }
-        }
-      }
-
-      res.json({ isDuplicate: false });
-    } catch (error) {
-      console.error("Error checking business card duplicate:", error);
-      res.status(500).json({ message: "Failed to check duplicate" });
-    }
-  });
-
-  // Business card merge
-  app.post("/api/business-cards/merge", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      const { existingCardId, newCardData } = req.body;
-      
-      // Update the existing card with merged data
-      await db
-        .update(folderItems)
-        .set({
-          businessCardData: JSON.stringify(newCardData),
-          title: `${newCardData.name}님의 명함`,
-          description: `${newCardData.jobTitle} • ${newCardData.company}`,
-          updatedAt: new Date()
-        })
-        .where(eq(folderItems.id, existingCardId));
-
-      res.json({ success: true, message: "명함이 성공적으로 병합되었습니다." });
-    } catch (error) {
-      console.error("Error merging business card:", error);
-      res.status(500).json({ message: "Failed to merge business card" });
     }
   });
 
@@ -1593,206 +917,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const businessCard = await storage.getBusinessCard(share.userId);
       const user = await storage.getUser(share.userId);
       
-      // Enhanced HTML page for business card viewing with contact save functionality
+      // Simple HTML page for business card viewing
       const html = `
         <!DOCTYPE html>
-        <html lang="ko">
+        <html>
         <head>
-          <title>${businessCard?.fullName || user?.displayName || '명함'} - 디지털 명함</title>
+          <title>${businessCard?.fullName || user?.displayName || 'Business Card'}</title>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1">
-          <meta name="description" content="${businessCard?.fullName || user?.displayName}님의 디지털 명함입니다.">
           <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { 
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              min-height: 100vh;
-              padding: 20px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            }
-            .container { 
-              max-width: 400px; 
-              width: 100%; 
-              background: white;
-              border-radius: 16px;
-              box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-              overflow: hidden;
-            }
-            .header {
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              color: white;
-              padding: 30px 20px;
-              text-align: center;
-            }
-            .avatar {
-              width: 80px;
-              height: 80px;
-              border-radius: 50%;
-              background: rgba(255,255,255,0.3);
-              margin: 0 auto 15px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 32px;
-              font-weight: bold;
-            }
-            .name { font-size: 24px; font-weight: 600; margin-bottom: 5px; }
-            .title { font-size: 16px; opacity: 0.9; margin-bottom: 5px; }
-            .company { font-size: 14px; opacity: 0.8; }
-            .content { padding: 25px 20px; }
-            .contact-item {
-              display: flex;
-              align-items: center;
-              padding: 12px 0;
-              border-bottom: 1px solid #f0f0f0;
-            }
-            .contact-item:last-child { border-bottom: none; }
-            .contact-icon {
-              width: 20px;
-              height: 20px;
-              margin-right: 15px;
-              opacity: 0.7;
-            }
-            .contact-text {
-              flex: 1;
-              font-size: 14px;
-              color: #333;
-            }
-            .contact-link {
-              color: #667eea;
-              text-decoration: none;
-            }
-            .description {
-              margin-top: 20px;
-              padding-top: 20px;
-              border-top: 1px solid #f0f0f0;
-              font-size: 14px;
-              line-height: 1.5;
-              color: #666;
-            }
-            .save-button {
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              color: white;
-              border: none;
-              padding: 15px 30px;
-              border-radius: 25px;
-              font-size: 16px;
-              font-weight: 600;
-              cursor: pointer;
-              width: 100%;
-              margin: 20px 0;
-              transition: transform 0.2s;
-            }
-            .save-button:hover {
-              transform: translateY(-2px);
-            }
-            .save-button:active {
-              transform: translateY(0);
-            }
-            .footer {
-              text-align: center;
-              padding: 20px;
-              color: #999;
-              font-size: 12px;
-            }
+            body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+            .card { border: 1px solid #ddd; border-radius: 8px; padding: 20px; background: #f9f9f9; }
+            .name { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
+            .title { font-size: 18px; color: #666; margin-bottom: 10px; }
+            .company { font-size: 16px; margin-bottom: 15px; }
+            .contact-info { margin-bottom: 10px; }
           </style>
         </head>
         <body>
-          <div class="container">
-            <div class="header">
-              <div class="avatar">${(businessCard?.fullName || user?.displayName || 'N')[0].toUpperCase()}</div>
-              <div class="name">${businessCard?.fullName || user?.displayName || '이름 없음'}</div>
-              <div class="title">${businessCard?.jobTitle || '직책 정보 없음'}</div>
-              <div class="company">${businessCard?.companyName || '회사 정보 없음'}</div>
-            </div>
-            
-            <div class="content">
-              ${businessCard?.email ? `
-                <div class="contact-item">
-                  <div class="contact-icon">📧</div>
-                  <div class="contact-text">
-                    <a href="mailto:${businessCard.email}" class="contact-link">${businessCard.email}</a>
-                  </div>
-                </div>
-              ` : ''}
-              
-              ${businessCard?.phoneNumber ? `
-                <div class="contact-item">
-                  <div class="contact-icon">📞</div>
-                  <div class="contact-text">
-                    <a href="tel:${businessCard.phoneNumber}" class="contact-link">${businessCard.phoneNumber}</a>
-                  </div>
-                </div>
-              ` : ''}
-              
-              ${businessCard?.website ? `
-                <div class="contact-item">
-                  <div class="contact-icon">🌐</div>
-                  <div class="contact-text">
-                    <a href="${businessCard.website}" target="_blank" class="contact-link">${businessCard.website}</a>
-                  </div>
-                </div>
-              ` : ''}
-              
-              ${businessCard?.address ? `
-                <div class="contact-item">
-                  <div class="contact-icon">📍</div>
-                  <div class="contact-text">${businessCard.address}</div>
-                </div>
-              ` : ''}
-              
-              ${businessCard?.description ? `
-                <div class="description">${businessCard.description}</div>
-              ` : ''}
-              
-              <button class="save-button" onclick="saveContact()">
-                📱 연락처에 저장하기
-              </button>
-            </div>
-            
-            <div class="footer">
-              Dovie Messenger - 디지털 명함
-            </div>
+          <div class="card">
+            <div class="name">${businessCard?.fullName || user?.displayName || 'Name not available'}</div>
+            <div class="title">${businessCard?.jobTitle || 'Position not available'}</div>
+            <div class="company">${businessCard?.companyName || 'Company not available'}</div>
+            ${businessCard?.email ? `<div class="contact-info">📧 ${businessCard.email}</div>` : ''}
+            ${businessCard?.phoneNumber ? `<div class="contact-info">📞 ${businessCard.phoneNumber}</div>` : ''}
+            ${businessCard?.website ? `<div class="contact-info">🌐 <a href="${businessCard.website}">${businessCard.website}</a></div>` : ''}
+            ${businessCard?.address ? `<div class="contact-info">📍 ${businessCard.address}</div>` : ''}
+            ${businessCard?.description ? `<div style="margin-top: 15px;">${businessCard.description}</div>` : ''}
           </div>
-
-          <script>
-            function saveContact() {
-              const vcard = \`BEGIN:VCARD
-VERSION:3.0
-FN:${businessCard?.fullName || user?.displayName || ''}
-ORG:${businessCard?.companyName || ''}
-TITLE:${businessCard?.jobTitle || ''}
-EMAIL:${businessCard?.email || ''}
-TEL:${businessCard?.phoneNumber || ''}
-URL:${businessCard?.website || ''}
-ADR:;;${businessCard?.address || ''};;;;
-NOTE:${businessCard?.description || ''}
-END:VCARD\`;
-              
-              const blob = new Blob([vcard], { type: 'text/vcard' });
-              const url = URL.createObjectURL(blob);
-              const link = document.createElement('a');
-              link.href = url;
-              link.download = '${(businessCard?.fullName || user?.displayName || 'contact').replace(/[^a-zA-Z0-9가-힣]/g, '_')}.vcf';
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-              URL.revokeObjectURL(url);
-              
-              // Show success message
-              const button = document.querySelector('.save-button');
-              const originalText = button.innerHTML;
-              button.innerHTML = '✅ 연락처가 저장되었습니다!';
-              button.style.background = '#28a745';
-              setTimeout(() => {
-                button.innerHTML = originalText;
-                button.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-              }, 2000);
-            }
-          </script>
         </body>
         </html>
       `;
@@ -1801,177 +953,6 @@ END:VCARD\`;
     } catch (error) {
       console.error("Error displaying business card:", error);
       res.status(500).send("Error loading business card");
-    }
-  });
-
-  // NFC exchange routes
-  app.post("/api/nfc/start-exchange", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      // Generate unique exchange token
-      const exchangeToken = Array.from({ length: 32 }, () => 
-        Math.random().toString(36).charAt(2)
-      ).join('');
-
-      const exchange = await storage.createNfcExchange(Number(userId), exchangeToken);
-      
-      res.json({ 
-        exchange, 
-        exchangeToken,
-        exchangeUrl: `${req.protocol}://${req.get('host')}/nfc-exchange/${exchangeToken}`
-      });
-    } catch (error) {
-      console.error("Error starting NFC exchange:", error);
-      res.status(500).json({ message: "Failed to start NFC exchange" });
-    }
-  });
-
-  app.post("/api/nfc/complete-exchange", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    const { exchangeToken } = req.body;
-    
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    if (!exchangeToken) {
-      return res.status(400).json({ message: "Exchange token is required" });
-    }
-
-    try {
-      const completedExchange = await storage.completeNfcExchange(exchangeToken, Number(userId));
-      
-      if (!completedExchange) {
-        return res.status(404).json({ message: "Exchange not found or already completed" });
-      }
-
-      // Get user info for both parties
-      const [initiator, recipient] = await Promise.all([
-        storage.getUser(completedExchange.initiatorUserId),
-        storage.getUser(completedExchange.recipientUserId!)
-      ]);
-
-      res.json({ 
-        success: true,
-        exchange: completedExchange,
-        message: `${initiator?.displayName}님과 ${recipient?.displayName}님이 서로 친구로 추가되었습니다!`,
-        initiator: { id: initiator?.id, displayName: initiator?.displayName },
-        recipient: { id: recipient?.id, displayName: recipient?.displayName }
-      });
-    } catch (error) {
-      console.error("Error completing NFC exchange:", error);
-      res.status(500).json({ message: "Failed to complete NFC exchange" });
-    }
-  });
-
-  app.get("/nfc-exchange/:exchangeToken", async (req, res) => {
-    const { exchangeToken } = req.params;
-    
-    try {
-      // This endpoint serves a simple page for NFC exchange completion
-      const html = `
-        <!DOCTYPE html>
-        <html lang="ko">
-        <head>
-          <title>명함 교환 - Dovie Messenger</title>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { 
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              min-height: 100vh;
-              padding: 20px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            }
-            .container { 
-              max-width: 400px; 
-              width: 100%; 
-              background: white;
-              border-radius: 16px;
-              box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-              padding: 30px 20px;
-              text-align: center;
-            }
-            .icon {
-              width: 80px;
-              height: 80px;
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              border-radius: 50%;
-              margin: 0 auto 20px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 32px;
-              color: white;
-            }
-            h1 { font-size: 24px; margin-bottom: 10px; color: #333; }
-            p { color: #666; margin-bottom: 20px; line-height: 1.5; }
-            .button {
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              color: white;
-              border: none;
-              padding: 15px 30px;
-              border-radius: 25px;
-              font-size: 16px;
-              font-weight: 600;
-              cursor: pointer;
-              width: 100%;
-              margin: 10px 0;
-            }
-            .status { margin-top: 20px; padding: 15px; border-radius: 8px; }
-            .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-            .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="icon">📱</div>
-            <h1>명함 교환</h1>
-            <p>다른 사용자가 명함을 공유했습니다. 교환을 완료하여 서로 친구로 추가하세요!</p>
-            
-            <button class="button" onclick="completeExchange()">
-              명함 교환 완료하기
-            </button>
-            
-            <div id="status"></div>
-          </div>
-
-          <script>
-            async function completeExchange() {
-              const button = document.querySelector('.button');
-              const status = document.getElementById('status');
-              
-              button.disabled = true;
-              button.textContent = '교환 중...';
-              
-              try {
-                // In a real implementation, this would need authentication
-                // For now, we'll show a message directing to the app
-                status.innerHTML = '<div class="success">Dovie Messenger 앱에서 로그인한 후 이 링크를 다시 클릭해주세요.</div>';
-              } catch (error) {
-                status.innerHTML = '<div class="error">교환 중 오류가 발생했습니다.</div>';
-              } finally {
-                button.disabled = false;
-                button.textContent = '명함 교환 완료하기';
-              }
-            }
-          </script>
-        </body>
-        </html>
-      `;
-      
-      res.send(html);
-    } catch (error) {
-      console.error("Error displaying NFC exchange page:", error);
-      res.status(500).send("Error loading exchange page");
     }
   });
 
@@ -2334,47 +1315,6 @@ END:VCARD\`;
     }
   });
 
-  // Serve files from subdirectories (business-cards, etc.)
-  app.get("/uploads/:subfolder/:filename", async (req, res) => {
-    try {
-      const { subfolder, filename } = req.params;
-      const filePath = path.join(uploadDir, subfolder, filename);
-      
-      // 파일이 존재하는지 확인
-      if (!fs.existsSync(filePath)) {
-        return res.status(404).json({ message: "File not found" });
-      }
-      
-      // 비즈니스 카드 이미지는 암호화되지 않았으므로 직접 제공
-      if (subfolder === 'business-cards') {
-        const fileBuffer = fs.readFileSync(filePath);
-        const ext = path.extname(filename).toLowerCase();
-        let contentType = 'application/octet-stream';
-        
-        if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
-        else if (ext === '.png') contentType = 'image/png';
-        else if (ext === '.gif') contentType = 'image/gif';
-        else if (ext === '.webp') contentType = 'image/webp';
-        
-        res.set({
-          'Content-Type': contentType,
-          'Content-Length': fileBuffer.length,
-          'Cache-Control': 'public, max-age=31536000',
-          'Access-Control-Allow-Origin': '*',
-          'Cross-Origin-Resource-Policy': 'cross-origin'
-        });
-        
-        return res.send(fileBuffer);
-      }
-      
-      // 다른 파일들은 기존 로직 적용
-      return res.status(404).json({ message: "File not found" });
-    } catch (error) {
-      console.error('Subdirectory file serving error:', error);
-      return res.status(500).json({ message: "File serving error" });
-    }
-  });
-
   // Serve files (both encrypted and unencrypted)
   app.get("/uploads/:filename", async (req, res) => {
     try {
@@ -2499,13 +1439,6 @@ END:VCARD\`;
 
     try {
       const unreadCounts = await storage.getUnreadCounts(Number(userId));
-      
-      // Aggressive caching for better performance
-      res.set({
-        'Cache-Control': 'private, max-age=15, stale-while-revalidate=30',
-        'ETag': `"unread-${userId}-${unreadCounts.length}"`
-      });
-      
       res.json({ unreadCounts });
     } catch (error) {
       res.status(500).json({ message: "Failed to get unread counts" });
@@ -3220,25 +2153,12 @@ END:VCARD\`;
 
       // 일반 파일의 경우 복호화 시도
       try {
-        // 이미지 파일인 경우 바이너리로 읽어서 복호화
-        if (contentType.startsWith('image/')) {
-          const encryptedData = await fs.promises.readFile(filePath, 'utf8');
-          const decryptedBuffer = decryptFileData(encryptedData);
-          
-          res.set('Content-Type', contentType);
-          res.set('Cache-Control', 'public, max-age=31536000, immutable');
-          res.set('Access-Control-Allow-Origin', '*');
-          res.set('Cross-Origin-Resource-Policy', 'cross-origin');
-          res.send(decryptedBuffer);
-        } else {
-          // 텍스트 파일 등은 UTF-8로 복호화
-          const encryptedData = await fs.promises.readFile(filePath, 'utf8');
-          const decryptedBuffer = decryptFileData(encryptedData);
-          
-          res.set('Content-Type', contentType);
-          res.set('Cache-Control', 'public, max-age=31536000');
-          res.send(decryptedBuffer);
-        }
+        const encryptedData = await fs.promises.readFile(filePath, 'utf8');
+        const decryptedBuffer = decryptFileData(encryptedData);
+        
+        res.set('Content-Type', contentType);
+        res.set('Cache-Control', 'public, max-age=31536000');
+        res.send(decryptedBuffer);
       } catch (decryptError) {
         console.log('Decryption failed, serving raw file:', filename);
         // 복호화 실패 시 원본 파일 그대로 서빙
@@ -3603,150 +2523,21 @@ END:VCARD\`;
     }
   });
 
-
-
-  // One Pager (Business Card) Analysis and Generation Routes
-  app.post("/api/onepager/analyze-card", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
+  // 위치 기반 채팅방 자동 관리 시스템
+  setInterval(async () => {
     try {
-      const { image } = req.body;
-      if (!image) {
-        return res.status(400).json({ message: "이미지가 필요합니다." });
-      }
-
-      // Extract base64 image data (remove data:image/jpeg;base64, prefix if present)
-      const base64Image = image.replace(/^data:image\/[a-z]+;base64,/, '');
+      // 1시간 이상 비활성 채팅방 삭제 (비즈니스 계정 제외)
+      await storage.cleanupInactiveLocationChats();
       
-      const { analyzeBusinessCard } = await import('./openai');
-      const result = await analyzeBusinessCard(base64Image);
+      // 참여자 0명인 채팅방 삭제
+      await storage.cleanupEmptyLocationChats();
       
-      if (!result.success) {
-        return res.status(500).json({ message: result.error });
-      }
-
-      res.json({ 
-        success: true, 
-        data: result.data 
-      });
+      // 위치 벗어난 사용자 자동 퇴장 처리
+      await storage.handleLocationBasedExit();
     } catch (error) {
-      console.error("Business card analysis error:", error);
-      res.status(500).json({ message: "명함 분석 중 오류가 발생했습니다." });
+      console.error('Location chat cleanup error:', error);
     }
-  });
-
-  app.post("/api/onepager/generate", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      const cardData = req.body;
-      if (!cardData.name) {
-        return res.status(400).json({ message: "이름이 필요합니다." });
-      }
-
-      const { generateOnePager } = await import('./openai');
-      const result = await generateOnePager(cardData);
-      
-      if (!result.success) {
-        return res.status(500).json({ message: result.error });
-      }
-
-      // Update user's business card with generated data
-      const businessCardData = {
-        displayName: result.data?.displayName || cardData.name,
-        jobTitle: result.data?.jobTitle || cardData.title || "전문가",
-        company: result.data?.company || cardData.company || "개인사업자",
-        bio: result.data?.bio || `${cardData.name}님의 전문적인 프로필입니다.`,
-        skills: result.data?.skills || ["전문성", "소통", "문제해결"],
-        website: result.data?.website || cardData.website || null,
-        phone: cardData.phone || null,
-        email: cardData.email || null,
-        address: cardData.address || null
-      };
-
-      const updatedCard = await storage.createOrUpdateBusinessCard(Number(userId), businessCardData);
-
-      res.json({ 
-        success: true, 
-        data: result.data,
-        businessCard: updatedCard
-      });
-    } catch (error) {
-      console.error("One pager generation error:", error);
-      res.status(500).json({ message: "원페이저 생성 중 오류가 발생했습니다." });
-    }
-  });
-
-  app.post("/api/onepager/add-contact-from-card", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      const { cardData, nickname } = req.body;
-      if (!cardData.name) {
-        return res.status(400).json({ message: "이름이 필요합니다." });
-      }
-
-      // Check if user exists in system by email or phone
-      let existingUser = null;
-      if (cardData.email) {
-        existingUser = await storage.getUserByEmail(cardData.email);
-      }
-
-      if (existingUser) {
-        // User exists in system - add as contact with automatic friend addition
-        const alreadyFriends = await storage.areUsersFriends(Number(userId), existingUser.id);
-        
-        if (!alreadyFriends) {
-          // Add bidirectional friendship
-          await storage.addContact({
-            userId: Number(userId),
-            contactUserId: existingUser.id,
-            nickname: nickname || cardData.name,
-            isPinned: false,
-            isFavorite: false,
-            isBlocked: false
-          });
-
-          await storage.addContact({
-            userId: existingUser.id,
-            contactUserId: Number(userId),
-            nickname: null,
-            isPinned: false,
-            isFavorite: false,
-            isBlocked: false
-          });
-        }
-
-        res.json({ 
-          success: true, 
-          message: "시스템 사용자입니다. 자동으로 친구로 추가되었습니다.",
-          user: existingUser,
-          isSystemUser: true
-        });
-      } else {
-        // User not in system - save as contact info only
-        // We could extend storage to save non-user contacts if needed
-        res.json({ 
-          success: true, 
-          message: "연락처 정보가 저장되었습니다.",
-          cardData,
-          isSystemUser: false
-        });
-      }
-    } catch (error) {
-      console.error("Add contact from card error:", error);
-      res.status(500).json({ message: "연락처 추가 중 오류가 발생했습니다." });
-    }
-  });
+  }, 60000); // 1분마다 실행
 
   // Storage Analytics routes
   app.get("/api/storage/analytics", async (req, res) => {
@@ -4367,122 +3158,10 @@ END:VCARD\`;
         .where(eq(userPosts.userId, parseInt(userId as string)))
         .orderBy(desc(userPosts.createdAt));
 
-      // Process posts to ensure attachments are proper arrays
-      const processedPosts = posts.map(post => ({
-        ...post,
-        attachments: post.attachments || []
-      }));
-
-      res.json(processedPosts);
+      res.json(posts);
     } catch (error) {
       console.error("Error fetching user posts:", error);
       res.status(500).json({ message: "포스트를 가져오는 중 오류가 발생했습니다." });
-    }
-  });
-
-  // Person folder endpoints
-  app.get("/api/person-folders", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      const folders = await storage.getPersonFolders(Number(userId));
-      res.json(folders);
-    } catch (error) {
-      console.error("Error fetching person folders:", error);
-      res.status(500).json({ message: "Failed to fetch person folders" });
-    }
-  });
-
-  app.get("/api/person-folders/:folderId", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      const folderId = Number(req.params.folderId);
-      if (isNaN(folderId)) {
-        return res.status(400).json({ message: "Invalid folder ID" });
-      }
-
-      const folder = await storage.getPersonFolderById(Number(userId), folderId);
-      if (!folder) {
-        return res.status(404).json({ message: "Folder not found" });
-      }
-
-      res.json(folder);
-    } catch (error) {
-      console.error("Error fetching person folder:", error);
-      res.status(500).json({ message: "Failed to fetch person folder" });
-    }
-  });
-
-  app.post("/api/person-folders", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      const { contactId, folderName } = req.body;
-      
-      if (!contactId || !folderName) {
-        return res.status(400).json({ message: "contactId and folderName are required" });
-      }
-
-      const folder = await storage.createPersonFolder({
-        userId: Number(userId),
-        contactId,
-        folderName,
-        lastActivity: new Date(),
-        itemCount: 0
-      });
-
-      res.json(folder);
-    } catch (error) {
-      console.error("Error creating person folder:", error);
-      res.status(500).json({ message: "Failed to create person folder" });
-    }
-  });
-
-  app.post("/api/person-folders/:folderId/items", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      const folderId = Number(req.params.folderId);
-      if (isNaN(folderId)) {
-        return res.status(400).json({ message: "Invalid folder ID" });
-      }
-
-      const { itemType, itemId, fileName, fileUrl, fileSize, mimeType, title, description, tags } = req.body;
-
-      if (!itemType) {
-        return res.status(400).json({ message: "itemType is required" });
-      }
-
-      const item = await storage.addFolderItem({
-        folderId,
-        itemType,
-        itemId,
-        fileName,
-        fileUrl,
-        fileSize,
-        mimeType,
-        title,
-        description,
-        tags
-      });
-
-      res.json(item);
-    } catch (error) {
-      console.error("Error adding folder item:", error);
-      res.status(500).json({ message: "Failed to add folder item" });
     }
   });
 
@@ -4516,7 +3195,6 @@ END:VCARD\`;
       .where(
         and(
           eq(contacts.userId, currentUserId),
-          isNotNull(contacts.contactUserId), // contactUserId가 null이 아닌 경우만
           gte(userPosts.createdAt, new Date(Date.now() - 24 * 60 * 60 * 1000)), // 24시간 이내
           isNull(businessPostReads.id) // 읽지 않은 포스트만
         )
@@ -4602,14 +3280,15 @@ END:VCARD\`;
         // 파일들을 암호화하여 저장
         for (const file of files) {
           try {
-            // Memory storage에서는 file.buffer를 사용
-            if (!file.buffer || file.buffer.length === 0) {
-              console.log("Empty file buffer, skipping:", file.originalname);
+            // 파일이 실제로 존재하고 크기가 0보다 큰지 확인
+            if (!fs.existsSync(file.path) || fs.statSync(file.path).size === 0) {
+              console.log("Empty or missing file, skipping:", file.originalname);
               continue;
             }
             
             // 파일 내용을 암호화
-            const encryptedData = encryptFileData(file.buffer);
+            const fileBuffer = fs.readFileSync(file.path);
+            const encryptedData = encryptFileData(fileBuffer);
             
             // 암호화된 파일명 생성
             const encryptedFileName = hashFileName(file.originalname);
@@ -4617,6 +3296,9 @@ END:VCARD\`;
             
             // 암호화된 데이터를 파일로 저장
             fs.writeFileSync(encryptedFilePath, encryptedData, 'utf8');
+            
+            // 원본 임시 파일 삭제
+            fs.unlinkSync(file.path);
             
             attachments.push(`/uploads/${encryptedFileName}`);
             console.log("Successfully processed file:", file.originalname, "->", encryptedFileName);
@@ -4700,7 +3382,7 @@ END:VCARD\`;
         // 좋아요 수 감소
         await db.update(userPosts)
           .set({ 
-            likeCount: sql`${userPosts.likeCount} - 1`
+            likesCount: sql`${userPosts.likesCount} - 1`
           })
           .where(eq(userPosts.id, parseInt(postId)));
 
@@ -4716,7 +3398,7 @@ END:VCARD\`;
         // 좋아요 수 증가
         await db.update(userPosts)
           .set({ 
-            likeCount: sql`${userPosts.likeCount} + 1`
+            likesCount: sql`${userPosts.likesCount} + 1`
           })
           .where(eq(userPosts.id, parseInt(postId)));
 
@@ -4868,7 +3550,16 @@ END:VCARD\`;
     
     try {
       const [user] = await db
-        .select()
+        .select({
+          id: users.id,
+          username: users.username,
+          displayName: users.displayName,
+          profilePicture: users.profilePicture,
+          phoneNumber: users.phoneNumber,
+          email: users.email,
+          isOnline: users.isOnline,
+          lastSeen: users.lastSeen
+        })
         .from(users)
         .where(eq(users.id, parseInt(userId)));
 
@@ -4880,81 +3571,6 @@ END:VCARD\`;
     } catch (error) {
       console.error("Error fetching user profile:", error);
       res.status(500).json({ message: "Failed to fetch user profile" });
-    }
-  });
-
-  // Business feed API - get all posts for main feed view
-  app.get("/api/business/feed", async (req, res) => {
-    try {
-      // Get all user posts with user information for main feed
-      const posts = await db
-        .select({
-          id: userPosts.id,
-          userId: userPosts.userId,
-          content: userPosts.content,
-          title: userPosts.title,
-          postType: userPosts.postType,
-          attachments: userPosts.attachments,
-          likeCount: userPosts.likeCount,
-          commentCount: userPosts.commentCount,
-          shareCount: userPosts.shareCount,
-          createdAt: userPosts.createdAt,
-          updatedAt: userPosts.updatedAt,
-          user: {
-            id: users.id,
-            username: users.username,
-            displayName: users.displayName,
-            profilePicture: users.profilePicture
-          }
-        })
-        .from(userPosts)
-        .leftJoin(users, eq(userPosts.userId, users.id))
-        .orderBy(desc(userPosts.createdAt))
-        .limit(50);
-
-      res.json({ posts });
-    } catch (error) {
-      console.error("Error fetching business feed:", error);
-      res.status(500).json({ message: "Failed to fetch business feed" });
-    }
-  });
-
-  // Get user business card data
-  app.get("/api/users/:userId/business-card", async (req, res) => {
-    const { userId } = req.params;
-    
-    try {
-      // For now, return basic business information from the user profile
-      // In a real implementation, this would come from a dedicated business cards table
-      const [user] = await db
-        .select({
-          businessName: users.businessName,
-          businessAddress: users.businessAddress,
-          email: users.email,
-          phoneNumber: users.phoneNumber
-        })
-        .from(users)
-        .where(eq(users.id, parseInt(userId)));
-
-      if (!user) {
-        return res.status(404).json({ message: "Business card not found" });
-      }
-
-      // Create a business card-like response from available user data
-      const businessCard = {
-        company: user.businessName,
-        location: user.businessAddress,
-        email: user.email,
-        phone: user.phoneNumber,
-        jobTitle: null,
-        website: null,
-        skills: []
-      };
-
-      res.json(businessCard);
-    } catch (error) {
-      console.error("Error fetching business card:", error);
-      res.status(500).json({ message: "Failed to fetch business card" });
     }
   });
 

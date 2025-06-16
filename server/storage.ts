@@ -1,18 +1,17 @@
 import { 
   users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications,
-  fileUploads, fileDownloads, businessCards, businessProfiles, userPosts, businessCardShares, nfcExchanges,
-  personFolders, folderItems,
+  locationChatRooms, locationChatParticipants, locationChatMessages, userLocations,
+  fileUploads, fileDownloads, businessCards, businessProfiles, userPosts, businessCardShares,
   type User, type InsertUser, type Contact, type InsertContact,
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
   type Command, type InsertCommand, type MessageRead, type InsertMessageRead,
   type PhoneVerification, type InsertPhoneVerification,
+  type LocationChatRoom, type InsertLocationChatRoom,
   type FileUpload, type InsertFileUpload, type FileDownload, type InsertFileDownload,
   type BusinessCard, type InsertBusinessCard, type BusinessProfile, type InsertBusinessProfile,
-  type UserPost, type InsertUserPost, type BusinessCardShare, type InsertBusinessCardShare,
-  type NfcExchange, type InsertNfcExchange, type PersonFolder, type InsertPersonFolder,
-  type FolderItem, type InsertFolderItem
+  type UserPost, type InsertUserPost, type BusinessCardShare, type InsertBusinessCardShare
 } from "@shared/schema";
-import { db, pool } from "./db";
+import { db } from "./db";
 import { eq, and, desc, asc, like, or, count, gt, lt, sql, inArray } from "drizzle-orm";
 import { encryptText, decryptText } from "./crypto";
 
@@ -26,12 +25,9 @@ export interface IStorage {
 
   // Contact operations
   getContacts(userId: number): Promise<(Contact & { contactUser: User })[]>;
-  getContactById(userId: number, contactId: number): Promise<(Contact & { contactUser?: User }) | undefined>;
   addContact(contact: InsertContact): Promise<Contact>;
   removeContact(userId: number, contactUserId: number): Promise<void>;
-  removeContactById(userId: number, contactId: number): Promise<void>;
   updateContact(userId: number, contactUserId: number, updates: Partial<InsertContact>): Promise<Contact | undefined>;
-  updateContactById(contactId: number, updates: Partial<InsertContact>): Promise<Contact | undefined>;
   blockContact(userId: number, contactUserId: number): Promise<void>;
   unblockContact(userId: number, contactUserId: number): Promise<void>;
   getBlockedContacts(userId: number): Promise<(Contact & { contactUser: User })[]>;
@@ -70,7 +66,24 @@ export interface IStorage {
   // Business user operations
   registerBusinessUser(userId: number, businessData: { businessName: string; businessAddress: string }): Promise<User | undefined>;
 
-
+  // Location-based chat operations
+  updateUserLocation(userId: number, location: { latitude: number; longitude: number; accuracy: number }): Promise<void>;
+  getNearbyLocationChatRooms(latitude: number, longitude: number, radius?: number): Promise<LocationChatRoom[]>;
+  createLocationChatRoom(userId: number, roomData: { name: string; latitude: number; longitude: number; address: string }): Promise<LocationChatRoom>;
+  joinLocationChatRoom(userId: number, roomId: number, profileData: { nickname: string; profileImageUrl?: string }): Promise<void>;
+  getLocationChatProfile(userId: number, roomId: number): Promise<{ nickname: string; profileImageUrl?: string } | undefined>;
+  
+  // Location chat message operations
+  getLocationChatMessages(roomId: number, limit?: number): Promise<any[]>;
+  createLocationChatMessage(roomId: number, senderId: number, messageData: any): Promise<any>;
+  
+  // 위치 기반 자동 관리
+  cleanupInactiveLocationChats(): Promise<void>;
+  cleanupEmptyLocationChats(): Promise<void>;
+  handleLocationBasedExit(): Promise<void>;
+  leaveLocationChatRoom(userId: number, roomId: number): Promise<void>;
+  deleteLocationChatRoom(roomId: number): Promise<void>;
+  checkLocationProximity(userId: number): Promise<{ roomId: number; distance: number; hasNewChats: boolean }[]>;
 
   // File storage analytics operations
   getStorageAnalytics(userId: number, timeRange: string): Promise<any>;
@@ -80,8 +93,6 @@ export interface IStorage {
   // Business card operations
   getBusinessCard(userId: number): Promise<BusinessCard | undefined>;
   createOrUpdateBusinessCard(userId: number, cardData: Partial<InsertBusinessCard>): Promise<BusinessCard>;
-  verifyUserByBusinessCard(cardData: any): Promise<User | undefined>;
-  findUserByBusinessCardData(name: string, email?: string, phone?: string, company?: string): Promise<User | undefined>;
   
   // Business profile operations
   getBusinessProfile(userId: number): Promise<BusinessProfile | undefined>;
@@ -95,24 +106,6 @@ export interface IStorage {
   // User posts operations
   getUserPosts(userId: number): Promise<UserPost[]>;
   createUserPost(userId: number, postData: Partial<InsertUserPost>): Promise<UserPost>;
-
-  // NFC exchange operations
-  createNfcExchange(initiatorUserId: number, exchangeToken: string): Promise<NfcExchange>;
-  completeNfcExchange(exchangeToken: string, recipientUserId: number): Promise<NfcExchange | undefined>;
-  processAutomaticFriendAdd(exchange: NfcExchange): Promise<void>;
-
-  // Person folder operations
-  getPersonFolders(userId: number): Promise<(PersonFolder & { contact: Contact; itemCount: number })[]>;
-  createPersonFolder(userId: number, contactId: number, folderName: string): Promise<PersonFolder>;
-  getPersonFolderById(userId: number, folderId: number): Promise<(PersonFolder & { contact: Contact; items: FolderItem[] }) | undefined>;
-  createOrFindPersonFolder(userId: number, contactId: number, personName: string): Promise<PersonFolder>;
-  deletePersonFolder(userId: number, folderId: number): Promise<void>;
-  
-  // Folder item operations
-  getFolderItems(folderId: number): Promise<FolderItem[]>;
-  addFolderItem(itemData: InsertFolderItem): Promise<FolderItem>;
-  removeFolderItem(itemId: number): Promise<void>;
-  updateFolderItemCount(folderId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -162,25 +155,6 @@ export class DatabaseStorage implements IStorage {
     }));
   }
 
-  async getContactById(userId: number, contactId: number): Promise<(Contact & { contactUser?: User }) | undefined> {
-    const result = await db
-      .select()
-      .from(contacts)
-      .leftJoin(users, eq(contacts.contactUserId, users.id))
-      .where(and(
-        eq(contacts.userId, userId),
-        eq(contacts.id, contactId)
-      ));
-
-    if (result.length === 0) return undefined;
-
-    const row = result[0];
-    return {
-      ...row.contacts,
-      contactUser: row.users || undefined
-    };
-  }
-
   async addContact(contact: InsertContact): Promise<Contact> {
     const [newContact] = await db
       .insert(contacts)
@@ -198,15 +172,6 @@ export class DatabaseStorage implements IStorage {
       ));
   }
 
-  async removeContactById(userId: number, contactId: number): Promise<void> {
-    await db
-      .delete(contacts)
-      .where(and(
-        eq(contacts.userId, userId),
-        eq(contacts.id, contactId)
-      ));
-  }
-
   async updateContact(userId: number, contactUserId: number, updates: Partial<InsertContact>): Promise<Contact | undefined>;
   async updateContact(userId: number, contactId: number, updates: Partial<InsertContact>, byId?: boolean): Promise<Contact | undefined>;
   async updateContact(userId: number, identifier: number, updates: Partial<InsertContact>, byId: boolean = false): Promise<Contact | undefined> {
@@ -218,15 +183,6 @@ export class DatabaseStorage implements IStorage {
       .update(contacts)
       .set(updates)
       .where(whereCondition)
-      .returning();
-    return contact || undefined;
-  }
-
-  async updateContactById(contactId: number, updates: Partial<InsertContact>): Promise<Contact | undefined> {
-    const [contact] = await db
-      .update(contacts)
-      .set(updates)
-      .where(eq(contacts.id, contactId))
       .returning();
     return contact || undefined;
   }
@@ -623,37 +579,55 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUnreadCounts(userId: number): Promise<{ chatRoomId: number; unreadCount: number }[]> {
-    // Ultra-optimized query with minimal database load
-    const result = await db.execute(sql`
-      WITH user_rooms AS (
-        SELECT chat_room_id 
-        FROM chat_participants 
-        WHERE user_id = ${userId}
-        LIMIT 50
-      ),
-      read_positions AS (
-        SELECT 
-          ur.chat_room_id,
-          COALESCE(mr.last_read_message_id, 0) as last_read_id
-        FROM user_rooms ur
-        LEFT JOIN message_reads mr ON mr.chat_room_id = ur.chat_room_id AND mr.user_id = ${userId}
-      ),
-      unread_counts AS (
-        SELECT 
-          rp.chat_room_id,
-          COUNT(CASE WHEN m.id > rp.last_read_id THEN 1 END) as unread_count
-        FROM read_positions rp
-        LEFT JOIN messages m ON m.chat_room_id = rp.chat_room_id
-        GROUP BY rp.chat_room_id, rp.last_read_id
-        HAVING COUNT(CASE WHEN m.id > rp.last_read_id THEN 1 END) > 0
-      )
-      SELECT chat_room_id as "chatRoomId", unread_count as "unreadCount"
-      FROM unread_counts
-      ORDER BY unread_count DESC
-      LIMIT 20
-    `);
+    // Get all chat rooms the user participates in
+    const userChatRooms = await db
+      .select({
+        chatRoomId: chatParticipants.chatRoomId,
+      })
+      .from(chatParticipants)
+      .where(eq(chatParticipants.userId, userId));
 
-    return result.rows as { chatRoomId: number; unreadCount: number }[];
+    const unreadCounts = [];
+
+    for (const room of userChatRooms) {
+      // Get the last read message for this chat room
+      const [readRecord] = await db
+        .select()
+        .from(messageReads)
+        .where(and(
+          eq(messageReads.userId, userId),
+          eq(messageReads.chatRoomId, room.chatRoomId)
+        ));
+
+      let unreadCount = 0;
+      if (!readRecord) {
+        // No read record exists, count all messages
+        const [countResult] = await db
+          .select({ count: count(messages.id) })
+          .from(messages)
+          .where(eq(messages.chatRoomId, room.chatRoomId));
+        unreadCount = countResult.count;
+      } else {
+        // Count messages after the last read message
+        const [countResult] = await db
+          .select({ count: count(messages.id) })
+          .from(messages)
+          .where(and(
+            eq(messages.chatRoomId, room.chatRoomId),
+            gt(messages.id, readRecord.lastReadMessageId || 0)
+          ));
+        unreadCount = countResult.count;
+      }
+
+      if (unreadCount > 0) {
+        unreadCounts.push({
+          chatRoomId: room.chatRoomId,
+          unreadCount,
+        });
+      }
+    }
+
+    return unreadCounts;
   }
 
   async createPhoneVerification(verification: InsertPhoneVerification): Promise<PhoneVerification> {
@@ -702,7 +676,250 @@ export class DatabaseStorage implements IStorage {
     return updatedUser || undefined;
   }
 
+  async updateUserLocation(userId: number, location: { latitude: number; longitude: number; accuracy: number }): Promise<void> {
+    // Use upsert to handle existing locations
+    await db
+      .insert(userLocations)
+      .values({
+        userId,
+        latitude: location.latitude.toString(),
+        longitude: location.longitude.toString(),
+        accuracy: location.accuracy.toString(),
+        updatedAt: new Date()
+      })
+      .onConflictDoUpdate({
+        target: userLocations.userId,
+        set: {
+          latitude: location.latitude.toString(),
+          longitude: location.longitude.toString(),
+          accuracy: location.accuracy.toString(),
+          updatedAt: new Date()
+        }
+      });
+  }
 
+  async getNearbyLocationChatRooms(latitude: number, longitude: number, radius: number = 100): Promise<any[]> {
+    const result = await db
+      .select({
+        id: locationChatRooms.id,
+        name: locationChatRooms.name,
+        latitude: locationChatRooms.latitude,
+        longitude: locationChatRooms.longitude,
+        radius: locationChatRooms.radius,
+        address: locationChatRooms.address,
+        isOfficial: locationChatRooms.isOfficial,
+        participantCount: locationChatRooms.participantCount,
+        maxParticipants: locationChatRooms.maxParticipants,
+        lastActivity: locationChatRooms.lastActivity
+      })
+      .from(locationChatRooms)
+      .where(eq(locationChatRooms.isActive, true));
+    
+    return result;
+  }
+
+  async createLocationChatRoom(userId: number, roomData: { name: string; latitude: number; longitude: number; address: string }): Promise<any> {
+    const autoDeleteAt = new Date();
+    autoDeleteAt.setHours(autoDeleteAt.getHours() + 12); // Auto delete after 12 hours
+
+    const [newRoom] = await db
+      .insert(locationChatRooms)
+      .values({
+        name: roomData.name,
+        latitude: roomData.latitude.toString(),
+        longitude: roomData.longitude.toString(),
+        address: roomData.address,
+        autoDeleteAt,
+        participantCount: 1
+      })
+      .returning();
+
+    // Auto-join the creator
+    await db
+      .insert(locationChatParticipants)
+      .values({
+        locationChatRoomId: newRoom.id,
+        userId
+      });
+
+    return newRoom;
+  }
+
+  async joinLocationChatRoom(userId: number, roomId: number, profileData: { nickname: string; profileImageUrl?: string }): Promise<void> {
+    // Check if already joined
+    const existing = await db
+      .select()
+      .from(locationChatParticipants)
+      .where(and(
+        eq(locationChatParticipants.locationChatRoomId, roomId),
+        eq(locationChatParticipants.userId, userId)
+      ));
+
+    if (existing.length === 0) {
+      await db
+        .insert(locationChatParticipants)
+        .values({
+          locationChatRoomId: roomId,
+          userId,
+          nickname: profileData.nickname,
+          profileImageUrl: profileData.profileImageUrl || null
+        });
+
+      // Update participant count
+      await db
+        .update(locationChatRooms)
+        .set({
+          participantCount: sql`${locationChatRooms.participantCount} + 1`,
+          lastActivity: new Date()
+        })
+        .where(eq(locationChatRooms.id, roomId));
+    } else {
+      // Update existing participant's profile
+      await db
+        .update(locationChatParticipants)
+        .set({
+          nickname: profileData.nickname,
+          profileImageUrl: profileData.profileImageUrl || null,
+          lastSeen: new Date()
+        })
+        .where(and(
+          eq(locationChatParticipants.locationChatRoomId, roomId),
+          eq(locationChatParticipants.userId, userId)
+        ));
+    }
+  }
+
+  async getLocationChatProfile(userId: number, roomId: number): Promise<{ nickname: string; profileImageUrl?: string } | undefined> {
+    const [participant] = await db
+      .select({
+        nickname: locationChatParticipants.nickname,
+        profileImageUrl: locationChatParticipants.profileImageUrl
+      })
+      .from(locationChatParticipants)
+      .where(and(
+        eq(locationChatParticipants.locationChatRoomId, roomId),
+        eq(locationChatParticipants.userId, userId)
+      ));
+
+    if (!participant || !participant.nickname) {
+      return undefined;
+    }
+
+    return {
+      nickname: participant.nickname,
+      profileImageUrl: participant.profileImageUrl || undefined
+    };
+  }
+
+  // 위치 기반 자동 관리 메소드들
+  async cleanupInactiveLocationChats(): Promise<void> {
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    
+    // 1시간 이상 비활성이고 비즈니스 계정이 아닌 채팅방 삭제
+    const inactiveRooms = await db.select({ id: locationChatRooms.id })
+      .from(locationChatRooms)
+      .where(
+        and(
+          eq(locationChatRooms.isActive, true),
+          eq(locationChatRooms.isOfficial, false),
+          sql`${locationChatRooms.lastActivity} < ${oneHourAgo}`
+        )
+      );
+
+    for (const room of inactiveRooms) {
+      await this.deleteLocationChatRoom(room.id);
+    }
+  }
+
+  async cleanupEmptyLocationChats(): Promise<void> {
+    // 참여자가 0명인 채팅방 삭제
+    const emptyRooms = await db.select({ id: locationChatRooms.id })
+      .from(locationChatRooms)
+      .where(
+        and(
+          eq(locationChatRooms.isActive, true),
+          eq(locationChatRooms.participantCount, 0)
+        )
+      );
+
+    for (const room of emptyRooms) {
+      await this.deleteLocationChatRoom(room.id);
+    }
+  }
+
+  async handleLocationBasedExit(): Promise<void> {
+    // 현재 활성 참여자들과 그들의 위치를 확인
+    const participants = await db.select({
+      userId: locationChatParticipants.userId,
+      roomId: locationChatParticipants.locationChatRoomId,
+      roomLat: locationChatRooms.latitude,
+      roomLng: locationChatRooms.longitude,
+      radius: locationChatRooms.radius,
+      userLat: userLocations.latitude,
+      userLng: userLocations.longitude,
+    })
+    .from(locationChatParticipants)
+    .innerJoin(locationChatRooms, eq(locationChatParticipants.locationChatRoomId, locationChatRooms.id))
+    .leftJoin(userLocations, eq(locationChatParticipants.userId, userLocations.userId))
+    .where(eq(locationChatRooms.isActive, true));
+
+    for (const participant of participants) {
+      if (participant.userLat && participant.userLng) {
+        const distance = this.calculateDistance(
+          parseFloat(participant.userLat.toString()),
+          parseFloat(participant.userLng.toString()),
+          parseFloat(participant.roomLat.toString()),
+          parseFloat(participant.roomLng.toString())
+        );
+
+        // 반경을 벗어난 경우 자동 퇴장
+        if (distance > (participant.radius || 50)) {
+          await this.leaveLocationChatRoom(participant.userId, participant.roomId);
+        }
+      }
+    }
+  }
+
+  private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371000; // 지구 반지름 (미터)
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  }
+
+  async leaveLocationChatRoom(userId: number, roomId: number): Promise<void> {
+    // 참여자 삭제
+    await db.delete(locationChatParticipants)
+      .where(
+        and(
+          eq(locationChatParticipants.userId, userId),
+          eq(locationChatParticipants.locationChatRoomId, roomId)
+        )
+      );
+
+    // 참여자 수 감소
+    await db.update(locationChatRooms)
+      .set({ participantCount: sql`${locationChatRooms.participantCount} - 1` })
+      .where(eq(locationChatRooms.id, roomId));
+  }
+
+  async deleteLocationChatRoom(roomId: number): Promise<void> {
+    // 메시지 삭제
+    await db.delete(locationChatMessages)
+      .where(eq(locationChatMessages.locationChatRoomId, roomId));
+    
+    // 참여자 삭제
+    await db.delete(locationChatParticipants)
+      .where(eq(locationChatParticipants.locationChatRoomId, roomId));
+    
+    // 채팅방 삭제
+    await db.delete(locationChatRooms)
+      .where(eq(locationChatRooms.id, roomId));
+  }
 
   async getStorageAnalytics(userId: number, timeRange: string): Promise<any> {
     const timeCondition = this.getTimeCondition(timeRange);
@@ -828,7 +1045,114 @@ export class DatabaseStorage implements IStorage {
     return sql`${fileUploads.uploadedAt} >= ${startDate}`;
   }
 
+  async checkLocationProximity(userId: number): Promise<{ roomId: number; distance: number; hasNewChats: boolean }[]> {
+    const userLocation = await db.select()
+      .from(userLocations)
+      .where(eq(userLocations.userId, userId));
 
+    if (!userLocation.length) return [];
+
+    const { latitude: userLat, longitude: userLng } = userLocation[0];
+    
+    // 주변 50미터 내 채팅방 찾기
+    const nearbyRooms = await db.select({
+      id: locationChatRooms.id,
+      name: locationChatRooms.name,
+      latitude: locationChatRooms.latitude,
+      longitude: locationChatRooms.longitude,
+      radius: locationChatRooms.radius,
+      participantCount: locationChatRooms.participantCount,
+      lastActivity: locationChatRooms.lastActivity,
+    })
+    .from(locationChatRooms)
+    .where(eq(locationChatRooms.isActive, true));
+
+    const proximityResults = [];
+    for (const room of nearbyRooms) {
+      const distance = this.calculateDistance(
+        parseFloat(userLat.toString()),
+        parseFloat(userLng.toString()),
+        parseFloat(room.latitude.toString()),
+        parseFloat(room.longitude.toString())
+      );
+
+      if (distance <= (room.radius || 50)) {
+        // 사용자가 이미 참여하고 있는지 확인
+        const isParticipant = await db.select()
+          .from(locationChatParticipants)
+          .where(
+            and(
+              eq(locationChatParticipants.userId, userId),
+              eq(locationChatParticipants.locationChatRoomId, room.id)
+            )
+          );
+
+        const hasNewChats = !isParticipant.length;
+        
+        proximityResults.push({
+          roomId: room.id,
+          distance,
+          hasNewChats
+        });
+      }
+    }
+
+    return proximityResults;
+  }
+
+  async getLocationChatMessages(roomId: number, limit: number = 50): Promise<any[]> {
+    const messages = await db
+      .select({
+        id: locationChatMessages.id,
+        content: locationChatMessages.content,
+        messageType: locationChatMessages.messageType,
+        fileName: locationChatMessages.fileName,
+        fileSize: locationChatMessages.fileSize,
+        voiceDuration: locationChatMessages.voiceDuration,
+        detectedLanguage: locationChatMessages.detectedLanguage,
+        createdAt: locationChatMessages.createdAt,
+        senderId: locationChatMessages.senderId,
+        locationChatRoomId: locationChatMessages.locationChatRoomId,
+        sender: {
+          id: users.id,
+          displayName: users.displayName,
+          profilePicture: users.profilePicture
+        },
+        senderProfile: {
+          nickname: locationChatParticipants.nickname,
+          profileImageUrl: locationChatParticipants.profileImageUrl
+        }
+      })
+      .from(locationChatMessages)
+      .innerJoin(users, eq(locationChatMessages.senderId, users.id))
+      .leftJoin(locationChatParticipants, and(
+        eq(locationChatParticipants.userId, locationChatMessages.senderId),
+        eq(locationChatParticipants.locationChatRoomId, roomId)
+      ))
+      .where(eq(locationChatMessages.locationChatRoomId, roomId))
+      .orderBy(desc(locationChatMessages.createdAt))
+      .limit(limit);
+
+    return messages.reverse();
+  }
+
+  async createLocationChatMessage(roomId: number, senderId: number, messageData: any): Promise<any> {
+    const [message] = await db
+      .insert(locationChatMessages)
+      .values({
+        locationChatRoomId: roomId,
+        senderId: senderId,
+        content: messageData.content,
+        messageType: messageData.messageType || "text",
+        fileName: messageData.fileName,
+        fileSize: messageData.fileSize,
+        voiceDuration: messageData.voiceDuration,
+        detectedLanguage: messageData.detectedLanguage
+      })
+      .returning();
+
+    return message;
+  }
 
   // Business card operations
   async getBusinessCard(userId: number): Promise<BusinessCard | undefined> {
@@ -853,90 +1177,6 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return newCard;
     }
-  }
-
-  async verifyUserByBusinessCard(cardData: any): Promise<User | undefined> {
-    // First try to find exact match by email if available
-    if (cardData.email) {
-      const userByEmail = await this.findUserByBusinessCardData(cardData.name, cardData.email);
-      if (userByEmail) return userByEmail;
-    }
-
-    // Then try by phone number if available
-    if (cardData.phone) {
-      const userByPhone = await this.findUserByBusinessCardData(cardData.name, undefined, cardData.phone);
-      if (userByPhone) return userByPhone;
-    }
-
-    // Finally try by name and company combination
-    if (cardData.company) {
-      const userByCompany = await this.findUserByBusinessCardData(cardData.name, undefined, undefined, cardData.company);
-      if (userByCompany) return userByCompany;
-    }
-
-    return undefined;
-  }
-
-  async findUserByBusinessCardData(name: string, email?: string, phone?: string, company?: string): Promise<User | undefined> {
-    // Build query conditions based on available data
-    const conditions = [];
-
-    if (email) {
-      // Check business cards with matching email
-      const cardsByEmail = await db
-        .select({ userId: businessCards.userId })
-        .from(businessCards)
-        .where(eq(businessCards.email, email));
-      
-      if (cardsByEmail.length > 0) {
-        const [user] = await db
-          .select()
-          .from(users)
-          .where(eq(users.id, cardsByEmail[0].userId));
-        if (user) return user;
-      }
-    }
-
-    if (phone) {
-      // Clean phone number for comparison (remove spaces, dashes, etc)
-      const cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
-      
-      const cardsByPhone = await db
-        .select({ userId: businessCards.userId })
-        .from(businessCards)
-        .where(like(businessCards.phoneNumber, `%${cleanPhone.slice(-8)}%`)); // Match last 8 digits
-      
-      if (cardsByPhone.length > 0) {
-        const [user] = await db
-          .select()
-          .from(users)
-          .where(eq(users.id, cardsByPhone[0].userId));
-        if (user) return user;
-      }
-    }
-
-    if (name && company) {
-      // Check by name and company combination
-      const cardsByNameCompany = await db
-        .select({ userId: businessCards.userId })
-        .from(businessCards)
-        .where(
-          and(
-            like(businessCards.fullName, `%${name}%`),
-            like(businessCards.companyName, `%${company}%`)
-          )
-        );
-      
-      if (cardsByNameCompany.length > 0) {
-        const [user] = await db
-          .select()
-          .from(users)
-          .where(eq(users.id, cardsByNameCompany[0].userId));
-        if (user) return user;
-      }
-    }
-
-    return undefined;
   }
 
   // Business profile operations
@@ -1051,388 +1291,6 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
     
     return contact.length > 0;
-  }
-
-  // NFC exchange operations
-  async createNfcExchange(initiatorUserId: number, exchangeToken: string): Promise<NfcExchange> {
-    const initiatorBusinessCard = await this.getBusinessCard(initiatorUserId);
-    
-    const [exchange] = await db
-      .insert(nfcExchanges)
-      .values({
-        initiatorUserId,
-        recipientUserId: 0, // Will be set when completed
-        exchangeToken,
-        status: "pending",
-        initiatorBusinessCardId: initiatorBusinessCard?.id,
-        isAutomaticFriendAdd: true
-      })
-      .returning();
-    
-    return exchange;
-  }
-
-  async completeNfcExchange(exchangeToken: string, recipientUserId: number): Promise<NfcExchange | undefined> {
-    // Find the pending exchange
-    const [exchange] = await db
-      .select()
-      .from(nfcExchanges)
-      .where(and(
-        eq(nfcExchanges.exchangeToken, exchangeToken),
-        eq(nfcExchanges.status, "pending")
-      ))
-      .limit(1);
-
-    if (!exchange) {
-      return undefined;
-    }
-
-    // Prevent self-exchange
-    if (exchange.initiatorUserId === recipientUserId) {
-      await db
-        .update(nfcExchanges)
-        .set({ 
-          status: "failed",
-          completedAt: new Date()
-        })
-        .where(eq(nfcExchanges.id, exchange.id));
-      return undefined;
-    }
-
-    const recipientBusinessCard = await this.getBusinessCard(recipientUserId);
-
-    // Complete the exchange
-    const [completedExchange] = await db
-      .update(nfcExchanges)
-      .set({
-        recipientUserId,
-        recipientBusinessCardId: recipientBusinessCard?.id,
-        status: "completed",
-        completedAt: new Date()
-      })
-      .where(eq(nfcExchanges.id, exchange.id))
-      .returning();
-
-    // Process automatic friend addition
-    if (completedExchange.isAutomaticFriendAdd) {
-      await this.processAutomaticFriendAdd(completedExchange);
-    }
-
-    return completedExchange;
-  }
-
-  async processAutomaticFriendAdd(exchange: NfcExchange): Promise<void> {
-    const { initiatorUserId, recipientUserId } = exchange;
-    
-    if (!recipientUserId) return;
-
-    // Check if they're already friends
-    const alreadyFriends = await this.areUsersFriends(initiatorUserId, recipientUserId);
-    
-    if (!alreadyFriends) {
-      // Add bidirectional friendship
-      await Promise.all([
-        // Initiator adds recipient as contact
-        db.insert(contacts).values({
-          userId: initiatorUserId,
-          contactUserId: recipientUserId,
-          nickname: null,
-          isPinned: false,
-          isFavorite: false,
-          isBlocked: false
-        }).onConflictDoNothing(),
-        
-        // Recipient adds initiator as contact
-        db.insert(contacts).values({
-          userId: recipientUserId,
-          contactUserId: initiatorUserId,
-          nickname: null,
-          isPinned: false,
-          isFavorite: false,
-          isBlocked: false
-        }).onConflictDoNothing()
-      ]);
-    }
-  }
-  // Person folder operations
-  async getPersonFolders(userId: number): Promise<(PersonFolder & { contact: Contact | null; itemCount: number; businessCardImage?: string })[]> {
-    const result = await db
-      .select({
-        folder: personFolders,
-        contact: contacts,
-        itemCount: sql<number>`COUNT(${folderItems.id})::int`.as('itemCount'),
-        businessCardImage: sql<string>`
-          (SELECT fi.file_url 
-           FROM folder_items fi 
-           WHERE fi.folder_id = ${personFolders.id} 
-           AND fi.item_type = 'business_card' 
-           ORDER BY fi.created_at ASC 
-           LIMIT 1)
-        `.as('businessCardImage')
-      })
-      .from(personFolders)
-      .leftJoin(contacts, eq(personFolders.contactId, contacts.id))
-      .leftJoin(folderItems, eq(personFolders.id, folderItems.folderId))
-      .where(eq(personFolders.userId, userId))
-      .groupBy(personFolders.id, contacts.id)
-      .orderBy(desc(personFolders.lastActivity));
-
-    return result.map(row => ({
-      ...row.folder,
-      contact: row.contact,
-      itemCount: row.itemCount || 0,
-      businessCardImage: row.businessCardImage || undefined
-    }));
-  }
-
-  async createPersonFolder(userId: number, contactId: number, folderName: string): Promise<PersonFolder> {
-    console.log('createPersonFolder called with:', { userId, contactId, folderName });
-    
-    try {
-      // Use pool connection directly to bypass ORM issues
-      const query = `
-        INSERT INTO person_folders (user_id, contact_id, person_name, folder_name, last_activity, item_count, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, NOW(), 0, NOW(), NOW())
-        RETURNING *
-      `;
-      
-      console.log('Executing direct pool query:', query);
-      console.log('With values:', [userId, contactId, folderName, folderName]);
-      
-      const result = await pool.query(query, [userId, contactId, folderName, folderName]);
-      
-      const folder = result.rows[0] as PersonFolder;
-      console.log('Created folder:', folder);
-      return folder;
-    } catch (error) {
-      console.error('Pool query error:', error);
-      throw error;
-    }
-  }
-
-  async getPersonFolderById(userId: number, folderId: number): Promise<(PersonFolder & { contact: Contact; items: FolderItem[] }) | undefined> {
-    const [folderResult] = await db
-      .select({
-        folder: personFolders,
-        contact: contacts
-      })
-      .from(personFolders)
-      .leftJoin(contacts, eq(personFolders.contactId, contacts.id))
-      .where(and(
-        eq(personFolders.id, folderId),
-        eq(personFolders.userId, userId)
-      ));
-
-    if (!folderResult) return undefined;
-
-    const items = await db
-      .select()
-      .from(folderItems)
-      .where(eq(folderItems.folderId, folderId))
-      .orderBy(desc(folderItems.createdAt));
-
-    return {
-      ...folderResult.folder,
-      contact: folderResult.contact!,
-      items
-    };
-  }
-
-  async createOrFindPersonFolder(userId: number, contactId: number, personName: string): Promise<PersonFolder> {
-    // Try to find existing folder
-    const [existingFolder] = await db
-      .select()
-      .from(personFolders)
-      .where(and(
-        eq(personFolders.userId, userId),
-        eq(personFolders.contactId, contactId)
-      ));
-
-    if (existingFolder) {
-      return existingFolder;
-    }
-
-    // Create new folder
-    const folderName = personName || "새 연락처";
-    const [newFolder] = await db
-      .insert(personFolders)
-      .values({
-        userId,
-        contactId,
-        folderName,
-        lastActivity: new Date()
-      })
-      .returning();
-
-    return newFolder;
-  }
-
-  async deletePersonFolder(userId: number, folderId: number): Promise<void> {
-    console.log(`Storage deletePersonFolder called with userId: ${userId} (type: ${typeof userId}), folderId: ${folderId} (type: ${typeof folderId})`);
-    
-    // Validate inputs
-    if (isNaN(userId) || isNaN(folderId) || userId <= 0 || folderId <= 0) {
-      throw new Error(`Invalid parameters: userId=${userId}, folderId=${folderId}`);
-    }
-
-    // First delete all folder items
-    await db
-      .delete(folderItems)
-      .where(eq(folderItems.folderId, folderId));
-
-    // Then delete the folder itself (with user verification)
-    await db
-      .delete(personFolders)
-      .where(and(
-        eq(personFolders.id, folderId),
-        eq(personFolders.userId, userId)
-      ));
-      
-    console.log(`Successfully deleted folder ${folderId} for user ${userId}`);
-  }
-
-  async getFolderItems(folderId: number): Promise<FolderItem[]> {
-    return await db
-      .select()
-      .from(folderItems)
-      .where(eq(folderItems.folderId, folderId))
-      .orderBy(desc(folderItems.createdAt));
-  }
-
-  async getPersonFolderByName(userId: number, personName: string): Promise<PersonFolder | undefined> {
-    const [folder] = await db
-      .select()
-      .from(personFolders)
-      .where(and(
-        eq(personFolders.userId, userId),
-        eq(personFolders.personName, personName)
-      ));
-    return folder;
-  }
-
-  async addFolderItem(itemData: InsertFolderItem): Promise<FolderItem> {
-    const [item] = await db.insert(folderItems).values(itemData).returning();
-    
-    // Update folder's last activity
-    await db
-      .update(personFolders)
-      .set({ lastActivity: new Date() })
-      .where(eq(personFolders.id, itemData.folderId));
-
-    return item;
-  }
-
-  async removeFolderItem(itemId: number): Promise<void> {
-    await db.delete(folderItems).where(eq(folderItems.id, itemId));
-  }
-
-  async updateFolderItemCount(folderId: number): Promise<void> {
-    // This is handled automatically via the getPersonFolders query
-    // No explicit action needed as we count items dynamically
-  }
-
-  // Contact creation for person folders
-  async createContact(userId: number, contactData: any): Promise<Contact> {
-    const [contact] = await db
-      .insert(contacts)
-      .values({
-        userId,
-        contactUserId: null,
-        name: contactData.name,
-        nickname: contactData.nickname || null,
-        email: contactData.email || null,
-        phone: contactData.phone || null,
-        company: contactData.company || null,
-        jobTitle: contactData.jobTitle || null,
-        isPinned: false,
-        isFavorite: false,
-        isBlocked: false
-      })
-      .returning();
-    
-    return contact;
-  }
-
-  async createOrFindPersonFolder(userId: number, contactId: number, personName: string): Promise<PersonFolder> {
-    // 기존 폴더가 있는지 확인
-    const [existingFolder] = await db
-      .select()
-      .from(personFolders)
-      .where(and(
-        eq(personFolders.userId, userId),
-        eq(personFolders.contactId, contactId)
-      ))
-      .limit(1);
-
-    if (existingFolder) {
-      return existingFolder;
-    }
-
-    // 새 폴더 생성
-    return this.createPersonFolder({
-      userId,
-      contactId,
-      folderName: personName,
-      lastActivity: new Date(),
-      itemCount: 0
-    });
-  }
-
-  // Folder item operations
-  async getFolderItems(folderId: number): Promise<FolderItem[]> {
-    return await db
-      .select()
-      .from(folderItems)
-      .where(eq(folderItems.folderId, folderId))
-      .orderBy(desc(folderItems.createdAt));
-  }
-
-  async addFolderItem(itemData: InsertFolderItem): Promise<FolderItem> {
-    const [item] = await db
-      .insert(folderItems)
-      .values(itemData)
-      .returning();
-
-    // 폴더의 아이템 수 업데이트
-    await this.updateFolderItemCount(itemData.folderId);
-    
-    // 폴더의 마지막 활동 시간 업데이트
-    await db
-      .update(personFolders)
-      .set({ lastActivity: new Date() })
-      .where(eq(personFolders.id, itemData.folderId));
-
-    return item;
-  }
-
-  async removeFolderItem(itemId: number): Promise<void> {
-    const [item] = await db
-      .select()
-      .from(folderItems)
-      .where(eq(folderItems.id, itemId))
-      .limit(1);
-
-    if (item) {
-      await db
-        .delete(folderItems)
-        .where(eq(folderItems.id, itemId));
-      
-      await this.updateFolderItemCount(item.folderId);
-    }
-  }
-
-  async updateFolderItemCount(folderId: number): Promise<void> {
-    const [result] = await db
-      .select({ count: sql<number>`COUNT(*)::int`.as('count') })
-      .from(folderItems)
-      .where(eq(folderItems.folderId, folderId));
-
-    if (result) {
-      await db
-        .update(personFolders)
-        .set({ itemCount: result.count })
-        .where(eq(personFolders.id, folderId));
-    }
   }
 }
 

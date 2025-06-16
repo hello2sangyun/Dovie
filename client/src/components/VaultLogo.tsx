@@ -18,7 +18,7 @@ export default function VaultLogo({ size = "md", className, animated = false }: 
   return (
     <img
       src={dovieLogo}
-      alt="Dovie"
+      alt="Dovie Messenger"
       className={cn(
         sizeClasses[size],
         "object-contain",

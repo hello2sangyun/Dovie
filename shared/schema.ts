@@ -32,15 +32,8 @@ export const users = pgTable("users", {
 export const contacts = pgTable("contacts", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
-  contactUserId: integer("contact_user_id").references(() => users.id), // Made nullable for external contacts
+  contactUserId: integer("contact_user_id").references(() => users.id).notNull(),
   nickname: text("nickname"),
-  // External contact fields for business card scanning
-  name: text("name"), // Full name from business card
-  email: text("email"), // Email from business card
-  phone: text("phone"), // Phone number from business card
-  company: text("company"), // Company name from business card
-  jobTitle: text("job_title"), // Job title from business card
-  notes: text("notes"), // Additional notes
   isPinned: boolean("is_pinned").default(false),
   isFavorite: boolean("is_favorite").default(false),
   isBlocked: boolean("is_blocked").default(false),
@@ -239,7 +232,7 @@ export const fileDownloads = pgTable("file_downloads", {
 
 export const businessCards = pgTable("business_cards", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull().unique(), // One business card per user
+  userId: integer("user_id").references(() => users.id).notNull(),
   fullName: text("full_name"),
   companyName: text("company_name"),
   jobTitle: text("job_title"),
@@ -250,12 +243,9 @@ export const businessCards = pgTable("business_cards", {
   website: text("website"),
   address: text("address"),
   description: text("description"),
-  cardImageUrl: text("card_image_url"), // Original uploaded business card image
-  profileImageUrl: text("profile_image_url"), // Profile photo for manual creation
+  cardImageUrl: text("card_image_url"),
   extractedText: text("extracted_text"), // OCR로 추출된 원본 텍스트
-  extractedData: text("extracted_data"), // JSON string of extracted business card data
-  isDefault: boolean("is_default").default(true),
-  isVerified: boolean("is_verified").default(false), // Whether the business card is verified
+  isDefault: boolean("is_default").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -327,20 +317,6 @@ export const businessPostComments = pgTable("business_post_comments", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// NFC 교환 기록 테이블
-export const nfcExchanges = pgTable("nfc_exchanges", {
-  id: serial("id").primaryKey(),
-  initiatorUserId: integer("initiator_user_id").references(() => users.id).notNull(),
-  recipientUserId: integer("recipient_user_id").references(() => users.id).notNull(),
-  exchangeToken: text("exchange_token").notNull().unique(),
-  status: text("status").default("pending"), // pending, completed, failed
-  initiatorBusinessCardId: integer("initiator_business_card_id").references(() => businessCards.id),
-  recipientBusinessCardId: integer("recipient_business_card_id").references(() => businessCards.id),
-  isAutomaticFriendAdd: boolean("is_automatic_friend_add").default(true),
-  completedAt: timestamp("completed_at"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
 // 비즈니스 포스트 읽음 상태 테이블
 export const businessPostReads = pgTable("business_post_reads", {
   id: serial("id").primaryKey(),
@@ -388,39 +364,6 @@ export const companyProfiles = pgTable("company_profiles", {
 }, (table) => ({
   uniqueUserCompany: unique().on(table.userId),
 }));
-
-// 사람별 폴더 테이블
-export const personFolders = pgTable("person_folders", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(), // 폴더 소유자
-  contactId: integer("contact_id").references(() => contacts.id), // 연결된 연락처
-  personName: text("person_name").notNull(), // 사람 이름 (필수)
-  folderName: text("folder_name"), // 폴더 이름 (선택)
-  avatarUrl: text("avatar_url"), // 폴더 아바타 이미지
-  lastActivity: timestamp("last_activity").defaultNow(),
-  itemCount: integer("item_count").default(0), // 폴더 내 총 아이템 수
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-// 폴더 아이템 테이블 (명함, One Pager, 파일 등)
-export const folderItems = pgTable("folder_items", {
-  id: serial("id").primaryKey(),
-  folderId: integer("folder_id").references(() => personFolders.id).notNull(),
-  itemType: text("item_type").notNull(), // 'business_card', 'one_pager', 'chat_file', 'document'
-  fileName: text("file_name"),
-  fileUrl: text("file_url"),
-  fileSize: integer("file_size"),
-  mimeType: text("mime_type"),
-  title: text("title"),
-  description: text("description"),
-  tags: text("tags").array(),
-  businessCardData: text("business_card_data"), // JSON string for business card extracted data
-  chatRoomId: integer("chat_room_id").references(() => chatRooms.id), // 채팅방에서 온 파일의 경우
-  messageId: integer("message_id").references(() => messages.id), // 메시지에서 온 파일의 경우
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
 
 export const usersRelations = relations(users, ({ many }) => ({
   contacts: many(contacts, { relationName: "userContacts" }),
@@ -697,33 +640,6 @@ export const businessProfilesRelations = relations(businessProfiles, ({ one }) =
   }),
 }));
 
-export const personFoldersRelations = relations(personFolders, ({ one, many }) => ({
-  user: one(users, {
-    fields: [personFolders.userId],
-    references: [users.id],
-  }),
-  contact: one(contacts, {
-    fields: [personFolders.contactId],
-    references: [contacts.id],
-  }),
-  items: many(folderItems),
-}));
-
-export const folderItemsRelations = relations(folderItems, ({ one }) => ({
-  folder: one(personFolders, {
-    fields: [folderItems.folderId],
-    references: [personFolders.id],
-  }),
-  chatRoom: one(chatRooms, {
-    fields: [folderItems.chatRoomId],
-    references: [chatRooms.id],
-  }),
-  message: one(messages, {
-    fields: [folderItems.messageId],
-    references: [messages.id],
-  }),
-}));
-
 export const userPostsRelations = relations(userPosts, ({ one, many }) => ({
   user: one(users, {
     fields: [userPosts.userId],
@@ -908,23 +824,6 @@ export const insertCompanyProfileSchema = createInsertSchema(companyProfiles).om
   updatedAt: true,
 });
 
-export const insertNfcExchangeSchema = createInsertSchema(nfcExchanges).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertPersonFolderSchema = createInsertSchema(personFolders).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertFolderItemSchema = createInsertSchema(folderItems).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Contact = typeof contacts.$inferSelect;
@@ -968,9 +867,3 @@ export type PostComment = typeof postComments.$inferSelect;
 export type InsertPostComment = z.infer<typeof insertPostCommentSchema>;
 export type CompanyProfile = typeof companyProfiles.$inferSelect;
 export type InsertCompanyProfile = z.infer<typeof insertCompanyProfileSchema>;
-export type NfcExchange = typeof nfcExchanges.$inferSelect;
-export type InsertNfcExchange = z.infer<typeof insertNfcExchangeSchema>;
-export type PersonFolder = typeof personFolders.$inferSelect;
-export type InsertPersonFolder = z.infer<typeof insertPersonFolderSchema>;
-export type FolderItem = typeof folderItems.$inferSelect;
-export type InsertFolderItem = z.infer<typeof insertFolderItemSchema>;

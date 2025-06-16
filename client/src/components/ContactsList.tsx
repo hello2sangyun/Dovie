@@ -28,7 +28,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Plus, Search, Star, MoreVertical, UserX, Trash2, Shield } from "lucide-react";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
-import QuickShareQR from "@/components/QuickShareQR";
 
 interface ContactsListProps {
   onAddContact: () => void;
@@ -93,21 +92,8 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
 
   // Delete contact mutation
   const deleteContactMutation = useMutation({
-    mutationFn: async (identifier: number) => {
-      // Check if this is a contactUserId or contactId based on the contact being deleted
-      const contact = contactToDelete;
-      if (!contact) throw new Error("No contact to delete");
-      
-      let endpoint: string;
-      if (contact.contactUserId) {
-        // Registered user - use contactUserId
-        endpoint = `/api/contacts/${contact.contactUserId}`;
-      } else {
-        // External contact - use contact ID
-        endpoint = `/api/contacts/by-id/${contact.id}`;
-      }
-      
-      const response = await apiRequest(endpoint, "DELETE");
+    mutationFn: async (contactUserId: number) => {
+      const response = await apiRequest(`/api/contacts/${contactUserId}`, "DELETE");
       return response.json();
     },
     onSuccess: () => {
@@ -172,10 +158,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
 
   const confirmBlockContact = () => {
     if (contactToBlock) {
-      // 외부 연락처는 차단할 수 없음 (등록된 사용자만 차단 가능)
-      if (contactToBlock.contactUserId) {
-        blockContactMutation.mutate(contactToBlock.contactUserId);
-      }
+      blockContactMutation.mutate(contactToBlock.contactUserId);
       setShowBlockConfirm(false);
       setContactToBlock(null);
     }
@@ -183,8 +166,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
 
   const confirmDeleteContact = () => {
     if (contactToDelete) {
-      // The mutation will handle the logic based on the contactToDelete state
-      deleteContactMutation.mutate(0); // Parameter not used in the new implementation
+      deleteContactMutation.mutate(contactToDelete.contactUserId);
       setShowDeleteConfirm(false);
       setContactToDelete(null);
     }
@@ -196,42 +178,27 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
 
   const filteredAndSortedContacts = regularContacts
     .filter((contact: any) => {
-      // 본인 계정 제외 (등록된 사용자의 경우만)
-      if (contact.contactUser && contact.contactUser.id === user?.id) {
+      // 본인 계정 제외
+      if (contact.contactUser.id === user?.id) {
         return false;
       }
       
       const searchLower = searchTerm.toLowerCase();
-      // 외부 연락처와 등록된 사용자 모두 처리
-      const nickname = contact.nickname || contact.name || (contact.contactUser ? contact.contactUser.displayName : '');
-      const username = contact.contactUser ? contact.contactUser.username : '';
-      const email = contact.email || '';
-      const company = contact.company || '';
-      
+      const nickname = contact.nickname || contact.contactUser.displayName;
       return nickname.toLowerCase().includes(searchLower) ||
-             username.toLowerCase().includes(searchLower) ||
-             email.toLowerCase().includes(searchLower) ||
-             company.toLowerCase().includes(searchLower);
+             contact.contactUser.username.toLowerCase().includes(searchLower);
     })
     .sort((a: any, b: any) => {
-      const aName = a.nickname || a.name || (a.contactUser ? a.contactUser.displayName : '');
-      const bName = b.nickname || b.name || (b.contactUser ? b.contactUser.displayName : '');
+      const aName = a.nickname || a.contactUser.displayName;
+      const bName = b.nickname || b.contactUser.displayName;
       
       switch (sortBy) {
         case "nickname":
           return aName.localeCompare(bName);
         case "username":
-          if (a.contactUser && b.contactUser) {
-            return a.contactUser.username.localeCompare(b.contactUser.username);
-          }
-          // 외부 연락처는 이름으로 정렬
-          return aName.localeCompare(bName);
+          return a.contactUser.username.localeCompare(b.contactUser.username);
         case "lastSeen":
-          // 외부 연락처는 생성일자로, 등록된 사용자는 마지막 접속일로 정렬
-          if (a.contactUser && b.contactUser) {
-            return new Date(b.contactUser.lastSeen || 0).getTime() - new Date(a.contactUser.lastSeen || 0).getTime();
-          }
-          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+          return new Date(b.contactUser.lastSeen || 0).getTime() - new Date(a.contactUser.lastSeen || 0).getTime();
         default:
           return 0;
       }
@@ -266,18 +233,15 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     <div className="h-full flex flex-col">
       <div className="p-3 border-b border-gray-200">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold text-gray-900 text-sm">Cabinet</h3>
-          <div className="flex items-center space-x-1">
-            <QuickShareQR trigger="icon" size="sm" className="h-7 w-7" />
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-purple-600 hover:text-purple-700 h-7 w-7 p-0"
-              onClick={onAddContact}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
+          <h3 className="font-semibold text-gray-900 text-sm">연락처</h3>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-purple-600 hover:text-purple-700 h-7 w-7 p-0"
+            onClick={onAddContact}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
         </div>
         
         <div className="relative mb-2">
@@ -307,42 +271,31 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       {favoriteContacts.length > 0 && (
         <div className="px-3 py-2 border-b border-gray-100">
           <div className="flex items-center space-x-2 mb-2">
-            <h4 className="text-xs font-medium text-gray-600">즐겨찾기 One Pager</h4>
+            <h4 className="text-xs font-medium text-gray-600">즐겨찾기</h4>
           </div>
           <div className="flex space-x-3 overflow-x-auto scrollbar-none pb-1">
             {favoriteContacts.map((contact: any) => {
-              const isExternalContact = !contact.contactUserId;
-              const displayName = contact.nickname || contact.name || (contact.contactUser ? contact.contactUser.displayName : '');
+              const displayName = contact.nickname || contact.contactUser.displayName;
               return (
                 <div key={contact.id} className="flex flex-col items-center space-y-1 flex-shrink-0">
                   <div 
                     className="relative cursor-pointer hover:opacity-75 transition-opacity"
-                    onClick={() => {
-                      if (!isExternalContact) {
-                        setLocation(`/friend/${contact.contactUserId}`);
-                      }
-                    }}
+                    onClick={() => setLocation(`/friend/${contact.contactUserId}`)}
                   >
                     <PrismAvatar
-                      src={isExternalContact ? null : contact.contactUser?.profilePicture}
+                      src={contact.contactUser.profilePicture}
                       fallback={getInitials(displayName)}
-                      hasNewPost={isExternalContact ? false : hasRecentPost(contact.contactUserId)}
+                      hasNewPost={hasRecentPost(contact.contactUserId)}
                       size="md"
                       className="shadow-md"
                     />
-                    {!isExternalContact && contact.contactUser?.isOnline && (
+                    {contact.contactUser.isOnline && (
                       <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full z-20"></div>
                     )}
                   </div>
                   <span 
                     className="text-xs text-gray-700 text-center max-w-[60px] truncate cursor-pointer hover:text-blue-600"
-                    onClick={() => {
-                      if (isExternalContact) {
-                        setLocation(`/business-card/${contact.id}`);
-                      } else {
-                        onSelectContact(contact.contactUserId);
-                      }
-                    }}
+                    onClick={() => onSelectContact(contact.contactUserId)}
                   >
                     {displayName}
                   </span>
@@ -359,12 +312,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
             {searchTerm ? "검색 결과가 없습니다" : "연락처가 없습니다"}
           </div>
         ) : (
-          filteredAndSortedContacts.map((contact: any) => {
-            // 외부 연락처인지 등록된 사용자인지 확인
-            const isExternalContact = !contact.contactUserId;
-            const displayName = contact.nickname || contact.name || (contact.contactUser ? contact.contactUser.displayName : '');
-            
-            return (
+          filteredAndSortedContacts.map((contact: any) => (
             <div
               key={contact.id}
               className="px-3 py-2 hover:bg-purple-50 border-b border-gray-100 transition-colors group"
@@ -372,28 +320,19 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
               <div className="flex items-center space-x-2">
                 <div 
                   className="cursor-pointer flex-1 flex items-center space-x-2"
-                  onClick={() => {
-                    if (isExternalContact) {
-                      // 외부 연락처는 One Pager 화면으로 이동
-                      setLocation(`/business-card/${contact.id}`);
-                    } else {
-                      onSelectContact(contact.contactUserId);
-                    }
-                  }}
+                  onClick={() => onSelectContact(contact.contactUserId)}
                 >
                   <div
                     className="cursor-pointer"
                     onClick={(e?: React.MouseEvent) => {
                       e?.stopPropagation();
-                      if (!isExternalContact) {
-                        setLocation(`/friend/${contact.contactUserId}`);
-                      }
+                      setLocation(`/friend/${contact.contactUserId}`);
                     }}
                   >
                     <PrismAvatar
-                      src={isExternalContact ? null : contact.contactUser?.profilePicture}
-                      fallback={getInitials(displayName)}
-                      hasNewPost={isExternalContact ? false : hasRecentPost(contact.contactUserId)}
+                      src={contact.contactUser.profilePicture}
+                      fallback={getInitials(contact.nickname || contact.contactUser.displayName)}
+                      hasNewPost={hasRecentPost(contact.contactUserId)}
                       size="sm"
                       className="hover:ring-2 hover:ring-blue-300 transition-all"
                     />
@@ -401,40 +340,17 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <p className="font-medium text-gray-900 truncate text-sm">
-                        {displayName}
+                        {contact.nickname || contact.contactUser.displayName}
                       </p>
-                      {!isExternalContact && (
-                        <div className={cn(
-                          "w-2 h-2 rounded-full ml-2 flex-shrink-0",
-                          contact.contactUser?.isOnline ? "bg-green-500" : "bg-gray-300"
-                        )} />
-                      )}
-                      {isExternalContact && (
-                        <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
-                          명함
-                        </span>
-                      )}
+                      <div className={cn(
+                        "w-2 h-2 rounded-full ml-2 flex-shrink-0",
+                        contact.contactUser.isOnline ? "bg-green-500" : "bg-gray-300"
+                      )} />
                     </div>
-                    {isExternalContact ? (
-                      <>
-                        {contact.company && (
-                          <p className="text-xs text-gray-500 truncate">{contact.company}</p>
-                        )}
-                        {contact.jobTitle && (
-                          <p className="text-xs text-gray-400 truncate">{contact.jobTitle}</p>
-                        )}
-                        {contact.email && (
-                          <p className="text-xs text-gray-400 truncate">{contact.email}</p>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-xs text-gray-500 truncate">@{contact.contactUser?.username}</p>
-                        <p className="text-xs text-gray-400 truncate">
-                          {getOnlineStatus(contact.contactUser)}
-                        </p>
-                      </>
-                    )}
+                    <p className="text-xs text-gray-500 truncate">@{contact.contactUser.username}</p>
+                    <p className="text-xs text-gray-400 truncate">
+                      {getOnlineStatus(contact.contactUser)}
+                    </p>
                   </div>
                 </div>
                 
@@ -504,8 +420,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                 </div>
               </div>
             </div>
-            );
-          })
+          ))
         )}
       </div>
 

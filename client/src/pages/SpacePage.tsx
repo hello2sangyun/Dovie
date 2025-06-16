@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-
+import ScrollIndicator from "@/components/ScrollIndicator";
 import { 
   Heart, 
   MessageCircle, 
@@ -191,6 +191,7 @@ export default function SpacePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <ScrollIndicator />
       {/* Header */}
       <div className="sticky top-0 z-50 bg-white border-b shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-3">

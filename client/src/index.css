@@ -2,48 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* QR Code Animation Styles */
-@keyframes sweep {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-.animate-sweep {
-  animation: sweep 1.5s ease-in-out infinite;
-}
-
-/* Fade in animation for QR code */
-@keyframes fade-in {
-  0% {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.animate-in {
-  animation: fade-in 0.5s ease-out;
-}
-
-/* QR Generation grid animation */
-@keyframes qr-pixel {
-  0%, 100% {
-    opacity: 0.3;
-    transform: scale(0.8);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
 /* 프리즘 애니메이션 - Instagram 스토리 스타일 */
 @keyframes gradient-rotate {
   0% { transform: rotate(0deg); }
@@ -68,37 +26,6 @@
     #405de6 0deg, #5851db 51deg, #833ab4 102deg, #c13584 153deg, 
     #e1306c 204deg, #fd1d1d 255deg, #f56040 306deg, #405de6 360deg);
   animation: gradient-rotate 3s linear infinite;
-}
-
-/* iOS Safari 자동 줌 방지 */
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="search"],
-input[type="tel"],
-input[type="url"],
-input[type="number"],
-select,
-textarea {
-  font-size: 16px !important;
-}
-
-/* 작은 화면에서 텍스트 입력 요소의 줌 방지 */
-@media screen and (max-width: 768px) {
-  input,
-  textarea,
-  select {
-    font-size: 16px !important;
-    transform: scale(0.875); /* 14px/16px = 0.875 - 시각적으로 작게 보이게 */
-    transform-origin: left top;
-  }
-  
-  /* 채팅 입력창 특별 처리 */
-  textarea[placeholder*="메시지"] {
-    font-size: 16px !important;
-    transform: scale(0.875);
-    transform-origin: left center;
-  }
 }
 
 :root {
