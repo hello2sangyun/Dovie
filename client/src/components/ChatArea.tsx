@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { UserAvatar } from "@/components/UserAvatar";
 import MediaPreview from "@/components/MediaPreview";
-import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause, Cloud, CloudRain, Sun, CloudSnow, MoreVertical, LogOut, Settings, MapPin } from "lucide-react";
+import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause, MoreVertical, LogOut, Settings, MapPin } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
@@ -23,7 +23,7 @@ import PollBanner from "./PollBanner";
 import PollDetailModal from "./PollDetailModal";
 import TranslateModal from "./TranslateModal";
 import VoiceRecorder from "./VoiceRecorder";
-import { useWeather, getWeatherBackground } from "../hooks/useWeather";
+
 import TypingIndicator, { useTypingIndicator } from "./TypingIndicator";
 import { 
   InteractiveButton, 
@@ -158,8 +158,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [translatingMessages, setTranslatingMessages] = useState<Set<number>>(new Set());
   const [isTranslating, setIsTranslating] = useState(false);
   
-  // Weather hook
-  const { weather, loading: weatherLoading } = useWeather();
+
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [playingAudio, setPlayingAudio] = useState<number | null>(null);
@@ -3648,23 +3647,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     );
   }
 
-  // Get weather background styling
-  const weatherBackground = weather ? getWeatherBackground(weather.condition) : getWeatherBackground('Clear');
-  
-  // Get weather icon component
-  const getWeatherIcon = (condition: string) => {
-    const conditionLower = condition?.toLowerCase() || '';
-    if (conditionLower.includes('rain') || conditionLower.includes('drizzle')) {
-      return <CloudRain className="h-4 w-4" />;
-    }
-    if (conditionLower.includes('snow')) {
-      return <CloudSnow className="h-4 w-4" />;
-    }
-    if (conditionLower.includes('cloud')) {
-      return <Cloud className="h-4 w-4" />;
-    }
-    return <Sun className="h-4 w-4" />;
-  };
+
 
   return (
     <div 
@@ -3672,7 +3655,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       data-chat-area="true"
       className={cn(
         "h-full flex flex-col relative mb-0 pb-0",
-        weatherBackground.background,
         isDragOver ? 'bg-purple-50' : ''
       )}
       onDragEnter={handleDragEnter}
@@ -3680,19 +3662,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
-      {/* Weather Pattern Overlay */}
-      <div className={cn("absolute inset-0 pointer-events-none", weatherBackground.overlay)} />
-      
-      {/* Weather Info Display */}
-      {weather && !weatherLoading && (
-        <div className="absolute top-4 right-4 bg-white/80 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm border border-white/20 z-10">
-          <div className="flex items-center space-x-2 text-sm">
-            {getWeatherIcon(weather.condition)}
-            <span className="text-gray-700 font-medium">{weather.temperature}°C</span>
-            <span className="text-gray-600">{weather.description}</span>
-          </div>
-        </div>
-      )}
+
       
       {/* Drag Overlay */}
       {isDragOver && (
