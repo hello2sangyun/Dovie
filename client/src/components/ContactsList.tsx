@@ -177,15 +177,26 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
         const messageResult = await messageResponse.json();
         console.log('✅ 간편음성메세지 전송 성공:', messageResult);
         
-        // 채팅방 목록과 메시지 캐시 무효화
-        await queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
-        await queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] });
-        await queryClient.invalidateQueries({ queryKey: ["/api/unread-counts"] });
+        // 채팅방 목록과 메시지 캐시 무효화 (안전한 처리)
+        try {
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] }),
+            queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/unread-counts"] })
+          ]);
+          console.log('✅ 캐시 무효화 완료');
+        } catch (cacheError) {
+          console.warn('⚠️ 캐시 무효화 실패, 무시하고 계속:', cacheError);
+        }
         
         // 해당 대화방으로 이동 - createOrFindChatRoom과 동일한 로직 사용
         setTimeout(() => {
-          console.log('🚀 채팅방으로 이동 시작:', contact.contactUserId);
+          console.log('🚀 간편음성메세지 후 채팅방 이동 시작:', contact.contactUserId, 'chatRoomId:', chatRoomId);
+          
+          // onSelectContact 호출 - 이미 채팅방이 존재하므로 바로 이동됨
           onSelectContact(contact.contactUserId);
+          
+          console.log('✅ 간편음성메세지 전체 프로세스 완료');
         }, 500);
       } else {
         const errorText = await messageResponse.text();
@@ -193,6 +204,11 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       }
     } catch (error) {
       console.error('❌ 간편음성메세지 전체 프로세스 실패:', error);
+      console.error('❌ 오류 상세 정보:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
     }
   };
 
