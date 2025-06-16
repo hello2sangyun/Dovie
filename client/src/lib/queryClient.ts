@@ -65,7 +65,7 @@ export const queryClient = new QueryClient({
         if (error?.message?.includes('404')) return false;
         return failureCount < 1; // Reduce retries for faster response
       },
-      refetchOnMount: "stale", // Only refetch if data is stale
+      refetchOnMount: true, // Always refetch on mount for fresh data
       refetchOnReconnect: true,
     },
     mutations: {

@@ -221,7 +221,7 @@ export class DatabaseStorage implements IStorage {
         eq(chatParticipants.userId, userId),
         eq(chatRooms.isLocationChat, false) // 주변챗 제외
       ))
-      .orderBy(desc(chatRooms.isPinned), desc(chatRooms.createdAt));
+      .orderBy(desc(chatRooms.isPinned), desc(chatRooms.updatedAt));
 
     if (userChatRooms.length === 0) return [];
 
@@ -390,6 +390,12 @@ export class DatabaseStorage implements IStorage {
       .insert(messages)
       .values(encryptedMessage)
       .returning();
+
+    // 채팅방 업데이트 시간 갱신 (최신 메시지 기준 정렬을 위해)
+    await db
+      .update(chatRooms)
+      .set({ updatedAt: new Date() })
+      .where(eq(chatRooms.id, message.chatRoomId));
     
     // 반환할 때는 복호화해서 반환
     return {

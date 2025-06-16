@@ -4021,9 +4021,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               </div>
             ))}
           </div>
-        ) : messages.length === 0 ? (
+        ) : !messages || messages.length === 0 ? (
           <div className="text-center text-gray-500 mt-8">
-            대화를 시작해보세요!
+            {messagesData ? "대화를 시작해보세요!" : "메시지를 불러오는 중..."}
           </div>
         ) : (
           <>
