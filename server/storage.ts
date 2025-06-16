@@ -1,13 +1,12 @@
 import { 
   users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications,
-  fileUploads, fileDownloads, businessCards, businessProfiles, userPosts, businessCardShares,
+  fileUploads, fileDownloads, userPosts,
   type User, type InsertUser, type Contact, type InsertContact,
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
   type Command, type InsertCommand, type MessageRead, type InsertMessageRead,
   type PhoneVerification, type InsertPhoneVerification,
   type FileUpload, type InsertFileUpload, type FileDownload, type InsertFileDownload,
-  type BusinessCard, type InsertBusinessCard, type BusinessProfile, type InsertBusinessProfile,
-  type UserPost, type InsertUserPost, type BusinessCardShare, type InsertBusinessCardShare
+  type UserPost, type InsertUserPost
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, or, count, gt, lt, sql, inArray } from "drizzle-orm";
@@ -69,18 +68,7 @@ export interface IStorage {
   trackFileUpload(fileData: { userId: number; chatRoomId?: number; fileName: string; originalName: string; fileSize: number; fileType: string; filePath: string }): Promise<void>;
   trackFileDownload(fileUploadId: number, userId: number, ipAddress?: string, userAgent?: string): Promise<void>;
 
-  // Business card operations
-  getBusinessCard(userId: number): Promise<BusinessCard | undefined>;
-  createOrUpdateBusinessCard(userId: number, cardData: Partial<InsertBusinessCard>): Promise<BusinessCard>;
-  
-  // Business profile operations
-  getBusinessProfile(userId: number): Promise<BusinessProfile | undefined>;
-  createOrUpdateBusinessProfile(userId: number, profileData: Partial<InsertBusinessProfile>): Promise<BusinessProfile>;
-  
-  // Business card sharing operations
-  createBusinessCardShare(userId: number): Promise<BusinessCardShare>;
-  getBusinessCardShare(shareToken: string): Promise<BusinessCardShare | undefined>;
-  getBusinessCardShareInfo(userId: number): Promise<BusinessCardShare | undefined>;
+
   
   // User posts operations
   getUserPosts(userId: number): Promise<UserPost[]>;

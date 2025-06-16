@@ -174,25 +174,7 @@ export const fileDownloads = pgTable("file_downloads", {
   userAgent: text("user_agent")
 });
 
-export const businessCards = pgTable("business_cards", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  fullName: text("full_name"),
-  companyName: text("company_name"),
-  jobTitle: text("job_title"),
-  department: text("department"),
-  email: text("email"),
-  phoneNumber: text("phone_number"),
-  fax: text("fax"),
-  website: text("website"),
-  address: text("address"),
-  description: text("description"),
-  cardImageUrl: text("card_image_url"),
-  extractedText: text("extracted_text"), // OCR로 추출된 원본 텍스트
-  isDefault: boolean("is_default").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
+
 
 // 회사 채널 테이블
 export const companyChannels = pgTable("company_channels", {
@@ -427,24 +409,7 @@ export const fileDownloadsRelations = relations(fileDownloads, ({ one }) => ({
   }),
 }));
 
-// Business profiles table
-export const businessProfiles = pgTable("business_profiles", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  companyName: text("company_name"),
-  jobTitle: text("job_title"),
-  department: text("department"),
-  website: text("website"),
-  linkedinProfile: text("linkedin_profile"),
-  twitterProfile: text("twitter_profile"),
-  bio: text("bio"),
-  skills: text("skills").array(), // Array of skills
-  achievements: jsonb("achievements"), // JSON object for achievements
-  isPublic: boolean("is_public").default(true),
-  allowBusinessCardSharing: boolean("allow_business_card_sharing").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
+
 
 // User posts table for social features
 export const userPosts = pgTable("user_posts", {
@@ -465,17 +430,7 @@ export const userPosts = pgTable("user_posts", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Business card sharing links
-export const businessCardShares = pgTable("business_card_shares", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  shareToken: text("share_token").notNull().unique(),
-  isActive: boolean("is_active").default(true),
-  expiresAt: timestamp("expires_at"),
-  viewCount: integer("view_count").default(0),
-  allowDownload: boolean("allow_download").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+
 
 // Space company channels table (기존과 통합)
 export const spaceCompanyChannels = pgTable("space_company_channels", {
@@ -529,19 +484,7 @@ export const postComments = pgTable("post_comments", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const businessCardsRelations = relations(businessCards, ({ one }) => ({
-  user: one(users, {
-    fields: [businessCards.userId],
-    references: [users.id],
-  }),
-}));
 
-export const businessProfilesRelations = relations(businessProfiles, ({ one }) => ({
-  user: one(users, {
-    fields: [businessProfiles.userId],
-    references: [users.id],
-  }),
-}));
 
 export const userPostsRelations = relations(userPosts, ({ one, many }) => ({
   user: one(users, {
@@ -603,12 +546,7 @@ export const postCommentsRelations = relations(postComments, ({ one, many }) => 
   replies: many(postComments),
 }));
 
-export const businessCardSharesRelations = relations(businessCardShares, ({ one }) => ({
-  user: one(users, {
-    fields: [businessCardShares.userId],
-    references: [users.id],
-  }),
-}));
+
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -660,27 +598,10 @@ export const insertFileDownloadSchema = createInsertSchema(fileDownloads).omit({
   downloadedAt: true,
 });
 
-export const insertBusinessCardSchema = createInsertSchema(businessCards).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertBusinessProfileSchema = createInsertSchema(businessProfiles).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
 export const insertUserPostSchema = createInsertSchema(userPosts).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-});
-
-export const insertBusinessCardShareSchema = createInsertSchema(businessCardShares).omit({
-  id: true,
-  createdAt: true,
 });
 
 export const insertCompanyChannelSchema = createInsertSchema(companyChannels).omit({
@@ -726,14 +647,8 @@ export type FileUpload = typeof fileUploads.$inferSelect;
 export type InsertFileUpload = z.infer<typeof insertFileUploadSchema>;
 export type FileDownload = typeof fileDownloads.$inferSelect;
 export type InsertFileDownload = z.infer<typeof insertFileDownloadSchema>;
-export type BusinessCard = typeof businessCards.$inferSelect;
-export type InsertBusinessCard = z.infer<typeof insertBusinessCardSchema>;
-export type BusinessProfile = typeof businessProfiles.$inferSelect;
-export type InsertBusinessProfile = z.infer<typeof insertBusinessProfileSchema>;
 export type UserPost = typeof userPosts.$inferSelect;
 export type InsertUserPost = z.infer<typeof insertUserPostSchema>;
-export type BusinessCardShare = typeof businessCardShares.$inferSelect;
-export type InsertBusinessCardShare = z.infer<typeof insertBusinessCardShareSchema>;
 export type CompanyChannel = typeof companyChannels.$inferSelect;
 export type InsertCompanyChannel = z.infer<typeof insertCompanyChannelSchema>;
 export type PostLike = typeof postLikes.$inferSelect;
