@@ -4283,13 +4283,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                             }
                             
                             // 일반 텍스트 메시지
+                            const truncatedContent = replyContent.length > 50 
+                              ? replyContent.substring(0, 50) + "..." 
+                              : replyContent;
                             return (
                               <p className={cn(
                                 "text-sm leading-relaxed max-w-[250px]",
-                                replyContent.length > 50 ? "line-clamp-2" : "",
                                 isMe ? "text-white/90" : "text-gray-700"
                               )}>
-                                {replyContent}
+                                {truncatedContent}
                               </p>
                             );
                           })()}
