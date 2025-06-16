@@ -71,9 +71,7 @@ export interface IStorage {
   trackFileUpload(fileData: { userId: number; chatRoomId?: number; fileName: string; originalName: string; fileSize: number; fileType: string; filePath: string }): Promise<void>;
   trackFileDownload(fileUploadId: number, userId: number, ipAddress?: string, userAgent?: string): Promise<void>;
 
-  // Business card operations
-  getBusinessCard(userId: number): Promise<BusinessCard | undefined>;
-  createOrUpdateBusinessCard(userId: number, cardData: Partial<InsertBusinessCard>): Promise<BusinessCard>;
+  // Business card operations removed - digital business card functionality disabled
   
   // Business profile operations
   getBusinessProfile(userId: number): Promise<BusinessProfile | undefined>;

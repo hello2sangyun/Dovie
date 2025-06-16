@@ -449,17 +449,7 @@ export const userPosts = pgTable("user_posts", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Business card sharing links
-export const businessCardShares = pgTable("business_card_shares", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  shareToken: text("share_token").notNull().unique(),
-  isActive: boolean("is_active").default(true),
-  expiresAt: timestamp("expires_at"),
-  viewCount: integer("view_count").default(0),
-  allowDownload: boolean("allow_download").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+// Business card shares table removed - digital business card functionality disabled
 
 // Space company channels table (기존과 통합)
 export const spaceCompanyChannels = pgTable("space_company_channels", {
@@ -582,12 +572,7 @@ export const postCommentsRelations = relations(postComments, ({ one, many }) => 
   replies: many(postComments),
 }));
 
-export const businessCardSharesRelations = relations(businessCardShares, ({ one }) => ({
-  user: one(users, {
-    fields: [businessCardShares.userId],
-    references: [users.id],
-  }),
-}));
+// Business card shares relations removed - digital business card functionality disabled
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -703,8 +688,7 @@ export type BusinessProfile = typeof businessProfiles.$inferSelect;
 export type InsertBusinessProfile = z.infer<typeof insertBusinessProfileSchema>;
 export type UserPost = typeof userPosts.$inferSelect;
 export type InsertUserPost = z.infer<typeof insertUserPostSchema>;
-export type BusinessCardShare = typeof businessCardShares.$inferSelect;
-export type InsertBusinessCardShare = z.infer<typeof insertBusinessCardShareSchema>;
+// Business card share types removed - digital business card functionality disabled
 export type CompanyChannel = typeof companyChannels.$inferSelect;
 export type InsertCompanyChannel = z.infer<typeof insertCompanyChannelSchema>;
 export type PostLike = typeof postLikes.$inferSelect;
