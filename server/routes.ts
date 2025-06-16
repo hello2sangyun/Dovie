@@ -11,6 +11,8 @@ import multer from "multer";
 import crypto from "crypto";
 import { promises as fs } from "fs";
 import path from "path";
+import { ImageOptimizer } from "./imageOptimizer";
+import { optimizeAllProfileImages } from "./optimizeExistingImages";
 import { eq, desc, or, and, like, count, lt, asc } from "drizzle-orm";
 import { db } from "./db";
 
@@ -298,6 +300,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Profile image upload with optimization
+  app.post("/api/upload", upload.single("file"), async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    try {
+      const tempFilePath = req.file.path;
+      const originalFileName = req.file.originalname;
+      const fileExtension = path.extname(originalFileName).toLowerCase();
+      
+      // Check if it's an image file
+      const isImage = ['.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(fileExtension);
+      
+      if (isImage) {
+        // Optimize the image for profile pictures
+        const optimizedFileName = `${Date.now()}-${crypto.randomBytes(16).toString('hex')}.jpg`;
+        const optimizedPath = path.join('uploads', `temp_${optimizedFileName}`);
+        
+        // Optimize the image
+        const optimizationResult = await ImageOptimizer.optimizeProfileImage(tempFilePath, optimizedPath);
+        
+        // Encrypt the optimized image
+        const encryptionKey = process.env.ENCRYPTION_KEY || 'default-key';
+        const optimizedBuffer = await fs.readFile(optimizedPath);
+        const cipher = crypto.createCipher('aes-256-cbc', encryptionKey);
+        let encrypted = cipher.update(optimizedBuffer);
+        encrypted = Buffer.concat([encrypted, cipher.final()]);
+
+        // Save encrypted file
+        const finalPath = path.join('uploads', optimizedFileName);
+        await fs.writeFile(finalPath, encrypted);
+
+        // Clean up temporary files
+        await fs.unlink(tempFilePath);
+        await fs.unlink(optimizedPath);
+
+        console.log(`📸 Profile image optimized: ${optimizationResult.originalSize} → ${optimizationResult.optimizedSize} bytes (${optimizationResult.compressionRatio.toFixed(1)}% reduction)`);
+
+        res.json({
+          fileUrl: `/uploads/${optimizedFileName}`,
+          fileName: originalFileName,
+          fileSize: optimizationResult.optimizedSize,
+          compressionRatio: optimizationResult.compressionRatio
+        });
+      } else {
+        // Handle non-image files (keep existing encryption logic)
+        const encryptionKey = process.env.ENCRYPTION_KEY || 'default-key';
+        const fileBuffer = await fs.readFile(tempFilePath);
+        const cipher = crypto.createCipher('aes-256-cbc', encryptionKey);
+        let encrypted = cipher.update(fileBuffer);
+        encrypted = Buffer.concat([encrypted, cipher.final()]);
+
+        const fileName = `${Date.now()}-${crypto.randomBytes(16).toString('hex')}`;
+        const filePath = path.join('uploads', fileName);
+        await fs.writeFile(filePath, encrypted);
+        await fs.unlink(tempFilePath);
+
+        res.json({
+          fileUrl: `/uploads/${fileName}`,
+          fileName: originalFileName,
+          fileSize: fileBuffer.length
+        });
+      }
+    } catch (error) {
+      console.error("File upload error:", error);
+      res.status(500).json({ message: "File upload failed" });
+    }
+  });
+
   // File serving
   app.get("/api/files/:fileName", async (req, res) => {
     try {
@@ -348,6 +425,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating user post:", error);
       res.status(500).json({ message: "Failed to create user post" });
+    }
+  });
+
+  // Image optimization endpoint
+  app.post("/api/admin/optimize-images", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      console.log("🚀 Starting profile image optimization process...");
+      const results = await optimizeAllProfileImages();
+      res.json({ 
+        success: true, 
+        message: "Profile image optimization completed",
+        results 
+      });
+    } catch (error) {
+      console.error("Image optimization error:", error);
+      res.status(500).json({ message: "Failed to optimize images" });
     }
   });
 
