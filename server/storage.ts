@@ -382,7 +382,7 @@ export class DatabaseStorage implements IStorage {
     .from(messages)
     .innerJoin(users, eq(messages.senderId, users.id))
     .where(eq(messages.chatRoomId, chatRoomId))
-    .orderBy(desc(messages.createdAt))
+    .orderBy(asc(messages.createdAt))
     .limit(limit);
 
     return result.map(row => ({
