@@ -169,6 +169,8 @@ export default function MainApp() {
       setSelectedChatRoom(existingChatRoom.id);
       setContactFilter(contactUserId);
       setActiveTab("chats");
+      setActiveMobileTab("chats");
+      setShowMobileChat(true);
     } else {
       // 기존 채팅방이 없으면 새로 생성
       const roomName = contactUser.nickname || contactUser.displayName || contactUser.username;
@@ -193,6 +195,8 @@ export default function MainApp() {
       queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
       setSelectedChatRoom(data.chatRoom.id);
       setActiveTab("chats");
+      setActiveMobileTab("chats");
+      setShowMobileChat(true);
     },
     onError: () => {
       // 채팅방 생성 실패 - 알림 제거

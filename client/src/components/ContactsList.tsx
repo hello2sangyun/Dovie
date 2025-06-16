@@ -182,10 +182,11 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
         await queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] });
         await queryClient.invalidateQueries({ queryKey: ["/api/unread-counts"] });
         
-        // 해당 대화방으로 이동
+        // 해당 대화방으로 이동 - createOrFindChatRoom과 동일한 로직 사용
         setTimeout(() => {
+          console.log('🚀 채팅방으로 이동 시작:', contact.contactUserId);
           onSelectContact(contact.contactUserId);
-        }, 200);
+        }, 500);
       } else {
         const errorText = await messageResponse.text();
         console.error('❌ 간편음성메세지 전송 실패:', messageResponse.status, errorText);
