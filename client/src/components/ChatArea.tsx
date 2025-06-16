@@ -2408,28 +2408,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
 
 
-  // 주소 감지 함수
-  const detectAddress = (text: string) => {
-    const patterns = [
-      /[가-힣]+시\s*[가-힣]+구\s*[가-힣]+로/i,
-      /[가-힣]+동\s*\d+번지/i,
-      /[가-힣]+역\s*근처/i,
-      /서울|부산|대구|인천|광주|대전|울산|세종/i
-    ];
-
-    for (const pattern of patterns) {
-      if (pattern.test(text)) {
-        return {
-          type: 'address' as const,
-          text: '지도에서 보기',
-          result: `위치: ${text}`,
-          icon: '📍',
-          category: '위치'
-        };
-      }
-    }
-    return null;
-  };
+  // 주소 감지 함수 제거됨 (위치 기능 완전 삭제)
 
   // 언어 감지 함수
   const detectLanguage = (text: string): string => {
@@ -2776,11 +2755,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       allSuggestions.push(meetingDetection);
     }
     
-    // 13. 주소 감지
-    const addressDetection = detectAddress(value);
-    if (addressDetection) {
-      allSuggestions.push(addressDetection);
-    }
+    // 주소 감지 기능 제거됨 (위치 기능 완전 삭제)
     
     // 14. 투표 감지
     const pollDetection = detectPoll(value);
