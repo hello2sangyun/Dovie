@@ -120,7 +120,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     }
   };
 
-  // 간편음성메세지 전송
+  // 간편음성메세지 전송 (채팅방과 동일한 음성 처리)
   const sendVoiceMessage = async (contact: any, audioBlob: Blob) => {
     try {
       console.log('간편음성메세지 전송 시작:', contact.contactUserId);
@@ -138,26 +138,54 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       const chatRoomData = await chatRoomResponse.json();
       const chatRoomId = chatRoomData.chatRoom.id;
       
-      console.log('채팅방 ID:', chatRoomId);
+      console.log('채팅방 ID:', chatRoomId, '음성 파일 크기:', audioBlob.size);
 
-      // 간편음성메세지 전송
+      // FormData로 음성 파일 업로드 (채팅방과 동일한 방식)
+      const formData = new FormData();
+      const fileName = `voice_${Date.now()}_${Math.random().toString(36).substr(2, 11)}.webm`;
+      formData.append('file', audioBlob, fileName);
+      formData.append('messageType', 'voice');
+
+      const uploadResponse = await fetch(`/api/chat-rooms/${chatRoomId}/upload`, {
+        method: 'POST',
+        headers: {
+          'x-user-id': String(user?.id),
+        },
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        console.error('음성 파일 업로드 실패');
+        return;
+      }
+
+      const uploadData = await uploadResponse.json();
+      console.log('음성 파일 업로드 성공:', uploadData);
+
+      // 업로드된 파일로 음성 메시지 전송 (텍스트 변환 포함)
       const messageResponse = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages`, 'POST', {
-        content: `🎤 간편음성메세지`,
-        messageType: 'text'
+        content: uploadData.transcription || '음성 메시지',
+        messageType: 'voice',
+        fileUrl: uploadData.fileUrl,
+        fileName: uploadData.fileName,
+        fileSize: uploadData.fileSize || audioBlob.size,
+        voiceDuration: uploadData.duration || 3,
+        detectedLanguage: uploadData.language || 'korean',
+        confidence: uploadData.confidence || '0.9'
       });
 
       if (messageResponse.ok) {
         console.log('간편음성메세지 전송 성공 - 채팅방:', chatRoomId);
         
-        // 채팅방 목록과 메시지 캐시 무효화 (즉시 업데이트를 위해)
+        // 채팅방 목록과 메시지 캐시 무효화
         await queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
         await queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] });
         await queryClient.invalidateQueries({ queryKey: ["/api/unread-counts"] });
         
-        // 잠시 대기 후 해당 대화방으로 이동
+        // 해당 대화방으로 이동
         setTimeout(() => {
           onSelectContact(contact.contactUserId);
-        }, 100);
+        }, 200);
       } else {
         console.error('간편음성메세지 전송 실패 - 응답:', await messageResponse.text());
       }
