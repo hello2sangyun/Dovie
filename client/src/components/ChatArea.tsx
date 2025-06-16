@@ -595,7 +595,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     onSuccess: (result) => {
       if (result.success && result.transcription) {
         // 음성 메시지와 텍스트 변환을 함께 전송
-        sendMessageMutation.mutate({
+        const messageData: any = {
           content: result.transcription,
           messageType: "voice",
           fileUrl: result.audioUrl,
@@ -604,7 +604,19 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           voiceDuration: Math.round(result.duration || 0),
           detectedLanguage: result.detectedLanguage || "korean",
           confidence: String(result.confidence || 0.9)
-        });
+        };
+
+        // 회신 메시지인 경우 회신 데이터 포함
+        if (replyToMessage) {
+          messageData.replyToMessageId = replyToMessage.id;
+          messageData.replyToContent = replyToMessage.content;
+          messageData.replyToSender = replyToMessage.sender.displayName;
+        }
+
+        sendMessageMutation.mutate(messageData);
+        
+        // 회신 모드 해제
+        setReplyToMessage(null);
         
         toast({
           title: "음성 메시지 전송 완료!",
