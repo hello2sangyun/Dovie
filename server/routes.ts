@@ -3,7 +3,7 @@ import express from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, insertUserPostSchema, insertPostLikeSchema, insertPostCommentSchema, insertCompanyChannelSchema, insertCompanyProfileSchema, chatRooms, chatParticipants, userPosts, postLikes, postComments, companyChannels, companyChannelFollowers, companyChannelAdmins, users, businessProfiles, contacts, businessPostReads, businessPosts, businessPostLikes, companyProfiles } from "@shared/schema";
+import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, insertUserPostSchema, insertPostLikeSchema, insertPostCommentSchema, insertCompanyChannelSchema, insertCompanyProfileSchema, chatRooms, chatParticipants, userPosts, postLikes, postComments, companyChannels, companyChannelFollowers, companyChannelAdmins, users, businessProfiles, contacts, businessPostReads, businessPosts, businessPostLikes, companyProfiles, messages, messageReads } from "@shared/schema";
 import { sql } from "drizzle-orm";
 import { translateText, transcribeAudio } from "./openai";
 import bcrypt from "bcryptjs";
@@ -1413,52 +1413,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       friendIdList.push(parseInt(userId as string)); // 내 포스트도 포함
 
       const posts = await db.select({
-        id: spacePosts.id,
-        userId: spacePosts.userId,
-        companyChannelId: spacePosts.companyChannelId,
-        content: spacePosts.content,
-        imageUrl: spacePosts.imageUrl,
-        linkUrl: spacePosts.linkUrl,
-        linkTitle: spacePosts.linkTitle,
-        linkDescription: spacePosts.linkDescription,
-        postType: spacePosts.postType,
-        likesCount: spacePosts.likesCount,
-        commentsCount: spacePosts.commentsCount,
-        sharesCount: spacePosts.sharesCount,
-        createdAt: spacePosts.createdAt,
+        id: userPosts.id,
+        userId: userPosts.userId,
+        content: userPosts.content,
+        imageUrl: userPosts.imageUrl,
+        linkUrl: userPosts.linkUrl,
+        linkTitle: userPosts.linkTitle,
+        linkDescription: userPosts.linkDescription,
+        postType: userPosts.postType,
+        likeCount: userPosts.likeCount,
+        commentCount: userPosts.commentCount,
+        shareCount: userPosts.shareCount,
+        createdAt: userPosts.createdAt,
         user: {
           id: users.id,
           username: users.username,
           displayName: users.displayName,
           profilePicture: users.profilePicture,
-        },
-        companyChannel: {
-          id: spaceCompanyChannels.id,
-          name: spaceCompanyChannels.companyName,
-          logoUrl: spaceCompanyChannels.logo,
-          isVerified: spaceCompanyChannels.isVerified,
         }
       })
-      .from(spacePosts)
-      .innerJoin(users, eq(spacePosts.userId, users.id))
-      .leftJoin(spaceCompanyChannels, eq(spacePosts.companyChannelId, spaceCompanyChannels.id))
+      .from(userPosts)
+      .innerJoin(users, eq(userPosts.userId, users.id))
       .where(
         and(
-          eq(spacePosts.isVisible, true),
-          inArray(spacePosts.userId, friendIdList)
+          eq(userPosts.isVisible, true),
+          inArray(userPosts.userId, friendIdList)
         )
       )
-      .orderBy(desc(spacePosts.createdAt))
+      .orderBy(desc(userPosts.createdAt))
       .limit(limit)
       .offset(offset);
 
       // 각 포스트에 대해 현재 사용자의 좋아요 여부 확인
       const postsWithLikes = await Promise.all(posts.map(async (post) => {
         const [userLike] = await db.select()
-          .from(businessPostLikes)
+          .from(postLikes)
           .where(and(
-            eq(businessPostLikes.postId, post.id),
-            eq(businessPostLikes.userId, parseInt(userId as string))
+            eq(postLikes.postId, post.id),
+            eq(postLikes.userId, parseInt(userId as string))
           ))
           .limit(1);
 
