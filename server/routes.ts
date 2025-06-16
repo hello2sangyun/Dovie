@@ -1416,10 +1416,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: userPosts.id,
         userId: userPosts.userId,
         content: userPosts.content,
-        imageUrl: userPosts.imageUrl,
-        linkUrl: userPosts.linkUrl,
-        linkTitle: userPosts.linkTitle,
-        linkDescription: userPosts.linkDescription,
         postType: userPosts.postType,
         likeCount: userPosts.likeCount,
         commentCount: userPosts.commentCount,
@@ -1434,12 +1430,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       })
       .from(userPosts)
       .innerJoin(users, eq(userPosts.userId, users.id))
-      .where(
-        and(
-          eq(userPosts.isVisible, true),
-          inArray(userPosts.userId, friendIdList)
-        )
-      )
+      .where(inArray(userPosts.userId, friendIdList))
       .orderBy(desc(userPosts.createdAt))
       .limit(limit)
       .offset(offset);

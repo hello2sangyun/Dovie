@@ -214,104 +214,80 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getChatRooms(userId: number): Promise<(ChatRoom & { participants: User[], lastMessage?: Message & { sender: User } })[]> {
-    // 단일 최적화된 쿼리로 채팅방, 참가자, 마지막 메시지를 한 번에 조회
-    const result = await db.execute(sql`
-      WITH last_messages AS (
-        SELECT DISTINCT ON (chat_room_id) 
-          chat_room_id,
-          id,
-          sender_id,
-          content,
-          message_type,
-          created_at,
-          updated_at
-        FROM messages 
-        ORDER BY chat_room_id, created_at DESC
-      ),
-      room_participants AS (
-        SELECT 
-          cp.chat_room_id,
-          json_agg(
-            json_build_object(
-              'id', u.id,
-              'username', u.username,
-              'displayName', u.display_name,
-              'email', u.email,
-              'profilePicture', u.profile_picture,
-              'userRole', u.user_role,
-              'isOnline', u.is_online
-            )
-          ) as participants
-        FROM chat_participants cp
-        JOIN users u ON cp.user_id = u.id
-        GROUP BY cp.chat_room_id
-      )
-      SELECT 
-        cr.*,
-        rp.participants,
-        lm.id as last_message_id,
-        lm.content as last_message_content,
-        lm.message_type as last_message_type,
-        lm.created_at as last_message_created_at,
-        lm.updated_at as last_message_updated_at,
-        sender.id as sender_id,
-        sender.username as sender_username,
-        sender.display_name as sender_display_name,
-        sender.profile_picture as sender_profile_picture
-      FROM chat_participants cp
-      JOIN chat_rooms cr ON cp.chat_room_id = cr.id
-      LEFT JOIN room_participants rp ON cr.id = rp.chat_room_id
-      LEFT JOIN last_messages lm ON cr.id = lm.chat_room_id
-      LEFT JOIN users sender ON lm.sender_id = sender.id
-      WHERE cp.user_id = ${userId}
-      ORDER BY cr.is_pinned DESC, cr.created_at DESC
-    `);
+    try {
+      // 사용자가 참여한 채팅방 조회
+      const userChatRooms = await db.select({
+        id: chatRooms.id,
+        name: chatRooms.name,
+        isGroup: chatRooms.isGroup,
+        isPinned: chatRooms.isPinned,
+        createdBy: chatRooms.createdBy,
+        createdAt: chatRooms.createdAt
+      })
+      .from(chatParticipants)
+      .innerJoin(chatRooms, eq(chatParticipants.chatRoomId, chatRooms.id))
+      .where(eq(chatParticipants.userId, userId))
+      .orderBy(desc(chatRooms.isPinned), desc(chatRooms.createdAt));
 
-    return (result as any[]).map((row: any) => {
-      const chatRoom = {
-        id: row.id,
-        name: row.name,
-        isGroup: row.is_group,
-        createdBy: row.created_by,
-        createdAt: new Date(row.created_at),
-        updatedAt: new Date(row.updated_at),
-        isPinned: row.is_pinned
-      };
+      // 각 채팅방에 대해 참가자와 마지막 메시지 조회
+      const chatRoomsWithDetails = await Promise.all(
+        userChatRooms.map(async (room) => {
+          // 참가자 조회
+          const participants = await db.select({
+            id: users.id,
+            username: users.username,
+            displayName: users.displayName,
+            email: users.email,
+            profilePicture: users.profilePicture,
+            userRole: users.userRole,
+            isOnline: users.isOnline
+          })
+          .from(chatParticipants)
+          .innerJoin(users, eq(chatParticipants.userId, users.id))
+          .where(eq(chatParticipants.chatRoomId, room.id));
 
-      const participants = row.participants ? JSON.parse(row.participants) : [];
+          // 마지막 메시지 조회
+          const lastMessages = await db.select({
+            id: messages.id,
+            senderId: messages.senderId,
+            content: messages.content,
+            messageType: messages.messageType,
+            createdAt: messages.createdAt,
+            sender: {
+              id: users.id,
+              username: users.username,
+              displayName: users.displayName,
+              profilePicture: users.profilePicture
+            }
+          })
+          .from(messages)
+          .innerJoin(users, eq(messages.senderId, users.id))
+          .where(eq(messages.chatRoomId, room.id))
+          .orderBy(desc(messages.createdAt))
+          .limit(1);
 
-      let lastMessage = undefined;
-      if (row.last_message_id) {
-        lastMessage = {
-          id: row.last_message_id,
-          chatRoomId: row.id,
-          senderId: row.sender_id,
-          content: row.last_message_content ? decryptText(row.last_message_content) : row.last_message_content,
-          messageType: row.last_message_type,
-          createdAt: new Date(row.last_message_created_at),
-          updatedAt: new Date(row.last_message_updated_at),
-          sender: {
-            id: row.sender_id,
-            username: row.sender_username,
-            displayName: row.sender_display_name,
-            profilePicture: row.sender_profile_picture,
-            email: '',
-            userRole: 'user',
-            isOnline: false,
-            isEmailVerified: true,
-            isProfileComplete: true,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          }
-        };
-      }
+          const lastMessage = lastMessages.length > 0 ? {
+            ...lastMessages[0],
+            chatRoomId: room.id,
+            content: lastMessages[0].content ? decryptText(lastMessages[0].content) : lastMessages[0].content
+          } : undefined;
 
-      return {
-        ...chatRoom,
-        participants,
-        lastMessage
-      };
-    });
+          return {
+            ...room,
+            participants,
+            lastMessage
+          };
+        })
+      );
+
+      return chatRoomsWithDetails;
+    } catch (error) {
+      console.error("Error fetching chat rooms:", error);
+      throw error;
+    }
+  }
+
+  async getChatRoomById(chatRoomId: number): Promise<(ChatRoom & { participants: User[] }) | undefined> {
   }
 
   async getChatRoomById(chatRoomId: number): Promise<(ChatRoom & { participants: User[] }) | undefined> {
