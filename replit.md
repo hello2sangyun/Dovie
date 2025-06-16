@@ -151,7 +151,13 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
 
 ## Changelog
 
-- June 16, 2025. Initial setup
+- June 16, 2025: Initial setup
+- June 16, 2025: Completed comprehensive removal of nearby chat (주변챗) functionality including:
+  - Removed location-based database tables (locationChatRooms, locationChatParticipants, locationChatMessages, userLocations)
+  - Deleted all location-based API endpoints (/api/location/*)
+  - Cleaned up storage interface and implementation methods
+  - Removed location-based cleanup intervals and automation
+  - Fixed syntax errors and maintained core chat functionality
 
 ## User Preferences
 

@@ -354,12 +354,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-
-
-
-
-
-
   // User routes
   app.put("/api/users/:id", async (req, res) => {
     try {
