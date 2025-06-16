@@ -220,8 +220,7 @@ export class DatabaseStorage implements IStorage {
       .where(and(
         eq(chatParticipants.userId, userId),
         eq(chatRooms.isLocationChat, false) // 주변챗 제외
-      ))
-      .orderBy(desc(chatRooms.isPinned), desc(chatRooms.updatedAt));
+      ));
 
     if (userChatRooms.length === 0) return [];
 
