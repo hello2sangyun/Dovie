@@ -236,35 +236,38 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(users, eq(chatParticipants.userId, users.id))
       .where(inArray(chatParticipants.chatRoomId, chatRoomIds));
 
-    // Get last messages for each chat room
+    // Get last messages for each chat room - optimized query
+    const lastMessages = await db
+      .select({
+        id: messages.id,
+        chatRoomId: messages.chatRoomId,
+        senderId: messages.senderId,
+        content: messages.content,
+        messageType: messages.messageType,
+        fileName: messages.fileName,
+        isCommandRecall: messages.isCommandRecall,
+        createdAt: messages.createdAt,
+        sender: users
+      })
+      .from(messages)
+      .innerJoin(users, eq(messages.senderId, users.id))
+      .where(inArray(messages.chatRoomId, chatRoomIds))
+      .orderBy(messages.chatRoomId, desc(messages.createdAt));
+
+    // Group by chat room and get the latest message for each
     const lastMessageByRoom = new Map<number, Message & { sender: User }>();
-    
-    for (const chatRoomId of chatRoomIds) {
-      const [lastMessage] = await db
-        .select({
-          id: messages.id,
-          chatRoomId: messages.chatRoomId,
-          senderId: messages.senderId,
-          content: messages.content,
-          messageType: messages.messageType,
-          createdAt: messages.createdAt,
-          sender: users
-        })
-        .from(messages)
-        .innerJoin(users, eq(messages.senderId, users.id))
-        .where(eq(messages.chatRoomId, chatRoomId))
-        .orderBy(desc(messages.createdAt))
-        .limit(1);
-      
-      if (lastMessage) {
-        lastMessageByRoom.set(chatRoomId, {
-          id: lastMessage.id,
-          chatRoomId: lastMessage.chatRoomId,
-          senderId: lastMessage.senderId,
-          content: decryptText(lastMessage.content),
-          messageType: lastMessage.messageType,
-          createdAt: lastMessage.createdAt,
-          sender: lastMessage.sender
+    for (const message of lastMessages) {
+      if (!lastMessageByRoom.has(message.chatRoomId)) {
+        lastMessageByRoom.set(message.chatRoomId, {
+          id: message.id,
+          chatRoomId: message.chatRoomId,
+          senderId: message.senderId,
+          content: decryptText(message.content),
+          messageType: message.messageType,
+          fileName: message.fileName,
+          isCommandRecall: message.isCommandRecall,
+          createdAt: message.createdAt,
+          sender: message.sender
         });
       }
     }
