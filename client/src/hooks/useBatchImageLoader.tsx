@@ -116,7 +116,7 @@ export function useBatchImageLoader() {
     if (validUrls.length === 0) return;
 
     // 중복 제거하고 큐에 추가
-    const uniqueUrls = [...new Set(validUrls)];
+    const uniqueUrls = Array.from(new Set(validUrls));
     queueRef.current.push(...uniqueUrls);
 
     // 배치 처리 시작
@@ -138,7 +138,7 @@ export function useBatchImageLoader() {
 
   const clearCache = useCallback(() => {
     // Blob URL 정리
-    loadedImages.forEach(blob => URL.revokeObjectURL(blob));
+    Array.from(loadedImages.values()).forEach(blob => URL.revokeObjectURL(blob));
     setLoadedImages(new Map());
     setLoadingImages(new Set());
     setFailedImages(new Set());
@@ -148,7 +148,7 @@ export function useBatchImageLoader() {
   // 컴포넌트 언마운트 시 정리
   useEffect(() => {
     return () => {
-      loadedImages.forEach(blob => URL.revokeObjectURL(blob));
+      Array.from(loadedImages.values()).forEach(blob => URL.revokeObjectURL(blob));
     };
   }, [loadedImages]);
 

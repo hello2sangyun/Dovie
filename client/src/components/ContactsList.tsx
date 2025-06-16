@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import ContactItem from "@/components/ContactItem";
+import { useBatchImageLoader } from "@/hooks/useBatchImageLoader";
 import { Plus, Search, Star } from "lucide-react";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 
@@ -39,6 +40,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [contactToBlock, setContactToBlock] = useState<any>(null);
   const [contactToDelete, setContactToDelete] = useState<any>(null);
+  const { preloadImages } = useBatchImageLoader();
 
   // Toggle favorite mutation
   const toggleFavoriteMutation = useMutation({
@@ -139,6 +141,20 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   const hasRecentPost = (userId: number) => {
     return recentPosts.some((post: any) => post.userId === userId);
   };
+
+  // 연락처 프로필 이미지 배치 미리 로딩
+  useEffect(() => {
+    if (contacts && contacts.length > 0) {
+      const profileImageUrls = contacts
+        .map((contact: any) => contact.contactUser.profilePicture)
+        .filter((url: string) => url && url.trim() !== '');
+      
+      if (profileImageUrls.length > 0) {
+        console.log(`Preloading ${profileImageUrls.length} profile images...`);
+        preloadImages(profileImageUrls);
+      }
+    }
+  }, [contacts, preloadImages]);
 
   // Optimized callback functions
   const handleToggleFavorite = useCallback((contactId: number, isPinned: boolean) => {
