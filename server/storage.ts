@@ -110,8 +110,26 @@ export class DatabaseStorage implements IStorage {
 
   async getContacts(userId: number): Promise<(Contact & { contactUser: User })[]> {
     const result = await db.select({
-      contacts,
-      users
+      // Contact fields
+      id: contacts.id,
+      userId: contacts.userId,
+      contactUserId: contacts.contactUserId,
+      nickname: contacts.nickname,
+      isPinned: contacts.isPinned,
+      isBlocked: contacts.isBlocked,
+      isFavorite: contacts.isFavorite,
+      createdAt: contacts.createdAt,
+      // Essential user fields only
+      contactUser: {
+        id: users.id,
+        username: users.username,
+        displayName: users.displayName,
+        email: users.email,
+        profilePicture: users.profilePicture,
+        isOnline: users.isOnline,
+        lastSeen: users.lastSeen,
+        userRole: users.userRole
+      }
     })
     .from(contacts)
     .innerJoin(users, eq(contacts.contactUserId, users.id))
@@ -122,8 +140,15 @@ export class DatabaseStorage implements IStorage {
     .orderBy(asc(users.displayName));
     
     return result.map(row => ({
-      ...row.contacts,
-      contactUser: row.users
+      id: row.id,
+      userId: row.userId,
+      contactUserId: row.contactUserId,
+      nickname: row.nickname,
+      isPinned: row.isPinned,
+      isBlocked: row.isBlocked,
+      isFavorite: row.isFavorite,
+      createdAt: row.createdAt,
+      contactUser: row.contactUser
     }));
   }
 
