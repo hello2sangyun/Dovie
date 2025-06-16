@@ -316,32 +316,7 @@ export default function AdminPage() {
                 </CardContent>
               </Card>
 
-              {/* Weather API */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <div className={getStatusColor(stats.apiStatus.weather.status)}>
-                      {getStatusIcon(stats.apiStatus.weather.status)}
-                    </div>
-                    <span>Weather API</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">상태</span>
-                    <Badge variant={stats.apiStatus.weather.status === 'online' ? 'default' : 'destructive'}>
-                      {stats.apiStatus.weather.status === 'online' ? '정상' : '오류'}
-                    </Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">오늘 호출</span>
-                    <span className="text-sm font-medium">{stats.apiStatus.weather.calls.toLocaleString()}</span>
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    마지막 체크: {new Date(stats.apiStatus.weather.lastCheck).toLocaleTimeString()}
-                  </div>
-                </CardContent>
-              </Card>
+
 
               {/* Database */}
               <Card>
