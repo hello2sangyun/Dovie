@@ -16,7 +16,7 @@ import CreateGroupChatModal from "@/components/CreateGroupChatModal";
 
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
-import NearbyChats from "@/components/NearbyChats";
+
 import BlockedContactsPage from "@/components/BlockedContactsPage";
 import SimpleSpacePage from "@/pages/SimpleSpacePage";
 import LinkedInSpacePage from "@/pages/LinkedInSpacePage";
@@ -34,9 +34,7 @@ export default function MainApp() {
   const [showSettings, setShowSettings] = useState(false);
   const [selectedChatRoom, setSelectedChatRoom] = useState<number | null>(null);
   const [rightPanelContent, setRightPanelContent] = useState<string | null>(null);
-  const [selectedLocationChatRoom, setSelectedLocationChatRoom] = useState<number | null>(null);
   const [showMobileChat, setShowMobileChat] = useState(false);
-  const [isLocationChatActive, setIsLocationChatActive] = useState(false);
   const [modals, setModals] = useState({
     addContact: false,
     command: false,
@@ -224,16 +222,7 @@ export default function MainApp() {
 
   const handleChatRoomSelect = (chatRoomId: number) => {
     setSelectedChatRoom(chatRoomId);
-    setSelectedLocationChatRoom(null);
-    setIsLocationChatActive(false);
     setActiveTab("chats");
-  };
-
-  const handleLocationChatRoomSelect = (chatRoomId: number) => {
-    setSelectedLocationChatRoom(chatRoomId);
-    setSelectedChatRoom(null);
-    setIsLocationChatActive(true);
-    setActiveTab("nearby");
   };
 
   const closeModals = () => {
@@ -250,28 +239,17 @@ export default function MainApp() {
   // Calculate unread counts for tabs
   const calculateUnreadCounts = () => {
     const unreadCounts = (unreadCountsData as any)?.unreadCounts || [];
-    const chatRooms = (chatRoomsData as any)?.chatRooms || [];
     
     let totalChatUnread = 0;
-    let totalNearbyUnread = 0;
     
     unreadCounts.forEach((unread: any) => {
-      const chatRoom = chatRooms.find((room: any) => room.id === unread.chatRoomId);
-      if (chatRoom) {
-        if (chatRoom.name?.includes('위치') || chatRoom.address) {
-          // Location-based chat room
-          totalNearbyUnread += unread.unreadCount;
-        } else {
-          // Regular chat room
-          totalChatUnread += unread.unreadCount;
-        }
-      }
+      totalChatUnread += unread.unreadCount;
     });
     
-    return { totalChatUnread, totalNearbyUnread };
+    return { totalChatUnread };
   };
 
-  const { totalChatUnread, totalNearbyUnread } = calculateUnreadCounts();
+  const { totalChatUnread } = calculateUnreadCounts();
 
   if (!user) {
     return <div>Loading...</div>;
@@ -302,7 +280,7 @@ export default function MainApp() {
               setRightPanelContent(null);
             }
           }} className="flex-1 flex flex-col">
-            <TabsList className="grid w-full grid-cols-5 border-b border-gray-200 dark:border-gray-700 rounded-none bg-transparent dark:bg-transparent h-auto">
+            <TabsList className="grid w-full grid-cols-4 border-b border-gray-200 dark:border-gray-700 rounded-none bg-transparent dark:bg-transparent h-auto">
               <TabsTrigger 
                 value="contacts" 
                 className={cn(
@@ -330,23 +308,7 @@ export default function MainApp() {
                 </div>
                 <span className="text-xs truncate">채팅방</span>
               </TabsTrigger>
-              <TabsTrigger 
-                value="nearby"
-                className={cn(
-                  "py-2 px-3 text-sm font-medium rounded-none border-b-2 border-transparent flex-col items-center gap-1 relative min-w-0",
-                  "data-[state=active]:border-purple-600 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-600"
-                )}
-              >
-                <div className="relative">
-                  <MapPin className="h-4 w-4" />
-                  {totalNearbyUnread > 0 && (
-                    <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[16px] h-[16px] flex items-center justify-center font-medium">
-                      {totalNearbyUnread > 99 ? '99+' : totalNearbyUnread}
-                    </div>
-                  )}
-                </div>
-                <span className="text-xs truncate">주변챗</span>
-              </TabsTrigger>
+
               <TabsTrigger 
                 value="archive"
                 className={cn(
