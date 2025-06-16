@@ -18,10 +18,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const storedUserId = localStorage.getItem("userId");
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["/api/auth/me"],
-    enabled: !!storedUserId && !user, // Only query if we have stored ID but no user
+    queryKey: ["/api/auth/me", storedUserId],
+    enabled: !!storedUserId, // Always query if we have stored ID
     refetchInterval: 30000, // 30초마다 자동 새로고침
-    staleTime: 5000, // 5초 동안 캐시 유지
+    staleTime: 1000, // 1초 동안만 캐시 유지
     queryFn: async () => {
       const response = await fetch("/api/auth/me", {
         headers: {
