@@ -469,48 +469,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/location/chat-rooms/:roomId/join", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
 
-    try {
-      const roomId = Number(req.params.roomId);
-      
-      // Get location chat room details
-      const locationRoom = await db.select().from(locationChatRooms).where(eq(locationChatRooms.id, roomId)).limit(1);
-      
-      if (locationRoom.length === 0) {
-        return res.status(404).json({ message: "채팅방을 찾을 수 없습니다." });
-      }
-
-      // Get profile data from request body
-      const { nickname, profileImageUrl } = req.body;
-      
-      if (!nickname || !nickname.trim()) {
-        return res.status(400).json({ message: "닉네임이 필요합니다." });
-      }
-
-      // Join location chat room with profile data
-      await storage.joinLocationChatRoom(Number(userId), roomId, {
-        nickname: nickname.trim(),
-        profileImageUrl
-      });
-
-      // For nearby chats, return the location room ID directly
-      // Don't create regular chat rooms for location-based chats
-      res.json({ 
-        success: true, 
-        chatRoomId: roomId, // Use location chat room ID directly
-        locationChatRoomId: roomId,
-        isLocationChat: true
-      });
-    } catch (error) {
-      console.error("Join location chat room error:", error);
-      res.status(500).json({ message: "채팅방 입장에 실패했습니다." });
-    }
-  });
 
   // Get user's profile for a specific location chat room
   app.get("/api/location/chat-rooms/:roomId/profile", async (req, res) => {
@@ -2510,21 +2469,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 위치 기반 채팅방 자동 관리 시스템
-  setInterval(async () => {
-    try {
-      // 1시간 이상 비활성 채팅방 삭제 (비즈니스 계정 제외)
-      await storage.cleanupInactiveLocationChats();
-      
-      // 참여자 0명인 채팅방 삭제
-      await storage.cleanupEmptyLocationChats();
-      
-      // 위치 벗어난 사용자 자동 퇴장 처리
-      await storage.handleLocationBasedExit();
-    } catch (error) {
-      console.error('Location chat cleanup error:', error);
-    }
-  }, 60000); // 1분마다 실행
+
 
   // Storage Analytics routes
   app.get("/api/storage/analytics", async (req, res) => {
