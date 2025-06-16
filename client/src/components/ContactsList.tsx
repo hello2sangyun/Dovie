@@ -89,6 +89,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
 
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        console.log('음성 녹음 완료, Blob 크기:', audioBlob.size, 'bytes');
         sendVoiceMessage(contact, audioBlob);
         stream.getTracks().forEach(track => track.stop());
       };
@@ -97,17 +98,9 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       setIsRecording(true);
       setRecordingContact(contact);
       
-      toast({
-        title: "음성 녹음 시작",
-        description: `${contact.nickname || contact.contactUser.displayName}에게 음성 메시지를 녹음 중입니다.`,
-      });
+      console.log('음성 녹음 시작:', contact.nickname || contact.contactUser.displayName);
     } catch (error) {
       console.error('Voice recording failed:', error);
-      toast({
-        variant: "destructive",
-        title: "녹음 실패",
-        description: "마이크 권한을 확인해주세요.",
-      });
     }
   };
 
@@ -123,7 +116,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   // 간편음성메세지 전송 (채팅방과 동일한 음성 처리)
   const sendVoiceMessage = async (contact: any, audioBlob: Blob) => {
     try {
-      console.log('간편음성메세지 전송 시작:', contact.contactUserId);
+      console.log('🎤 간편음성메세지 전송 시작:', contact.contactUserId, '파일 크기:', audioBlob.size);
       
       // 1:1 대화방 찾기 또는 생성
       const chatRoomResponse = await apiRequest('/api/chat-rooms/direct', 'POST', {
@@ -131,20 +124,22 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       });
       
       if (!chatRoomResponse.ok) {
-        console.error('채팅방 생성/찾기 실패');
+        console.error('❌ 채팅방 생성/찾기 실패:', chatRoomResponse.status);
         return;
       }
       
       const chatRoomData = await chatRoomResponse.json();
       const chatRoomId = chatRoomData.chatRoom.id;
       
-      console.log('채팅방 ID:', chatRoomId, '음성 파일 크기:', audioBlob.size);
+      console.log('📁 채팅방 확인 완료 - ID:', chatRoomId);
 
       // FormData로 음성 파일 업로드 (채팅방과 동일한 방식)
       const formData = new FormData();
       const fileName = `voice_${Date.now()}_${Math.random().toString(36).substr(2, 11)}.webm`;
       formData.append('file', audioBlob, fileName);
       formData.append('messageType', 'voice');
+
+      console.log('📤 음성 파일 업로드 시작:', fileName);
 
       const uploadResponse = await fetch(`/api/chat-rooms/${chatRoomId}/upload`, {
         method: 'POST',
@@ -155,15 +150,15 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       });
 
       if (!uploadResponse.ok) {
-        console.error('음성 파일 업로드 실패');
+        console.error('❌ 음성 파일 업로드 실패:', uploadResponse.status, await uploadResponse.text());
         return;
       }
 
       const uploadData = await uploadResponse.json();
-      console.log('음성 파일 업로드 성공:', uploadData);
+      console.log('✅ 음성 파일 업로드 성공:', uploadData);
 
       // 업로드된 파일로 음성 메시지 전송 (텍스트 변환 포함)
-      const messageResponse = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages`, 'POST', {
+      const messageData = {
         content: uploadData.transcription || '음성 메시지',
         messageType: 'voice',
         fileUrl: uploadData.fileUrl,
@@ -172,10 +167,15 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
         voiceDuration: uploadData.duration || 3,
         detectedLanguage: uploadData.language || 'korean',
         confidence: uploadData.confidence || '0.9'
-      });
+      };
+
+      console.log('💬 메시지 데이터 전송:', messageData);
+
+      const messageResponse = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages`, 'POST', messageData);
 
       if (messageResponse.ok) {
-        console.log('간편음성메세지 전송 성공 - 채팅방:', chatRoomId);
+        const messageResult = await messageResponse.json();
+        console.log('✅ 간편음성메세지 전송 성공:', messageResult);
         
         // 채팅방 목록과 메시지 캐시 무효화
         await queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
@@ -187,10 +187,11 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
           onSelectContact(contact.contactUserId);
         }, 200);
       } else {
-        console.error('간편음성메세지 전송 실패 - 응답:', await messageResponse.text());
+        const errorText = await messageResponse.text();
+        console.error('❌ 간편음성메세지 전송 실패:', messageResponse.status, errorText);
       }
     } catch (error) {
-      console.error('간편음성메세지 전송 실패:', error);
+      console.error('❌ 간편음성메세지 전체 프로세스 실패:', error);
     }
   };
 
