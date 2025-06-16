@@ -1,105 +1,138 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface ImageCacheEntry {
-  blob: Blob;
   url: string;
+  blob: string;
   timestamp: number;
 }
 
+const CACHE_DURATION = 30 * 60 * 1000; // 30분
+const MAX_CACHE_SIZE = 50; // 최대 50개 이미지 캐싱
+
 class ImageCache {
   private cache = new Map<string, ImageCacheEntry>();
-  private maxCacheSize = 50; // 최대 50개 이미지 캐시
-  private maxAge = 1000 * 60 * 30; // 30분
+  private loadingImages = new Set<string>();
 
-  async get(src: string): Promise<string | null> {
-    const entry = this.cache.get(src);
-    
-    if (!entry) return null;
-    
-    // 만료된 캐시 제거
-    if (Date.now() - entry.timestamp > this.maxAge) {
-      this.cache.delete(src);
-      URL.revokeObjectURL(entry.url);
-      return null;
+  async getImage(url: string): Promise<string | null> {
+    // 캐시에서 확인
+    const cached = this.cache.get(url);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      return cached.blob;
     }
+
+    // 이미 로딩 중인 경우 대기
+    if (this.loadingImages.has(url)) {
+      return new Promise((resolve) => {
+        const checkInterval = setInterval(() => {
+          const entry = this.cache.get(url);
+          if (entry || !this.loadingImages.has(url)) {
+            clearInterval(checkInterval);
+            resolve(entry?.blob || null);
+          }
+        }, 50);
+      });
+    }
+
+    // 새로운 이미지 로딩
+    this.loadingImages.add(url);
     
-    return entry.url;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Network response was not ok');
+      
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      
+      // 캐시 크기 관리
+      if (this.cache.size >= MAX_CACHE_SIZE) {
+        const oldestKey = Array.from(this.cache.keys())[0];
+        const oldEntry = this.cache.get(oldestKey);
+        if (oldEntry) {
+          URL.revokeObjectURL(oldEntry.blob);
+          this.cache.delete(oldestKey);
+        }
+      }
+      
+      this.cache.set(url, {
+        url,
+        blob: blobUrl,
+        timestamp: Date.now()
+      });
+      
+      return blobUrl;
+    } catch (error) {
+      console.error('Failed to load image:', error);
+      return null;
+    } finally {
+      this.loadingImages.delete(url);
+    }
   }
 
-  async set(src: string, blob: Blob): Promise<string> {
-    // 캐시 크기 제한
-    if (this.cache.size >= this.maxCacheSize) {
-      const oldestKey = this.cache.keys().next().value;
-      const oldEntry = this.cache.get(oldestKey);
-      if (oldEntry) {
-        URL.revokeObjectURL(oldEntry.url);
-        this.cache.delete(oldestKey);
+  clearExpired() {
+    const now = Date.now();
+    const entries = Array.from(this.cache.entries());
+    for (const [key, entry] of entries) {
+      if (now - entry.timestamp > CACHE_DURATION) {
+        URL.revokeObjectURL(entry.blob);
+        this.cache.delete(key);
       }
     }
-
-    const url = URL.createObjectURL(blob);
-    this.cache.set(src, {
-      blob,
-      url,
-      timestamp: Date.now(),
-    });
-
-    return url;
   }
 
   clear() {
-    this.cache.forEach(entry => {
-      URL.revokeObjectURL(entry.url);
-    });
+    const entries = Array.from(this.cache.values());
+    for (const entry of entries) {
+      URL.revokeObjectURL(entry.blob);
+    }
     this.cache.clear();
   }
 }
 
 const imageCache = new ImageCache();
 
-export function useImageCache() {
-  const [cachedImages, setCachedImages] = useState<Map<string, string>>(new Map());
+// 주기적으로 만료된 캐시 정리
+setInterval(() => {
+  imageCache.clearExpired();
+}, 5 * 60 * 1000); // 5분마다
 
-  const loadImage = useCallback(async (src: string): Promise<string> => {
-    // 이미 로드된 이미지인지 확인
-    const cached = cachedImages.get(src);
-    if (cached) return cached;
+export function useImageCache(url?: string) {
+  const [cachedUrl, setCachedUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(false);
+  const isMountedRef = useRef(true);
 
-    // 캐시에서 확인
-    const cachedUrl = await imageCache.get(src);
-    if (cachedUrl) {
-      setCachedImages(prev => new Map(prev).set(src, cachedUrl));
-      return cachedUrl;
-    }
-
-    // 새로 로드
-    try {
-      const response = await fetch(src);
-      const blob = await response.blob();
-      const url = await imageCache.set(src, blob);
-      
-      setCachedImages(prev => new Map(prev).set(src, url));
-      return url;
-    } catch (error) {
-      console.error('Failed to load image:', error);
-      return src; // 원본 URL 반환
-    }
-  }, [cachedImages]);
-
-  const preloadImages = useCallback(async (srcs: string[]) => {
-    const promises = srcs.map(src => loadImage(src));
-    await Promise.allSettled(promises);
-  }, [loadImage]);
-
-  const clearCache = useCallback(() => {
-    imageCache.clear();
-    setCachedImages(new Map());
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
-  return {
-    loadImage,
-    preloadImages,
-    clearCache,
-    cacheSize: cachedImages.size,
-  };
+  useEffect(() => {
+    if (!url) {
+      setCachedUrl(null);
+      setIsLoading(false);
+      setError(false);
+      return;
+    }
+
+    setIsLoading(true);
+    setError(false);
+
+    imageCache.getImage(url)
+      .then((result) => {
+        if (isMountedRef.current) {
+          setCachedUrl(result);
+          setIsLoading(false);
+          setError(!result);
+        }
+      })
+      .catch(() => {
+        if (isMountedRef.current) {
+          setError(true);
+          setIsLoading(false);
+        }
+      });
+  }, [url]);
+
+  return { cachedUrl, isLoading, error };
 }
