@@ -53,7 +53,11 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
 
   // 길게 누르기 시작
   const handleLongPressStart = (contact: any) => {
+    console.log('🎯 간편음성메세지 - 길게 누르기 시작:', contact.contactUser.displayName || contact.contactUser.nickname || contact.contactUser.username);
+    
     const timer = setTimeout(() => {
+      console.log('🎤 간편음성메세지 - 0.5초 후 녹음 시작');
+      setRecordingContact(contact);
       startVoiceRecording(contact);
     }, 500); // 0.5초 후 녹음 시작
     
@@ -62,12 +66,16 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
 
   // 길게 누르기 끝
   const handleLongPressEnd = () => {
+    console.log('🛑 간편음성메세지 - 길게 누르기 끝, 녹음 중:', isRecording);
+    
     if (longPressTimer) {
       clearTimeout(longPressTimer);
       setLongPressTimer(null);
+      console.log('⏰ 타이머 취소됨 (0.5초 전에 놓음)');
     }
     
     if (isRecording) {
+      console.log('🎤 녹음 종료 시작');
       stopVoiceRecording();
     }
   };
