@@ -261,10 +261,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     },
   });
 
-  // Get commands for suggestions (only for regular chats)
+  // Get commands for suggestions
   const { data: commandsData } = useQuery({
     queryKey: ["/api/commands", { chatRoomId }],
-    enabled: !!user && !!chatRoomId && !isLocationChatRoom,
+    enabled: !!user && !!chatRoomId,
     queryFn: async () => {
       const response = await fetch(`/api/commands?chatRoomId=${chatRoomId}`, {
         headers: { "x-user-id": user!.id.toString() },
@@ -277,19 +277,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
-      const endpoint = isLocationChatRoom 
-        ? `/api/location/chat-rooms/${chatRoomId}/messages`
-        : `/api/chat-rooms/${chatRoomId}/messages`;
+      const endpoint = `/api/chat-rooms/${chatRoomId}/messages`;
       
       const response = await apiRequest(endpoint, "POST", messageData);
       return response.json();
     },
     onSuccess: () => {
-      const queryKey = isLocationChatRoom ? "/api/location/chat-rooms" : "/api/chat-rooms";
-      queryClient.invalidateQueries({ queryKey: [queryKey, chatRoomId, "messages"] });
-      if (!isLocationChatRoom) {
-        queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
-      }
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms", chatRoomId, "messages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
       setMessage("");
       setShowCommandSuggestions(false);
       setReplyToMessage(null); // 회신 상태 초기화
