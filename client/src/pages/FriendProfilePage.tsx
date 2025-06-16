@@ -34,20 +34,7 @@ interface BusinessPost {
   };
 }
 
-interface BusinessCard {
-  id: number;
-  userId: number;
-  fullName?: string;
-  companyName?: string;
-  jobTitle?: string;
-  department?: string;
-  email?: string;
-  phoneNumber?: string;
-  website?: string;
-  address?: string;
-  description?: string;
-  cardImageUrl?: string;
-}
+
 
 interface BusinessProfile {
   id: number;

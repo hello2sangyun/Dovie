@@ -132,33 +132,7 @@ export default function ModernSettingsPage({ isMobile = false }: ModernSettingsP
           <div className="space-y-3">
             <h4 className="text-sm font-semibold text-gray-700 px-2">비즈니스</h4>
             
-            <Card 
-              className="bg-white/80 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group active:scale-95"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Business Card clicked');
-                setActiveView('business-card');
-              }}
-              onTouchEnd={(e) => {
-                e.preventDefault();
-                console.log('Business Card touched');
-                setActiveView('business-card');
-              }}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <CreditCard className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h5 className="font-semibold text-gray-900">디지털 명함</h5>
-                    <p className="text-xs text-gray-500">명함 정보 관리 및 공유</p>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
-                </div>
-              </CardContent>
-            </Card>
+
 
             <Card 
               className="bg-white/80 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group active:scale-95"
