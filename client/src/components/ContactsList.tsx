@@ -477,7 +477,9 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
             {searchTerm ? "검색 결과가 없습니다" : "연락처가 없습니다"}
           </div>
         ) : (
-          filteredAndSortedContacts.map((contact: any) => (
+          filteredAndSortedContacts.map((contact: any) => {
+            console.log('🔍 연락처 렌더링:', contact.contactUser?.displayName || contact.contactUser?.username);
+            return (
             <div
               key={contact.id}
               className={cn(
@@ -617,7 +619,8 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                 </div>
               </div>
             </div>
-          ))
+            );
+          })
         )}
       </div>
 
