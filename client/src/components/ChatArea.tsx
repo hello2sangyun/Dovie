@@ -910,10 +910,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const commands = commandsData?.commands || [];
   const contacts = contactsData?.contacts || [];
 
-  // Get unread counts to detect first unread message (only for regular chats)
+  // Get unread counts to detect first unread message
   const { data: unreadData } = useQuery({
     queryKey: ["/api/unread-counts"],
-    enabled: !!user && !isLocationChatRoom,
+    enabled: !!user,
     refetchInterval: 5000, // Check every 5 seconds
   });
 
@@ -3656,11 +3656,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         "flex-shrink-0 sticky top-0 z-10",
         showMobileHeader ? "px-3 py-2" : "p-4",
         uiAdaptations.compactMode && "p-2",
-        // 주변챗용 특별한 디자인
-        isLocationChatRoom 
-          ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-b-2 border-blue-200" 
-          : "bg-white border-b border-gray-200",
-        uiAdaptations.focusMode && !isLocationChatRoom && "bg-blue-50 border-blue-200"
+        "bg-white border-b border-gray-200",
+        uiAdaptations.focusMode && "bg-blue-50 border-blue-200"
       )}>
         <div className="flex items-center justify-between min-h-0">
           <div className="flex items-center flex-1 min-w-0 space-x-2">
@@ -3764,17 +3761,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                 <h3 className={cn(
                   "font-semibold truncate flex-1 min-w-0 flex items-center space-x-2",
                   showMobileHeader ? "text-base" : "text-lg",
-                  // 주변챗용 특별한 색상
-                  isLocationChatRoom ? "text-blue-700" : "text-gray-900"
+                  "text-gray-900"
                 )}
                 title={chatRoomDisplayName}
                 >
                   <span className="truncate font-bold">{chatRoomDisplayName}</span>
-                  {isLocationChatRoom && (
-                    <span className="flex-shrink-0 text-blue-600 text-lg" title="주변챗">
-                      📍
-                    </span>
-                  )}
                 </h3>
                 
                 {/* Compact Indicators for Mobile */}
@@ -3817,7 +3808,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            {!isLocationChatRoom && (
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -3826,28 +3816,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               >
                 <Search className="h-4 w-4" />
               </Button>
-            )}
-            {/* 영상통화/전화 버튼 - 주변챗에서는 숨김 */}
-            {!isLocationChatRoom && (
-              <>
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-purple-600">
-                  <Video className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-purple-600">
-                  <Phone className="h-4 w-4" />
-                </Button>
-              </>
-            )}
-            {/* 주변챗용 특별한 정보 버튼 */}
-            {isLocationChatRoom ? (
-              <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-                <MapPin className="h-4 w-4" />
+              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-purple-600">
+                <Video className="h-4 w-4" />
               </Button>
-            ) : (
+              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-purple-600">
+                <Phone className="h-4 w-4" />
+              </Button>
               <Button variant="ghost" size="sm" className="text-gray-400 hover:text-purple-600">
                 <Info className="h-4 w-4" />
               </Button>
-            )}
             <div className="relative">
               <Button 
                 variant="ghost" 
@@ -4026,40 +4003,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   )}
                 >
                   <div className="flex flex-col items-center">
-                    {isLocationChatRoom ? (
-                      // 주변챗에서는 임시 프로필 표시
-                      <div className="w-10 h-10 rounded-full border-2 border-white shadow-sm">
-                        {isMe && locationChatProfile?.profileImageUrl ? (
-                          <img 
-                            src={locationChatProfile.profileImageUrl} 
-                            alt="프로필" 
-                            className="w-full h-full rounded-full object-cover"
-                          />
-                        ) : !isMe && msg.locationProfile?.profileImageUrl ? (
-                          <img 
-                            src={msg.locationProfile.profileImageUrl} 
-                            alt="프로필" 
-                            className="w-full h-full rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className={`w-full h-full rounded-full bg-gradient-to-br ${getAvatarColor(isMe ? (locationChatProfile?.nickname || "나") : (msg.locationProfile?.nickname || msg.sender.displayName))} flex items-center justify-center text-white text-sm font-semibold`}>
-                            {(isMe ? (locationChatProfile?.nickname || "나") : (msg.locationProfile?.nickname || msg.sender.displayName)).charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      // 일반 채팅에서는 원래 프로필 표시
                       <UserAvatar 
                         user={isMe ? user : msg.sender} 
                         size="md" 
                         fallbackClassName={`bg-gradient-to-br ${getAvatarColor(isMe ? (user?.displayName || "Me") : msg.sender.displayName)}`}
                       />
-                    )}
                     <span className="text-xs text-gray-600 mt-1 text-center max-w-[60px] truncate">
-                      {isLocationChatRoom 
-                        ? (isMe ? (locationChatProfile?.nickname || "나") : (msg.locationProfile?.nickname || msg.sender.displayName))
-                        : (isMe ? (user?.displayName || "나") : msg.sender.displayName)
-                      }
+                      {isMe ? (user?.displayName || "나") : msg.sender.displayName}
                     </span>
                   </div>
                   
@@ -4071,10 +4021,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     {!isMe && (
                       <div className="flex items-center space-x-2 mb-1">
                         <span className="text-sm font-medium text-gray-900">
-                          {isLocationChatRoom 
-                            ? (msg.locationProfile?.nickname || msg.sender.displayName)
-                            : msg.sender.displayName
-                          }
+                          {msg.sender.displayName}
                         </span>
                         <span className="text-xs text-gray-500">
                           {formatTime(msg.createdAt)}
@@ -4888,7 +4835,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             
             <Textarea
               ref={messageInputRef}
-              placeholder={isLocationChatRoom ? "📍 주변챗에 메시지를 입력하세요..." : "메시지를 입력하세요..."}
+              placeholder="메시지를 입력하세요..."
               value={message}
               onChange={(e) => {
                 const newValue = e.target.value;
