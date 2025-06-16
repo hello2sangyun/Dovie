@@ -22,7 +22,7 @@ import SimpleSpacePage from "@/pages/SimpleSpacePage";
 import LinkedInSpacePage from "@/pages/LinkedInSpacePage";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, MapPin, Building2, Shield, UserX } from "lucide-react";
+import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, Building2, Shield, UserX } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function MainApp() {
@@ -275,7 +275,6 @@ export default function MainApp() {
             if (value === "archive" || value === "settings") {
               setRightPanelContent(value);
               setSelectedChatRoom(null);
-              setSelectedLocationChatRoom(null);
             } else {
               setRightPanelContent(null);
             }
