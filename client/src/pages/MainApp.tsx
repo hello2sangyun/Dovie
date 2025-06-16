@@ -288,14 +288,14 @@ export default function MainApp() {
           {/* Navigation Tabs */}
           <Tabs value={activeTab} onValueChange={(value) => {
             setActiveTab(value);
-            if (value === "archive" || value === "settings") {
+            if (value === "settings") {
               setRightPanelContent(value);
               setSelectedChatRoom(null);
             } else {
               setRightPanelContent(null);
             }
           }} className="flex-1 flex flex-col">
-            <TabsList className="grid w-full grid-cols-4 border-b border-gray-200 dark:border-gray-700 rounded-none bg-transparent dark:bg-transparent h-auto">
+            <TabsList className="grid w-full grid-cols-3 border-b border-gray-200 dark:border-gray-700 rounded-none bg-transparent dark:bg-transparent h-auto">
               <TabsTrigger 
                 value="contacts" 
                 className={cn(
@@ -324,16 +324,7 @@ export default function MainApp() {
                 <span className="text-xs truncate">채팅방</span>
               </TabsTrigger>
 
-              <TabsTrigger 
-                value="archive"
-                className={cn(
-                  "py-2 px-3 text-sm font-medium rounded-none border-b-2 border-transparent flex-col items-center gap-1 min-w-0",
-                  "data-[state=active]:border-purple-600 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-600"
-                )}
-              >
-                <Archive className="h-4 w-4" />
-                <span className="text-xs truncate">저장소</span>
-              </TabsTrigger>
+
               <TabsTrigger 
                 value="settings"
                 className={cn(
@@ -372,11 +363,7 @@ export default function MainApp() {
               
 
               
-              <TabsContent value="archive" className="h-full m-0">
-                <div className="h-full flex items-center justify-center text-gray-500">
-                  <p>저장소 내용은 우측 패널에서 확인하세요</p>
-                </div>
-              </TabsContent>
+
               
               <TabsContent value="settings" className="h-full m-0">
                 <div className="h-full overflow-y-auto">

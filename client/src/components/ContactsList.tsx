@@ -438,8 +438,16 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
               return (
                 <div key={contact.id} className="flex flex-col items-center space-y-1 flex-shrink-0">
                   <div 
-                    className="relative cursor-pointer hover:opacity-75 transition-opacity"
+                    className={cn(
+                      "relative cursor-pointer hover:opacity-75 transition-opacity",
+                      isRecording && recordingContact?.id === contact.id && "ring-2 ring-red-300"
+                    )}
                     onClick={() => setLocation(`/friend/${contact.contactUserId}`)}
+                    onMouseDown={() => handleLongPressStart(contact)}
+                    onMouseUp={handleLongPressEnd}
+                    onMouseLeave={handleLongPressEnd}
+                    onTouchStart={() => handleLongPressStart(contact)}
+                    onTouchEnd={handleLongPressEnd}
                   >
                     <PrismAvatar
                       src={contact.contactUser.profilePicture}
