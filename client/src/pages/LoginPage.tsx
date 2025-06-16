@@ -48,10 +48,7 @@ export default function LoginPage() {
       if (formData.email === "master@master.com") {
         console.log("관리자 로그인 - /admin으로 이동");
         setTimeout(() => setLocation("/admin"), 50);
-        toast({
-          title: "관리자 로그인",
-          description: "관리자 페이지로 이동합니다.",
-        });
+        // 관리자 로그인 - 알림 제거
         return;
       }
       
@@ -59,20 +56,14 @@ export default function LoginPage() {
       if (!data.user.isProfileComplete) {
         console.log("프로필 미완성 - /profile-setup으로 이동");
         setTimeout(() => setLocation("/profile-setup"), 50);
-        toast({
-          title: "로그인 성공",
-          description: "프로필을 완성해주세요!",
-        });
+        // 프로필 미완성 - 알림 제거
       } else {
         console.log("프로필 완성됨 - /app으로 이동");
         
         // React Query 캐시 무효화하여 사용자 상태 즉시 업데이트
         queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
         
-        toast({
-          title: "로그인 성공",
-          description: `${data.user.displayName}님 환영합니다!`,
-        });
+        // 로그인 성공 - 알림 제거
         
         // 마이크 권한 요청
         const requestMicrophonePermission = async () => {
@@ -92,11 +83,7 @@ export default function LoginPage() {
       }
     },
     onError: (error: any) => {
-      toast({
-        variant: "destructive",
-        title: "로그인 실패",
-        description: error.message || "이메일 또는 비밀번호를 확인해주세요.",
-      });
+      // 로그인 실패 - 알림 제거
     },
   });
 
@@ -109,17 +96,10 @@ export default function LoginPage() {
       setUser(data.user);
       localStorage.setItem("userId", data.user.id.toString());
       setLocation("/app");
-      toast({
-        title: "테스트 로그인 성공",
-        description: `${data.user.displayName}님 환영합니다!`,
-      });
+      // 테스트 로그인 성공 - 알림 제거
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "로그인 실패",
-        description: "다시 시도해주세요.",
-      });
+      // 테스트 로그인 실패 - 알림 제거
     },
   });
 

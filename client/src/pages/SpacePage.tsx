@@ -118,17 +118,10 @@ export default function SpacePage() {
       setNewPostContent("");
       setNewPostTitle("");
       setIsCreatingPost(false);
-      toast({
-        title: "포스트 작성 완료",
-        description: "새로운 포스트가 성공적으로 발행되었습니다.",
-      });
+      // 포스트 작성 완료 - 알림 제거
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "포스트 작성 실패",
-        description: "다시 시도해주세요.",
-      });
+      // 포스트 작성 실패 - 알림 제거
     },
   });
 
@@ -157,11 +150,7 @@ export default function SpacePage() {
 
   const handleCreatePost = () => {
     if (!newPostContent.trim()) {
-      toast({
-        variant: "destructive",
-        title: "내용을 입력해주세요",
-        description: "포스트 내용은 필수입니다.",
-      });
+      // 내용 입력 필요 - 알림 제거
       return;
     }
 

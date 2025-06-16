@@ -193,17 +193,9 @@ export default function MainApp() {
       queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
       setSelectedChatRoom(data.chatRoom.id);
       setActiveTab("chats");
-      toast({
-        title: "채팅방 생성 완료",
-        description: "새로운 채팅방이 생성되었습니다.",
-      });
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "채팅방 생성 실패",
-        description: "다시 시도해주세요.",
-      });
+      // 채팅방 생성 실패 - 알림 제거
     },
   });
 
