@@ -22,7 +22,7 @@ import SimpleSpacePage from "@/pages/SimpleSpacePage";
 import LinkedInSpacePage from "@/pages/LinkedInSpacePage";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, MapPin, Building2, Shield, UserX } from "lucide-react";
+import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, Building2, Shield, UserX } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function MainApp() {
@@ -1023,27 +1023,7 @@ export default function MainApp() {
                 </div>
                 <span className="text-xs mt-0.5">채팅방</span>
               </Button>
-              <Button
-                variant="ghost"
-                className={cn(
-                  "flex flex-col items-center py-1 px-2 relative",
-                  activeMobileTab === "nearby" ? "text-purple-600" : "text-gray-400"
-                )}
-                onClick={() => {
-                  setActiveMobileTab("nearby");
-                  // NEW 알림 클릭시 제거 로직은 NearbyChats 컴포넌트에서 처리
-                }}
-              >
-                <div className="relative">
-                  <MapPin className="h-4 w-4" />
-                  {totalNearbyUnread > 0 && (
-                    <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[16px] h-[16px] flex items-center justify-center font-medium">
-                      {totalNearbyUnread > 9 ? '9+' : totalNearbyUnread}
-                    </div>
-                  )}
-                </div>
-                <span className="text-xs mt-0.5">주변챗</span>
-              </Button>
+
               <Button
                 variant="ghost"
                 className={cn(

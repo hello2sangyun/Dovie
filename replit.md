@@ -111,6 +111,13 @@ Dovie Messenger is a full-stack messaging application built with React, TypeScri
 ```
 Changelog:
 - June 16, 2025. Initial setup
+- June 16, 2025. Complete removal of ALL location chat (주변챗) functionality
+  - Removed location permission requests from useAuth.tsx
+  - Eliminated location chat tabs from desktop and mobile navigation
+  - Cleaned up location chat references from ChatArea.tsx and MainApp.tsx
+  - Removed location-based unread count calculations
+  - Updated mobile interface to remove nearby chat navigation
+  - Database migration to remove location chat tables
 ```
 
 ## User Preferences
