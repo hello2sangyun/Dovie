@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -26,7 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, Star, MoreVertical, UserX, Trash2, Shield } from "lucide-react";
+import { Plus, Search, Star, MoreVertical, UserX, Trash2, Shield, Mic } from "lucide-react";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 
 interface ContactsListProps {
@@ -45,6 +45,166 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [contactToBlock, setContactToBlock] = useState<any>(null);
   const [contactToDelete, setContactToDelete] = useState<any>(null);
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingContact, setRecordingContact] = useState<any>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+
+  // 길게 누르기 시작
+  const handleLongPressStart = (contact: any) => {
+    const timer = setTimeout(() => {
+      startVoiceRecording(contact);
+    }, 500); // 0.5초 후 녹음 시작
+    
+    setLongPressTimer(timer);
+  };
+
+  // 길게 누르기 끝
+  const handleLongPressEnd = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+    
+    if (isRecording) {
+      stopVoiceRecording();
+    }
+  };
+
+  // 음성 녹음 시작
+  const startVoiceRecording = async (contact: any) => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      
+      mediaRecorderRef.current = mediaRecorder;
+      chunksRef.current = [];
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        sendVoiceMessage(contact, audioBlob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      setRecordingContact(contact);
+      
+      toast({
+        title: "음성 녹음 시작",
+        description: `${contact.nickname || contact.contactUser.displayName}에게 음성 메시지를 녹음 중입니다.`,
+      });
+    } catch (error) {
+      console.error('Voice recording failed:', error);
+      toast({
+        variant: "destructive",
+        title: "녹음 실패",
+        description: "마이크 권한을 확인해주세요.",
+      });
+    }
+  };
+
+  // 음성 녹음 중지
+  const stopVoiceRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      setRecordingContact(null);
+    }
+  };
+
+  // 음성 메시지 전송
+  const sendVoiceMessage = async (contact: any, audioBlob: Blob) => {
+    try {
+      // 1:1 대화방 찾기 또는 생성
+      const chatRoomResponse = await apiRequest('/api/chat-rooms/direct', 'POST', {
+        participantId: contact.contactUserId
+      });
+      
+      if (!chatRoomResponse.ok) {
+        throw new Error('Failed to create/find chat room');
+      }
+      
+      const chatRoomData = await chatRoomResponse.json();
+      const chatRoomId = chatRoomData.chatRoom.id;
+
+      // 음성 파일 업로드
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'voice_message.webm');
+      
+      const uploadResponse = await fetch('/api/upload-voice', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'x-user-id': user!.id.toString(),
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Voice upload failed');
+      }
+
+      const uploadData = await uploadResponse.json();
+
+      // 음성 변환
+      const transcribeResponse = await fetch('/api/transcribe', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'x-user-id': user!.id.toString(),
+        },
+      });
+
+      let transcription = '';
+      let detectedLanguage = 'korean';
+      let confidence = '0.9';
+
+      if (transcribeResponse.ok) {
+        const transcribeData = await transcribeResponse.json();
+        transcription = transcribeData.transcription || '';
+        detectedLanguage = transcribeData.language || 'korean';
+        confidence = transcribeData.confidence || '0.9';
+      }
+
+      // 메시지 전송
+      const messageResponse = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages`, 'POST', {
+        content: transcription,
+        messageType: 'voice',
+        fileUrl: uploadData.fileUrl,
+        fileName: 'voice_message.webm',
+        fileSize: audioBlob.size,
+        voiceDuration: Math.ceil(audioBlob.size / 16000), // 대략적인 지속시간 계산
+        detectedLanguage,
+        confidence
+      });
+
+      if (messageResponse.ok) {
+        toast({
+          title: "음성 메시지 전송 완료",
+          description: `${contact.nickname || contact.contactUser.displayName}에게 음성 메시지를 전송했습니다.`,
+        });
+        
+        // 해당 대화방으로 이동
+        onSelectContact(contact.contactUserId);
+      } else {
+        throw new Error('Message send failed');
+      }
+    } catch (error) {
+      console.error('Voice message send failed:', error);
+      toast({
+        variant: "destructive",
+        title: "전송 실패",
+        description: "음성 메시지 전송 중 오류가 발생했습니다.",
+      });
+    }
+  };
 
   // Toggle favorite mutation
   const toggleFavoriteMutation = useMutation({
@@ -314,12 +474,20 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
           filteredAndSortedContacts.map((contact: any) => (
             <div
               key={contact.id}
-              className="px-3 py-2 hover:bg-purple-50 border-b border-gray-100 transition-colors group"
+              className={cn(
+                "px-3 py-2 hover:bg-purple-50 border-b border-gray-100 transition-colors group",
+                isRecording && recordingContact?.id === contact.id && "bg-red-50 ring-2 ring-red-300"
+              )}
             >
               <div className="flex items-center space-x-2">
                 <div 
                   className="cursor-pointer flex-1 flex items-center space-x-2"
                   onClick={() => onSelectContact(contact.contactUserId)}
+                  onMouseDown={() => handleLongPressStart(contact)}
+                  onMouseUp={handleLongPressEnd}
+                  onMouseLeave={handleLongPressEnd}
+                  onTouchStart={() => handleLongPressStart(contact)}
+                  onTouchEnd={handleLongPressEnd}
                 >
                   <div
                     className="cursor-pointer"
@@ -423,7 +591,15 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
         )}
       </div>
 
-
+      {/* 음성 녹음 상태 표시 */}
+      {isRecording && recordingContact && (
+        <div className="fixed top-4 right-4 z-50 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2 animate-pulse">
+          <Mic className="h-4 w-4" />
+          <span className="text-sm font-medium">
+            {recordingContact.nickname || recordingContact.contactUser.displayName}에게 음성 메시지 녹음 중...
+          </span>
+        </div>
+      )}
 
       {/* 차단 확인 다이얼로그 */}
       <AlertDialog open={showBlockConfirm} onOpenChange={setShowBlockConfirm}>
