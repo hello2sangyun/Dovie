@@ -164,21 +164,29 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
 
       let uploadData;
       try {
+        // 응답을 텍스트로 먼저 읽음
         const responseText = await uploadResponse.text();
-        console.log('📤 업로드 응답 원본:', responseText);
+        console.log('📤 업로드 응답 상태:', uploadResponse.status);
+        console.log('📤 업로드 응답 헤더:', Object.fromEntries(uploadResponse.headers.entries()));
+        console.log('📤 업로드 응답 원본 텍스트:', responseText.substring(0, 500));
+        
+        if (responseText.startsWith('<!DOCTYPE') || responseText.includes('<html>')) {
+          console.error('❌ HTML 응답 수신됨 - 엔드포인트가 존재하지 않거나 오류 발생');
+          throw new Error('Server returned HTML instead of JSON');
+        }
+        
         uploadData = JSON.parse(responseText);
         console.log('✅ 음성 파일 업로드 성공:', uploadData);
       } catch (parseError) {
         console.error('❌ 업로드 응답 파싱 실패:', parseError);
-        // 업로드가 실패해도 기본 메시지로 진행
-        uploadData = {
-          transcription: '음성 메시지',
-          fileUrl: `/uploads/voice_${Date.now()}.webm`,
-          fileName: 'voice_message.webm',
-          fileSize: audioBlob.size,
-          duration: 3,
-          language: 'korean'
-        };
+        console.error('❌ 파싱 오류 세부사항:', {
+          message: parseError.message,
+          status: uploadResponse.status,
+          url: uploadResponse.url
+        });
+        
+        // 기본값으로 진행하지 않고 오류 반환
+        throw new Error(`Upload failed: ${parseError.message}`);
       }
 
       // 업로드된 파일로 음성 메시지 전송 (텍스트 변환 포함)

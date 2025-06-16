@@ -1051,10 +1051,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             fileUrl,
             fileName: req.file.originalname,
             fileSize: req.file.size,
-            transcription: transcriptionResult.text,
-            language: transcriptionResult.language,
-            duration: transcriptionResult.duration,
-            confidence: '0.9'
+            transcription: transcriptionResult.transcription || '음성 메시지',
+            language: transcriptionResult.detectedLanguage || 'korean',
+            duration: transcriptionResult.duration || 3,
+            confidence: String(transcriptionResult.confidence || 0.9)
           });
         } catch (transcriptionError) {
           console.error('Transcription failed:', transcriptionError);
