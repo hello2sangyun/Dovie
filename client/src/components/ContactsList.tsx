@@ -172,11 +172,10 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     }
   };
 
-  // 즐겨찾기 친구와 일반 친구 분리
+  // 즐겨찾기 친구와 모든 친구 분리
   const favoriteContacts = contacts.filter((contact: any) => contact.isPinned);
-  const regularContacts = contacts.filter((contact: any) => !contact.isPinned);
 
-  const filteredAndSortedContacts = regularContacts
+  const filteredAndSortedContacts = contacts
     .filter((contact: any) => {
       // 본인 계정 제외
       if (contact.contactUser.id === user?.id) {
