@@ -45,12 +45,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const { toast } = useToast();
   
   // Regular chat room functionality only
-  
-  // Debug logging
-  console.log('ChatArea rendered:', {
-    chatRoomId,
-    showMobileHeader
-  });
   const queryClient = useQueryClient();
   const [message, setMessage] = useState("");
   
@@ -205,6 +199,23 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
+  
+  // Smart suggestions state
+  const [showSmartSuggestions, setShowSmartSuggestions] = useState(false);
+  const [smartSuggestions, setSmartSuggestions] = useState<any[]>([]);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
+  const [suggestionTimeout, setSuggestionTimeout] = useState<NodeJS.Timeout | null>(null);
+  
+  // Helper function for expression evaluation
+  const evaluateExpression = (expression: string) => {
+    try {
+      // Basic mathematical expression evaluation
+      const sanitized = expression.replace(/[^0-9+\-*/().]/g, '');
+      return Function('"use strict"; return (' + sanitized + ')')();
+    } catch {
+      return null;
+    }
+  };
   
   // 길게 터치 관련 상태
   const [touchTimer, setTouchTimer] = useState<NodeJS.Timeout | null>(null);
@@ -1554,22 +1565,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
   };
 
-  // 스마트 채팅 상태
-  const [smartSuggestions, setSmartSuggestions] = useState<Array<{
-    type: 'calculation' | 'currency' | 'schedule' | 'translation' | 'address' | 'poll' | 'todo' | 'timer' | 'emotion' | 'food' | 'youtube' | 'news' | 'unit' | 'search' | 'birthday' | 'meeting' | 'reminder' | 'quote' | 'question' | 'followup' | 'summary' | 'decision' | 'category' | 'file_summary' | 'topic_info' | 'mannertone' | 'file_request';
-    text: string;
-    result: string;
-    amount?: number;
-    fromCurrency?: string;
-    toCurrency?: string;
-    rate?: number;
-    icon?: string;
-    category?: string;
-    action?: () => void;
-  }>>([]);
-  const [showSmartSuggestions, setShowSmartSuggestions] = useState(false);
-  const [suggestionTimeout, setSuggestionTimeout] = useState<NodeJS.Timeout | null>(null);
-  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
+  // Smart suggestions state already declared above
   const [isNavigatingWithKeyboard, setIsNavigatingWithKeyboard] = useState(false);
   const [isHoveringOverSuggestions, setIsHoveringOverSuggestions] = useState(false);
   const [smartResultModal, setSmartResultModal] = useState<{show: boolean, title: string, content: string}>({
@@ -4747,10 +4743,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
         <div className={cn(
           "px-2 py-0.5 chat-input-area",
-          // 주변챗용 특별한 디자인
-          isLocationChatRoom 
-            ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-t-2 border-blue-200" 
-            : "bg-white border-t border-gray-200"
+          "bg-white border-t border-gray-200"
         )}>
           <div className="flex items-center space-x-1">
           {/* Compact left buttons group */}
