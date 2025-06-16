@@ -417,77 +417,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Location chat messages routes
-  app.get("/api/location/chat-rooms/:roomId/messages", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
 
-    try {
-      const roomId = Number(req.params.roomId);
-      
-      // Verify user is participant in location chat
-      const profile = await storage.getLocationChatProfile(Number(userId), roomId);
-      if (!profile) {
-        return res.status(403).json({ message: "Not a participant in this location chat" });
-      }
-
-      // Get messages from location chat room
-      const messages = await storage.getLocationChatMessages(roomId);
-      res.json({ messages });
-    } catch (error) {
-      console.error("Get location messages error:", error);
-      res.status(500).json({ message: "Failed to get messages" });
-    }
-  });
-
-  app.post("/api/location/chat-rooms/:roomId/messages", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      const roomId = Number(req.params.roomId);
-      
-      // Verify user is participant in location chat
-      const profile = await storage.getLocationChatProfile(Number(userId), roomId);
-      if (!profile) {
-        return res.status(403).json({ message: "Not a participant in this location chat" });
-      }
-
-      const messageData = req.body;
-      const newMessage = await storage.createLocationChatMessage(roomId, Number(userId), {
-        content: messageData.content,
-        messageType: messageData.messageType || "text",
-        fileName: messageData.fileName,
-        fileSize: messageData.fileSize,
-        voiceDuration: messageData.voiceDuration,
-        detectedLanguage: messageData.detectedLanguage
-      });
-
-      // For location chat, create response with profile info
-      const user = await storage.getUser(Number(userId));
-      const messageWithSender = {
-        ...newMessage,
-        sender: user,
-        senderProfile: profile
-      };
-
-      // Broadcast to location chat participants via WebSocket
-      broadcastToRoom(roomId, {
-        type: "new_message",
-        message: messageWithSender,
-        isLocationChat: true
-      });
-
-      res.json({ message: messageWithSender });
-    } catch (error) {
-      console.error("Location message creation error:", error);
-      res.status(500).json({ message: "Failed to send message" });
-    }
-  });
 
   // Contact routes
   app.get("/api/contacts", async (req, res) => {
@@ -2367,20 +2297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 위치 기반 채팅방 자동 관리 시스템
-  setInterval(async () => {
-    try {
-      // 1시간 이상 비활성 채팅방 삭제 (비즈니스 계정 제외)
-      await storage.cleanupInactiveLocationChats();
-      
-      // 참여자 0명인 채팅방 삭제
-      await storage.cleanupEmptyLocationChats();
-      
-      // 위치 벗어난 사용자 자동 퇴장 처리
-      await storage.handleLocationBasedExit();
-    } catch (error) {
-      console.error('Location chat cleanup error:', error);
-    }
-  }, 60000); // 1분마다 실행
+
 
   // Storage Analytics routes
   app.get("/api/storage/analytics", async (req, res) => {
