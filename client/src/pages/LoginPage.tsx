@@ -74,8 +74,21 @@ export default function LoginPage() {
           description: `${data.user.displayName}님 환영합니다!`,
         });
         
-        // 상태 업데이트 후 라우팅
-        setTimeout(() => setLocation("/app"), 100);
+        // 마이크 권한 요청
+        const requestMicrophonePermission = async () => {
+          try {
+            await navigator.mediaDevices.getUserMedia({ audio: true });
+            console.log("마이크 권한 승인됨");
+          } catch (error) {
+            console.log("마이크 권한 거부됨:", error);
+            // 권한이 거부되어도 로그인은 계속 진행
+          }
+        };
+        
+        // 마이크 권한 요청 후 라우팅
+        requestMicrophonePermission().finally(() => {
+          setTimeout(() => setLocation("/app"), 100);
+        });
       }
     },
     onError: (error: any) => {

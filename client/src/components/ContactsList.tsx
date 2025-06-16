@@ -439,15 +439,23 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                 <div key={contact.id} className="flex flex-col items-center space-y-1 flex-shrink-0">
                   <div 
                     className={cn(
-                      "relative cursor-pointer hover:opacity-75 transition-opacity",
+                      "relative cursor-pointer hover:opacity-75 transition-opacity select-none",
                       isRecording && recordingContact?.id === contact.id && "ring-2 ring-red-300"
                     )}
+                    style={{ 
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none',
+                      WebkitTouchCallout: 'none'
+                    }}
                     onClick={() => setLocation(`/friend/${contact.contactUserId}`)}
                     onMouseDown={() => handleLongPressStart(contact)}
                     onMouseUp={handleLongPressEnd}
                     onMouseLeave={handleLongPressEnd}
                     onTouchStart={() => handleLongPressStart(contact)}
                     onTouchEnd={handleLongPressEnd}
+                    onContextMenu={(e) => e.preventDefault()}
                   >
                     <PrismAvatar
                       src={contact.contactUser.profilePicture}
@@ -489,13 +497,21 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
             >
               <div className="flex items-center space-x-2">
                 <div 
-                  className="cursor-pointer flex-1 flex items-center space-x-2"
+                  className="cursor-pointer flex-1 flex items-center space-x-2 select-none"
+                  style={{ 
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                    MozUserSelect: 'none',
+                    msUserSelect: 'none',
+                    WebkitTouchCallout: 'none'
+                  }}
                   onClick={() => onSelectContact(contact.contactUserId)}
                   onMouseDown={() => handleLongPressStart(contact)}
                   onMouseUp={handleLongPressEnd}
                   onMouseLeave={handleLongPressEnd}
                   onTouchStart={() => handleLongPressStart(contact)}
                   onTouchEnd={handleLongPressEnd}
+                  onContextMenu={(e) => e.preventDefault()}
                 >
                   <div
                     className="cursor-pointer"
