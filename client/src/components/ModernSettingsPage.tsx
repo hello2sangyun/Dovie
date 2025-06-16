@@ -18,8 +18,7 @@ import {
   UserX
 } from "lucide-react";
 import { getInitials, getAvatarColor } from "@/lib/utils";
-import BusinessCard from "./BusinessCard";
-import BusinessProfile from "./BusinessProfile";
+
 import BlockedContactsPage from "./BlockedContactsPage";
 import ProfileSettingsPage from "./ProfileSettingsPage";
 import NotificationSettingsPage from "./NotificationSettingsPage";
@@ -32,19 +31,11 @@ interface ModernSettingsPageProps {
 
 export default function ModernSettingsPage({ isMobile = false }: ModernSettingsPageProps) {
   const { user, logout } = useAuth();
-  const [activeView, setActiveView] = useState<'main' | 'business-card' | 'space' | 'blocked-contacts' | 'profile' | 'notifications' | 'security'>('main');
+  const [activeView, setActiveView] = useState<'main' | 'space' | 'blocked-contacts' | 'profile' | 'notifications' | 'security'>('main');
 
   if (!user) return null;
 
-  if (activeView === 'business-card') {
-    return (
-      <div className="flex-1 overflow-hidden">
-        <div className="h-full overflow-y-auto bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-          <BusinessCard onBack={() => setActiveView('main')} />
-        </div>
-      </div>
-    );
-  }
+
 
   if (activeView === 'space') {
     return (

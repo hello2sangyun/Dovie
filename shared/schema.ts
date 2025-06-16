@@ -298,7 +298,6 @@ export const usersRelations = relations(users, ({ many }) => ({
   chatParticipants: many(chatParticipants),
   sentMessages: many(messages),
   commands: many(commands),
-  businessCards: many(businessCards),
 }));
 
 export const contactsRelations = relations(contacts, ({ one }) => ({
