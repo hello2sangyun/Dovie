@@ -1015,6 +1015,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Chat room upload endpoint for voice messages with transcription
+  app.post("/api/chat-rooms/:chatRoomId/upload", upload.single("file"), async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const messageType = req.body.messageType || 'file';
+
+      if (messageType === 'voice') {
+        // 음성 파일 처리 - 암호화하지 않고 원본 형태로 저장
+        const timestamp = Date.now();
+        const randomString = Math.random().toString(36).substring(2, 15);
+        const fileName = `voice_${timestamp}_${randomString}.webm`;
+        const finalPath = path.join(uploadDir, fileName);
+        
+        // 파일을 최종 위치로 이동
+        fs.renameSync(req.file.path, finalPath);
+
+        console.log(`Audio file saved: ${fileName} URL: /uploads/${fileName}`);
+
+        // OpenAI 음성 텍스트 변환
+        try {
+          const transcriptionResult = await transcribeAudio(finalPath);
+          console.log('Transcription result:', transcriptionResult);
+
+          const fileUrl = `/uploads/${fileName}`;
+          res.json({
+            fileUrl,
+            fileName: req.file.originalname,
+            fileSize: req.file.size,
+            transcription: transcriptionResult.text,
+            language: transcriptionResult.language,
+            duration: transcriptionResult.duration,
+            confidence: '0.9'
+          });
+        } catch (transcriptionError) {
+          console.error('Transcription failed:', transcriptionError);
+          // 텍스트 변환 실패해도 파일 업로드는 성공으로 처리
+          const fileUrl = `/uploads/${fileName}`;
+          res.json({
+            fileUrl,
+            fileName: req.file.originalname,
+            fileSize: req.file.size,
+            transcription: '음성 메시지',
+            language: 'korean',
+            duration: 3,
+            confidence: '0.5'
+          });
+        }
+      } else {
+        // 일반 파일 처리 - 암호화
+        const fileBuffer = fs.readFileSync(req.file.path);
+        const encryptedData = encryptFileData(fileBuffer);
+        
+        const encryptedFileName = hashFileName(req.file.originalname);
+        const encryptedFilePath = path.join(uploadDir, encryptedFileName);
+        
+        fs.writeFileSync(encryptedFilePath, encryptedData, 'utf8');
+        fs.unlinkSync(req.file.path);
+
+        const fileUrl = `/uploads/${encryptedFileName}`;
+        res.json({
+          fileUrl,
+          fileName: req.file.originalname,
+          fileSize: req.file.size,
+        });
+      }
+    } catch (error) {
+      console.error("Chat room file upload error:", error);
+      res.status(500).json({ message: "File upload failed" });
+    }
+  });
+
   // Voice file upload route (unencrypted for direct browser playback)
   app.post("/api/upload-voice", upload.single("file"), async (req, res) => {
     try {
