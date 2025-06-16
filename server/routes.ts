@@ -19,6 +19,11 @@ import { db } from "./db";
 
 const upload = multer({ dest: "uploads/" });
 
+// WebSocket extension for user data
+interface ExtendedWebSocket extends WebSocket {
+  userData?: { chatRoomId: number; userId: number };
+}
+
 // Store WebSocket connections
 const connections = new Set<WebSocket>();
 const roomConnections = new Map<number, Set<WebSocket>>();
