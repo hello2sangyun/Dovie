@@ -1477,9 +1477,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   };
 
   // 번역 관련 핸들러들
-  const handleTranslateMessage = (message: any) => {
-    setMessageToTranslate(message);
-    setShowTranslateModal(true);
+  const handleTranslateMessage = (message?: any) => {
+    const targetMessage = message || contextMenu.message;
+    if (targetMessage) {
+      setMessageToTranslate(targetMessage);
+      setShowTranslateModal(true);
+    }
   };
 
   const handleTranslate = (targetLanguage: string) => {
@@ -3013,6 +3016,25 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       setReplyToMessage(contextMenu.message);
     }
   };
+
+  const handleCopyText = () => {
+    if (contextMenu.message?.content) {
+      navigator.clipboard.writeText(contextMenu.message.content).then(() => {
+        toast({
+          title: "복사 완료",
+          description: "메시지가 클립보드에 복사되었습니다.",
+        });
+      }).catch(() => {
+        toast({
+          variant: "destructive",
+          title: "복사 실패",
+          description: "텍스트 복사에 실패했습니다.",
+        });
+      });
+    }
+  };
+
+
 
   // 메시지 편집 핸들러
   const handleEditMessage = (message: any) => {
@@ -5527,6 +5549,22 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Message Context Menu */}
+      <MessageContextMenu
+        visible={contextMenu.visible}
+        x={contextMenu.x}
+        y={contextMenu.y}
+        onClose={() => setContextMenu({ visible: false, x: 0, y: 0, message: null })}
+        onSaveMessage={handleSaveMessage}
+        onReplyMessage={handleReplyMessage}
+        onTranslateMessage={handleTranslateMessage}
+        onEditMessage={contextMenu.message?.senderId === user?.id ? handleEditMessage : undefined}
+        onCopyText={handleCopyText}
+        canEdit={contextMenu.message?.senderId === user?.id}
+        canSummarize={contextMenu.message?.content && contextMenu.message.content.length > 50}
+        onSummarizeMessage={handleSummarizeMessage}
+      />
 
     </div>
   );
