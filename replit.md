@@ -118,6 +118,11 @@ Changelog:
   - Removed location-based unread count calculations
   - Updated mobile interface to remove nearby chat navigation
   - Database migration to remove location chat tables
+- June 16, 2025. Fixed critical login authentication issues
+  - Corrected API endpoint path mismatches (auth/login vs login)
+  - Updated server to accept email-based authentication instead of username
+  - Added comprehensive logging for authentication debugging
+  - Verified login system works correctly with proper credentials
 ```
 
 ## User Preferences
