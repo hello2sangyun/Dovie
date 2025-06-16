@@ -55,8 +55,6 @@ export const chatRooms = pgTable("chat_rooms", {
   name: text("name").notNull(),
   isGroup: boolean("is_group").default(false),
   isPinned: boolean("is_pinned").default(false),
-  isLocationChat: boolean("is_location_chat").default(false), // 주변챗 구분용
-  locationChatRoomId: integer("location_chat_room_id").references(() => locationChatRooms.id),
   createdBy: integer("created_by").references(() => users.id).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -723,14 +721,7 @@ export type InsertCommand = z.infer<typeof insertCommandSchema>;
 export type PhoneVerification = typeof phoneVerifications.$inferSelect;
 export type InsertPhoneVerification = z.infer<typeof insertPhoneVerificationSchema>;
 
-export type LocationChatRoom = typeof locationChatRooms.$inferSelect;
-export type InsertLocationChatRoom = z.infer<typeof insertLocationChatRoomSchema>;
-export type LocationChatParticipant = typeof locationChatParticipants.$inferSelect;
-export type InsertLocationChatParticipant = z.infer<typeof insertLocationChatParticipantSchema>;
-export type LocationChatMessage = typeof locationChatMessages.$inferSelect;
-export type InsertLocationChatMessage = z.infer<typeof insertLocationChatMessageSchema>;
-export type UserLocation = typeof userLocations.$inferSelect;
-export type InsertUserLocation = z.infer<typeof insertUserLocationSchema>;
+
 export type FileUpload = typeof fileUploads.$inferSelect;
 export type InsertFileUpload = z.infer<typeof insertFileUploadSchema>;
 export type FileDownload = typeof fileDownloads.$inferSelect;
