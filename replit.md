@@ -129,30 +129,14 @@ Dovie Messenger is a modern, secure messaging application built with a full-stac
 
 ## Changelog
 - June 14, 2025: Initial setup
-- June 14, 2025: Fixed bulk deletion error with proper number validation and improved mobile UX/UI with larger touch targets and better responsive design
-- June 14, 2025: Major AI functionality expansion:
-  * Enhanced OCR accuracy with multi-language support (Korean, English, Japanese)
-  * Intelligent automatic tag generation based on industry and job function
-  * Contact priority analysis with follow-up recommendations
-  * Improved business card data extraction with structured tagging
-  * Complete folder deletion bug fix with comprehensive validation
-- June 14, 2025: Comprehensive performance optimization:
-  * Database query optimization with CTE-based unread counts and limits
-  * API response caching with 15-30 second TTL for static data
-  * Reduced client query intervals from 5s to 15s with stale time management
-  * Image processing optimization with reduced JPEG quality (85% vs 98%)
-  * Static file serving with 1-year aggressive caching for images
-  * Optimized Sharp image processing pipeline with faster cubic kernel
-- June 14, 2025: UI cleanup - Removed "One Pager 명함 스캐너" container box from Cabinet tab for cleaner interface per user request
-- June 14, 2025: Performance fixes - Optimized crop box touch responsiveness with 60fps throttling and business card ratio initialization, added Cabinet folder refresh after business card scanning
-- June 14, 2025: Enhanced memo functionality - Added memo input after business card scanning with server-side storage and automatic Cabinet folder refresh
-- June 14, 2025: Interface improvement - Removed redundant scanner container box from Cabinet tab, streamlined to clean title and scan button only
-- June 14, 2025: Navigation restructure - Set Cabinet as default page for all users, replaced scan tab with Network tab for business SNS functionality using existing LinkedInSpacePage component
-- June 14, 2025: Service rebranding - Changed name from "Dovie Messenger" to just "Dovie" throughout application including logos, landing page, and all user-facing text
-- June 14, 2025: Enhanced memo functionality - Added proper memo viewing and deletion capabilities in folder shared files section with dedicated memo icon, viewing via toast notifications, and confirmation-based deletion
-- June 14, 2025: Network page image display overhaul - Completely rewrote image rendering logic with enhanced error handling, console debugging, and fallback UI for failed image loads, created dedicated PostImage component with loading states
-- June 14, 2025: UI cleanup - Removed item count number display from folder profile pictures in Cabinet for cleaner interface design
-- June 14, 2025: Database reset - Complete database initialization with all user data cleared for fresh testing environment
+- June 15, 2025: **Major Rollback to Chat-Focused Version**:
+  * Removed all business card scanning and digital business card features
+  * Removed Cabinet, Network, and My Space functionality
+  * Simplified to core messaging features: chat rooms, contacts, and settings
+  * Created SimpleChatApp component focused on real-time messaging
+  * Removed complex business networking features for streamlined UX
+  * Updated routing to use simplified chat interface
+  * Maintained AI translation and smart commands for messaging enhancement
 
 ## User Preferences
 

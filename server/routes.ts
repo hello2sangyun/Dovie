@@ -747,54 +747,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Business card analysis endpoint
-  app.post("/api/business-cards/analyze", upload.single('image'), async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      if (!req.file) {
-        return res.status(400).json({ success: false, error: "이미지 파일이 필요합니다." });
-      }
-
-      console.log('Starting business card analysis...', {
-        userId,
-        fileSize: req.file.size,
-        mimeType: req.file.mimetype
-      });
-      
-      // Directly analyze business card with OpenAI (simplified version)
-      const originalBase64 = req.file.buffer.toString('base64');
-      const { analyzeBusinessCard } = await import('./openai');
-      
-      console.log('Calling OpenAI analysis...');
-      const analysisResult = await analyzeBusinessCard(originalBase64);
-      
-      console.log('Analysis result:', analysisResult);
-      
-      if (analysisResult.success) {
-        console.log('Business card analysis completed successfully:', analysisResult.data);
-        res.json({ 
-          success: true, 
-          analysis: analysisResult.data 
-        });
-      } else {
-        console.error('Business card analysis failed:', analysisResult.error);
-        res.status(500).json({ 
-          success: false, 
-          error: analysisResult.error || "분석에 실패했습니다." 
-        });
-      }
-    } catch (error) {
-      console.error("Business card analysis error:", error);
-      res.status(500).json({ 
-        success: false, 
-        error: `명함 분석 중 오류가 발생했습니다: ${error.message}` 
-      });
-    }
-  });
+  // Removed business card analysis endpoint for chat-focused version
 
   // Save memo to person folder endpoint
   app.post("/api/person-folders/:folderId/memo", async (req, res) => {
