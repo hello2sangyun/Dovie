@@ -5,10 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { UserAvatar } from "@/components/UserAvatar";
-import MediaPreview from "@/components/MediaPreview";
-import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause, Cloud, CloudRain, Sun, CloudSnow, MoreVertical, LogOut, Settings, MapPin } from "lucide-react";
+import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause, Cloud, CloudRain, Sun, CloudSnow, MoreVertical, LogOut, Settings } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
@@ -24,14 +22,6 @@ import PollDetailModal from "./PollDetailModal";
 import TranslateModal from "./TranslateModal";
 import VoiceRecorder from "./VoiceRecorder";
 import { useWeather, getWeatherBackground } from "../hooks/useWeather";
-import TypingIndicator, { useTypingIndicator } from "./TypingIndicator";
-import { 
-  InteractiveButton, 
-  AnimatedMessageBubble, 
-  AccessibleSpinner,
-  PulseNotification,
-  useAccessibilitySettings 
-} from "./MicroInteractions";
 
 interface ChatAreaProps {
   chatRoomId: number;
@@ -43,55 +33,8 @@ interface ChatAreaProps {
 export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader, onBackClick }: ChatAreaProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  
-  // Regular chat room functionality only
   const queryClient = useQueryClient();
   const [message, setMessage] = useState("");
-  
-  // Typing indicator and accessibility
-  const { typingUsers, addTypingUser, removeTypingUser, clearAllTyping } = useTypingIndicator();
-  const { settings: accessibilitySettings } = useAccessibilitySettings();
-  
-  // Typing indicator functionality for real users only
-
-  // 백그라운드 프리페칭 함수들
-  const prefetchRelatedData = async () => {
-    try {
-      // 미읽은 메시지 수 미리 로딩
-      await queryClient.prefetchQuery({
-        queryKey: ["/api/unread-counts"],
-        queryFn: async () => {
-          const response = await apiRequest("/api/unread-counts");
-          return response.json();
-        },
-        staleTime: 30 * 1000,
-      });
-
-      // 채팅방 목록 미리 로딩
-      await queryClient.prefetchQuery({
-        queryKey: ["/api/chat-rooms"],
-        queryFn: async () => {
-          const response = await apiRequest("/api/chat-rooms");
-          return response.json();
-        },
-        staleTime: 30 * 1000,
-      });
-    } catch (error) {
-      // 백그라운드 로딩 실패는 무시
-      console.log('백그라운드 프리페칭 실패:', error);
-    }
-  };
-
-  // 컴포넌트 마운트 시 관련 데이터 미리 로딩
-  useEffect(() => {
-    if (user && chatRoomId) {
-      const timer = setTimeout(() => {
-        prefetchRelatedData();
-      }, 1000); // 1초 후 백그라운드에서 로딩
-
-      return () => clearTimeout(timer);
-    }
-  }, [user, chatRoomId]);
 
   // 임시 메시지 저장 관련 함수들
   const getDraftKey = (roomId: number) => `chat_draft_${roomId}`;
@@ -199,37 +142,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
-  
-  // Smart suggestions state
-  const [showSmartSuggestions, setShowSmartSuggestions] = useState(false);
-  const [smartSuggestions, setSmartSuggestions] = useState<any[]>([]);
-  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
-  const [suggestionTimeout, setSuggestionTimeout] = useState<NodeJS.Timeout | null>(null);
-  
-  // Helper function for expression evaluation
-  const evaluateExpression = (expression: string) => {
-    try {
-      // Basic mathematical expression evaluation
-      const sanitized = expression.replace(/[^0-9+\-*/().]/g, '');
-      return Function('"use strict"; return (' + sanitized + ')')();
-    } catch {
-      return null;
-    }
-  };
-  
-  // 길게 터치 관련 상태
-  const [touchTimer, setTouchTimer] = useState<NodeJS.Timeout | null>(null);
-  const [isLongPress, setIsLongPress] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatAreaRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
-  
-  // Unread messages floating button state
-  const [showUnreadButton, setShowUnreadButton] = useState(false);
-  const [firstUnreadMessageId, setFirstUnreadMessageId] = useState<number | null>(null);
-  const chatScrollRef = useRef<HTMLDivElement>(null);
 
   // Get chat room details
   const { data: chatRoomsData } = useQuery({
@@ -252,21 +169,21 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     },
   });
 
-  // Get messages with optimized caching and instant display
-  const { data: messagesData, isLoading, isFetching } = useQuery({
-    queryKey: ["/api/chat-rooms", chatRoomId, "messages"],
+  // Determine if this is a location-based chat room
+  const isLocationChat = chatRoomId < 0;
+  const actualRoomId = Math.abs(chatRoomId);
+
+  // Get messages
+  const { data: messagesData, isLoading } = useQuery({
+    queryKey: isLocationChat 
+      ? ["/api/location/chat-rooms", actualRoomId, "messages"]
+      : ["/api/chat-rooms", chatRoomId, "messages"],
     enabled: !!chatRoomId,
-    staleTime: 30 * 1000, // 30초간 신선한 상태 유지
-    refetchOnMount: false, // 캐시된 데이터가 있으면 즉시 표시
-    refetchOnWindowFocus: false, // 포커스 시 자동 새로고침 비활성화
     queryFn: async () => {
-      const endpoint = `/api/chat-rooms/${chatRoomId}/messages`;
-      
-      const response = await fetch(endpoint, {
-        headers: {
-          'x-user-id': user?.id?.toString() || '',
-        },
-      });
+      const endpoint = isLocationChat 
+        ? `/api/location/chat-rooms/${actualRoomId}/messages`
+        : `/api/chat-rooms/${chatRoomId}/messages`;
+      const response = await fetch(endpoint);
       if (!response.ok) throw new Error("Failed to fetch messages");
       return response.json();
     },
@@ -288,23 +205,20 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
-      const endpoint = `/api/chat-rooms/${chatRoomId}/messages`;
-      
-      console.log("Sending message:", messageData);
-      
-      try {
-        const response = await apiRequest(endpoint, "POST", messageData);
-        const result = await response.json();
-        console.log("Message sent successfully:", result);
-        return result;
-      } catch (error) {
-        console.error("Message send error:", error);
-        throw error;
-      }
+      const endpoint = isLocationChat 
+        ? `/api/location/chat-rooms/${actualRoomId}/messages`
+        : `/api/chat-rooms/${chatRoomId}/messages`;
+      const response = await apiRequest(endpoint, "POST", messageData);
+      return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms", chatRoomId, "messages"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      if (isLocationChat) {
+        queryClient.invalidateQueries({ queryKey: ["/api/location/chat-rooms", actualRoomId, "messages"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/location/nearby-chats"] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms", chatRoomId, "messages"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      }
       setMessage("");
       setShowCommandSuggestions(false);
       setReplyToMessage(null); // 회신 상태 초기화
@@ -318,12 +232,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         setSuggestionTimeout(null);
       }
 
-      // 메시지 전송 후 맨 아래로 즉시 이동
+      // 메시지 전송 후 항상 맨 아래로 스크롤
       setTimeout(() => {
         if (messagesEndRef.current) {
-          messagesEndRef.current.scrollIntoView({ behavior: "instant" });
+          messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
         }
-      }, 50);
+      }, 100);
     },
     onError: (error) => {
       toast({
@@ -930,70 +844,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const commands = commandsData?.commands || [];
   const contacts = contactsData?.contacts || [];
 
-  // Get unread counts to detect first unread message
-  const { data: unreadData } = useQuery({
-    queryKey: ["/api/unread-counts"],
-    enabled: !!user,
-    refetchInterval: 5000, // Check every 5 seconds
-  });
-
-  // Unread message detection and auto-scroll
-  useEffect(() => {
-    if (messages.length > 0 && unreadData?.unreadCounts) {
-      const currentRoomUnread = unreadData.unreadCounts.find((u: any) => u.chatRoomId === chatRoomId);
-      
-      if (currentRoomUnread && currentRoomUnread.unreadCount > 0) {
-        // Find first unread message (assuming last N messages are unread)
-        const unreadStartIndex = Math.max(0, messages.length - currentRoomUnread.unreadCount);
-        const firstUnreadMessage = messages[unreadStartIndex];
-        
-        if (firstUnreadMessage) {
-          setFirstUnreadMessageId(firstUnreadMessage.id);
-          
-          // 읽지 않은 메시지로 즉시 이동 (부드러운 스크롤 제거)
-          setTimeout(() => {
-            const messageElement = messageRefs.current[firstUnreadMessage.id];
-            if (messageElement) {
-              messageElement.scrollIntoView({ behavior: 'instant', block: 'start' });
-            }
-          }, 100);
-        }
-      } else {
-        setFirstUnreadMessageId(null);
-        // 읽지 않은 메시지가 없으면 맨 아래로 즉시 이동
-        setTimeout(() => {
-          messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
-        }, 100);
-      }
-    }
-  }, [messages, unreadData, chatRoomId]);
-
-  // Scroll detection for floating button
-  useEffect(() => {
-    const handleScroll = () => {
-      if (chatScrollRef.current && firstUnreadMessageId) {
-        const scrollContainer = chatScrollRef.current;
-        const firstUnreadElement = messageRefs.current[firstUnreadMessageId];
-        
-        if (firstUnreadElement) {
-          const containerRect = scrollContainer.getBoundingClientRect();
-          const elementRect = firstUnreadElement.getBoundingClientRect();
-          
-          // Show button if first unread message is not visible
-          const isVisible = elementRect.top >= containerRect.top && 
-                           elementRect.bottom <= containerRect.bottom;
-          setShowUnreadButton(!isVisible && firstUnreadMessageId !== null);
-        }
-      }
-    };
-
-    const scrollContainer = chatScrollRef.current;
-    if (scrollContainer) {
-      scrollContainer.addEventListener('scroll', handleScroll);
-      return () => scrollContainer.removeEventListener('scroll', handleScroll);
-    }
-  }, [firstUnreadMessageId]);
-
   // 활성 투표 감지
   useEffect(() => {
     if (messages.length > 0) {
@@ -1133,7 +983,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   const chatRoomDisplayName = getChatRoomDisplayName(currentChatRoom);
 
-  // 메시지 변경 시 자동 스크롤 제거 (읽지 않은 메시지 로직에서 처리)
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
 
 
@@ -1447,19 +1299,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
-      const file = files[0];
-      const maxSize = 500 * 1024 * 1024; // 500MB
-      
-      if (file.size > maxSize) {
-        toast({
-          variant: "destructive",
-          title: "파일 크기 제한 초과",
-          description: `파일 크기가 500MB를 초과합니다. (현재: ${(file.size / 1024 / 1024).toFixed(1)}MB)`,
-        });
-        return;
-      }
-      
-      uploadFileMutation.mutate(file);
+      uploadFileMutation.mutate(files[0]); // Upload the first file
     }
   };
 
@@ -1557,24 +1397,26 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const maxSize = 500 * 1024 * 1024; // 500MB
-      
-      if (file.size > maxSize) {
-        toast({
-          variant: "destructive",
-          title: "파일 크기 제한 초과",
-          description: `파일 크기가 500MB를 초과합니다. (현재: ${(file.size / 1024 / 1024).toFixed(1)}MB)`,
-        });
-        // Reset file input
-        event.target.value = '';
-        return;
-      }
-      
       uploadFileMutation.mutate(file);
     }
   };
 
-  // Smart suggestions state already declared above
+  // 스마트 채팅 상태
+  const [smartSuggestions, setSmartSuggestions] = useState<Array<{
+    type: 'calculation' | 'currency' | 'schedule' | 'translation' | 'address' | 'poll' | 'todo' | 'timer' | 'emotion' | 'food' | 'youtube' | 'news' | 'unit' | 'search' | 'birthday' | 'meeting' | 'reminder' | 'quote' | 'question' | 'followup' | 'summary' | 'decision' | 'category' | 'file_summary' | 'topic_info' | 'mannertone' | 'file_request';
+    text: string;
+    result: string;
+    amount?: number;
+    fromCurrency?: string;
+    toCurrency?: string;
+    rate?: number;
+    icon?: string;
+    category?: string;
+    action?: () => void;
+  }>>([]);
+  const [showSmartSuggestions, setShowSmartSuggestions] = useState(false);
+  const [suggestionTimeout, setSuggestionTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
   const [isNavigatingWithKeyboard, setIsNavigatingWithKeyboard] = useState(false);
   const [isHoveringOverSuggestions, setIsHoveringOverSuggestions] = useState(false);
   const [smartResultModal, setSmartResultModal] = useState<{show: boolean, title: string, content: string}>({
@@ -1594,73 +1436,26 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     return num.toLocaleString('ko-KR');
   };
 
-  // 한글 숫자를 숫자로 변환하는 함수
-  const parseKoreanNumber = (text: string): number | null => {
+  // 안전한 계산식 평가 함수
+  const evaluateExpression = (expr: string): number | null => {
     try {
-      // 이미 숫자인 경우
-      const directNumber = parseFloat(text.replace(/,/g, ''));
-      if (!isNaN(directNumber)) {
-        return directNumber;
+      // 안전한 문자만 허용 (숫자, 연산자, 괄호, 공백, 소수점)
+      if (!/^[\d\+\-\*\/\(\)\.\s]+$/.test(expr)) {
+        return null;
       }
-
-      // 한글 숫자 단위 변환
-      const koreanUnits: { [key: string]: number } = {
-        '천': 1000,
-        '만': 10000,
-        '십만': 100000,
-        '백만': 1000000,
-        '천만': 10000000,
-        '억': 100000000,
-        '십억': 1000000000,
-        '백억': 10000000000,
-        '천억': 100000000000,
-        '조': 1000000000000
-      };
-
-      let result = 0;
-      let currentNumber = '';
-      let i = 0;
-
-      while (i < text.length) {
-        const char = text[i];
-        
-        // 숫자 문자 수집
-        if (/\d/.test(char)) {
-          currentNumber += char;
-          i++;
-          continue;
-        }
-
-        // 단위 찾기
-        let foundUnit = false;
-        for (const [unit, multiplier] of Object.entries(koreanUnits)) {
-          if (text.substring(i, i + unit.length) === unit) {
-            const baseNumber = currentNumber ? parseInt(currentNumber) : 1;
-            result += baseNumber * multiplier;
-            currentNumber = '';
-            i += unit.length;
-            foundUnit = true;
-            break;
-          }
-        }
-
-        if (!foundUnit) {
-          i++;
-        }
+      
+      // eval 대신 Function 생성자 사용 (더 안전)
+      const result = Function(`"use strict"; return (${expr})`)();
+      
+      if (typeof result === 'number' && isFinite(result)) {
+        return Math.round(result * 100000) / 100000; // 소수점 5자리까지
       }
-
-      // 남은 숫자 처리
-      if (currentNumber) {
-        result += parseInt(currentNumber);
-      }
-
-      return result > 0 ? result : null;
+      
+      return null;
     } catch {
       return null;
     }
   };
-
-  // evaluateExpression function already declared above
 
   // 사용 빈도 추적을 위한 로컬 스토리지 키
   const CURRENCY_USAGE_KEY = 'currency_usage_history';
@@ -2262,9 +2057,18 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     return null;
   };
 
-  // 긴 메시지 요약 감지 함수 (비활성화 - 컨텍스트 메뉴에서 사용)
+  // 긴 메시지 요약 감지 함수
   const detectLongMessage = (text: string) => {
-    // 요약 기능은 메시지 컨텍스트 메뉴에서만 사용
+    // 긴 메시지 (100자 이상) 또는 요약 키워드 감지
+    if (text.length > 100 || /요약|정리|핵심|포인트/.test(text)) {
+      return {
+        type: 'summary' as const,
+        text: '핵심 요약 보기',
+        result: `요약: ${text.substring(0, 50)}...`,
+        icon: '📝',
+        category: '요약'
+      };
+    }
     return null;
   };
 
@@ -2417,7 +2221,28 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
 
 
-  // 주소 감지 함수 제거됨 (위치 기능 완전 삭제)
+  // 주소 감지 함수
+  const detectAddress = (text: string) => {
+    const patterns = [
+      /[가-힣]+시\s*[가-힣]+구\s*[가-힣]+로/i,
+      /[가-힣]+동\s*\d+번지/i,
+      /[가-힣]+역\s*근처/i,
+      /서울|부산|대구|인천|광주|대전|울산|세종/i
+    ];
+
+    for (const pattern of patterns) {
+      if (pattern.test(text)) {
+        return {
+          type: 'address' as const,
+          text: '지도에서 보기',
+          result: `위치: ${text}`,
+          icon: '📍',
+          category: '위치'
+        };
+      }
+    }
+    return null;
+  };
 
   // 언어 감지 함수
   const detectLanguage = (text: string): string => {
@@ -2573,55 +2398,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   };
 
   // 스마트 제안 선택 처리
-  const handleSmartSuggestionSelect = async (suggestion: typeof smartSuggestions[0]) => {
-    // AI 기능들은 API 호출 후 모달로 결과 표시
-    if (['translation', 'emotion', 'summary', 'quote', 'decision', 'news', 'search', 'topic_info'].includes(suggestion.type)) {
-      try {
-        setSmartResultModal({
-          show: true,
-          title: `${suggestion.category} 처리 중...`,
-          content: '잠시만 기다려주세요...'
-        });
-
-        const response = await fetch('/api/smart-suggestion', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            type: suggestion.type, 
-            content: message,
-            originalText: message 
-          })
-        });
-        
-        if (!response.ok) {
-          throw new Error('API 요청 실패');
-        }
-        
-        const result = await response.json();
-        
-        setSmartResultModal({
-          show: true,
-          title: suggestion.text,
-          content: result.result || "처리할 수 없습니다."
-        });
-        
-      } catch (error) {
-        setSmartResultModal({
-          show: true,
-          title: "오류 발생",
-          content: "서비스를 사용할 수 없습니다. 잠시 후 다시 시도해주세요."
-        });
-      }
-    } else if (suggestion.action) {
-      // 액션이 있는 경우 실행
-      suggestion.action();
-    } else {
-      // 일반적인 경우 메시지 전송
-      sendMessageMutation.mutate({
-        content: suggestion.result,
-        messageType: "text"
-      });
-    }
+  const handleSmartSuggestionSelect = (suggestion: typeof smartSuggestions[0]) => {
+    // 즉시 메시지 전송
+    sendMessageMutation.mutate({
+      content: suggestion.result,
+      messageType: "text"
+    });
     
     setMessage('');
     setShowSmartSuggestions(false);
@@ -2764,7 +2546,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       allSuggestions.push(meetingDetection);
     }
     
-    // 주소 감지 기능 제거됨 (위치 기능 완전 삭제)
+    // 13. 주소 감지
+    const addressDetection = detectAddress(value);
+    if (addressDetection) {
+      allSuggestions.push(addressDetection);
+    }
     
     // 14. 투표 감지
     const pollDetection = detectPoll(value);
@@ -2965,48 +2751,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const handleCancelEdit = () => {
     setEditingMessage(null);
     setEditContent("");
-  };
-
-  // 메시지 요약 핸들러
-  const handleSummarizeMessage = async () => {
-    if (contextMenu.message) {
-      try {
-        setSmartResultModal({
-          show: true,
-          title: '메시지 요약 중...',
-          content: '잠시만 기다려주세요...'
-        });
-
-        const response = await fetch('/api/smart-suggestion', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            type: 'summary', 
-            content: contextMenu.message.content,
-            originalText: contextMenu.message.content 
-          })
-        });
-        
-        if (!response.ok) {
-          throw new Error('API 요청 실패');
-        }
-        
-        const result = await response.json();
-        
-        setSmartResultModal({
-          show: true,
-          title: '메시지 요약',
-          content: result.result || "요약할 수 없습니다."
-        });
-        
-      } catch (error) {
-        setSmartResultModal({
-          show: true,
-          title: "요약 실패",
-          content: "요약 서비스를 사용할 수 없습니다. 잠시 후 다시 시도해주세요."
-        });
-      }
-    }
   };
 
   // 욕설 방지 모달 상태
@@ -3245,46 +2989,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       setTimeout(() => {
         setHighlightedMessageId(null);
       }, 3000);
-    }
-  };
-
-  // 길게 터치 이벤트 핸들러
-  const handleTouchStart = (e: React.TouchEvent, message: any) => {
-    setIsLongPress(false);
-    const timer = setTimeout(() => {
-      setIsLongPress(true);
-      const touch = e.touches[0] || e.changedTouches[0];
-      const rect = e.currentTarget.getBoundingClientRect();
-      
-      // 터치 위치 계산
-      const x = touch?.clientX || rect.left + rect.width / 2;
-      const y = touch?.clientY || rect.top + rect.height / 2;
-      
-      setContextMenu({
-        visible: true,
-        x,
-        y,
-        message,
-      });
-      
-      navigator.vibrate?.(50); // 햅틱 피드백
-    }, 300); // 300ms로 단축하여 더 빠른 반응
-    
-    setTouchTimer(timer);
-  };
-
-  const handleTouchEnd = () => {
-    if (touchTimer) {
-      clearTimeout(touchTimer);
-      setTouchTimer(null);
-    }
-    setTimeout(() => setIsLongPress(false), 100);
-  };
-
-  const handleTouchMove = () => {
-    if (touchTimer) {
-      clearTimeout(touchTimer);
-      setTouchTimer(null);
     }
   };
 
@@ -3625,58 +3329,38 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           </div>
         </div>
       )}
-      {/* Chat Header - Optimized Mobile Layout */}
+      {/* Chat Header - Fixed position with Mobile Integration */}
       <div className={cn(
-        "flex-shrink-0 sticky top-0 z-10",
-        showMobileHeader ? "px-3 py-2" : "p-4",
+        "bg-white border-b border-gray-200 p-4 flex-shrink-0 sticky top-0 z-10",
         uiAdaptations.compactMode && "p-2",
-        "bg-white border-b border-gray-200",
         uiAdaptations.focusMode && "bg-blue-50 border-blue-200"
       )}>
-        <div className="flex items-center justify-between min-h-0">
-          <div className="flex items-center flex-1 min-w-0 space-x-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
             {showMobileHeader && onBackClick && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onBackClick}
-                className="p-2 -ml-1 lg:hidden flex-shrink-0 hover:bg-gray-100 rounded-full transition-colors"
+                className="p-2 -ml-2 lg:hidden"
               >
-                <svg 
-                  width="20" 
-                  height="20" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                  className="text-gray-700"
-                >
-                  <path d="m15 18-6-6 6-6"/>
-                </svg>
+                ←
               </Button>
             )}
             {currentChatRoom.isGroup ? (
-              <div className={cn(
-                "relative flex items-center justify-center flex-shrink-0",
-                showMobileHeader ? "w-8 h-8" : "w-10 h-10"
-              )}>
+              <div className="relative w-10 h-10 flex items-center justify-center">
                 {currentChatRoom.participants.slice(0, Math.min(5, currentChatRoom.participants.length)).map((participant: any, index: number) => {
                   const totalAvatars = Math.min(5, currentChatRoom.participants.length);
                   const isStackLayout = totalAvatars <= 3;
-                  const avatarSize = showMobileHeader ? "w-6 h-6" : "w-7 h-7";
                   
                   if (isStackLayout) {
+                    // 3명 이하일 때: 겹치는 스택 레이아웃
                     return (
                       <div
                         key={participant.id}
-                        className={cn(
-                          "rounded-full border-2 border-white shadow-sm purple-gradient flex items-center justify-center text-white font-semibold",
-                          avatarSize,
-                          showMobileHeader ? "text-[10px]" : "text-xs",
-                          index > 0 ? "-ml-1" : ""
-                        )}
+                        className={`w-7 h-7 rounded-full border-2 border-white shadow-sm purple-gradient flex items-center justify-center text-white font-semibold text-xs ${
+                          index > 0 ? '-ml-1.5' : ''
+                        }`}
                         style={{ zIndex: totalAvatars - index }}
                       >
                         {participant.profilePicture ? (
@@ -3691,6 +3375,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       </div>
                     );
                   } else {
+                    // 4-5명일 때: 격자 레이아웃
                     const positions = [
                       'top-0 left-0',
                       'top-0 right-0', 
@@ -3702,11 +3387,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     return (
                       <div
                         key={participant.id}
-                        className={cn(
-                          "absolute rounded-full border border-white shadow-sm purple-gradient flex items-center justify-center text-white font-semibold text-[8px]",
-                          showMobileHeader ? "w-4 h-4" : "w-5 h-5",
-                          positions[index]
-                        )}
+                        className={`absolute w-5 h-5 rounded-full border border-white shadow-sm purple-gradient flex items-center justify-center text-white font-semibold text-[8px] ${positions[index]}`}
                       >
                         {participant.profilePicture ? (
                           <img 
@@ -3723,82 +3404,68 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                 })}
               </div>
             ) : (
-              <div className={cn(
-                "purple-gradient rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0",
-                showMobileHeader ? "w-8 h-8 text-sm" : "w-10 h-10"
-              )}>
+              <div className="w-10 h-10 purple-gradient rounded-full flex items-center justify-center text-white font-semibold">
                 {getInitials(chatRoomDisplayName)}
               </div>
             )}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center space-x-1 min-w-0">
-                <h3 className={cn(
-                  "font-semibold truncate flex-1 min-w-0 flex items-center space-x-2",
-                  showMobileHeader ? "text-base" : "text-lg",
-                  "text-gray-900"
-                )}
-                title={chatRoomDisplayName}
-                >
-                  <span className="truncate font-bold">{chatRoomDisplayName}</span>
-                </h3>
+            <div>
+              <div className="flex items-center space-x-2">
+                <h3 className="font-semibold text-gray-900">{chatRoomDisplayName}</h3>
                 
-                {/* Compact Indicators for Mobile */}
-                <div className="flex items-center space-x-1 flex-shrink-0">
-                  {conversationMode !== 'casual' && (
-                    <span className={cn(
-                      "px-1.5 py-0.5 rounded-full text-[10px] font-medium flex-shrink-0",
-                      showMobileHeader && "px-1 py-0.5",
-                      conversationMode === 'business' && "bg-blue-100 text-blue-800",
-                      conversationMode === 'support' && "bg-orange-100 text-orange-800", 
-                      conversationMode === 'creative' && "bg-purple-100 text-purple-800"
-                    )}>
-                      {conversationMode === 'business' && (showMobileHeader ? '💼' : '💼 업무')}
-                      {conversationMode === 'support' && (showMobileHeader ? '🆘' : '🆘 지원')}
-                      {conversationMode === 'creative' && (showMobileHeader ? '🎨' : '🎨 창작')}
-                    </span>
-                  )}
+                {/* Conversation Mode Indicator */}
+                {conversationMode !== 'casual' && (
+                  <span className={cn(
+                    "px-2 py-1 rounded-full text-xs font-medium",
+                    conversationMode === 'business' && "bg-blue-100 text-blue-800",
+                    conversationMode === 'support' && "bg-orange-100 text-orange-800",
+                    conversationMode === 'creative' && "bg-purple-100 text-purple-800"
+                  )}>
+                    {conversationMode === 'business' && '💼 업무'}
+                    {conversationMode === 'support' && '🆘 지원'}
+                    {conversationMode === 'creative' && '🎨 창작'}
+                  </span>
+                )}
 
-                  {conversationContext.urgency === 'high' && uiAdaptations.showTimeAwareness && (
-                    <span className="px-1 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-800 animate-pulse flex-shrink-0">
-                      🚨
-                    </span>
-                  )}
-                </div>
+                {/* Urgency Indicator */}
+                {conversationContext.urgency === 'high' && uiAdaptations.showTimeAwareness && (
+                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 animate-pulse">
+                    🚨 긴급
+                  </span>
+                )}
               </div>
               
-              {!showMobileHeader && (
-                <div className="flex items-center space-x-2 mt-0.5">
-                  <p className="text-xs text-gray-500">
-                    {currentChatRoom.participants?.length}명 참여
-                  </p>
-                  
-                  {conversationContext.topic && (
-                    <span className="text-xs text-gray-400 truncate">
-                      주제: {conversationContext.topic}
-                    </span>
-                  )}
-                </div>
-              )}
+              <div className="flex items-center space-x-2">
+                <p className="text-sm text-gray-500">
+                  {currentChatRoom.participants?.length}명 참여
+                </p>
+                
+                {/* Topic Indicator */}
+                {conversationContext.topic && (
+                  <span className="text-xs text-gray-400">
+                    주제: {conversationContext.topic}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           <div className="flex items-center space-x-2">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-gray-400 hover:text-purple-600"
-                onClick={() => setShowSearch(!showSearch)}
-              >
-                <Search className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-purple-600">
-                <Video className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-purple-600">
-                <Phone className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-purple-600">
-                <Info className="h-4 w-4" />
-              </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-gray-400 hover:text-purple-600"
+              onClick={() => setShowSearch(!showSearch)}
+            >
+              <Search className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-purple-600">
+              <Video className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-purple-600">
+              <Phone className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-purple-600">
+              <Info className="h-4 w-4" />
+            </Button>
             <div className="relative">
               <Button 
                 variant="ghost" 
@@ -3902,10 +3569,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       )}
 
       {/* Chat Messages */}
-      <div 
-        ref={chatScrollRef}
-        className="flex-1 overflow-y-auto px-4 py-2 space-y-3 min-h-0 overscroll-behavior-y-contain pb-16 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 relative"
-      >
+      <div className="flex-1 overflow-y-auto px-4 py-2 space-y-3 min-h-0 overscroll-behavior-y-contain max-h-[calc(100vh-200px)] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
         {/* Security Notice - WhatsApp Style */}
         <div className="flex justify-center mb-6 px-4">
           <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-xl px-4 py-3 max-w-sm mx-auto shadow-lg transform hover:scale-105 transition-all duration-200 backdrop-blur-sm">
@@ -3922,20 +3586,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           </div>
         </div>
 
-        {isLoading && !messages.length ? (
-          // 캐시된 메시지가 없을 때만 로딩 스켈레톤 표시
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-start space-x-3">
-                <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-gray-200 rounded animate-pulse w-1/4"></div>
-                  <div className="h-16 bg-gray-200 rounded-lg animate-pulse w-3/4"></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : messages.length === 0 ? (
+        {messages.length === 0 ? (
           <div className="text-center text-gray-500 mt-8">
             대화를 시작해보세요!
           </div>
@@ -3945,7 +3596,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             const isMe = msg.senderId === user?.id;
             const showDate = index === 0 || 
               new Date(messages[index - 1].createdAt).toDateString() !== new Date(msg.createdAt).toDateString();
-            const isFirstUnread = firstUnreadMessageId === msg.id;
 
             return (
               <div key={msg.id}>
@@ -3957,17 +3607,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   </div>
                 )}
                 
-                {/* 읽지 않은 메시지 시작 표시 */}
-                {isFirstUnread && (
-                  <div className="flex items-center justify-center my-4">
-                    <div className="flex-1 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
-                    <span className="bg-blue-500 text-white px-4 py-1 rounded-full text-xs font-medium shadow-md mx-4">
-                      여기까지 읽으셨습니다
-                    </span>
-                    <div className="flex-1 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
-                  </div>
-                )}
-                
                 <div 
                   ref={(el) => messageRefs.current[msg.id] = el}
                   className={cn(
@@ -3975,13 +3614,25 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     isMe ? "flex-row-reverse space-x-reverse" : "",
                     highlightedMessageId === msg.id && "bg-yellow-100 rounded-lg p-2 -mx-2"
                   )}
+                  onContextMenu={(e) => handleMessageRightClick(e, msg)}
+                  onClick={(e) => {
+                    // 터치 기기에서는 클릭으로, 데스크톱에서는 우클릭으로 메뉴 활성화
+                    if ('ontouchstart' in window) {
+                      handleMessageLongPress(e, msg);
+                    }
+                  }}
+                  onTouchStart={(e) => {
+                    // 모바일에서 한 번 터치로 메뉴 열기
+                    e.preventDefault();
+                    handleMessageLongPress(e, msg);
+                  }}
                 >
                   <div className="flex flex-col items-center">
-                      <UserAvatar 
-                        user={isMe ? user : msg.sender} 
-                        size="md" 
-                        fallbackClassName={`bg-gradient-to-br ${getAvatarColor(isMe ? (user?.displayName || "Me") : msg.sender.displayName)}`}
-                      />
+                    <UserAvatar 
+                      user={isMe ? user : msg.sender} 
+                      size="md" 
+                      fallbackClassName={`bg-gradient-to-br ${getAvatarColor(isMe ? (user?.displayName || "Me") : msg.sender.displayName)}`}
+                    />
                     <span className="text-xs text-gray-600 mt-1 text-center max-w-[60px] truncate">
                       {isMe ? (user?.displayName || "나") : msg.sender.displayName}
                     </span>
@@ -4011,173 +3662,45 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       </div>
                     )}
 
-                    <div 
-                      className={cn(
-                        "rounded-lg p-3 shadow-sm w-fit break-words cursor-pointer select-none transition-all duration-200 hover:shadow-md",
-                        contextMenu.visible && contextMenu.message?.id === msg.id && "ring-2 ring-blue-400 shadow-lg",
-                        msg.isCommandRecall && msg.isLocalOnly
-                          ? isMe 
-                            ? "bg-teal-500 text-white rounded-tr-none border border-teal-400 hover:bg-teal-600" 
-                            : "bg-teal-50 text-teal-900 rounded-tl-none border border-teal-200 hover:bg-teal-100"
-                          : isMe 
-                            ? "bg-purple-600 text-white rounded-tr-none hover:bg-purple-700" 
-                            : "bg-white text-gray-900 rounded-tl-none border border-gray-200 hover:bg-gray-50"
-                      )}
-                      style={{ 
-                        userSelect: 'none',
-                        WebkitUserSelect: 'none',
-                        MozUserSelect: 'none',
-                        msUserSelect: 'none',
-                        WebkitTouchCallout: 'none'
-                      }}
-                      onContextMenu={(e) => handleMessageRightClick(e, msg)}
-                      onTouchStart={(e) => {
-                        // 버튼이나 인터랙티브 요소가 아닌 경우에만 처리
-                        const target = e.target as HTMLElement;
-                        if (!target.closest('button') && !target.closest('[role="button"]') && !target.closest('.clickable')) {
-                          e.stopPropagation();
-                          handleTouchStart(e, msg);
-                        }
-                      }}
-                      onTouchEnd={(e) => {
-                        const target = e.target as HTMLElement;
-                        if (!target.closest('button') && !target.closest('[role="button"]') && !target.closest('.clickable')) {
-                          e.stopPropagation();
-                          handleTouchEnd();
-                        }
-                      }}
-                      onTouchMove={(e) => {
-                        e.stopPropagation();
-                        handleTouchMove();
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // PC에서는 클릭 시 바로 메뉴 표시
-                        if (!isLongPress && window.innerWidth > 768) {
-                          handleMessageRightClick(e as any, msg);
-                        }
-                      }}
-                    >
-                      {/* 회신 메시지 표시 - 개선된 UI */}
+                    <div className={cn(
+                      "rounded-lg p-3 shadow-sm w-fit break-words",
+                      msg.isCommandRecall && msg.isLocalOnly
+                        ? isMe 
+                          ? "bg-teal-500 text-white rounded-tr-none border border-teal-400" 
+                          : "bg-teal-50 text-teal-900 rounded-tl-none border border-teal-200"
+                        : isMe 
+                          ? "bg-purple-600 text-white rounded-tr-none" 
+                          : "bg-white text-gray-900 rounded-tl-none border border-gray-200"
+                    )}>
+                      {/* 회신 메시지 표시 */}
                       {msg.replyToMessageId && (
                         <div 
                           className={cn(
-                            "clickable mb-3 p-3 border-l-4 rounded-r-lg cursor-pointer transition-all duration-200 hover:shadow-md select-auto",
+                            "mb-2 pb-2 border-l-4 pl-3 rounded-l cursor-pointer hover:opacity-80 transition-opacity",
                             isMe 
-                              ? "border-white bg-white/20 hover:bg-white/30 backdrop-blur-sm" 
-                              : "border-purple-500 bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 shadow-sm"
+                              ? "border-white/40 bg-white/10" 
+                              : "border-purple-400 bg-purple-50"
                           )}
-                          style={{ 
-                            userSelect: 'auto',
-                            WebkitUserSelect: 'auto',
-                            MozUserSelect: 'auto',
-                            msUserSelect: 'auto',
-                            WebkitTouchCallout: 'default'
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            scrollToMessage(msg.replyToMessageId);
-                          }}
+                          onClick={() => scrollToMessage(msg.replyToMessageId)}
                         >
-                          <div className="flex items-center space-x-2 mb-2">
+                          <div className="flex items-center space-x-1 mb-1">
                             <Reply className={cn(
-                              "h-4 w-4",
-                              isMe ? "text-white" : "text-purple-600"
+                              "h-3 w-3",
+                              isMe ? "text-white/70" : "text-purple-600"
                             )} />
                             <span className={cn(
-                              "text-sm font-semibold",
-                              isMe ? "text-white" : "text-purple-700"
+                              "text-xs font-medium",
+                              isMe ? "text-white/70" : "text-purple-600"
                             )}>
                               {msg.replyToSender || "사용자"}
                             </span>
-                            <span className={cn(
-                              "text-xs px-2 py-0.5 rounded-full",
-                              isMe ? "bg-white/30 text-white" : "bg-purple-100 text-purple-600"
-                            )}>
-                              회신
-                            </span>
                           </div>
-                          
-                          {/* 원본 메시지 내용 - 타입별 렌더링 */}
-                          {(() => {
-                            const replyContent = msg.replyToContent || "원본 메시지";
-                            
-                            // 음성 메시지인 경우
-                            if (replyContent.includes('🎵') || replyContent.includes('음성 메시지')) {
-                              return (
-                                <div className="flex items-center space-x-2">
-                                  <div 
-                                    className={cn(
-                                      "clickable w-8 h-8 rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform select-auto",
-                                      isMe ? "bg-white/30 hover:bg-white/40" : "bg-purple-200 hover:bg-purple-300"
-                                    )}
-                                    style={{ 
-                                      userSelect: 'auto',
-                                      WebkitUserSelect: 'auto',
-                                      MozUserSelect: 'auto',
-                                      msUserSelect: 'auto',
-                                      WebkitTouchCallout: 'default'
-                                    }}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      // 음성 재생 로직을 여기에 추가 (원본 메시지의 음성 재생)
-                                      const originalMessage = messages.find(m => m.id === msg.replyToMessageId);
-                                      if (originalMessage && originalMessage.messageType === 'voice') {
-                                        handleVoicePlayback(originalMessage.id, originalMessage.fileUrl, originalMessage.voiceDuration);
-                                      }
-                                    }}
-                                    onContextMenu={(e) => {
-                                      e.stopPropagation();
-                                      e.preventDefault();
-                                    }}
-                                    onTouchStart={(e) => {
-                                      e.stopPropagation();
-                                    }}
-                                  >
-                                    <Play className={cn(
-                                      "h-4 w-4",
-                                      isMe ? "text-white" : "text-purple-600"
-                                    )} />
-                                  </div>
-                                  <p className={cn(
-                                    "text-sm font-medium",
-                                    isMe ? "text-white/90" : "text-gray-700"
-                                  )}>
-                                    🎵 음성 메시지
-                                  </p>
-                                </div>
-                              );
-                            }
-                            
-                            // 파일 메시지인 경우
-                            if (replyContent.includes('📎') || replyContent.includes('파일')) {
-                              return (
-                                <div className="flex items-center space-x-2">
-                                  <FileText className={cn(
-                                    "h-4 w-4",
-                                    isMe ? "text-white/80" : "text-gray-600"
-                                  )} />
-                                  <p className={cn(
-                                    "text-sm truncate max-w-[200px]",
-                                    isMe ? "text-white/90" : "text-gray-700"
-                                  )}>
-                                    {replyContent}
-                                  </p>
-                                </div>
-                              );
-                            }
-                            
-                            // 일반 텍스트 메시지
-                            return (
-                              <p className={cn(
-                                "text-sm leading-relaxed max-w-[250px]",
-                                replyContent.length > 50 ? "line-clamp-2" : "",
-                                isMe ? "text-white/90" : "text-gray-700"
-                              )}>
-                                {replyContent}
-                              </p>
-                            );
-                          })()}
+                          <p className={cn(
+                            "text-xs truncate",
+                            isMe ? "text-white/90" : "text-gray-700"
+                          )}>
+                            {msg.replyToContent || "원본 메시지"}
+                          </p>
                         </div>
                       )}
                       
@@ -4185,21 +3708,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                         <div>
                           <div className="flex items-center space-x-3">
                             <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleVoicePlayback(msg.id, msg.fileUrl, msg.voiceDuration);
-                              }}
+                              onClick={() => handleVoicePlayback(msg.id, msg.fileUrl, msg.voiceDuration)}
                               className={cn(
-                                "clickable w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105 select-auto",
+                                "w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105",
                                 isMe ? "bg-white/20 hover:bg-white/30" : "bg-gray-100 hover:bg-gray-200"
                               )}
-                              style={{ 
-                                userSelect: 'auto',
-                                WebkitUserSelect: 'auto',
-                                MozUserSelect: 'auto',
-                                msUserSelect: 'auto',
-                                WebkitTouchCallout: 'default'
-                              }}
                             >
                               {playingAudio === msg.id ? (
                                 <Pause className={cn(
@@ -4281,14 +3794,46 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                         </div>
                       ) : msg.messageType === "file" ? (
                         <div>
-                          <MediaPreview
-                            fileUrl={msg.fileUrl}
-                            fileName={msg.fileName}
-                            fileSize={msg.fileSize}
-                            messageContent={msg.content}
-                            isMe={isMe}
-                            className="mb-2"
-                          />
+                          <div className="flex items-center space-x-3">
+                            <div className={cn(
+                              "w-10 h-10 rounded-lg flex items-center justify-center",
+                              msg.isCommandRecall && msg.isLocalOnly
+                                ? isMe ? "bg-white/20" : "bg-teal-200"
+                                : isMe ? "bg-white/20" : "bg-gray-100"
+                            )}>
+                              {getFileIcon(msg.fileName)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className={cn(
+                                "text-sm font-medium truncate",
+                                msg.isCommandRecall && msg.isLocalOnly
+                                  ? isMe ? "text-white" : "text-teal-900"
+                                  : isMe ? "text-white" : "text-gray-900"
+                              )}>
+                                {msg.fileName}
+                              </p>
+                              <p className={cn(
+                                "text-xs",
+                                msg.isCommandRecall && msg.isLocalOnly
+                                  ? isMe ? "text-white/70" : "text-teal-600"
+                                  : isMe ? "text-white/70" : "text-gray-500"
+                              )}>
+                                {msg.fileSize ? `${(msg.fileSize / 1024).toFixed(1)} KB` : ""}
+                              </p>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className={cn(
+                                msg.isCommandRecall && msg.isLocalOnly
+                                  ? isMe ? "text-white hover:bg-white/10" : "text-teal-700 hover:text-teal-800 hover:bg-teal-100"
+                                  : isMe ? "text-white hover:bg-white/10" : "text-purple-600 hover:text-purple-700"
+                              )}
+                              onClick={() => window.open(msg.fileUrl, '_blank')}
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </div>
                           
                           {msg.isCommandRecall && (
                             <div className={cn(
@@ -4578,43 +4123,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           ))}
         </>
         )}
-        
-        {/* Typing Indicator */}
-        <TypingIndicator
-          typingUsers={typingUsers}
-          accessibilityMode={accessibilitySettings.reducedMotion}
-          animationStyle={accessibilitySettings.reducedMotion ? 'minimal' : 'enhanced'}
-          showUserNames={true}
-        />
-        
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Floating Button for Unread Messages - Moved much higher to avoid covering other buttons */}
-      {showUnreadButton && firstUnreadMessageId && (
-        <div className="absolute bottom-60 left-1/2 transform -translate-x-1/2 z-20">
-          <Button
-            variant="default"
-            size="sm"
-            className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg rounded-full px-4 py-2 flex items-center space-x-2"
-            onClick={() => {
-              const messageElement = messageRefs.current[firstUnreadMessageId];
-              if (messageElement) {
-                messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                setShowUnreadButton(false);
-              }
-            }}
-          >
-            <span className="text-sm">읽지 않은 메시지</span>
-            <span className="bg-white text-purple-600 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
-              ↑
-            </span>
-          </Button>
-        </div>
-      )}
-
-      {/* Chat Input - Fixed to absolute bottom */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-20">
+      {/* Chat Input - Fixed position */}
+      <div className="bg-white border-t border-gray-200 flex-shrink-0 sticky bottom-0 z-10 pb-0">
         {/* Reply Preview */}
         {replyToMessage && (
           <div className="px-2 py-1 border-b border-gray-200 bg-gray-50">
@@ -4720,44 +4233,33 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           </div>
         )}
 
-        <div className={cn(
-          "px-2 py-0.5 chat-input-area",
-          "bg-white border-t border-gray-200"
-        )}>
+        <div className="px-2 pb-1 pt-1 chat-input-area">
           <div className="flex items-center space-x-1">
           {/* Compact left buttons group */}
           <div className="flex items-center space-x-0.5 mr-1">
-            <InteractiveButton
-              type="hover"
-              intensity="moderate"
-              accessibilityMode={accessibilitySettings.reducedMotion}
-              hapticFeedback={accessibilitySettings.hapticEnabled}
-              className="text-gray-400 hover:text-purple-600 p-0.5 min-w-0 h-6 w-6 rounded-md transition-colors"
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-400 hover:text-purple-600 p-1 min-w-0 h-7 w-7"
               onClick={() => {
                 setMessage(prev => prev + "#");
                 messageInputRef.current?.focus();
               }}
-              aria-label="스마트 추천"
+              title="스마트 추천"
             >
-              <Hash className="h-3 w-3" />
-            </InteractiveButton>
+              <Hash className="h-4 w-4" />
+            </Button>
             
-            <InteractiveButton
-              type="hover"
-              intensity="moderate"
-              accessibilityMode={accessibilitySettings.reducedMotion}
-              hapticFeedback={accessibilitySettings.hapticEnabled}
-              className="text-gray-400 hover:text-purple-600 p-0.5 min-w-0 h-6 w-6 rounded-md transition-colors"
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-400 hover:text-purple-600 p-1 min-w-0 h-7 w-7"
               onClick={handleFileUpload}
               disabled={uploadFileMutation.isPending}
-              aria-label="파일 첨부"
+              title="파일 첨부"
             >
-              {uploadFileMutation.isPending ? (
-                <AccessibleSpinner size="sm" accessibilityMode={accessibilitySettings.reducedMotion} />
-              ) : (
-                <Paperclip className="h-3 w-3" />
-              )}
-            </InteractiveButton>
+              <Paperclip className="h-4 w-4" />
+            </Button>
 
           </div>
           
@@ -4957,8 +4459,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   handleSendMessage();
                 }
               }}
-              className="resize-none min-h-[28px] max-h-[56px] py-1 px-2 text-base"
-              style={{ fontSize: '16px' }}
+              className="resize-none"
             />
             
             {/* # 태그 추천 */}
@@ -5177,28 +4678,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             disabled={isProcessingVoice || sendMessageMutation.isPending}
           />
           
-          <PulseNotification 
-            active={message.trim().length > 0}
-            accessibilityMode={accessibilitySettings.reducedMotion}
-            intensity="moderate"
+          <Button
+            className="purple-gradient hover:purple-gradient-hover h-8 w-8 p-1.5"
+            onClick={handleSendMessage}
+            disabled={sendMessageMutation.isPending || !message.trim()}
           >
-            <InteractiveButton
-              type="press"
-              intensity="strong"
-              accessibilityMode={accessibilitySettings.reducedMotion}
-              hapticFeedback={accessibilitySettings.hapticEnabled}
-              className="purple-gradient hover:purple-gradient-hover h-6 w-6 p-1 rounded-full transition-all duration-200"
-              onClick={handleSendMessage}
-              disabled={sendMessageMutation.isPending || !message.trim()}
-              aria-label="메시지 전송"
-            >
-              {sendMessageMutation.isPending ? (
-                <AccessibleSpinner size="sm" accessibilityMode={accessibilitySettings.reducedMotion} />
-              ) : (
-                <Send className="h-3 w-3" />
-              )}
-            </InteractiveButton>
-          </PulseNotification>
+            <Send className="h-4 w-4" />
+          </Button>
           </div>
         </div>
       </div>
@@ -5230,7 +4716,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         y={contextMenu.y}
         visible={contextMenu.visible}
         canEdit={contextMenu.message?.senderId === user?.id}
-        canSummarize={contextMenu.message?.content && contextMenu.message.content.length > 50}
         onClose={() => setContextMenu({ ...contextMenu, visible: false })}
         onReplyMessage={() => {
           handleReplyMessage();
@@ -5247,22 +4732,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           handleSaveMessage();
           setContextMenu({ ...contextMenu, visible: false });
         }}
-        onSummarizeMessage={() => {
-          handleSummarizeMessage();
-          setContextMenu({ ...contextMenu, visible: false });
-        }}
         onTranslateMessage={() => {
           handleTranslateMessage(contextMenu.message);
-          setContextMenu({ ...contextMenu, visible: false });
-        }}
-        onCopyText={() => {
-          if (contextMenu.message?.content) {
-            navigator.clipboard.writeText(contextMenu.message.content);
-            toast({
-              title: "텍스트가 복사되었습니다",
-              description: "클립보드에 메시지 내용이 복사되었습니다.",
-            });
-          }
           setContextMenu({ ...contextMenu, visible: false });
         }}
       />
@@ -5377,42 +4848,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           }}
         />
       )}
-
-      {/* Smart Result Modal */}
-      <Dialog open={smartResultModal.show} onOpenChange={(open) => setSmartResultModal(prev => ({ ...prev, show: open }))}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{smartResultModal.title}</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <p className="text-sm whitespace-pre-wrap">{smartResultModal.content}</p>
-            </div>
-          </div>
-          <div className="flex justify-end space-x-2">
-            <Button
-              variant="outline"
-              onClick={() => setSmartResultModal({ show: false, title: '', content: '' })}
-            >
-              닫기
-            </Button>
-            <Button
-              onClick={() => {
-                if (smartResultModal.content && smartResultModal.content !== '잠시만 기다려주세요...') {
-                  sendMessageMutation.mutate({
-                    content: smartResultModal.content,
-                    messageType: "text"
-                  });
-                }
-                setSmartResultModal({ show: false, title: '', content: '' });
-              }}
-              disabled={!smartResultModal.content || smartResultModal.content === '잠시만 기다려주세요...'}
-            >
-              채팅으로 전송
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
     </div>
   );

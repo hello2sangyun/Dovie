@@ -2,32 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 프리즘 애니메이션 - Instagram 스토리 스타일 */
-@keyframes gradient-rotate {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes gradient-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
-}
-
-.prism-border {
-  background: linear-gradient(45deg, 
-    #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d, #f56040, 
-    #f77737, #fcaf45, #ffdc80, #405de6);
-  background-size: 200% 200%;
-  animation: gradient-rotate 4s linear infinite, gradient-pulse 3s ease-in-out infinite;
-}
-
-.prism-border-v2 {
-  background: conic-gradient(from 0deg at 50% 50%, 
-    #405de6 0deg, #5851db 51deg, #833ab4 102deg, #c13584 153deg, 
-    #e1306c 204deg, #fd1d1d 255deg, #f56040 306deg, #405de6 360deg);
-  animation: gradient-rotate 3s linear infinite;
-}
-
 :root {
   --background: 0 0% 100%;
   --foreground: 224 71.4% 4.1%;
@@ -121,31 +95,6 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
     font-family: 'Inter', system-ui, sans-serif;
-    overflow-x: hidden;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  html, body, #root {
-    height: auto;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* Force mobile scrolling */
-  @media (max-width: 768px) {
-    html, body {
-      height: auto !important;
-      overflow-y: auto !important;
-      -webkit-overflow-scrolling: touch !important;
-      position: relative !important;
-    }
-    
-    #root {
-      height: auto !important;
-      min-height: 100vh !important;
-      overflow: visible !important;
-    }
   }
 
   /* Custom scrollbar */

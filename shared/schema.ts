@@ -35,18 +35,6 @@ export const contacts = pgTable("contacts", {
   contactUserId: integer("contact_user_id").references(() => users.id).notNull(),
   nickname: text("nickname"),
   isPinned: boolean("is_pinned").default(false),
-  isFavorite: boolean("is_favorite").default(false),
-  isBlocked: boolean("is_blocked").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-export const spaceNotifications = pgTable("space_notifications", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  type: text("type").notNull(), // 'new_post', 'post_like', 'post_comment'
-  targetUserId: integer("target_user_id").references(() => users.id),
-  postId: integer("post_id").references(() => userPosts.id),
-  isRead: boolean("is_read").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -55,6 +43,7 @@ export const chatRooms = pgTable("chat_rooms", {
   name: text("name").notNull(),
   isGroup: boolean("is_group").default(false),
   isPinned: boolean("is_pinned").default(false),
+  isLocationBased: boolean("is_location_based").default(false),
   createdBy: integer("created_by").references(() => users.id).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -108,7 +97,7 @@ export const messageReads = pgTable("message_reads", {
 export const commands = pgTable("commands", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
-  chatRoomId: integer("chat_room_id").references(() => chatRooms.id), // Made nullable for archived commands
+  chatRoomId: integer("chat_room_id").references(() => chatRooms.id).notNull(),
   commandName: text("command_name").notNull(),
   messageId: integer("message_id").references(() => messages.id),
   fileUrl: text("file_url"),
@@ -150,146 +139,59 @@ export const pollVotes = pgTable("poll_votes", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-
-
-export const fileUploads = pgTable("file_uploads", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  chatRoomId: integer("chat_room_id").references(() => chatRooms.id),
-  fileName: text("file_name").notNull(),
-  originalName: text("original_name").notNull(),
-  fileSize: integer("file_size").notNull(),
-  fileType: text("file_type").notNull(),
-  filePath: text("file_path").notNull(),
-  uploadedAt: timestamp("uploaded_at").defaultNow(),
-  isDeleted: boolean("is_deleted").default(false)
-});
-
-export const fileDownloads = pgTable("file_downloads", {
-  id: serial("id").primaryKey(),
-  fileUploadId: integer("file_upload_id").references(() => fileUploads.id).notNull(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  downloadedAt: timestamp("downloaded_at").defaultNow(),
-  ipAddress: text("ip_address"),
-  userAgent: text("user_agent")
-});
-
-
-
-// 회사 채널 테이블
-export const companyChannels = pgTable("company_channels", {
+// Location-based chat rooms
+export const locationChatRooms = pgTable("location_chat_rooms", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  description: text("description"),
-  logoUrl: text("logo_url"),
-  website: text("website"),
-  isVerified: boolean("is_verified").default(false),
-  createdById: integer("created_by_id").references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  latitude: decimal("latitude", { precision: 10, scale: 8 }).notNull(),
+  longitude: decimal("longitude", { precision: 11, scale: 8 }).notNull(),
+  radius: integer("radius").default(50), // meters - 기본 50미터 반경
+  address: text("address"),
+  isOfficial: boolean("is_official").default(false),
+  businessOwnerId: integer("business_owner_id").references(() => users.id),
+  autoDeleteAt: timestamp("auto_delete_at"),
+  isActive: boolean("is_active").default(true),
+  maxParticipants: integer("max_participants").default(100),
+  participantCount: integer("participant_count").default(0),
+  lastActivity: timestamp("last_activity").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
-// 회사 채널 관리자 테이블
-export const companyChannelAdmins = pgTable("company_channel_admins", {
+export const locationChatParticipants = pgTable("location_chat_participants", {
   id: serial("id").primaryKey(),
-  channelId: integer("channel_id").references(() => companyChannels.id),
-  userId: integer("user_id").references(() => users.id),
-  role: text("role").default("admin"), // admin, moderator
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-// 회사 채널 팔로워 테이블
-export const companyChannelFollowers = pgTable("company_channel_followers", {
-  id: serial("id").primaryKey(),
-  channelId: integer("channel_id").references(() => companyChannels.id),
-  userId: integer("user_id").references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-// 비즈니스 피드 포스트 테이블
-export const businessPosts = pgTable("business_posts", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id),
-  companyChannelId: integer("company_channel_id").references(() => companyChannels.id),
-  content: text("content").notNull(),
-  imageUrl: text("image_url"),
-  linkUrl: text("link_url"),
-  linkTitle: text("link_title"),
-  linkDescription: text("link_description"),
-  postType: text("post_type").default("personal"), // personal, company
-  isVisible: boolean("is_visible").default(true),
-  likesCount: integer("likes_count").default(0),
-  commentsCount: integer("comments_count").default(0),
-  sharesCount: integer("shares_count").default(0),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-// 비즈니스 포스트 좋아요
-export const businessPostLikes = pgTable("business_post_likes", {
-  id: serial("id").primaryKey(),
-  postId: integer("post_id").references(() => businessPosts.id),
-  userId: integer("user_id").references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-// 비즈니스 포스트 댓글
-export const businessPostComments = pgTable("business_post_comments", {
-  id: serial("id").primaryKey(),
-  postId: integer("post_id").references(() => businessPosts.id),
-  userId: integer("user_id").references(() => users.id),
-  content: text("content").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-// 비즈니스 포스트 읽음 상태 테이블
-export const businessPostReads = pgTable("business_post_reads", {
-  id: serial("id").primaryKey(),
-  postId: integer("post_id").references(() => businessPosts.id),
-  userId: integer("user_id").references(() => users.id),
-  readAt: timestamp("read_at").defaultNow().notNull(),
-}, (table) => ({
-  uniquePostRead: unique().on(table.postId, table.userId),
-}));
-
-// 사용자 프로필 확장 (비즈니스 정보)
-export const userBusinessProfiles = pgTable("user_business_profiles", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id),
-  jobTitle: text("job_title"),
-  company: text("company"),
-  bio: text("bio"),
-  website: text("website"),
-  location: text("location"),
-  linkedinUrl: text("linkedin_url"),
-  industry: text("industry"),
-  experienceYears: integer("experience_years"),
-  skills: text("skills").array(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-// 회사 프로필 테이블
-export const companyProfiles = pgTable("company_profiles", {
-  id: serial("id").primaryKey(),
+  locationChatRoomId: integer("location_chat_room_id").references(() => locationChatRooms.id).notNull(),
   userId: integer("user_id").references(() => users.id).notNull(),
-  companyName: text("company_name").notNull(),
-  industry: text("industry"),
-  location: text("location"),
-  description: text("description"),
-  website: text("website"),
-  logoUrl: text("logo_url"),
-  bannerUrl: text("banner_url"),
-  employeeCount: text("employee_count"),
-  foundedYear: integer("founded_year"),
-  visitorCount: integer("visitor_count").default(0),
-  followerCount: integer("follower_count").default(0),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  joinedAt: timestamp("joined_at").defaultNow(),
+  lastSeen: timestamp("last_seen").defaultNow(),
+  isMuted: boolean("is_muted").default(false),
+  isBlocked: boolean("is_blocked").default(false),
 }, (table) => ({
-  uniqueUserCompany: unique().on(table.userId),
+  uniqueParticipant: unique().on(table.locationChatRoomId, table.userId),
 }));
+
+export const locationChatMessages = pgTable("location_chat_messages", {
+  id: serial("id").primaryKey(),
+  locationChatRoomId: integer("location_chat_room_id").references(() => locationChatRooms.id).notNull(),
+  senderId: integer("sender_id").references(() => users.id).notNull(),
+  content: text("content").notNull(),
+  messageType: text("message_type").default("text"), // text, image, voice, file
+  fileName: text("file_name"),
+  fileSize: integer("file_size"),
+  voiceDuration: integer("voice_duration"),
+  detectedLanguage: text("detected_language"),
+  confidence: text("confidence"),
+  isSystemMessage: boolean("is_system_message").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const userLocations = pgTable("user_locations", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull().unique(),
+  latitude: decimal("latitude", { precision: 10, scale: 8 }).notNull(),
+  longitude: decimal("longitude", { precision: 11, scale: 8 }).notNull(),
+  accuracy: decimal("accuracy", { precision: 8, scale: 2 }),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
 
 export const usersRelations = relations(users, ({ many }) => ({
   contacts: many(contacts, { relationName: "userContacts" }),
@@ -298,6 +200,10 @@ export const usersRelations = relations(users, ({ many }) => ({
   chatParticipants: many(chatParticipants),
   sentMessages: many(messages),
   commands: many(commands),
+  ownedLocationChatRooms: many(locationChatRooms),
+  locationChatParticipants: many(locationChatParticipants),
+  locationChatMessages: many(locationChatMessages),
+  userLocation: many(userLocations),
 }));
 
 export const contactsRelations = relations(contacts, ({ one }) => ({
@@ -383,169 +289,44 @@ export const commandsRelations = relations(commands, ({ one }) => ({
   }),
 }));
 
-
-
-export const fileUploadsRelations = relations(fileUploads, ({ one, many }) => ({
-  user: one(users, {
-    fields: [fileUploads.userId],
+// Location chat relations
+export const locationChatRoomsRelations = relations(locationChatRooms, ({ one, many }) => ({
+  businessOwner: one(users, {
+    fields: [locationChatRooms.businessOwnerId],
     references: [users.id],
   }),
-  chatRoom: one(chatRooms, {
-    fields: [fileUploads.chatRoomId],
-    references: [chatRooms.id],
-  }),
-  downloads: many(fileDownloads),
+  participants: many(locationChatParticipants),
+  messages: many(locationChatMessages),
 }));
 
-export const fileDownloadsRelations = relations(fileDownloads, ({ one }) => ({
-  fileUpload: one(fileUploads, {
-    fields: [fileDownloads.fileUploadId],
-    references: [fileUploads.id],
+export const locationChatParticipantsRelations = relations(locationChatParticipants, ({ one }) => ({
+  locationChatRoom: one(locationChatRooms, {
+    fields: [locationChatParticipants.locationChatRoomId],
+    references: [locationChatRooms.id],
   }),
   user: one(users, {
-    fields: [fileDownloads.userId],
+    fields: [locationChatParticipants.userId],
     references: [users.id],
   }),
 }));
 
-
-
-// User posts table for social features
-export const userPosts = pgTable("user_posts", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  companyChannelId: integer("company_channel_id").references(() => companyChannels.id), // Optional for company posts
-  title: text("title"),
-  content: text("content").notNull(),
-  postType: text("post_type").default("text"), // text, image, link, etc.
-  attachments: text("attachments").array(), // Array of file URLs
-  visibility: text("visibility").default("friends"), // public, friends, private
-  tags: text("tags").array(), // Array of tags
-  likeCount: integer("like_count").default(0),
-  commentCount: integer("comment_count").default(0),
-  shareCount: integer("share_count").default(0),
-  isPinned: boolean("is_pinned").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-
-
-// Space company channels table (기존과 통합)
-export const spaceCompanyChannels = pgTable("space_company_channels", {
-  id: serial("id").primaryKey(),
-  companyName: text("company_name").notNull(),
-  description: text("description"),
-  website: text("website"),
-  logo: text("logo"),
-  banner: text("banner"),
-  industry: text("industry"),
-  employeeCount: text("employee_count"), // "1-10", "11-50", etc.
-  location: text("location"),
-  isVerified: boolean("is_verified").default(false),
-  isApproved: boolean("is_approved").default(false),
-  createdBy: integer("created_by").references(() => users.id).notNull(),
-  followerCount: integer("follower_count").default(0),
-  postCount: integer("post_count").default(0),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// Company channel followers
-export const companyFollowers = pgTable("company_followers", {
-  id: serial("id").primaryKey(),
-  companyChannelId: integer("company_channel_id").references(() => companyChannels.id).notNull(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  followedAt: timestamp("followed_at").defaultNow(),
-}, (table) => ({
-  uniqueFollower: unique().on(table.companyChannelId, table.userId),
+export const locationChatMessagesRelations = relations(locationChatMessages, ({ one }) => ({
+  locationChatRoom: one(locationChatRooms, {
+    fields: [locationChatMessages.locationChatRoomId],
+    references: [locationChatRooms.id],
+  }),
+  sender: one(users, {
+    fields: [locationChatMessages.senderId],
+    references: [users.id],
+  }),
 }));
 
-// Post likes table
-export const postLikes = pgTable("post_likes", {
-  id: serial("id").primaryKey(),
-  postId: integer("post_id").references(() => userPosts.id).notNull(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  likedAt: timestamp("liked_at").defaultNow(),
-}, (table) => ({
-  uniqueLike: unique().on(table.postId, table.userId),
-}));
-
-// Post comments table
-export const postComments = pgTable("post_comments", {
-  id: serial("id").primaryKey(),
-  postId: integer("post_id").references(() => userPosts.id).notNull(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  content: text("content").notNull(),
-  parentCommentId: integer("parent_comment_id").references(() => postComments.id),
-  likeCount: integer("like_count").default(0),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-
-
-export const userPostsRelations = relations(userPosts, ({ one, many }) => ({
+export const userLocationsRelations = relations(userLocations, ({ one }) => ({
   user: one(users, {
-    fields: [userPosts.userId],
-    references: [users.id],
-  }),
-  companyChannel: one(companyChannels, {
-    fields: [userPosts.companyChannelId],
-    references: [companyChannels.id],
-  }),
-  likes: many(postLikes),
-  comments: many(postComments),
-}));
-
-export const companyChannelsRelations = relations(companyChannels, ({ one, many }) => ({
-  creator: one(users, {
-    fields: [companyChannels.createdById],
-    references: [users.id],
-  }),
-  followers: many(companyFollowers),
-  posts: many(userPosts),
-}));
-
-export const companyFollowersRelations = relations(companyFollowers, ({ one }) => ({
-  companyChannel: one(companyChannels, {
-    fields: [companyFollowers.companyChannelId],
-    references: [companyChannels.id],
-  }),
-  user: one(users, {
-    fields: [companyFollowers.userId],
+    fields: [userLocations.userId],
     references: [users.id],
   }),
 }));
-
-export const postLikesRelations = relations(postLikes, ({ one }) => ({
-  post: one(userPosts, {
-    fields: [postLikes.postId],
-    references: [userPosts.id],
-  }),
-  user: one(users, {
-    fields: [postLikes.userId],
-    references: [users.id],
-  }),
-}));
-
-export const postCommentsRelations = relations(postComments, ({ one, many }) => ({
-  post: one(userPosts, {
-    fields: [postComments.postId],
-    references: [userPosts.id],
-  }),
-  user: one(users, {
-    fields: [postComments.userId],
-    references: [users.id],
-  }),
-  parentComment: one(postComments, {
-    fields: [postComments.parentCommentId],
-    references: [postComments.id],
-  }),
-  replies: many(postComments),
-}));
-
-
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -585,44 +366,26 @@ export const insertPhoneVerificationSchema = createInsertSchema(phoneVerificatio
   createdAt: true,
 });
 
-
-
-export const insertFileUploadSchema = createInsertSchema(fileUploads).omit({
-  id: true,
-  uploadedAt: true,
-});
-
-export const insertFileDownloadSchema = createInsertSchema(fileDownloads).omit({
-  id: true,
-  downloadedAt: true,
-});
-
-export const insertUserPostSchema = createInsertSchema(userPosts).omit({
+export const insertLocationChatRoomSchema = createInsertSchema(locationChatRooms).omit({
   id: true,
   createdAt: true,
-  updatedAt: true,
+  participantCount: true,
+  lastActivity: true,
 });
 
-export const insertCompanyChannelSchema = createInsertSchema(companyChannels).omit({
+export const insertLocationChatParticipantSchema = createInsertSchema(locationChatParticipants).omit({
+  id: true,
+  joinedAt: true,
+  lastSeen: true,
+});
+
+export const insertLocationChatMessageSchema = createInsertSchema(locationChatMessages).omit({
   id: true,
   createdAt: true,
-  updatedAt: true,
 });
 
-export const insertPostLikeSchema = createInsertSchema(postLikes).omit({
+export const insertUserLocationSchema = createInsertSchema(userLocations).omit({
   id: true,
-  likedAt: true,
-});
-
-export const insertPostCommentSchema = createInsertSchema(postComments).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertCompanyProfileSchema = createInsertSchema(companyProfiles).omit({
-  id: true,
-  createdAt: true,
   updatedAt: true,
 });
 
@@ -641,18 +404,11 @@ export type InsertCommand = z.infer<typeof insertCommandSchema>;
 export type PhoneVerification = typeof phoneVerifications.$inferSelect;
 export type InsertPhoneVerification = z.infer<typeof insertPhoneVerificationSchema>;
 
-
-export type FileUpload = typeof fileUploads.$inferSelect;
-export type InsertFileUpload = z.infer<typeof insertFileUploadSchema>;
-export type FileDownload = typeof fileDownloads.$inferSelect;
-export type InsertFileDownload = z.infer<typeof insertFileDownloadSchema>;
-export type UserPost = typeof userPosts.$inferSelect;
-export type InsertUserPost = z.infer<typeof insertUserPostSchema>;
-export type CompanyChannel = typeof companyChannels.$inferSelect;
-export type InsertCompanyChannel = z.infer<typeof insertCompanyChannelSchema>;
-export type PostLike = typeof postLikes.$inferSelect;
-export type InsertPostLike = z.infer<typeof insertPostLikeSchema>;
-export type PostComment = typeof postComments.$inferSelect;
-export type InsertPostComment = z.infer<typeof insertPostCommentSchema>;
-export type CompanyProfile = typeof companyProfiles.$inferSelect;
-export type InsertCompanyProfile = z.infer<typeof insertCompanyProfileSchema>;
+export type LocationChatRoom = typeof locationChatRooms.$inferSelect;
+export type InsertLocationChatRoom = z.infer<typeof insertLocationChatRoomSchema>;
+export type LocationChatParticipant = typeof locationChatParticipants.$inferSelect;
+export type InsertLocationChatParticipant = z.infer<typeof insertLocationChatParticipantSchema>;
+export type LocationChatMessage = typeof locationChatMessages.$inferSelect;
+export type InsertLocationChatMessage = z.infer<typeof insertLocationChatMessageSchema>;
+export type UserLocation = typeof userLocations.$inferSelect;
+export type InsertUserLocation = z.infer<typeof insertUserLocationSchema>;

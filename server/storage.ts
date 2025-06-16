@@ -1,12 +1,11 @@
 import { 
   users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications,
-  fileUploads, fileDownloads, userPosts,
+  locationChatRooms, locationChatParticipants, locationChatMessages, userLocations,
   type User, type InsertUser, type Contact, type InsertContact,
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
   type Command, type InsertCommand, type MessageRead, type InsertMessageRead,
   type PhoneVerification, type InsertPhoneVerification,
-  type FileUpload, type InsertFileUpload, type FileDownload, type InsertFileDownload,
-  type UserPost, type InsertUserPost
+  type LocationChatRoom, type InsertLocationChatRoom
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, or, count, gt, lt, sql, inArray } from "drizzle-orm";
@@ -25,9 +24,6 @@ export interface IStorage {
   addContact(contact: InsertContact): Promise<Contact>;
   removeContact(userId: number, contactUserId: number): Promise<void>;
   updateContact(userId: number, contactUserId: number, updates: Partial<InsertContact>): Promise<Contact | undefined>;
-  blockContact(userId: number, contactUserId: number): Promise<void>;
-  unblockContact(userId: number, contactUserId: number): Promise<void>;
-  getBlockedContacts(userId: number): Promise<(Contact & { contactUser: User })[]>;
 
   // Chat room operations
   getChatRooms(userId: number): Promise<(ChatRoom & { participants: User[], lastMessage?: Message & { sender: User } })[]>;
@@ -63,16 +59,19 @@ export interface IStorage {
   // Business user operations
   registerBusinessUser(userId: number, businessData: { businessName: string; businessAddress: string }): Promise<User | undefined>;
 
-  // File storage analytics operations
-  getStorageAnalytics(userId: number, timeRange: string): Promise<any>;
-  trackFileUpload(fileData: { userId: number; chatRoomId?: number; fileName: string; originalName: string; fileSize: number; fileType: string; filePath: string }): Promise<void>;
-  trackFileDownload(fileUploadId: number, userId: number, ipAddress?: string, userAgent?: string): Promise<void>;
-
-
+  // Location-based chat operations
+  updateUserLocation(userId: number, location: { latitude: number; longitude: number; accuracy: number }): Promise<void>;
+  getNearbyLocationChatRooms(latitude: number, longitude: number, radius?: number): Promise<LocationChatRoom[]>;
+  createLocationChatRoom(userId: number, roomData: { name: string; latitude: number; longitude: number; address: string }): Promise<LocationChatRoom>;
+  joinLocationChatRoom(userId: number, roomId: number): Promise<void>;
   
-  // User posts operations
-  getUserPosts(userId: number): Promise<UserPost[]>;
-  createUserPost(userId: number, postData: Partial<InsertUserPost>): Promise<UserPost>;
+  // 위치 기반 자동 관리
+  cleanupInactiveLocationChats(): Promise<void>;
+  cleanupEmptyLocationChats(): Promise<void>;
+  handleLocationBasedExit(): Promise<void>;
+  leaveLocationChatRoom(userId: number, roomId: number): Promise<void>;
+  deleteLocationChatRoom(roomId: number): Promise<void>;
+  checkLocationProximity(userId: number): Promise<{ roomId: number; distance: number; hasNewChats: boolean }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -100,55 +99,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined> {
-    const [updatedUser] = await db
+    const [user] = await db
       .update(users)
       .set(updates)
       .where(eq(users.id, id))
       .returning();
-    return updatedUser || undefined;
+    return user || undefined;
   }
 
   async getContacts(userId: number): Promise<(Contact & { contactUser: User })[]> {
-    const result = await db.select({
-      // Contact fields
-      id: contacts.id,
-      userId: contacts.userId,
-      contactUserId: contacts.contactUserId,
-      nickname: contacts.nickname,
-      isPinned: contacts.isPinned,
-      isBlocked: contacts.isBlocked,
-      isFavorite: contacts.isFavorite,
-      createdAt: contacts.createdAt,
-      // Essential user fields only
-      contactUser: {
-        id: users.id,
-        username: users.username,
-        displayName: users.displayName,
-        email: users.email,
-        profilePicture: users.profilePicture,
-        isOnline: users.isOnline,
-        lastSeen: users.lastSeen,
-        userRole: users.userRole
-      }
-    })
-    .from(contacts)
-    .innerJoin(users, eq(contacts.contactUserId, users.id))
-    .where(and(
-      eq(contacts.userId, userId),
-      eq(contacts.isBlocked, false)
-    ))
-    .orderBy(asc(users.displayName));
+    const result = await db
+      .select()
+      .from(contacts)
+      .innerJoin(users, eq(contacts.contactUserId, users.id))
+      .where(eq(contacts.userId, userId))
+      .orderBy(asc(users.displayName));
     
     return result.map(row => ({
-      id: row.id,
-      userId: row.userId,
-      contactUserId: row.contactUserId,
-      nickname: row.nickname,
-      isPinned: row.isPinned,
-      isBlocked: row.isBlocked,
-      isFavorite: row.isFavorite,
-      createdAt: row.createdAt,
-      contactUser: row.contactUser
+      ...row.contacts,
+      contactUser: row.users
     }));
   }
 
@@ -170,7 +139,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateContact(userId: number, contactUserId: number, updates: Partial<InsertContact>): Promise<Contact | undefined> {
-    const [updatedContact] = await db
+    const [contact] = await db
       .update(contacts)
       .set(updates)
       .where(and(
@@ -178,126 +147,71 @@ export class DatabaseStorage implements IStorage {
         eq(contacts.contactUserId, contactUserId)
       ))
       .returning();
-    return updatedContact || undefined;
-  }
-
-  async blockContact(userId: number, contactUserId: number): Promise<void> {
-    await db
-      .update(contacts)
-      .set({
-        isBlocked: true,
-        updatedAt: new Date()
-      })
-      .where(and(
-        eq(contacts.userId, userId),
-        eq(contacts.contactUserId, contactUserId)
-      ));
-  }
-
-  async unblockContact(userId: number, contactUserId: number): Promise<void> {
-    await db
-      .update(contacts)
-      .set({
-        isBlocked: false,
-        updatedAt: new Date()
-      })
-      .where(and(
-        eq(contacts.userId, userId),
-        eq(contacts.contactUserId, contactUserId)
-      ));
-  }
-
-  async getBlockedContacts(userId: number): Promise<(Contact & { contactUser: User })[]> {
-    const result = await db.select({
-      contacts,
-      users
-    })
-    .from(contacts)
-    .innerJoin(users, eq(contacts.contactUserId, users.id))
-    .where(and(
-      eq(contacts.userId, userId),
-      eq(contacts.isBlocked, true)
-    ))
-    .orderBy(asc(users.displayName));
-    
-    return result.map(row => ({
-      ...row.contacts,
-      contactUser: row.users
-    }));
+    return contact || undefined;
   }
 
   async getChatRooms(userId: number): Promise<(ChatRoom & { participants: User[], lastMessage?: Message & { sender: User } })[]> {
-    try {
-      // Get user's chat rooms
-      const userChatRooms = await db.select({
-        id: chatRooms.id,
-        name: chatRooms.name,
-        isGroup: chatRooms.isGroup,
-        isPinned: chatRooms.isPinned,
-        createdBy: chatRooms.createdBy,
-        createdAt: chatRooms.createdAt
-      })
+    // Get user's chat rooms (exclude location-based chat rooms)
+    const userChatRooms = await db
+      .select({ chatRoom: chatRooms })
       .from(chatParticipants)
       .innerJoin(chatRooms, eq(chatParticipants.chatRoomId, chatRooms.id))
-      .where(eq(chatParticipants.userId, userId))
+      .where(and(
+        eq(chatParticipants.userId, userId),
+        eq(chatRooms.isLocationBased, false) // Only non-location based chat rooms
+      ))
       .orderBy(desc(chatRooms.isPinned), desc(chatRooms.createdAt));
 
-      // Get details for each chat room
-      const chatRoomsWithDetails = await Promise.all(
-        userChatRooms.map(async (room) => {
-          // Get participants
-          const participants = await db.select({
-            id: users.id,
-            username: users.username,
-            displayName: users.displayName,
-            email: users.email,
-            profilePicture: users.profilePicture,
-            userRole: users.userRole,
-            isOnline: users.isOnline
-          })
-          .from(chatParticipants)
-          .innerJoin(users, eq(chatParticipants.userId, users.id))
-          .where(eq(chatParticipants.chatRoomId, room.id));
+    if (userChatRooms.length === 0) return [];
 
-          // Get last message
-          const lastMessages = await db.select({
-            id: messages.id,
-            senderId: messages.senderId,
-            content: messages.content,
-            messageType: messages.messageType,
-            createdAt: messages.createdAt,
-            sender: {
-              id: users.id,
-              username: users.username,
-              displayName: users.displayName,
-              profilePicture: users.profilePicture
-            }
-          })
-          .from(messages)
-          .innerJoin(users, eq(messages.senderId, users.id))
-          .where(eq(messages.chatRoomId, room.id))
-          .orderBy(desc(messages.createdAt))
-          .limit(1);
+    const chatRoomIds = userChatRooms.map(({ chatRoom }) => chatRoom.id);
 
-          const lastMessage = lastMessages.length > 0 ? {
-            ...lastMessages[0],
-            chatRoomId: room.id,
-            content: lastMessages[0].content ? decryptText(lastMessages[0].content) : lastMessages[0].content
-          } : undefined;
+    // Batch fetch all participants for these chat rooms
+    const allParticipants = await db
+      .select({
+        chatRoomId: chatParticipants.chatRoomId,
+        user: users
+      })
+      .from(chatParticipants)
+      .innerJoin(users, eq(chatParticipants.userId, users.id))
+      .where(inArray(chatParticipants.chatRoomId, chatRoomIds));
 
-          return {
-            ...room,
-            participants,
-            lastMessage
-          };
-        })
-      );
-
-      return chatRoomsWithDetails;
-    } catch (error) {
-      console.error("Error fetching chat rooms:", error);
-      throw error;
+    // Simple sequential approach for last messages
+    const lastMessageByRoom = new Map<number, Message & { sender: User }>();
+    
+    for (const chatRoomId of chatRoomIds) {
+      const [lastMessageData] = await db
+        .select()
+        .from(messages)
+        .innerJoin(users, eq(messages.senderId, users.id))
+        .where(eq(messages.chatRoomId, chatRoomId))
+        .orderBy(desc(messages.createdAt))
+        .limit(1);
+      
+      if (lastMessageData) {
+        lastMessageByRoom.set(chatRoomId, {
+          ...lastMessageData.messages,
+          content: lastMessageData.messages.content ? decryptText(lastMessageData.messages.content) : lastMessageData.messages.content,
+          sender: lastMessageData.users
+        });
+      }
     }
+
+    // Group participants by chat room
+    const participantsByRoom = new Map<number, User[]>();
+    allParticipants.forEach(({ chatRoomId, user }) => {
+      if (!participantsByRoom.has(chatRoomId)) {
+        participantsByRoom.set(chatRoomId, []);
+      }
+      participantsByRoom.get(chatRoomId)!.push(user);
+    });
+
+    // Combine results
+    return userChatRooms.map(({ chatRoom }) => ({
+      ...chatRoom,
+      participants: participantsByRoom.get(chatRoom.id) || [],
+      lastMessage: lastMessageByRoom.get(chatRoom.id)
+    }));
   }
 
   async getChatRoomById(chatRoomId: number): Promise<(ChatRoom & { participants: User[] }) | undefined> {
@@ -306,26 +220,18 @@ export class DatabaseStorage implements IStorage {
       .from(chatRooms)
       .where(eq(chatRooms.id, chatRoomId));
 
-    if (!chatRoom) {
-      return undefined;
-    }
+    if (!chatRoom) return undefined;
 
-    const participants = await db.select({
-      id: users.id,
-      username: users.username,
-      displayName: users.displayName,
-      email: users.email,
-      profilePicture: users.profilePicture,
-      userRole: users.userRole,
-      isOnline: users.isOnline
-    })
-    .from(chatParticipants)
-    .innerJoin(users, eq(chatParticipants.userId, users.id))
-    .where(eq(chatParticipants.chatRoomId, chatRoomId));
+    // Get participants for this chat room
+    const participants = await db
+      .select({ user: users })
+      .from(chatParticipants)
+      .innerJoin(users, eq(chatParticipants.userId, users.id))
+      .where(eq(chatParticipants.chatRoomId, chatRoomId));
 
     return {
       ...chatRoom,
-      participants
+      participants: participants.map(({ user }) => user)
     };
   }
 
@@ -336,95 +242,123 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     // Add participants
-    await db.insert(chatParticipants).values(
-      participantIds.map(userId => ({
-        chatRoomId: newChatRoom.id,
-        userId,
-        joinedAt: new Date()
-      }))
-    );
+    const participantData = participantIds.map(userId => ({
+      chatRoomId: newChatRoom.id,
+      userId
+    }));
+
+    await db.insert(chatParticipants).values(participantData);
 
     return newChatRoom;
   }
 
   async deleteChatRoom(chatRoomId: number, userId: number): Promise<void> {
-    await db.delete(chatRooms).where(
-      and(
+    // Only allow deletion if user is the creator
+    await db
+      .delete(chatRooms)
+      .where(and(
         eq(chatRooms.id, chatRoomId),
         eq(chatRooms.createdBy, userId)
-      )
-    );
+      ));
   }
 
   async updateChatRoom(chatRoomId: number, updates: Partial<InsertChatRoom>): Promise<ChatRoom | undefined> {
-    const [updatedChatRoom] = await db
+    const [chatRoom] = await db
       .update(chatRooms)
       .set(updates)
       .where(eq(chatRooms.id, chatRoomId))
       .returning();
-    return updatedChatRoom || undefined;
+    return chatRoom || undefined;
   }
 
   async leaveChatRoom(chatRoomId: number, userId: number, saveFiles: boolean): Promise<void> {
+    // Remove user from chat participants
     await db
       .delete(chatParticipants)
       .where(and(
         eq(chatParticipants.chatRoomId, chatRoomId),
         eq(chatParticipants.userId, userId)
       ));
+
+    // Handle files based on saveFiles flag
+    if (saveFiles) {
+      // Move files to user's archive/storage
+      // For now, we'll just mark them as archived
+      await db
+        .update(commands)
+        .set({ chatRoomId: null }) // Remove from chat room but keep for user
+        .where(and(
+          eq(commands.chatRoomId, chatRoomId),
+          eq(commands.userId, userId)
+        ));
+    } else {
+      // Delete user's commands/files from this chat room
+      await db
+        .delete(commands)
+        .where(and(
+          eq(commands.chatRoomId, chatRoomId),
+          eq(commands.userId, userId)
+        ));
+    }
+
+    // Check if chat room is empty and delete if needed
+    const remainingParticipants = await db
+      .select()
+      .from(chatParticipants)
+      .where(eq(chatParticipants.chatRoomId, chatRoomId));
+
+    if (remainingParticipants.length === 0) {
+      // Delete the entire chat room if no participants left
+      await db.delete(chatRooms).where(eq(chatRooms.id, chatRoomId));
+    }
   }
 
   async getMessages(chatRoomId: number, limit: number = 50): Promise<(Message & { sender: User })[]> {
-    const result = await db.select({
-      messages,
-      users
-    })
-    .from(messages)
-    .innerJoin(users, eq(messages.senderId, users.id))
-    .where(eq(messages.chatRoomId, chatRoomId))
-    .orderBy(asc(messages.createdAt))
-    .limit(limit);
+    const result = await db
+      .select()
+      .from(messages)
+      .innerJoin(users, eq(messages.senderId, users.id))
+      .where(eq(messages.chatRoomId, chatRoomId))
+      .orderBy(desc(messages.createdAt))
+      .limit(limit);
 
     return result.map(row => ({
       ...row.messages,
-      content: row.messages.content ? decryptText(row.messages.content) : row.messages.content,
+      content: decryptText(row.messages.content), // 메시지 내용 복호화
       sender: row.users
-    }));
+    })).reverse();
   }
 
   async createMessage(message: InsertMessage): Promise<Message> {
-    const messageToInsert = {
+    // 메시지 내용 암호화
+    const encryptedMessage = {
       ...message,
-      content: message.content ? encryptText(message.content) : message.content
+      content: encryptText(message.content)
     };
-
+    
     const [newMessage] = await db
       .insert(messages)
-      .values(messageToInsert)
+      .values(encryptedMessage)
       .returning();
-    return newMessage;
+    
+    // 반환할 때는 복호화해서 반환
+    return {
+      ...newMessage,
+      content: decryptText(newMessage.content)
+    };
   }
 
   async getMessageById(messageId: number): Promise<(Message & { sender: User }) | undefined> {
-    const result = await db.select({
-      messages,
-      users
-    })
-    .from(messages)
-    .innerJoin(users, eq(messages.senderId, users.id))
-    .where(eq(messages.id, messageId))
-    .limit(1);
+    const [result] = await db
+      .select()
+      .from(messages)
+      .innerJoin(users, eq(messages.senderId, users.id))
+      .where(eq(messages.id, messageId));
 
-    if (result.length === 0) {
-      return undefined;
-    }
-
-    const row = result[0];
-    return {
-      ...row.messages,
-      content: row.messages.content ? decryptText(row.messages.content) : row.messages.content,
-      sender: row.users
-    };
+    return result ? {
+      ...result.messages,
+      sender: result.users
+    } : undefined;
   }
 
   async updateMessage(messageId: number, updates: Partial<InsertMessage>): Promise<Message | undefined> {
@@ -433,23 +367,26 @@ export class DatabaseStorage implements IStorage {
       .set(updates)
       .where(eq(messages.id, messageId))
       .returning();
-    return updatedMessage || undefined;
+
+    return updatedMessage;
   }
 
   async getCommands(userId: number, chatRoomId?: number): Promise<(Command & { originalSender?: User })[]> {
-    const conditions = [eq(commands.userId, userId)];
+    let whereCondition = eq(commands.userId, userId);
+
     if (chatRoomId) {
-      conditions.push(eq(commands.chatRoomId, chatRoomId));
+      whereCondition = and(
+        eq(commands.userId, userId),
+        eq(commands.chatRoomId, chatRoomId)
+      );
     }
 
-    const result = await db.select({
-      commands,
-      users
-    })
-    .from(commands)
-    .leftJoin(users, eq(commands.originalSenderId, users.id))
-    .where(and(...conditions))
-    .orderBy(desc(commands.createdAt));
+    const result = await db
+      .select()
+      .from(commands)
+      .leftJoin(users, eq(commands.originalSenderId, users.id))
+      .where(whereCondition)
+      .orderBy(desc(commands.createdAt));
 
     return result.map(row => ({
       ...row.commands,
@@ -458,11 +395,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCommand(command: InsertCommand): Promise<Command> {
+    // 저장된 텍스트가 있으면 암호화
+    const encryptedCommand = {
+      ...command,
+      savedText: command.savedText ? encryptText(command.savedText) : command.savedText
+    };
+    
     const [newCommand] = await db
       .insert(commands)
-      .values(command)
+      .values(encryptedCommand)
       .returning();
-    return newCommand;
+    
+    // 반환할 때는 복호화해서 반환
+    return {
+      ...newCommand,
+      savedText: newCommand.savedText ? decryptText(newCommand.savedText) : newCommand.savedText
+    };
   }
 
   async deleteCommand(commandId: number, userId: number): Promise<void> {
@@ -487,20 +435,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchCommands(userId: number, searchTerm: string): Promise<(Command & { originalSender?: User })[]> {
-    const result = await db.select({
-      commands,
-      users
-    })
-    .from(commands)
-    .leftJoin(users, eq(commands.originalSenderId, users.id))
-    .where(and(
-      eq(commands.userId, userId),
-      or(
-        like(commands.commandName, `%${searchTerm}%`),
-        like(commands.response, `%${searchTerm}%`)
-      )
-    ))
-    .orderBy(desc(commands.createdAt));
+    const result = await db
+      .select()
+      .from(commands)
+      .leftJoin(users, eq(commands.originalSenderId, users.id))
+      .where(and(
+        eq(commands.userId, userId),
+        or(
+          like(commands.commandName, `%${searchTerm}%`),
+          like(commands.fileName, `%${searchTerm}%`),
+          like(commands.savedText, `%${searchTerm}%`)
+        )
+      ))
+      .orderBy(desc(commands.createdAt));
 
     return result.map(row => ({
       ...row.commands,
@@ -509,47 +456,93 @@ export class DatabaseStorage implements IStorage {
   }
 
   async markMessagesAsRead(userId: number, chatRoomId: number, lastMessageId: number): Promise<void> {
-    await db
-      .insert(messageReads)
-      .values({
-        userId,
-        chatRoomId,
-        lastReadMessageId: lastMessageId,
-        readAt: new Date()
-      })
-      .onConflictDoUpdate({
-        target: [messageReads.userId, messageReads.chatRoomId],
-        set: {
+    // 기존 레코드가 있는지 확인
+    const [existingRecord] = await db
+      .select()
+      .from(messageReads)
+      .where(and(
+        eq(messageReads.userId, userId),
+        eq(messageReads.chatRoomId, chatRoomId)
+      ));
+
+    if (existingRecord) {
+      // 업데이트
+      await db
+        .update(messageReads)
+        .set({
           lastReadMessageId: lastMessageId,
-          readAt: new Date()
-        }
-      });
+          lastReadAt: new Date(),
+        })
+        .where(and(
+          eq(messageReads.userId, userId),
+          eq(messageReads.chatRoomId, chatRoomId)
+        ));
+    } else {
+      // 새로 삽입
+      await db
+        .insert(messageReads)
+        .values({
+          userId,
+          chatRoomId,
+          lastReadMessageId: lastMessageId,
+        });
+    }
   }
 
   async getUnreadCounts(userId: number): Promise<{ chatRoomId: number; unreadCount: number }[]> {
-    const result = await db.execute(sql`
-      SELECT 
-        cr.id as chat_room_id,
-        COALESCE(COUNT(m.id) - COALESCE(mr.last_read_message_id, 0), 0) as unread_count
-      FROM chat_participants cp
-      JOIN chat_rooms cr ON cp.chat_room_id = cr.id
-      LEFT JOIN message_reads mr ON mr.user_id = cp.user_id AND mr.chat_room_id = cr.id
-      LEFT JOIN messages m ON m.chat_room_id = cr.id
-      WHERE cp.user_id = ${userId}
-      GROUP BY cr.id, mr.last_read_message_id
-    `);
+    // Get all chat rooms the user participates in
+    const userChatRooms = await db
+      .select({
+        chatRoomId: chatParticipants.chatRoomId,
+      })
+      .from(chatParticipants)
+      .where(eq(chatParticipants.userId, userId));
 
-    return result.map((row: any) => ({
-      chatRoomId: row.chat_room_id,
-      unreadCount: parseInt(row.unread_count) || 0
-    }));
+    const unreadCounts = [];
+
+    for (const room of userChatRooms) {
+      // Get the last read message for this chat room
+      const [readRecord] = await db
+        .select()
+        .from(messageReads)
+        .where(and(
+          eq(messageReads.userId, userId),
+          eq(messageReads.chatRoomId, room.chatRoomId)
+        ));
+
+      let unreadCount = 0;
+      if (!readRecord) {
+        // No read record exists, count all messages
+        const [countResult] = await db
+          .select({ count: count(messages.id) })
+          .from(messages)
+          .where(eq(messages.chatRoomId, room.chatRoomId));
+        unreadCount = countResult.count;
+      } else {
+        // Count messages after the last read message
+        const [countResult] = await db
+          .select({ count: count(messages.id) })
+          .from(messages)
+          .where(and(
+            eq(messages.chatRoomId, room.chatRoomId),
+            gt(messages.id, readRecord.lastReadMessageId || 0)
+          ));
+        unreadCount = countResult.count;
+      }
+
+      if (unreadCount > 0) {
+        unreadCounts.push({
+          chatRoomId: room.chatRoomId,
+          unreadCount,
+        });
+      }
+    }
+
+    return unreadCounts;
   }
 
   async createPhoneVerification(verification: InsertPhoneVerification): Promise<PhoneVerification> {
-    const [newVerification] = await db
-      .insert(phoneVerifications)
-      .values(verification)
-      .returning();
+    const [newVerification] = await db.insert(phoneVerifications).values(verification).returning();
     return newVerification;
   }
 
@@ -560,16 +553,16 @@ export class DatabaseStorage implements IStorage {
       .where(and(
         eq(phoneVerifications.phoneNumber, phoneNumber),
         eq(phoneVerifications.verificationCode, verificationCode),
-        eq(phoneVerifications.used, false),
+        eq(phoneVerifications.isVerified, false),
         gt(phoneVerifications.expiresAt, new Date())
       ));
-    return verification || undefined;
+    return verification;
   }
 
   async markPhoneVerificationAsUsed(id: number): Promise<void> {
     await db
       .update(phoneVerifications)
-      .set({ used: true })
+      .set({ isVerified: true })
       .where(eq(phoneVerifications.id, id));
   }
 
@@ -582,94 +575,272 @@ export class DatabaseStorage implements IStorage {
   async registerBusinessUser(userId: number, businessData: { businessName: string; businessAddress: string }): Promise<User | undefined> {
     const [updatedUser] = await db
       .update(users)
-      .set({ userRole: 'business' })
+      .set({
+        userRole: "business",
+        businessName: businessData.businessName,
+        businessAddress: businessData.businessAddress,
+        isBusinessVerified: false
+      })
       .where(eq(users.id, userId))
       .returning();
+    
     return updatedUser || undefined;
   }
 
-  async getStorageAnalytics(userId: number, timeRange: string): Promise<any> {
-    let startDate: Date;
-    const now = new Date();
+  async updateUserLocation(userId: number, location: { latitude: number; longitude: number; accuracy: number }): Promise<void> {
+    // Delete existing location if any
+    await db.delete(userLocations).where(eq(userLocations.userId, userId));
     
-    switch (timeRange) {
-      case 'week':
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        break;
-      case 'month':
-        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        break;
-      case 'year':
-        startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-        break;
-      default:
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    }
-
-    const uploads = await db
-      .select()
-      .from(fileUploads)
-      .where(and(
-        eq(fileUploads.userId, userId),
-        gt(fileUploads.uploadedAt, startDate)
-      ));
-
-    const downloads = await db
-      .select()
-      .from(fileDownloads)
-      .where(and(
-        eq(fileDownloads.userId, userId),
-        gt(fileDownloads.downloadedAt, startDate)
-      ));
-
-    return {
-      uploads: uploads.length,
-      downloads: downloads.length,
-      totalSize: uploads.reduce((sum, upload) => sum + (upload.fileSize || 0), 0)
-    };
-  }
-
-  async trackFileUpload(fileData: { userId: number; chatRoomId?: number; fileName: string; originalName: string; fileSize: number; fileType: string; filePath: string }): Promise<void> {
-    await db.insert(fileUploads).values({
-      ...fileData,
-      uploadedAt: new Date()
-    });
-  }
-
-  async trackFileDownload(fileUploadId: number, userId: number, ipAddress?: string, userAgent?: string): Promise<void> {
-    await db.insert(fileDownloads).values({
-      fileUploadId,
-      userId,
-      ipAddress,
-      userAgent,
-      downloadedAt: new Date()
-    });
-  }
-
-
-
-  async getUserPosts(userId: number): Promise<UserPost[]> {
-    const posts = await db
-      .select()
-      .from(userPosts)
-      .where(eq(userPosts.userId, userId))
-      .orderBy(desc(userPosts.createdAt));
-    return posts;
-  }
-
-  async createUserPost(userId: number, postData: Partial<InsertUserPost>): Promise<UserPost> {
-    const [post] = await db
-      .insert(userPosts)
+    // Insert new location
+    await db
+      .insert(userLocations)
       .values({
         userId,
-        content: postData.content || '',
-        postType: postData.postType || 'text',
-        likeCount: 0,
-        commentCount: 0,
-        shareCount: 0
+        latitude: location.latitude.toString(),
+        longitude: location.longitude.toString(),
+        accuracy: location.accuracy.toString()
+      });
+  }
+
+  async getNearbyLocationChatRooms(latitude: number, longitude: number, radius: number = 50): Promise<any[]> {
+    const result = await db
+      .select({
+        id: locationChatRooms.id,
+        name: locationChatRooms.name,
+        latitude: locationChatRooms.latitude,
+        longitude: locationChatRooms.longitude,
+        radius: locationChatRooms.radius,
+        address: locationChatRooms.address,
+        isOfficial: locationChatRooms.isOfficial,
+        participantCount: locationChatRooms.participantCount,
+        maxParticipants: locationChatRooms.maxParticipants,
+        lastActivity: locationChatRooms.lastActivity
+      })
+      .from(locationChatRooms)
+      .where(eq(locationChatRooms.isActive, true));
+    
+    return result;
+  }
+
+  async createLocationChatRoom(userId: number, roomData: { name: string; latitude: number; longitude: number; address: string }): Promise<any> {
+    const autoDeleteAt = new Date();
+    autoDeleteAt.setHours(autoDeleteAt.getHours() + 12); // Auto delete after 12 hours
+
+    const [newRoom] = await db
+      .insert(locationChatRooms)
+      .values({
+        name: roomData.name,
+        latitude: roomData.latitude.toString(),
+        longitude: roomData.longitude.toString(),
+        address: roomData.address,
+        autoDeleteAt,
+        participantCount: 1
       })
       .returning();
-    return post;
+
+    // Auto-join the creator
+    await db
+      .insert(locationChatParticipants)
+      .values({
+        locationChatRoomId: newRoom.id,
+        userId
+      });
+
+    return newRoom;
+  }
+
+  async joinLocationChatRoom(userId: number, roomId: number): Promise<void> {
+    // Check if already joined
+    const existing = await db
+      .select()
+      .from(locationChatParticipants)
+      .where(and(
+        eq(locationChatParticipants.locationChatRoomId, roomId),
+        eq(locationChatParticipants.userId, userId)
+      ));
+
+    if (existing.length === 0) {
+      await db
+        .insert(locationChatParticipants)
+        .values({
+          locationChatRoomId: roomId,
+          userId
+        });
+
+      // Update participant count
+      await db
+        .update(locationChatRooms)
+        .set({
+          participantCount: sql`${locationChatRooms.participantCount} + 1`,
+          lastActivity: new Date()
+        })
+        .where(eq(locationChatRooms.id, roomId));
+    }
+  }
+
+  // 위치 기반 자동 관리 메소드들
+  async cleanupInactiveLocationChats(): Promise<void> {
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    
+    // 1시간 이상 비활성이고 비즈니스 계정이 아닌 채팅방 삭제
+    const inactiveRooms = await db.select({ id: locationChatRooms.id })
+      .from(locationChatRooms)
+      .where(
+        and(
+          eq(locationChatRooms.isActive, true),
+          eq(locationChatRooms.isOfficial, false),
+          sql`${locationChatRooms.lastActivity} < ${oneHourAgo}`
+        )
+      );
+
+    for (const room of inactiveRooms) {
+      await this.deleteLocationChatRoom(room.id);
+    }
+  }
+
+  async cleanupEmptyLocationChats(): Promise<void> {
+    // 참여자가 0명인 채팅방 삭제
+    const emptyRooms = await db.select({ id: locationChatRooms.id })
+      .from(locationChatRooms)
+      .where(
+        and(
+          eq(locationChatRooms.isActive, true),
+          eq(locationChatRooms.participantCount, 0)
+        )
+      );
+
+    for (const room of emptyRooms) {
+      await this.deleteLocationChatRoom(room.id);
+    }
+  }
+
+  async handleLocationBasedExit(): Promise<void> {
+    // 현재 활성 참여자들과 그들의 위치를 확인
+    const participants = await db.select({
+      userId: locationChatParticipants.userId,
+      roomId: locationChatParticipants.locationChatRoomId,
+      roomLat: locationChatRooms.latitude,
+      roomLng: locationChatRooms.longitude,
+      radius: locationChatRooms.radius,
+      userLat: userLocations.latitude,
+      userLng: userLocations.longitude,
+    })
+    .from(locationChatParticipants)
+    .innerJoin(locationChatRooms, eq(locationChatParticipants.locationChatRoomId, locationChatRooms.id))
+    .leftJoin(userLocations, eq(locationChatParticipants.userId, userLocations.userId))
+    .where(eq(locationChatRooms.isActive, true));
+
+    for (const participant of participants) {
+      if (participant.userLat && participant.userLng) {
+        const distance = this.calculateDistance(
+          parseFloat(participant.userLat.toString()),
+          parseFloat(participant.userLng.toString()),
+          parseFloat(participant.roomLat.toString()),
+          parseFloat(participant.roomLng.toString())
+        );
+
+        // 반경을 벗어난 경우 자동 퇴장
+        if (distance > (participant.radius || 50)) {
+          await this.leaveLocationChatRoom(participant.userId, participant.roomId);
+        }
+      }
+    }
+  }
+
+  private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371000; // 지구 반지름 (미터)
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  }
+
+  async leaveLocationChatRoom(userId: number, roomId: number): Promise<void> {
+    // 참여자 삭제
+    await db.delete(locationChatParticipants)
+      .where(
+        and(
+          eq(locationChatParticipants.userId, userId),
+          eq(locationChatParticipants.locationChatRoomId, roomId)
+        )
+      );
+
+    // 참여자 수 감소
+    await db.update(locationChatRooms)
+      .set({ participantCount: sql`${locationChatRooms.participantCount} - 1` })
+      .where(eq(locationChatRooms.id, roomId));
+  }
+
+  async deleteLocationChatRoom(roomId: number): Promise<void> {
+    // 메시지 삭제
+    await db.delete(locationChatMessages)
+      .where(eq(locationChatMessages.locationChatRoomId, roomId));
+    
+    // 참여자 삭제
+    await db.delete(locationChatParticipants)
+      .where(eq(locationChatParticipants.locationChatRoomId, roomId));
+    
+    // 채팅방 삭제
+    await db.delete(locationChatRooms)
+      .where(eq(locationChatRooms.id, roomId));
+  }
+
+  async checkLocationProximity(userId: number): Promise<{ roomId: number; distance: number; hasNewChats: boolean }[]> {
+    const userLocation = await db.select()
+      .from(userLocations)
+      .where(eq(userLocations.userId, userId));
+
+    if (!userLocation.length) return [];
+
+    const { latitude: userLat, longitude: userLng } = userLocation[0];
+    
+    // 주변 50미터 내 채팅방 찾기
+    const nearbyRooms = await db.select({
+      id: locationChatRooms.id,
+      name: locationChatRooms.name,
+      latitude: locationChatRooms.latitude,
+      longitude: locationChatRooms.longitude,
+      radius: locationChatRooms.radius,
+      participantCount: locationChatRooms.participantCount,
+      lastActivity: locationChatRooms.lastActivity,
+    })
+    .from(locationChatRooms)
+    .where(eq(locationChatRooms.isActive, true));
+
+    const proximityResults = [];
+    for (const room of nearbyRooms) {
+      const distance = this.calculateDistance(
+        parseFloat(userLat.toString()),
+        parseFloat(userLng.toString()),
+        parseFloat(room.latitude.toString()),
+        parseFloat(room.longitude.toString())
+      );
+
+      if (distance <= (room.radius || 50)) {
+        // 사용자가 이미 참여하고 있는지 확인
+        const isParticipant = await db.select()
+          .from(locationChatParticipants)
+          .where(
+            and(
+              eq(locationChatParticipants.userId, userId),
+              eq(locationChatParticipants.locationChatRoomId, room.id)
+            )
+          );
+
+        const hasNewChats = !isParticipant.length;
+        
+        proximityResults.push({
+          roomId: room.id,
+          distance,
+          hasNewChats
+        });
+      }
+    }
+
+    return proximityResults;
   }
 }
 

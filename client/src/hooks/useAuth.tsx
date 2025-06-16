@@ -5,17 +5,55 @@ import type { User } from "@shared/schema";
 interface AuthContextType {
   user: User | null;
   setUser: (user: User | null) => void;
-  logout: () => void;
   isLoading: boolean;
+  locationPermissionGranted: boolean;
+  requestLocationPermission: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [locationPermissionGranted, setLocationPermissionGranted] = useState<boolean>(
+    localStorage.getItem("locationPermissionGranted") === "true"
+  );
 
   // Try to get user from localStorage on app start
   const storedUserId = localStorage.getItem("userId");
+
+  // Location permission request function
+  const requestLocationPermission = async (): Promise<boolean> => {
+    if (!navigator.geolocation) {
+      return false;
+    }
+
+    return new Promise((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          localStorage.setItem("locationPermissionGranted", "true");
+          localStorage.setItem("userLocation", JSON.stringify({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+            timestamp: Date.now()
+          }));
+          setLocationPermissionGranted(true);
+          resolve(true);
+        },
+        (error) => {
+          console.warn("위치 정보 접근 거부:", error);
+          localStorage.setItem("locationPermissionGranted", "false");
+          setLocationPermissionGranted(false);
+          resolve(false);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000
+        }
+      );
+    });
+  };
 
   const { data, isLoading } = useQuery({
     queryKey: ["/api/auth/me"],
@@ -53,32 +91,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Logout function
-  const logout = async () => {
-    try {
-      // Call logout API endpoint
-      await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-    } catch (error) {
-      console.error("Logout API call failed:", error);
-    } finally {
-      // Clear local storage and user state regardless of API call result
-      localStorage.removeItem("userId");
-      setUser(null);
-      
-      // Redirect to login page
-      window.location.href = "/login";
-    }
-  };
-
   return (
     <AuthContext.Provider value={{ 
       user, 
       setUser: handleSetUser, 
-      logout,
-      isLoading: isLoading && !!storedUserId
+      isLoading: isLoading && !!storedUserId,
+      locationPermissionGranted,
+      requestLocationPermission
     }}>
       {children}
     </AuthContext.Provider>

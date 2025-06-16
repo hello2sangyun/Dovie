@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Save, Reply, Languages, Edit3, Globe, FileText, Copy } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Save, Reply, Languages, Edit3, Globe } from "lucide-react";
 
 interface MessageContextMenuProps {
   x: number;
@@ -10,11 +9,8 @@ interface MessageContextMenuProps {
   onSaveMessage: () => void;
   onReplyMessage: () => void;
   onTranslateMessage: () => void;
-  onSummarizeMessage?: () => void;
   onEditMessage?: () => void;
-  onCopyText?: () => void;
   canEdit?: boolean;
-  canSummarize?: boolean;
   visible: boolean;
 }
 
@@ -25,14 +21,10 @@ export default function MessageContextMenu({
   onSaveMessage,
   onReplyMessage,
   onTranslateMessage,
-  onSummarizeMessage,
   onEditMessage,
-  onCopyText,
   canEdit = false,
-  canSummarize = false,
   visible 
 }: MessageContextMenuProps) {
-  const { toast } = useToast();
   const menuRef = useRef<HTMLDivElement>(null);
   const [menuPosition, setMenuPosition] = useState({ x, y });
 
@@ -151,18 +143,6 @@ export default function MessageContextMenu({
     onClose();
   };
 
-  const handleSummarizeClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onSummarizeMessage?.();
-    onClose();
-  };
-
-  const handleCopyClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onCopyText?.();
-    onClose();
-  };
-
   return (
     <>
       {/* Backdrop */}
@@ -171,78 +151,56 @@ export default function MessageContextMenu({
         onClick={onClose}
       />
       
-      {/* Context Menu - Compact and Clean Design */}
+      {/* Context Menu */}
       <div
         ref={menuRef}
-        className="context-menu fixed z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-xl shadow-xl shadow-black/10 py-1 min-w-[90px] max-w-[120px]"
+        className="context-menu fixed z-50 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg py-1 min-w-[120px]"
         style={{ left: menuPosition.x, top: menuPosition.y }}
         onClick={(e) => e.stopPropagation()}
       >
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-center px-2 py-1.5 h-7 text-xs hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all duration-200 rounded-lg mx-1"
+          className="w-full justify-start px-3 py-2 h-8 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           onClick={handleReplyClick}
         >
-          <Reply className="w-3 h-3 mr-1 text-blue-600 dark:text-blue-400" />
-          답장
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full justify-center px-2 py-1.5 h-7 text-xs hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all duration-200 rounded-lg mx-1"
-          onClick={handleCopyClick}
-        >
-          <Copy className="w-3 h-3 mr-1 text-gray-600 dark:text-gray-400" />
-          복사
+          <Reply className="w-3 h-3 mr-2 text-gray-600 dark:text-gray-300" />
+          <span className="text-gray-700 dark:text-gray-200">답장</span>
         </Button>
         
         {canEdit && (
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-center px-2 py-1.5 h-7 text-xs hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all duration-200 rounded-lg mx-1"
+            className="w-full justify-start px-3 py-2 h-8 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             onClick={handleEditClick}
           >
-            <Edit3 className="w-3 h-3 mr-1 text-orange-600 dark:text-orange-400" />
-            수정
+            <Edit3 className="w-3 h-3 mr-2 text-gray-600 dark:text-gray-300" />
+            <span className="text-gray-700 dark:text-gray-200">수정</span>
           </Button>
         )}
         
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-center px-2 py-1.5 h-7 text-xs hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all duration-200 rounded-lg mx-1"
+          className="w-full justify-start px-3 py-2 h-8 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           onClick={handleSaveClick}
         >
-          <Save className="w-3 h-3 mr-1 text-green-600 dark:text-green-400" />
-          저장
+          <Save className="w-3 h-3 mr-2 text-gray-600 dark:text-gray-300" />
+          <span className="text-gray-700 dark:text-gray-200">저장</span>
         </Button>
         
-        <div className="border-t border-gray-200/70 dark:border-gray-600/70 my-1 mx-2" />
+        <div className="border-t border-gray-200 dark:border-gray-600 my-1" />
         
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-center px-2 py-1.5 h-7 text-xs hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all duration-200 rounded-lg mx-1"
+          className="w-full justify-start px-3 py-2 h-8 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           onClick={handleTranslateClick}
         >
-          <Globe className="w-3 h-3 mr-1 text-purple-600 dark:text-purple-400" />
-          번역
+          <Globe className="w-3 h-3 mr-2 text-gray-600 dark:text-gray-300" />
+          <span className="text-gray-700 dark:text-gray-200">번역</span>
         </Button>
-        
-        {canSummarize && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-center px-2 py-1.5 h-7 text-xs hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all duration-200 rounded-lg mx-1"
-            onClick={handleSummarizeClick}
-          >
-            <FileText className="w-3 h-3 mr-1 text-indigo-600 dark:text-indigo-400" />
-            요약
-          </Button>
-        )}
       </div>
     </>
   );

@@ -1,19 +1,13 @@
-import { useState, useMemo } from "react";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
-import { useDebounce } from "@/hooks/useDebounce";
-import { useVirtualization } from "@/hooks/useVirtualization";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Search, Pin, Users, X, Trash2, LogOut, MoreVertical } from "lucide-react";
+import { Plus, Search, Pin, Users, X } from "lucide-react";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
-import { apiRequest } from "@/lib/queryClient";
 
 interface ChatsListProps {
   onSelectChat: (chatId: number) => void;
@@ -21,94 +15,11 @@ interface ChatsListProps {
   onCreateGroup?: () => void;
   contactFilter?: number | null;
   onClearFilter?: () => void;
-  friendFilter?: number | null;
-  onClearFriendFilter?: () => void;
 }
 
-export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup, contactFilter, onClearFilter, friendFilter, onClearFriendFilter }: ChatsListProps) {
+export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup, contactFilter, onClearFilter }: ChatsListProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearchTerm = useDebounce(searchTerm, 300);
-  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
-  const [selectedRoomIds, setSelectedRoomIds] = useState<number[]>([]);
-  const [showExitConfirm, setShowExitConfirm] = useState(false);
-  const [saveFiles, setSaveFiles] = useState(true);
-
-  // 채팅방 나가기 mutation
-  const leaveChatRoomMutation = useMutation({
-    mutationFn: async ({ roomId, saveFiles }: { roomId: number; saveFiles: boolean }) => {
-      const response = await apiRequest(`/api/chat-rooms/${roomId}/leave`, "POST", { saveFiles });
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
-      toast({
-        title: "채팅방 나가기 완료",
-        description: saveFiles ? "파일들이 저장소로 이동되었습니다." : "파일들이 삭제되었습니다.",
-      });
-    },
-    onError: () => {
-      toast({
-        variant: "destructive",
-        title: "채팅방 나가기 실패",
-        description: "다시 시도해주세요.",
-      });
-    },
-  });
-
-  // 다중 선택 관련 함수들
-  const toggleMultiSelect = () => {
-    setIsMultiSelectMode(!isMultiSelectMode);
-    setSelectedRoomIds([]);
-  };
-
-  const toggleRoomSelection = (roomId: number) => {
-    setSelectedRoomIds(prev => 
-      prev.includes(roomId) 
-        ? prev.filter(id => id !== roomId)
-        : [...prev, roomId]
-    );
-  };
-
-  const handleExitSelectedRooms = () => {
-    if (selectedRoomIds.length === 0) return;
-    setShowExitConfirm(true);
-  };
-
-  const confirmExit = async () => {
-    for (const roomId of selectedRoomIds) {
-      await leaveChatRoomMutation.mutateAsync({ roomId, saveFiles });
-    }
-    setShowExitConfirm(false);
-    setIsMultiSelectMode(false);
-    setSelectedRoomIds([]);
-  };
-
-  // 메시지 미리 로딩 함수
-  const prefetchMessages = async (chatRoomId: number) => {
-    await queryClient.prefetchQuery({
-      queryKey: [`/api/chat-rooms/${chatRoomId}/messages`],
-      queryFn: async () => {
-        const response = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages`);
-        return response.json();
-      },
-      staleTime: 30 * 1000, // 30초간 신선한 상태로 유지
-    });
-  };
-
-  // 명령어 미리 로딩 함수
-  const prefetchCommands = async () => {
-    await queryClient.prefetchQuery({
-      queryKey: ["/api/commands"],
-      queryFn: async () => {
-        const response = await apiRequest("/api/commands");
-        return response.json();
-      },
-      staleTime: 60 * 1000, // 1분간 신선한 상태로 유지
-    });
-  };
 
   // 임시 메시지 확인 함수
   const getDraftKey = (roomId: number) => `chat_draft_${roomId}`;
@@ -216,12 +127,6 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
       return matchesSearch && hasContact;
     }
     
-    // 친구 필터가 활성화된 경우, 해당 친구가 포함된 채팅방만 표시
-    if (friendFilter) {
-      const hasFriend = chatRoom.participants?.some((p: any) => p.id === friendFilter);
-      return matchesSearch && hasFriend;
-    }
-    
     return matchesSearch;
   });
 
@@ -275,51 +180,15 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-semibold text-gray-900">채팅방</h3>
-          <div className="flex items-center space-x-2">
-            {isMultiSelectMode ? (
-              <>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleExitSelectedRooms}
-                  disabled={selectedRoomIds.length === 0}
-                  className="text-xs"
-                >
-                  <LogOut className="h-4 w-4 mr-1" />
-                  나가기 ({selectedRoomIds.length})
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={toggleMultiSelect}
-                  className="text-xs"
-                >
-                  취소
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-gray-600 hover:text-gray-700"
-                  onClick={toggleMultiSelect}
-                  title="채팅방 관리"
-                >
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-purple-600 hover:text-purple-700"
-                  onClick={onCreateGroup}
-                  title="그룹 채팅 만들기"
-                >
-                  <Plus className="h-5 w-5" />
-                </Button>
-              </>
-            )}
-          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-purple-600 hover:text-purple-700"
+            onClick={onCreateGroup}
+            title="그룹 채팅 만들기"
+          >
+            <Plus className="h-5 w-5" />
+          </Button>
         </div>
         
         <div className="relative">
@@ -349,23 +218,6 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
             </Button>
           </div>
         )}
-        
-        {/* 친구 필터 표시 */}
-        {friendFilter && (
-          <div className="mt-3 p-2 bg-blue-50 rounded-lg flex items-center justify-between">
-            <span className="text-sm text-blue-700">
-              선택한 친구와의 채팅방만 표시 중
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClearFriendFilter}
-              className="h-6 w-6 p-0 text-blue-600 hover:text-blue-700"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
       </div>
 
       <div className="flex-1 overflow-y-auto max-h-[calc(100vh-280px)] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
@@ -382,13 +234,11 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
                 chatRoom={chatRoom}
                 displayName={getChatRoomDisplayName(chatRoom)}
                 isSelected={selectedChatId === chatRoom.id}
-                onClick={() => isMultiSelectMode ? toggleRoomSelection(chatRoom.id) : onSelectChat(chatRoom.id)}
+                onClick={() => onSelectChat(chatRoom.id)}
                 isPinned
                 unreadCount={getUnreadCount(chatRoom.id)}
                 hasDraft={hasDraftMessage(chatRoom.id)}
                 draftPreview={getDraftPreview(chatRoom.id)}
-                isMultiSelectMode={isMultiSelectMode}
-                isChecked={selectedRoomIds.includes(chatRoom.id)}
               />
             ))}
           </>
@@ -407,12 +257,10 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
                 chatRoom={chatRoom}
                 displayName={getChatRoomDisplayName(chatRoom)}
                 isSelected={selectedChatId === chatRoom.id}
-                onClick={() => isMultiSelectMode ? toggleRoomSelection(chatRoom.id) : onSelectChat(chatRoom.id)}
+                onClick={() => onSelectChat(chatRoom.id)}
                 unreadCount={getUnreadCount(chatRoom.id)}
                 hasDraft={hasDraftMessage(chatRoom.id)}
                 draftPreview={getDraftPreview(chatRoom.id)}
-                isMultiSelectMode={isMultiSelectMode}
-                isChecked={selectedRoomIds.includes(chatRoom.id)}
               />
             ))}
           </>
@@ -424,42 +272,6 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
           </div>
         )}
       </div>
-
-      {/* 나가기 확인 다이얼로그 */}
-      <Dialog open={showExitConfirm} onOpenChange={setShowExitConfirm}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>채팅방 나가기</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <p className="text-sm text-gray-600">
-              선택한 {selectedRoomIds.length}개의 채팅방에서 나가시겠습니까?
-            </p>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="save-files"
-                checked={saveFiles}
-                onCheckedChange={(checked) => setSaveFiles(checked === true)}
-              />
-              <label htmlFor="save-files" className="text-sm text-gray-700">
-                공유된 파일들을 내 저장소로 이동
-              </label>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowExitConfirm(false)}>
-              취소
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={confirmExit}
-              disabled={leaveChatRoomMutation.isPending}
-            >
-              {leaveChatRoomMutation.isPending ? "처리중..." : "나가기"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
@@ -472,9 +284,7 @@ function ChatRoomItem({
   isPinned = false,
   unreadCount = 0,
   hasDraft = false,
-  draftPreview = "",
-  isMultiSelectMode = false,
-  isChecked = false
+  draftPreview = ""
 }: {
   chatRoom: any;
   displayName: string;
@@ -484,28 +294,8 @@ function ChatRoomItem({
   unreadCount?: number;
   hasDraft?: boolean;
   draftPreview?: string;
-  isMultiSelectMode?: boolean;
-  isChecked?: boolean;
 }) {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
-
-  // 호버 시 메시지 미리 로딩
-  const handleMouseEnter = async () => {
-    try {
-      await queryClient.prefetchQuery({
-        queryKey: [`/api/chat-rooms/${chatRoom.id}/messages`],
-        queryFn: async () => {
-          const response = await apiRequest(`/api/chat-rooms/${chatRoom.id}/messages`);
-          return response.json();
-        },
-        staleTime: 30 * 1000, // 30초간 신선한 상태로 유지
-      });
-    } catch (error) {
-      // 미리 로딩 실패 시 무시 (사용자 경험에 영향 없음)
-      console.log('메시지 미리 로딩 실패:', error);
-    }
-  };
   
   const getInitials = (name: string) => {
     return name.split(' ').map(word => word.charAt(0).toUpperCase()).join('').slice(0, 2);
@@ -543,52 +333,58 @@ function ChatRoomItem({
     <div
       className={cn(
         "p-4 hover:bg-purple-50 dark:hover:bg-gray-800 cursor-pointer border-b border-gray-100 dark:border-gray-700 transition-colors relative",
-        isSelected && !isMultiSelectMode && "bg-purple-50 dark:bg-gray-800",
-        isMultiSelectMode && isChecked && "bg-blue-50 dark:bg-blue-900"
+        isSelected && "bg-purple-50 dark:bg-gray-800"
       )}
       onClick={onClick}
-      onMouseEnter={handleMouseEnter}
     >
-      {isPinned && !isMultiSelectMode && (
+      {isPinned && (
         <Pin className="absolute top-2 right-2 text-purple-500 h-3 w-3" />
       )}
       
       <div className="flex items-center space-x-3">
-        {isMultiSelectMode && (
-          <Checkbox
-            checked={isChecked}
-            onCheckedChange={() => onClick()}
-            className="flex-shrink-0"
-          />
-        )}
         {chatRoom.isGroup ? (
           <div className="relative w-12 h-12 flex items-center justify-center">
-            {chatRoom.participants.slice(0, 3).map((participant: any, index: number) => {
-              // 삼각형 배치 좌표
-              const trianglePositions = [
-                { top: '2px', left: '50%', transform: 'translateX(-50%)' }, // 상단 중앙
-                { bottom: '2px', left: '2px' }, // 하단 좌측
-                { bottom: '2px', right: '2px' } // 하단 우측
-              ];
+            {chatRoom.participants.slice(0, 4).map((participant: any, index: number) => {
+              const totalAvatars = Math.min(4, chatRoom.participants.length);
+              const isStackLayout = totalAvatars <= 3;
               
-              const position = trianglePositions[index] || trianglePositions[0];
-              
-              return (
-                <div
-                  key={participant.id}
-                  className="absolute border-2 border-white dark:border-gray-700 rounded-full shadow-sm"
-                  style={{
-                    ...position,
-                    zIndex: 3 - index
-                  }}
-                >
-                  <UserAvatar 
-                    user={participant} 
-                    size="sm" 
-                    fallbackClassName="purple-gradient"
-                  />
-                </div>
-              );
+              if (isStackLayout) {
+                // 3명 이하일 때: 겹치는 스택 레이아웃
+                return (
+                  <div
+                    key={participant.id}
+                    className={`${index > 0 ? '-ml-2' : ''} border-2 border-white dark:border-gray-700 rounded-full shadow-sm`}
+                    style={{ zIndex: totalAvatars - index }}
+                  >
+                    <UserAvatar 
+                      user={participant} 
+                      size="md" 
+                      fallbackClassName="purple-gradient"
+                    />
+                  </div>
+                );
+              } else {
+                // 4명일 때: 균형있는 격자 레이아웃
+                const positions = [
+                  'top-0 left-0',
+                  'top-0 right-0', 
+                  'bottom-0 left-0',
+                  'bottom-0 right-0'
+                ];
+                
+                return (
+                  <div
+                    key={participant.id}
+                    className={`absolute border border-white dark:border-gray-700 rounded-full shadow-sm ${positions[index]}`}
+                  >
+                    <UserAvatar 
+                      user={participant} 
+                      size="sm" 
+                      fallbackClassName="purple-gradient"
+                    />
+                  </div>
+                );
+              }
             })}
           </div>
         ) : (

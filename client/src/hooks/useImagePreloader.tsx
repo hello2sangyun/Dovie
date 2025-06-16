@@ -4,24 +4,18 @@ interface PreloadedImage {
   url: string;
   loaded: boolean;
   element?: HTMLImageElement;
-  timestamp: number;
 }
 
-// 전역 이미지 캐시 (컴포넌트 재마운트 시에도 유지)
-const globalImageCache = new Map<string, PreloadedImage>();
-
 export function useImagePreloader() {
-  const [preloadedImages, setPreloadedImages] = useState<Map<string, PreloadedImage>>(globalImageCache);
+  const [preloadedImages, setPreloadedImages] = useState<Map<string, PreloadedImage>>(new Map());
   const preloadQueueRef = useRef<string[]>([]);
   const isProcessingRef = useRef(false);
 
   const preloadImage = (url: string): Promise<HTMLImageElement> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
-      img.crossOrigin = "anonymous"; // CORS 지원
       img.onload = () => resolve(img);
       img.onerror = reject;
-      // 캐시 활용을 위한 헤더 설정
       img.src = url;
     });
   };
@@ -44,23 +38,17 @@ export function useImagePreloader() {
 
       try {
         const img = await preloadImage(url);
-        const imageData = {
+        setPreloadedImages(prev => new Map(prev).set(url, {
           url,
           loaded: true,
-          element: img,
-          timestamp: Date.now()
-        };
-        globalImageCache.set(url, imageData);
-        setPreloadedImages(prev => new Map(prev).set(url, imageData));
+          element: img
+        }));
       } catch (error) {
         console.warn('Failed to preload image:', url, error);
-        const imageData = {
+        setPreloadedImages(prev => new Map(prev).set(url, {
           url,
-          loaded: false,
-          timestamp: Date.now()
-        };
-        globalImageCache.set(url, imageData);
-        setPreloadedImages(prev => new Map(prev).set(url, imageData));
+          loaded: false
+        }));
       }
     }
 

@@ -116,19 +116,38 @@ export function useWeather() {
     }
   };
 
-  const getDefaultWeather = () => {
-    // 위치 정보 없이 기본 서울 날씨 사용
-    fetchWeather(37.5665, 126.9780);
+  const getCurrentLocationWeather = () => {
+    if (!navigator.geolocation) {
+      setError('위치 정보를 지원하지 않는 브라우저입니다.');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        fetchWeather(position.coords.latitude, position.coords.longitude);
+      },
+      (error) => {
+        console.error('위치 정보 오류:', error);
+        setError('위치 정보를 가져올 수 없습니다.');
+        // 기본 위치 (서울)로 설정
+        fetchWeather(37.5665, 126.9780);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000 // 5분
+      }
+    );
   };
 
   useEffect(() => {
-    getDefaultWeather();
+    getCurrentLocationWeather();
   }, []);
 
   return {
     weather,
     loading,
     error,
-    refreshWeather: getDefaultWeather
+    refreshWeather: getCurrentLocationWeather
   };
 }

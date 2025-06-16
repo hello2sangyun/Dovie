@@ -237,11 +237,7 @@ export async function processCommand(commandText: string): Promise<CommandRespon
     case '/calc':
       return calculateExpression(args);
 
-    case '/summarize':
-      return summarizeText(args);
 
-    case '/vibe':
-      return analyzeVibe(args);
 
     case '/poll':
       const pollParts = args.split('?');
@@ -337,7 +333,7 @@ export async function transcribeAudio(filePath: string): Promise<{
     
     return {
       success: true,
-      transcription: transcription.text || "음성을 찾을 수 없습니다.",
+      transcription: transcription.text || "음성을 인식할 수 없습니다.",
       duration: transcription.duration || 0,
       detectedLanguage,
       confidence: 0.9 // Whisper doesn't provide confidence scores, but it's generally reliable
