@@ -6,7 +6,6 @@ import {
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
   type Command, type InsertCommand, type MessageRead, type InsertMessageRead,
   type PhoneVerification, type InsertPhoneVerification,
-  type LocationChatRoom, type InsertLocationChatRoom,
   type FileUpload, type InsertFileUpload, type FileDownload, type InsertFileDownload,
   type BusinessCard, type InsertBusinessCard, type BusinessProfile, type InsertBusinessProfile,
   type UserPost, type InsertUserPost, type BusinessCardShare, type InsertBusinessCardShare
