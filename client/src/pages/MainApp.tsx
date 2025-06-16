@@ -923,11 +923,11 @@ export default function MainApp() {
                 </div>
               </div>
             </div>
-          ) : selectedChatRoom || selectedLocationChatRoom ? (
+          ) : selectedChatRoom ? (
             <ChatArea 
-              chatRoomId={selectedChatRoom || selectedLocationChatRoom!}
+              chatRoomId={selectedChatRoom}
               onCreateCommand={handleCreateCommand}
-              isLocationChat={!!selectedLocationChatRoom}
+              isLocationChat={false}
             />
           ) : (
             <div className="flex-1 flex items-center justify-center bg-gray-50">
