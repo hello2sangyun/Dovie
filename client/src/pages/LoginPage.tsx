@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import VaultLogo from "@/components/VaultLogo";
 import { Button } from "@/components/ui/button";
@@ -65,12 +65,17 @@ export default function LoginPage() {
         });
       } else {
         console.log("프로필 완성됨 - /app으로 이동");
-        // 상태 설정 후 즉시 라우팅
-        setTimeout(() => setLocation("/app"), 50);
+        
+        // React Query 캐시 무효화하여 사용자 상태 즉시 업데이트
+        queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+        
         toast({
           title: "로그인 성공",
           description: `${data.user.displayName}님 환영합니다!`,
         });
+        
+        // 상태 업데이트 후 라우팅
+        setTimeout(() => setLocation("/app"), 100);
       }
     },
     onError: (error: any) => {
