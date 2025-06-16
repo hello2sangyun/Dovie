@@ -251,8 +251,23 @@ export default function MainApp() {
 
   const { totalChatUnread } = calculateUnreadCounts();
 
+  const { isLoading } = useAuth();
+  
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 bg-white dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <VaultLogo size="lg" className="mx-auto mb-4 animate-pulse" />
+          <p className="text-gray-600 dark:text-gray-400">로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!user) {
-    return <div>Loading...</div>;
+    // Redirect to login if no user after loading
+    window.location.href = "/login";
+    return null;
   }
 
   return (
