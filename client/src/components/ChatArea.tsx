@@ -5558,8 +5558,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         onClose={() => setContextMenu({ visible: false, x: 0, y: 0, message: null })}
         onSaveMessage={handleSaveMessage}
         onReplyMessage={handleReplyMessage}
-        onTranslateMessage={handleTranslateMessage}
-        onEditMessage={contextMenu.message?.senderId === user?.id ? handleEditMessage : undefined}
+        onTranslateMessage={() => handleTranslateMessage()}
+        onEditMessage={contextMenu.message?.senderId === user?.id ? () => handleEditMessage(contextMenu.message) : undefined}
         onCopyText={handleCopyText}
         canEdit={contextMenu.message?.senderId === user?.id}
         canSummarize={contextMenu.message?.content && contextMenu.message.content.length > 50}
