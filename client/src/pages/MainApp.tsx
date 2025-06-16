@@ -28,7 +28,7 @@ import EnhancedBusinessCard from "@/components/EnhancedBusinessCard";
 import MobileOptimizedBusinessCard from "@/components/MobileOptimizedBusinessCard";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, Building2, Shield, UserX, Camera, CreditCard, Menu, User, Bell, FolderOpen, Plus } from "lucide-react";
+import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, Building2, Shield, UserX, Camera, CreditCard, Menu, User, Bell, FolderOpen, Plus, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CameraCapture from "@/components/CameraCapture";
 
@@ -37,7 +37,7 @@ export default function MainApp() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("contacts");
-  const [activeMobileTab, setActiveMobileTab] = useState("cabinet");
+  const [activeMobileTab, setActiveMobileTab] = useState("contacts");
 
   // Handle URL parameters for tab navigation
   useEffect(() => {
