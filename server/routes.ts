@@ -2173,14 +2173,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  function broadcastToRoom(chatRoomId: number, data: any) {
-    // In a real implementation, you'd track which users are in which rooms
-    // For now, broadcast to all connected users
-    connections.forEach((ws) => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify(data));
+  async function broadcastToRoom(chatRoomId: number, data: any) {
+    try {
+      // 채팅방 참가자 정보 가져오기
+      const chatRoom = await storage.getChatRoomById(chatRoomId);
+      if (!chatRoom || !chatRoom.participants) {
+        console.log('채팅방 또는 참가자 정보를 찾을 수 없음:', chatRoomId);
+        return;
       }
-    });
+
+      console.log('간편음성메세지 브로드캐스트 시작:', chatRoomId, '참가자:', chatRoom.participants.length);
+      
+      // 각 참가자에게 메시지 전송
+      chatRoom.participants.forEach((participant: any) => {
+        const ws = connections.get(participant.id);
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          try {
+            ws.send(JSON.stringify(data));
+            console.log('메시지 전송 성공:', participant.id);
+          } catch (error) {
+            console.error(`참가자 ${participant.id}에게 메시지 전송 실패:`, error);
+            connections.delete(participant.id);
+          }
+        } else {
+          console.log('WebSocket 연결 없음 또는 닫힘:', participant.id);
+        }
+      });
+    } catch (error) {
+      console.error('broadcastToRoom 오류:', error);
+    }
   }
 
   function broadcastToUser(userId: number, data: any) {

@@ -120,34 +120,49 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     }
   };
 
-  // 음성 메시지 전송
+  // 간편음성메세지 전송
   const sendVoiceMessage = async (contact: any, audioBlob: Blob) => {
     try {
+      console.log('간편음성메세지 전송 시작:', contact.contactUserId);
+      
       // 1:1 대화방 찾기 또는 생성
       const chatRoomResponse = await apiRequest('/api/chat-rooms/direct', 'POST', {
         participantId: contact.contactUserId
       });
       
       if (!chatRoomResponse.ok) {
-        console.log('Failed to create/find chat room');
+        console.error('채팅방 생성/찾기 실패');
         return;
       }
       
       const chatRoomData = await chatRoomResponse.json();
       const chatRoomId = chatRoomData.chatRoom.id;
+      
+      console.log('채팅방 ID:', chatRoomId);
 
-      // 간단한 음성 메시지 전송 (업로드 없이)
+      // 간편음성메세지 전송
       const messageResponse = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages`, 'POST', {
-        content: '🎤 음성 메시지',
+        content: `🎤 간편음성메세지`,
         messageType: 'text'
       });
 
       if (messageResponse.ok) {
-        // 해당 대화방으로 이동
-        onSelectContact(contact.contactUserId);
+        console.log('간편음성메세지 전송 성공 - 채팅방:', chatRoomId);
+        
+        // 채팅방 목록과 메시지 캐시 무효화 (즉시 업데이트를 위해)
+        await queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+        await queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] });
+        await queryClient.invalidateQueries({ queryKey: ["/api/unread-counts"] });
+        
+        // 잠시 대기 후 해당 대화방으로 이동
+        setTimeout(() => {
+          onSelectContact(contact.contactUserId);
+        }, 100);
+      } else {
+        console.error('간편음성메세지 전송 실패 - 응답:', await messageResponse.text());
       }
     } catch (error) {
-      console.error('Voice message send failed:', error);
+      console.error('간편음성메세지 전송 실패:', error);
     }
   };
 
