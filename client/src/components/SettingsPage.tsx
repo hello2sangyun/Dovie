@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -10,7 +10,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
 import { ImageCropper } from "@/components/ImageCropper";
-import { Camera, User, LogOut, Building2, Moon, Sun } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Camera, User, LogOut, Building2, Moon, Sun, Check, X, Loader2, CreditCard, Plus, Edit, Trash2, Briefcase, Share2 } from "lucide-react";
+import BusinessCard from "./BusinessCard";
+import BusinessProfile from "./BusinessProfile";
 import { Switch } from "@/components/ui/switch";
 import { getInitials } from "@/lib/utils";
 import VaultLogo from "./VaultLogo";
@@ -24,6 +27,8 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [displayName, setDisplayName] = useState(user?.displayName || "");
+  const [username, setUsername] = useState(user?.username || "");
+  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [businessName, setBusinessName] = useState("");
@@ -37,10 +42,17 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
     }
     return false;
   });
+  
+  // Business card states
+  const [showBusinessCardDialog, setShowBusinessCardDialog] = useState(false);
+  const [businessCardImage, setBusinessCardImage] = useState<File | null>(null);
+  const [businessCardPreview, setBusinessCardPreview] = useState<string | null>(null);
+  const [isExtractingCard, setIsExtractingCard] = useState(false);
+  const [extractedCardData, setExtractedCardData] = useState<any>(null);
 
   // Profile update mutation
   const updateProfileMutation = useMutation({
-    mutationFn: async (data: { displayName?: string; profilePicture?: string }) => {
+    mutationFn: async (data: { displayName?: string; username?: string; profilePicture?: string }) => {
       console.log("Updating profile with data:", data);
       const response = await apiRequest(`/api/users/${user?.id}`, "PATCH", data);
       if (!response.ok) {
@@ -169,20 +181,58 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
     console.log("Cropped image ready for upload:", croppedFile);
   };
 
+  // 사용자명 중복 체크
+  const checkUsernameMutation = useMutation({
+    mutationFn: async (usernameToCheck: string) => {
+      const response = await apiRequest(`/api/users/check-username/${usernameToCheck}`, "GET");
+      if (!response.ok) {
+        throw new Error('사용자명 체크에 실패했습니다.');
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setUsernameStatus(data.available ? 'available' : 'taken');
+    },
+    onError: () => {
+      setUsernameStatus('idle');
+    }
+  });
+
+  // 사용자명 변경 시 중복 체크
+  const handleUsernameChange = (value: string) => {
+    const cleanValue = value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+    setUsername(cleanValue);
+    
+    if (cleanValue && cleanValue !== user?.username && cleanValue.length >= 3) {
+      setUsernameStatus('checking');
+      // 디바운스를 위해 setTimeout 사용
+      setTimeout(() => {
+        checkUsernameMutation.mutate(cleanValue);
+      }, 500);
+    } else {
+      setUsernameStatus('idle');
+    }
+  };
+
   const handleSaveProfile = () => {
     if (profileImage) {
       uploadImageMutation.mutate(profileImage);
     } else {
-      updateProfileMutation.mutate({ displayName });
+      updateProfileMutation.mutate({ displayName, username });
     }
   };
 
-  // Initialize display name when user data loads
+  // Initialize display name and username when user data loads
   useEffect(() => {
-    if (user && !displayName) {
-      setDisplayName(user.displayName || "");
+    if (user) {
+      if (!displayName) {
+        setDisplayName(user.displayName || "");
+      }
+      if (!username) {
+        setUsername(user.username || "");
+      }
     }
-  }, [user, displayName]);
+  }, [user, displayName, username]);
 
   const handleBusinessRegistration = () => {
     if (!businessName.trim() || !businessAddress.trim()) {
@@ -225,47 +275,47 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
   return (
     <div className={`${isMobile ? 'h-full flex flex-col' : 'h-full'} overflow-hidden`}>
       {/* Scrollable Content */}
-      <div className={`${isMobile ? 'flex-1 overflow-y-auto p-4' : 'h-full overflow-y-auto max-w-xl mx-auto p-4'} space-y-4`}>
-        {/* Header */}
-        <div className="flex items-center space-x-3 mb-4">
+      <div className={`${isMobile ? 'flex-1 overflow-y-auto px-3 py-2' : 'h-full overflow-y-auto max-w-lg mx-auto px-3 py-2'} space-y-3`}>
+        {/* Header - Compact */}
+        <div className="flex items-center space-x-2 mb-3">
           <VaultLogo size="sm" />
-          <h1 className="text-xl font-bold text-gray-900">설정</h1>
+          <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">설정</h1>
         </div>
 
-        {/* Profile Section */}
-        <Card className="w-full">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center space-x-2 text-base">
-              <User className="h-4 w-4" />
+        {/* Profile Section - Compact */}
+        <Card className="w-full transition-all duration-200 hover:shadow-md active:scale-[0.98]">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center space-x-2 text-sm">
+              <User className="h-4 w-4 text-purple-600" />
               <span>프로필</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Profile Image - Compact */}
-            <div className="flex items-center space-x-4">
+          <CardContent className="space-y-3">
+            {/* Profile Image - More Compact */}
+            <div className="flex items-center space-x-3">
               <div className="relative">
                 {previewUrl ? (
-                  <Avatar className="w-16 h-16">
+                  <Avatar className="w-12 h-12">
                     <AvatarImage 
                       src={previewUrl} 
                       alt="미리보기"
                     />
-                    <AvatarFallback className="text-lg purple-gradient text-white">
+                    <AvatarFallback className="text-sm purple-gradient text-white">
                       {getInitials(user.displayName)}
                     </AvatarFallback>
                   </Avatar>
                 ) : (
                   <UserAvatar 
                     user={user} 
-                    size="xl" 
+                    size="lg" 
                     fallbackClassName="purple-gradient"
                   />
                 )}
                 <button
                   onClick={() => document.getElementById('profile-image-input')?.click()}
-                  className="absolute -bottom-1 -right-1 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center hover:bg-purple-700 transition-colors"
+                  className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-purple-600 text-white rounded-full flex items-center justify-center hover:bg-purple-700 transition-all duration-200 active:scale-95 hover:scale-110"
                 >
-                  <Camera className="h-3 w-3" />
+                  <Camera className="h-2.5 w-2.5" />
                 </button>
                 <input
                   id="profile-image-input"
@@ -275,40 +325,62 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
                   className="hidden"
                 />
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">{user.displayName}</p>
-                <p className="text-xs text-gray-500">@{user.username}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{user.displayName}</p>
+                <p className="text-xs text-gray-500 truncate">@{user.username}</p>
               </div>
             </div>
 
-            {/* Display Name */}
+            {/* Display Name - Compact */}
             <div className="space-y-1">
-              <Label htmlFor="displayName" className="text-sm">표시 이름</Label>
+              <Label htmlFor="displayName" className="text-xs text-gray-600 dark:text-gray-400">표시 이름</Label>
               <Input
                 id="displayName"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 placeholder="표시 이름을 입력하세요"
-                className="h-9"
+                className="h-8 text-sm transition-all duration-200 focus:scale-[1.02]"
               />
             </div>
 
-            {/* Username (Read-only) */}
+            {/* Username - Compact */}
             <div className="space-y-1">
-              <Label htmlFor="username" className="text-sm">사용자명</Label>
-              <Input
-                id="username"
-                value={user.username}
-                disabled
-                className="bg-gray-100 h-9"
-              />
+              <Label htmlFor="username" className="text-xs text-gray-600 dark:text-gray-400">사용자 아이디</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-xs text-gray-500">@</span>
+                <Input
+                  id="username"
+                  value={username}
+                  onChange={(e) => handleUsernameChange(e.target.value)}
+                  placeholder="사용자아이디"
+                  className={`h-8 text-sm pl-6 pr-8 transition-all duration-200 focus:scale-[1.02] ${
+                    usernameStatus === 'taken' ? 'border-red-300 focus:border-red-500' :
+                    usernameStatus === 'available' ? 'border-green-300 focus:border-green-500' : ''
+                  }`}
+                />
+                {/* 상태 아이콘 */}
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                  {usernameStatus === 'checking' && <Loader2 className="h-3 w-3 animate-spin text-gray-400" />}
+                  {usernameStatus === 'available' && <Check className="h-3 w-3 text-green-500" />}
+                  {usernameStatus === 'taken' && <X className="h-3 w-3 text-red-500" />}
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-gray-500">영문 소문자, 숫자, 언더스코어(_)만 사용 가능</p>
+                {usernameStatus === 'taken' && (
+                  <p className="text-xs text-red-500">이미 사용 중인 아이디입니다</p>
+                )}
+                {usernameStatus === 'available' && username.length >= 3 && (
+                  <p className="text-xs text-green-500">사용 가능한 아이디입니다</p>
+                )}
+              </div>
             </div>
 
-            {/* Save Button */}
+            {/* Save Button - Compact */}
             <Button
               onClick={handleSaveProfile}
               disabled={updateProfileMutation.isPending || uploadImageMutation.isPending}
-              className="w-full purple-gradient h-9"
+              className="w-full purple-gradient h-8 text-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
               size="sm"
             >
               {updateProfileMutation.isPending || uploadImageMutation.isPending
@@ -319,66 +391,109 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
           </CardContent>
         </Card>
 
-        {/* Business User Registration */}
+        {/* Business User Registration - Compact */}
         {user.userRole === "user" && (
-          <Card className="w-full">
+          <Card className="w-full transition-all duration-200 hover:shadow-md active:scale-[0.98]">
             <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Building2 className="h-4 w-4" />
-                비즈니스 사용자 등록
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-orange-600" />
+                비즈니스 등록
               </CardTitle>
               <p className="text-xs text-gray-500">
-                매장 운영자라면 공식 채팅방을 생성하고 관리할 수 있습니다
+                매장 운영자는 공식 채팅방을 생성할 수 있습니다
               </p>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-2">
               <div className="space-y-1">
-                <Label htmlFor="businessName" className="text-sm">사업장명</Label>
+                <Label htmlFor="businessName" className="text-xs text-gray-600 dark:text-gray-400">사업장명</Label>
                 <Input
                   id="businessName"
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}
                   placeholder="예: 이태원 브런치카페"
-                  className="h-9"
+                  className="h-8 text-sm transition-all duration-200 focus:scale-[1.02]"
                 />
               </div>
               
               <div className="space-y-1">
-                <Label htmlFor="businessAddress" className="text-sm">사업장 주소</Label>
+                <Label htmlFor="businessAddress" className="text-xs text-gray-600 dark:text-gray-400">사업장 주소</Label>
                 <Input
                   id="businessAddress"
                   value={businessAddress}
                   onChange={(e) => setBusinessAddress(e.target.value)}
                   placeholder="예: 서울시 용산구 이태원동 123-45"
-                  className="h-9"
+                  className="h-8 text-sm transition-all duration-200 focus:scale-[1.02]"
                 />
               </div>
               
               <Button
                 onClick={handleBusinessRegistration}
                 disabled={businessRegistrationMutation.isPending}
-                className="w-full h-9"
+                className="w-full h-8 text-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                 variant="outline"
               >
-                {businessRegistrationMutation.isPending ? "신청 중..." : "비즈니스 사용자 신청"}
+                {businessRegistrationMutation.isPending ? "신청 중..." : "비즈니스 신청"}
               </Button>
               
               <p className="text-xs text-gray-400 text-center">
-                신청 후 검토를 거쳐 승인됩니다
+                검토 후 승인됩니다
               </p>
             </CardContent>
           </Card>
         )}
 
-        {/* Business Status for Business Users */}
+        {/* Business Card and Profile Management */}
+        <Card className="w-full transition-all duration-200 hover:shadow-md active:scale-[0.98]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <CreditCard className="h-4 w-4 text-purple-600" />
+              <span>명함 관리</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="w-full h-8 text-sm">
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    명함 수정
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>명함 관리</DialogTitle>
+                  </DialogHeader>
+                  <BusinessCard isOwnCard={true} />
+                </DialogContent>
+              </Dialog>
+              
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="w-full h-8 text-sm">
+                    <Briefcase className="h-4 w-4 mr-2" />
+                    비즈니스 프로필
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>비즈니스 프로필</DialogTitle>
+                  </DialogHeader>
+                  <BusinessProfile isOwnProfile={true} />
+                </DialogContent>
+              </Dialog>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Business Status for Business Users - Compact */}
         {user.userRole === "business" && (
-          <Card className="w-full">
+          <Card className="w-full transition-all duration-200 hover:shadow-md active:scale-[0.98]">
             <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Building2 className="h-4 w-4" />
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-green-600" />
                 비즈니스 계정
                 {user.isBusinessVerified && (
-                  <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full">
+                  <span className="text-xs bg-green-100 text-green-600 px-1.5 py-0.5 rounded-full">
                     인증됨
                   </span>
                 )}
@@ -387,75 +502,75 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
             <CardContent className="space-y-2">
               {user.businessName && (
                 <div>
-                  <p className="text-sm font-medium">{user.businessName}</p>
+                  <p className="text-sm font-medium truncate">{user.businessName}</p>
                   {user.businessAddress && (
-                    <p className="text-xs text-gray-500">{user.businessAddress}</p>
+                    <p className="text-xs text-gray-500 truncate">{user.businessAddress}</p>
                   )}
                 </div>
               )}
               
               <div className="flex gap-2">
                 <Button
-                  className="flex-1 h-9"
+                  className="flex-1 h-7 text-xs transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                   variant="outline"
                   size="sm"
                 >
-                  내 공식방 관리
+                  공식방 관리
                 </Button>
                 <Button
-                  className="flex-1 h-9"
+                  className="flex-1 h-7 text-xs transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                   variant="outline" 
                   size="sm"
                 >
-                  비즈니스 설정
+                  설정
                 </Button>
               </div>
             </CardContent>
           </Card>
         )}
 
-        {/* Appearance Settings */}
-        <Card className="w-full">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center space-x-2 text-base">
-              {isDarkMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+        {/* Appearance Settings - Compact */}
+        <Card className="w-full transition-all duration-200 hover:shadow-md active:scale-[0.98]">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center space-x-2 text-sm">
+              {isDarkMode ? <Moon className="h-4 w-4 text-indigo-600" /> : <Sun className="h-4 w-4 text-yellow-600" />}
               <span>화면 설정</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent>
             <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
+              <div>
                 <Label className="text-sm font-medium">다크 모드</Label>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  어두운 테마로 전환합니다
+                  어두운 테마로 전환
                 </p>
               </div>
               <Switch
                 checked={isDarkMode}
                 onCheckedChange={toggleDarkMode}
-                className="data-[state=checked]:bg-purple-600"
+                className="data-[state=checked]:bg-purple-600 transition-all duration-200 hover:scale-110 active:scale-95"
               />
             </div>
           </CardContent>
         </Card>
 
-        {/* App Info */}
-        <Card className="w-full">
-          <CardContent className="pt-4 pb-4">
+        {/* App Info - Compact */}
+        <Card className="w-full transition-all duration-200 hover:shadow-md active:scale-[0.98]">
+          <CardContent className="pt-3 pb-3">
             <div className="text-center space-y-1">
               <VaultLogo size="sm" className="mx-auto" />
               <p className="text-sm text-gray-500">Dovie Messenger</p>
               <p className="text-xs text-gray-400">스마트 메신저 v1.0.0</p>
-              <p className="text-xs text-gray-400">모든 메시지와 파일이 암호화됩니다</p>
+              <p className="text-xs text-gray-400">엔드투엔드 암호화</p>
             </div>
           </CardContent>
         </Card>
 
-        {/* Logout */}
+        {/* Logout - Compact */}
         <Button
           onClick={handleLogout}
           variant="outline"
-          className="w-full text-red-600 border-red-200 hover:bg-red-50 h-9"
+          className="w-full text-red-600 border-red-200 hover:bg-red-50 dark:hover:bg-red-950 h-8 text-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
           size="sm"
         >
           <LogOut className="h-4 w-4 mr-2" />

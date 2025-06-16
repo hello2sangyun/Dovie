@@ -1,11 +1,15 @@
 import { 
   users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications,
   locationChatRooms, locationChatParticipants, locationChatMessages, userLocations,
+  fileUploads, fileDownloads, businessCards, businessProfiles, userPosts, businessCardShares,
   type User, type InsertUser, type Contact, type InsertContact,
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
   type Command, type InsertCommand, type MessageRead, type InsertMessageRead,
   type PhoneVerification, type InsertPhoneVerification,
-  type LocationChatRoom, type InsertLocationChatRoom
+  type LocationChatRoom, type InsertLocationChatRoom,
+  type FileUpload, type InsertFileUpload, type FileDownload, type InsertFileDownload,
+  type BusinessCard, type InsertBusinessCard, type BusinessProfile, type InsertBusinessProfile,
+  type UserPost, type InsertUserPost, type BusinessCardShare, type InsertBusinessCardShare
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, or, count, gt, lt, sql, inArray } from "drizzle-orm";
@@ -24,6 +28,9 @@ export interface IStorage {
   addContact(contact: InsertContact): Promise<Contact>;
   removeContact(userId: number, contactUserId: number): Promise<void>;
   updateContact(userId: number, contactUserId: number, updates: Partial<InsertContact>): Promise<Contact | undefined>;
+  blockContact(userId: number, contactUserId: number): Promise<void>;
+  unblockContact(userId: number, contactUserId: number): Promise<void>;
+  getBlockedContacts(userId: number): Promise<(Contact & { contactUser: User })[]>;
 
   // Chat room operations
   getChatRooms(userId: number): Promise<(ChatRoom & { participants: User[], lastMessage?: Message & { sender: User } })[]>;
@@ -63,7 +70,12 @@ export interface IStorage {
   updateUserLocation(userId: number, location: { latitude: number; longitude: number; accuracy: number }): Promise<void>;
   getNearbyLocationChatRooms(latitude: number, longitude: number, radius?: number): Promise<LocationChatRoom[]>;
   createLocationChatRoom(userId: number, roomData: { name: string; latitude: number; longitude: number; address: string }): Promise<LocationChatRoom>;
-  joinLocationChatRoom(userId: number, roomId: number): Promise<void>;
+  joinLocationChatRoom(userId: number, roomId: number, profileData: { nickname: string; profileImageUrl?: string }): Promise<void>;
+  getLocationChatProfile(userId: number, roomId: number): Promise<{ nickname: string; profileImageUrl?: string } | undefined>;
+  
+  // Location chat message operations
+  getLocationChatMessages(roomId: number, limit?: number): Promise<any[]>;
+  createLocationChatMessage(roomId: number, senderId: number, messageData: any): Promise<any>;
   
   // 위치 기반 자동 관리
   cleanupInactiveLocationChats(): Promise<void>;
@@ -72,6 +84,28 @@ export interface IStorage {
   leaveLocationChatRoom(userId: number, roomId: number): Promise<void>;
   deleteLocationChatRoom(roomId: number): Promise<void>;
   checkLocationProximity(userId: number): Promise<{ roomId: number; distance: number; hasNewChats: boolean }[]>;
+
+  // File storage analytics operations
+  getStorageAnalytics(userId: number, timeRange: string): Promise<any>;
+  trackFileUpload(fileData: { userId: number; chatRoomId?: number; fileName: string; originalName: string; fileSize: number; fileType: string; filePath: string }): Promise<void>;
+  trackFileDownload(fileUploadId: number, userId: number, ipAddress?: string, userAgent?: string): Promise<void>;
+
+  // Business card operations
+  getBusinessCard(userId: number): Promise<BusinessCard | undefined>;
+  createOrUpdateBusinessCard(userId: number, cardData: Partial<InsertBusinessCard>): Promise<BusinessCard>;
+  
+  // Business profile operations
+  getBusinessProfile(userId: number): Promise<BusinessProfile | undefined>;
+  createOrUpdateBusinessProfile(userId: number, profileData: Partial<InsertBusinessProfile>): Promise<BusinessProfile>;
+  
+  // Business card sharing operations
+  createBusinessCardShare(userId: number): Promise<BusinessCardShare>;
+  getBusinessCardShare(shareToken: string): Promise<BusinessCardShare | undefined>;
+  getBusinessCardShareInfo(userId: number): Promise<BusinessCardShare | undefined>;
+  
+  // User posts operations
+  getUserPosts(userId: number): Promise<UserPost[]>;
+  createUserPost(userId: number, postData: Partial<InsertUserPost>): Promise<UserPost>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -138,27 +172,75 @@ export class DatabaseStorage implements IStorage {
       ));
   }
 
-  async updateContact(userId: number, contactUserId: number, updates: Partial<InsertContact>): Promise<Contact | undefined> {
+  async updateContact(userId: number, contactUserId: number, updates: Partial<InsertContact>): Promise<Contact | undefined>;
+  async updateContact(userId: number, contactId: number, updates: Partial<InsertContact>, byId?: boolean): Promise<Contact | undefined>;
+  async updateContact(userId: number, identifier: number, updates: Partial<InsertContact>, byId: boolean = false): Promise<Contact | undefined> {
+    const whereCondition = byId 
+      ? and(eq(contacts.userId, userId), eq(contacts.id, identifier))
+      : and(eq(contacts.userId, userId), eq(contacts.contactUserId, identifier));
+
     const [contact] = await db
       .update(contacts)
       .set(updates)
-      .where(and(
-        eq(contacts.userId, userId),
-        eq(contacts.contactUserId, contactUserId)
-      ))
+      .where(whereCondition)
       .returning();
     return contact || undefined;
   }
 
+  async blockContact(userId: number, contactUserId: number): Promise<void> {
+    await db
+      .update(contacts)
+      .set({ isBlocked: true })
+      .where(and(
+        eq(contacts.userId, userId),
+        eq(contacts.contactUserId, contactUserId)
+      ));
+  }
+
+  async unblockContact(userId: number, contactUserId: number): Promise<void> {
+    await db
+      .update(contacts)
+      .set({ isBlocked: false })
+      .where(and(
+        eq(contacts.userId, userId),
+        eq(contacts.contactUserId, contactUserId)
+      ));
+  }
+
+  async getBlockedContacts(userId: number): Promise<(Contact & { contactUser: User })[]> {
+    console.log("Getting blocked contacts for user:", userId);
+    
+    const result = await db
+      .select()
+      .from(contacts)
+      .innerJoin(users, eq(contacts.contactUserId, users.id))
+      .where(and(
+        eq(contacts.userId, userId),
+        eq(contacts.isBlocked, true)
+      ))
+      .orderBy(asc(users.displayName));
+    
+    console.log("Blocked contacts query result:", result);
+    
+    const mappedResult = result.map(row => ({
+      ...row.contacts,
+      contactUser: row.users
+    }));
+    
+    console.log("Mapped blocked contacts:", mappedResult);
+    
+    return mappedResult;
+  }
+
   async getChatRooms(userId: number): Promise<(ChatRoom & { participants: User[], lastMessage?: Message & { sender: User } })[]> {
-    // Get user's chat rooms (exclude location-based chat rooms)
+    // Get user's chat rooms (excluding location-based chats)
     const userChatRooms = await db
       .select({ chatRoom: chatRooms })
       .from(chatParticipants)
       .innerJoin(chatRooms, eq(chatParticipants.chatRoomId, chatRooms.id))
       .where(and(
         eq(chatParticipants.userId, userId),
-        eq(chatRooms.isLocationBased, false) // Only non-location based chat rooms
+        eq(chatRooms.isLocationChat, false) // 주변챗 제외
       ))
       .orderBy(desc(chatRooms.isPinned), desc(chatRooms.createdAt));
 
@@ -308,8 +390,15 @@ export class DatabaseStorage implements IStorage {
       .where(eq(chatParticipants.chatRoomId, chatRoomId));
 
     if (remainingParticipants.length === 0) {
-      // Delete the entire chat room if no participants left
-      await db.delete(chatRooms).where(eq(chatRooms.id, chatRoomId));
+      // Never delete chat rooms that might have messages
+      // Just mark the chat room as inactive
+      await db
+        .update(chatRooms)
+        .set({ 
+          name: `[삭제된 채팅방]`,
+          isGroup: false 
+        })
+        .where(eq(chatRooms.id, chatRoomId));
     }
   }
 
@@ -588,21 +677,28 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserLocation(userId: number, location: { latitude: number; longitude: number; accuracy: number }): Promise<void> {
-    // Delete existing location if any
-    await db.delete(userLocations).where(eq(userLocations.userId, userId));
-    
-    // Insert new location
+    // Use upsert to handle existing locations
     await db
       .insert(userLocations)
       .values({
         userId,
         latitude: location.latitude.toString(),
         longitude: location.longitude.toString(),
-        accuracy: location.accuracy.toString()
+        accuracy: location.accuracy.toString(),
+        updatedAt: new Date()
+      })
+      .onConflictDoUpdate({
+        target: userLocations.userId,
+        set: {
+          latitude: location.latitude.toString(),
+          longitude: location.longitude.toString(),
+          accuracy: location.accuracy.toString(),
+          updatedAt: new Date()
+        }
       });
   }
 
-  async getNearbyLocationChatRooms(latitude: number, longitude: number, radius: number = 50): Promise<any[]> {
+  async getNearbyLocationChatRooms(latitude: number, longitude: number, radius: number = 100): Promise<any[]> {
     const result = await db
       .select({
         id: locationChatRooms.id,
@@ -649,7 +745,7 @@ export class DatabaseStorage implements IStorage {
     return newRoom;
   }
 
-  async joinLocationChatRoom(userId: number, roomId: number): Promise<void> {
+  async joinLocationChatRoom(userId: number, roomId: number, profileData: { nickname: string; profileImageUrl?: string }): Promise<void> {
     // Check if already joined
     const existing = await db
       .select()
@@ -664,7 +760,9 @@ export class DatabaseStorage implements IStorage {
         .insert(locationChatParticipants)
         .values({
           locationChatRoomId: roomId,
-          userId
+          userId,
+          nickname: profileData.nickname,
+          profileImageUrl: profileData.profileImageUrl || null
         });
 
       // Update participant count
@@ -675,7 +773,42 @@ export class DatabaseStorage implements IStorage {
           lastActivity: new Date()
         })
         .where(eq(locationChatRooms.id, roomId));
+    } else {
+      // Update existing participant's profile
+      await db
+        .update(locationChatParticipants)
+        .set({
+          nickname: profileData.nickname,
+          profileImageUrl: profileData.profileImageUrl || null,
+          lastSeen: new Date()
+        })
+        .where(and(
+          eq(locationChatParticipants.locationChatRoomId, roomId),
+          eq(locationChatParticipants.userId, userId)
+        ));
     }
+  }
+
+  async getLocationChatProfile(userId: number, roomId: number): Promise<{ nickname: string; profileImageUrl?: string } | undefined> {
+    const [participant] = await db
+      .select({
+        nickname: locationChatParticipants.nickname,
+        profileImageUrl: locationChatParticipants.profileImageUrl
+      })
+      .from(locationChatParticipants)
+      .where(and(
+        eq(locationChatParticipants.locationChatRoomId, roomId),
+        eq(locationChatParticipants.userId, userId)
+      ));
+
+    if (!participant || !participant.nickname) {
+      return undefined;
+    }
+
+    return {
+      nickname: participant.nickname,
+      profileImageUrl: participant.profileImageUrl || undefined
+    };
   }
 
   // 위치 기반 자동 관리 메소드들
@@ -788,6 +921,130 @@ export class DatabaseStorage implements IStorage {
       .where(eq(locationChatRooms.id, roomId));
   }
 
+  async getStorageAnalytics(userId: number, timeRange: string): Promise<any> {
+    const timeCondition = this.getTimeCondition(timeRange);
+    
+    // Get user's file uploads with chat room info
+    const userFileUploads = await db
+      .select({
+        id: fileUploads.id,
+        fileName: fileUploads.fileName,
+        originalName: fileUploads.originalName,
+        fileSize: fileUploads.fileSize,
+        fileType: fileUploads.fileType,
+        uploadedAt: fileUploads.uploadedAt,
+        chatRoomName: chatRooms.name,
+        chatRoomId: fileUploads.chatRoomId
+      })
+      .from(fileUploads)
+      .leftJoin(chatRooms, eq(fileUploads.chatRoomId, chatRooms.id))
+      .where(
+        and(
+          eq(fileUploads.userId, userId),
+          eq(fileUploads.isDeleted, false),
+          timeCondition || sql`true`
+        )
+      );
+
+    // Get download logs for user's files
+    const downloads = await db
+      .select({
+        id: fileDownloads.id,
+        fileName: fileUploads.fileName,
+        downloaderName: users.displayName,
+        downloadedAt: fileDownloads.downloadedAt,
+        ipAddress: fileDownloads.ipAddress,
+        fileUploadId: fileDownloads.fileUploadId
+      })
+      .from(fileDownloads)
+      .innerJoin(fileUploads, eq(fileDownloads.fileUploadId, fileUploads.id))
+      .innerJoin(users, eq(fileDownloads.userId, users.id))
+      .where(eq(fileUploads.userId, userId));
+
+    // Calculate totals and breakdowns
+    const totalSize = userFileUploads.reduce((sum: number, file: any) => sum + file.fileSize, 0);
+    
+    const typeBreakdown = {
+      images: 0,
+      documents: 0,
+      audio: 0,
+      video: 0,
+      other: 0
+    };
+
+    userFileUploads.forEach((file: any) => {
+      if (file.fileType.startsWith('image/')) {
+        typeBreakdown.images += file.fileSize;
+      } else if (file.fileType.startsWith('video/')) {
+        typeBreakdown.video += file.fileSize;
+      } else if (file.fileType.startsWith('audio/')) {
+        typeBreakdown.audio += file.fileSize;
+      } else if (file.fileType.includes('document') || file.fileType.includes('pdf') || file.fileType.includes('text')) {
+        typeBreakdown.documents += file.fileSize;
+      } else {
+        typeBreakdown.other += file.fileSize;
+      }
+    });
+
+    // Chat room breakdown
+    const chatRoomMap = new Map();
+    userFileUploads.forEach((file: any) => {
+      const roomName = file.chatRoomName || '개인 파일';
+      if (!chatRoomMap.has(roomName)) {
+        chatRoomMap.set(roomName, { roomName, fileCount: 0, totalSize: 0 });
+      }
+      const room = chatRoomMap.get(roomName);
+      room.fileCount++;
+      room.totalSize += file.fileSize;
+    });
+
+    return {
+      totalSize,
+      typeBreakdown,
+      chatRoomBreakdown: Array.from(chatRoomMap.values()),
+      recentDownloads: downloads.slice(0, 20) // Latest 20 downloads
+    };
+  }
+
+  async trackFileUpload(fileData: { userId: number; chatRoomId?: number; fileName: string; originalName: string; fileSize: number; fileType: string; filePath: string }): Promise<void> {
+    await db.insert(fileUploads).values({
+      userId: fileData.userId,
+      chatRoomId: fileData.chatRoomId || null,
+      fileName: fileData.fileName,
+      originalName: fileData.originalName,
+      fileSize: fileData.fileSize,
+      fileType: fileData.fileType,
+      filePath: fileData.filePath
+    });
+  }
+
+  async trackFileDownload(fileUploadId: number, userId: number, ipAddress?: string, userAgent?: string): Promise<void> {
+    await db.insert(fileDownloads).values({
+      fileUploadId,
+      userId,
+      ipAddress: ipAddress || null,
+      userAgent: userAgent || null
+    });
+  }
+
+  private getTimeCondition(timeRange: string) {
+    const now = new Date();
+    let startDate: Date;
+
+    switch (timeRange) {
+      case 'week':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case 'year':
+        startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        break;
+      default: // month
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    }
+
+    return sql`${fileUploads.uploadedAt} >= ${startDate}`;
+  }
+
   async checkLocationProximity(userId: number): Promise<{ roomId: number; distance: number; hasNewChats: boolean }[]> {
     const userLocation = await db.select()
       .from(userLocations)
@@ -841,6 +1098,199 @@ export class DatabaseStorage implements IStorage {
     }
 
     return proximityResults;
+  }
+
+  async getLocationChatMessages(roomId: number, limit: number = 50): Promise<any[]> {
+    const messages = await db
+      .select({
+        id: locationChatMessages.id,
+        content: locationChatMessages.content,
+        messageType: locationChatMessages.messageType,
+        fileName: locationChatMessages.fileName,
+        fileSize: locationChatMessages.fileSize,
+        voiceDuration: locationChatMessages.voiceDuration,
+        detectedLanguage: locationChatMessages.detectedLanguage,
+        createdAt: locationChatMessages.createdAt,
+        senderId: locationChatMessages.senderId,
+        locationChatRoomId: locationChatMessages.locationChatRoomId,
+        sender: {
+          id: users.id,
+          displayName: users.displayName,
+          profilePicture: users.profilePicture
+        },
+        senderProfile: {
+          nickname: locationChatParticipants.nickname,
+          profileImageUrl: locationChatParticipants.profileImageUrl
+        }
+      })
+      .from(locationChatMessages)
+      .innerJoin(users, eq(locationChatMessages.senderId, users.id))
+      .leftJoin(locationChatParticipants, and(
+        eq(locationChatParticipants.userId, locationChatMessages.senderId),
+        eq(locationChatParticipants.locationChatRoomId, roomId)
+      ))
+      .where(eq(locationChatMessages.locationChatRoomId, roomId))
+      .orderBy(desc(locationChatMessages.createdAt))
+      .limit(limit);
+
+    return messages.reverse();
+  }
+
+  async createLocationChatMessage(roomId: number, senderId: number, messageData: any): Promise<any> {
+    const [message] = await db
+      .insert(locationChatMessages)
+      .values({
+        locationChatRoomId: roomId,
+        senderId: senderId,
+        content: messageData.content,
+        messageType: messageData.messageType || "text",
+        fileName: messageData.fileName,
+        fileSize: messageData.fileSize,
+        voiceDuration: messageData.voiceDuration,
+        detectedLanguage: messageData.detectedLanguage
+      })
+      .returning();
+
+    return message;
+  }
+
+  // Business card operations
+  async getBusinessCard(userId: number): Promise<BusinessCard | undefined> {
+    const [card] = await db.select().from(businessCards).where(eq(businessCards.userId, userId));
+    return card || undefined;
+  }
+
+  async createOrUpdateBusinessCard(userId: number, cardData: Partial<InsertBusinessCard>): Promise<BusinessCard> {
+    const existingCard = await this.getBusinessCard(userId);
+    
+    if (existingCard) {
+      const [updatedCard] = await db
+        .update(businessCards)
+        .set({ ...cardData, updatedAt: new Date() })
+        .where(eq(businessCards.userId, userId))
+        .returning();
+      return updatedCard;
+    } else {
+      const [newCard] = await db
+        .insert(businessCards)
+        .values({ ...cardData, userId })
+        .returning();
+      return newCard;
+    }
+  }
+
+  // Business profile operations
+  async getBusinessProfile(userId: number): Promise<BusinessProfile | undefined> {
+    const [profile] = await db.select().from(businessProfiles).where(eq(businessProfiles.userId, userId));
+    return profile || undefined;
+  }
+
+  async createOrUpdateBusinessProfile(userId: number, profileData: Partial<InsertBusinessProfile>): Promise<BusinessProfile> {
+    const existingProfile = await this.getBusinessProfile(userId);
+    
+    if (existingProfile) {
+      const [updatedProfile] = await db
+        .update(businessProfiles)
+        .set({ ...profileData, updatedAt: new Date() })
+        .where(eq(businessProfiles.userId, userId))
+        .returning();
+      return updatedProfile;
+    } else {
+      const [newProfile] = await db
+        .insert(businessProfiles)
+        .values({ ...profileData, userId })
+        .returning();
+      return newProfile;
+    }
+  }
+
+  // Business card sharing operations
+  async createBusinessCardShare(userId: number): Promise<BusinessCardShare> {
+    // Generate unique share token
+    const shareToken = Array.from({ length: 32 }, () => 
+      Math.random().toString(36).charAt(2)
+    ).join('');
+
+    const [share] = await db
+      .insert(businessCardShares)
+      .values({
+        userId,
+        shareToken,
+        isActive: true,
+        allowDownload: true
+      })
+      .returning();
+    
+    return share;
+  }
+
+  async getBusinessCardShare(shareToken: string): Promise<BusinessCardShare | undefined> {
+    const [share] = await db
+      .select()
+      .from(businessCardShares)
+      .where(and(
+        eq(businessCardShares.shareToken, shareToken),
+        eq(businessCardShares.isActive, true)
+      ));
+    
+    if (share) {
+      // Increment view count
+      await db
+        .update(businessCardShares)
+        .set({ viewCount: share.viewCount + 1 })
+        .where(eq(businessCardShares.id, share.id));
+    }
+    
+    return share || undefined;
+  }
+
+  async getBusinessCardShareInfo(userId: number): Promise<BusinessCardShare | undefined> {
+    const [share] = await db
+      .select()
+      .from(businessCardShares)
+      .where(and(
+        eq(businessCardShares.userId, userId),
+        eq(businessCardShares.isActive, true)
+      ))
+      .orderBy(desc(businessCardShares.createdAt))
+      .limit(1);
+    
+    return share || undefined;
+  }
+
+  // User posts operations
+  async getUserPosts(userId: number): Promise<UserPost[]> {
+    const posts = await db
+      .select()
+      .from(userPosts)
+      .where(eq(userPosts.userId, userId))
+      .orderBy(desc(userPosts.createdAt));
+    
+    return posts;
+  }
+
+  async createUserPost(userId: number, postData: Partial<InsertUserPost>): Promise<UserPost> {
+    const [post] = await db
+      .insert(userPosts)
+      .values({ ...postData, userId })
+      .returning();
+    
+    return post;
+  }
+
+  // 사용자들이 친구인지 확인
+  async areUsersFriends(userId1: number, userId2: number): Promise<boolean> {
+    const contact = await db.select()
+      .from(contacts)
+      .where(
+        or(
+          and(eq(contacts.userId, userId1), eq(contacts.contactUserId, userId2)),
+          and(eq(contacts.userId, userId2), eq(contacts.contactUserId, userId1))
+        )
+      )
+      .limit(1);
+    
+    return contact.length > 0;
   }
 }
 

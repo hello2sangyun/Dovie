@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ScrollIndicator from "@/components/ScrollIndicator";
+import PerformanceMonitor from "@/components/PerformanceMonitor";
+import { queryClient } from "@/lib/queryClient";
 import { 
   Activity, 
   Users, 
@@ -140,6 +143,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <ScrollIndicator />
       {/* 헤더 */}
       <div className="bg-white border-b px-6 py-4">
         <div className="flex items-center justify-between">
@@ -165,10 +169,11 @@ export default function AdminPage() {
 
       <div className="p-6">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">개요</TabsTrigger>
             <TabsTrigger value="apis">API 상태</TabsTrigger>
             <TabsTrigger value="system">시스템</TabsTrigger>
+            <TabsTrigger value="performance">성능</TabsTrigger>
             <TabsTrigger value="analytics">분석</TabsTrigger>
           </TabsList>
 
@@ -404,6 +409,68 @@ export default function AdminPage() {
                 <CardContent>
                   <div className="text-3xl font-bold mb-2">{stats.systemHealth.diskUsage.toFixed(1)}%</div>
                   <Progress value={stats.systemHealth.diskUsage} className="h-2" />
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* 성능 탭 */}
+          <TabsContent value="performance" className="space-y-6">
+            <PerformanceMonitor showDetailed={true} />
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>성능 최적화 제안</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="p-3 bg-blue-50 rounded-lg">
+                    <h4 className="font-medium text-blue-900">✓ 구현된 최적화</h4>
+                    <ul className="text-sm text-blue-700 mt-2 space-y-1">
+                      <li>• React Query 캐싱 최적화</li>
+                      <li>• 이미지 지연 로딩 및 캐싱</li>
+                      <li>• 컴포넌트 지연 로딩</li>
+                      <li>• 검색 디바운싱</li>
+                      <li>• 스크롤 가상화</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="p-3 bg-green-50 rounded-lg">
+                    <h4 className="font-medium text-green-900">추가 최적화 가능</h4>
+                    <ul className="text-sm text-green-700 mt-2 space-y-1">
+                      <li>• 서비스 워커 캐싱</li>
+                      <li>• WebP 이미지 포맷 사용</li>
+                      <li>• CDN 활용</li>
+                      <li>• 번들 크기 최적화</li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>캐시 관리</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">React Query 캐시</span>
+                    <Button variant="outline" size="sm" onClick={() => queryClient.clear()}>
+                      캐시 지우기
+                    </Button>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">이미지 캐시</span>
+                    <Button variant="outline" size="sm">
+                      이미지 캐시 지우기
+                    </Button>
+                  </div>
+                  
+                  <div className="p-3 bg-yellow-50 rounded-lg">
+                    <p className="text-sm text-yellow-700">
+                      정기적인 캐시 정리로 메모리 사용량을 최적화하세요.
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             </div>

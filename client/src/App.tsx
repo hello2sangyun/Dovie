@@ -11,6 +11,7 @@ import ProfileSetupPage from "@/pages/ProfileSetupPage";
 import PhoneLogin from "@/pages/PhoneLogin";
 import MainApp from "@/pages/MainApp";
 import AdminPage from "@/pages/AdminPage";
+import FriendProfilePage from "@/pages/FriendProfilePage";
 import NotFound from "@/pages/not-found";
 import { useEffect } from "react";
 
@@ -24,6 +25,7 @@ function Router() {
       <Route path="/phone-login" component={PhoneLogin} />
       <Route path="/app" component={MainApp} />
       <Route path="/admin" component={AdminPage} />
+      <Route path="/friend/:userId" component={FriendProfilePage} />
       <Route component={NotFound} />
     </Switch>
   );
