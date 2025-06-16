@@ -248,12 +248,14 @@ export class DatabaseStorage implements IStorage {
       participantsByRoom.get(chatRoomId)!.push(user);
     });
 
-    // Combine results
-    return userChatRooms.map(({ chatRoom }) => ({
-      ...chatRoom,
-      participants: participantsByRoom.get(chatRoom.id) || [],
-      lastMessage: lastMessageByRoom.get(chatRoom.id)
-    }));
+    // Combine results and sort by updatedAt (latest first)
+    return userChatRooms
+      .map(({ chatRoom }) => ({
+        ...chatRoom,
+        participants: participantsByRoom.get(chatRoom.id) || [],
+        lastMessage: lastMessageByRoom.get(chatRoom.id)
+      }))
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
   }
 
   async getChatRoomById(chatRoomId: number): Promise<(ChatRoom & { participants: User[] }) | undefined> {
@@ -954,59 +956,7 @@ export class DatabaseStorage implements IStorage {
     return proximityResults;
   }
 
-  async getLocationChatMessages(roomId: number, limit: number = 50): Promise<any[]> {
-    const messages = await db
-      .select({
-        id: locationChatMessages.id,
-        content: locationChatMessages.content,
-        messageType: locationChatMessages.messageType,
-        fileName: locationChatMessages.fileName,
-        fileSize: locationChatMessages.fileSize,
-        voiceDuration: locationChatMessages.voiceDuration,
-        detectedLanguage: locationChatMessages.detectedLanguage,
-        createdAt: locationChatMessages.createdAt,
-        senderId: locationChatMessages.senderId,
-        locationChatRoomId: locationChatMessages.locationChatRoomId,
-        sender: {
-          id: users.id,
-          displayName: users.displayName,
-          profilePicture: users.profilePicture
-        },
-        senderProfile: {
-          nickname: locationChatParticipants.nickname,
-          profileImageUrl: locationChatParticipants.profileImageUrl
-        }
-      })
-      .from(locationChatMessages)
-      .innerJoin(users, eq(locationChatMessages.senderId, users.id))
-      .leftJoin(locationChatParticipants, and(
-        eq(locationChatParticipants.userId, locationChatMessages.senderId),
-        eq(locationChatParticipants.locationChatRoomId, roomId)
-      ))
-      .where(eq(locationChatMessages.locationChatRoomId, roomId))
-      .orderBy(desc(locationChatMessages.createdAt))
-      .limit(limit);
-
-    return messages.reverse();
-  }
-
-  async createLocationChatMessage(roomId: number, senderId: number, messageData: any): Promise<any> {
-    const [message] = await db
-      .insert(locationChatMessages)
-      .values({
-        locationChatRoomId: roomId,
-        senderId: senderId,
-        content: messageData.content,
-        messageType: messageData.messageType || "text",
-        fileName: messageData.fileName,
-        fileSize: messageData.fileSize,
-        voiceDuration: messageData.voiceDuration,
-        detectedLanguage: messageData.detectedLanguage
-      })
-      .returning();
-
-    return message;
-  }
+  // Location chat functionality removed
 
   // Business card operations
   async getBusinessCard(userId: number): Promise<BusinessCard | undefined> {

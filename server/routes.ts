@@ -396,9 +396,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not a participant in this location chat" });
       }
 
-      // Get messages from location chat room
-      const messages = await storage.getLocationChatMessages(roomId);
-      res.json({ messages });
+      // Location chat functionality removed
+      res.status(404).json({ message: "Location chat not available" });
     } catch (error) {
       console.error("Get location messages error:", error);
       res.status(500).json({ message: "Failed to get messages" });
@@ -420,15 +419,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not a participant in this location chat" });
       }
 
-      const messageData = req.body;
-      const newMessage = await storage.createLocationChatMessage(roomId, Number(userId), {
-        content: messageData.content,
-        messageType: messageData.messageType || "text",
-        fileName: messageData.fileName,
-        fileSize: messageData.fileSize,
-        voiceDuration: messageData.voiceDuration,
-        detectedLanguage: messageData.detectedLanguage
-      });
+      // Location chat functionality removed
+      res.status(404).json({ message: "Location chat not available" });
+      return;
 
       // For location chat, create response with profile info
       const user = await storage.getUser(Number(userId));
