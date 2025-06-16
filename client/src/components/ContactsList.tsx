@@ -495,11 +495,27 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                     msUserSelect: 'none',
                     WebkitTouchCallout: 'none'
                   }}
-                  onClick={() => onSelectContact(contact.contactUserId)}
-                  onMouseDown={() => handleLongPressStart(contact)}
+                  onClick={(e) => {
+                    console.log('💿 연락처 클릭:', contact.contactUser.displayName);
+                    // 길게 누르기가 진행 중이면 클릭 무시
+                    if (longPressTimer) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      return;
+                    }
+                    onSelectContact(contact.contactUserId);
+                  }}
+                  onMouseDown={(e) => {
+                    console.log('🖱️ 마우스 다운:', contact.contactUser.displayName);
+                    handleLongPressStart(contact);
+                  }}
                   onMouseUp={handleLongPressEnd}
                   onMouseLeave={handleLongPressEnd}
-                  onTouchStart={() => handleLongPressStart(contact)}
+                  onTouchStart={(e) => {
+                    console.log('👆 터치 시작:', contact.contactUser.displayName);
+                    e.preventDefault(); // 기본 터치 동작 방지
+                    handleLongPressStart(contact);
+                  }}
                   onTouchEnd={handleLongPressEnd}
                   onContextMenu={(e) => e.preventDefault()}
                 >
