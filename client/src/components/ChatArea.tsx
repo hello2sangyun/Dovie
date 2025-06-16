@@ -3253,9 +3253,22 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     setIsLongPress(false);
     const timer = setTimeout(() => {
       setIsLongPress(true);
-      handleMessageRightClick(e as any, message);
+      const touch = e.touches[0] || e.changedTouches[0];
+      const rect = e.currentTarget.getBoundingClientRect();
+      
+      // 터치 위치 계산
+      const x = touch?.clientX || rect.left + rect.width / 2;
+      const y = touch?.clientY || rect.top + rect.height / 2;
+      
+      setContextMenu({
+        visible: true,
+        x,
+        y,
+        message,
+      });
+      
       navigator.vibrate?.(50); // 햅틱 피드백
-    }, 500); // 500ms 길게 터치
+    }, 300); // 300ms로 단축하여 더 빠른 반응
     
     setTouchTimer(timer);
   };
@@ -4000,14 +4013,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
                     <div 
                       className={cn(
-                        "rounded-lg p-3 shadow-sm w-fit break-words cursor-pointer select-none",
+                        "rounded-lg p-3 shadow-sm w-fit break-words cursor-pointer select-none transition-all duration-200 hover:shadow-md",
+                        contextMenu.visible && contextMenu.message?.id === msg.id && "ring-2 ring-blue-400 shadow-lg",
                         msg.isCommandRecall && msg.isLocalOnly
                           ? isMe 
-                            ? "bg-teal-500 text-white rounded-tr-none border border-teal-400" 
-                            : "bg-teal-50 text-teal-900 rounded-tl-none border border-teal-200"
+                            ? "bg-teal-500 text-white rounded-tr-none border border-teal-400 hover:bg-teal-600" 
+                            : "bg-teal-50 text-teal-900 rounded-tl-none border border-teal-200 hover:bg-teal-100"
                           : isMe 
-                            ? "bg-purple-600 text-white rounded-tr-none" 
-                            : "bg-white text-gray-900 rounded-tl-none border border-gray-200"
+                            ? "bg-purple-600 text-white rounded-tr-none hover:bg-purple-700" 
+                            : "bg-white text-gray-900 rounded-tl-none border border-gray-200 hover:bg-gray-50"
                       )}
                       style={{ 
                         userSelect: 'none',
@@ -4038,9 +4052,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
-                        // 길게 터치가 아닌 경우에만 일반 클릭 동작
-                        if (!isLongPress) {
-                          // 일반 클릭 시 아무 동작 안함 (메뉴 열리지 않음)
+                        // PC에서는 클릭 시 바로 메뉴 표시
+                        if (!isLongPress && window.innerWidth > 768) {
+                          handleMessageRightClick(e as any, msg);
                         }
                       }}
                     >
