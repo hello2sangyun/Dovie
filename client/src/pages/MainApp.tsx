@@ -399,8 +399,8 @@ export default function MainApp() {
 
   return (
     <div className="fixed inset-0 bg-white dark:bg-gray-900">
-      {/* Desktop Layout */}
-      <div className="hidden lg:flex h-full">
+      {/* Desktop Layout - Hidden for now to match deployed version */}
+      <div className="hidden h-full">
         {/* Sidebar */}
         <div className="w-96 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col">
           {/* Header */}
@@ -1192,10 +1192,10 @@ export default function MainApp() {
         </div>
       </div>
 
-      {/* Mobile Layout */}
-      <div className="lg:hidden h-full flex flex-col">
+      {/* Mobile Layout - Now used for all screen sizes to match deployed version */}
+      <div className="h-full flex flex-col">
         {/* Fixed Mobile Header */}
-        <div className="flex-shrink-0 purple-gradient p-4 text-white fixed top-0 left-0 right-0 z-50 lg:hidden">
+        <div className="flex-shrink-0 purple-gradient p-4 text-white fixed top-0 left-0 right-0 z-50">
           <div className="flex items-center justify-between">
             {/* Profile Image on Left */}
             <div 
@@ -1370,7 +1370,7 @@ export default function MainApp() {
 
         {/* Modern Mobile Bottom Navigation */}
         {!showMobileChat && activeMobileTab !== "digital-card" && (
-          <div className="bg-white/95 backdrop-blur-lg border-t border-gray-100 pb-safe pt-3 px-2 fixed bottom-0 left-0 right-0 z-50 lg:hidden shadow-lg">
+          <div className="bg-white/95 backdrop-blur-lg border-t border-gray-100 pb-safe pt-3 px-2 fixed bottom-0 left-0 right-0 z-50 shadow-lg">
             <div className="flex justify-around items-center max-w-md mx-auto h-16">
               <Button
                 variant="ghost"
