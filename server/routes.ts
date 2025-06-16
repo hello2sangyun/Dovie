@@ -999,6 +999,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const chatRooms = await storage.getChatRooms(Number(userId));
       res.json({ chatRooms });
     } catch (error) {
+      console.error("Chat rooms error:", error);
       res.status(500).json({ message: "Failed to get chat rooms" });
     }
   });
