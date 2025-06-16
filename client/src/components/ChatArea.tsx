@@ -1651,26 +1651,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
   };
 
-  // 안전한 계산식 평가 함수
-  const evaluateExpression = (expr: string): number | null => {
-    try {
-      // 안전한 문자만 허용 (숫자, 연산자, 괄호, 공백, 소수점)
-      if (!/^[\d\+\-\*\/\(\)\.\s]+$/.test(expr)) {
-        return null;
-      }
-      
-      // eval 대신 Function 생성자 사용 (더 안전)
-      const result = Function(`"use strict"; return (${expr})`)();
-      
-      if (typeof result === 'number' && isFinite(result)) {
-        return Math.round(result * 100000) / 100000; // 소수점 5자리까지
-      }
-      
-      return null;
-    } catch {
-      return null;
-    }
-  };
+  // evaluateExpression function already declared above
 
   // 사용 빈도 추적을 위한 로컬 스토리지 키
   const CURRENCY_USAGE_KEY = 'currency_usage_history';
