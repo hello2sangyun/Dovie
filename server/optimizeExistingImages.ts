@@ -3,6 +3,7 @@ import { ImageOptimizer } from "./imageOptimizer";
 import { promises as fs } from "fs";
 import path from "path";
 import crypto from "crypto";
+import { decryptFileData, encryptFileData } from "./crypto";
 
 /**
  * 기존 데이터베이스의 모든 프로필 이미지를 최적화하는 스크립트
@@ -139,38 +140,40 @@ async function getUsersWithProfileImages(): Promise<Array<{ id: number; profileP
 }
 
 /**
- * 암호화된 파일을 복호화
+ * 암호화된 파일을 복호화 (CryptoJS 방식 사용)
  */
 async function decryptFile(encryptedFilePath: string): Promise<string> {
-  const encryptionKey = process.env.ENCRYPTION_KEY || 'default-key';
-  const encryptedBuffer = await fs.readFile(encryptedFilePath);
-  
-  const decipher = crypto.createDecipher('aes-256-cbc', encryptionKey);
-  let decrypted = decipher.update(encryptedBuffer);
-  decrypted = Buffer.concat([decrypted, decipher.final()]);
-  
-  const tempFileName = `temp_decrypt_${Date.now()}.tmp`;
-  const tempPath = path.join('uploads', tempFileName);
-  await fs.writeFile(tempPath, decrypted);
-  
-  return tempPath;
+  try {
+    const encryptedData = await fs.readFile(encryptedFilePath, 'utf8');
+    const decryptedBuffer = decryptFileData(encryptedData);
+    
+    const tempFileName = `temp_decrypt_${Date.now()}.tmp`;
+    const tempPath = path.join('uploads', tempFileName);
+    await fs.writeFile(tempPath, decryptedBuffer);
+    
+    return tempPath;
+  } catch (error) {
+    console.error('Decryption failed:', error);
+    throw error;
+  }
 }
 
 /**
- * 파일을 암호화
+ * 파일을 암호화 (CryptoJS 방식 사용)
  */
 async function encryptFile(inputPath: string, outputFileName: string): Promise<string> {
-  const encryptionKey = process.env.ENCRYPTION_KEY || 'default-key';
-  const fileBuffer = await fs.readFile(inputPath);
-  
-  const cipher = crypto.createCipher('aes-256-cbc', encryptionKey);
-  let encrypted = cipher.update(fileBuffer);
-  encrypted = Buffer.concat([encrypted, cipher.final()]);
-  
-  const outputPath = path.join('uploads', outputFileName);
-  await fs.writeFile(outputPath, encrypted);
-  
-  return outputPath;
+  try {
+    const fileBuffer = await fs.readFile(inputPath);
+    const encryptedData = encryptFileData(fileBuffer);
+    
+    const outputPath = path.join('uploads', outputFileName);
+    await fs.writeFile(outputPath, encryptedData, 'utf8');
+    
+    return outputPath;
+  } catch (error) {
+    console.error('Encryption failed:', error);
+    throw error;
+  }
 }
 
 // CLI에서 직접 실행할 수 있도록 (ES modules 호환)

@@ -13,6 +13,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { ImageOptimizer } from "./imageOptimizer";
 import { optimizeAllProfileImages } from "./optimizeExistingImages";
+import { decryptFileData, encryptFileData } from "./crypto";
 import { eq, desc, or, and, like, count, lt, asc } from "drizzle-orm";
 import { db } from "./db";
 
@@ -327,16 +328,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Optimize the image
         const optimizationResult = await ImageOptimizer.optimizeProfileImage(tempFilePath, optimizedPath);
         
-        // Encrypt the optimized image
-        const encryptionKey = process.env.ENCRYPTION_KEY || 'default-key';
+        // Encrypt the optimized image using CryptoJS method
         const optimizedBuffer = await fs.readFile(optimizedPath);
-        const cipher = crypto.createCipher('aes-256-cbc', encryptionKey);
-        let encrypted = cipher.update(optimizedBuffer);
-        encrypted = Buffer.concat([encrypted, cipher.final()]);
+        const encryptedData = encryptFileData(optimizedBuffer);
 
         // Save encrypted file
         const finalPath = path.join('uploads', optimizedFileName);
-        await fs.writeFile(finalPath, encrypted);
+        await fs.writeFile(finalPath, encryptedData, 'utf8');
 
         // Clean up temporary files
         await fs.unlink(tempFilePath);
@@ -375,21 +373,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // File serving
+  // File serving with fallback for different encryption methods
   app.get("/api/files/:fileName", async (req, res) => {
     try {
       const fileName = req.params.fileName;
       const filePath = path.join('uploads', fileName);
       
-      const encryptionKey = process.env.ENCRYPTION_KEY || 'default-key';
-      const encryptedBuffer = await fs.readFile(filePath);
-      
-      const decipher = crypto.createDecipher('aes-256-cbc', encryptionKey);
-      let decrypted = decipher.update(encryptedBuffer);
-      decrypted = Buffer.concat([decrypted, decipher.final()]);
-      
-      res.setHeader('Content-Type', 'application/octet-stream');
-      res.send(decrypted);
+      try {
+        // Try CryptoJS decryption first (for new optimized images)
+        const encryptedData = await fs.readFile(filePath, 'utf8');
+        const decryptedBuffer = decryptFileData(encryptedData);
+        res.setHeader('Content-Type', 'application/octet-stream');
+        res.send(decryptedBuffer);
+      } catch (cryptoJSError) {
+        // Fallback to old Node.js crypto method
+        try {
+          const encryptionKey = process.env.ENCRYPTION_KEY || 'default-key';
+          const encryptedBuffer = await fs.readFile(filePath);
+          
+          const decipher = crypto.createDecipher('aes-256-cbc', encryptionKey);
+          let decrypted = decipher.update(encryptedBuffer);
+          decrypted = Buffer.concat([decrypted, decipher.final()]);
+          
+          res.setHeader('Content-Type', 'application/octet-stream');
+          res.send(decrypted);
+        } catch (nodeCryptoError) {
+          console.error("Both decryption methods failed:", { cryptoJSError, nodeCryptoError });
+          throw nodeCryptoError;
+        }
+      }
     } catch (error) {
       console.error("File serving error:", error);
       res.status(404).json({ message: "File not found" });
