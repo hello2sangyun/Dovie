@@ -78,8 +78,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }
 
-  // Authentication endpoints
-  app.post("/api/register", async (req, res) => {
+  // Authentication endpoints - moved to top priority
+  app.post("/api/auth/register", async (req, res) => {
+    console.log("🔐 Register endpoint hit:", req.body);
     try {
       const { username, email, password, displayName } = req.body;
       
@@ -112,20 +113,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/login", async (req, res) => {
+  app.post("/api/auth/login", async (req, res) => {
+    console.log("🔐 Login endpoint hit:", { email: req.body.email });
     try {
       const { email, password } = req.body;
       
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
+      }
+      
       const user = await storage.getUserByEmail(email);
       if (!user) {
+        console.log("❌ User not found for email:", email);
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
       const isValidPassword = await bcrypt.compare(password, user.password);
       if (!isValidPassword) {
+        console.log("❌ Invalid password for user:", email);
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
+      console.log("✅ Login successful for user:", email);
       const { password: _, ...userWithoutPassword } = user;
       res.json({ user: userWithoutPassword });
     } catch (error) {
