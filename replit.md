@@ -129,14 +129,17 @@ Dovie Messenger is a modern, secure messaging application built with a full-stac
 
 ## Changelog
 - June 14, 2025: Initial setup
-- June 15, 2025: **Major Rollback to Chat-Focused Version**:
+- June 15, 2025: **Major Rollback to Chat-Focused Version** (Temporary):
   * Removed all business card scanning and digital business card features
   * Removed Cabinet, Network, and My Space functionality
   * Simplified to core messaging features: chat rooms, contacts, and settings
   * Created SimpleChatApp component focused on real-time messaging
-  * Removed complex business networking features for streamlined UX
-  * Updated routing to use simplified chat interface
-  * Maintained AI translation and smart commands for messaging enhancement
+- June 16, 2025: **Rollback to Deployed Business Card Platform Version**:
+  * Restored full Dovie business card platform functionality
+  * Re-enabled Cabinet (default page), Network, and business card scanning
+  * Restored MainApp component with complete navigation structure
+  * Re-implemented business card analysis endpoint with OpenAI integration
+  * Returned to person-based folder organization system
 
 ## User Preferences
 

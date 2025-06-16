@@ -9,8 +9,14 @@ import LoginPage from "@/pages/LoginPage";
 import SignupPage from "@/pages/SignupPage";
 import ProfileSetupPage from "@/pages/ProfileSetupPage";
 import PhoneLogin from "@/pages/PhoneLogin";
-import SimpleChatApp from "@/pages/SimpleChatApp";
+import MainApp from "@/pages/MainApp";
 import AdminPage from "@/pages/AdminPage";
+import FriendProfilePage from "@/pages/FriendProfilePage";
+import CardScannerPage from "@/pages/CardScannerPage";
+import ScanPage from "@/pages/ScanPage";
+import SharePage from "@/pages/SharePage";
+import BusinessCardDetail from "@/pages/BusinessCardDetail";
+import CabinetPage from "@/pages/CabinetPage";
 import NotFound from "@/pages/not-found";
 import { useEffect } from "react";
 
@@ -22,8 +28,14 @@ function Router() {
       <Route path="/signup" component={SignupPage} />
       <Route path="/profile-setup" component={ProfileSetupPage} />
       <Route path="/phone-login" component={PhoneLogin} />
-      <Route path="/app" component={SimpleChatApp} />
+      <Route path="/app" component={MainApp} />
       <Route path="/admin" component={AdminPage} />
+      <Route path="/friend/:userId" component={FriendProfilePage} />
+      <Route path="/card-scanner" component={CardScannerPage} />
+      <Route path="/scan" component={ScanPage} />
+      <Route path="/cabinet" component={CabinetPage} />
+      <Route path="/share/:userId" component={SharePage} />
+      <Route path="/business-card/:contactId" component={BusinessCardDetail} />
       <Route component={NotFound} />
     </Switch>
   );
