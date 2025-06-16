@@ -2,7 +2,7 @@
 
 ## Overview
 
-Dovie Messenger is a modern, secure messaging application built with a full-stack TypeScript architecture. The application features real-time messaging, AI-powered smart features, business card scanning, file sharing with encryption, and advanced contact management. It's designed as a comprehensive communication platform with professional networking capabilities.
+Dovie Messenger is a modern, secure messaging application built with a full-stack TypeScript architecture. The application focuses on real-time messaging with AI-powered smart features, file sharing with encryption, and contact management. It's designed as a streamlined communication platform.
 
 ## System Architecture
 
@@ -26,7 +26,7 @@ Dovie Messenger is a modern, secure messaging application built with a full-stac
 ### Database Architecture
 - **ORM**: Drizzle with type-safe queries
 - **Database**: PostgreSQL (configured for Neon serverless)
-- **Schema**: Comprehensive relational design with users, contacts, messages, chat rooms, business cards, and file management
+- **Schema**: Core design with users, contacts, messages, chat rooms, and file management
 - **Migrations**: Automated schema management with drizzle-kit
 
 ## Key Components
@@ -45,7 +45,6 @@ Dovie Messenger is a modern, secure messaging application built with a full-stac
 - Message status tracking (sent, delivered, read)
 
 ### AI-Powered Features
-- **Business Card Scanner**: OCR with OpenAI Vision API for card data extraction
 - **Text Translation**: Multi-language translation with GPT-4o
 - **Audio Transcription**: Voice message transcription
 - **Smart Commands**: AI-powered text processing and analysis
@@ -56,13 +55,6 @@ Dovie Messenger is a modern, secure messaging application built with a full-stac
 - Progress tracking for uploads/downloads
 - Image optimization and compression
 - Secure file serving with access control
-
-### Business Networking
-- Digital business card creation and sharing
-- QR code generation for contact sharing
-- Professional profile management
-- Business post creation and sharing (LinkedIn-style)
-- Contact organization with folders and tags
 
 ## Data Flow
 
