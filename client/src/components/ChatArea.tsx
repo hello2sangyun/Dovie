@@ -4215,10 +4215,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           
                           {/* 원본 메시지 내용 - 타입별 렌더링 */}
                           {(() => {
-                            const replyContent = msg.replyToContent || "원본 메시지";
+                            // 원본 메시지 찾기
+                            const originalMessage = messages.find(m => m.id === msg.replyToMessageId);
+                            const replyContent = msg.replyToContent || originalMessage?.content || "원본 메시지";
                             
                             // 음성 메시지인 경우
-                            if (replyContent.includes('🎵') || replyContent.includes('음성 메시지')) {
+                            if (originalMessage?.messageType === 'voice' || replyContent.includes('🎵') || replyContent.includes('음성 메시지')) {
                               return (
                                 <div className="flex items-center space-x-2">
                                   <div 
