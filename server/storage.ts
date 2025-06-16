@@ -214,64 +214,104 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getChatRooms(userId: number): Promise<(ChatRoom & { participants: User[], lastMessage?: Message & { sender: User } })[]> {
-    // Get user's chat rooms (excluding location-based chats)
-    const userChatRooms = await db
-      .select({ chatRoom: chatRooms })
-      .from(chatParticipants)
-      .innerJoin(chatRooms, eq(chatParticipants.chatRoomId, chatRooms.id))
-      .where(eq(chatParticipants.userId, userId))
-      .orderBy(desc(chatRooms.isPinned), desc(chatRooms.createdAt));
+    // 단일 최적화된 쿼리로 채팅방, 참가자, 마지막 메시지를 한 번에 조회
+    const result = await db.execute(sql`
+      WITH last_messages AS (
+        SELECT DISTINCT ON (chat_room_id) 
+          chat_room_id,
+          id,
+          sender_id,
+          content,
+          message_type,
+          created_at,
+          updated_at
+        FROM messages 
+        ORDER BY chat_room_id, created_at DESC
+      ),
+      room_participants AS (
+        SELECT 
+          cp.chat_room_id,
+          json_agg(
+            json_build_object(
+              'id', u.id,
+              'username', u.username,
+              'displayName', u.display_name,
+              'email', u.email,
+              'profilePicture', u.profile_picture,
+              'userRole', u.user_role,
+              'isOnline', u.is_online
+            )
+          ) as participants
+        FROM chat_participants cp
+        JOIN users u ON cp.user_id = u.id
+        GROUP BY cp.chat_room_id
+      )
+      SELECT 
+        cr.*,
+        rp.participants,
+        lm.id as last_message_id,
+        lm.content as last_message_content,
+        lm.message_type as last_message_type,
+        lm.created_at as last_message_created_at,
+        lm.updated_at as last_message_updated_at,
+        sender.id as sender_id,
+        sender.username as sender_username,
+        sender.display_name as sender_display_name,
+        sender.profile_picture as sender_profile_picture
+      FROM chat_participants cp
+      JOIN chat_rooms cr ON cp.chat_room_id = cr.id
+      LEFT JOIN room_participants rp ON cr.id = rp.chat_room_id
+      LEFT JOIN last_messages lm ON cr.id = lm.chat_room_id
+      LEFT JOIN users sender ON lm.sender_id = sender.id
+      WHERE cp.user_id = ${userId}
+      ORDER BY cr.is_pinned DESC, cr.created_at DESC
+    `);
 
-    if (userChatRooms.length === 0) return [];
+    return (result as any[]).map((row: any) => {
+      const chatRoom = {
+        id: row.id,
+        name: row.name,
+        isGroup: row.is_group,
+        createdBy: row.created_by,
+        createdAt: new Date(row.created_at),
+        updatedAt: new Date(row.updated_at),
+        isPinned: row.is_pinned
+      };
 
-    const chatRoomIds = userChatRooms.map(({ chatRoom }) => chatRoom.id);
+      const participants = row.participants ? JSON.parse(row.participants) : [];
 
-    // Batch fetch all participants for these chat rooms
-    const allParticipants = await db
-      .select({
-        chatRoomId: chatParticipants.chatRoomId,
-        user: users
-      })
-      .from(chatParticipants)
-      .innerJoin(users, eq(chatParticipants.userId, users.id))
-      .where(inArray(chatParticipants.chatRoomId, chatRoomIds));
-
-    // Simple sequential approach for last messages
-    const lastMessageByRoom = new Map<number, Message & { sender: User }>();
-    
-    for (const chatRoomId of chatRoomIds) {
-      const [lastMessageData] = await db
-        .select()
-        .from(messages)
-        .innerJoin(users, eq(messages.senderId, users.id))
-        .where(eq(messages.chatRoomId, chatRoomId))
-        .orderBy(desc(messages.createdAt))
-        .limit(1);
-      
-      if (lastMessageData) {
-        lastMessageByRoom.set(chatRoomId, {
-          ...lastMessageData.messages,
-          content: lastMessageData.messages.content ? decryptText(lastMessageData.messages.content) : lastMessageData.messages.content,
-          sender: lastMessageData.users
-        });
+      let lastMessage = undefined;
+      if (row.last_message_id) {
+        lastMessage = {
+          id: row.last_message_id,
+          chatRoomId: row.id,
+          senderId: row.sender_id,
+          content: row.last_message_content ? decryptText(row.last_message_content) : row.last_message_content,
+          messageType: row.last_message_type,
+          createdAt: new Date(row.last_message_created_at),
+          updatedAt: new Date(row.last_message_updated_at),
+          sender: {
+            id: row.sender_id,
+            username: row.sender_username,
+            displayName: row.sender_display_name,
+            profilePicture: row.sender_profile_picture,
+            email: '',
+            userRole: 'user',
+            isOnline: false,
+            isEmailVerified: true,
+            isProfileComplete: true,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          }
+        };
       }
-    }
 
-    // Group participants by chat room
-    const participantsByRoom = new Map<number, User[]>();
-    allParticipants.forEach(({ chatRoomId, user }) => {
-      if (!participantsByRoom.has(chatRoomId)) {
-        participantsByRoom.set(chatRoomId, []);
-      }
-      participantsByRoom.get(chatRoomId)!.push(user);
+      return {
+        ...chatRoom,
+        participants,
+        lastMessage
+      };
     });
-
-    // Combine results
-    return userChatRooms.map(({ chatRoom }) => ({
-      ...chatRoom,
-      participants: participantsByRoom.get(chatRoom.id) || [],
-      lastMessage: lastMessageByRoom.get(chatRoom.id)
-    }));
   }
 
   async getChatRoomById(chatRoomId: number): Promise<(ChatRoom & { participants: User[] }) | undefined> {
@@ -557,55 +597,28 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUnreadCounts(userId: number): Promise<{ chatRoomId: number; unreadCount: number }[]> {
-    // Get all chat rooms the user participates in
-    const userChatRooms = await db
-      .select({
-        chatRoomId: chatParticipants.chatRoomId,
-      })
-      .from(chatParticipants)
-      .where(eq(chatParticipants.userId, userId));
+    // 단일 SQL 쿼리로 최적화하여 성능 개선
+    const result = await db.execute(sql`
+      SELECT 
+        cp.chat_room_id as chatRoomId,
+        COALESCE(
+          (SELECT COUNT(*) 
+           FROM messages m 
+           WHERE m.chat_room_id = cp.chat_room_id 
+           AND (mr.last_read_message_id IS NULL OR m.id > mr.last_read_message_id)
+          ), 
+          0
+        ) as unreadCount
+      FROM chat_participants cp
+      LEFT JOIN message_reads mr ON cp.chat_room_id = mr.chat_room_id AND mr.user_id = ${userId}
+      WHERE cp.user_id = ${userId}
+      HAVING unreadCount > 0
+    `);
 
-    const unreadCounts = [];
-
-    for (const room of userChatRooms) {
-      // Get the last read message for this chat room
-      const [readRecord] = await db
-        .select()
-        .from(messageReads)
-        .where(and(
-          eq(messageReads.userId, userId),
-          eq(messageReads.chatRoomId, room.chatRoomId)
-        ));
-
-      let unreadCount = 0;
-      if (!readRecord) {
-        // No read record exists, count all messages
-        const [countResult] = await db
-          .select({ count: count(messages.id) })
-          .from(messages)
-          .where(eq(messages.chatRoomId, room.chatRoomId));
-        unreadCount = countResult.count;
-      } else {
-        // Count messages after the last read message
-        const [countResult] = await db
-          .select({ count: count(messages.id) })
-          .from(messages)
-          .where(and(
-            eq(messages.chatRoomId, room.chatRoomId),
-            gt(messages.id, readRecord.lastReadMessageId || 0)
-          ));
-        unreadCount = countResult.count;
-      }
-
-      if (unreadCount > 0) {
-        unreadCounts.push({
-          chatRoomId: room.chatRoomId,
-          unreadCount,
-        });
-      }
-    }
-
-    return unreadCounts;
+    return (result as unknown as any[]).map(row => ({
+      chatRoomId: row.chatRoomId as number,
+      unreadCount: row.unreadCount as number
+    }));
   }
 
   async createPhoneVerification(verification: InsertPhoneVerification): Promise<PhoneVerification> {
