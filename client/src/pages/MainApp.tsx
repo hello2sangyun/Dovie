@@ -252,8 +252,10 @@ export default function MainApp() {
   const { totalChatUnread } = calculateUnreadCounts();
 
   const { isLoading } = useAuth();
+  const storedUserId = localStorage.getItem("userId");
   
-  if (isLoading) {
+  // Show loading while auth is being checked
+  if (isLoading || (!user && storedUserId)) {
     return (
       <div className="fixed inset-0 bg-white dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
@@ -264,10 +266,23 @@ export default function MainApp() {
     );
   }
 
-  if (!user) {
-    // Redirect to login if no user after loading
+  // Only redirect if there's no user AND no stored userId
+  if (!user && !storedUserId) {
+    console.log("No user and no stored userId, redirecting to login");
     window.location.href = "/login";
     return null;
+  }
+
+  // If we have stored userId but no user yet, keep loading
+  if (!user && storedUserId) {
+    return (
+      <div className="fixed inset-0 bg-white dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <VaultLogo size="lg" className="mx-auto mb-4 animate-pulse" />
+          <p className="text-gray-600 dark:text-gray-400">사용자 정보를 불러오는 중...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
