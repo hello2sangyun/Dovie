@@ -38,21 +38,17 @@ interface ChatAreaProps {
   onCreateCommand: (fileData?: any, messageData?: any) => void;
   showMobileHeader?: boolean;
   onBackClick?: () => void;
-  isLocationChat?: boolean;
 }
 
-export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader, onBackClick, isLocationChat }: ChatAreaProps) {
+export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader, onBackClick }: ChatAreaProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  // Use the isLocationChat prop directly
-  const isLocationChatRoom = isLocationChat || false;
+  // Regular chat room functionality only
   
   // Debug logging
   console.log('ChatArea rendered:', {
     chatRoomId,
-    isLocationChat,
-    isLocationChatRoom,
     showMobileHeader
   });
   const queryClient = useQueryClient();
@@ -224,40 +220,18 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [firstUnreadMessageId, setFirstUnreadMessageId] = useState<number | null>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
-  // Get chat room details (only for regular chats, not location chats)
+  // Get chat room details
   const { data: chatRoomsData } = useQuery({
     queryKey: ["/api/chat-rooms"],
-    enabled: !!user && !isLocationChatRoom,
+    enabled: !!user,
   });
 
-  // Get location chat profile if this is a location chat
-  const { data: locationChatProfile } = useQuery({
-    queryKey: [`/api/location/chat-rooms/${chatRoomId}/profile`],
-    enabled: !!user && isLocationChatRoom,
-    retry: false,
-  });
+  const currentChatRoom = (chatRoomsData as any)?.chatRooms?.find((room: any) => room.id === chatRoomId);
 
-  // Get nearby chats to find the current location chat room details
-  const { data: nearbyChatsData } = useQuery({
-    queryKey: ["/api/location/nearby-chats"],
-    enabled: !!user && isLocationChatRoom,
-    retry: false,
-  });
-
-  const currentChatRoom = isLocationChatRoom 
-    ? nearbyChatsData?.chatRooms?.find((room: any) => room.id === chatRoomId) || {
-        id: chatRoomId,
-        name: '주변챗',
-        isGroup: true,
-        participants: [{ id: user?.id, displayName: user?.displayName || '나' }],
-        isLocationChat: true
-      }
-    : (chatRoomsData as any)?.chatRooms?.find((room: any) => room.id === chatRoomId);
-
-  // Get contacts to check if other participants are friends (only for regular chats)
+  // Get contacts to check if other participants are friends
   const { data: contactsData } = useQuery({
     queryKey: ["/api/contacts"],
-    enabled: !!user && !isLocationChatRoom,
+    enabled: !!user,
     queryFn: async () => {
       const response = await fetch("/api/contacts", {
         headers: { "x-user-id": user!.id.toString() },
@@ -269,15 +243,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // Get messages with optimized caching and instant display
   const { data: messagesData, isLoading, isFetching } = useQuery({
-    queryKey: [isLocationChatRoom ? "/api/location/chat-rooms" : "/api/chat-rooms", chatRoomId, "messages"],
+    queryKey: ["/api/chat-rooms", chatRoomId, "messages"],
     enabled: !!chatRoomId,
     staleTime: 30 * 1000, // 30초간 신선한 상태 유지
     refetchOnMount: false, // 캐시된 데이터가 있으면 즉시 표시
     refetchOnWindowFocus: false, // 포커스 시 자동 새로고침 비활성화
     queryFn: async () => {
-      const endpoint = isLocationChatRoom 
-        ? `/api/location/chat-rooms/${chatRoomId}/messages`
-        : `/api/chat-rooms/${chatRoomId}/messages`;
+      const endpoint = `/api/chat-rooms/${chatRoomId}/messages`;
       
       const response = await fetch(endpoint, {
         headers: {
