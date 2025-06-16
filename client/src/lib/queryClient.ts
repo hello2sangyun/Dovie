@@ -59,14 +59,14 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes cache
-      gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
+      staleTime: 30 * 1000, // 30 seconds cache for faster updates
+      gcTime: 5 * 60 * 1000, // 5 minutes garbage collection
       retry: (failureCount: number, error: any) => {
         if (error?.message?.includes('404')) return false;
-        return failureCount < 2;
+        return failureCount < 1; // Reduce retries for faster response
       },
-      refetchOnMount: false,
-      refetchOnReconnect: 'always',
+      refetchOnMount: "stale", // Only refetch if data is stale
+      refetchOnReconnect: true,
     },
     mutations: {
       retry: 1,

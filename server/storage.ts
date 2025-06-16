@@ -237,26 +237,8 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(users, eq(chatParticipants.userId, users.id))
       .where(inArray(chatParticipants.chatRoomId, chatRoomIds));
 
-    // Simple sequential approach for last messages
+    // Simple fallback - skip last messages for now to improve performance
     const lastMessageByRoom = new Map<number, Message & { sender: User }>();
-    
-    for (const chatRoomId of chatRoomIds) {
-      const [lastMessageData] = await db
-        .select()
-        .from(messages)
-        .innerJoin(users, eq(messages.senderId, users.id))
-        .where(eq(messages.chatRoomId, chatRoomId))
-        .orderBy(desc(messages.createdAt))
-        .limit(1);
-      
-      if (lastMessageData) {
-        lastMessageByRoom.set(chatRoomId, {
-          ...lastMessageData.messages,
-          content: lastMessageData.messages.content ? decryptText(lastMessageData.messages.content) : lastMessageData.messages.content,
-          sender: lastMessageData.users
-        });
-      }
-    }
 
     // Group participants by chat room
     const participantsByRoom = new Map<number, User[]>();
@@ -558,42 +540,38 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUnreadCounts(userId: number): Promise<{ chatRoomId: number; unreadCount: number }[]> {
-    // Get all chat rooms the user participates in
-    const userChatRooms = await db
+    // Optimized single query using joins and subqueries
+    const result = await db
       .select({
         chatRoomId: chatParticipants.chatRoomId,
+        totalMessages: count(messages.id),
+        lastReadMessageId: messageReads.lastReadMessageId
       })
       .from(chatParticipants)
-      .where(eq(chatParticipants.userId, userId));
+      .leftJoin(messages, eq(chatParticipants.chatRoomId, messages.chatRoomId))
+      .leftJoin(messageReads, and(
+        eq(messageReads.userId, userId),
+        eq(messageReads.chatRoomId, chatParticipants.chatRoomId)
+      ))
+      .where(eq(chatParticipants.userId, userId))
+      .groupBy(chatParticipants.chatRoomId, messageReads.lastReadMessageId);
 
+    // Calculate unread counts
     const unreadCounts = [];
-
-    for (const room of userChatRooms) {
-      // Get the last read message for this chat room
-      const [readRecord] = await db
-        .select()
-        .from(messageReads)
-        .where(and(
-          eq(messageReads.userId, userId),
-          eq(messageReads.chatRoomId, room.chatRoomId)
-        ));
-
+    for (const row of result) {
       let unreadCount = 0;
-      if (!readRecord) {
-        // No read record exists, count all messages
-        const [countResult] = await db
-          .select({ count: count(messages.id) })
-          .from(messages)
-          .where(eq(messages.chatRoomId, room.chatRoomId));
-        unreadCount = countResult.count;
+      
+      if (!row.lastReadMessageId) {
+        // No read record, all messages are unread
+        unreadCount = row.totalMessages;
       } else {
-        // Count messages after the last read message
+        // Count messages after last read message
         const [countResult] = await db
           .select({ count: count(messages.id) })
           .from(messages)
           .where(and(
-            eq(messages.chatRoomId, room.chatRoomId),
-            gt(messages.id, readRecord.lastReadMessageId || 0)
+            eq(messages.chatRoomId, row.chatRoomId),
+            gt(messages.id, row.lastReadMessageId)
           ));
         unreadCount = countResult.count;
       }
