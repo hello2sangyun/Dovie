@@ -1679,25 +1679,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         commands = await storage.getCommands(Number(userId), chatRoomId ? Number(chatRoomId) : undefined);
       }
       
-      // Decrypt saved_text for hashtag extraction
-      const decryptedCommands = commands.map(command => {
-        let decryptedText = command.savedText;
-        if (command.savedText) {
+      // Process saved_text for hashtag extraction
+      const processedCommands = commands.map(command => {
+        let processedText = command.savedText;
+        
+        // Only attempt decryption if savedText looks like encrypted data (starts with "U2FsdGVkX1")
+        if (command.savedText && command.savedText.startsWith('U2FsdGVkX1')) {
           try {
-            // Use the already imported decryptText function
-            decryptedText = decryptText(command.savedText);
+            processedText = decryptText(command.savedText);
           } catch (error) {
             console.log('Failed to decrypt saved_text for command:', command.id, error.message);
-            decryptedText = command.savedText; // fallback to original
+            processedText = command.savedText; // fallback to original
           }
         }
+        
         return {
           ...command,
-          savedText: decryptedText
+          savedText: processedText
         };
       });
       
-      res.json({ commands: decryptedCommands });
+      res.json({ commands: processedCommands });
     } catch (error) {
       console.error('Commands API error:', error);
       res.status(500).json({ message: "Failed to get commands" });
