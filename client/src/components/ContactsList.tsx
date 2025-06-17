@@ -50,6 +50,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   const [recordingContact, setRecordingContact] = useState<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const [recordingStartTime, setRecordingStartTime] = useState(0);
 
   // 길게 누르기 시작
   const handleLongPressStart = (contact: any) => {
@@ -83,32 +84,80 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   // 음성 녹음 시작
   const startVoiceRecording = async (contact: any) => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 44100
+        }
+      });
+      
+      // MediaRecorder options with proper codec
+      const options = {
+        mimeType: 'audio/webm;codecs=opus',
+        audioBitsPerSecond: 128000
+      };
+      
+      // Fallback for browsers that don't support the preferred format
+      let mediaRecorder;
+      if (MediaRecorder.isTypeSupported(options.mimeType)) {
+        mediaRecorder = new MediaRecorder(stream, options);
+      } else {
+        mediaRecorder = new MediaRecorder(stream);
+      }
       
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
       
       mediaRecorder.ondataavailable = (event) => {
+        console.log('📞 audioBlob:', event.data);
+        console.log('📞 audioBlob.size:', event.data.size);
+        console.log('📞 audioBlob.type:', event.data.type);
+        
         if (event.data.size > 0) {
           chunksRef.current.push(event.data);
+        } else {
+          console.warn('⚠️ Empty chunk received');
         }
       };
 
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        console.log('음성 녹음 완료, Blob 크기:', audioBlob.size, 'bytes');
-        sendVoiceMessage(contact, audioBlob);
+        console.log('📞 Recording stopped, chunks:', chunksRef.current.length);
+        
+        if (chunksRef.current.length === 0) {
+          console.error('❌ No audio chunks recorded');
+          stream.getTracks().forEach(track => track.stop());
+          return;
+        }
+        
+        const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm;codecs=opus' });
+        const duration = Math.max(1, Math.round((Date.now() - recordingStartTime) / 1000));
+        
+        console.log('📞 duration:', duration);
+        console.log('🎤 간편음성메세지 전송 시작:', contact.contactUserId, '파일 크기:', audioBlob.size, '지속시간:', duration);
+        
+        if (audioBlob.size > 0) {
+          sendVoiceMessage(contact, audioBlob);
+        } else {
+          console.error('❌ Empty audio blob created');
+        }
+        
         stream.getTracks().forEach(track => track.stop());
       };
 
-      mediaRecorder.start();
+      mediaRecorder.onerror = (event) => {
+        console.error('❌ MediaRecorder error:', event);
+      };
+
+      // Start recording with timeslice for regular data events
+      mediaRecorder.start(1000); // Collect data every 1 second
       setIsRecording(true);
       setRecordingContact(contact);
+      setRecordingStartTime(Date.now());
       
-      console.log('음성 녹음 시작:', contact.nickname || contact.contactUser.displayName);
+      console.log('🎤 음성 녹음 시작:', contact.nickname || contact.contactUser.displayName);
     } catch (error) {
-      console.error('Voice recording failed:', error);
+      console.error('❌ Voice recording failed:', error);
     }
   };
 
@@ -180,13 +229,13 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       } catch (parseError) {
         console.error('❌ 업로드 응답 파싱 실패:', parseError);
         console.error('❌ 파싱 오류 세부사항:', {
-          message: parseError.message,
+          message: parseError instanceof Error ? parseError.message : 'Unknown error',
           status: uploadResponse.status,
           url: uploadResponse.url
         });
         
         // 기본값으로 진행하지 않고 오류 반환
-        throw new Error(`Upload failed: ${parseError.message}`);
+        throw new Error(`Upload failed: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
       }
 
       // 업로드된 파일로 음성 메시지 전송 (텍스트 변환 포함)
@@ -246,9 +295,9 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     } catch (error) {
       console.error('❌ 간편음성메세지 전체 프로세스 실패:', error);
       console.error('❌ 오류 상세 정보:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        name: error instanceof Error ? error.name : 'Unknown'
       });
     }
   };
