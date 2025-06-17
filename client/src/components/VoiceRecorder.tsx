@@ -69,22 +69,32 @@ export default function VoiceRecorder({ onRecordingComplete, disabled }: VoiceRe
       chunksRef.current = [];
       
       mediaRecorder.ondataavailable = (event) => {
+        console.log('VoiceRecorder: Data available event, size:', event.data.size);
         if (event.data.size > 0) {
           chunksRef.current.push(event.data);
+          console.log('VoiceRecorder: Added chunk, total chunks:', chunksRef.current.length);
         }
       };
       
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm;codecs=opus' });
         const recordingDuration = duration;
+        console.log('VoiceRecorder: Recording stopped, blob size:', audioBlob.size, 'duration:', recordingDuration, 'chunks:', chunksRef.current.length);
+        
+        if (audioBlob.size === 0) {
+          console.error('VoiceRecorder: Empty audio blob created');
+        }
+        
         onRecordingComplete(audioBlob, recordingDuration);
         cleanup();
       };
       
-      mediaRecorder.start();
+      mediaRecorder.start(100); // Request data every 100ms
       startTimeRef.current = Date.now();
       setIsRecording(true);
       setIsPreparing(false);
+      
+      console.log('VoiceRecorder: Started recording with timeslice 100ms');
       
       // 타이머 시작
       timerRef.current = setInterval(() => {
@@ -101,8 +111,22 @@ export default function VoiceRecorder({ onRecordingComplete, disabled }: VoiceRe
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
+      const recordingTime = Date.now() - startTimeRef.current;
+      console.log('VoiceRecorder: Stopping recording after', recordingTime, 'ms');
+      
+      // Ensure minimum recording duration to capture audio chunks
+      if (recordingTime < 500) {
+        console.log('VoiceRecorder: Recording too short, waiting for minimum duration...');
+        setTimeout(() => {
+          if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+            mediaRecorderRef.current.stop();
+            setIsRecording(false);
+          }
+        }, 500 - recordingTime);
+      } else {
+        mediaRecorderRef.current.stop();
+        setIsRecording(false);
+      }
     }
   };
 
