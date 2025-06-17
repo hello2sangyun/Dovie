@@ -4231,20 +4231,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                                 for (let i = 0; i < barCount; i++) {
                                   // 랜덤한 높이로 파형 생성 (실제로는 오디오 데이터 기반)
                                   const height = Math.random() * 0.8 + 0.2; // 20% ~ 100% 높이
-                                  const isActive = playingAudio === msg.id && i < (barCount * 0.3); // 재생 진행률 시뮬레이션
                                   
                                   bars.push(
                                     <div
                                       key={i}
                                       className={cn(
-                                        "rounded-full transition-all duration-100 flex-shrink-0",
-                                        isActive 
-                                          ? isMe 
-                                            ? "bg-white animate-pulse" 
-                                            : "bg-purple-600 animate-pulse"
-                                          : isMe
-                                            ? "bg-white/40"
-                                            : "bg-purple-300"
+                                        "rounded-full flex-shrink-0",
+                                        isMe
+                                          ? "bg-white/60"
+                                          : "bg-purple-400"
                                       )}
                                       style={{
                                         width: '2px',
