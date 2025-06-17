@@ -205,6 +205,13 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Automatic 1:1 chat room creation/navigation working perfectly
   - Uses same API endpoints as regular chat voice messages (/api/upload-voice + /api/transcribe)
   - Long-press contact profile → auto record → AI transcribe → send to chat → navigate to room
+- June 17, 2025: Implemented short touch navigation functionality:
+  - Added short touch detection (< 500ms) on contact profiles
+  - Short touch navigates to chat tab and shows friend's specific chat room
+  - Long press (≥ 500ms) triggers Quick Voice Message recording
+  - Implemented for both desktop and mobile layouts
+  - Enhanced touch event handling with proper timing mechanisms
+  - Automatic chat room creation/finding and tab switching functionality
 
 ## User Preferences
 

@@ -344,6 +344,15 @@ export default function MainApp() {
                       createOrFindChatRoom(contactUserId, contact.contactUser);
                     }
                   }}
+                  onNavigateToChat={(contactUserId) => {
+                    // Find the contact user data
+                    const contact = (contactsData as any)?.contacts?.find((c: any) => c.contactUserId === contactUserId);
+                    if (contact) {
+                      // Create or find chat room and navigate to chats tab
+                      createOrFindChatRoom(contactUserId, contact.contactUser);
+                      setActiveTab("chats");
+                    }
+                  }}
                 />
               </TabsContent>
               
@@ -893,6 +902,16 @@ export default function MainApp() {
                 if (contact) {
                   createOrFindChatRoom(contactUserId, contact.contactUser);
                   setActiveMobileTab("chats");
+                }
+              }}
+              onNavigateToChat={(contactUserId) => {
+                // Find the contact user data
+                const contact = (contactsData as any)?.contacts?.find((c: any) => c.contactUserId === contactUserId);
+                if (contact) {
+                  // Create or find chat room and navigate to chats tab (mobile)
+                  createOrFindChatRoom(contactUserId, contact.contactUser);
+                  setActiveMobileTab("chats");
+                  setShowMobileChat(true);
                 }
               }}
             />
