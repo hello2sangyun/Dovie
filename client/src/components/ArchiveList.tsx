@@ -14,6 +14,7 @@ export default function ArchiveList() {
   const [sortBy, setSortBy] = useState("newest");
   const [selectedCommand, setSelectedCommand] = useState<any>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const { data: commandsData, isLoading } = useQuery({
     queryKey: ["/api/commands", { search: searchTerm }],
@@ -148,6 +149,66 @@ export default function ArchiveList() {
     );
   };
 
+  // Get hashtag suggestions from all commands
+  const getHashtagSuggestions = () => {
+    if (!commands || commands.length === 0) return [];
+    
+    const allHashtags = new Set<string>();
+    commands.forEach((command: any) => {
+      if (command.savedText) {
+        const hashtags = extractHashtags(command.savedText);
+        hashtags.forEach(tag => allHashtags.add(tag));
+      }
+    });
+    
+    const hashtagArray = Array.from(allHashtags);
+    
+    // Filter based on current search term
+    if (searchTerm) {
+      const filtered = hashtagArray.filter(tag => 
+        tag.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      return filtered.slice(0, 6); // Show top 6 suggestions
+    }
+    
+    // Show most recent/popular hashtags when no search term
+    return hashtagArray.slice(0, 8);
+  };
+
+  // Get search suggestions based on filenames and command names
+  const getSearchSuggestions = () => {
+    if (!commands || commands.length === 0) return [];
+    
+    const suggestions = new Set<string>();
+    
+    commands.forEach((command: any) => {
+      // Add command names
+      if (command.commandName && command.commandName.length > 1) {
+        suggestions.add(command.commandName);
+      }
+      
+      // Add file names (without extensions)
+      if (command.fileName) {
+        const nameWithoutExt = command.fileName.split('.')[0];
+        if (nameWithoutExt.length > 2) {
+          suggestions.add(nameWithoutExt);
+        }
+      }
+    });
+    
+    const suggestionsArray = Array.from(suggestions);
+    
+    if (searchTerm) {
+      const filtered = suggestionsArray.filter(suggestion => 
+        suggestion.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        suggestion.toLowerCase() !== searchTerm.toLowerCase()
+      );
+      return filtered.slice(0, 4);
+    }
+    
+    return suggestionsArray.slice(0, 6);
+  };
+
   const handleCommandClick = (command: any) => {
     setSelectedCommand(command);
     setShowPreview(true);
@@ -182,8 +243,65 @@ export default function ArchiveList() {
             placeholder="해시태그, 태그명, 파일명으로 검색... (예: #회의, 문서)"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
             className="pl-10"
           />
+          
+          {/* Search suggestions dropdown */}
+          {showSuggestions && (
+            <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-md shadow-lg z-10 mt-1 max-h-64 overflow-y-auto">
+              {/* Hashtag suggestions */}
+              {getHashtagSuggestions().length > 0 && (
+                <div className="p-2">
+                  <div className="text-xs font-medium text-gray-500 mb-2">해시태그</div>
+                  <div className="flex flex-wrap gap-1">
+                    {getHashtagSuggestions().map((hashtag, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          setSearchTerm(hashtag);
+                          setShowSuggestions(false);
+                        }}
+                        className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full hover:bg-blue-100 transition-colors"
+                      >
+                        {hashtag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Search term suggestions */}
+              {getSearchSuggestions().length > 0 && (
+                <div className="p-2 border-t border-gray-100">
+                  <div className="text-xs font-medium text-gray-500 mb-2">추천 검색어</div>
+                  <div className="space-y-1">
+                    {getSearchSuggestions().map((suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          setSearchTerm(suggestion);
+                          setShowSuggestions(false);
+                        }}
+                        className="block w-full text-left px-2 py-1 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Empty state */}
+              {getHashtagSuggestions().length === 0 && getSearchSuggestions().length === 0 && (
+                <div className="p-4 text-center text-gray-500 text-sm">
+                  저장된 항목이 없습니다
+                </div>
+              )}
+            </div>
+          )}
+          
           {searchTerm && (
             <div className="text-xs text-gray-500 mt-1">
               {searchTerm.startsWith('#') ? 
