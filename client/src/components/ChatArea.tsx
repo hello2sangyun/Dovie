@@ -1497,8 +1497,27 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const handleTranslateMessage = (message?: any) => {
     const targetMessage = message || contextMenu.message;
     if (targetMessage) {
-      setMessageToTranslate(targetMessage);
-      setShowTranslateModal(true);
+      // For voice messages, check if there's transcribed text content
+      if (targetMessage.messageType === "voice" && !targetMessage.content) {
+        toast({
+          variant: "destructive",
+          title: "번역 불가",
+          description: "음성 메시지에 텍스트 내용이 없어 번역할 수 없습니다.",
+        });
+        return;
+      }
+      
+      // For voice messages with content or regular text messages
+      if (targetMessage.content && targetMessage.content.trim()) {
+        setMessageToTranslate(targetMessage);
+        setShowTranslateModal(true);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "번역 불가",
+          description: "번역할 텍스트가 없습니다.",
+        });
+      }
     }
   };
 
@@ -4108,184 +4127,66 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       )}
                       
                       {msg.messageType === "voice" ? (
-                        <div>
-                          <div className="flex items-center space-x-3">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleVoicePlayback(msg.id, msg.fileUrl, msg.voiceDuration);
-                              }}
-                              className={cn(
-                                "clickable w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105 select-auto",
-                                isMe ? "bg-white/20 hover:bg-white/30" : "bg-gray-100 hover:bg-gray-200"
-                              )}
-                              style={{ 
-                                userSelect: 'auto',
-                                WebkitUserSelect: 'auto',
-                                MozUserSelect: 'auto',
-                                msUserSelect: 'auto',
-                                WebkitTouchCallout: 'default'
-                              }}
-                            >
-                              {playingAudio === msg.id ? (
-                                <Pause className={cn(
-                                  "h-5 w-5",
-                                  isMe ? "text-white" : "text-gray-700"
-                                )} />
-                              ) : (
-                                <Play className={cn(
-                                  "h-5 w-5",
-                                  isMe ? "text-white" : "text-gray-700"
-                                )} />
-                              )}
-                            </button>
-                            <div className="flex-1 min-w-0">
-                              <p className={cn(
-                                "text-sm font-medium",
-                                isMe ? "text-white" : "text-gray-900"
-                              )}>
-                                음성 메시지
-                              </p>
-                              <p className={cn(
-                                "text-xs",
-                                isMe ? "text-white/70" : "text-gray-500"
-                              )}>
-                                {msg.voiceDuration ? `${msg.voiceDuration}초` : ""}
-                              </p>
-                            </div>
-                            {msg.fileUrl && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className={cn(
-                                  isMe ? "text-white hover:bg-white/10" : "text-purple-600 hover:text-purple-700"
-                                )}
-                                onClick={() => {
-                                  console.log('Playing audio from:', msg.fileUrl);
-                                  const audio = new Audio(msg.fileUrl);
-                                  audio.play().catch(error => {
-                                    console.error('Audio play error:', error);
-                                    toast({
-                                      variant: "destructive",
-                                      title: "재생 실패",
-                                      description: "음성 파일을 로드할 수 없습니다.",
-                                    });
-                                  });
-                                }}
-                              >
-                                ▶️
-                              </Button>
+                        <div className="flex items-start space-x-3">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleVoicePlayback(msg.id, msg.fileUrl, msg.voiceDuration);
+                            }}
+                            className={cn(
+                              "clickable w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-105 select-auto flex-shrink-0",
+                              isMe ? "bg-white/20 hover:bg-white/30" : "bg-purple-100 hover:bg-purple-200"
                             )}
-                          </div>
+                            style={{ 
+                              userSelect: 'auto',
+                              WebkitUserSelect: 'auto',
+                              MozUserSelect: 'auto',
+                              msUserSelect: 'auto',
+                              WebkitTouchCallout: 'default'
+                            }}
+                          >
+                            {playingAudio === msg.id ? (
+                              <Pause className={cn(
+                                "h-4 w-4",
+                                isMe ? "text-white" : "text-purple-600"
+                              )} />
+                            ) : (
+                              <Play className={cn(
+                                "h-4 w-4",
+                                isMe ? "text-white" : "text-purple-600"
+                              )} />
+                            )}
+                          </button>
                           
-                          {msg.content && (
-                            <div className={cn(
-                              "mt-2 pt-2 border-t text-sm",
-                              isMe ? "border-white/20 text-white/90" : "border-gray-100 text-gray-700"
-                            )}>
-                              <div className="flex items-center justify-between mb-1">
-                                <span className="text-xs opacity-70">음성 인식 결과:</span>
-                                {msg.detectedLanguage && (
-                                  <span className={cn(
-                                    "text-xs px-2 py-0.5 rounded-full",
-                                    isMe ? "bg-white/20 text-white/80" : "bg-purple-100 text-purple-600"
-                                  )}>
-                                    {msg.detectedLanguage}
-                                  </span>
-                                )}
-                              </div>
-                              {msg.content}
-                              {msg.confidence && (
-                                <div className="mt-1">
-                                  <span className="text-xs opacity-60">
-                                    신뢰도: {Math.round(msg.confidence * 100)}%
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      ) : msg.messageType === "voice" ? (
-                        <div className="space-y-2">
-                          {/* 음성 메시지 플레이어 */}
-                          <div className="flex items-center space-x-3">
-                            <div 
-                              className={cn(
-                                "clickable w-10 h-10 rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform select-auto",
-                                isMe ? "bg-white/30 hover:bg-white/40" : "bg-purple-200 hover:bg-purple-300",
-                                playingVoice === msg.id ? "animate-pulse" : ""
-                              )}
-                              style={{ 
-                                userSelect: 'auto',
-                                WebkitUserSelect: 'auto',
-                                MozUserSelect: 'auto',
-                                msUserSelect: 'auto',
-                                WebkitTouchCallout: 'default'
-                              }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleVoicePlayback(msg.id, msg.fileUrl, msg.voiceDuration);
-                              }}
-                              onContextMenu={(e) => {
-                                e.stopPropagation();
-                                e.preventDefault();
-                              }}
-                              onTouchStart={(e) => {
-                                e.stopPropagation();
-                              }}
-                            >
-                              {playingVoice === msg.id ? (
-                                <Pause className={cn(
-                                  "h-5 w-5",
-                                  isMe ? "text-white" : "text-purple-600"
-                                )} />
-                              ) : (
-                                <Play className={cn(
-                                  "h-5 w-5",
-                                  isMe ? "text-white" : "text-purple-600"
-                                )} />
-                              )}
-                            </div>
-                            <div className="flex-1">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center space-x-2 mb-1">
                               <div className={cn(
-                                "text-sm font-medium mb-1",
+                                "h-4 w-4 rounded-full flex items-center justify-center",
+                                isMe ? "text-white" : "text-purple-600"
+                              )}>
+                                🎤
+                              </div>
+                              {msg.voiceDuration && (
+                                <span className={cn(
+                                  "text-xs",
+                                  isMe ? "text-white/70" : "text-gray-500"
+                                )}>
+                                  {msg.voiceDuration}초
+                                </span>
+                              )}
+                            </div>
+                            
+                            {msg.content && (
+                              <div className={cn(
+                                "text-sm leading-relaxed",
                                 isMe ? "text-white" : "text-gray-800"
                               )}>
-                                🎵 음성 메시지
+                                {msg.content}
                               </div>
-                              <div className={cn(
-                                "text-xs flex items-center space-x-2",
-                                isMe ? "text-white/80" : "text-gray-600"
-                              )}>
-                                <span>{msg.voiceDuration}초</span>
-                                {msg.detectedLanguage && (
-                                  <span>• {msg.detectedLanguage}</span>
-                                )}
-                                {msg.confidence && (
-                                  <span>• {Math.round(parseFloat(msg.confidence) * 100)}%</span>
-                                )}
-                              </div>
-                            </div>
+                            )}
                           </div>
-                          
-                          {/* 변환된 텍스트 표시 */}
-                          {msg.content && (
-                            <div className={cn(
-                              "mt-2 p-2 rounded-lg text-sm",
-                              isMe ? "bg-white/20 text-white" : "bg-gray-100 text-gray-800"
-                            )}>
-                              <div className="flex items-start space-x-2">
-                                <MessageSquare className={cn(
-                                  "h-4 w-4 mt-0.5 flex-shrink-0",
-                                  isMe ? "text-white/60" : "text-gray-500"
-                                )} />
-                                <div className="flex-1">
-                                  {msg.content}
-                                </div>
-                              </div>
-                            </div>
-                          )}
                         </div>
+
                       ) : msg.messageType === "file" ? (
                         <div>
                           <MediaPreview
