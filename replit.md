@@ -246,6 +246,8 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Made voice message waveform graphs static (removed animations) for cleaner UI presentation
   - Enhanced voice message replies with compact display showing only transcribed text content
   - Removed unnecessary UI elements (play buttons, voice icons) from reply previews for cleaner presentation
+  - Fixed profile picture upload encryption error by reading file from disk before encryption
+  - Added proper temporary file cleanup to prevent disk space issues
 
 ## User Preferences
 

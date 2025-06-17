@@ -1261,9 +1261,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "File size must be less than 5MB" });
       }
 
-      // 파일 데이터 암호화
-      const encryptedData = encryptFileData(req.file.buffer);
+      // 파일 데이터 읽기 및 암호화
+      const fileBuffer = fs.readFileSync(req.file.path);
+      const encryptedData = encryptFileData(fileBuffer);
       const hashedFileName = hashFileName(req.file.originalname);
+
+      // 임시 파일 정리
+      fs.unlinkSync(req.file.path);
 
       // 기존 프로필 사진 파일 삭제 (있는 경우)
       const existingUser = await storage.getUser(Number(userId));
