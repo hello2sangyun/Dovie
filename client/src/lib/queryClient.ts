@@ -14,14 +14,22 @@ export async function apiRequest(
 ): Promise<Response> {
   const userId = localStorage.getItem("userId");
   const headers: Record<string, string> = {
-    ...(data ? { "Content-Type": "application/json" } : {}),
     ...(userId ? { "x-user-id": userId } : {})
   };
+
+  // FormData인 경우 Content-Type을 설정하지 않음 (브라우저가 자동 설정)
+  let body: string | FormData | undefined;
+  if (data instanceof FormData) {
+    body = data;
+  } else if (data) {
+    headers["Content-Type"] = "application/json";
+    body = JSON.stringify(data);
+  }
 
   const res = await fetch(url, {
     method,
     headers,
-    body: data ? JSON.stringify(data) : undefined,
+    body,
     credentials: "include",
   });
 

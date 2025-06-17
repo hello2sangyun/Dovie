@@ -260,6 +260,9 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Enhanced Korean hashtag support with proper Unicode character validation (한글, 영문, 숫자, _)
   - Optimized modal layout with flex-column structure and proper height constraints (85vh)
   - Made file drop zone more compact with smaller icons and reduced padding for mobile screens
+  - Added express-session middleware to server index.ts to fix session authentication issues
+  - Modified apiRequest function to handle FormData properly without overriding Content-Type headers
+  - Enhanced hashtag input to show # symbol when focused for better user experience
 
 ## User Preferences
 

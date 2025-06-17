@@ -122,7 +122,7 @@ export const HashtagInput: React.FC<HashtagInputProps> = ({
             <input
               ref={inputRef}
               type="text"
-              value={inputValue ? '#' + inputValue : ''}
+              value={inputValue ? '#' + inputValue : (isInputFocused ? '#' : '')}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               onFocus={() => setIsInputFocused(true)}
