@@ -287,6 +287,9 @@ export default function MainApp() {
             if (value === "settings") {
               setRightPanelContent(value);
               setSelectedChatRoom(null);
+            } else if (value === "contacts") {
+              setRightPanelContent(null);
+              setSelectedChatRoom(null);
             } else {
               setRightPanelContent(null);
             }
@@ -962,7 +965,11 @@ export default function MainApp() {
                   "flex flex-col items-center py-1 px-2",
                   activeMobileTab === "contacts" ? "text-purple-600" : "text-gray-400"
                 )}
-                onClick={() => setActiveMobileTab("contacts")}
+                onClick={() => {
+                  setActiveMobileTab("contacts");
+                  setShowMobileChat(false);
+                  setSelectedChatRoom(null);
+                }}
               >
                 <BookUser className="h-4 w-4" />
                 <span className="text-xs mt-0.5">연락처</span>
