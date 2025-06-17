@@ -24,6 +24,7 @@ import PollDetailModal from "./PollDetailModal";
 import TranslateModal from "./TranslateModal";
 import VoiceRecorder from "./VoiceRecorder";
 import { UnifiedSendButton } from "./UnifiedSendButton";
+import { FileUploadModal } from "./FileUploadModal";
 
 import TypingIndicator, { useTypingIndicator } from "./TypingIndicator";
 import { 
@@ -158,6 +159,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [translatedMessages, setTranslatedMessages] = useState<{[key: number]: {text: string, language: string}}>({});
   const [translatingMessages, setTranslatingMessages] = useState<Set<number>>(new Set());
   const [isTranslating, setIsTranslating] = useState(false);
+  const [showFileUploadModal, setShowFileUploadModal] = useState(false);
   
 
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
