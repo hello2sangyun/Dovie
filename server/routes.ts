@@ -1074,6 +1074,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const messageType = req.body.messageType || 'file';
+      const backgroundMusic = req.body.backgroundMusic; // 배경음악 파라미터
 
       if (messageType === 'voice') {
         // 음성 파일 처리 - 암호화하지 않고 원본 형태로 저장
@@ -1086,34 +1087,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
         fs.renameSync(req.file.path, finalPath);
 
         console.log(`Audio file saved: ${fileName} URL: /uploads/${fileName}`);
+        if (backgroundMusic) {
+          console.log(`Background music selected: ${backgroundMusic}`);
+        }
 
         // OpenAI 음성 텍스트 변환
         try {
           const transcriptionResult = await transcribeAudio(finalPath);
           console.log('Transcription result:', transcriptionResult);
 
-          const fileUrl = `/uploads/${fileName}`;
+          // 음성 메시지를 데이터베이스에 저장
+          const messageData = {
+            chatRoomId: parseInt(req.params.chatRoomId),
+            senderId: parseInt(userId as string),
+            content: transcriptionResult.transcription || '음성 메시지',
+            messageType: 'voice' as const,
+            fileUrl: `/uploads/${fileName}`,
+            fileName: req.file.originalname,
+            fileSize: req.file.size,
+            voiceDuration: transcriptionResult.duration || 3,
+            language: transcriptionResult.detectedLanguage || 'korean',
+            backgroundMusic: backgroundMusic || null
+          };
+
+          const newMessage = await storage.createMessage(messageData);
+          const messageWithSender = await storage.getMessageWithSender(newMessage.id);
+
+          // WebSocket으로 실시간 전송
+          broadcastToRoom(parseInt(req.params.chatRoomId), {
+            type: "new_message",
+            message: messageWithSender,
+          });
+
           res.json({
-            fileUrl,
+            message: messageWithSender,
+            fileUrl: `/uploads/${fileName}`,
             fileName: req.file.originalname,
             fileSize: req.file.size,
             transcription: transcriptionResult.transcription || '음성 메시지',
             language: transcriptionResult.detectedLanguage || 'korean',
             duration: transcriptionResult.duration || 3,
-            confidence: String(transcriptionResult.confidence || 0.9)
+            confidence: String(transcriptionResult.confidence || 0.9),
+            backgroundMusic: backgroundMusic || null
           });
         } catch (transcriptionError) {
           console.error('Transcription failed:', transcriptionError);
           // 텍스트 변환 실패해도 파일 업로드는 성공으로 처리
-          const fileUrl = `/uploads/${fileName}`;
+          const messageData = {
+            chatRoomId: parseInt(req.params.chatRoomId),
+            senderId: parseInt(userId as string),
+            content: '음성 메시지',
+            messageType: 'voice' as const,
+            fileUrl: `/uploads/${fileName}`,
+            fileName: req.file.originalname,
+            fileSize: req.file.size,
+            voiceDuration: 3,
+            language: 'korean',
+            backgroundMusic: backgroundMusic || null
+          };
+
+          const newMessage = await storage.createMessage(messageData);
+          const messageWithSender = await storage.getMessageWithSender(newMessage.id);
+
+          // WebSocket으로 실시간 전송
+          broadcastToRoom(parseInt(req.params.chatRoomId), {
+            type: "new_message",
+            message: messageWithSender,
+          });
+
           res.json({
-            fileUrl,
+            message: messageWithSender,
+            fileUrl: `/uploads/${fileName}`,
             fileName: req.file.originalname,
             fileSize: req.file.size,
             transcription: '음성 메시지',
             language: 'korean',
             duration: 3,
-            confidence: '0.5'
+            confidence: '0.5',
+            backgroundMusic: backgroundMusic || null
           });
         }
       } else {
