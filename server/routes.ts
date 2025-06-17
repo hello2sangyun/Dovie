@@ -277,7 +277,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 프로필 업데이트 API
+  // 프로필 업데이트 API (인증된 사용자)
+  app.patch("/api/auth/profile", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"];
+      if (!userId) {
+        return res.status(401).json({ message: "인증이 필요합니다." });
+      }
+
+      const updates = req.body;
+
+      // username이 변경되는 경우 중복 체크
+      if (updates.username) {
+        const existingUser = await storage.getUserByUsername(updates.username);
+        if (existingUser && existingUser.id !== Number(userId)) {
+          return res.status(400).json({ message: "이미 사용 중인 아이디입니다." });
+        }
+      }
+
+      const user = await storage.updateUser(Number(userId), updates);
+      if (!user) {
+        return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+      }
+
+      res.json({ user });
+    } catch (error) {
+      console.error("Profile update error:", error);
+      res.status(500).json({ message: "프로필 업데이트에 실패했습니다." });
+    }
+  });
+
+  // 프로필 업데이트 API (사용자 ID로)
   app.patch("/api/users/:id", async (req, res) => {
     try {
       const userId = parseInt(req.params.id);
