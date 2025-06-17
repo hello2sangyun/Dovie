@@ -1041,6 +1041,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         console.log(`Audio file saved: ${fileName} URL: /uploads/${fileName}`);
 
+        // 파일 크기 검증
+        const fileStats = fs.statSync(finalPath);
+        console.log(`Voice file size: ${fileStats.size} bytes`);
+        
+        if (fileStats.size < 100) {
+          console.error('Voice file too small, skipping transcription');
+          const fileUrl = `/uploads/${fileName}`;
+          return res.json({
+            fileUrl,
+            fileName: req.file.originalname,
+            fileSize: req.file.size,
+            transcription: '음성이 너무 짧습니다. 다시 시도해주세요.',
+            language: 'korean',
+            duration: 1,
+            confidence: '0.1'
+          });
+        }
+
         // OpenAI 음성 텍스트 변환
         try {
           const transcriptionResult = await transcribeAudio(finalPath);
@@ -1064,7 +1082,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             fileUrl,
             fileName: req.file.originalname,
             fileSize: req.file.size,
-            transcription: '음성 메시지',
+            transcription: '음성 메시지 (변환 실패)',
             language: 'korean',
             duration: 3,
             confidence: '0.5'

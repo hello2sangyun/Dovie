@@ -30,13 +30,20 @@ export default function SimpleVoiceRecorder({ onRecordingComplete, disabled }: S
       streamRef.current = null;
     }
     
+    if (mediaRecorderRef.current) {
+      // Clean up data request interval
+      if ((mediaRecorderRef.current as any).dataInterval) {
+        clearInterval((mediaRecorderRef.current as any).dataInterval);
+      }
+      mediaRecorderRef.current = null;
+    }
+    
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
     
     setDuration(0);
-    mediaRecorderRef.current = null;
     setIsRecording(false);
     setIsPreparing(false);
   };
