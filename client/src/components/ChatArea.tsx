@@ -4082,73 +4082,23 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                             const originalMessage = messages.find(m => m.id === msg.replyToMessageId);
                             const replyContent = msg.replyToContent || originalMessage?.content || "원본 메시지";
                             
-                            // 음성 메시지인 경우
+                            // 음성 메시지인 경우 - 컴팩트한 디스플레이
                             if (originalMessage?.messageType === 'voice' || replyContent.includes('🎵') || replyContent.includes('음성 메시지')) {
-                              // 원본 음성 메시지의 텍스트 내용 가져오기
+                              // 원본 음성 메시지의 텍스트 내용만 표시
                               const voiceMessageText = originalMessage?.content || replyContent;
                               const displayText = voiceMessageText && voiceMessageText !== '음성 메시지' && !voiceMessageText.includes('🎵')
-                                ? voiceMessageText.length > 50 
-                                  ? voiceMessageText.substring(0, 50) + "..." 
+                                ? voiceMessageText.length > 60 
+                                  ? voiceMessageText.substring(0, 60) + "..." 
                                   : voiceMessageText
                                 : "음성 메시지";
                               
                               return (
-                                <div className="flex items-center space-x-2">
-                                  <div 
-                                    className={cn(
-                                      "clickable w-8 h-8 rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform select-auto",
-                                      isMe ? "bg-white/30 hover:bg-white/40" : "bg-purple-200 hover:bg-purple-300"
-                                    )}
-                                    style={{ 
-                                      userSelect: 'auto',
-                                      WebkitUserSelect: 'auto',
-                                      MozUserSelect: 'auto',
-                                      msUserSelect: 'auto',
-                                      WebkitTouchCallout: 'default'
-                                    }}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      // 음성 재생 로직을 여기에 추가 (원본 메시지의 음성 재생)
-                                      const originalMessage = messages.find(m => m.id === msg.replyToMessageId);
-                                      if (originalMessage && originalMessage.messageType === 'voice') {
-                                        handleVoicePlayback(originalMessage.id, originalMessage.fileUrl, originalMessage.voiceDuration);
-                                      }
-                                    }}
-                                    onContextMenu={(e) => {
-                                      e.stopPropagation();
-                                      e.preventDefault();
-                                    }}
-                                    onTouchStart={(e) => {
-                                      e.stopPropagation();
-                                    }}
-                                  >
-                                    <Play className={cn(
-                                      "h-4 w-4",
-                                      isMe ? "text-white" : "text-purple-600"
-                                    )} />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <div className={cn(
-                                      "px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1 mb-1",
-                                      isMe ? "bg-white/20 text-white/90" : "bg-purple-100 text-purple-600"
-                                    )}>
-                                      <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/>
-                                        <path d="M19 10v1a7 7 0 0 1-14 0v-1"/>
-                                        <path d="M12 18v4M8 22h8"/>
-                                      </svg>
-                                      <span>음성</span>
-                                    </div>
-                                    {displayText !== "음성 메시지" && (
-                                      <p className={cn(
-                                        "text-sm leading-relaxed",
-                                        isMe ? "text-white/90" : "text-gray-700"
-                                      )}>
-                                        "{displayText}"
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
+                                <p className={cn(
+                                  "text-sm leading-relaxed max-w-[250px]",
+                                  isMe ? "text-white/90" : "text-gray-700"
+                                )}>
+                                  {displayText}
+                                </p>
                               );
                             }
                             
