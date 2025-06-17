@@ -55,6 +55,8 @@ export const chatRooms = pgTable("chat_rooms", {
   name: text("name").notNull(),
   isGroup: boolean("is_group").default(false),
   isPinned: boolean("is_pinned").default(false),
+  isLocationChat: boolean("is_location_chat").default(false), // 주변챗 구분용
+
   createdBy: integer("created_by").references(() => users.id).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -83,13 +85,13 @@ export const messages = pgTable("messages", {
   isTranslated: boolean("is_translated").default(false),
   isCalculated: boolean("is_calculated").default(false),
   pollData: text("poll_data"), // JSON string containing poll information
-  originalMessageId: integer("original_message_id"),
-  replyToMessageId: integer("reply_to_message_id"),
+  originalMessageId: integer("original_message_id").references(() => messages.id),
+  replyToMessageId: integer("reply_to_message_id").references(() => messages.id),
   // Boom message fields
   boomTimer: integer("boom_timer"), // Timer in seconds
   expiresAt: timestamp("expires_at"), // When the boom message expires
   targetUserId: integer("target_user_id").references(() => users.id), // For sendback messages
-  spotlightMessageId: integer("spotlight_message_id"), // For spotlight messages
+  spotlightMessageId: integer("spotlight_message_id").references(() => messages.id), // For spotlight messages
   spotlightDuration: text("spotlight_duration"), // Duration for spotlight
   isEdited: boolean("is_edited").default(false), // Track if message was edited
   editedAt: timestamp("edited_at"), // When the message was last edited
@@ -181,19 +183,10 @@ export const fileDownloads = pgTable("file_downloads", {
 export const companyChannels = pgTable("company_channels", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  companyName: text("company_name"),
   description: text("description"),
   logoUrl: text("logo_url"),
-  logo: text("logo"),
-  banner: text("banner"),
   website: text("website"),
-  industry: text("industry"),
-  employeeCount: integer("employee_count"),
-  location: text("location"),
   isVerified: boolean("is_verified").default(false),
-  isApproved: boolean("is_approved").default(false),
-  followerCount: integer("follower_count").default(0),
-  postCount: integer("post_count").default(0),
   createdById: integer("created_by_id").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -446,7 +439,6 @@ export const userPosts = pgTable("user_posts", {
   title: text("title"),
   content: text("content").notNull(),
   postType: text("post_type").default("text"), // text, image, link, etc.
-  imageUrl: text("image_url"), // Single image URL for posts
   attachments: text("attachments").array(), // Array of file URLs
   visibility: text("visibility").default("friends"), // public, friends, private
   tags: text("tags").array(), // Array of tags
@@ -506,7 +498,7 @@ export const postComments = pgTable("post_comments", {
   postId: integer("post_id").references(() => userPosts.id).notNull(),
   userId: integer("user_id").references(() => users.id).notNull(),
   content: text("content").notNull(),
-  parentCommentId: integer("parent_comment_id"),
+  parentCommentId: integer("parent_comment_id").references(() => postComments.id),
   likeCount: integer("like_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

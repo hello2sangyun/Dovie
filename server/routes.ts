@@ -30,11 +30,6 @@ const upload = multer({
 const connections = new Map<number, WebSocket>();
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Health check endpoint
-  app.get("/api/health", (req, res) => {
-    res.json({ status: "ok", timestamp: new Date().toISOString() });
-  });
-
   // Auth routes
   app.post("/api/auth/test-login", async (req, res) => {
     try {
@@ -385,7 +380,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Location chat messages routes
+  app.get("/api/location/chat-rooms/:roomId/messages", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
 
+    try {
+      const roomId = Number(req.params.roomId);
+      
+      // Verify user is participant in location chat
+      const profile = await storage.getLocationChatProfile(Number(userId), roomId);
+      if (!profile) {
+        return res.status(403).json({ message: "Not a participant in this location chat" });
+      }
+
+      // Location chat functionality removed
+      res.status(404).json({ message: "Location chat not available" });
+    } catch (error) {
+      console.error("Get location messages error:", error);
+      res.status(500).json({ message: "Failed to get messages" });
+    }
+  });
+
+  app.post("/api/location/chat-rooms/:roomId/messages", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const roomId = Number(req.params.roomId);
+      
+      // Verify user is participant in location chat
+      const profile = await storage.getLocationChatProfile(Number(userId), roomId);
+      if (!profile) {
+        return res.status(403).json({ message: "Not a participant in this location chat" });
+      }
+
+      // Location chat functionality removed
+      res.status(404).json({ message: "Location chat not available" });
+      return;
+
+      // For location chat, create response with profile info
+      const user = await storage.getUser(Number(userId));
+      const messageWithSender = {
+        ...newMessage,
+        sender: user,
+        senderProfile: profile
+      };
+
+      // Broadcast to location chat participants via WebSocket
+      broadcastToRoom(roomId, {
+        type: "new_message",
+        message: messageWithSender,
+        isLocationChat: true
+      });
+
+      res.json({ message: messageWithSender });
+    } catch (error) {
+      console.error("Location message creation error:", error);
+      res.status(500).json({ message: "Failed to send message" });
+    }
+  });
 
   // Contact routes
   app.get("/api/contacts", async (req, res) => {
@@ -472,12 +530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const contactId = Number(req.params.contactId);
       const updates = req.body;
       
-      const contact = await storage.getContacts(Number(userId));
-      const targetContact = contact.find(c => c.id === contactId);
-      if (!targetContact) {
-        return res.status(404).json({ message: "Contact not found" });
-      }
-      const updatedContact = await storage.updateContact(Number(userId), targetContact.contactUserId, updates);
+      const updatedContact = await storage.updateContact(Number(userId), contactId, updates, true);
       
       if (!updatedContact) {
         return res.status(404).json({ message: "Contact not found" });
@@ -561,8 +614,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const targetUserId = req.params.userId ? Number(req.params.userId) : Number(userId);
-      // Business card functionality disabled
-      const businessCard = null;
+      const businessCard = await storage.getBusinessCard(targetUserId);
       res.json({ businessCard });
     } catch (error) {
       console.error("Error fetching business card:", error);
@@ -577,8 +629,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      // Business card functionality disabled
-      const businessCard = null;
+      const businessCard = await storage.createOrUpdateBusinessCard(Number(userId), req.body);
       res.json({ businessCard });
     } catch (error) {
       console.error("Error updating business card:", error);
@@ -626,9 +677,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      // Business card functionality disabled
-      const share = null;
-      res.json({ message: "Business card functionality disabled" });
+      const share = await storage.createBusinessCardShare(Number(userId));
+      const shareUrl = `${req.protocol}://${req.get('host')}/business-card/${share.shareToken}`;
+      res.json({ share, shareUrl });
     } catch (error) {
       console.error("Error creating share link:", error);
       res.status(500).json({ message: "Failed to create share link" });
@@ -642,10 +693,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      // Business card functionality disabled
-      const share = null;
+      const share = await storage.getBusinessCardShareInfo(Number(userId));
       if (share) {
-        res.json({ message: "Business card functionality disabled" });
+        const shareUrl = `${req.protocol}://${req.get('host')}/business-card/${share.shareToken}`;
+        res.json({ ...share, shareUrl });
       } else {
         res.json({ shareUrl: null });
       }
@@ -657,18 +708,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/business-card/:shareToken", async (req, res) => {
     try {
-      // Business card functionality disabled
-      const share = null;
+      const share = await storage.getBusinessCardShare(req.params.shareToken);
       if (!share) {
         return res.status(404).send("Business card not found");
       }
 
-      // Business card functionality disabled
-      const businessCard = null;
-      // Business card functionality disabled
-      const user = null;
+      const businessCard = await storage.getBusinessCard(share.userId);
+      const user = await storage.getUser(share.userId);
       
-      res.status(404).send("Business card functionality disabled");
+      // Simple HTML page for business card viewing
+      const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${businessCard?.fullName || user?.displayName || 'Business Card'}</title>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <style>
+            body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+            .card { border: 1px solid #ddd; border-radius: 8px; padding: 20px; background: #f9f9f9; }
+            .name { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
+            .title { font-size: 18px; color: #666; margin-bottom: 10px; }
+            .company { font-size: 16px; margin-bottom: 15px; }
+            .contact-info { margin-bottom: 10px; }
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <div class="name">${businessCard?.fullName || user?.displayName || 'Name not available'}</div>
+            <div class="title">${businessCard?.jobTitle || 'Position not available'}</div>
+            <div class="company">${businessCard?.companyName || 'Company not available'}</div>
+            ${businessCard?.email ? `<div class="contact-info">📧 ${businessCard.email}</div>` : ''}
+            ${businessCard?.phoneNumber ? `<div class="contact-info">📞 ${businessCard.phoneNumber}</div>` : ''}
+            ${businessCard?.website ? `<div class="contact-info">🌐 <a href="${businessCard.website}">${businessCard.website}</a></div>` : ''}
+            ${businessCard?.address ? `<div class="contact-info">📍 ${businessCard.address}</div>` : ''}
+            ${businessCard?.description ? `<div style="margin-top: 15px;">${businessCard.description}</div>` : ''}
+          </div>
+        </body>
+        </html>
+      `;
+      
+      res.send(html);
     } catch (error) {
       console.error("Error displaying business card:", error);
       res.status(500).send("Error loading business card");
@@ -1223,7 +1303,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const { lastMessageId } = req.body;
-      await storage.markMessageAsRead(Number(userId), Number(req.params.chatRoomId), lastMessageId);
+      await storage.markMessagesAsRead(Number(userId), Number(req.params.chatRoomId), lastMessageId);
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ message: "Failed to mark messages as read" });
@@ -1253,11 +1333,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const { chatRoomId, search } = req.query;
-      let commands: any[] = [];
+      let commands;
       
       if (search) {
-        // Search functionality disabled
-        commands = [];
+        commands = await storage.searchCommands(Number(userId), String(search));
       } else {
         commands = await storage.getCommands(Number(userId), chatRoomId ? Number(chatRoomId) : undefined);
       }
@@ -1285,8 +1364,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Parsed command data:", commandData);
 
       // Check for duplicate command name in the same chat room
-      // Command name checking disabled
-      const existingCommand = null;
+      const existingCommand = await storage.getCommandByName(
+        Number(userId),
+        commandData.chatRoomId,
+        commandData.commandName
+      );
 
       if (existingCommand) {
         return res.status(409).json({ message: "Command name already exists in this chat room" });
@@ -1469,15 +1551,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       friendIdList.push(parseInt(userId as string)); // 내 포스트도 포함
 
       const posts = await db.select({
-        id: businessPosts.id,
-        userId: businessPosts.userId,
-        companyChannelId: businessPosts.companyChannelId,
-        content: businessPosts.content,
-        postType: businessPosts.postType,
-        likesCount: businessPosts.likesCount,
-        commentsCount: businessPosts.commentsCount,
-        sharesCount: businessPosts.sharesCount,
-        createdAt: businessPosts.createdAt,
+        id: spacePosts.id,
+        userId: spacePosts.userId,
+        companyChannelId: spacePosts.companyChannelId,
+        content: spacePosts.content,
+        imageUrl: spacePosts.imageUrl,
+        linkUrl: spacePosts.linkUrl,
+        linkTitle: spacePosts.linkTitle,
+        linkDescription: spacePosts.linkDescription,
+        postType: spacePosts.postType,
+        likesCount: spacePosts.likesCount,
+        commentsCount: spacePosts.commentsCount,
+        sharesCount: spacePosts.sharesCount,
+        createdAt: spacePosts.createdAt,
         user: {
           id: users.id,
           username: users.username,
@@ -1485,21 +1571,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           profilePicture: users.profilePicture,
         },
         companyChannel: {
-          id: companyChannels.id,
-          name: companyChannels.name,
-          isVerified: companyChannels.isVerified,
+          id: spaceCompanyChannels.id,
+          name: spaceCompanyChannels.companyName,
+          logoUrl: spaceCompanyChannels.logo,
+          isVerified: spaceCompanyChannels.isVerified,
         }
       })
-      .from(businessPosts)
-      .innerJoin(users, eq(businessPosts.userId, users.id))
-      .leftJoin(companyChannels, eq(businessPosts.companyChannelId, companyChannels.id))
+      .from(spacePosts)
+      .innerJoin(users, eq(spacePosts.userId, users.id))
+      .leftJoin(spaceCompanyChannels, eq(spacePosts.companyChannelId, spaceCompanyChannels.id))
       .where(
         and(
-          eq(businessPosts.isVisible, true),
-          inArray(businessPosts.userId, friendIdList)
+          eq(spacePosts.isVisible, true),
+          inArray(spacePosts.userId, friendIdList)
         )
       )
-      .orderBy(desc(businessPosts.createdAt))
+      .orderBy(desc(spacePosts.createdAt))
       .limit(limit)
       .offset(offset);
 
@@ -2150,19 +2237,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (message.type === 'auth' && message.userId) {
           userId = Number(message.userId);
           connections.set(userId, ws);
-          // Don't await database operations to prevent blocking
-          storage.updateUser(userId, { isOnline: true }).catch(console.error);
+          await storage.updateUser(userId, { isOnline: true });
         }
       } catch (error) {
         console.error('WebSocket message error:', error);
       }
     });
 
-    ws.on('close', () => {
+    ws.on('close', async () => {
       if (userId) {
         connections.delete(userId);
-        // Don't await database operations to prevent blocking
-        storage.updateUser(userId, { isOnline: false }).catch(console.error);
+        await storage.updateUser(userId, { isOnline: false });
       }
     });
   });
@@ -2790,8 +2875,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if already following
       const existingFollow = await db
         .select()
-        .from(companyChannelFollowers)
-        .where(and(eq(companyChannelFollowers.channelId, Number(companyId)), eq(companyChannelFollowers.userId, Number(userId))))
+        .from(companyFollowers)
+        .where(and(eq(companyFollowers.companyChannelId, Number(companyId)), eq(companyFollowers.userId, Number(userId))))
         .limit(1);
 
       if (existingFollow.length > 0) {
@@ -2799,8 +2884,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Add follow
-      await db.insert(companyChannelFollowers).values({
-        channelId: Number(companyId),
+      await db.insert(companyFollowers).values({
+        companyChannelId: Number(companyId),
         userId: Number(userId),
       });
 
@@ -2830,8 +2915,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Remove follow
       const result = await db
-        .delete(companyChannelFollowers)
-        .where(and(eq(companyChannelFollowers.channelId, Number(companyId)), eq(companyChannelFollowers.userId, Number(userId))))
+        .delete(companyFollowers)
+        .where(and(eq(companyFollowers.companyChannelId, Number(companyId)), eq(companyFollowers.userId, Number(userId))))
         .returning();
 
       if (result.length === 0) {
@@ -3007,8 +3092,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const uniqueUsers = new Map();
       recentPosts.forEach(post => {
         if (!uniqueUsers.has(post.userId) || 
-            (post.latestPostTime && uniqueUsers.get(post.userId).latestPostTime && 
-             new Date(post.latestPostTime) > new Date(uniqueUsers.get(post.userId).latestPostTime))) {
+            new Date(post.latestPostTime) > new Date(uniqueUsers.get(post.userId).latestPostTime)) {
           uniqueUsers.set(post.userId, post);
         }
       });
@@ -3184,7 +3268,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // 좋아요 수 감소
         await db.update(userPosts)
           .set({ 
-            likeCount: sql`${userPosts.likeCount} - 1`
+            likesCount: sql`${userPosts.likesCount} - 1`
           })
           .where(eq(userPosts.id, parseInt(postId)));
 
@@ -3200,7 +3284,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // 좋아요 수 증가
         await db.update(userPosts)
           .set({ 
-            likeCount: sql`${userPosts.likeCount} + 1`
+            likesCount: sql`${userPosts.likesCount} + 1`
           })
           .where(eq(userPosts.id, parseInt(postId)));
 

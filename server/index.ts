@@ -39,9 +39,7 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  console.log("Starting route registration...");
   const server = await registerRoutes(app);
-  console.log("Route registration completed successfully");
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
@@ -55,9 +53,7 @@ app.use((req, res, next) => {
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
-    console.log("Starting Vite setup...");
     await setupVite(app, server);
-    console.log("Vite setup completed");
   } else {
     serveStatic(app);
   }
@@ -66,13 +62,11 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = 5000;
-  console.log("Starting server listen...");
   server.listen({
     port,
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
-    console.log("Server listen callback executed");
     log(`serving on port ${port}`);
   });
 })();
