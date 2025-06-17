@@ -144,7 +144,7 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="w-[95vw] max-w-lg h-[85vh] flex flex-col p-4 sm:p-6">
+      <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Upload className="h-5 w-5 text-purple-600" />
@@ -152,11 +152,11 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 flex flex-col space-y-3 overflow-hidden">
+        <div className="space-y-4">
           {/* File Drop Zone */}
           {!selectedFiles && (
             <div
-              className={`border-2 border-dashed rounded-lg p-3 text-center transition-colors flex-shrink-0 ${
+              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
                 dragActive 
                   ? 'border-purple-500 bg-purple-50' 
                   : 'border-gray-300 hover:border-purple-400'
@@ -166,16 +166,16 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
               onDragOver={handleDrag}
               onDrop={handleDrop}
             >
-              <Upload className="h-6 w-6 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-600 mb-2 text-sm">파일을 드래그하여 놓거나</p>
+              <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 mb-2">파일을 드래그하여 놓거나</p>
               <Button
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
-                className="text-purple-600 border-purple-300 hover:bg-purple-50 w-full sm:w-auto"
+                className="text-purple-600 border-purple-300 hover:bg-purple-50"
               >
                 파일 선택
               </Button>
-              <p className="text-xs text-gray-500 mt-3 sm:mt-2">
+              <p className="text-xs text-gray-500 mt-2">
                 최대 {maxFiles}개 파일, 각 파일 5MB 이하
               </p>
             </div>

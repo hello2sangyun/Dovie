@@ -1434,31 +1434,26 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   };
 
   const handleFileUploadWithHashtags = async (files: FileList, caption: string, hashtags: string[]) => {
+    const formData = new FormData();
+    
+    // Add all files
+    Array.from(files).forEach((file, index) => {
+      formData.append('files', file);
+    });
+    
+    // Add caption and hashtags
+    formData.append('caption', caption);
+    formData.append('hashtags', JSON.stringify(hashtags));
+    
     try {
-      // Upload files one by one (backend expects single file per request)
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const formData = new FormData();
-        
-        // Backend expects 'file' field name, not 'files'
-        formData.append('file', file);
-        formData.append('caption', i === 0 ? caption : ''); // Only add caption to first file
-        formData.append('hashtags', JSON.stringify(i === 0 ? hashtags : [])); // Only add hashtags to first file
-        
-        const response = await apiRequest(`/api/chat-rooms/${chatRoomId}/upload`, "POST", formData);
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`파일 업로드 실패: ${errorText}`);
-        }
-        
-        const result = await response.json();
-        console.log(`파일 ${i + 1}/${files.length} 업로드 완료:`, result);
-      }
+      const response = await apiRequest(`/api/chat-rooms/${chatRoomId}/upload`, "POST", formData);
+      const result = await response.json();
       
-      // Refetch messages to show the uploaded files
-      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] });
-      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      if (result.success) {
+        // Refetch messages to show the uploaded files
+        queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] });
+        queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      }
     } catch (error) {
       throw error; // Let the modal handle the error
     }
