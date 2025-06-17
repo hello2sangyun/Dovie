@@ -222,6 +222,13 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Added visual feedback with color-coded waveform bars (active vs inactive states)
   - Repositioned "음성" label to top-right corner and removed voice icon for cleaner design
   - Voice messages now provide visual audio content preview for better user experience
+- June 17, 2025: Fixed hashtag search functionality in tag recall feature:
+  - Resolved server-side decryption issues causing empty savedText values in API responses
+  - Added proper handling for both encrypted and plain text saved_text data
+  - Created comprehensive test data with various hashtags (#Important, #회의, #문서, #발표, #계약서)
+  - Enhanced command API to properly return decrypted text for hashtag extraction
+  - Fixed search functionality to work with both command names and hashtag content
+  - Hashtag recommendations now display correctly in the tag recall interface
 - June 17, 2025: Added profile photo upload with crop functionality in settings:
   - Created ProfilePhotoUpload component with react-image-crop integration
   - Implemented square (1:1 aspect ratio) cropping with circular preview
