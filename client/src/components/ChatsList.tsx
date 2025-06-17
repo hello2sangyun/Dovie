@@ -186,7 +186,7 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
       
       // FormData로 파일 업로드
       const formData = new FormData();
-      formData.append('audio', audioBlob, 'voice-message.webm');
+      formData.append('file', audioBlob, 'voice-message.webm');
       
       console.log('📤 FormData 생성 완료, 업로드 API 호출 중...');
       
