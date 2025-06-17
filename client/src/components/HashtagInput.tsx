@@ -22,7 +22,9 @@ export const HashtagInput: React.FC<HashtagInputProps> = ({
 
   const addHashtag = (tag: string) => {
     const cleanTag = tag.replace(/^#/, '').trim();
-    if (cleanTag && !hashtags.includes(cleanTag) && hashtags.length < maxTags) {
+    // 한글, 영문, 숫자, 언더스코어 허용
+    const isValidTag = /^[a-zA-Z0-9가-힣_]+$/.test(cleanTag);
+    if (cleanTag && isValidTag && !hashtags.includes(cleanTag) && hashtags.length < maxTags) {
       onHashtagsChange([...hashtags, cleanTag]);
     }
     setInputValue('');

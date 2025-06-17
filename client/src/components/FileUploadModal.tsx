@@ -144,7 +144,7 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+      <DialogContent className="w-[95vw] max-w-lg h-[85vh] flex flex-col p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Upload className="h-5 w-5 text-purple-600" />
@@ -152,11 +152,11 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="flex-1 flex flex-col space-y-3 overflow-hidden">
           {/* File Drop Zone */}
           {!selectedFiles && (
             <div
-              className={`border-2 border-dashed rounded-lg p-4 sm:p-8 text-center transition-colors ${
+              className={`border-2 border-dashed rounded-lg p-3 text-center transition-colors flex-shrink-0 ${
                 dragActive 
                   ? 'border-purple-500 bg-purple-50' 
                   : 'border-gray-300 hover:border-purple-400'
@@ -166,8 +166,8 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
               onDragOver={handleDrag}
               onDrop={handleDrop}
             >
-              <Upload className="h-8 w-8 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
-              <p className="text-gray-600 mb-3 sm:mb-2 text-sm sm:text-base">파일을 드래그하여 놓거나</p>
+              <Upload className="h-6 w-6 text-gray-400 mx-auto mb-2" />
+              <p className="text-gray-600 mb-2 text-sm">파일을 드래그하여 놓거나</p>
               <Button
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}

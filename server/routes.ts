@@ -1063,7 +1063,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Chat room upload endpoint for voice messages with transcription
   app.post("/api/chat-rooms/:chatRoomId/upload", upload.single("file"), async (req, res) => {
-    const userId = req.headers["x-user-id"];
+    const userId = req.session.userId;
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
