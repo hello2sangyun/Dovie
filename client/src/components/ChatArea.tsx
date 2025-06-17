@@ -3955,7 +3955,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
                     <div 
                       className={cn(
-                        "rounded-lg p-3 shadow-sm w-fit break-words cursor-pointer select-none",
+                        "rounded-lg px-3 py-2 shadow-sm w-fit break-words cursor-pointer select-none",
                         msg.isCommandRecall && msg.isLocalOnly
                           ? isMe 
                             ? "bg-teal-500 text-white rounded-tr-none border border-teal-400" 
@@ -4003,7 +4003,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       {msg.replyToMessageId && (
                         <div 
                           className={cn(
-                            "clickable mb-3 p-3 border-l-4 rounded-r-lg cursor-pointer transition-all duration-200 hover:shadow-md select-auto",
+                            "clickable mb-2 p-2 border-l-3 rounded-r-lg cursor-pointer transition-all duration-200 hover:shadow-md select-auto",
                             isMe 
                               ? "border-white bg-white/20 hover:bg-white/30 backdrop-blur-sm" 
                               : "border-purple-500 bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 shadow-sm"
