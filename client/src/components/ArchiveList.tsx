@@ -125,6 +125,29 @@ export default function ArchiveList() {
     return `${truncatedName}...${extension}`;
   };
 
+  // Extract hashtags from text
+  const extractHashtags = (text: string): string[] => {
+    if (!text) return [];
+    const hashtagRegex = /#[\w가-힣]+/g;
+    return text.match(hashtagRegex) || [];
+  };
+
+  // Highlight search terms in text
+  const highlightSearchTerm = (text: string, searchTerm: string) => {
+    if (!searchTerm || !text) return text;
+    
+    const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const parts = text.split(regex);
+    
+    return parts.map((part, index) => 
+      regex.test(part) ? (
+        <span key={index} className="bg-yellow-200 text-yellow-800 px-1 rounded">
+          {part}
+        </span>
+      ) : part
+    );
+  };
+
   const handleCommandClick = (command: any) => {
     setSelectedCommand(command);
     setShowPreview(true);
@@ -156,11 +179,19 @@ export default function ArchiveList() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
             type="text"
-            placeholder="태그나 파일명으로 검색..."
+            placeholder="해시태그, 태그명, 파일명으로 검색... (예: #회의, 문서)"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
+          {searchTerm && (
+            <div className="text-xs text-gray-500 mt-1">
+              {searchTerm.startsWith('#') ? 
+                `해시태그 "${searchTerm}" 검색 중...` : 
+                `"${searchTerm}" 검색 중... (해시태그 검색: #${searchTerm})`
+              }
+            </div>
+          )}
         </div>
         
         <div className="flex space-x-2">
@@ -222,8 +253,29 @@ export default function ArchiveList() {
                       </span>
                     </div>
                     <p className="font-medium text-gray-900 text-sm truncate" title={command.fileName || command.savedText || "저장된 메시지"}>
-                      {truncateFileName(command.fileName || command.savedText || "저장된 메시지", 40)}
+                      {searchTerm ? 
+                        highlightSearchTerm(command.fileName || command.savedText || "저장된 메시지", searchTerm) :
+                        truncateFileName(command.fileName || command.savedText || "저장된 메시지", 40)
+                      }
                     </p>
+                    {/* Display hashtags if found in saved text */}
+                    {command.savedText && extractHashtags(command.savedText).length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {extractHashtags(command.savedText).slice(0, 3).map((hashtag, index) => (
+                          <span 
+                            key={index}
+                            className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full"
+                          >
+                            {hashtag}
+                          </span>
+                        ))}
+                        {extractHashtags(command.savedText).length > 3 && (
+                          <span className="text-xs text-gray-500">
+                            +{extractHashtags(command.savedText).length - 3}
+                          </span>
+                        )}
+                      </div>
+                    )}
                     <div className="flex items-center justify-between">
                       <p className="text-xs text-gray-500">
                         {formatDate(command.createdAt)}

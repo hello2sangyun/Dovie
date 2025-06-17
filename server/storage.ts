@@ -558,6 +558,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchCommands(userId: number, searchTerm: string): Promise<(Command & { originalSender?: User })[]> {
+    // Enhanced search to include hashtag patterns
+    const searchPattern = `%${searchTerm}%`;
+    const hashtagPattern = searchTerm.startsWith('#') ? searchPattern : `%#${searchTerm}%`;
+    
     const result = await db
       .select()
       .from(commands)
@@ -565,9 +569,11 @@ export class DatabaseStorage implements IStorage {
       .where(and(
         eq(commands.userId, userId),
         or(
-          like(commands.commandName, `%${searchTerm}%`),
-          like(commands.fileName, `%${searchTerm}%`),
-          like(commands.savedText, `%${searchTerm}%`)
+          like(commands.commandName, searchPattern),
+          like(commands.fileName, searchPattern),
+          like(commands.savedText, searchPattern),
+          // Search for hashtags in saved text
+          like(commands.savedText, hashtagPattern)
         )
       ))
       .orderBy(desc(commands.createdAt));
