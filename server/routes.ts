@@ -1679,8 +1679,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         commands = await storage.getCommands(Number(userId), chatRoomId ? Number(chatRoomId) : undefined);
       }
       
-      res.json({ commands });
+      // Decrypt saved_text for hashtag extraction
+      const decryptedCommands = commands.map(command => {
+        let decryptedText = command.savedText;
+        if (command.savedText) {
+          try {
+            // Import decryptText function
+            const crypto = require("./crypto");
+            decryptedText = crypto.decryptText(command.savedText);
+          } catch (error) {
+            console.log('Failed to decrypt saved_text for command:', command.id, error.message);
+            decryptedText = command.savedText; // fallback to original
+          }
+        }
+        return {
+          ...command,
+          savedText: decryptedText
+        };
+      });
+      
+      res.json({ commands: decryptedCommands });
     } catch (error) {
+      console.error('Commands API error:', error);
       res.status(500).json({ message: "Failed to get commands" });
     }
   });
