@@ -957,14 +957,17 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       }
     },
     onSuccess: (uploadData) => {
+      console.log('✅ 단일 파일 업로드 성공, 메시지 전송 중:', uploadData);
       sendMessageMutation.mutate({
         messageType: "file",
         fileUrl: uploadData.fileUrl,
         fileName: uploadData.fileName,
         fileSize: uploadData.fileSize,
         content: `📎 ${uploadData.fileName}`,
+        replyToMessageId: replyToMessage?.id
       }, {
         onSuccess: (messageData) => {
+          console.log('✅ 파일 메시지 전송 성공:', messageData);
           // 파일 업로드 후 자동으로 태그하기 모달 열기
           const fileData = {
             fileUrl: uploadData.fileUrl,
@@ -973,7 +976,26 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             messageId: messageData.message.id
           };
           onCreateCommand(fileData);
+          
+          // Clear reply state
+          setReplyToMessage(null);
+        },
+        onError: (error) => {
+          console.error('❌ 파일 메시지 전송 실패:', error);
+          toast({
+            variant: "destructive",
+            title: "메시지 전송 실패",
+            description: "파일이 업로드되었지만 메시지 전송에 실패했습니다.",
+          });
         }
+      });
+    },
+    onError: (error) => {
+      console.error('❌ 파일 업로드 실패:', error);
+      toast({
+        variant: "destructive",
+        title: "파일 업로드 실패",
+        description: "파일 업로드 중 오류가 발생했습니다. 다시 시도해주세요.",
       });
     },
   });
@@ -1448,28 +1470,73 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   };
 
   const handleFileUploadWithHashtags = async (files: FileList, caption: string, hashtags: string[]) => {
-    const formData = new FormData();
-    
-    // Add all files
-    Array.from(files).forEach((file, index) => {
-      formData.append('files', file);
-    });
-    
-    // Add caption and hashtags
-    formData.append('caption', caption);
-    formData.append('hashtags', JSON.stringify(hashtags));
+    console.log('📤 다중 파일 업로드 시작:', files.length, '개 파일');
+    console.log('📝 캡션:', caption);
+    console.log('🏷️ 해시태그:', hashtags);
     
     try {
-      const response = await apiRequest(`/api/chat-rooms/${chatRoomId}/upload`, "POST", formData);
-      const result = await response.json();
+      // Process each file individually to match server expectation
+      const uploadPromises = Array.from(files).map(async (file, index) => {
+        console.log(`📁 파일 ${index + 1} 업로드:`, file.name);
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          headers: {
+            "x-user-id": user?.id?.toString() || ""
+          },
+          body: formData,
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`❌ 파일 ${index + 1} 업로드 실패:`, errorText);
+          throw new Error(`파일 업로드 실패: ${file.name} - ${response.status}`);
+        }
+        
+        const uploadResult = await response.json();
+        console.log(`✅ 파일 ${index + 1} 업로드 성공:`, uploadResult);
+        
+        return {
+          ...uploadResult,
+          originalFile: file
+        };
+      });
       
-      if (result.success) {
-        // Refetch messages to show the uploaded files
-        queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] });
-        queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
-      }
+      const uploadResults = await Promise.all(uploadPromises);
+      console.log('✅ 모든 파일 업로드 완료:', uploadResults.length, '개');
+      
+      // Send each file as a separate message with caption and hashtags
+      const messagePromises = uploadResults.map(async (uploadData, index) => {
+        const messageContent = index === 0 && caption ? 
+          `📎 ${uploadData.fileName}\n\n${caption}${hashtags.length > 0 ? '\n\n' + hashtags.map(tag => `#${tag}`).join(' ') : ''}` :
+          `📎 ${uploadData.fileName}`;
+        
+        return sendMessageMutation.mutateAsync({
+          messageType: "file",
+          fileUrl: uploadData.fileUrl,
+          fileName: uploadData.fileName,
+          fileSize: uploadData.fileSize,
+          content: messageContent,
+          replyToMessageId: replyToMessage?.id
+        });
+      });
+      
+      await Promise.all(messagePromises);
+      console.log('✅ 모든 메시지 전송 완료');
+      
+      // Clear reply state
+      setReplyToMessage(null);
+      
+      // Refresh chat data
+      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms`, chatRoomId, "messages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      
     } catch (error) {
-      throw error; // Let the modal handle the error
+      console.error('❌ 파일 업로드 오류:', error);
+      throw error;
     }
   };
 
