@@ -1243,10 +1243,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const { chatRoomId, search } = req.query;
-      let commands;
+      let commands: any[] = [];
       
       if (search) {
-        commands = await storage.searchCommands(Number(userId), String(search));
+        // Search functionality disabled
+        commands = [];
       } else {
         commands = await storage.getCommands(Number(userId), chatRoomId ? Number(chatRoomId) : undefined);
       }
@@ -1274,11 +1275,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Parsed command data:", commandData);
 
       // Check for duplicate command name in the same chat room
-      const existingCommand = await storage.getCommandByName(
-        Number(userId),
-        commandData.chatRoomId,
-        commandData.commandName
-      );
+      // Command name checking disabled
+      const existingCommand = null;
 
       if (existingCommand) {
         return res.status(409).json({ message: "Command name already exists in this chat room" });
