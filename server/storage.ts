@@ -77,10 +77,7 @@ export interface IStorage {
   getBusinessProfile(userId: number): Promise<BusinessProfile | undefined>;
   createOrUpdateBusinessProfile(userId: number, profileData: Partial<InsertBusinessProfile>): Promise<BusinessProfile>;
   
-  // Business card sharing operations
-  createBusinessCardShare(userId: number): Promise<BusinessCardShare>;
-  getBusinessCardShare(shareToken: string): Promise<BusinessCardShare | undefined>;
-  getBusinessCardShareInfo(userId: number): Promise<BusinessCardShare | undefined>;
+  // Business card sharing operations removed - digital business card functionality disabled
   
   // User posts operations
   getUserPosts(userId: number): Promise<UserPost[]>;
@@ -673,130 +670,9 @@ export class DatabaseStorage implements IStorage {
     return updatedUser || undefined;
   }
 
-  async updateUserLocation(userId: number, location: { latitude: number; longitude: number; accuracy: number }): Promise<void> {
-    // Use upsert to handle existing locations
-    await db
-      .insert(userLocations)
-      .values({
-        userId,
-        latitude: location.latitude.toString(),
-        longitude: location.longitude.toString(),
-        accuracy: location.accuracy.toString(),
-        updatedAt: new Date()
-      })
-      .onConflictDoUpdate({
-        target: userLocations.userId,
-        set: {
-          latitude: location.latitude.toString(),
-          longitude: location.longitude.toString(),
-          accuracy: location.accuracy.toString(),
-          updatedAt: new Date()
-        }
-      });
-  }
+  // Location functionality removed
 
-  async getNearbyLocationChatRooms(latitude: number, longitude: number, radius: number = 100): Promise<any[]> {
-    const result = await db
-      .select({
-        id: locationChatRooms.id,
-        name: locationChatRooms.name,
-        latitude: locationChatRooms.latitude,
-        longitude: locationChatRooms.longitude,
-        radius: locationChatRooms.radius,
-        address: locationChatRooms.address,
-        isOfficial: locationChatRooms.isOfficial,
-        participantCount: locationChatRooms.participantCount,
-        maxParticipants: locationChatRooms.maxParticipants,
-        lastActivity: locationChatRooms.lastActivity
-      })
-      .from(locationChatRooms)
-      .where(eq(locationChatRooms.isActive, true));
-    
-    return result;
-  }
-
-  async createLocationChatRoom(userId: number, roomData: { name: string; latitude: number; longitude: number; address: string }): Promise<any> {
-    const autoDeleteAt = new Date();
-    autoDeleteAt.setHours(autoDeleteAt.getHours() + 12); // Auto delete after 12 hours
-
-    const [newRoom] = await db
-      .insert(locationChatRooms)
-      .values({
-        name: roomData.name,
-        latitude: roomData.latitude.toString(),
-        longitude: roomData.longitude.toString(),
-        address: roomData.address,
-        autoDeleteAt,
-        participantCount: 1
-      })
-      .returning();
-
-    // Auto-join the creator
-    await db
-      .insert(locationChatParticipants)
-      .values({
-        locationChatRoomId: newRoom.id,
-        userId
-      });
-
-    return newRoom;
-  }
-
-  async joinLocationChatRoom(userId: number, roomId: number, profileData: { nickname: string; profileImageUrl?: string }): Promise<void> {
-    // Check if already joined
-    const existing = await db
-      .select()
-      .from(locationChatParticipants)
-      .where(and(
-        eq(locationChatParticipants.locationChatRoomId, roomId),
-        eq(locationChatParticipants.userId, userId)
-      ));
-
-    if (existing.length === 0) {
-      await db
-        .insert(locationChatParticipants)
-        .values({
-          locationChatRoomId: roomId,
-          userId,
-          nickname: profileData.nickname,
-          profileImageUrl: profileData.profileImageUrl || null
-        });
-
-      // Update participant count
-      await db
-        .update(locationChatRooms)
-        .set({
-          participantCount: sql`${locationChatRooms.participantCount} + 1`,
-          lastActivity: new Date()
-        })
-        .where(eq(locationChatRooms.id, roomId));
-    } else {
-      // Update existing participant's profile
-      await db
-        .update(locationChatParticipants)
-        .set({
-          nickname: profileData.nickname,
-          profileImageUrl: profileData.profileImageUrl || null,
-          lastSeen: new Date()
-        })
-        .where(and(
-          eq(locationChatParticipants.locationChatRoomId, roomId),
-          eq(locationChatParticipants.userId, userId)
-        ));
-    }
-  }
-
-  async getLocationChatProfile(userId: number, roomId: number): Promise<{ nickname: string; profileImageUrl?: string } | undefined> {
-    const [participant] = await db
-      .select({
-        nickname: locationChatParticipants.nickname,
-        profileImageUrl: locationChatParticipants.profileImageUrl
-      })
-      .from(locationChatParticipants)
-      .where(and(
-        eq(locationChatParticipants.locationChatRoomId, roomId),
-        eq(locationChatParticipants.userId, userId)
-      ));
+  // Location chat functionality completely removed
 
     if (!participant || !participant.nickname) {
       return undefined;
@@ -991,30 +867,7 @@ export class DatabaseStorage implements IStorage {
 
   // Location chat functionality removed
 
-  // Business card operations
-  async getBusinessCard(userId: number): Promise<BusinessCard | undefined> {
-    const [card] = await db.select().from(businessCards).where(eq(businessCards.userId, userId));
-    return card || undefined;
-  }
-
-  async createOrUpdateBusinessCard(userId: number, cardData: Partial<InsertBusinessCard>): Promise<BusinessCard> {
-    const existingCard = await this.getBusinessCard(userId);
-    
-    if (existingCard) {
-      const [updatedCard] = await db
-        .update(businessCards)
-        .set({ ...cardData, updatedAt: new Date() })
-        .where(eq(businessCards.userId, userId))
-        .returning();
-      return updatedCard;
-    } else {
-      const [newCard] = await db
-        .insert(businessCards)
-        .values({ ...cardData, userId })
-        .returning();
-      return newCard;
-    }
-  }
+  // Business card operations removed - Digital business card functionality disabled
 
   // Business profile operations
   async getBusinessProfile(userId: number): Promise<BusinessProfile | undefined> {
@@ -1041,59 +894,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Business card sharing operations
-  async createBusinessCardShare(userId: number): Promise<BusinessCardShare> {
-    // Generate unique share token
-    const shareToken = Array.from({ length: 32 }, () => 
-      Math.random().toString(36).charAt(2)
-    ).join('');
-
-    const [share] = await db
-      .insert(businessCardShares)
-      .values({
-        userId,
-        shareToken,
-        isActive: true,
-        allowDownload: true
-      })
-      .returning();
-    
-    return share;
-  }
-
-  async getBusinessCardShare(shareToken: string): Promise<BusinessCardShare | undefined> {
-    const [share] = await db
-      .select()
-      .from(businessCardShares)
-      .where(and(
-        eq(businessCardShares.shareToken, shareToken),
-        eq(businessCardShares.isActive, true)
-      ));
-    
-    if (share) {
-      // Increment view count
-      await db
-        .update(businessCardShares)
-        .set({ viewCount: share.viewCount + 1 })
-        .where(eq(businessCardShares.id, share.id));
-    }
-    
-    return share || undefined;
-  }
-
-  async getBusinessCardShareInfo(userId: number): Promise<BusinessCardShare | undefined> {
-    const [share] = await db
-      .select()
-      .from(businessCardShares)
-      .where(and(
-        eq(businessCardShares.userId, userId),
-        eq(businessCardShares.isActive, true)
-      ))
-      .orderBy(desc(businessCardShares.createdAt))
-      .limit(1);
-    
-    return share || undefined;
-  }
+  // Business card sharing operations removed - Digital business card functionality disabled
 
   // User posts operations
   async getUserPosts(userId: number): Promise<UserPost[]> {
