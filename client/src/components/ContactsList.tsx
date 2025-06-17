@@ -126,6 +126,8 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       console.log('📤 정규 음성 API 사용 - 파일 업로드 시작');
       console.log('📤 audioBlob size:', audioBlob.size);
       console.log('📤 audioBlob type:', audioBlob.type);
+      console.log('📤 user ID:', user?.id);
+      console.log('📤 FormData 내용 확인');
 
       // 1단계: 음성 파일 업로드 (/api/upload-voice)
       const uploadResponse = await fetch('/api/upload-voice', {
@@ -135,6 +137,9 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
         },
         body: formData,
       });
+
+      console.log('📤 업로드 응답 상태:', uploadResponse.status);
+      console.log('📤 업로드 응답 헤더:', Object.fromEntries(uploadResponse.headers.entries()));
 
       if (!uploadResponse.ok) {
         const errorText = await uploadResponse.text();
@@ -211,6 +216,11 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       console.log('✅ 간편음성메세지 전송 완료');
     } catch (error: any) {
       console.error('❌ 간편음성메세지 전체 프로세스 실패:', error);
+      console.error('❌ 오류 상세정보:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
       toast({
         variant: "destructive",
         title: "음성 메시지 전송 실패",
