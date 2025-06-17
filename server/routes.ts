@@ -380,70 +380,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Location chat messages routes
-  app.get("/api/location/chat-rooms/:roomId/messages", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
 
-    try {
-      const roomId = Number(req.params.roomId);
-      
-      // Verify user is participant in location chat
-      const profile = await storage.getLocationChatProfile(Number(userId), roomId);
-      if (!profile) {
-        return res.status(403).json({ message: "Not a participant in this location chat" });
-      }
-
-      // Location chat functionality removed
-      res.status(404).json({ message: "Location chat not available" });
-    } catch (error) {
-      console.error("Get location messages error:", error);
-      res.status(500).json({ message: "Failed to get messages" });
-    }
-  });
-
-  app.post("/api/location/chat-rooms/:roomId/messages", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      const roomId = Number(req.params.roomId);
-      
-      // Verify user is participant in location chat
-      const profile = await storage.getLocationChatProfile(Number(userId), roomId);
-      if (!profile) {
-        return res.status(403).json({ message: "Not a participant in this location chat" });
-      }
-
-      // Location chat functionality removed
-      res.status(404).json({ message: "Location chat not available" });
-      return;
-
-      // For location chat, create response with profile info
-      const user = await storage.getUser(Number(userId));
-      const messageWithSender = {
-        ...newMessage,
-        sender: user,
-        senderProfile: profile
-      };
-
-      // Broadcast to location chat participants via WebSocket
-      broadcastToRoom(roomId, {
-        type: "new_message",
-        message: messageWithSender,
-        isLocationChat: true
-      });
-
-      res.json({ message: messageWithSender });
-    } catch (error) {
-      console.error("Location message creation error:", error);
-      res.status(500).json({ message: "Failed to send message" });
-    }
-  });
 
   // Contact routes
   app.get("/api/contacts", async (req, res) => {
@@ -2237,17 +2174,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (message.type === 'auth' && message.userId) {
           userId = Number(message.userId);
           connections.set(userId, ws);
-          await storage.updateUser(userId, { isOnline: true });
+          // Don't await database operations to prevent blocking
+          storage.updateUser(userId, { isOnline: true }).catch(console.error);
         }
       } catch (error) {
         console.error('WebSocket message error:', error);
       }
     });
 
-    ws.on('close', async () => {
+    ws.on('close', () => {
       if (userId) {
         connections.delete(userId);
-        await storage.updateUser(userId, { isOnline: false });
+        // Don't await database operations to prevent blocking
+        storage.updateUser(userId, { isOnline: false }).catch(console.error);
       }
     });
   });

@@ -83,13 +83,13 @@ export const messages = pgTable("messages", {
   isTranslated: boolean("is_translated").default(false),
   isCalculated: boolean("is_calculated").default(false),
   pollData: text("poll_data"), // JSON string containing poll information
-  originalMessageId: integer("original_message_id").references(() => messages.id),
-  replyToMessageId: integer("reply_to_message_id").references(() => messages.id),
+  originalMessageId: integer("original_message_id"),
+  replyToMessageId: integer("reply_to_message_id"),
   // Boom message fields
   boomTimer: integer("boom_timer"), // Timer in seconds
   expiresAt: timestamp("expires_at"), // When the boom message expires
   targetUserId: integer("target_user_id").references(() => users.id), // For sendback messages
-  spotlightMessageId: integer("spotlight_message_id").references(() => messages.id), // For spotlight messages
+  spotlightMessageId: integer("spotlight_message_id"), // For spotlight messages
   spotlightDuration: text("spotlight_duration"), // Duration for spotlight
   isEdited: boolean("is_edited").default(false), // Track if message was edited
   editedAt: timestamp("edited_at"), // When the message was last edited
@@ -496,7 +496,7 @@ export const postComments = pgTable("post_comments", {
   postId: integer("post_id").references(() => userPosts.id).notNull(),
   userId: integer("user_id").references(() => users.id).notNull(),
   content: text("content").notNull(),
-  parentCommentId: integer("parent_comment_id").references(() => postComments.id),
+  parentCommentId: integer("parent_comment_id"),
   likeCount: integer("like_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
