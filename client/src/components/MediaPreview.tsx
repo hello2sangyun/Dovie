@@ -445,7 +445,7 @@ const LinkPreview = ({ url, isMe }: { url: string; isMe: boolean }) => {
   );
 };
 
-export default function MediaPreview({ fileUrl, fileName, fileSize, messageContent, isMe, className }: MediaPreviewProps) {
+export default function MediaPreview({ fileUrl, fileName, fileSize, messageContent, isMe, className, summary }: MediaPreviewProps) {
   // 메시지 내용에서 URL 추출
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const urls = messageContent?.match(urlRegex) || [];
@@ -472,7 +472,7 @@ export default function MediaPreview({ fileUrl, fileName, fileSize, messageConte
       default:
         return (
           <div className={className}>
-            <FilePreview fileUrl={fileUrl} fileName={fileName} fileSize={fileSize} isMe={isMe} />
+            <FilePreview fileUrl={fileUrl} fileName={fileName} fileSize={fileSize} isMe={isMe} summary={summary} />
           </div>
         );
     }
