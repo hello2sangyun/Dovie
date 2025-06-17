@@ -22,6 +22,7 @@ import BlockedContactsPage from "./BlockedContactsPage";
 import ProfileSettingsPage from "./ProfileSettingsPage";
 import NotificationSettingsPage from "./NotificationSettingsPage";
 import SecuritySettingsPage from "./SecuritySettingsPage";
+import ProfilePhotoUpload from "./ProfilePhotoUpload";
 
 interface ModernSettingsPageProps {
   isMobile?: boolean;
@@ -30,6 +31,7 @@ interface ModernSettingsPageProps {
 export default function ModernSettingsPage({ isMobile = false }: ModernSettingsPageProps) {
   const { user, logout } = useAuth();
   const [activeView, setActiveView] = useState<'main' | 'blocked-contacts' | 'profile' | 'notifications' | 'security'>('main');
+  const [showProfilePhotoUpload, setShowProfilePhotoUpload] = useState(false);
 
   if (!user) return null;
 
@@ -92,14 +94,14 @@ export default function ModernSettingsPage({ isMobile = false }: ModernSettingsP
           <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <Avatar className="w-16 h-16 border-4 border-white shadow-lg">
+                <div className="relative cursor-pointer" onClick={() => setShowProfilePhotoUpload(true)}>
+                  <Avatar className="w-16 h-16 border-4 border-white shadow-lg transition-transform hover:scale-105">
                     <AvatarImage src={user.profilePicture || undefined} />
                     <AvatarFallback className={`${getAvatarColor(user.displayName)} text-white font-bold text-lg`}>
                       {getInitials(user.displayName)}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center shadow-md">
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform">
                     <Edit3 className="w-3 h-3 text-white" />
                   </div>
                 </div>
@@ -217,6 +219,12 @@ export default function ModernSettingsPage({ isMobile = false }: ModernSettingsP
           </div>
         </div>
       </div>
+
+      {/* 프로필 사진 업로드 모달 */}
+      <ProfilePhotoUpload
+        isOpen={showProfilePhotoUpload}
+        onClose={() => setShowProfilePhotoUpload(false)}
+      />
     </div>
   );
 }
