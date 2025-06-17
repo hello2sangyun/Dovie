@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Play, Pause, Volume2, VolumeX, Download, ExternalLink, Image as ImageIcon, Video, FileText } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Download, ExternalLink, Image as ImageIcon, Video, FileText, Eye, File } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -172,6 +172,132 @@ const VideoPlayer = ({ src, fileName, isMe }: { src: string; fileName: string; i
         </Button>
       </div>
     </div>
+  );
+};
+
+// FilePreview 컴포넌트 - 클릭 가능한 파일 미리보기
+const FilePreview = ({ fileUrl, fileName, fileSize, isMe }: { fileUrl: string; fileName: string; fileSize?: number; isMe: boolean }) => {
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  
+  const getFileIcon = () => {
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    switch (extension) {
+      case 'pdf':
+        return <FileText className="h-5 w-5 text-red-600" />;
+      case 'doc':
+      case 'docx':
+        return <FileText className="h-5 w-5 text-blue-600" />;
+      case 'xls':
+      case 'xlsx':
+        return <FileText className="h-5 w-5 text-green-600" />;
+      case 'ppt':
+      case 'pptx':
+        return <FileText className="h-5 w-5 text-orange-600" />;
+      case 'zip':
+      case 'rar':
+      case '7z':
+        return <File className="h-5 w-5 text-purple-600" />;
+      default:
+        return <FileText className="h-5 w-5 text-gray-600" />;
+    }
+  };
+
+  const formatFileSize = (size?: number) => {
+    if (!size) return '';
+    if (size < 1024) return `${size} B`;
+    if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const handleFileClick = () => {
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    if (['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(extension || '')) {
+      setIsPreviewOpen(true);
+    } else {
+      // 다른 파일 타입은 다운로드
+      window.open(fileUrl, '_blank');
+    }
+  };
+
+  return (
+    <>
+      <div 
+        className={cn(
+          "flex items-center space-x-3 p-3 bg-gray-50 rounded-lg max-w-md cursor-pointer hover:bg-gray-100 transition-colors",
+          isMe ? "ml-auto" : "mr-auto"
+        )}
+        onClick={handleFileClick}
+      >
+        <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
+          {getFileIcon()}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-gray-900 truncate">{fileName}</p>
+          {fileSize && (
+            <p className="text-xs text-gray-500">{formatFileSize(fileSize)}</p>
+          )}
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+            <Eye className="h-4 w-4 text-gray-600" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            asChild
+            className="h-8 w-8 p-0"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <a href={fileUrl} download={fileName}>
+              <Download className="h-4 w-4 text-gray-600" />
+            </a>
+          </Button>
+        </div>
+      </div>
+
+      {/* 파일 미리보기 모달 */}
+      {isPreviewOpen && (
+        <div 
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          onClick={() => setIsPreviewOpen(false)}
+        >
+          <div 
+            className="bg-white rounded-lg w-full max-w-4xl h-full max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-semibold truncate">{fileName}</h3>
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  asChild
+                >
+                  <a href={fileUrl} download={fileName}>
+                    <Download className="h-4 w-4 mr-2" />
+                    다운로드
+                  </a>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsPreviewOpen(false)}
+                >
+                  ✕
+                </Button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <iframe
+                src={fileUrl}
+                className="w-full h-full border-0"
+                title={fileName}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
@@ -355,21 +481,8 @@ export default function MediaPreview({ fileUrl, fileName, fileSize, messageConte
         
       default:
         return (
-          <div className={cn("flex items-center space-x-3 p-3 bg-gray-50 rounded-lg max-w-md", className)}>
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <FileText className="h-5 w-5 text-blue-600" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">{fileName}</p>
-              {fileSize && (
-                <p className="text-xs text-gray-500">{(fileSize / 1024).toFixed(1)} KB</p>
-              )}
-            </div>
-            <Button variant="ghost" size="sm" asChild>
-              <a href={fileUrl} download={fileName}>
-                <Download className="h-4 w-4" />
-              </a>
-            </Button>
+          <div className={className}>
+            <FilePreview fileUrl={fileUrl} fileName={fileName} fileSize={fileSize} isMe={isMe} />
           </div>
         );
     }
