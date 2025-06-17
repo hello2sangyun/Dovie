@@ -14,6 +14,7 @@ import AddContactModal from "@/components/AddContactModal";
 import CommandModal from "@/components/CommandModal";
 import CreateGroupChatModal from "@/components/CreateGroupChatModal";
 import ProfilePhotoModal from "@/components/ProfilePhotoModal";
+import { BannerNotificationContainer } from "@/components/MobileBannerNotification";
 
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
@@ -1046,6 +1047,9 @@ export default function MainApp() {
         isOpen={modals.profilePhoto}
         onClose={closeModals}
       />
+
+      {/* Mobile Banner Notifications - replaces bottom popup notifications */}
+      <BannerNotificationContainer />
 
     </div>
   );

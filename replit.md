@@ -208,6 +208,13 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Deleted success quotes/motivation (동기부여/명언) feature
   - Removed celebration card creation (축하 카드) functionality
   - Smart suggestion system now focuses on 16 core features: profanity detection, business tone conversion, auto translation, currency conversion, search, news summary, unit conversion, YouTube integration, and other utility functions
+- June 17, 2025: Fixed mobile notification display issues:
+  - Replaced bottom popup notifications that blocked mobile screen with top banner-style notifications
+  - Created MobileBannerNotification component with modern gradient design and progress countdown
+  - Implemented responsive notification system: mobile uses top banners, desktop keeps existing toasts
+  - Added smooth slide-in animations and auto-dismiss functionality
+  - Enhanced readability with proper color coding: success (green), error (red), warning (orange), info (blue)
+  - Mobile notifications no longer obstruct screen content and provide better user experience
 
 ## User Preferences
 
