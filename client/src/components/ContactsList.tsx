@@ -33,9 +33,10 @@ import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 interface ContactsListProps {
   onAddContact: () => void;
   onSelectContact: (contactId: number) => void;
+  onNavigateToChat?: (contactUserId: number) => void;
 }
 
-export default function ContactsList({ onAddContact, onSelectContact }: ContactsListProps) {
+export default function ContactsList({ onAddContact, onSelectContact, onNavigateToChat }: ContactsListProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -49,45 +50,59 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingContact, setRecordingContact] = useState<any>(null);
+  const [pressStartTime, setPressStartTime] = useState<number | null>(null);
 
-  // 길게 누르기 시작 - 바로 음성 녹음 시작
-  const handleLongPressStart = (contact: any) => {
-    console.log('🎯 간편음성메세지 - 길게 누르기 시작:', contact.contactUser.displayName || contact.contactUser.nickname || contact.contactUser.username);
-    console.log('🎯 Contact ID:', contact.contactUserId);
+  // 터치/클릭 시작 처리
+  const handleTouchStart = (contact: any) => {
+    const startTime = Date.now();
+    setPressStartTime(startTime);
+    console.log('👆 터치 시작:', contact.contactUser.displayName || contact.contactUser.username);
     
-    // 팝업 없이 바로 녹음 시작
+    // 0.5초 후 음성 녹음 시작
     const timer = setTimeout(() => {
-      console.log('🎤 간편음성메세지 - 0.5초 후 녹음 시작');
-      console.log('🎤 Setting recordingContact to:', contact);
+      console.log('🎤 길게 누르기 감지 - 음성 녹음 시작');
       setRecordingContact(contact);
       setIsRecording(true);
       
-      // 음성 녹음 시작 알림
       toast({
         title: "음성 메시지 녹음 중",
         description: `${contact.contactUser.displayName || contact.contactUser.username}에게 보낼 음성 메시지를 녹음하고 있습니다.`,
         duration: 2000,
       });
-    }, 500); // 0.5초 후 녹음 시작
+    }, 500);
     
     setLongPressTimer(timer);
   };
 
-  // 길게 누르기 끝
-  const handleLongPressEnd = () => {
-    console.log('🛑 간편음성메세지 - 길게 누르기 끝, 녹음 중:', isRecording);
+  // 터치/클릭 끝 처리
+  const handleTouchEnd = (contact: any) => {
+    const endTime = Date.now();
+    const pressDuration = pressStartTime ? endTime - pressStartTime : 0;
     
+    console.log('👆 터치 끝, 지속시간:', pressDuration, 'ms');
+    
+    // 타이머 정리
     if (longPressTimer) {
       clearTimeout(longPressTimer);
       setLongPressTimer(null);
-      console.log('⏰ 타이머 취소됨 (0.5초 전에 놓음)');
     }
     
-    if (isRecording && recordingContact) {
+    // 짧은 터치 (500ms 미만): 채팅방으로 이동
+    if (pressDuration < 500 && !isRecording) {
+      console.log('📱 짧은 터치 감지 - 채팅방으로 이동');
+      if (onNavigateToChat) {
+        onNavigateToChat(contact.contactUserId);
+      }
+    }
+    // 길게 누르기가 진행된 경우: 녹음 종료
+    else if (isRecording && recordingContact) {
       console.log('🎤 녹음 종료 시작');
       setIsRecording(false);
-      setRecordingContact(null);
+      // recordingContact는 SimpleVoiceRecorder에서 처리 후 null로 설정됨
     }
+    
+    // 상태 초기화
+    setPressStartTime(null);
   };
 
   // 간편음성메세지 완료 처리 - 채팅방 음성 메시지와 동일한 방식 사용
@@ -499,12 +514,11 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                       msUserSelect: 'none',
                       WebkitTouchCallout: 'none'
                     }}
-                    onClick={() => setLocation(`/friend/${contact.contactUserId}`)}
-                    onMouseDown={() => handleLongPressStart(contact)}
-                    onMouseUp={handleLongPressEnd}
-                    onMouseLeave={handleLongPressEnd}
-                    onTouchStart={() => handleLongPressStart(contact)}
-                    onTouchEnd={handleLongPressEnd}
+                    onMouseDown={() => handleTouchStart(contact)}
+                    onMouseUp={() => handleTouchEnd(contact)}
+                    onMouseLeave={() => handleTouchEnd(contact)}
+                    onTouchStart={() => handleTouchStart(contact)}
+                    onTouchEnd={() => handleTouchEnd(contact)}
                     onContextMenu={(e) => e.preventDefault()}
                   >
                     <PrismAvatar
@@ -569,16 +583,16 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                   }}
                   onMouseDown={(e) => {
                     console.log('🖱️ 마우스 다운:', contact.contactUser.displayName);
-                    handleLongPressStart(contact);
+                    handleTouchStart(contact);
                   }}
-                  onMouseUp={handleLongPressEnd}
-                  onMouseLeave={handleLongPressEnd}
+                  onMouseUp={() => handleTouchEnd(contact)}
+                  onMouseLeave={() => handleTouchEnd(contact)}
                   onTouchStart={(e) => {
                     console.log('👆 터치 시작:', contact.contactUser.displayName);
                     e.preventDefault(); // 기본 터치 동작 방지
-                    handleLongPressStart(contact);
+                    handleTouchStart(contact);
                   }}
-                  onTouchEnd={handleLongPressEnd}
+                  onTouchEnd={() => handleTouchEnd(contact)}
                   onContextMenu={(e) => e.preventDefault()}
                 >
                   <div
