@@ -2148,48 +2148,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   };
 
   // 생일/기념일 감지 함수
-  const detectBirthday = (text: string) => {
-    const patterns = [
-      /.*(생일|생신|탄생일)/i,
-      /.*(기념일|축하|파티)/i,
-      /.*(결혼기념일|돌잔치)/i
-    ];
 
-    for (const pattern of patterns) {
-      if (pattern.test(text)) {
-        return {
-          type: 'birthday' as const,
-          text: '축하 카드 만들기',
-          result: `축하: ${text}`,
-          icon: '🎉',
-          category: '축하'
-        };
-      }
-    }
-    return null;
-  };
 
   // 미팅/회의 감지 함수
-  const detectMeeting = (text: string) => {
-    const patterns = [
-      /.*(줌|zoom|미팅|meeting)/i,
-      /.*(회의|컨퍼런스|화상)/i,
-      /.*(온라인.*만나|화상.*통화)/i
-    ];
 
-    for (const pattern of patterns) {
-      if (pattern.test(text)) {
-        return {
-          type: 'meeting' as const,
-          text: '화상회의 링크 만들기',
-          result: `미팅: ${text}`,
-          icon: '📹',
-          category: '화상회의'
-        };
-      }
-    }
-    return null;
-  };
 
   // 지연 답변 감지 함수
   const detectDelayedResponse = (text: string) => {
@@ -2213,28 +2175,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     return null;
   };
 
-  // 성공/동기부여 문장 감지 함수
-  const detectMotivation = (text: string) => {
-    const patterns = [
-      /성공.*하려면|성공.*위해/i,
-      /꿈.*이루|목표.*달성/i,
-      /포기.*하지.*말|힘내|화이팅/i,
-      /도전.*해보|시작.*해야/i
-    ];
 
-    for (const pattern of patterns) {
-      if (pattern.test(text)) {
-        return {
-          type: 'quote' as const,
-          text: '성공 명언 보여드릴까요?',
-          result: `명언: ${text}`,
-          icon: '💪',
-          category: '명언'
-        };
-      }
-    }
-    return null;
-  };
 
   // 질문 감지 및 답변 포맷 제안 함수
   const detectQuestion = (text: string) => {
@@ -2675,11 +2616,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       }
     }
     
-    // 3. 일정/시간 감지
-    const scheduleDetection = detectSchedule(value);
-    if (scheduleDetection) {
-      allSuggestions.push(scheduleDetection);
-    }
+    // 3. 일정/시간 감지 (삭제됨)
     
     // 4. 번역 필요성 감지 (상대방과 다른 언어 사용 시에만)
     if (messages?.data?.messages) {
@@ -2696,17 +2633,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       }
     }
     
-    // 5. 감정 감지
-    const emotionDetection = detectEmotion(value);
-    if (emotionDetection) {
-      allSuggestions.push(emotionDetection);
-    }
+    // 5. 감정 감지 (삭제됨)
     
-    // 6. 음식 감지
-    const foodDetection = detectFood(value);
-    if (foodDetection) {
-      allSuggestions.push(foodDetection);
-    }
+    // 6. 음식 감지 (삭제됨)
     
     // 7. 유튜브 감지
     const youtubeDetection = detectYoutube(value);
@@ -2732,17 +2661,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       allSuggestions.push(searchDetection);
     }
     
-    // 11. 생일/기념일 감지
-    const birthdayDetection = detectBirthday(value);
-    if (birthdayDetection) {
-      allSuggestions.push(birthdayDetection);
-    }
+    // 11. 생일/기념일 감지 (삭제됨)
     
-    // 12. 미팅/회의 감지
-    const meetingDetection = detectMeeting(value);
-    if (meetingDetection) {
-      allSuggestions.push(meetingDetection);
-    }
+    // 12. 미팅/회의 감지 (삭제됨)
     
     // 13. 주소 감지
     const addressDetection = detectAddress(value);
@@ -2750,17 +2671,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       allSuggestions.push(addressDetection);
     }
     
-    // 14. 투표 감지
-    const pollDetection = detectPoll(value);
-    if (pollDetection) {
-      allSuggestions.push(pollDetection);
-    }
+    // 14. 투표 감지 (삭제됨)
     
-    // 15. 할 일 감지
-    const todoDetection = detectTodo(value);
-    if (todoDetection) {
-      allSuggestions.push(todoDetection);
-    }
+    // 15. 할 일 감지 (삭제됨)
     
     // 16. 타이머 감지
     const timerDetection = detectTimer(value);
