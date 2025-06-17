@@ -46,12 +46,31 @@ export const HashtagInput: React.FC<HashtagInputProps> = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
     
-    // Instagram-style: automatically add # if user doesn't type it
+    // 스페이스바 입력시 자동으로 # 추가 및 해시태그 생성
+    if (value.includes(' ')) {
+      const parts = value.split(' ');
+      const tagPart = parts[0].replace(/^#/, '').trim();
+      
+      if (tagPart) {
+        addHashtag(tagPart);
+      }
+      
+      // 나머지 부분으로 새로운 태그 시작
+      const remaining = parts.slice(1).join(' ').trim();
+      if (remaining && !remaining.startsWith('#')) {
+        setInputValue(remaining);
+      } else {
+        setInputValue(remaining.replace(/^#/, ''));
+      }
+      return;
+    }
+    
+    // 첫 입력시 자동으로 # 추가 (Instagram 스타일)
     if (value && !value.startsWith('#') && !inputValue) {
       value = '#' + value;
     }
     
-    // Remove # from the beginning for storage (we'll add it back for display)
+    // # 제거해서 저장 (화면에는 # 표시)
     const cleanValue = value.replace(/^#/, '');
     setInputValue(cleanValue);
   };
@@ -68,7 +87,7 @@ export const HashtagInput: React.FC<HashtagInputProps> = ({
   };
 
   return (
-    <div className={`min-h-[42px] border border-gray-200 rounded-lg p-2 bg-white ${className}`}>
+    <div className={`min-h-[42px] border border-gray-200 rounded-lg p-3 bg-white ${className}`}>
       <div 
         className={`flex flex-wrap gap-2 items-center cursor-text ${
           isInputFocused ? 'outline-2 outline-purple-500 outline-offset-2' : ''
@@ -78,17 +97,17 @@ export const HashtagInput: React.FC<HashtagInputProps> = ({
         {hashtags.map((tag, index) => (
           <div
             key={index}
-            className="inline-flex items-center bg-purple-100 text-purple-700 px-2 py-1 rounded-full text-sm font-medium"
+            className="inline-flex items-center bg-purple-100 text-purple-700 px-3 py-2 rounded-full text-sm font-medium max-w-full"
           >
-            <Hash className="h-3 w-3 mr-1" />
-            <span>{tag}</span>
+            <Hash className="h-3 w-3 mr-1 flex-shrink-0" />
+            <span className="truncate">{tag}</span>
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 removeHashtag(index);
               }}
-              className="ml-1 text-purple-500 hover:text-purple-700 focus:outline-none"
+              className="ml-2 text-purple-500 hover:text-purple-700 focus:outline-none flex-shrink-0"
             >
               <X className="h-3 w-3" />
             </button>
@@ -97,30 +116,30 @@ export const HashtagInput: React.FC<HashtagInputProps> = ({
         
         {hashtags.length < maxTags && (
           <div className="flex items-center min-w-0 flex-1">
-            <Hash className="h-4 w-4 text-gray-400 mr-1" />
+            <Hash className="h-4 w-4 text-gray-400 mr-1 flex-shrink-0" />
             <input
               ref={inputRef}
               type="text"
-              value={inputValue}
+              value={inputValue ? '#' + inputValue : ''}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               onFocus={() => setIsInputFocused(true)}
               onBlur={handleInputBlur}
               placeholder={hashtags.length === 0 ? placeholder : ""}
               className="flex-1 min-w-0 border-none outline-none bg-transparent text-sm placeholder-gray-400"
-              style={{ minWidth: '120px' }}
+              style={{ minWidth: '100px' }}
             />
           </div>
         )}
       </div>
       
       {hashtags.length >= maxTags && (
-        <div className="text-xs text-orange-600 mt-1">
+        <div className="text-xs text-orange-600 mt-2">
           최대 {maxTags}개의 해시태그까지 추가할 수 있습니다.
         </div>
       )}
       
-      <div className="text-xs text-gray-500 mt-1">
+      <div className="text-xs text-gray-500 mt-2">
         스페이스바, 엔터 또는 쉼표로 해시태그를 추가하세요
       </div>
     </div>
