@@ -10,6 +10,7 @@ interface MediaPreviewProps {
   messageContent?: string;
   isMe: boolean;
   className?: string;
+  summary?: string;
 }
 
 // URL 패턴 감지 함수
@@ -175,38 +176,38 @@ const VideoPlayer = ({ src, fileName, isMe }: { src: string; fileName: string; i
   );
 };
 
-// FilePreview 컴포넌트 - 클릭 가능한 파일 미리보기
-const FilePreview = ({ fileUrl, fileName, fileSize, isMe }: { fileUrl: string; fileName: string; fileSize?: number; isMe: boolean }) => {
+// FilePreview 컴포넌트 - 간단한 파일 설명과 클릭 가능한 미리보기
+const FilePreview = ({ fileUrl, fileName, fileSize, isMe, summary }: { fileUrl: string; fileName: string; fileSize?: number; isMe: boolean; summary?: string }) => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   
   const getFileIcon = () => {
     const extension = fileName.split('.').pop()?.toLowerCase();
     switch (extension) {
       case 'pdf':
-        return <FileText className="h-5 w-5 text-red-600" />;
+        return <FileText className="h-4 w-4 text-red-600" />;
       case 'doc':
       case 'docx':
-        return <FileText className="h-5 w-5 text-blue-600" />;
+        return <FileText className="h-4 w-4 text-blue-600" />;
       case 'xls':
       case 'xlsx':
-        return <FileText className="h-5 w-5 text-green-600" />;
+        return <FileText className="h-4 w-4 text-green-600" />;
       case 'ppt':
       case 'pptx':
-        return <FileText className="h-5 w-5 text-orange-600" />;
+        return <FileText className="h-4 w-4 text-orange-600" />;
       case 'zip':
       case 'rar':
       case '7z':
-        return <File className="h-5 w-5 text-purple-600" />;
+        return <File className="h-4 w-4 text-purple-600" />;
       default:
-        return <FileText className="h-5 w-5 text-gray-600" />;
+        return <FileText className="h-4 w-4 text-gray-600" />;
     }
   };
 
   const formatFileSize = (size?: number) => {
     if (!size) return '';
-    if (size < 1024) return `${size} B`;
-    if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
-    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+    if (size < 1024) return `${size}B`;
+    if (size < 1024 * 1024) return `${(size / 1024).toFixed(0)}KB`;
+    return `${(size / (1024 * 1024)).toFixed(1)}MB`;
   };
 
   const handleFileClick = () => {
@@ -214,45 +215,34 @@ const FilePreview = ({ fileUrl, fileName, fileSize, isMe }: { fileUrl: string; f
     if (['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(extension || '')) {
       setIsPreviewOpen(true);
     } else {
-      // 다른 파일 타입은 다운로드
       window.open(fileUrl, '_blank');
     }
   };
 
+  // 심플한 UX/UI로 파일 요약을 말풍선에 표시
   return (
     <>
       <div 
         className={cn(
-          "flex items-center space-x-3 p-3 bg-gray-50 rounded-lg max-w-md cursor-pointer hover:bg-gray-100 transition-colors",
-          isMe ? "ml-auto" : "mr-auto"
+          "inline-flex items-center space-x-2 px-3 py-2 rounded-xl cursor-pointer transition-colors max-w-xs",
+          isMe 
+            ? "bg-blue-500 text-white hover:bg-blue-600" 
+            : "bg-gray-100 text-gray-900 hover:bg-gray-200"
         )}
         onClick={handleFileClick}
       >
-        <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
+        <div className="flex-shrink-0">
           {getFileIcon()}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-900 truncate">{fileName}</p>
-          {fileSize && (
-            <p className="text-xs text-gray-500">{formatFileSize(fileSize)}</p>
-          )}
+          <div className={cn("text-sm font-medium truncate", isMe ? "text-white" : "text-gray-900")}>
+            {summary || fileName.split('.').slice(0, -1).join('.')}
+          </div>
+          <div className={cn("text-xs", isMe ? "text-blue-100" : "text-gray-500")}>
+            {formatFileSize(fileSize)}
+          </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-            <Eye className="h-4 w-4 text-gray-600" />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            asChild
-            className="h-8 w-8 p-0"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <a href={fileUrl} download={fileName}>
-              <Download className="h-4 w-4 text-gray-600" />
-            </a>
-          </Button>
-        </div>
+        <Eye className={cn("h-3 w-3 flex-shrink-0", isMe ? "text-blue-100" : "text-gray-400")} />
       </div>
 
       {/* 파일 미리보기 모달 */}

@@ -357,3 +357,66 @@ export async function transcribeAudio(filePath: string): Promise<{
     };
   }
 }
+
+// 파일 요약 생성 함수
+export async function generateFileSummary(fileName: string, fileType: string, fileContent?: string): Promise<string> {
+  try {
+    console.log(`Generating file summary for: ${fileName} (${fileType})`);
+    
+    let prompt = `다음 파일에 대한 아주 간단한 요약을 한 줄로 작성해주세요. 15자 이내로 핵심 내용만 설명하세요.
+파일명: ${fileName}
+파일 유형: ${fileType}`;
+
+    if (fileContent) {
+      prompt += `\n파일 내용: ${fileContent.substring(0, 1000)}...`;
+    }
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "당신은 파일 내용을 간단히 요약하는 전문가입니다. 15자 이내로 핵심만 설명하세요."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      max_tokens: 30,
+      temperature: 0.3
+    });
+
+    const summary = response.choices[0].message.content?.trim() || "파일";
+    console.log(`File summary generated: "${summary}"`);
+    
+    return summary;
+  } catch (error: any) {
+    console.error("File summary generation error:", error);
+    
+    // 파일 확장자로 기본 설명 제공
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    switch (extension) {
+      case 'pdf': return 'PDF 문서';
+      case 'doc':
+      case 'docx': return 'Word 문서';
+      case 'xls':
+      case 'xlsx': return 'Excel 파일';
+      case 'ppt':
+      case 'pptx': return 'PPT 파일';
+      case 'txt': return '텍스트 파일';
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif': return '이미지';
+      case 'mp4':
+      case 'avi':
+      case 'mov': return '동영상';
+      case 'mp3':
+      case 'wav': return '음성 파일';
+      case 'zip':
+      case 'rar': return '압축 파일';
+      default: return '파일';
+    }
+  }
+}

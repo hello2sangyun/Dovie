@@ -1111,11 +1111,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         fs.writeFileSync(encryptedFilePath, encryptedData, 'utf8');
         fs.unlinkSync(req.file.path);
 
+        // AI 파일 요약 생성
+        let fileSummary = "파일";
+        try {
+          const { generateFileSummary } = await import("./openai");
+          fileSummary = await generateFileSummary(req.file.originalname, req.file.mimetype);
+        } catch (summaryError) {
+          console.log("File summary generation failed, using default");
+        }
+
         const fileUrl = `/uploads/${encryptedFileName}`;
         res.json({
           fileUrl,
           fileName: req.file.originalname,
           fileSize: req.file.size,
+          summary: fileSummary,
         });
       }
     } catch (error) {
