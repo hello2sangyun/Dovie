@@ -119,20 +119,16 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       
       console.log('📁 채팅방 확인 완료 - ID:', chatRoomId);
 
-      // 채팅방의 음성 메시지 전송과 동일한 로직 사용
+      // 정규 채팅방 음성 메시지와 동일한 API 사용
       const formData = new FormData();
-      const fileName = `voice_${Date.now()}_${Math.random().toString(36).substr(2, 11)}.webm`;
-      formData.append('file', audioBlob, fileName);
-      formData.append('messageType', 'voice');
+      formData.append('file', audioBlob, 'voice_message.webm');
 
-      console.log('📤 FormData 생성 완료');
-      console.log('📤 fileName:', fileName);
+      console.log('📤 정규 음성 API 사용 - 파일 업로드 시작');
       console.log('📤 audioBlob size:', audioBlob.size);
       console.log('📤 audioBlob type:', audioBlob.type);
-      console.log('📤 FormData entries prepared');
-      console.log('📤 음성 파일 업로드 시작...');
 
-      const uploadResponse = await fetch(`/api/chat-rooms/${chatRoomId}/upload`, {
+      // 1단계: 음성 파일 업로드 (/api/upload-voice)
+      const uploadResponse = await fetch('/api/upload-voice', {
         method: 'POST',
         headers: {
           'x-user-id': String(user?.id),
@@ -143,36 +139,49 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       if (!uploadResponse.ok) {
         const errorText = await uploadResponse.text();
         console.error('❌ 음성 파일 업로드 실패:', uploadResponse.status, errorText);
-        
-        // HTML 응답인 경우 (DOCTYPE 오류) 더 구체적인 오류 메시지
-        if (errorText.includes('<!DOCTYPE')) {
-          throw new Error('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
-        }
-        
-        throw new Error(`업로드 실패: ${uploadResponse.status}`);
+        throw new Error('음성 파일 업로드에 실패했습니다.');
       }
 
-      let uploadData;
+      const uploadResult = await uploadResponse.json();
+      console.log('✅ 음성 파일 업로드 성공:', uploadResult);
+
+      // 2단계: 음성 텍스트 변환 (/api/transcribe)
+      const transcribeFormData = new FormData();
+      transcribeFormData.append('audio', audioBlob, 'voice_message.webm');
+
+      const transcribeResponse = await fetch('/api/transcribe', {
+        method: 'POST',
+        headers: {
+          'x-user-id': String(user?.id),
+        },
+        body: transcribeFormData,
+      });
+
+      if (!transcribeResponse.ok) {
+        console.warn('⚠️ 음성 변환 실패, 기본 텍스트 사용');
+      }
+
+      let transcribeResult;
       try {
-        uploadData = await uploadResponse.json();
-      } catch (parseError) {
-        console.error('❌ 업로드 응답 파싱 실패:', parseError);
-        throw new Error('서버 응답을 처리할 수 없습니다.');
+        transcribeResult = await transcribeResponse.json();
+      } catch (error) {
+        console.warn('⚠️ 음성 변환 응답 파싱 실패, 기본 텍스트 사용');
+        transcribeResult = { success: false, transcription: '음성 메시지' };
       }
 
-      console.log('✅ 음성 파일 업로드 성공:', uploadData);
+      console.log('✅ 음성 변환 결과:', transcribeResult);
 
-      // 메시지 생성
+      // 메시지 생성 - 정규 채팅방 음성 메시지와 동일한 형식
       const messageData = {
-        content: uploadData.transcription || '음성 메시지',
+        content: transcribeResult.transcription || '음성 메시지',
         messageType: 'voice',
-        fileUrl: uploadData.fileUrl,
-        fileName: uploadData.fileName,
-        fileSize: uploadData.fileSize,
-        duration: uploadData.duration || duration,
-        transcription: uploadData.transcription,
-        language: uploadData.language || 'korean',
-        confidence: uploadData.confidence || '0.9'
+        fileUrl: uploadResult.fileUrl,
+        fileName: uploadResult.fileName,
+        fileSize: uploadResult.fileSize,
+        voiceDuration: duration,
+        transcription: transcribeResult.transcription || '음성 메시지',
+        language: transcribeResult.language || 'korean',
+        confidence: transcribeResult.confidence || '0.9'
       };
 
       const messageResponse = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages`, 'POST', messageData);
