@@ -148,6 +148,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [activePoll, setActivePoll] = useState<any>(null);
   const [pollVotes, setPollVotes] = useState<{[key: number]: number}>({});
   const [userVote, setUserVote] = useState<number | null>(null);
+  const [showFileUploadModal, setShowFileUploadModal] = useState(false);
   const [votedUsers, setVotedUsers] = useState<Set<number>>(new Set());
   const [explodedMessages, setExplodedMessages] = useState<Set<number>>(new Set());
   const [messageTimers, setMessageTimers] = useState<{[key: number]: number}>({});
@@ -159,7 +160,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [translatedMessages, setTranslatedMessages] = useState<{[key: number]: {text: string, language: string}}>({});
   const [translatingMessages, setTranslatingMessages] = useState<Set<number>>(new Set());
   const [isTranslating, setIsTranslating] = useState(false);
-  const [showFileUploadModal, setShowFileUploadModal] = useState(false);
   
 
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
@@ -1422,7 +1422,33 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   };
 
   const handleFileUpload = () => {
-    fileInputRef.current?.click();
+    setShowFileUploadModal(true);
+  };
+
+  const handleFileUploadWithHashtags = async (files: FileList, caption: string, hashtags: string[]) => {
+    const formData = new FormData();
+    
+    // Add all files
+    Array.from(files).forEach((file, index) => {
+      formData.append('files', file);
+    });
+    
+    // Add caption and hashtags
+    formData.append('caption', caption);
+    formData.append('hashtags', JSON.stringify(hashtags));
+    
+    try {
+      const response = await apiRequest(`/api/chat-rooms/${chatRoomId}/upload`, "POST", formData);
+      const result = await response.json();
+      
+      if (result.success) {
+        // Refetch messages to show the uploaded files
+        queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] });
+        queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      }
+    } catch (error) {
+      throw error; // Let the modal handle the error
+    }
   };
 
   // Optimized drag and drop handlers for chat area
@@ -4677,7 +4703,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         )}
 
         <div className={cn(
-          "px-4 py-3 chat-input-area",
+          "px-4 pt-3 pb-3 chat-input-area",
           // 주변챗용 특별한 디자인
           isLocationChatRoom 
             ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-t-2 border-blue-200" 
@@ -5368,6 +5394,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         canEdit={contextMenu.message?.senderId === user?.id}
         canSummarize={contextMenu.message?.content && contextMenu.message.content.length > 50}
         onSummarizeMessage={handleSummarizeMessage}
+      />
+
+      {/* File Upload Modal with Hashtag Support */}
+      <FileUploadModal
+        isOpen={showFileUploadModal}
+        onClose={() => setShowFileUploadModal(false)}
+        onUpload={handleFileUploadWithHashtags}
+        maxFiles={10}
       />
 
     </div>
