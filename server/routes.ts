@@ -551,7 +551,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const targetUserId = req.params.userId ? Number(req.params.userId) : Number(userId);
-      const businessCard = await storage.getBusinessCard(targetUserId);
+      // Business card functionality disabled
+      const businessCard = null;
       res.json({ businessCard });
     } catch (error) {
       console.error("Error fetching business card:", error);
@@ -566,7 +567,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const businessCard = await storage.createOrUpdateBusinessCard(Number(userId), req.body);
+      // Business card functionality disabled
+      const businessCard = null;
       res.json({ businessCard });
     } catch (error) {
       console.error("Error updating business card:", error);
@@ -614,9 +616,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const share = await storage.createBusinessCardShare(Number(userId));
-      const shareUrl = `${req.protocol}://${req.get('host')}/business-card/${share.shareToken}`;
-      res.json({ share, shareUrl });
+      // Business card functionality disabled
+      const share = null;
+      res.json({ message: "Business card functionality disabled" });
     } catch (error) {
       console.error("Error creating share link:", error);
       res.status(500).json({ message: "Failed to create share link" });
@@ -1488,19 +1490,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       friendIdList.push(parseInt(userId as string)); // 내 포스트도 포함
 
       const posts = await db.select({
-        id: spacePosts.id,
-        userId: spacePosts.userId,
-        companyChannelId: spacePosts.companyChannelId,
-        content: spacePosts.content,
-        imageUrl: spacePosts.imageUrl,
-        linkUrl: spacePosts.linkUrl,
-        linkTitle: spacePosts.linkTitle,
-        linkDescription: spacePosts.linkDescription,
-        postType: spacePosts.postType,
-        likesCount: spacePosts.likesCount,
-        commentsCount: spacePosts.commentsCount,
-        sharesCount: spacePosts.sharesCount,
-        createdAt: spacePosts.createdAt,
+        id: businessPosts.id,
+        userId: businessPosts.userId,
+        companyChannelId: businessPosts.companyChannelId,
+        content: businessPosts.content,
+        postType: businessPosts.postType,
+        likesCount: businessPosts.likesCount,
+        commentsCount: businessPosts.commentsCount,
+        sharesCount: businessPosts.sharesCount,
+        createdAt: businessPosts.createdAt,
         user: {
           id: users.id,
           username: users.username,
@@ -1508,22 +1506,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           profilePicture: users.profilePicture,
         },
         companyChannel: {
-          id: spaceCompanyChannels.id,
-          name: spaceCompanyChannels.companyName,
-          logoUrl: spaceCompanyChannels.logo,
-          isVerified: spaceCompanyChannels.isVerified,
+          id: companyChannels.id,
+          name: companyChannels.name,
+          isVerified: companyChannels.isVerified,
         }
       })
-      .from(spacePosts)
-      .innerJoin(users, eq(spacePosts.userId, users.id))
-      .leftJoin(spaceCompanyChannels, eq(spacePosts.companyChannelId, spaceCompanyChannels.id))
+      .from(businessPosts)
+      .innerJoin(users, eq(businessPosts.userId, users.id))
+      .leftJoin(companyChannels, eq(businessPosts.companyChannelId, companyChannels.id))
       .where(
         and(
-          eq(spacePosts.isVisible, true),
-          inArray(spacePosts.userId, friendIdList)
+          eq(businessPosts.isVisible, true),
+          inArray(businessPosts.userId, friendIdList)
         )
       )
-      .orderBy(desc(spacePosts.createdAt))
+      .orderBy(desc(businessPosts.createdAt))
       .limit(limit)
       .offset(offset);
 
