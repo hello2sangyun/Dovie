@@ -60,6 +60,18 @@ export default function SimpleVoiceRecorder({ onRecordingComplete, disabled }: S
     setIsPreparing(true);
     
     try {
+      // Check microphone permissions first
+      try {
+        const permissionStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+        console.log('🎤 Microphone permission status:', permissionStatus.state);
+        
+        if (permissionStatus.state === 'denied') {
+          throw new Error('마이크 권한이 거부되었습니다. 브라우저 설정에서 마이크 권한을 허용해주세요.');
+        }
+      } catch (permError) {
+        console.log('🎤 Permission API not available, proceeding with getUserMedia');
+      }
+      
       // Request microphone access
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
@@ -69,6 +81,14 @@ export default function SimpleVoiceRecorder({ onRecordingComplete, disabled }: S
           sampleRate: 44100
         } 
       });
+      
+      // Verify audio track is working
+      const audioTracks = stream.getAudioTracks();
+      if (audioTracks.length === 0 || audioTracks[0].readyState !== 'live') {
+        throw new Error('마이크에서 오디오를 받을 수 없습니다.');
+      }
+      
+      console.log('🎤 Audio track verified:', audioTracks[0].label, 'state:', audioTracks[0].readyState);
       
       console.log('SimpleVoiceRecorder: Microphone access granted');
       streamRef.current = stream;
@@ -132,8 +152,11 @@ export default function SimpleVoiceRecorder({ onRecordingComplete, disabled }: S
         console.log('🎯 Recording duration:', recordingDuration, 'seconds');
         console.log('🎯 MIME type used:', selectedMimeType);
         
-        if (audioBlob.size < 50) {
-          console.error('❌ SimpleVoiceRecorder: Audio file too small');
+        if (audioBlob.size < 100) {
+          console.error('❌ SimpleVoiceRecorder: Audio file too small:', audioBlob.size, 'bytes');
+          console.error('❌ This usually indicates microphone access issues or short recording time');
+          console.error('❌ Chunks collected:', chunksRef.current.length);
+          console.error('❌ Recording duration was:', recordingDuration, 'seconds');
           cleanup();
           return;
         }
@@ -148,8 +171,8 @@ export default function SimpleVoiceRecorder({ onRecordingComplete, disabled }: S
         cleanup();
       };
       
-      // Start recording with explicit timeslice
-      mediaRecorder.start(100); // Request data every 100ms
+      // Start recording with explicit timeslice for better data collection
+      mediaRecorder.start(200); // Request data every 200ms
       startTimeRef.current = Date.now();
       setIsRecording(true);
       setIsPreparing(false);
@@ -158,6 +181,24 @@ export default function SimpleVoiceRecorder({ onRecordingComplete, disabled }: S
       console.log('🎤 MediaRecorder state:', mediaRecorder.state);
       console.log('🎤 Stream active:', stream.active);
       console.log('🎤 Audio tracks:', stream.getAudioTracks().length);
+      console.log('🎤 Audio track settings:', stream.getAudioTracks()[0]?.getSettings());
+      
+      // Force periodic data requests to ensure we get audio chunks
+      const dataRequestInterval = setInterval(() => {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+          try {
+            mediaRecorderRef.current.requestData();
+            console.log('🔄 Requested data chunk at', Date.now() - startTimeRef.current, 'ms');
+          } catch (e) {
+            console.warn('Failed to request data:', e);
+          }
+        } else {
+          clearInterval(dataRequestInterval);
+        }
+      }, 300);
+      
+      // Store interval reference for cleanup
+      (mediaRecorder as any).dataInterval = dataRequestInterval;
       
       // Start timer
       timerRef.current = setInterval(() => {
@@ -189,21 +230,34 @@ export default function SimpleVoiceRecorder({ onRecordingComplete, disabled }: S
         }
       }
       
-      // Ensure minimum recording time
-      if (recordingTime < 500) {
+      // Ensure minimum recording time of 1 second for meaningful audio
+      const minRecordingTime = 1000;
+      if (recordingTime < minRecordingTime) {
+        console.log('🛑 Recording too short, waiting for minimum duration...');
         setTimeout(() => {
           if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
             try {
+              // Request final data and stop
               mediaRecorderRef.current.requestData();
-              mediaRecorderRef.current.stop();
+              setTimeout(() => {
+                if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+                  mediaRecorderRef.current.stop();
+                }
+              }, 100);
             } catch (e) {
               console.error('🛑 Error stopping recorder:', e);
             }
           }
-        }, 500 - recordingTime);
+        }, minRecordingTime - recordingTime);
       } else {
         try {
-          mediaRecorderRef.current.stop();
+          // Request final data before stopping
+          mediaRecorderRef.current.requestData();
+          setTimeout(() => {
+            if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+              mediaRecorderRef.current.stop();
+            }
+          }, 100);
         } catch (e) {
           console.error('🛑 Error stopping recorder:', e);
         }

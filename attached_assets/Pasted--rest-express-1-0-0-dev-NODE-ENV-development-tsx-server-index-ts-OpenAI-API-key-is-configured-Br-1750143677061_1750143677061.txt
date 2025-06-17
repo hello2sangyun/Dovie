@@ -1,0 +1,68 @@
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+OpenAI API key is configured
+Browserslist: browsers data (caniuse-lite) is 8 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+6:57:35 AM [express] GET /api/unread-counts 304 in 4230ms :: {"unreadCounts":[]}
+6:57:41 AM [express] GET /api/unread-counts 304 in 439ms :: {"unreadCounts":[]}
+6:57:43 AM [express] GET /api/auth/me 304 in 138ms :: {"user":{"id":91,"username":"strong","displayN…
+6:57:44 AM [express] GET /api/contacts/recent-posts 304 in 39ms :: []
+6:57:47 AM [express] GET /api/unread-counts 304 in 437ms :: {"unreadCounts":[]}
+6:57:52 AM [express] GET /api/unread-counts 304 in 441ms :: {"unreadCounts":[]}
+6:57:58 AM [express] GET /api/unread-counts 304 in 437ms :: {"unreadCounts":[]}
+6:58:04 AM [express] GET /api/unread-counts 304 in 442ms :: {"unreadCounts":[]}
+6:58:09 AM [express] GET /api/unread-counts 304 in 443ms :: {"unreadCounts":[]}
+6:58:13 AM [express] GET /api/auth/me 304 in 39ms :: {"user":{"id":91,"username":"strong","displayNa…
+6:58:15 AM [express] GET /api/contacts/recent-posts 304 in 38ms :: []
+6:58:15 AM [express] GET /api/unread-counts 304 in 437ms :: {"unreadCounts":[]}
+6:58:21 AM [express] GET /api/unread-counts 304 in 437ms :: {"unreadCounts":[]}
+6:58:26 AM [express] GET /api/unread-counts 304 in 439ms :: {"unreadCounts":[]}
+6:58:32 AM [express] GET /api/unread-counts 304 in 440ms :: {"unreadCounts":[]}
+6:58:38 AM [express] GET /api/unread-counts 304 in 438ms :: {"unreadCounts":[]}
+6:58:43 AM [express] GET /api/auth/me 304 in 39ms :: {"user":{"id":91,"username":"strong","displayNa…
+6:58:44 AM [express] GET /api/unread-counts 304 in 497ms :: {"unreadCounts":[]}
+6:58:45 AM [express] GET /api/contacts/recent-posts 304 in 38ms :: []
+6:58:49 AM [express] GET /api/unread-counts 304 in 534ms :: {"unreadCounts":[]}
+6:58:55 AM [express] GET /api/unread-counts 304 in 434ms :: {"unreadCounts":[]}
+6:59:01 AM [express] GET /api/unread-counts 304 in 439ms :: {"unreadCounts":[]}
+6:59:06 AM [express] GET /api/unread-counts 304 in 458ms :: {"unreadCounts":[]}
+6:59:12 AM [express] GET /api/unread-counts 304 in 440ms :: {"unreadCounts":[]}
+6:59:13 AM [express] GET /api/auth/me 304 in 39ms :: {"user":{"id":91,"username":"strong","displayNa…
+6:59:15 AM [express] GET /api/contacts/recent-posts 304 in 40ms :: []
+6:59:18 AM [express] GET /api/unread-counts 304 in 443ms :: {"unreadCounts":[]}
+6:59:24 AM [express] GET /api/unread-counts 304 in 435ms :: {"unreadCounts":[]}
+6:59:29 AM [express] GET /api/unread-counts 304 in 441ms :: {"unreadCounts":[]}
+6:59:35 AM [express] GET /api/unread-counts 304 in 436ms :: {"unreadCounts":[]}
+6:59:41 AM [express] GET /api/unread-counts 304 in 438ms :: {"unreadCounts":[]}
+6:59:44 AM [express] GET /api/auth/me 304 in 37ms :: {"user":{"id":91,"username":"strong","displayNa…
+6:59:46 AM [express] GET /api/contacts/recent-posts 304 in 38ms :: []
+6:59:46 AM [express] GET /api/unread-counts 304 in 438ms :: {"unreadCounts":[]}
+6:59:52 AM [express] GET /api/unread-counts 304 in 440ms :: {"unreadCounts":[]}
+6:59:58 AM [express] GET /api/unread-counts 304 in 441ms :: {"unreadCounts":[]}
+7:00:04 AM [express] GET /api/unread-counts 304 in 445ms :: {"unreadCounts":[]}
+7:00:09 AM [express] GET /api/unread-counts 304 in 517ms :: {"unreadCounts":[]}
+7:00:14 AM [express] GET /api/auth/me 304 in 37ms :: {"user":{"id":91,"username":"strong","displayNa…
+7:00:15 AM [express] GET /api/unread-counts 304 in 437ms :: {"unreadCounts":[]}
+7:00:16 AM [express] GET /api/contacts/recent-posts 304 in 38ms :: []
+7:00:21 AM [express] GET /api/unread-counts 304 in 434ms :: {"unreadCounts":[]}
+7:00:26 AM [express] GET /api/unread-counts 304 in 449ms :: {"unreadCounts":[]}
+7:00:32 AM [express] GET /api/unread-counts 304 in 443ms :: {"unreadCounts":[]}
+7:00:34 AM [express] GET /api/auth/me 304 in 37ms :: {"user":{"id":91,"username":"strong","displayNa…
+7:00:39 AM [express] GET /api/auth/me 200 in 43ms :: {"user":{"id":91,"username":"strong","displayNa…
+7:00:45 AM [express] POST /api/auth/login 200 in 193ms :: {"user":{"id":91,"username":"strong","disp…
+7:00:45 AM [express] GET /api/auth/me 200 in 38ms :: {"user":{"id":91,"username":"strong","displayNa…
+7:00:45 AM [express] GET /api/contacts 304 in 160ms :: {"contacts":[{"id":55,"userId":91,"contactUse…
+7:00:45 AM [express] GET /api/chat-rooms 304 in 191ms :: {"chatRooms":[{"id":63,"name":"사랑","isGroup…
+7:00:46 AM [express] GET /api/chat-rooms/63/messages 304 in 41ms :: {"messages":[{"id":368,"chatRoom…
+7:00:46 AM [express] GET /api/chat-rooms/83/messages 304 in 45ms :: {"messages":[{"id":343,"chatRoom…
+7:00:46 AM [express] GET /api/unread-counts 304 in 566ms :: {"unreadCounts":[]}
+7:00:46 AM [express] GET /api/chat-rooms/42/messages 304 in 43ms :: {"messages":[{"id":89,"chatRoomI…
+7:00:46 AM [express] GET /api/chat-rooms/43/messages 304 in 42ms :: {"messages":[{"id":93,"chatRoomI…
+7:00:46 AM [express] GET /api/chat-rooms/44/messages 304 in 37ms :: {"messages":[]}
+7:00:51 AM [express] GET /api/unread-counts 304 in 490ms :: {"unreadCounts":[]}
+7:00:52 AM [express] GET /api/contacts/recent-posts 304 in 38ms :: []
+7:00:57 AM [express] GET /api/unread-counts 304 in 433ms :: {"unreadCounts":[]}
+7:00:58 AM [express] POST /api/chat-rooms/direct 200 in 4ms
+7:01:04 AM [express] GET /api/auth/me 304 in 37ms :: {"user":{"id":91,"username":"strong","displayNa…
