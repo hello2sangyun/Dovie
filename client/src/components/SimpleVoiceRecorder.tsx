@@ -44,7 +44,12 @@ export default function SimpleVoiceRecorder({ onRecordingComplete, disabled }: S
   const startRecording = async () => {
     if (disabled) return;
     
-    console.log('SimpleVoiceRecorder: Starting recording process...');
+    console.log('🎤 SimpleVoiceRecorder: Starting recording process...');
+    console.log('🎤 Browser support check:', {
+      mediaDevices: !!navigator.mediaDevices,
+      getUserMedia: !!navigator.mediaDevices?.getUserMedia,
+      MediaRecorder: !!window.MediaRecorder
+    });
     setIsPreparing(true);
     
     try {
@@ -90,17 +95,23 @@ export default function SimpleVoiceRecorder({ onRecordingComplete, disabled }: S
       
       // Set up event handlers
       mediaRecorder.ondataavailable = (event) => {
-        console.log('SimpleVoiceRecorder: Data chunk received, size:', event.data.size);
+        console.log('🎵 SimpleVoiceRecorder: Data chunk received, size:', event.data.size, 'type:', event.data.type);
+        console.log('🎵 Total chunks so far:', chunksRef.current.length + 1);
         if (event.data && event.data.size > 0) {
           chunksRef.current.push(event.data);
+          console.log('🎵 Chunk added to array. New total size:', chunksRef.current.reduce((sum, chunk) => sum + chunk.size, 0));
+        } else {
+          console.warn('⚠️ Empty chunk received');
         }
       };
       
       mediaRecorder.onstop = () => {
-        console.log('SimpleVoiceRecorder: Recording stopped, processing audio...');
+        console.log('🛑 SimpleVoiceRecorder: Recording stopped, processing audio...');
+        console.log('🛑 Chunks collected:', chunksRef.current.length);
+        console.log('🛑 Individual chunk sizes:', chunksRef.current.map(chunk => chunk.size));
         
         if (chunksRef.current.length === 0) {
-          console.error('SimpleVoiceRecorder: No audio data recorded');
+          console.error('❌ SimpleVoiceRecorder: No audio data recorded');
           cleanup();
           return;
         }
@@ -108,14 +119,19 @@ export default function SimpleVoiceRecorder({ onRecordingComplete, disabled }: S
         const audioBlob = new Blob(chunksRef.current, { type: selectedMimeType });
         const recordingDuration = Math.max(duration, 1);
         
-        console.log('SimpleVoiceRecorder: Audio blob created - size:', audioBlob.size, 'duration:', recordingDuration);
+        console.log('🎯 SimpleVoiceRecorder: Audio blob created');
+        console.log('🎯 Blob size:', audioBlob.size, 'bytes');
+        console.log('🎯 Blob type:', audioBlob.type);
+        console.log('🎯 Recording duration:', recordingDuration, 'seconds');
+        console.log('🎯 MIME type used:', selectedMimeType);
         
         if (audioBlob.size < 50) {
-          console.error('SimpleVoiceRecorder: Audio file too small');
+          console.error('❌ SimpleVoiceRecorder: Audio file too small');
           cleanup();
           return;
         }
         
+        console.log('✅ Calling onRecordingComplete with valid audio blob');
         onRecordingComplete(audioBlob, recordingDuration);
         cleanup();
       };

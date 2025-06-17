@@ -82,6 +82,13 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
 
   // 간편음성메세지 완료 처리 - 채팅방 음성 메시지와 동일한 방식 사용
   const handleQuickVoiceComplete = async (audioBlob: Blob, duration: number) => {
+    console.log('📞 handleQuickVoiceComplete 시작');
+    console.log('📞 recordingContact:', recordingContact);
+    console.log('📞 audioBlob:', audioBlob);
+    console.log('📞 audioBlob.size:', audioBlob.size);
+    console.log('📞 audioBlob.type:', audioBlob.type);
+    console.log('📞 duration:', duration);
+    
     if (!recordingContact) {
       console.error('❌ 녹음 대상 연락처가 없습니다');
       return;
@@ -116,7 +123,18 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       formData.append('file', audioBlob, fileName);
       formData.append('messageType', 'voice');
 
-      console.log('📤 음성 파일 업로드 시작:', fileName, 'Size:', audioBlob.size, 'Type:', audioBlob.type);
+      console.log('📤 FormData 생성 완료');
+      console.log('📤 fileName:', fileName);
+      console.log('📤 audioBlob size:', audioBlob.size);
+      console.log('📤 audioBlob type:', audioBlob.type);
+      console.log('📤 FormData entries:');
+      for (let [key, value] of formData.entries()) {
+        console.log(`📤 - ${key}:`, value);
+        if (value instanceof File || value instanceof Blob) {
+          console.log(`📤   └ size: ${value.size}, type: ${value.type}`);
+        }
+      }
+      console.log('📤 음성 파일 업로드 시작...');
 
       const uploadResponse = await fetch(`/api/chat-rooms/${chatRoomId}/upload`, {
         method: 'POST',
