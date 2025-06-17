@@ -283,6 +283,7 @@ export default function MainApp() {
 
           {/* Navigation Tabs */}
           <Tabs value={activeTab} onValueChange={(value) => {
+            console.log("🔄 Tab changed to:", value, "from:", activeTab);
             setActiveTab(value);
             if (value === "settings") {
               setRightPanelContent(value);
@@ -290,6 +291,7 @@ export default function MainApp() {
             } else if (value === "contacts") {
               setRightPanelContent(null);
               setSelectedChatRoom(null);
+              console.log("✅ Contacts tab activated - cleared rightPanelContent and selectedChatRoom");
             } else {
               setRightPanelContent(null);
             }
