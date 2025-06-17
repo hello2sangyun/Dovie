@@ -4675,28 +4675,28 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         )}
 
         <div className={cn(
-          "px-2 py-0.5 chat-input-area",
+          "px-4 py-3 chat-input-area",
           // 주변챗용 특별한 디자인
           isLocationChatRoom 
             ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-t-2 border-blue-200" 
             : "bg-white border-t border-gray-200"
         )}>
-          <div className="flex items-center space-x-1">
-          {/* Compact left buttons group */}
-          <div className="flex items-center space-x-0.5 mr-1">
+          <div className="flex items-center gap-3">
+          {/* Enhanced left buttons group */}
+          <div className="flex items-center gap-1">
             <InteractiveButton
               type="hover"
               intensity="moderate"
               accessibilityMode={accessibilitySettings.reducedMotion}
               hapticFeedback={accessibilitySettings.hapticEnabled}
-              className="text-gray-400 hover:text-purple-600 p-0.5 min-w-0 h-6 w-6 rounded-md transition-colors"
+              className="text-gray-500 hover:text-purple-600 hover:bg-purple-50 p-2 h-9 w-9 rounded-lg transition-all duration-200 flex items-center justify-center"
               onClick={() => {
                 setMessage(prev => prev + "#");
                 messageInputRef.current?.focus();
               }}
               aria-label="스마트 추천"
             >
-              <Hash className="h-3 w-3" />
+              <Hash className="h-4 w-4" />
             </InteractiveButton>
             
             <InteractiveButton
@@ -4704,7 +4704,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               intensity="moderate"
               accessibilityMode={accessibilitySettings.reducedMotion}
               hapticFeedback={accessibilitySettings.hapticEnabled}
-              className="text-gray-400 hover:text-purple-600 p-0.5 min-w-0 h-6 w-6 rounded-md transition-colors"
+              className="text-gray-500 hover:text-purple-600 hover:bg-purple-50 p-2 h-9 w-9 rounded-lg transition-all duration-200 flex items-center justify-center"
               onClick={handleFileUpload}
               disabled={uploadFileMutation.isPending}
               aria-label="파일 첨부"
@@ -4712,13 +4712,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               {uploadFileMutation.isPending ? (
                 <AccessibleSpinner size="sm" accessibilityMode={accessibilitySettings.reducedMotion} />
               ) : (
-                <Paperclip className="h-3 w-3" />
+                <Paperclip className="h-4 w-4" />
               )}
             </InteractiveButton>
 
           </div>
           
-          <div className="flex-1 relative mx-1">
+          <div className="flex-1 relative max-w-2xl mx-2">
             {/* 멘션 자동완성 */}
             {showMentions && mentionSuggestions.length > 0 && (
               <div className="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto z-50">

@@ -229,6 +229,14 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Backend API endpoint for secure profile picture upload with encryption
   - Automatic deletion of previous profile pictures when updating
   - 5MB file size limit and image-only validation for security
+- June 17, 2025: Enhanced Footer design and unified send button functionality:
+  - Increased Footer height with improved padding (px-4 py-3) for better usability
+  - Created UnifiedSendButton component combining voice recording and text sending
+  - Left buttons redesigned with larger clickable areas (h-9 w-9) and hover effects
+  - Text input area width optimized with max-w-2xl constraint for better proportion
+  - Unified button: tap to send text messages, long press (500ms) for voice recording
+  - Recording duration display with animated red indicator during voice capture
+  - Fixed UTF-8 encoding for international filenames in file uploads
 
 ## User Preferences
 

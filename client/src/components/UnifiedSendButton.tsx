@@ -171,24 +171,19 @@ export function UnifiedSendButton({
         accessibilityMode={accessibilitySettings.reducedMotion}
         intensity="moderate"
       >
-        <InteractiveButton
-          type="press"
-          intensity="strong"
-          accessibilityMode={accessibilitySettings.reducedMotion}
-          hapticFeedback={accessibilitySettings.hapticEnabled}
-          className={`h-8 w-8 p-1.5 rounded-full transition-all duration-200 select-none ${
+        <div
+          className={`h-10 w-10 p-2 rounded-full transition-all duration-200 select-none cursor-pointer flex items-center justify-center ${
             isRecording 
-              ? 'bg-red-500 hover:bg-red-600 text-white'
+              ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg'
               : hasMessage 
-                ? 'purple-gradient hover:purple-gradient-hover text-white'
+                ? 'purple-gradient hover:purple-gradient-hover text-white shadow-md'
                 : 'bg-gray-200 hover:bg-gray-300 text-gray-600'
-          }`}
+          } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseLeave}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
-          disabled={disabled}
           aria-label={
             isRecording 
               ? '녹음 중지' 
@@ -206,15 +201,8 @@ export function UnifiedSendButton({
           ) : (
             <Mic className="h-4 w-4" />
           )}
-        </InteractiveButton>
-      </PulseNotification>
-      
-      {/* 사용법 힌트 (텍스트가 없을 때만 표시) */}
-      {!hasMessage && !isRecording && (
-        <div className="text-xs text-gray-400 hidden sm:block">
-          탭: 전송 | 길게 누르기: 음성
         </div>
-      )}
+      </PulseNotification>
     </div>
   );
 }
