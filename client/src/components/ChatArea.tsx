@@ -4082,12 +4082,17 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                                       isMe ? "text-white" : "text-purple-600"
                                     )} />
                                   </div>
-                                  <p className={cn(
-                                    "text-sm font-medium",
-                                    isMe ? "text-white/90" : "text-gray-700"
+                                  <div className={cn(
+                                    "px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1",
+                                    isMe ? "bg-white/20 text-white/90" : "bg-purple-100 text-purple-600"
                                   )}>
-                                    🎵 음성 메시지
-                                  </p>
+                                    <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor">
+                                      <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/>
+                                      <path d="M19 10v1a7 7 0 0 1-14 0v-1"/>
+                                      <path d="M12 18v4M8 22h8"/>
+                                    </svg>
+                                    <span>음성 메시지</span>
+                                  </div>
                                 </div>
                               );
                             }
@@ -4161,15 +4166,20 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center space-x-2 mb-1">
                               <div className={cn(
-                                "h-4 w-4 rounded-full flex items-center justify-center",
-                                isMe ? "text-white" : "text-purple-600"
+                                "px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1",
+                                isMe ? "bg-white/20 text-white" : "bg-purple-100 text-purple-600"
                               )}>
-                                🎤
+                                <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor">
+                                  <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/>
+                                  <path d="M19 10v1a7 7 0 0 1-14 0v-1"/>
+                                  <path d="M12 18v4M8 22h8"/>
+                                </svg>
+                                <span>음성</span>
                               </div>
                               {msg.voiceDuration && (
                                 <span className={cn(
-                                  "text-xs",
-                                  isMe ? "text-white/70" : "text-gray-500"
+                                  "text-xs px-2 py-1 rounded-full",
+                                  isMe ? "bg-white/20 text-white/70" : "bg-gray-100 text-gray-500"
                                 )}>
                                   {msg.voiceDuration}초
                                 </span>
