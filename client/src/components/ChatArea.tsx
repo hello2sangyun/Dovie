@@ -1893,28 +1893,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     return null;
   };
 
-  // 일정/시간 감지 함수
-  const detectSchedule = (text: string) => {
-    const patterns = [
-      /(내일|오늘|모레)\s*(\d{1,2})시/i,
-      /(\d{1,2})월\s*(\d{1,2})일\s*(\d{1,2})시/i,
-      /(\d{1,2})시에?\s*(회의|미팅|약속)/i,
-      /(회의|미팅|약속).*(\d{1,2})시/i
-    ];
-    
-    for (const pattern of patterns) {
-      if (pattern.test(text)) {
-        return {
-          type: 'schedule' as const,
-          text: '일정 등록하기',
-          result: `일정: ${text}`,
-          icon: '📅',
-          category: '일정 관리'
-        };
-      }
-    }
-    return null;
-  };
+
 
   // 외국어 감지 함수 (상대방 언어에 맞춰 번역)
   const detectForeignLanguage = (text: string) => {
@@ -1944,31 +1923,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
 
 
-  // 감정 감지 함수 (스마트 제안용)
-  const detectEmotion = (text: string) => {
-    const emotions = {
-      sad: { patterns: [/슬프|우울|힘들|피곤|지쳐|아프|아파/i], emoji: '😢', comfort: '힘내요!' },
-      happy: { patterns: [/기쁘|행복|좋아|최고|완벽|성공/i], emoji: '😊', comfort: '축하해요!' },
-      angry: { patterns: [/화나|짜증|빡쳐|열받|답답/i], emoji: '😤', comfort: '진정해요' },
-      tired: { patterns: [/피곤|지쳐|졸려|잠|힘들어/i], emoji: '😴', comfort: '푹 쉬세요!' },
-      stressed: { patterns: [/스트레스|바빠|정신없|헷갈려/i], emoji: '😰', comfort: '화이팅!' }
-    };
 
-    for (const [emotion, config] of Object.entries(emotions)) {
-      for (const pattern of config.patterns) {
-        if (pattern.test(text)) {
-          return {
-            type: 'emotion' as const,
-            text: `${config.emoji} ${config.comfort}`,
-            result: `${config.emoji} ${config.comfort}`,
-            icon: config.emoji,
-            category: '공감'
-          };
-        }
-      }
-    }
-    return null;
-  };
 
   // 기억 회상 기능 - 이전 대화에서 관련 파일이나 메시지 찾기
   const detectMemoryRecall = (text: string) => {
@@ -2100,31 +2055,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     return null;
   };
 
-  // 음식 감지 함수
-  const detectFood = (text: string) => {
-    const foodPatterns = [
-      /치킨|닭|튀김/i,
-      /피자|파스타|이탈리아/i,
-      /중국음식|짜장|짬뽕|탕수육/i,
-      /햄버거|버거|맥도날드|KFC/i,
-      /족발|보쌈|한식/i,
-      /일식|초밥|라멘|우동/i,
-      /배달|시켜|먹고\s*싶/i
-    ];
 
-    for (const pattern of foodPatterns) {
-      if (pattern.test(text)) {
-        return {
-          type: 'food' as const,
-          text: '근처 배달 검색할까요?',
-          result: `음식 주문: ${text}`,
-          icon: '🍕',
-          category: '배달'
-        };
-      }
-    }
-    return null;
-  };
 
   // 유튜브 감지 함수
   const detectYoutube = (text: string) => {
@@ -2593,49 +2524,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   };
 
   // 선택지/투표 감지 함수
-  const detectPoll = (text: string) => {
-    const patterns = [
-      /(.+),\s*(.+),?\s*(중에|중에서).*(뭐|무엇|어떤)/i,
-      /(.+)\s*(아니면|또는|vs)\s*(.+)[?？]/i,
-      /(치킨|피자|햄버거|중국음식|한식|일식|양식).*뭐.*먹/i
-    ];
 
-    for (const pattern of patterns) {
-      if (pattern.test(text)) {
-        return {
-          type: 'poll' as const,
-          text: '투표 만들기',
-          result: `투표: ${text}`,
-          icon: '📊',
-          category: '투표'
-        };
-      }
-    }
-    return null;
-  };
 
   // 할 일 감지 함수
-  const detectTodo = (text: string) => {
-    const patterns = [
-      /.*(해야|해야지|해야겠).*/i,
-      /.*(끝내|완료|제출).*(해야|해야지)/i,
-      /오늘.*까지.*해야/i,
-      /(보고서|과제|숙제|업무).*(해야|완료)/i
-    ];
 
-    for (const pattern of patterns) {
-      if (pattern.test(text)) {
-        return {
-          type: 'todo' as const,
-          text: '할 일 등록하기',
-          result: `할 일: ${text}`,
-          icon: '✅',
-          category: '할 일'
-        };
-      }
-    }
-    return null;
-  };
 
   // 타이머 감지 함수
   const detectTimer = (text: string) => {
