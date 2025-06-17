@@ -467,7 +467,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const contactId = Number(req.params.contactId);
       const updates = req.body;
       
-      const updatedContact = await storage.updateContact(Number(userId), contactId, updates, true);
+      const contact = await storage.getContacts(Number(userId));
+      const targetContact = contact.find(c => c.id === contactId);
+      if (!targetContact) {
+        return res.status(404).json({ message: "Contact not found" });
+      }
+      const updatedContact = await storage.updateContact(Number(userId), targetContact.contactUserId, updates);
       
       if (!updatedContact) {
         return res.status(404).json({ message: "Contact not found" });
@@ -2820,8 +2825,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Remove follow
       const result = await db
-        .delete(companyFollowers)
-        .where(and(eq(companyFollowers.companyChannelId, Number(companyId)), eq(companyFollowers.userId, Number(userId))))
+        .delete(companyChannelFollowers)
+        .where(and(eq(companyChannelFollowers.channelId, Number(companyId)), eq(companyChannelFollowers.userId, Number(userId))))
         .returning();
 
       if (result.length === 0) {
@@ -2997,7 +3002,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const uniqueUsers = new Map();
       recentPosts.forEach(post => {
         if (!uniqueUsers.has(post.userId) || 
-            new Date(post.latestPostTime) > new Date(uniqueUsers.get(post.userId).latestPostTime)) {
+            (post.latestPostTime && uniqueUsers.get(post.userId).latestPostTime && 
+             new Date(post.latestPostTime) > new Date(uniqueUsers.get(post.userId).latestPostTime))) {
           uniqueUsers.set(post.userId, post);
         }
       });
