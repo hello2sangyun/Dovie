@@ -632,10 +632,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const share = await storage.getBusinessCardShareInfo(Number(userId));
+      // Business card functionality disabled
+      const share = null;
       if (share) {
-        const shareUrl = `${req.protocol}://${req.get('host')}/business-card/${share.shareToken}`;
-        res.json({ ...share, shareUrl });
+        res.json({ message: "Business card functionality disabled" });
       } else {
         res.json({ shareUrl: null });
       }
@@ -647,47 +647,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/business-card/:shareToken", async (req, res) => {
     try {
-      const share = await storage.getBusinessCardShare(req.params.shareToken);
+      // Business card functionality disabled
+      const share = null;
       if (!share) {
         return res.status(404).send("Business card not found");
       }
 
-      const businessCard = await storage.getBusinessCard(share.userId);
-      const user = await storage.getUser(share.userId);
+      // Business card functionality disabled
+      const businessCard = null;
+      // Business card functionality disabled
+      const user = null;
       
-      // Simple HTML page for business card viewing
-      const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>${businessCard?.fullName || user?.displayName || 'Business Card'}</title>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <style>
-            body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
-            .card { border: 1px solid #ddd; border-radius: 8px; padding: 20px; background: #f9f9f9; }
-            .name { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
-            .title { font-size: 18px; color: #666; margin-bottom: 10px; }
-            .company { font-size: 16px; margin-bottom: 15px; }
-            .contact-info { margin-bottom: 10px; }
-          </style>
-        </head>
-        <body>
-          <div class="card">
-            <div class="name">${businessCard?.fullName || user?.displayName || 'Name not available'}</div>
-            <div class="title">${businessCard?.jobTitle || 'Position not available'}</div>
-            <div class="company">${businessCard?.companyName || 'Company not available'}</div>
-            ${businessCard?.email ? `<div class="contact-info">📧 ${businessCard.email}</div>` : ''}
-            ${businessCard?.phoneNumber ? `<div class="contact-info">📞 ${businessCard.phoneNumber}</div>` : ''}
-            ${businessCard?.website ? `<div class="contact-info">🌐 <a href="${businessCard.website}">${businessCard.website}</a></div>` : ''}
-            ${businessCard?.address ? `<div class="contact-info">📍 ${businessCard.address}</div>` : ''}
-            ${businessCard?.description ? `<div style="margin-top: 15px;">${businessCard.description}</div>` : ''}
-          </div>
-        </body>
-        </html>
-      `;
-      
-      res.send(html);
+      res.status(404).send("Business card functionality disabled");
     } catch (error) {
       console.error("Error displaying business card:", error);
       res.status(500).send("Error loading business card");
@@ -1242,7 +1213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const { lastMessageId } = req.body;
-      await storage.markMessagesAsRead(Number(userId), Number(req.params.chatRoomId), lastMessageId);
+      await storage.markMessageAsRead(Number(userId), Number(req.params.chatRoomId), lastMessageId);
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ message: "Failed to mark messages as read" });
