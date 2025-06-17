@@ -1570,45 +1570,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     });
   };
 
-  // 음성 녹음 완료 핸들러 (배경음악 지원)
-  const handleVoiceRecordingComplete = (audioBlob: Blob, duration: number, backgroundMusic?: string) => {
+  // 음성 녹음 완료 핸들러
+  const handleVoiceRecordingComplete = (audioBlob: Blob, duration: number) => {
     setIsProcessingVoice(true);
+    transcribeVoiceMutation.mutate(audioBlob);
     
-    // 배경음악이 선택된 경우 서버로 전송
-    const formData = new FormData();
-    formData.append('audio', audioBlob, 'voice.webm');
-    if (backgroundMusic) {
-      formData.append('backgroundMusic', backgroundMusic);
-    }
-    
-    // 음성 메시지를 채팅으로 전송
-    fetch(`/api/chat-rooms/${chatRoomId}/upload`, {
-      method: 'POST',
-      body: formData
-    }).then(response => {
-      if (response.ok) {
-        return response.json();
-      }
-      throw new Error('업로드 실패');
-    }).then(data => {
-      setIsProcessingVoice(false);
-      toast({
-        title: "음성 메시지 전송 완료",
-        description: backgroundMusic ? "배경음악과 함께 전송되었습니다." : "음성 메시지가 전송되었습니다.",
-      });
-      
-      // 메시지 목록 새로고침
-      queryClient.invalidateQueries({
-        queryKey: ["/api/chat-rooms", chatRoomId, "messages"]
-      });
-    }).catch(error => {
-      console.error('음성 메시지 전송 실패:', error);
-      setIsProcessingVoice(false);
-      toast({
-        variant: "destructive",
-        title: "전송 실패",
-        description: "음성 메시지 전송에 실패했습니다.",
-      });
+    toast({
+      title: "음성 처리 중...",
+      description: "음성을 텍스트로 변환하고 있습니다.",
     });
   }
 
