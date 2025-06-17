@@ -99,7 +99,7 @@ export const LinkPreview: React.FC<LinkPreviewProps> = ({ url, className = '' })
             <img 
               src={previewData.image} 
               alt={previewData.title}
-              className="w-full h-48 object-cover"
+              className="w-full h-32 object-cover"
               onError={(e) => {
                 e.currentTarget.src = `https://img.youtube.com/vi/${previewData.youtubeId}/hqdefault.jpg`;
               }}
@@ -107,9 +107,9 @@ export const LinkPreview: React.FC<LinkPreviewProps> = ({ url, className = '' })
             <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
               <button
                 onClick={handleYouTubePlay}
-                className="bg-red-600 hover:bg-red-700 text-white rounded-full p-4 transition-all duration-200 transform hover:scale-110"
+                className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 transition-all duration-200 transform hover:scale-110"
               >
-                <Play className="h-8 w-8 ml-1" />
+                <Play className="h-4 w-4 ml-0.5" />
               </button>
             </div>
           </div>

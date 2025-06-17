@@ -172,12 +172,12 @@ export function UnifiedSendButton({
         intensity="moderate"
       >
         <div
-          className={`h-10 w-10 p-2 rounded-full transition-all duration-200 select-none cursor-pointer flex items-center justify-center ${
+          className={`h-12 w-12 p-3 rounded-full transition-all duration-200 select-none cursor-pointer flex items-center justify-center shadow-lg ${
             isRecording 
-              ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg'
+              ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
               : hasMessage 
-                ? 'purple-gradient hover:purple-gradient-hover text-white shadow-md'
-                : 'bg-gray-200 hover:bg-gray-300 text-gray-600'
+                ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                : 'bg-purple-500 hover:bg-purple-600 text-white'
           } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}

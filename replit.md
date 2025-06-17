@@ -237,6 +237,12 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Unified button: tap to send text messages, long press (500ms) for voice recording
   - Recording duration display with animated red indicator during voice capture
   - Fixed UTF-8 encoding for international filenames in file uploads
+- June 17, 2025: Optimized chat media display and improved send button:
+  - Made image bubbles more compact (max-h-48 instead of max-h-80) to reduce screen space usage
+  - Reduced YouTube preview size (h-32 instead of h-48) and smaller play button for better proportion
+  - Enhanced send button visibility with larger size (h-12 w-12) and improved color scheme
+  - Fixed voice recording to complete immediately when finger is lifted (no delay)
+  - Send button now shows purple for mic, blue for text sending, red with pulse for recording
 
 ## User Preferences
 
