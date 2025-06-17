@@ -51,6 +51,7 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
   const [isRecording, setIsRecording] = useState(false);
   const [recordingContact, setRecordingContact] = useState<any>(null);
   const [pressStartTime, setPressStartTime] = useState<number | null>(null);
+  const voiceRecorderRef = useRef<any>(null);
 
   // 연락처 데이터 가져오기
   const { data: contactsData, isLoading: contactsLoading } = useQuery({
@@ -92,6 +93,18 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
     if (pressStartTime) {
       const pressDuration = Date.now() - pressStartTime;
       setPressStartTime(null);
+      
+      // 현재 녹음 중인 경우 녹음 완료 처리
+      if (isRecording && recordingContact?.id === contact.id) {
+        console.log('🎤 Touch end during recording - stopping recording automatically');
+        // 지연 후 녹음 중단 (최소 녹음 시간 확보)
+        setTimeout(() => {
+          if (voiceRecorderRef.current && voiceRecorderRef.current.stopRecording) {
+            voiceRecorderRef.current.stopRecording();
+          }
+        }, 100);
+        return;
+      }
       
       // 짧은 터치 (500ms 미만)인 경우 채팅방으로 이동
       if (pressDuration < 500 && !isRecording) {
@@ -331,7 +344,7 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
                 <p className="text-sm text-gray-500">간편음성메세지 녹음 중...</p>
               </div>
               <SimpleVoiceRecorder
-                onComplete={handleQuickVoiceComplete}
+                onRecordingComplete={handleQuickVoiceComplete}
                 onCancel={() => {
                   setIsRecording(false);
                   setRecordingContact(null);

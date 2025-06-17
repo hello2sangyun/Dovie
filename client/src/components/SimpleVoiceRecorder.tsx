@@ -3,10 +3,21 @@ import { Mic, MicOff } from 'lucide-react';
 
 interface SimpleVoiceRecorderProps {
   onRecordingComplete: (audioBlob: Blob, duration: number) => void;
+  onComplete?: (audioBlob: Blob, duration: number) => void;
+  onCancel?: () => void;
   disabled?: boolean;
+  autoStart?: boolean;
+  shouldStop?: boolean;
 }
 
-export default function SimpleVoiceRecorder({ onRecordingComplete, disabled }: SimpleVoiceRecorderProps) {
+export default function SimpleVoiceRecorder({ 
+  onRecordingComplete, 
+  onComplete, 
+  onCancel, 
+  disabled, 
+  autoStart = false,
+  shouldStop = false
+}: SimpleVoiceRecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [isPreparing, setIsPreparing] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -23,6 +34,20 @@ export default function SimpleVoiceRecorder({ onRecordingComplete, disabled }: S
       cleanup();
     };
   }, []);
+
+  // Auto-start recording when component mounts
+  useEffect(() => {
+    if (autoStart && !isRecording && !isPreparing) {
+      startRecording();
+    }
+  }, [autoStart]);
+
+  // Handle external stop signal
+  useEffect(() => {
+    if (shouldStop && isRecording) {
+      stopRecording();
+    }
+  }, [shouldStop, isRecording]);
 
   const cleanup = () => {
     if (streamRef.current) {
@@ -170,6 +195,12 @@ export default function SimpleVoiceRecorder({ onRecordingComplete, disabled }: S
         
         console.log('✅ Calling onRecordingComplete with valid audio blob');
         onRecordingComplete(audioBlob, recordingDuration);
+        
+        // Also call onComplete if provided (for compatibility)
+        if (onComplete) {
+          onComplete(audioBlob, recordingDuration);
+        }
+        
         cleanup();
       };
       
