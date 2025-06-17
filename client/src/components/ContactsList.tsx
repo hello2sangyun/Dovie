@@ -558,23 +558,31 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       </div>
 
       {/* 간편음성메세지 녹음 오버레이 */}
-      {isRecording && recordingContact && (
+      {recordingContact && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm mx-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 max-w-sm mx-4">
             <div className="text-center space-y-4">
-              <div className="text-lg font-semibold text-gray-800">
+              <div className="text-lg font-semibold text-gray-800 dark:text-white">
                 {recordingContact.contactUser.displayName || recordingContact.contactUser.username}
               </div>
-              <div className="text-sm text-gray-600">
-                간편음성메세지 녹음 중...
+              <div className="text-sm text-gray-600 dark:text-gray-300">
+                간편음성메세지
               </div>
               <VoiceRecorder
                 onRecordingComplete={handleQuickVoiceComplete}
                 disabled={false}
               />
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-gray-500 dark:text-gray-400">
                 녹음을 완료하면 자동으로 전송됩니다
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setRecordingContact(null)}
+                className="mt-2"
+              >
+                취소
+              </Button>
             </div>
           </div>
         </div>
