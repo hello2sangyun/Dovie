@@ -1,8 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Send, Mic, Square } from 'lucide-react';
-import { InteractiveButton } from './ui/InteractiveButton';
-import { PulseNotification } from './ui/PulseNotification';
-import { AccessibleSpinner } from './ui/AccessibleSpinner';
+import { InteractiveButton, PulseNotification, AccessibleSpinner } from './MicroInteractions';
 
 interface UnifiedSendButtonProps {
   onSendMessage: () => void;

@@ -23,6 +23,7 @@ import PollBanner from "./PollBanner";
 import PollDetailModal from "./PollDetailModal";
 import TranslateModal from "./TranslateModal";
 import VoiceRecorder from "./VoiceRecorder";
+import { UnifiedSendButton } from "./UnifiedSendButton";
 
 import TypingIndicator, { useTypingIndicator } from "./TypingIndicator";
 import { 
