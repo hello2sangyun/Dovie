@@ -29,6 +29,7 @@ export function UnifiedSendButton({
   const [transcribedText, setTranscribedText] = useState('');
   const [recordedAudioBlob, setRecordedAudioBlob] = useState<Blob | null>(null);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [selectedMusicId, setSelectedMusicId] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingStartTimeRef = useRef<number>(0);
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -123,6 +124,30 @@ export function UnifiedSendButton({
       }
     }
   }, [isRecording]);
+
+  // 배경음악 선택 핸들러들
+  const handleMusicSelected = useCallback((musicId: string | null) => {
+    setSelectedMusicId(musicId);
+  }, []);
+
+  const handleMusicCancel = useCallback(() => {
+    setShowMusicSelector(false);
+    setTranscribedText('');
+    setRecordedAudioBlob(null);
+    setRecordingTime(0);
+    setSelectedMusicId(null);
+  }, []);
+
+  const handleMusicConfirm = useCallback(() => {
+    if (recordedAudioBlob) {
+      onVoiceRecordingComplete(recordedAudioBlob, recordingTime, selectedMusicId || undefined);
+      setShowMusicSelector(false);
+      setTranscribedText('');
+      setRecordedAudioBlob(null);
+      setRecordingTime(0);
+      setSelectedMusicId(null);
+    }
+  }, [recordedAudioBlob, recordingTime, selectedMusicId, onVoiceRecordingComplete]);
 
   // 마우스/터치 이벤트 핸들러
   const handleMouseDown = useCallback(() => {
@@ -233,6 +258,17 @@ export function UnifiedSendButton({
           )}
         </div>
       </PulseNotification>
+
+      {/* 음성 메시지 배경음악 선택 모달 */}
+      {showMusicSelector && recordedAudioBlob && (
+        <VoiceMusicSelector
+          transcribedText={transcribedText}
+          audioBlob={recordedAudioBlob}
+          onMusicSelected={handleMusicSelected}
+          onCancel={handleMusicCancel}
+          onConfirm={handleMusicConfirm}
+        />
+      )}
     </div>
   );
 }
