@@ -4511,7 +4511,20 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                                     </div>
                                   ) : (
                                     <>
-                                      {renderMessageWithLinks(msg.content)}
+                                      <div>
+                                        {renderMessageWithLinks(msg.content)}
+                                        {/* Link Previews */}
+                                        {(() => {
+                                          const urls = detectUrls(msg.content);
+                                          return urls.map((url, index) => (
+                                            <LinkPreview 
+                                              key={index} 
+                                              url={url} 
+                                              className="mt-2"
+                                            />
+                                          ));
+                                        })()}
+                                      </div>
                                       {msg.isEdited && (
                                         <span className={cn(
                                           "text-xs ml-2 opacity-70 italic",
@@ -4531,6 +4544,19 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                               </div>
                             )}
                           </div>
+                          
+                          {/* Message Like Button */}
+                          {!isLocationChatRoom && (
+                            <div className="mt-2 flex justify-end">
+                              <MessageLikeButton
+                                messageId={msg.id}
+                                chatRoomId={chatRoomId}
+                                isLiked={msg.isLiked || false}
+                                likeCount={msg.likeCount || 0}
+                                className="opacity-75 hover:opacity-100 transition-opacity"
+                              />
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
