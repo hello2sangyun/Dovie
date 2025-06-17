@@ -420,3 +420,41 @@ export async function generateFileSummary(fileName: string, fileType: string, fi
     }
   }
 }
+
+export async function analyzeVoiceMood(text: string): Promise<string[]> {
+  try {
+    const prompt = `다음 음성 메시지 내용을 분석하여 어울리는 배경음악 무드를 추천해주세요.
+
+음성 내용: "${text}"
+
+사용 가능한 무드 옵션:
+- calm: 차분하고 평온한 느낌
+- happy: 즐겁고 활기찬 느낌  
+- romantic: 따뜻하고 감성적인 느낌
+- professional: 깔끔하고 신뢰감 있는 느낌
+- energetic: 힘차고 에너지 넘치는 느낌
+- mysterious: 몽환적이고 흥미로운 느낌
+
+응답은 JSON 형식으로 추천 무드를 배열로 반환해주세요. 최대 3개까지 추천하되, 가장 적합한 순서로 정렬해주세요.
+예시: {"moods": ["calm", "professional"]}`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      max_tokens: 100,
+      temperature: 0.3,
+      response_format: { type: "json_object" }
+    });
+
+    const result = JSON.parse(response.choices[0]?.message?.content || '{"moods": ["calm"]}');
+    return result.moods || ['calm'];
+  } catch (error) {
+    console.error('음성 무드 분석 실패:', error);
+    return ['calm'];
+  }
+}
