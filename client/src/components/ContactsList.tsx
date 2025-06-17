@@ -714,8 +714,12 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
             <div className="relative">
               <div className="absolute inset-0 bg-red-400 rounded-full animate-ping opacity-75"></div>
               <div className="absolute inset-2 bg-red-300 rounded-full animate-ping opacity-50 animation-delay-200"></div>
-              <div className="relative bg-red-600 p-4 rounded-full">
-                <Mic className="h-8 w-8 text-white" />
+              <div className="relative bg-red-600 p-4 rounded-full flex items-center justify-center">
+                <svg className="h-8 w-8 text-white" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/>
+                  <path d="M19 10v1a7 7 0 0 1-14 0v-1"/>
+                  <path d="M12 18v4M8 22h8"/>
+                </svg>
               </div>
             </div>
             
