@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -11,7 +11,7 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Search, Pin, Users, X, Trash2, LogOut, MoreVertical } from "lucide-react";
+import { Plus, Search, Pin, Users, X, Trash2, LogOut, MoreVertical, Mic } from "lucide-react";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -35,6 +35,14 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
   const [selectedRoomIds, setSelectedRoomIds] = useState<number[]>([]);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [saveFiles, setSaveFiles] = useState(true);
+  
+  // 음성 메시지 관련 상태
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingChatRoom, setRecordingChatRoom] = useState<any>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const [recordingStartTime, setRecordingStartTime] = useState(0);
 
   // 채팅방 나가기 mutation
   const leaveChatRoomMutation = useMutation({
@@ -84,6 +92,187 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     setShowExitConfirm(false);
     setIsMultiSelectMode(false);
     setSelectedRoomIds([]);
+  };
+
+  // 길게 누르기 시작
+  const handleLongPressStart = (chatRoom: any) => {
+    console.log('🎯 채팅방 간편음성메세지 - 길게 누르기 시작:', getChatRoomDisplayName(chatRoom));
+    
+    const timer = setTimeout(() => {
+      startVoiceRecording(chatRoom);
+    }, 800); // 800ms 후 음성 녹음 시작
+    
+    setLongPressTimer(timer);
+  };
+
+  // 길게 누르기 끝
+  const handleLongPressEnd = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+    
+    if (isRecording) {
+      stopVoiceRecording();
+    }
+  };
+
+  // 음성 녹음 시작
+  const startVoiceRecording = async (chatRoom: any) => {
+    console.log('🎤 채팅방 음성 녹음 시작:', getChatRoomDisplayName(chatRoom));
+    
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
+      
+      mediaRecorderRef.current = mediaRecorder;
+      chunksRef.current = [];
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunksRef.current.push(event.data);
+        }
+      };
+      
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm;codecs=opus' });
+        const duration = Math.max(1, Math.round((Date.now() - recordingStartTime) / 1000));
+        
+        console.log('📞 duration:', duration);
+        console.log('🎤 채팅방 간편음성메세지 전송 시작:', chatRoom.id, '파일 크기:', audioBlob.size, '지속시간:', duration);
+        
+        if (audioBlob.size > 0) {
+          sendVoiceMessage(chatRoom, audioBlob);
+        } else {
+          console.error('❌ Empty audio blob created');
+        }
+        
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.onerror = (event) => {
+        console.error('❌ MediaRecorder error:', event);
+      };
+
+      // Start recording with timeslice for regular data events
+      mediaRecorder.start(1000); // Collect data every 1 second
+      setIsRecording(true);
+      setRecordingChatRoom(chatRoom);
+      setRecordingStartTime(Date.now());
+      
+      console.log('🎤 음성 녹음 시작:', getChatRoomDisplayName(chatRoom));
+    } catch (error) {
+      console.error('❌ Voice recording failed:', error);
+    }
+  };
+
+  // 음성 녹음 중지
+  const stopVoiceRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      console.log('🛑 음성 녹음 중지');
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      setRecordingChatRoom(null);
+    }
+  };
+
+  // 음성 메시지 전송 (채팅방용)
+  const sendVoiceMessage = async (chatRoom: any, audioBlob: Blob) => {
+    try {
+      console.log('🎤 채팅방 간편음성메세지 - 업로드 시작:', getChatRoomDisplayName(chatRoom));
+      
+      // FormData로 파일 업로드
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'voice-message.webm');
+      
+      console.log('📤 FormData 생성 완료, 업로드 API 호출 중...');
+      
+      // 파일 업로드 (음성 -> 텍스트 변환 포함)
+      const uploadResponse = await fetch(`/api/chat-rooms/${chatRoom.id}/upload`, {
+        method: 'POST',
+        headers: {
+          'x-user-id': user!.id.toString(),
+        },
+        body: formData,
+      });
+      
+      console.log('📡 업로드 응답 상태:', uploadResponse.status);
+      
+      let uploadData;
+      try {
+        const responseText = await uploadResponse.text();
+        console.log('📄 서버 응답 텍스트:', responseText);
+        
+        if (!uploadResponse.ok) {
+          throw new Error(`Upload failed: ${uploadResponse.status} - ${responseText}`);
+        }
+        
+        uploadData = JSON.parse(responseText);
+        console.log('✅ 음성 파일 업로드 성공:', uploadData);
+      } catch (parseError) {
+        console.error('❌ 업로드 응답 파싱 실패:', parseError);
+        console.error('❌ 파싱 오류 세부사항:', {
+          message: parseError instanceof Error ? parseError.message : 'Unknown error',
+          status: uploadResponse.status,
+          url: uploadResponse.url
+        });
+        
+        // 기본값으로 진행하지 않고 오류 반환
+        throw new Error(`Upload failed: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
+      }
+
+      // 업로드된 파일로 음성 메시지 전송 (텍스트 변환 포함)
+      const messageData = {
+        content: uploadData.transcription || '음성 메시지',
+        messageType: 'voice',
+        fileName: uploadData.fileName,
+        fileUrl: uploadData.fileUrl,
+        fileMimeType: 'audio/webm',
+        duration: uploadData.duration || 1,
+        transcription: uploadData.transcription
+      };
+
+      console.log('📨 메시지 전송 데이터:', messageData);
+
+      // 메시지 전송
+      const messageResponse = await fetch(`/api/chat-rooms/${chatRoom.id}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': user!.id.toString(),
+        },
+        body: JSON.stringify(messageData),
+      });
+
+      if (messageResponse.ok) {
+        console.log('✅ 채팅방 간편음성메세지 전송 성공!');
+        
+        // 캐시 무효화로 메시지 목록 새로고침
+        queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoom.id}/messages`] });
+        queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+        
+        // 해당 채팅방으로 자동 이동
+        onSelectChat(chatRoom.id);
+        
+        toast({
+          title: "음성 메시지 전송 완료",
+          description: uploadData.transcription ? `"${uploadData.transcription}"` : "음성이 텍스트로 변환되어 전송되었습니다.",
+        });
+      } else {
+        const errorText = await messageResponse.text();
+        console.error('❌ 채팅방 간편음성메세지 전송 실패:', messageResponse.status, errorText);
+      }
+    } catch (error) {
+      console.error('❌ 채팅방 간편음성메세지 전체 프로세스 실패:', error);
+      console.error('❌ 오류 상세 정보:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        name: error instanceof Error ? error.name : 'Unknown'
+      });
+    }
   };
 
   // 메시지 미리 로딩 함수
@@ -389,6 +578,9 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
                 draftPreview={getDraftPreview(chatRoom.id)}
                 isMultiSelectMode={isMultiSelectMode}
                 isChecked={selectedRoomIds.includes(chatRoom.id)}
+                onLongPressStart={handleLongPressStart}
+                onLongPressEnd={handleLongPressEnd}
+                isRecording={isRecording && recordingChatRoom?.id === chatRoom.id}
               />
             ))}
           </>
@@ -413,6 +605,9 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
                 draftPreview={getDraftPreview(chatRoom.id)}
                 isMultiSelectMode={isMultiSelectMode}
                 isChecked={selectedRoomIds.includes(chatRoom.id)}
+                onLongPressStart={handleLongPressStart}
+                onLongPressEnd={handleLongPressEnd}
+                isRecording={isRecording && recordingChatRoom?.id === chatRoom.id}
               />
             ))}
           </>
@@ -474,7 +669,10 @@ function ChatRoomItem({
   hasDraft = false,
   draftPreview = "",
   isMultiSelectMode = false,
-  isChecked = false
+  isChecked = false,
+  onLongPressStart,
+  onLongPressEnd,
+  isRecording = false
 }: {
   chatRoom: any;
   displayName: string;
@@ -486,6 +684,9 @@ function ChatRoomItem({
   draftPreview?: string;
   isMultiSelectMode?: boolean;
   isChecked?: boolean;
+  onLongPressStart?: (chatRoom: any) => void;
+  onLongPressEnd?: () => void;
+  isRecording?: boolean;
 }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
