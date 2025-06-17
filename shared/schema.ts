@@ -181,10 +181,19 @@ export const fileDownloads = pgTable("file_downloads", {
 export const companyChannels = pgTable("company_channels", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
+  companyName: text("company_name"),
   description: text("description"),
   logoUrl: text("logo_url"),
+  logo: text("logo"),
+  banner: text("banner"),
   website: text("website"),
+  industry: text("industry"),
+  employeeCount: integer("employee_count"),
+  location: text("location"),
   isVerified: boolean("is_verified").default(false),
+  isApproved: boolean("is_approved").default(false),
+  followerCount: integer("follower_count").default(0),
+  postCount: integer("post_count").default(0),
   createdById: integer("created_by_id").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -437,6 +446,7 @@ export const userPosts = pgTable("user_posts", {
   title: text("title"),
   content: text("content").notNull(),
   postType: text("post_type").default("text"), // text, image, link, etc.
+  imageUrl: text("image_url"), // Single image URL for posts
   attachments: text("attachments").array(), // Array of file URLs
   visibility: text("visibility").default("friends"), // public, friends, private
   tags: text("tags").array(), // Array of tags

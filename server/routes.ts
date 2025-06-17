@@ -2780,8 +2780,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if already following
       const existingFollow = await db
         .select()
-        .from(companyFollowers)
-        .where(and(eq(companyFollowers.companyChannelId, Number(companyId)), eq(companyFollowers.userId, Number(userId))))
+        .from(companyChannelFollowers)
+        .where(and(eq(companyChannelFollowers.channelId, Number(companyId)), eq(companyChannelFollowers.userId, Number(userId))))
         .limit(1);
 
       if (existingFollow.length > 0) {
@@ -2789,8 +2789,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Add follow
-      await db.insert(companyFollowers).values({
-        companyChannelId: Number(companyId),
+      await db.insert(companyChannelFollowers).values({
+        channelId: Number(companyId),
         userId: Number(userId),
       });
 
@@ -3173,7 +3173,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // 좋아요 수 감소
         await db.update(userPosts)
           .set({ 
-            likesCount: sql`${userPosts.likesCount} - 1`
+            likeCount: sql`${userPosts.likeCount} - 1`
           })
           .where(eq(userPosts.id, parseInt(postId)));
 
@@ -3189,7 +3189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // 좋아요 수 증가
         await db.update(userPosts)
           .set({ 
-            likesCount: sql`${userPosts.likesCount} + 1`
+            likeCount: sql`${userPosts.likeCount} + 1`
           })
           .where(eq(userPosts.id, parseInt(postId)));
 
