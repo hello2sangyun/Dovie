@@ -609,7 +609,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         // 회신 메시지인 경우 회신 데이터 포함
         if (replyToMessage) {
           messageData.replyToMessageId = replyToMessage.id;
-          messageData.replyToContent = replyToMessage.content;
+          // 음성 메시지인 경우 transcription 사용, 아니면 content 사용
+          messageData.replyToContent = replyToMessage.messageType === 'voice' && replyToMessage.transcription 
+            ? replyToMessage.transcription 
+            : replyToMessage.content;
           messageData.replyToSender = replyToMessage.sender.displayName;
         }
 
@@ -1393,7 +1396,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
     if (replyToMessage) {
       messageData.replyToMessageId = replyToMessage.id;
-      messageData.replyToContent = replyToMessage.content;
+      // 음성 메시지인 경우 transcription 사용, 아니면 content 사용
+      messageData.replyToContent = replyToMessage.messageType === 'voice' && replyToMessage.transcription 
+        ? replyToMessage.transcription 
+        : replyToMessage.content;
       messageData.replyToSender = replyToMessage.sender.displayName;
     }
 
