@@ -1,10 +1,22 @@
 import express, { type Request, Response, NextFunction } from "express";
+import session from "express-session";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// 세션 설정
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-secret-key-here',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: false, // HTTP에서도 작동하도록 설정
+    maxAge: 1000 * 60 * 60 * 24 // 24시간
+  }
+}));
 
 // 정적 파일 미들웨어 제거 - routes.ts에서 복호화하여 서빙함
 
