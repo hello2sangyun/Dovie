@@ -321,7 +321,7 @@ const ImagePreview = ({ src, fileName, isMe }: { src: string; fileName: string; 
           <img
             src={src}
             alt={fileName}
-            className="w-full h-auto max-h-80 object-cover"
+            className="w-full h-auto max-h-48 object-cover"
             onLoad={() => setIsLoading(false)}
             onError={() => {
               setIsLoading(false);
