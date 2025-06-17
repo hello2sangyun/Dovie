@@ -287,6 +287,9 @@ export default function MainApp() {
             if (value === "settings") {
               setRightPanelContent(value);
               setSelectedChatRoom(null);
+            } else if (value === "archive") {
+              setRightPanelContent("archive");
+              setSelectedChatRoom(null);
             } else {
               setRightPanelContent(null);
             }
@@ -370,6 +373,10 @@ export default function MainApp() {
 
               
 
+              
+              <TabsContent value="archive" className="h-full m-0">
+                <ArchiveList />
+              </TabsContent>
               
               <TabsContent value="settings" className="h-full m-0">
                 <div className="h-full overflow-y-auto">
