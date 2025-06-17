@@ -27,6 +27,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Plus, Search, Star, MoreVertical, UserX, Trash2, Shield, Mic } from "lucide-react";
+import VoiceRecorder from "./VoiceRecorder";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 
 interface ContactsListProps {
@@ -48,8 +49,6 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingContact, setRecordingContact] = useState<any>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
 
   // 길게 누르기 시작
   const handleLongPressStart = (contact: any) => {
@@ -58,7 +57,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     const timer = setTimeout(() => {
       console.log('🎤 간편음성메세지 - 0.5초 후 녹음 시작');
       setRecordingContact(contact);
-      startVoiceRecording(contact);
+      setIsRecording(true);
     }, 500); // 0.5초 후 녹음 시작
     
     setLongPressTimer(timer);
@@ -74,61 +73,26 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       console.log('⏰ 타이머 취소됨 (0.5초 전에 놓음)');
     }
     
-    if (isRecording) {
+    if (isRecording && recordingContact) {
       console.log('🎤 녹음 종료 시작');
-      stopVoiceRecording();
-    }
-  };
-
-  // 음성 녹음 시작
-  const startVoiceRecording = async (contact: any) => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      
-      mediaRecorderRef.current = mediaRecorder;
-      chunksRef.current = [];
-      
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          chunksRef.current.push(event.data);
-        }
-      };
-
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        console.log('음성 녹음 완료, Blob 크기:', audioBlob.size, 'bytes');
-        sendVoiceMessage(contact, audioBlob);
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      mediaRecorder.start();
-      setIsRecording(true);
-      setRecordingContact(contact);
-      
-      console.log('음성 녹음 시작:', contact.nickname || contact.contactUser.displayName);
-    } catch (error) {
-      console.error('Voice recording failed:', error);
-    }
-  };
-
-  // 음성 녹음 중지
-  const stopVoiceRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
       setIsRecording(false);
       setRecordingContact(null);
     }
   };
 
-  // 간편음성메세지 전송 (채팅방과 동일한 음성 처리)
-  const sendVoiceMessage = async (contact: any, audioBlob: Blob) => {
+  // 간편음성메세지 완료 처리 - 채팅방 음성 메시지와 동일한 방식 사용
+  const handleQuickVoiceComplete = async (audioBlob: Blob, duration: number) => {
+    if (!recordingContact) {
+      console.error('❌ 녹음 대상 연락처가 없습니다');
+      return;
+    }
+
     try {
-      console.log('🎤 간편음성메세지 전송 시작:', contact.contactUserId, '파일 크기:', audioBlob.size);
+      console.log('🎤 간편음성메세지 전송 시작:', recordingContact.contactUserId, '파일 크기:', audioBlob.size, '지속시간:', duration);
       
       // 1:1 대화방 찾기 또는 생성
       const chatRoomResponse = await apiRequest('/api/chat-rooms/direct', 'POST', {
-        participantId: contact.contactUserId
+        participantId: recordingContact.contactUserId
       });
       
       if (!chatRoomResponse.ok) {
@@ -141,7 +105,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       
       console.log('📁 채팅방 확인 완료 - ID:', chatRoomId);
 
-      // FormData로 음성 파일 업로드 (채팅방과 동일한 방식)
+      // 채팅방의 음성 메시지 전송과 동일한 로직 사용
       const formData = new FormData();
       const fileName = `voice_${Date.now()}_${Math.random().toString(36).substr(2, 11)}.webm`;
       formData.append('file', audioBlob, fileName);
@@ -158,98 +122,34 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       });
 
       if (!uploadResponse.ok) {
-        console.error('❌ 음성 파일 업로드 실패:', uploadResponse.status, await uploadResponse.text());
-        return;
+        const errorText = await uploadResponse.text();
+        console.error('❌ 음성 파일 업로드 실패:', uploadResponse.status, errorText);
+        throw new Error(`Upload failed: ${uploadResponse.status}`);
       }
 
-      let uploadData;
-      try {
-        // 응답을 텍스트로 먼저 읽음
-        const responseText = await uploadResponse.text();
-        console.log('📤 업로드 응답 상태:', uploadResponse.status);
-        console.log('📤 업로드 응답 헤더:', Object.fromEntries(uploadResponse.headers.entries()));
-        console.log('📤 업로드 응답 원본 텍스트:', responseText.substring(0, 500));
-        
-        if (responseText.startsWith('<!DOCTYPE') || responseText.includes('<html>')) {
-          console.error('❌ HTML 응답 수신됨 - 엔드포인트가 존재하지 않거나 오류 발생');
-          throw new Error('Server returned HTML instead of JSON');
-        }
-        
-        uploadData = JSON.parse(responseText);
-        console.log('✅ 음성 파일 업로드 성공:', uploadData);
-      } catch (parseError) {
-        console.error('❌ 업로드 응답 파싱 실패:', parseError);
-        console.error('❌ 파싱 오류 세부사항:', {
-          message: parseError.message,
-          status: uploadResponse.status,
-          url: uploadResponse.url
-        });
-        
-        // 기본값으로 진행하지 않고 오류 반환
-        throw new Error(`Upload failed: ${parseError.message}`);
-      }
+      const uploadData = await uploadResponse.json();
+      console.log('✅ 음성 파일 업로드 성공:', uploadData);
 
-      // 업로드된 파일로 음성 메시지 전송 (텍스트 변환 포함)
-      const messageData = {
-        content: uploadData.transcription || '음성 메시지',
-        messageType: 'voice',
-        fileUrl: uploadData.fileUrl,
-        fileName: uploadData.fileName,
-        fileSize: uploadData.fileSize || audioBlob.size,
-        voiceDuration: uploadData.duration || 3,
-        detectedLanguage: uploadData.language || 'korean',
-        confidence: uploadData.confidence || '0.9'
-      };
-
-      console.log('💬 메시지 데이터 전송:', messageData);
-
-      const messageResponse = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages`, 'POST', messageData);
-
-      if (messageResponse.ok) {
-        let messageResult;
-        try {
-          const responseText = await messageResponse.text();
-          console.log('💬 메시지 응답 원본:', responseText);
-          messageResult = JSON.parse(responseText);
-          console.log('✅ 간편음성메세지 전송 성공:', messageResult);
-        } catch (parseError) {
-          console.error('❌ 메시지 응답 파싱 실패:', parseError);
-          // 파싱 실패해도 성공으로 간주하고 진행
-          messageResult = { success: true };
-        }
-        
-        // 채팅방 목록과 메시지 캐시 무효화 (안전한 처리)
-        try {
-          await Promise.all([
-            queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] }),
-            queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] }),
-            queryClient.invalidateQueries({ queryKey: ["/api/unread-counts"] })
-          ]);
-          console.log('✅ 캐시 무효화 완료');
-        } catch (cacheError) {
-          console.warn('⚠️ 캐시 무효화 실패, 무시하고 계속:', cacheError);
-        }
-        
-        // 해당 대화방으로 이동 - createOrFindChatRoom과 동일한 로직 사용
-        setTimeout(() => {
-          console.log('🚀 간편음성메세지 후 채팅방 이동 시작:', contact.contactUserId, 'chatRoomId:', chatRoomId);
-          
-          // onSelectContact 호출 - 이미 채팅방이 존재하므로 바로 이동됨
-          onSelectContact(contact.contactUserId);
-          
-          console.log('✅ 간편음성메세지 전체 프로세스 완료');
-        }, 500);
-      } else {
-        const errorText = await messageResponse.text();
-        console.error('❌ 간편음성메세지 전송 실패:', messageResponse.status, errorText);
-      }
-    } catch (error) {
-      console.error('❌ 간편음성메세지 전체 프로세스 실패:', error);
-      console.error('❌ 오류 상세 정보:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
+      // 업로드 성공 후 채팅방으로 자동 이동
+      console.log('🚀 채팅방으로 자동 이동:', chatRoomId);
+      setLocation(`/chat/${chatRoomId}`);
+      
+      // 성공 토스트
+      toast({
+        title: "간편음성메세지 전송 완료",
+        description: `${recordingContact.contactUser.displayName || recordingContact.contactUser.username}에게 음성 메시지를 보냈습니다.`,
       });
+
+      console.log('✅ 간편음성메세지 전송 완료');
+    } catch (error: any) {
+      console.error('❌ 간편음성메세지 전체 프로세스 실패:', error);
+      toast({
+        variant: "destructive",
+        title: "음성 메시지 전송 실패",
+        description: error.message || "다시 시도해주세요.",
+      });
+    } finally {
+      setRecordingContact(null);
     }
   };
 
@@ -657,40 +557,24 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
         )}
       </div>
 
-      {/* 음성 녹음 상태 표시 */}
+      {/* 간편음성메세지 녹음 오버레이 */}
       {isRecording && recordingContact && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-gradient-to-br from-red-500 to-red-600 text-white p-8 rounded-2xl shadow-2xl flex flex-col items-center space-y-4 max-w-sm mx-4">
-            {/* 마이크 아이콘과 펄스 애니메이션 */}
-            <div className="relative">
-              <div className="absolute inset-0 bg-red-400 rounded-full animate-ping opacity-75"></div>
-              <div className="absolute inset-2 bg-red-300 rounded-full animate-ping opacity-50 animation-delay-200"></div>
-              <div className="relative bg-red-600 p-4 rounded-full">
-                <Mic className="h-8 w-8 text-white" />
+          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm mx-4">
+            <div className="text-center space-y-4">
+              <div className="text-lg font-semibold text-gray-800">
+                {recordingContact.contactUser.displayName || recordingContact.contactUser.username}
               </div>
-            </div>
-            
-            {/* 음성 파형 애니메이션 */}
-            <div className="flex items-center space-x-1">
-              <div className="w-1 bg-white/80 rounded-full waveform-bar" style={{animationDelay: '0ms'}}></div>
-              <div className="w-1 bg-white/80 rounded-full waveform-bar" style={{animationDelay: '150ms'}}></div>
-              <div className="w-1 bg-white/80 rounded-full waveform-bar" style={{animationDelay: '300ms'}}></div>
-              <div className="w-1 bg-white/80 rounded-full waveform-bar" style={{animationDelay: '450ms'}}></div>
-              <div className="w-1 bg-white/80 rounded-full waveform-bar" style={{animationDelay: '600ms'}}></div>
-              <div className="w-1 bg-white/80 rounded-full waveform-bar" style={{animationDelay: '750ms'}}></div>
-              <div className="w-1 bg-white/80 rounded-full waveform-bar" style={{animationDelay: '900ms'}}></div>
-            </div>
-            
-            <div className="text-center">
-              <p className="text-lg font-semibold">
-                {recordingContact.nickname || recordingContact.contactUser.displayName}
-              </p>
-              <p className="text-sm text-red-100 mt-1">
-                음성 메시지 녹음 중...
-              </p>
-              <p className="text-xs text-red-200 mt-2">
-                손을 떼면 자동으로 전송됩니다
-              </p>
+              <div className="text-sm text-gray-600">
+                간편음성메세지 녹음 중...
+              </div>
+              <VoiceRecorder
+                onRecordingComplete={handleQuickVoiceComplete}
+                disabled={false}
+              />
+              <div className="text-xs text-gray-500">
+                녹음을 완료하면 자동으로 전송됩니다
+              </div>
             </div>
           </div>
         </div>
