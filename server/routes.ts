@@ -1401,6 +1401,131 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Link preview endpoint
+  app.get('/api/link-preview', async (req: Request, res: Response) => {
+    try {
+      const { url } = req.query;
+      if (!url || typeof url !== 'string') {
+        return res.status(400).json({ error: 'URL is required' });
+      }
+
+      // Check if we have cached preview data
+      const [existingPreview] = await db
+        .select()
+        .from(linkPreviews)
+        .where(eq(linkPreviews.url, url))
+        .limit(1);
+
+      if (existingPreview) {
+        return res.json(existingPreview);
+      }
+
+      // Fetch link metadata
+      try {
+        const response = await fetch(url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (compatible; LinkPreview/1.0)'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch URL');
+        }
+
+        const html = await response.text();
+        
+        // Simple regex-based meta tag extraction
+        const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+        const descMatch = html.match(/<meta[^>]*name="description"[^>]*content="([^"]*)"[^>]*>/i) || 
+                         html.match(/<meta[^>]*property="og:description"[^>]*content="([^"]*)"[^>]*>/i);
+        const imageMatch = html.match(/<meta[^>]*property="og:image"[^>]*content="([^"]*)"[^>]*>/i);
+        const siteNameMatch = html.match(/<meta[^>]*property="og:site_name"[^>]*content="([^"]*)"[^>]*>/i);
+
+        const previewData = {
+          url,
+          title: titleMatch?.[1]?.trim() || new URL(url).hostname,
+          description: descMatch?.[1]?.trim() || null,
+          image: imageMatch?.[1] || null,
+          siteName: siteNameMatch?.[1] || new URL(url).hostname,
+          type: 'website' as const
+        };
+
+        // Cache the preview data
+        const [newPreview] = await db
+          .insert(linkPreviews)
+          .values(previewData)
+          .returning();
+
+        return res.json(newPreview);
+      } catch (fetchError) {
+        // Return basic URL info if fetch fails
+        const basicPreview = {
+          url,
+          title: new URL(url).hostname,
+          siteName: new URL(url).hostname,
+          type: 'website' as const
+        };
+
+        const [newPreview] = await db
+          .insert(linkPreviews)
+          .values(basicPreview)
+          .returning();
+
+        return res.json(newPreview);
+      }
+    } catch (error) {
+      console.error('Link preview error:', error);
+      res.status(500).json({ error: 'Failed to generate preview' });
+    }
+  });
+
+  // Message like endpoint
+  app.post('/api/messages/:messageId/like', async (req: Request, res: Response) => {
+    try {
+      const messageId = parseInt(req.params.messageId);
+      const userId = req.session.userId;
+
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      // Check if user already liked this message
+      const [existingLike] = await db
+        .select()
+        .from(messageLikes)
+        .where(and(
+          eq(messageLikes.messageId, messageId),
+          eq(messageLikes.userId, userId)
+        ))
+        .limit(1);
+
+      if (existingLike) {
+        // Remove like
+        await db
+          .delete(messageLikes)
+          .where(and(
+            eq(messageLikes.messageId, messageId),
+            eq(messageLikes.userId, userId)
+          ));
+
+        return res.json({ liked: false, action: 'unliked' });
+      } else {
+        // Add like
+        await db
+          .insert(messageLikes)
+          .values({
+            messageId,
+            userId
+          });
+
+        return res.json({ liked: true, action: 'liked' });
+      }
+    } catch (error) {
+      console.error('Message like error:', error);
+      res.status(500).json({ error: 'Failed to toggle like' });
+    }
+  });
+
   // Serve files (both encrypted and unencrypted)
   app.get("/uploads/:filename", async (req, res) => {
     try {

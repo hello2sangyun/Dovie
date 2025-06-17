@@ -431,6 +431,28 @@ export const businessProfiles = pgTable("business_profiles", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Message likes table
+export const messageLikes = pgTable("message_likes", {
+  id: serial("id").primaryKey(),
+  messageId: integer("message_id").references(() => messages.id, { onDelete: "cascade" }).notNull(),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Link previews table for cached link metadata
+export const linkPreviews = pgTable("link_previews", {
+  id: serial("id").primaryKey(),
+  url: text("url").notNull().unique(),
+  title: text("title"),
+  description: text("description"),
+  image: text("image"),
+  siteName: text("site_name"),
+  type: text("type").default("website"), // website, youtube, video, image
+  metadata: jsonb("metadata"), // Additional metadata like YouTube video ID
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // User posts table for social features
 export const userPosts = pgTable("user_posts", {
   id: serial("id").primaryKey(),
@@ -698,3 +720,12 @@ export type PostComment = typeof postComments.$inferSelect;
 export type InsertPostComment = z.infer<typeof insertPostCommentSchema>;
 export type CompanyProfile = typeof companyProfiles.$inferSelect;
 export type InsertCompanyProfile = z.infer<typeof insertCompanyProfileSchema>;
+
+// Message likes and link previews types
+export const insertMessageLikeSchema = createInsertSchema(messageLikes);
+export const insertLinkPreviewSchema = createInsertSchema(linkPreviews);
+
+export type MessageLike = typeof messageLikes.$inferSelect;
+export type InsertMessageLike = z.infer<typeof insertMessageLikeSchema>;
+export type LinkPreview = typeof linkPreviews.$inferSelect;
+export type InsertLinkPreview = z.infer<typeof insertLinkPreviewSchema>;
