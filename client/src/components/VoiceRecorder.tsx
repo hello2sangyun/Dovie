@@ -61,69 +61,30 @@ export default function VoiceRecorder({ onRecordingComplete, disabled }: VoiceRe
       streamRef.current = stream;
       setMicrophoneAccess(true);
       
-      // Check supported MIME types
-      const supportedTypes = [
-        'audio/webm;codecs=opus',
-        'audio/webm',
-        'audio/mp4',
-        'audio/wav'
-      ];
-      
-      let mimeType = 'audio/webm';
-      for (const type of supportedTypes) {
-        if (MediaRecorder.isTypeSupported(type)) {
-          mimeType = type;
-          break;
-        }
-      }
-      
-      console.log('VoiceRecorder: Using MIME type:', mimeType);
-      
       const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: mimeType
+        mimeType: 'audio/webm;codecs=opus'
       });
       
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
       
       mediaRecorder.ondataavailable = (event) => {
-        console.log('VoiceRecorder: Data available event, size:', event.data.size);
         if (event.data.size > 0) {
           chunksRef.current.push(event.data);
-          console.log('VoiceRecorder: Added chunk, total chunks:', chunksRef.current.length);
         }
       };
       
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(chunksRef.current, { type: mimeType });
+        const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm;codecs=opus' });
         const recordingDuration = duration;
-        console.log('VoiceRecorder: Recording stopped, blob size:', audioBlob.size, 'duration:', recordingDuration, 'chunks:', chunksRef.current.length, 'mimeType:', mimeType);
-        
-        if (audioBlob.size === 0) {
-          console.error('VoiceRecorder: Empty audio blob created - no audio data captured');
-          // Try to provide meaningful feedback
-          onRecordingComplete(new Blob(['dummy'], { type: 'text/plain' }), 0);
-          cleanup();
-          return;
-        }
-        
         onRecordingComplete(audioBlob, recordingDuration);
         cleanup();
       };
       
-      // Add error handler
-      mediaRecorder.onerror = (event) => {
-        console.error('VoiceRecorder: MediaRecorder error:', event);
-        cleanup();
-      };
-
-      // Start recording without timeslice to ensure data collection
       mediaRecorder.start();
       startTimeRef.current = Date.now();
       setIsRecording(true);
       setIsPreparing(false);
-      
-      console.log('VoiceRecorder: Started recording, state:', mediaRecorder.state);
       
       // 타이머 시작
       timerRef.current = setInterval(() => {
@@ -140,22 +101,8 @@ export default function VoiceRecorder({ onRecordingComplete, disabled }: VoiceRe
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
-      const recordingTime = Date.now() - startTimeRef.current;
-      console.log('VoiceRecorder: Stopping recording after', recordingTime, 'ms');
-      
-      // Ensure minimum recording duration to capture audio chunks
-      if (recordingTime < 500) {
-        console.log('VoiceRecorder: Recording too short, waiting for minimum duration...');
-        setTimeout(() => {
-          if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-            mediaRecorderRef.current.stop();
-            setIsRecording(false);
-          }
-        }, 500 - recordingTime);
-      } else {
-        mediaRecorderRef.current.stop();
-        setIsRecording(false);
-      }
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
     }
   };
 

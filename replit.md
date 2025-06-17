@@ -198,20 +198,6 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Successfully tested complete workflow: long-press contact → voice recording → OpenAI transcription → database storage → chat room navigation
   - Verified message ID 376 saved with content "하나님이 보우하사 우리나라 만세"
   - Quick Voice Message feature now fully functional from contacts list
-- June 17, 2025: Quick Voice Message feature fully operational:
-  - Verified complete end-to-end functionality with message ID 378
-  - Successfully recorded 6-second audio (77,893 bytes)
-  - OpenAI transcription working: "근데 왜이렇게 오래갔대? 생각보다"
-  - Automatic 1:1 chat room creation/navigation working perfectly
-  - Uses same API endpoints as regular chat voice messages (/api/upload-voice + /api/transcribe)
-  - Long-press contact profile → auto record → AI transcribe → send to chat → navigate to room
-- June 17, 2025: Implemented short touch navigation functionality:
-  - Added short touch detection (< 500ms) on contact profiles
-  - Short touch navigates to chat tab and shows friend's specific chat room
-  - Long press (≥ 500ms) triggers Quick Voice Message recording
-  - Implemented for both desktop and mobile layouts
-  - Enhanced touch event handling with proper timing mechanisms
-  - Automatic chat room creation/finding and tab switching functionality
 
 ## User Preferences
 

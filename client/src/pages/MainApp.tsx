@@ -283,15 +283,10 @@ export default function MainApp() {
 
           {/* Navigation Tabs */}
           <Tabs value={activeTab} onValueChange={(value) => {
-            console.log("🔄 Tab changed to:", value, "from:", activeTab);
             setActiveTab(value);
             if (value === "settings") {
               setRightPanelContent(value);
               setSelectedChatRoom(null);
-            } else if (value === "contacts") {
-              setRightPanelContent(null);
-              setSelectedChatRoom(null);
-              console.log("✅ Contacts tab activated - cleared rightPanelContent and selectedChatRoom");
             } else {
               setRightPanelContent(null);
             }
@@ -347,15 +342,6 @@ export default function MainApp() {
                     const contact = (contactsData as any)?.contacts?.find((c: any) => c.contactUserId === contactUserId);
                     if (contact) {
                       createOrFindChatRoom(contactUserId, contact.contactUser);
-                    }
-                  }}
-                  onNavigateToChat={(contactUserId) => {
-                    // Find the contact user data
-                    const contact = (contactsData as any)?.contacts?.find((c: any) => c.contactUserId === contactUserId);
-                    if (contact) {
-                      // Create or find chat room and navigate to chats tab
-                      createOrFindChatRoom(contactUserId, contact.contactUser);
-                      setActiveTab("chats");
                     }
                   }}
                 />
@@ -909,16 +895,6 @@ export default function MainApp() {
                   setActiveMobileTab("chats");
                 }
               }}
-              onNavigateToChat={(contactUserId) => {
-                // Find the contact user data
-                const contact = (contactsData as any)?.contacts?.find((c: any) => c.contactUserId === contactUserId);
-                if (contact) {
-                  // Create or find chat room and navigate to chats tab (mobile)
-                  createOrFindChatRoom(contactUserId, contact.contactUser);
-                  setActiveMobileTab("chats");
-                  setShowMobileChat(true);
-                }
-              }}
             />
           )}
           {activeMobileTab === "chats" && !showMobileChat && (
@@ -967,11 +943,7 @@ export default function MainApp() {
                   "flex flex-col items-center py-1 px-2",
                   activeMobileTab === "contacts" ? "text-purple-600" : "text-gray-400"
                 )}
-                onClick={() => {
-                  setActiveMobileTab("contacts");
-                  setShowMobileChat(false);
-                  setSelectedChatRoom(null);
-                }}
+                onClick={() => setActiveMobileTab("contacts")}
               >
                 <BookUser className="h-4 w-4" />
                 <span className="text-xs mt-0.5">연락처</span>

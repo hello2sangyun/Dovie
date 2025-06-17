@@ -1041,24 +1041,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         console.log(`Audio file saved: ${fileName} URL: /uploads/${fileName}`);
 
-        // 파일 크기 검증
-        const fileStats = fs.statSync(finalPath);
-        console.log(`Voice file size: ${fileStats.size} bytes`);
-        
-        if (fileStats.size < 100) {
-          console.error('Voice file too small, skipping transcription');
-          const fileUrl = `/uploads/${fileName}`;
-          return res.json({
-            fileUrl,
-            fileName: req.file.originalname,
-            fileSize: req.file.size,
-            transcription: '음성이 너무 짧습니다. 다시 시도해주세요.',
-            language: 'korean',
-            duration: 1,
-            confidence: '0.1'
-          });
-        }
-
         // OpenAI 음성 텍스트 변환
         try {
           const transcriptionResult = await transcribeAudio(finalPath);
@@ -1082,7 +1064,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             fileUrl,
             fileName: req.file.originalname,
             fileSize: req.file.size,
-            transcription: '음성 메시지 (변환 실패)',
+            transcription: '음성 메시지',
             language: 'korean',
             duration: 3,
             confidence: '0.5'
@@ -1137,131 +1119,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Voice file upload error:", error);
       res.status(500).json({ message: "Voice file upload failed" });
-    }
-  });
-
-  // Chat room specific file upload route (for voice and other files)
-  app.post("/api/chat-rooms/:chatRoomId/upload", upload.single("file"), async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
-      }
-
-      const chatRoomId = Number(req.params.chatRoomId);
-      const messageType = req.body.messageType || 'file';
-
-      // 음성 메시지 처리
-      if (messageType === 'voice' || req.file.mimetype.includes('audio')) {
-        console.log('Processing voice file:', req.file.originalname, 'Size:', req.file.size);
-        
-        // 파일 크기 검증
-        if (!req.file.size || req.file.size === 0) {
-          return res.status(400).json({ 
-            message: "Empty audio file", 
-            error: "Audio file is empty or invalid" 
-          });
-        }
-
-        // 파일 타입 검증
-        if (!req.file.mimetype.includes('audio') && !req.file.originalname.includes('voice_')) {
-          return res.status(400).json({ 
-            message: "Invalid audio file type", 
-            error: "File must be an audio type" 
-          });
-        }
-        
-        // 음성 파일은 암호화하지 않고 원본 형태로 저장
-        const timestamp = Date.now();
-        const randomString = Math.random().toString(36).substring(2, 15);
-        const fileName = `voice_${timestamp}_${randomString}.webm`;
-        const finalPath = path.join(uploadDir, fileName);
-        
-        // 파일을 최종 위치로 이동
-        fs.renameSync(req.file.path, finalPath);
-
-        // 파일이 실제로 존재하고 크기가 있는지 재확인
-        const stats = fs.statSync(finalPath);
-        if (!stats.size || stats.size === 0) {
-          console.error('Saved file is empty:', finalPath);
-          return res.status(400).json({ 
-            message: "Failed to save audio file", 
-            error: "Saved audio file is empty" 
-          });
-        }
-
-        console.log('Audio file saved successfully:', fileName, 'Size:', stats.size);
-
-        // OpenAI로 음성 텍스트 변환 시도 (파일이 충분히 큰 경우에만)
-        if (stats.size > 1024) { // 1KB 이상인 경우에만 변환 시도
-          try {
-            console.log('Starting audio transcription with language detection...');
-            const transcriptionResult = await transcribeAudio(finalPath);
-            console.log('Transcription result:', transcriptionResult);
-
-            const fileUrl = `/uploads/${fileName}`;
-            res.json({
-              fileUrl,
-              fileName: req.file.originalname,
-              fileSize: stats.size,
-              transcription: transcriptionResult.transcription || '음성 메시지',
-              language: transcriptionResult.detectedLanguage || 'korean',
-              duration: transcriptionResult.duration || 3,
-              confidence: String(transcriptionResult.confidence || 0.9)
-            });
-          } catch (transcriptionError) {
-            console.error('Transcription failed:', transcriptionError);
-            // 텍스트 변환 실패해도 파일 업로드는 성공으로 처리
-            const fileUrl = `/uploads/${fileName}`;
-            res.json({
-              fileUrl,
-              fileName: req.file.originalname,
-              fileSize: stats.size,
-              transcription: '음성 메시지',
-              language: 'korean',
-              duration: 3,
-              confidence: '0.5'
-            });
-          }
-        } else {
-          // 파일이 너무 작은 경우 변환 없이 성공 처리
-          console.log('Audio file too small for transcription, skipping...');
-          const fileUrl = `/uploads/${fileName}`;
-          res.json({
-            fileUrl,
-            fileName: req.file.originalname,
-            fileSize: stats.size,
-            transcription: '음성 메시지',
-            language: 'korean',
-            duration: 3,
-            confidence: '0.5'
-          });
-        }
-      } else {
-        // 일반 파일 처리 - 암호화
-        const fileBuffer = fs.readFileSync(req.file.path);
-        const encryptedData = encryptFileData(fileBuffer);
-        
-        const encryptedFileName = hashFileName(req.file.originalname);
-        const encryptedFilePath = path.join(uploadDir, encryptedFileName);
-        
-        fs.writeFileSync(encryptedFilePath, encryptedData, 'utf8');
-        fs.unlinkSync(req.file.path);
-
-        const fileUrl = `/uploads/${encryptedFileName}`;
-        res.json({
-          fileUrl,
-          fileName: req.file.originalname,
-          fileSize: req.file.size,
-        });
-      }
-    } catch (error) {
-      console.error("File upload error:", error);
-      res.status(500).json({ message: "File upload failed" });
     }
   });
 

@@ -27,16 +27,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Plus, Search, Star, MoreVertical, UserX, Trash2, Shield, Mic } from "lucide-react";
-import SimpleVoiceRecorder from "./SimpleVoiceRecorder";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 
 interface ContactsListProps {
   onAddContact: () => void;
   onSelectContact: (contactId: number) => void;
-  onNavigateToChat?: (contactUserId: number) => void;
 }
 
-export default function ContactsList({ onAddContact, onSelectContact, onNavigateToChat }: ContactsListProps) {
+export default function ContactsList({ onAddContact, onSelectContact }: ContactsListProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -50,100 +48,92 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingContact, setRecordingContact] = useState<any>(null);
-  const [pressStartTime, setPressStartTime] = useState<number | null>(null);
-  const voiceRecorderRef = useRef<any>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
 
-  // 연락처 데이터 가져오기
-  const { data: contactsData, isLoading: contactsLoading } = useQuery({
-    queryKey: ["/api/contacts"],
-    staleTime: 5 * 60 * 1000,
-  });
-
-  // 최근 포스트 데이터
-  const { data: recentPostsData } = useQuery({
-    queryKey: ["/api/contacts/recent-posts"],
-    staleTime: 30 * 60 * 1000,
-  });
-
-  const contacts = contactsData || [];
-
-  // 터치 이벤트 핸들러
-  const handleTouchStart = (contact: any) => {
-    if (isRecording) return;
-    
-    const startTime = Date.now();
-    setPressStartTime(startTime);
+  // 길게 누르기 시작
+  const handleLongPressStart = (contact: any) => {
+    console.log('🎯 간편음성메세지 - 길게 누르기 시작:', contact.contactUser.displayName || contact.contactUser.nickname || contact.contactUser.username);
     
     const timer = setTimeout(() => {
-      // 500ms 이상 누르면 음성 녹음 시작
-      console.log('🎤 Long press detected - starting voice recording for:', contact.contactUser.displayName);
-      setIsRecording(true);
+      console.log('🎤 간편음성메세지 - 0.5초 후 녹음 시작');
       setRecordingContact(contact);
-    }, 500);
+      startVoiceRecording(contact);
+    }, 500); // 0.5초 후 녹음 시작
     
     setLongPressTimer(timer);
   };
 
-  const handleTouchEnd = (contact: any) => {
+  // 길게 누르기 끝
+  const handleLongPressEnd = () => {
+    console.log('🛑 간편음성메세지 - 길게 누르기 끝, 녹음 중:', isRecording);
+    
     if (longPressTimer) {
       clearTimeout(longPressTimer);
       setLongPressTimer(null);
+      console.log('⏰ 타이머 취소됨 (0.5초 전에 놓음)');
     }
     
-    if (pressStartTime) {
-      const pressDuration = Date.now() - pressStartTime;
-      setPressStartTime(null);
-      
-      // 현재 녹음 중인 경우 녹음 완료 처리
-      if (isRecording && recordingContact?.id === contact.id) {
-        console.log('🎤 Touch end during recording - stopping recording automatically');
-        // 지연 후 녹음 중단 (최소 녹음 시간 확보)
-        setTimeout(() => {
-          if (voiceRecorderRef.current && voiceRecorderRef.current.stopRecording) {
-            voiceRecorderRef.current.stopRecording();
-          }
-        }, 100);
-        return;
-      }
-      
-      // 짧은 터치 (500ms 미만)인 경우 채팅방으로 이동
-      if (pressDuration < 500 && !isRecording) {
-        console.log('👆 Short touch detected - navigating to chat with:', contact.contactUser.displayName);
-        onNavigateToChat?.(contact.contactUserId);
-      }
+    if (isRecording) {
+      console.log('🎤 녹음 종료 시작');
+      stopVoiceRecording();
     }
   };
 
-  // 간편음성메세지 완료 처리 - 채팅방 음성 메시지와 동일한 방식 사용
-  const handleQuickVoiceComplete = async (audioBlob: Blob, duration: number) => {
-    console.log('📞 handleQuickVoiceComplete 시작');
-    console.log('📞 recordingContact:', recordingContact);
-    console.log('📞 audioBlob:', audioBlob);
-    console.log('📞 audioBlob.size:', audioBlob.size);
-    console.log('📞 audioBlob.type:', audioBlob.type);
-    console.log('📞 duration:', duration);
-    
-    if (!recordingContact) {
-      console.error('❌ 녹음 대상 연락처가 없습니다');
-      return;
-    }
-
+  // 음성 녹음 시작
+  const startVoiceRecording = async (contact: any) => {
     try {
-      console.log('🎤 간편음성메세지 전송 시작:', recordingContact.contactUserId, '파일 크기:', audioBlob.size, '지속시간:', duration);
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
       
-      // 오디오 블롭 유효성 검사
-      if (!audioBlob || audioBlob.size === 0) {
-        throw new Error('음성 녹음이 비어있습니다. 다시 시도해주세요.');
-      }
+      mediaRecorderRef.current = mediaRecorder;
+      chunksRef.current = [];
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunksRef.current.push(event.data);
+        }
+      };
 
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        console.log('음성 녹음 완료, Blob 크기:', audioBlob.size, 'bytes');
+        sendVoiceMessage(contact, audioBlob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      setRecordingContact(contact);
+      
+      console.log('음성 녹음 시작:', contact.nickname || contact.contactUser.displayName);
+    } catch (error) {
+      console.error('Voice recording failed:', error);
+    }
+  };
+
+  // 음성 녹음 중지
+  const stopVoiceRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      setRecordingContact(null);
+    }
+  };
+
+  // 간편음성메세지 전송 (채팅방과 동일한 음성 처리)
+  const sendVoiceMessage = async (contact: any, audioBlob: Blob) => {
+    try {
+      console.log('🎤 간편음성메세지 전송 시작:', contact.contactUserId, '파일 크기:', audioBlob.size);
+      
       // 1:1 대화방 찾기 또는 생성
       const chatRoomResponse = await apiRequest('/api/chat-rooms/direct', 'POST', {
-        participantId: recordingContact.contactUserId
+        participantId: contact.contactUserId
       });
       
       if (!chatRoomResponse.ok) {
         console.error('❌ 채팅방 생성/찾기 실패:', chatRoomResponse.status);
-        throw new Error('채팅방을 찾을 수 없습니다.');
+        return;
       }
       
       const chatRoomData = await chatRoomResponse.json();
@@ -151,12 +141,13 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
       
       console.log('📁 채팅방 확인 완료 - ID:', chatRoomId);
 
-      // 직접 채팅방 음성 업로드 엔드포인트 사용 (더 안정적)
+      // FormData로 음성 파일 업로드 (채팅방과 동일한 방식)
       const formData = new FormData();
-      formData.append('file', audioBlob, 'voice_message.webm');
+      const fileName = `voice_${Date.now()}_${Math.random().toString(36).substr(2, 11)}.webm`;
+      formData.append('file', audioBlob, fileName);
       formData.append('messageType', 'voice');
 
-      console.log('🔄 채팅방 음성 업로드 시작 - chatRoomId:', chatRoomId);
+      console.log('📤 음성 파일 업로드 시작:', fileName);
 
       const uploadResponse = await fetch(`/api/chat-rooms/${chatRoomId}/upload`, {
         method: 'POST',
@@ -166,50 +157,99 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
         body: formData,
       });
 
-      console.log('📤 업로드 응답 상태:', uploadResponse.status);
-      
       if (!uploadResponse.ok) {
-        const errorText = await uploadResponse.text();
-        console.error('❌ 음성 파일 업로드 실패:', uploadResponse.status, errorText);
-        throw new Error(`음성 파일 업로드에 실패했습니다: ${errorText}`);
+        console.error('❌ 음성 파일 업로드 실패:', uploadResponse.status, await uploadResponse.text());
+        return;
       }
 
-      const uploadResult = await uploadResponse.json();
-      console.log('✅ 채팅방 음성 업로드 완료:', uploadResult);
-      
-      // 채팅방 업로드 엔드포인트는 이미 변환과 메시지 저장을 모두 처리함
-      const messageContent = uploadResult.transcription || '음성 메시지';
-      
-      console.log('📤 최종 메시지:', messageContent);
-      console.log('💾 저장된 메시지 처리 완료');
-      
-      // 캐시 무효화
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] }),
-        queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] }),
-        queryClient.invalidateQueries({ queryKey: ["/api/unread-counts"] })
-      ]);
-      
-      toast({
-        title: "간편음성메세지 전송 완료",
-        description: `${recordingContact.contactUser.displayName || recordingContact.contactUser.username}에게 음성 메시지를 전송했습니다.`,
-      });
+      let uploadData;
+      try {
+        // 응답을 텍스트로 먼저 읽음
+        const responseText = await uploadResponse.text();
+        console.log('📤 업로드 응답 상태:', uploadResponse.status);
+        console.log('📤 업로드 응답 헤더:', Object.fromEntries(uploadResponse.headers.entries()));
+        console.log('📤 업로드 응답 원본 텍스트:', responseText.substring(0, 500));
+        
+        if (responseText.startsWith('<!DOCTYPE') || responseText.includes('<html>')) {
+          console.error('❌ HTML 응답 수신됨 - 엔드포인트가 존재하지 않거나 오류 발생');
+          throw new Error('Server returned HTML instead of JSON');
+        }
+        
+        uploadData = JSON.parse(responseText);
+        console.log('✅ 음성 파일 업로드 성공:', uploadData);
+      } catch (parseError) {
+        console.error('❌ 업로드 응답 파싱 실패:', parseError);
+        console.error('❌ 파싱 오류 세부사항:', {
+          message: parseError.message,
+          status: uploadResponse.status,
+          url: uploadResponse.url
+        });
+        
+        // 기본값으로 진행하지 않고 오류 반환
+        throw new Error(`Upload failed: ${parseError.message}`);
+      }
 
-      // 채팅방으로 이동
-      console.log('🔄 채팅방 네비게이션 시작');
-      onNavigateToChat?.(recordingContact.contactUserId);
-      console.log('✅ 모든 단계 완료 - 간편음성메세지 성공');
+      // 업로드된 파일로 음성 메시지 전송 (텍스트 변환 포함)
+      const messageData = {
+        content: uploadData.transcription || '음성 메시지',
+        messageType: 'voice',
+        fileUrl: uploadData.fileUrl,
+        fileName: uploadData.fileName,
+        fileSize: uploadData.fileSize || audioBlob.size,
+        voiceDuration: uploadData.duration || 3,
+        detectedLanguage: uploadData.language || 'korean',
+        confidence: uploadData.confidence || '0.9'
+      };
 
+      console.log('💬 메시지 데이터 전송:', messageData);
+
+      const messageResponse = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages`, 'POST', messageData);
+
+      if (messageResponse.ok) {
+        let messageResult;
+        try {
+          const responseText = await messageResponse.text();
+          console.log('💬 메시지 응답 원본:', responseText);
+          messageResult = JSON.parse(responseText);
+          console.log('✅ 간편음성메세지 전송 성공:', messageResult);
+        } catch (parseError) {
+          console.error('❌ 메시지 응답 파싱 실패:', parseError);
+          // 파싱 실패해도 성공으로 간주하고 진행
+          messageResult = { success: true };
+        }
+        
+        // 채팅방 목록과 메시지 캐시 무효화 (안전한 처리)
+        try {
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] }),
+            queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/unread-counts"] })
+          ]);
+          console.log('✅ 캐시 무효화 완료');
+        } catch (cacheError) {
+          console.warn('⚠️ 캐시 무효화 실패, 무시하고 계속:', cacheError);
+        }
+        
+        // 해당 대화방으로 이동 - createOrFindChatRoom과 동일한 로직 사용
+        setTimeout(() => {
+          console.log('🚀 간편음성메세지 후 채팅방 이동 시작:', contact.contactUserId, 'chatRoomId:', chatRoomId);
+          
+          // onSelectContact 호출 - 이미 채팅방이 존재하므로 바로 이동됨
+          onSelectContact(contact.contactUserId);
+          
+          console.log('✅ 간편음성메세지 전체 프로세스 완료');
+        }, 500);
+      } else {
+        const errorText = await messageResponse.text();
+        console.error('❌ 간편음성메세지 전송 실패:', messageResponse.status, errorText);
+      }
     } catch (error) {
-      console.error('❌ 간편음성메세지 전송 실패:', error);
-      toast({
-        variant: "destructive",
-        title: "음성 메시지 전송 실패",
-        description: error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.",
+      console.error('❌ 간편음성메세지 전체 프로세스 실패:', error);
+      console.error('❌ 오류 상세 정보:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
       });
-    } finally {
-      setIsRecording(false);
-      setRecordingContact(null);
     }
   };
 
@@ -222,6 +262,9 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
     },
+    onError: () => {
+      // 즐겨찾기 설정 실패 - 알림 제거
+    },
   });
 
   // Block contact mutation
@@ -232,6 +275,9 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
+    },
+    onError: () => {
+      // 차단 실패 - 알림 제거
     },
   });
 
@@ -244,18 +290,43 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
     },
+    onError: () => {
+      // 삭제 실패 - 알림 제거
+    },
   });
 
-  const hasRecentPost = (userId: number) => {
-    if (!recentPostsData || !Array.isArray(recentPostsData)) return false;
-    return recentPostsData.some((post: any) => post.userId === userId);
-  };
+  const { data: contactsData, isLoading } = useQuery({
+    queryKey: ["/api/contacts"],
+    enabled: !!user,
+    queryFn: async () => {
+      const response = await fetch("/api/contacts", {
+        headers: { "x-user-id": user!.id.toString() },
+      });
+      if (!response.ok) throw new Error("Failed to fetch contacts");
+      return response.json();
+    },
+  });
 
-  const handleToggleFavorite = (contact: any) => {
-    toggleFavoriteMutation.mutate({
-      contactId: contact.id,
-      isPinned: !contact.isPinned
-    });
+  // 최근 포스팅한 친구들 데이터 가져오기
+  const { data: recentPostsData } = useQuery({
+    queryKey: ["/api/contacts/recent-posts"],
+    enabled: !!user,
+    queryFn: async () => {
+      const response = await fetch("/api/contacts/recent-posts", {
+        headers: { "x-user-id": user!.id.toString() },
+      });
+      if (!response.ok) throw new Error("Failed to fetch recent posts");
+      return response.json();
+    },
+    refetchInterval: 30000, // 30초마다 새로고침
+  });
+
+  const contacts = contactsData?.contacts || [];
+  const recentPosts = recentPostsData || [];
+
+  // 특정 사용자가 최근에 포스팅했는지 확인하는 함수
+  const hasRecentPost = (userId: number) => {
+    return recentPosts.some((post: any) => post.userId === userId);
   };
 
   const handleBlockContact = (contact: any) => {
@@ -315,84 +386,67 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
       }
     });
 
-  if (contactsLoading) {
+  const getInitials = (name: string) => {
+    return name.charAt(0).toUpperCase();
+  };
+
+  const getOnlineStatus = (user: any) => {
+    if (user.isOnline) return "온라인";
+    if (!user.lastSeen) return "오프라인";
+    
+    const lastSeen = new Date(user.lastSeen);
+    const now = new Date();
+    const diffMinutes = Math.floor((now.getTime() - lastSeen.getTime()) / (1000 * 60));
+    
+    if (diffMinutes < 60) return `${diffMinutes}분 전 접속`;
+    if (diffMinutes < 1440) return `${Math.floor(diffMinutes / 60)}시간 전 접속`;
+    return `${Math.floor(diffMinutes / 1440)}일 전 접속`;
+  };
+
+  if (isLoading) {
     return (
       <div className="h-full flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-2"></div>
-          <p className="text-sm text-gray-500">연락처를 불러오는 중...</p>
-        </div>
+        <div className="text-gray-500">연락처를 불러오는 중...</div>
       </div>
     );
   }
 
   return (
     <div className="h-full flex flex-col">
-      {/* 음성 녹음 모달 */}
-      {isRecording && recordingContact && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
-            <div className="text-center">
-              <div className="mb-4">
-                <PrismAvatar
-                  src={recordingContact.contactUser.profilePicture}
-                  fallback={getInitials(recordingContact.contactUser.displayName)}
-                  size="lg"
-                  className="mx-auto mb-2"
-                />
-                <h3 className="font-medium">{recordingContact.contactUser.displayName}</h3>
-                <p className="text-sm text-gray-500">간편음성메세지 녹음 중...</p>
-              </div>
-              <SimpleVoiceRecorder
-                ref={voiceRecorderRef}
-                onRecordingComplete={handleQuickVoiceComplete}
-                onCancel={() => {
-                  setIsRecording(false);
-                  setRecordingContact(null);
-                }}
-                autoStart={true}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 헤더 */}
-      <div className="flex-shrink-0 p-3 border-b border-gray-200">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold">연락처</h2>
-          <Button 
-            onClick={onAddContact}
+      <div className="p-3 border-b border-gray-200">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-semibold text-gray-900 text-sm">연락처</h3>
+          <Button
+            variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0 purple-gradient"
+            className="text-purple-600 hover:text-purple-700 h-7 w-7 p-0"
+            onClick={onAddContact}
           >
             <Plus className="h-4 w-4" />
           </Button>
         </div>
         
-        {/* 검색 및 정렬 */}
-        <div className="flex items-center space-x-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-gray-400" />
-            <Input
-              placeholder="검색..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-7 h-7 text-xs"
-            />
-          </div>
-          
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="h-7 text-xs">
-              <SelectValue placeholder="정렬" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="nickname">닉네임순</SelectItem>
-              <SelectItem value="username">이름순</SelectItem>
-              <SelectItem value="lastSeen">접속순</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="relative mb-2">
+          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-3 w-3" />
+          <Input
+            type="text"
+            placeholder="검색..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-7 h-7 text-xs"
+          />
         </div>
+        
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger className="h-7 text-xs">
+            <SelectValue placeholder="정렬" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="nickname">닉네임순</SelectItem>
+            <SelectItem value="username">이름순</SelectItem>
+            <SelectItem value="lastSeen">접속순</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* 즐겨찾기 친구 버블 */}
@@ -418,11 +472,12 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
                       msUserSelect: 'none',
                       WebkitTouchCallout: 'none'
                     }}
-                    onMouseDown={() => handleTouchStart(contact)}
-                    onMouseUp={() => handleTouchEnd(contact)}
-                    onMouseLeave={() => handleTouchEnd(contact)}
-                    onTouchStart={() => handleTouchStart(contact)}
-                    onTouchEnd={() => handleTouchEnd(contact)}
+                    onClick={() => setLocation(`/friend/${contact.contactUserId}`)}
+                    onMouseDown={() => handleLongPressStart(contact)}
+                    onMouseUp={handleLongPressEnd}
+                    onMouseLeave={handleLongPressEnd}
+                    onTouchStart={() => handleLongPressStart(contact)}
+                    onTouchEnd={handleLongPressEnd}
                     onContextMenu={(e) => e.preventDefault()}
                   >
                     <PrismAvatar
@@ -430,13 +485,16 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
                       fallback={getInitials(displayName)}
                       hasNewPost={hasRecentPost(contact.contactUserId)}
                       size="md"
-                      className="shadow-sm"
+                      className="shadow-md"
                     />
-                    <div className="absolute -top-1 -right-1">
-                      <Star className="h-3 w-3 text-yellow-500 fill-current" />
-                    </div>
+                    {contact.contactUser.isOnline && (
+                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full z-20"></div>
+                    )}
                   </div>
-                  <span className="text-xs text-gray-700 truncate max-w-[60px]">
+                  <span 
+                    className="text-xs text-gray-700 text-center max-w-[60px] truncate cursor-pointer hover:text-blue-600"
+                    onClick={() => onSelectContact(contact.contactUserId)}
+                  >
                     {displayName}
                   </span>
                 </div>
@@ -446,33 +504,25 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
         </div>
       )}
 
-      {/* 연락처 목록 */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto max-h-[calc(100vh-240px)] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
         {filteredAndSortedContacts.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center p-8">
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                <Plus className="h-8 w-8 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">연락처가 없습니다</h3>
-              <p className="text-sm text-gray-500 mb-4">새로운 친구를 추가해보세요!</p>
-              <Button onClick={onAddContact} className="purple-gradient">
-                <Plus className="h-4 w-4 mr-2" />
-                연락처 추가
-              </Button>
-            </div>
+          <div className="p-3 text-center text-gray-500 text-sm">
+            {searchTerm ? "검색 결과가 없습니다" : "연락처가 없습니다"}
           </div>
         ) : (
-          <div className="space-y-1">
-            {filteredAndSortedContacts.map((contact: any) => {
-              const displayName = contact.nickname || contact.contactUser.displayName;
-              return (
-                <div
-                  key={contact.id}
-                  className={cn(
-                    "flex items-center space-x-3 p-3 hover:bg-gray-50 cursor-pointer select-none",
-                    isRecording && recordingContact?.id === contact.id && "bg-red-50 ring-1 ring-red-200"
-                  )}
+          filteredAndSortedContacts.map((contact: any) => {
+            console.log('🔍 연락처 렌더링:', contact.contactUser?.displayName || contact.contactUser?.username);
+            return (
+            <div
+              key={contact.id}
+              className={cn(
+                "px-3 py-2 hover:bg-purple-50 border-b border-gray-100 transition-colors group",
+                isRecording && recordingContact?.id === contact.id && "bg-red-50 ring-2 ring-red-300"
+              )}
+            >
+              <div className="flex items-center space-x-2">
+                <div 
+                  className="cursor-pointer flex-1 flex items-center space-x-2 select-none"
                   style={{ 
                     userSelect: 'none',
                     WebkitUserSelect: 'none',
@@ -480,77 +530,114 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
                     msUserSelect: 'none',
                     WebkitTouchCallout: 'none'
                   }}
-                  onMouseDown={() => handleTouchStart(contact)}
-                  onMouseUp={() => handleTouchEnd(contact)}
-                  onMouseLeave={() => handleTouchEnd(contact)}
-                  onTouchStart={() => handleTouchStart(contact)}
-                  onTouchEnd={() => handleTouchEnd(contact)}
+                  onClick={(e) => {
+                    console.log('💿 연락처 클릭:', contact.contactUser.displayName);
+                    // 길게 누르기가 진행 중이면 클릭 무시
+                    if (longPressTimer) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      return;
+                    }
+                    onSelectContact(contact.contactUserId);
+                  }}
+                  onMouseDown={(e) => {
+                    console.log('🖱️ 마우스 다운:', contact.contactUser.displayName);
+                    handleLongPressStart(contact);
+                  }}
+                  onMouseUp={handleLongPressEnd}
+                  onMouseLeave={handleLongPressEnd}
+                  onTouchStart={(e) => {
+                    console.log('👆 터치 시작:', contact.contactUser.displayName);
+                    e.preventDefault(); // 기본 터치 동작 방지
+                    handleLongPressStart(contact);
+                  }}
+                  onTouchEnd={handleLongPressEnd}
                   onContextMenu={(e) => e.preventDefault()}
                 >
-                  <div className="relative">
+                  <div
+                    className="cursor-pointer"
+                    onClick={(e?: React.MouseEvent) => {
+                      e?.stopPropagation();
+                      setLocation(`/friend/${contact.contactUserId}`);
+                    }}
+                  >
                     <PrismAvatar
                       src={contact.contactUser.profilePicture}
-                      fallback={getInitials(displayName)}
+                      fallback={getInitials(contact.nickname || contact.contactUser.displayName)}
                       hasNewPost={hasRecentPost(contact.contactUserId)}
                       size="sm"
+                      className="hover:ring-2 hover:ring-blue-300 transition-all"
                     />
-                    {contact.isPinned && (
-                      <div className="absolute -top-1 -right-1">
-                        <Star className="h-3 w-3 text-yellow-500 fill-current" />
-                      </div>
-                    )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {displayName}
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium text-gray-900 truncate text-sm">
+                        {contact.nickname || contact.contactUser.displayName}
                       </p>
-                      {contact.contactUser.isOnline && (
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      )}
+                      <div className={cn(
+                        "w-2 h-2 rounded-full ml-2 flex-shrink-0",
+                        contact.contactUser.isOnline ? "bg-green-500" : "bg-gray-300"
+                      )} />
                     </div>
-                    <p className="text-xs text-gray-500 truncate">
-                      @{contact.contactUser.username}
+                    <p className="text-xs text-gray-500 truncate">@{contact.contactUser.username}</p>
+                    <p className="text-xs text-gray-400 truncate">
+                      {getOnlineStatus(contact.contactUser)}
                     </p>
-                    {contact.contactUser.lastSeen && (
-                      <p className="text-xs text-gray-400">
-                        {new Date(contact.contactUser.lastSeen).toLocaleDateString()}
-                      </p>
-                    )}
                   </div>
+                </div>
+                
+                <div className="flex items-center space-x-1">
+                  {/* 즐겨찾기 버튼 */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      "h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity",
+                      contact.isPinned && "opacity-100"
+                    )}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavoriteMutation.mutate({
+                        contactId: contact.id,
+                        isPinned: !contact.isPinned
+                      });
+                    }}
+                  >
+                    <Star 
+                      className={cn(
+                        "h-4 w-4",
+                        contact.isPinned 
+                          ? "fill-yellow-400 text-yellow-400" 
+                          : "text-gray-400 hover:text-yellow-400"
+                      )} 
+                    />
+                  </Button>
+
+                  {/* 옵션 메뉴 */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100"
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <MoreVertical className="h-4 w-4" />
+                        <MoreVertical className="h-4 w-4 text-gray-400" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleToggleFavorite(contact);
-                        }}
-                      >
-                        <Star className="h-4 w-4 mr-2" />
-                        {contact.isPinned ? "즐겨찾기 해제" : "즐겨찾기 추가"}
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem 
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();
                           handleBlockContact(contact);
                         }}
-                        className="text-yellow-600"
+                        className="text-orange-600"
                       >
                         <Shield className="h-4 w-4 mr-2" />
                         차단하기
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeleteContact(contact);
@@ -563,11 +650,51 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            </div>
+            );
+          })
         )}
       </div>
+
+      {/* 음성 녹음 상태 표시 */}
+      {isRecording && recordingContact && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-gradient-to-br from-red-500 to-red-600 text-white p-8 rounded-2xl shadow-2xl flex flex-col items-center space-y-4 max-w-sm mx-4">
+            {/* 마이크 아이콘과 펄스 애니메이션 */}
+            <div className="relative">
+              <div className="absolute inset-0 bg-red-400 rounded-full animate-ping opacity-75"></div>
+              <div className="absolute inset-2 bg-red-300 rounded-full animate-ping opacity-50 animation-delay-200"></div>
+              <div className="relative bg-red-600 p-4 rounded-full">
+                <Mic className="h-8 w-8 text-white" />
+              </div>
+            </div>
+            
+            {/* 음성 파형 애니메이션 */}
+            <div className="flex items-center space-x-1">
+              <div className="w-1 bg-white/80 rounded-full waveform-bar" style={{animationDelay: '0ms'}}></div>
+              <div className="w-1 bg-white/80 rounded-full waveform-bar" style={{animationDelay: '150ms'}}></div>
+              <div className="w-1 bg-white/80 rounded-full waveform-bar" style={{animationDelay: '300ms'}}></div>
+              <div className="w-1 bg-white/80 rounded-full waveform-bar" style={{animationDelay: '450ms'}}></div>
+              <div className="w-1 bg-white/80 rounded-full waveform-bar" style={{animationDelay: '600ms'}}></div>
+              <div className="w-1 bg-white/80 rounded-full waveform-bar" style={{animationDelay: '750ms'}}></div>
+              <div className="w-1 bg-white/80 rounded-full waveform-bar" style={{animationDelay: '900ms'}}></div>
+            </div>
+            
+            <div className="text-center">
+              <p className="text-lg font-semibold">
+                {recordingContact.nickname || recordingContact.contactUser.displayName}
+              </p>
+              <p className="text-sm text-red-100 mt-1">
+                음성 메시지 녹음 중...
+              </p>
+              <p className="text-xs text-red-200 mt-2">
+                손을 떼면 자동으로 전송됩니다
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 차단 확인 다이얼로그 */}
       <AlertDialog open={showBlockConfirm} onOpenChange={setShowBlockConfirm}>
@@ -575,15 +702,15 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
           <AlertDialogHeader>
             <AlertDialogTitle>연락처 차단</AlertDialogTitle>
             <AlertDialogDescription>
-              {contactToBlock?.contactUser.displayName || contactToBlock?.contactUser.username}님을 차단하시겠습니까?
-              차단된 사용자는 메시지를 보낼 수 없습니다.
+              {contactToBlock?.nickname || contactToBlock?.contactUser?.displayName}님을 차단하시겠습니까?
+              차단된 연락처는 메시지를 보낼 수 없으며, 연락처 목록에서 숨겨집니다.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={confirmBlockContact}
-              className="bg-yellow-600 hover:bg-yellow-700"
+              className="bg-orange-600 hover:bg-orange-700"
             >
               차단하기
             </AlertDialogAction>
@@ -597,13 +724,13 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
           <AlertDialogHeader>
             <AlertDialogTitle>연락처 삭제</AlertDialogTitle>
             <AlertDialogDescription>
-              {contactToDelete?.contactUser.displayName || contactToDelete?.contactUser.username}님을 연락처에서 삭제하시겠습니까?
-              이 작업은 되돌릴 수 없습니다.
+              {contactToDelete?.nickname || contactToDelete?.contactUser?.displayName}님을 연락처에서 삭제하시겠습니까?
+              삭제된 연락처는 복구할 수 없습니다.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={confirmDeleteContact}
               className="bg-red-600 hover:bg-red-700"
             >
