@@ -4,7 +4,7 @@ import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
 
 // 정적 파일 미들웨어 제거 - routes.ts에서 복호화하여 서빙함
 

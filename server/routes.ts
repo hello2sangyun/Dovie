@@ -24,6 +24,20 @@ if (!fs.existsSync(uploadDir)) {
 const upload = multer({
   dest: uploadDir,
   limits: { fileSize: 500 * 1024 * 1024 }, // 500MB limit for videos
+  fileFilter: (req, file, cb) => {
+    // UTF-8 파일명 인코딩 지원
+    if (file.originalname) {
+      try {
+        // Buffer로 변환 후 UTF-8로 디코딩하여 파일명 보정
+        const buffer = Buffer.from(file.originalname, 'latin1');
+        file.originalname = buffer.toString('utf8');
+      } catch (error) {
+        // 인코딩 변환 실패 시 원본 유지
+        console.log('Filename encoding conversion failed, using original:', file.originalname);
+      }
+    }
+    cb(null, true);
+  }
 });
 
 // WebSocket connection management
@@ -1314,10 +1328,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("File summary generation failed, using default");
       }
 
+      // 파일명 UTF-8 보정
+      let displayFileName = req.file.originalname;
+      try {
+        // UTF-8 디코딩 시도 (이미 fileFilter에서 처리되었지만 추가 보정)
+        const buffer = Buffer.from(req.file.originalname, 'latin1');
+        const decodedFileName = buffer.toString('utf8');
+        displayFileName = decodedFileName;
+      } catch (error) {
+        // 디코딩 실패 시 원본 사용
+        console.log('Filename encoding conversion failed, using original:', req.file.originalname);
+      }
+
       const fileUrl = `/uploads/${encryptedFileName}`;
       res.json({
         fileUrl,
-        fileName: req.file.originalname,
+        fileName: displayFileName,
         fileSize: req.file.size,
         summary: fileSummary,
       });
@@ -1344,8 +1370,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const contentBuffer = Buffer.from(content, 'utf8');
       const encryptedData = encryptFileData(contentBuffer);
       
-      // 암호화된 파일명 생성
-      const safeFileName = fileName.replace(/[^a-zA-Z0-9가-힣._-]/g, '_') + '.txt';
+      // 파일명 UTF-8 보정 및 안전한 파일명 생성
+      let safeFileName;
+      try {
+        // UTF-8 디코딩 시도
+        const buffer = Buffer.from(fileName, 'latin1');
+        const decodedFileName = buffer.toString('utf8');
+        safeFileName = decodedFileName.replace(/[^a-zA-Z0-9가-힣._-]/g, '_') + '.txt';
+      } catch (error) {
+        // 디코딩 실패 시 원본 사용
+        safeFileName = fileName.replace(/[^a-zA-Z0-9가-힣._-]/g, '_') + '.txt';
+      }
       const encryptedFileName = hashFileName(safeFileName);
       const filePath = path.join(uploadDir, encryptedFileName);
       

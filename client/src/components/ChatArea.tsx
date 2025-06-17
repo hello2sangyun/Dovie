@@ -5127,34 +5127,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             </div>
           )}
           
-          {/* Voice Recorder */}
-          <VoiceRecorder
-            onRecordingComplete={handleVoiceRecordingComplete}
-            disabled={isProcessingVoice || sendMessageMutation.isPending}
+          {/* 통합된 음성/텍스트 전송 버튼 */}
+          <UnifiedSendButton
+            onSendMessage={handleSendMessage}
+            onVoiceRecordingComplete={handleVoiceRecordingComplete}
+            message={message}
+            disabled={sendMessageMutation.isPending || isProcessingVoice}
+            isPending={sendMessageMutation.isPending}
+            accessibilitySettings={accessibilitySettings}
           />
-          
-          <PulseNotification 
-            active={message.trim().length > 0}
-            accessibilityMode={accessibilitySettings.reducedMotion}
-            intensity="moderate"
-          >
-            <InteractiveButton
-              type="press"
-              intensity="strong"
-              accessibilityMode={accessibilitySettings.reducedMotion}
-              hapticFeedback={accessibilitySettings.hapticEnabled}
-              className="purple-gradient hover:purple-gradient-hover h-6 w-6 p-1 rounded-full transition-all duration-200"
-              onClick={handleSendMessage}
-              disabled={sendMessageMutation.isPending || !message.trim()}
-              aria-label="메시지 전송"
-            >
-              {sendMessageMutation.isPending ? (
-                <AccessibleSpinner size="sm" accessibilityMode={accessibilitySettings.reducedMotion} />
-              ) : (
-                <Send className="h-3 w-3" />
-              )}
-            </InteractiveButton>
-          </PulseNotification>
           </div>
         </div>
       </div>
