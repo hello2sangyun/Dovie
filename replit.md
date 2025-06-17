@@ -256,6 +256,10 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Fixed file upload error by correcting field name mismatch (files → file) and implementing sequential upload
   - Enhanced file drop zone with mobile-responsive padding and button sizing
   - Added comprehensive error handling and logging for upload debugging
+  - Fixed upload authentication by switching from header-based to session-based user verification
+  - Enhanced Korean hashtag support with proper Unicode character validation (한글, 영문, 숫자, _)
+  - Optimized modal layout with flex-column structure and proper height constraints (85vh)
+  - Made file drop zone more compact with smaller icons and reduced padding for mobile screens
 
 ## User Preferences
 
