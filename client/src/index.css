@@ -401,3 +401,12 @@
   will-change: scroll-position;
   overflow-anchor: none;
 }
+
+@keyframes progress-countdown {
+  0% { width: 100%; }
+  100% { width: 0%; }
+}
+
+.animate-progress-countdown {
+  animation: progress-countdown linear forwards;
+}
