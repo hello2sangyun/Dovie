@@ -53,9 +53,11 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   // 길게 누르기 시작
   const handleLongPressStart = (contact: any) => {
     console.log('🎯 간편음성메세지 - 길게 누르기 시작:', contact.contactUser.displayName || contact.contactUser.nickname || contact.contactUser.username);
+    console.log('🎯 Contact ID:', contact.contactUserId);
     
     const timer = setTimeout(() => {
       console.log('🎤 간편음성메세지 - 0.5초 후 녹음 시작');
+      console.log('🎤 Setting recordingContact to:', contact);
       setRecordingContact(contact);
       setIsRecording(true);
     }, 500); // 0.5초 후 녹음 시작

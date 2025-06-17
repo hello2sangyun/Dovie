@@ -50,6 +50,13 @@ export default function SimpleVoiceRecorder({ onRecordingComplete, disabled }: S
       getUserMedia: !!navigator.mediaDevices?.getUserMedia,
       MediaRecorder: !!window.MediaRecorder
     });
+    
+    // Test MIME type support
+    const testTypes = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4'];
+    testTypes.forEach(type => {
+      console.log(`🎤 MIME type ${type}: ${MediaRecorder.isTypeSupported(type)}`);
+    });
+    
     setIsPreparing(true);
     
     try {
@@ -141,13 +148,16 @@ export default function SimpleVoiceRecorder({ onRecordingComplete, disabled }: S
         cleanup();
       };
       
-      // Start recording
-      mediaRecorder.start();
+      // Start recording with explicit timeslice
+      mediaRecorder.start(100); // Request data every 100ms
       startTimeRef.current = Date.now();
       setIsRecording(true);
       setIsPreparing(false);
       
-      console.log('SimpleVoiceRecorder: Recording started, state:', mediaRecorder.state);
+      console.log('🎤 SimpleVoiceRecorder: Recording started');
+      console.log('🎤 MediaRecorder state:', mediaRecorder.state);
+      console.log('🎤 Stream active:', stream.active);
+      console.log('🎤 Audio tracks:', stream.getAudioTracks().length);
       
       // Start timer
       timerRef.current = setInterval(() => {
@@ -166,17 +176,37 @@ export default function SimpleVoiceRecorder({ onRecordingComplete, disabled }: S
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
       const recordingTime = Date.now() - startTimeRef.current;
-      console.log('SimpleVoiceRecorder: Stopping recording after', recordingTime, 'ms');
+      console.log('🛑 SimpleVoiceRecorder: Stopping recording after', recordingTime, 'ms');
+      console.log('🛑 MediaRecorder state before stop:', mediaRecorderRef.current.state);
       
-      if (recordingTime < 300) {
-        // Too short, wait a bit more
+      // Force data collection before stopping
+      if (mediaRecorderRef.current.state === 'recording') {
+        try {
+          mediaRecorderRef.current.requestData();
+          console.log('🛑 Requested final data chunk');
+        } catch (e) {
+          console.warn('🛑 Failed to request data:', e);
+        }
+      }
+      
+      // Ensure minimum recording time
+      if (recordingTime < 500) {
         setTimeout(() => {
           if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-            mediaRecorderRef.current.stop();
+            try {
+              mediaRecorderRef.current.requestData();
+              mediaRecorderRef.current.stop();
+            } catch (e) {
+              console.error('🛑 Error stopping recorder:', e);
+            }
           }
-        }, 300 - recordingTime);
+        }, 500 - recordingTime);
       } else {
-        mediaRecorderRef.current.stop();
+        try {
+          mediaRecorderRef.current.stop();
+        } catch (e) {
+          console.error('🛑 Error stopping recorder:', e);
+        }
       }
       
       setIsRecording(false);
