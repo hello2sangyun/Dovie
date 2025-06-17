@@ -2687,11 +2687,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       allSuggestions.push(delayedResponseDetection);
     }
 
-    // 18. 동기부여/명언 감지
-    const motivationDetection = detectMotivation(value);
-    if (motivationDetection) {
-      allSuggestions.push(motivationDetection);
-    }
+    // 18. 동기부여/명언 감지 (삭제됨)
 
     // 19. 질문 감지
     const questionDetection = detectQuestion(value);

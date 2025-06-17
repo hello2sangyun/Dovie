@@ -198,6 +198,16 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Successfully tested complete workflow: long-press contact → voice recording → OpenAI transcription → database storage → chat room navigation
   - Verified message ID 376 saved with content "하나님이 보우하사 우리나라 만세"
   - Quick Voice Message feature now fully functional from contacts list
+- June 17, 2025: Refined smart suggestion system by removing 8 unwanted features:
+  - Deleted emotion analysis (감정 감지) functionality completely
+  - Removed todo list creation (할 일) detection and generation
+  - Eliminated poll creation (투표) feature from smart suggestions
+  - Deleted food delivery suggestions (음식 감지) capability
+  - Removed schedule management (일정/시간) detection system
+  - Eliminated video meeting link generation (화상회의) functionality
+  - Deleted success quotes/motivation (동기부여/명언) feature
+  - Removed celebration card creation (축하 카드) functionality
+  - Smart suggestion system now focuses on 16 core features: profanity detection, business tone conversion, auto translation, currency conversion, search, news summary, unit conversion, YouTube integration, and other utility functions
 
 ## User Preferences
 
