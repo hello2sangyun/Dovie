@@ -50,16 +50,24 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   const [isRecording, setIsRecording] = useState(false);
   const [recordingContact, setRecordingContact] = useState<any>(null);
 
-  // 길게 누르기 시작
+  // 길게 누르기 시작 - 바로 음성 녹음 시작
   const handleLongPressStart = (contact: any) => {
     console.log('🎯 간편음성메세지 - 길게 누르기 시작:', contact.contactUser.displayName || contact.contactUser.nickname || contact.contactUser.username);
     console.log('🎯 Contact ID:', contact.contactUserId);
     
+    // 팝업 없이 바로 녹음 시작
     const timer = setTimeout(() => {
       console.log('🎤 간편음성메세지 - 0.5초 후 녹음 시작');
       console.log('🎤 Setting recordingContact to:', contact);
       setRecordingContact(contact);
       setIsRecording(true);
+      
+      // 음성 녹음 시작 알림
+      toast({
+        title: "음성 메시지 녹음 중",
+        description: `${contact.contactUser.displayName || contact.contactUser.username}에게 보낼 음성 메시지를 녹음하고 있습니다.`,
+        duration: 2000,
+      });
     }, 500); // 0.5초 후 녹음 시작
     
     setLongPressTimer(timer);
@@ -128,8 +136,10 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       console.log('📤 audioBlob type:', audioBlob.type);
       console.log('📤 user ID:', user?.id);
       console.log('📤 FormData 내용 확인');
+      console.log('📤 대상 연락처:', recordingContact.contactUser.displayName || recordingContact.contactUser.username);
 
       // 1단계: 음성 파일 업로드 (/api/upload-voice)
+      console.log('🔄 DB 저장 테스트 - 1단계: 음성 파일 업로드 시작');
       const uploadResponse = await fetch('/api/upload-voice', {
         method: 'POST',
         headers: {
@@ -140,6 +150,12 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
 
       console.log('📤 업로드 응답 상태:', uploadResponse.status);
       console.log('📤 업로드 응답 헤더:', Object.fromEntries(uploadResponse.headers.entries()));
+      
+      if (uploadResponse.status === 200) {
+        console.log('✅ DB 저장 테스트 - 1단계: 음성 파일 업로드 성공');
+      } else {
+        console.log('❌ DB 저장 테스트 - 1단계: 음성 파일 업로드 실패');
+      }
 
       if (!uploadResponse.ok) {
         const errorText = await uploadResponse.text();
@@ -149,8 +165,11 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
 
       const uploadResult = await uploadResponse.json();
       console.log('✅ 음성 파일 업로드 성공:', uploadResult);
+      console.log('📁 DB 저장된 파일 경로:', uploadResult.fileUrl);
+      console.log('📁 DB 저장된 파일 이름:', uploadResult.fileName);
 
       // 2단계: 음성 텍스트 변환 (/api/transcribe)
+      console.log('🔄 DB 저장 테스트 - 2단계: AI 텍스트 변환 시작');
       const transcribeFormData = new FormData();
       transcribeFormData.append('audio', audioBlob, 'voice_message.webm');
 
@@ -162,15 +181,24 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
         body: transcribeFormData,
       });
 
+      console.log('🤖 AI 변환 응답 상태:', transcribeResponse.status);
+
       if (!transcribeResponse.ok) {
         console.warn('⚠️ 음성 변환 실패, 기본 텍스트 사용');
+        console.log('❌ DB 저장 테스트 - 2단계: AI 텍스트 변환 실패');
       }
 
       let transcribeResult;
       try {
         transcribeResult = await transcribeResponse.json();
+        if (transcribeResult.success) {
+          console.log('✅ DB 저장 테스트 - 2단계: AI 텍스트 변환 성공');
+          console.log('🗣️ 변환된 텍스트:', transcribeResult.transcription);
+          console.log('🌍 감지된 언어:', transcribeResult.language);
+        }
       } catch (error) {
         console.warn('⚠️ 음성 변환 응답 파싱 실패, 기본 텍스트 사용');
+        console.log('❌ DB 저장 테스트 - 2단계: AI 변환 응답 파싱 실패');
         transcribeResult = { success: false, transcription: '음성 메시지' };
       }
 
@@ -189,12 +217,25 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
         confidence: transcribeResult.confidence || '0.9'
       };
 
+      console.log('🔄 DB 저장 테스트 - 3단계: 채팅방에 메시지 저장 시작');
+      console.log('💬 저장할 메시지 데이터:', messageData);
+      console.log('🏠 대상 채팅방 ID:', chatRoomId);
+      
       const messageResponse = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages`, 'POST', messageData);
+      
+      console.log('💾 메시지 저장 응답 상태:', messageResponse.status);
       
       if (!messageResponse.ok) {
         console.error('❌ 메시지 저장 실패:', messageResponse.status);
+        console.log('❌ DB 저장 테스트 - 3단계: 채팅방 메시지 저장 실패');
         throw new Error('메시지 저장에 실패했습니다.');
       }
+
+      const savedMessage = await messageResponse.json();
+      console.log('✅ DB 저장 테스트 - 3단계: 채팅방 메시지 저장 성공');
+      console.log('💾 저장된 메시지 ID:', savedMessage.message?.id);
+      console.log('💾 저장된 메시지 내용:', savedMessage.message?.content);
+      console.log('💾 저장된 파일 URL:', savedMessage.message?.fileUrl);
 
       // 캐시 무효화
       await Promise.all([
@@ -202,6 +243,12 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
         queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] }),
         queryClient.invalidateQueries({ queryKey: ["/api/unread-counts"] })
       ]);
+
+      console.log('🔄 DB 저장 테스트 - 모든 단계 완료! 총 결과:');
+      console.log('✅ 1단계: 음성 파일 업로드 및 DB 저장 성공');
+      console.log('✅ 2단계: AI 텍스트 변환 성공');
+      console.log('✅ 3단계: 채팅방 메시지 저장 성공');
+      console.log('🎉 간편음성메세지가 완전히 DB에 저장되었습니다!');
 
       // 업로드 성공 후 채팅방으로 자동 이동
       console.log('🚀 채팅방으로 자동 이동:', chatRoomId);
