@@ -4737,13 +4737,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         )}
 
         <div className={cn(
-          "px-4 pt-3 pb-3 chat-input-area",
+          "px-4 py-3 chat-input-area flex items-center",
           // 주변챗용 특별한 디자인
           isLocationChatRoom 
             ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-t-2 border-blue-200" 
             : "bg-white border-t border-gray-200"
         )}>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 w-full">
           {/* Enhanced left buttons group */}
           <div className="flex items-center gap-1">
             <InteractiveButton

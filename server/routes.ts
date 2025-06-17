@@ -470,7 +470,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // For location chat, create response with profile info
       const user = await storage.getUser(Number(userId));
       const messageWithSender = {
-        ...newMessage,
+        ...message,
         sender: user,
         senderProfile: profile
       };
@@ -944,50 +944,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/chat-rooms/:chatRoomId/messages", async (req, res) => {
     try {
       const chatRoomId = Number(req.params.chatRoomId);
-      const userId = req.headers["x-user-id"];
-      
-      // Get messages with like data
-      const messagesWithLikes = await db
-        .select({
-          id: messages.id,
-          chatRoomId: messages.chatRoomId,
-          senderId: messages.senderId,
-          content: messages.content,
-          messageType: messages.messageType,
-          fileUrl: messages.fileUrl,
-          fileName: messages.fileName,
-          fileSize: messages.fileSize,
-          fileDuration: messages.fileDuration,
-          parentMessageId: messages.parentMessageId,
-          mentionedUserIds: messages.mentionedUserIds,
-          mentionAll: messages.mentionAll,
-          isEdited: messages.isEdited,
-          isDeleted: messages.isDeleted,
-          createdAt: messages.createdAt,
-          updatedAt: messages.updatedAt,
-          sender: {
-            id: users.id,
-            username: users.username,
-            displayName: users.displayName,
-            profilePicture: users.profilePicture,
-          },
-          likeCount: sql<number>`(
-            SELECT COUNT(*)::integer FROM ${messageLikes} 
-            WHERE ${messageLikes.messageId} = ${messages.id}
-          )`,
-          isLiked: userId ? sql<boolean>`(
-            SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END
-            FROM ${messageLikes} 
-            WHERE ${messageLikes.messageId} = ${messages.id} 
-            AND ${messageLikes.userId} = ${Number(userId)}
-          )` : sql<boolean>`false`,
-        })
-        .from(messages)
-        .leftJoin(users, eq(messages.senderId, users.id))
-        .where(eq(messages.chatRoomId, chatRoomId))
-        .orderBy(messages.createdAt);
-
-      res.json({ messages: messagesWithLikes });
+      const messages = await storage.getMessages(chatRoomId);
+      res.json({ messages });
     } catch (error) {
       console.error("Messages fetch error:", error);
       res.status(500).json({ message: "Failed to get messages" });
