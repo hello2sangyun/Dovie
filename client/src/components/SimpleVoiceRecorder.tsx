@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { Mic, MicOff } from 'lucide-react';
 
 interface SimpleVoiceRecorderProps {
@@ -10,14 +10,19 @@ interface SimpleVoiceRecorderProps {
   shouldStop?: boolean;
 }
 
-export default function SimpleVoiceRecorder({ 
-  onRecordingComplete, 
-  onComplete, 
-  onCancel, 
-  disabled, 
-  autoStart = false,
-  shouldStop = false
-}: SimpleVoiceRecorderProps) {
+export interface SimpleVoiceRecorderRef {
+  stopRecording: () => void;
+}
+
+const SimpleVoiceRecorder = forwardRef<SimpleVoiceRecorderRef, SimpleVoiceRecorderProps>((props, ref) => {
+  const { 
+    onRecordingComplete, 
+    onComplete, 
+    onCancel, 
+    disabled, 
+    autoStart = false,
+    shouldStop = false
+  } = props;
   const [isRecording, setIsRecording] = useState(false);
   const [isPreparing, setIsPreparing] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -28,6 +33,16 @@ export default function SimpleVoiceRecorder({
   const chunksRef = useRef<Blob[]>([]);
   const startTimeRef = useRef<number>(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Expose stopRecording method via ref
+  useImperativeHandle(ref, () => ({
+    stopRecording: () => {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+        console.log('🔴 Stopping recording via ref');
+        mediaRecorderRef.current.stop();
+      }
+    }
+  }));
 
   useEffect(() => {
     return () => {
@@ -383,4 +398,8 @@ export default function SimpleVoiceRecorder({
       )}
     </div>
   );
-}
+});
+
+SimpleVoiceRecorder.displayName = 'SimpleVoiceRecorder';
+
+export default SimpleVoiceRecorder;
