@@ -4165,17 +4165,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           
                           {/* 오디오 파형 그래프 영역 */}
                           <div className="flex-1 min-w-0 max-w-xs">
-                            <div className="flex items-center space-x-2 mb-2">
+                            {/* 음성 라벨을 우측 상단에 배치 */}
+                            <div className="flex items-center justify-end space-x-2 mb-2">
                               <div className={cn(
-                                "px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1",
+                                "px-2 py-1 rounded-full text-xs font-medium",
                                 isMe ? "bg-white/20 text-white" : "bg-purple-100 text-purple-600"
                               )}>
-                                <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor">
-                                  <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/>
-                                  <path d="M19 10v1a7 7 0 0 1-14 0v-1"/>
-                                  <path d="M12 18v4M8 22h8"/>
-                                </svg>
-                                <span>음성</span>
+                                음성
                               </div>
                               {msg.voiceDuration && (
                                 <span className={cn(

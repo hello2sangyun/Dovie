@@ -220,7 +220,7 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Implemented animated progress indicators during playback with pulsing effects
   - Increased play button size from 8x8 to 10x10 pixels for better mobile usability
   - Added visual feedback with color-coded waveform bars (active vs inactive states)
-  - Maintained voice badge and duration display while adding modern waveform design
+  - Repositioned "음성" label to top-right corner and removed voice icon for cleaner design
   - Voice messages now provide visual audio content preview for better user experience
 
 ## User Preferences
