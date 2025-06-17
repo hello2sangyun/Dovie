@@ -25,6 +25,8 @@ import TranslateModal from "./TranslateModal";
 import VoiceRecorder from "./VoiceRecorder";
 import { UnifiedSendButton } from "./UnifiedSendButton";
 import { FileUploadModal } from "./FileUploadModal";
+import { LinkPreview } from "./LinkPreview";
+import { MessageLikeButton } from "./MessageLikeButton";
 
 import TypingIndicator, { useTypingIndicator } from "./TypingIndicator";
 import { 
@@ -42,6 +44,12 @@ interface ChatAreaProps {
   onBackClick?: () => void;
   isLocationChat?: boolean;
 }
+
+// URL detection utility
+const detectUrls = (text: string): string[] => {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  return text.match(urlRegex) || [];
+};
 
 export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader, onBackClick, isLocationChat }: ChatAreaProps) {
   const { user } = useAuth();

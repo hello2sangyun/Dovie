@@ -3,7 +3,7 @@ import express from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, insertUserPostSchema, insertPostLikeSchema, insertPostCommentSchema, insertCompanyChannelSchema, insertCompanyProfileSchema, chatRooms, chatParticipants, userPosts, postLikes, postComments, companyChannels, companyChannelFollowers, companyChannelAdmins, users, businessProfiles, contacts, businessPostReads, businessPosts, businessPostLikes, companyProfiles } from "@shared/schema";
+import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, insertUserPostSchema, insertPostLikeSchema, insertPostCommentSchema, insertCompanyChannelSchema, insertCompanyProfileSchema, chatRooms, chatParticipants, userPosts, postLikes, postComments, companyChannels, companyChannelFollowers, companyChannelAdmins, users, businessProfiles, contacts, businessPostReads, businessPosts, businessPostLikes, companyProfiles, messages, messageLikes, linkPreviews } from "@shared/schema";
 import { sql } from "drizzle-orm";
 import { translateText, transcribeAudio } from "./openai";
 import bcrypt from "bcryptjs";
@@ -943,9 +943,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Message routes
   app.get("/api/chat-rooms/:chatRoomId/messages", async (req, res) => {
     try {
-      const messages = await storage.getMessages(Number(req.params.chatRoomId));
-      res.json({ messages });
+      const chatRoomId = Number(req.params.chatRoomId);
+      const userId = req.headers["x-user-id"];
+      
+      // Get messages with like data
+      const messagesWithLikes = await db
+        .select({
+          id: messages.id,
+          chatRoomId: messages.chatRoomId,
+          senderId: messages.senderId,
+          content: messages.content,
+          messageType: messages.messageType,
+          fileUrl: messages.fileUrl,
+          fileName: messages.fileName,
+          fileSize: messages.fileSize,
+          fileDuration: messages.fileDuration,
+          parentMessageId: messages.parentMessageId,
+          mentionedUserIds: messages.mentionedUserIds,
+          mentionAll: messages.mentionAll,
+          isEdited: messages.isEdited,
+          isDeleted: messages.isDeleted,
+          createdAt: messages.createdAt,
+          updatedAt: messages.updatedAt,
+          sender: {
+            id: users.id,
+            username: users.username,
+            displayName: users.displayName,
+            profilePicture: users.profilePicture,
+          },
+          likeCount: sql<number>`(
+            SELECT COUNT(*)::integer FROM ${messageLikes} 
+            WHERE ${messageLikes.messageId} = ${messages.id}
+          )`,
+          isLiked: userId ? sql<boolean>`(
+            SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END
+            FROM ${messageLikes} 
+            WHERE ${messageLikes.messageId} = ${messages.id} 
+            AND ${messageLikes.userId} = ${Number(userId)}
+          )` : sql<boolean>`false`,
+        })
+        .from(messages)
+        .leftJoin(users, eq(messages.senderId, users.id))
+        .where(eq(messages.chatRoomId, chatRoomId))
+        .orderBy(messages.createdAt);
+
+      res.json({ messages: messagesWithLikes });
     } catch (error) {
+      console.error("Messages fetch error:", error);
       res.status(500).json({ message: "Failed to get messages" });
     }
   });
