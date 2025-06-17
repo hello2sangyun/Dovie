@@ -27,7 +27,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Plus, Search, Star, MoreVertical, UserX, Trash2, Shield, Mic } from "lucide-react";
-import VoiceRecorder from "./VoiceRecorder";
+import SimpleVoiceRecorder from "./SimpleVoiceRecorder";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 
 interface ContactsListProps {
@@ -613,7 +613,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
               <div className="text-sm text-gray-600 dark:text-gray-300">
                 간편음성메세지
               </div>
-              <VoiceRecorder
+              <SimpleVoiceRecorder
                 onRecordingComplete={handleQuickVoiceComplete}
                 disabled={false}
               />
