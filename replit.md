@@ -248,6 +248,14 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Removed unnecessary UI elements (play buttons, voice icons) from reply previews for cleaner presentation
   - Fixed profile picture upload encryption error by reading file from disk before encryption
   - Added proper temporary file cleanup to prevent disk space issues
+- June 17, 2025: Optimized mobile file upload and hashtag input functionality:
+  - Enhanced HashtagInput component with mobile-optimized spacing and responsive design
+  - Added automatic # symbol insertion when typing and space bar auto-completion
+  - Made tag bubbles more compact with truncation and better mobile touch targets
+  - Optimized FileUploadModal for mobile with responsive sizing (95vw width, 90vh height)
+  - Fixed file upload error by correcting field name mismatch (files → file) and implementing sequential upload
+  - Enhanced file drop zone with mobile-responsive padding and button sizing
+  - Added comprehensive error handling and logging for upload debugging
 
 ## User Preferences
 
