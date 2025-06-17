@@ -65,7 +65,7 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
     staleTime: 30 * 60 * 1000,
   });
 
-  const contacts = contactsData?.contacts || [];
+  const contacts = contactsData || [];
 
   // 터치 이벤트 핸들러
   const handleTouchStart = (contact: any) => {
@@ -344,6 +344,7 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
                 <p className="text-sm text-gray-500">간편음성메세지 녹음 중...</p>
               </div>
               <SimpleVoiceRecorder
+                ref={voiceRecorderRef}
                 onRecordingComplete={handleQuickVoiceComplete}
                 onCancel={() => {
                   setIsRecording(false);
