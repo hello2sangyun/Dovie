@@ -744,11 +744,17 @@ function ChatRoomItem({
   return (
     <div
       className={cn(
-        "p-4 hover:bg-purple-50 dark:hover:bg-gray-800 cursor-pointer border-b border-gray-100 dark:border-gray-700 transition-colors relative",
+        "p-4 hover:bg-purple-50 dark:hover:bg-gray-800 cursor-pointer border-b border-gray-100 dark:border-gray-700 transition-colors relative select-none",
         isSelected && !isMultiSelectMode && "bg-purple-50 dark:bg-gray-800",
         isMultiSelectMode && isChecked && "bg-blue-50 dark:bg-blue-900",
         isRecording && "bg-red-50 dark:bg-red-900 border-red-200 dark:border-red-700"
       )}
+      style={{ 
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        msUserSelect: 'none',
+        WebkitTouchCallout: 'none'
+      }}
       onClick={onClick}
       onMouseEnter={handleMouseEnter}
       onMouseDown={(e) => {
