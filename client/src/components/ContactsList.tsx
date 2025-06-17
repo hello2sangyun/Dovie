@@ -129,13 +129,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       console.log('📤 fileName:', fileName);
       console.log('📤 audioBlob size:', audioBlob.size);
       console.log('📤 audioBlob type:', audioBlob.type);
-      console.log('📤 FormData entries:');
-      for (let [key, value] of formData.entries()) {
-        console.log(`📤 - ${key}:`, value);
-        if (value instanceof File || value instanceof Blob) {
-          console.log(`📤   └ size: ${value.size}, type: ${value.type}`);
-        }
-      }
+      console.log('📤 FormData entries prepared');
       console.log('📤 음성 파일 업로드 시작...');
 
       const uploadResponse = await fetch(`/api/chat-rooms/${chatRoomId}/upload`, {
@@ -214,6 +208,8 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
         description: error.message || "다시 시도해주세요.",
       });
     } finally {
+      // 상태 정리
+      setIsRecording(false);
       setRecordingContact(null);
     }
   };
