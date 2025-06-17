@@ -18,13 +18,10 @@ import {
   UserX
 } from "lucide-react";
 import { getInitials, getAvatarColor } from "@/lib/utils";
-import BusinessCard from "./BusinessCard";
-import BusinessProfile from "./BusinessProfile";
 import BlockedContactsPage from "./BlockedContactsPage";
 import ProfileSettingsPage from "./ProfileSettingsPage";
 import NotificationSettingsPage from "./NotificationSettingsPage";
 import SecuritySettingsPage from "./SecuritySettingsPage";
-import LinkedInSpacePage from "../pages/LinkedInSpacePage";
 
 interface ModernSettingsPageProps {
   isMobile?: boolean;
@@ -32,27 +29,11 @@ interface ModernSettingsPageProps {
 
 export default function ModernSettingsPage({ isMobile = false }: ModernSettingsPageProps) {
   const { user, logout } = useAuth();
-  const [activeView, setActiveView] = useState<'main' | 'business-card' | 'space' | 'blocked-contacts' | 'profile' | 'notifications' | 'security'>('main');
+  const [activeView, setActiveView] = useState<'main' | 'blocked-contacts' | 'profile' | 'notifications' | 'security'>('main');
 
   if (!user) return null;
 
-  if (activeView === 'business-card') {
-    return (
-      <div className="flex-1 overflow-hidden">
-        <div className="h-full overflow-y-auto bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-          <BusinessCard onBack={() => setActiveView('main')} />
-        </div>
-      </div>
-    );
-  }
 
-  if (activeView === 'space') {
-    return (
-      <div className="flex-1 overflow-hidden">
-        <LinkedInSpacePage onBack={() => setActiveView('main')} />
-      </div>
-    );
-  }
 
   if (activeView === 'blocked-contacts') {
     return (
@@ -137,41 +118,7 @@ export default function ModernSettingsPage({ isMobile = false }: ModernSettingsP
             </CardContent>
           </Card>
 
-          {/* 비즈니스 섹션 - HIDDEN: Code preserved for future restoration 
-          <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-gray-700 px-2">비즈니스</h4>
-            
-            Business Card removed from UI
-            
-            <Card 
-              className="bg-white/80 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group active:scale-95"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Business Space clicked');
-                setActiveView('space');
-              }}
-              onTouchEnd={(e) => {
-                e.preventDefault();
-                console.log('Business Space touched');
-                setActiveView('space');
-              }}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Building2 className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h5 className="font-semibold text-gray-900">Business Space</h5>
-                    <p className="text-xs text-gray-500">비즈니스 네트워킹 및 피드</p>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          */}
+
 
           {/* 계정 설정 섹션 */}
           <div className="space-y-3">
