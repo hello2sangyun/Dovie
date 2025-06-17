@@ -215,6 +215,13 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Added smooth slide-in animations and auto-dismiss functionality
   - Enhanced readability with proper color coding: success (green), error (red), warning (orange), info (blue)
   - Mobile notifications no longer obstruct screen content and provide better user experience
+- June 17, 2025: Enhanced voice message bubbles with audio waveform visualization:
+  - Added dynamic audio waveform graphs that adjust to voice message duration (20-40 bars)
+  - Implemented animated progress indicators during playback with pulsing effects
+  - Increased play button size from 8x8 to 10x10 pixels for better mobile usability
+  - Added visual feedback with color-coded waveform bars (active vs inactive states)
+  - Maintained voice badge and duration display while adding modern waveform design
+  - Voice messages now provide visual audio content preview for better user experience
 
 ## User Preferences
 

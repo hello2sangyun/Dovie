@@ -4132,14 +4132,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       )}
                       
                       {msg.messageType === "voice" ? (
-                        <div className="flex items-start space-x-3">
+                        <div className="flex items-center space-x-3 min-w-0">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleVoicePlayback(msg.id, msg.fileUrl, msg.voiceDuration);
                             }}
                             className={cn(
-                              "clickable w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-105 select-auto flex-shrink-0",
+                              "clickable w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-105 select-auto flex-shrink-0 shadow-sm",
                               isMe ? "bg-white/20 hover:bg-white/30" : "bg-purple-100 hover:bg-purple-200"
                             )}
                             style={{ 
@@ -4152,19 +4152,20 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           >
                             {playingAudio === msg.id ? (
                               <Pause className={cn(
-                                "h-4 w-4",
+                                "h-5 w-5",
                                 isMe ? "text-white" : "text-purple-600"
                               )} />
                             ) : (
                               <Play className={cn(
-                                "h-4 w-4",
+                                "h-5 w-5",
                                 isMe ? "text-white" : "text-purple-600"
                               )} />
                             )}
                           </button>
                           
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center space-x-2 mb-1">
+                          {/* 오디오 파형 그래프 영역 */}
+                          <div className="flex-1 min-w-0 max-w-xs">
+                            <div className="flex items-center space-x-2 mb-2">
                               <div className={cn(
                                 "px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1",
                                 isMe ? "bg-white/20 text-white" : "bg-purple-100 text-purple-600"
@@ -4186,10 +4187,48 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                               )}
                             </div>
                             
+                            {/* 오디오 파형 시각화 */}
+                            <div className="flex items-center space-x-1 h-8 mb-2">
+                              {(() => {
+                                // 파형 막대 개수 (재생 시간에 따라 조정)
+                                const duration = msg.voiceDuration || 10;
+                                const barCount = Math.min(Math.max(duration * 2, 20), 40);
+                                const bars = [];
+                                
+                                for (let i = 0; i < barCount; i++) {
+                                  // 랜덤한 높이로 파형 생성 (실제로는 오디오 데이터 기반)
+                                  const height = Math.random() * 0.8 + 0.2; // 20% ~ 100% 높이
+                                  const isActive = playingAudio === msg.id && i < (barCount * 0.3); // 재생 진행률 시뮬레이션
+                                  
+                                  bars.push(
+                                    <div
+                                      key={i}
+                                      className={cn(
+                                        "rounded-full transition-all duration-100 flex-shrink-0",
+                                        isActive 
+                                          ? isMe 
+                                            ? "bg-white animate-pulse" 
+                                            : "bg-purple-600 animate-pulse"
+                                          : isMe
+                                            ? "bg-white/40"
+                                            : "bg-purple-300"
+                                      )}
+                                      style={{
+                                        width: '2px',
+                                        height: `${height * 24}px`,
+                                        minHeight: '4px'
+                                      }}
+                                    />
+                                  );
+                                }
+                                return bars;
+                              })()}
+                            </div>
+                            
                             {msg.content && (
                               <div className={cn(
                                 "text-sm leading-relaxed",
-                                isMe ? "text-white" : "text-gray-800"
+                                isMe ? "text-white/90" : "text-gray-800"
                               )}>
                                 {msg.content}
                               </div>
