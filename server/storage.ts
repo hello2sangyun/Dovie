@@ -125,7 +125,10 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(contacts)
       .innerJoin(users, eq(contacts.contactUserId, users.id))
-      .where(eq(contacts.userId, userId))
+      .where(and(
+        eq(contacts.userId, userId),
+        eq(contacts.isBlocked, false) // 차단된 연락처 제외
+      ))
       .orderBy(asc(users.displayName));
     
     return result.map(row => ({
@@ -226,6 +229,17 @@ export class DatabaseStorage implements IStorage {
 
     const chatRoomIds = userChatRooms.map(({ chatRoom }) => chatRoom.id);
 
+    // Get blocked contacts to filter out chat rooms with blocked users
+    const blockedContacts = await db
+      .select({ contactUserId: contacts.contactUserId })
+      .from(contacts)
+      .where(and(
+        eq(contacts.userId, userId),
+        eq(contacts.isBlocked, true)
+      ));
+
+    const blockedUserIds = new Set(blockedContacts.map(({ contactUserId }) => contactUserId));
+
     // Batch fetch all participants for these chat rooms
     const allParticipants = await db
       .select({
@@ -281,13 +295,22 @@ export class DatabaseStorage implements IStorage {
       participantsByRoom.get(chatRoomId)!.push(user);
     });
 
-    // Combine results and sort by updatedAt (latest first)
+    // Filter out chat rooms with blocked users and combine results
     return userChatRooms
       .map(({ chatRoom }) => ({
         ...chatRoom,
         participants: participantsByRoom.get(chatRoom.id) || [],
         lastMessage: lastMessageByRoom.get(chatRoom.id)
       }))
+      .filter(chatRoom => {
+        // 그룹 채팅방은 유지 (3명 이상)
+        if (chatRoom.participants.length > 2) return true;
+        
+        // 1:1 채팅방에서 차단된 사용자가 있으면 숨김
+        return !chatRoom.participants.some(participant => 
+          participant.id !== userId && blockedUserIds.has(participant.id)
+        );
+      })
       .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
   }
 
