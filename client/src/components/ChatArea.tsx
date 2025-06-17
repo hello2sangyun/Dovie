@@ -4084,6 +4084,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                             
                             // 음성 메시지인 경우
                             if (originalMessage?.messageType === 'voice' || replyContent.includes('🎵') || replyContent.includes('음성 메시지')) {
+                              // 원본 음성 메시지의 텍스트 내용 가져오기
+                              const voiceMessageText = originalMessage?.content || replyContent;
+                              const displayText = voiceMessageText && voiceMessageText !== '음성 메시지' && !voiceMessageText.includes('🎵')
+                                ? voiceMessageText.length > 50 
+                                  ? voiceMessageText.substring(0, 50) + "..." 
+                                  : voiceMessageText
+                                : "음성 메시지";
+                              
                               return (
                                 <div className="flex items-center space-x-2">
                                   <div 
@@ -4119,16 +4127,26 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                                       isMe ? "text-white" : "text-purple-600"
                                     )} />
                                   </div>
-                                  <div className={cn(
-                                    "px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1",
-                                    isMe ? "bg-white/20 text-white/90" : "bg-purple-100 text-purple-600"
-                                  )}>
-                                    <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor">
-                                      <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/>
-                                      <path d="M19 10v1a7 7 0 0 1-14 0v-1"/>
-                                      <path d="M12 18v4M8 22h8"/>
-                                    </svg>
-                                    <span>음성 메시지</span>
+                                  <div className="flex-1 min-w-0">
+                                    <div className={cn(
+                                      "px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1 mb-1",
+                                      isMe ? "bg-white/20 text-white/90" : "bg-purple-100 text-purple-600"
+                                    )}>
+                                      <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/>
+                                        <path d="M19 10v1a7 7 0 0 1-14 0v-1"/>
+                                        <path d="M12 18v4M8 22h8"/>
+                                      </svg>
+                                      <span>음성</span>
+                                    </div>
+                                    {displayText !== "음성 메시지" && (
+                                      <p className={cn(
+                                        "text-sm leading-relaxed",
+                                        isMe ? "text-white/90" : "text-gray-700"
+                                      )}>
+                                        "{displayText}"
+                                      </p>
+                                    )}
                                   </div>
                                 </div>
                               );

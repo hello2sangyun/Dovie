@@ -244,6 +244,7 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Fixed voice recording to complete immediately when finger is lifted (no delay)
   - Send button now shows purple for mic, blue for text sending, red with pulse for recording
   - Made voice message waveform graphs static (removed animations) for cleaner UI presentation
+  - Enhanced voice message replies to display original transcribed text content instead of generic "음성 메시지"
 
 ## User Preferences
 
