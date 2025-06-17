@@ -121,118 +121,135 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     }
   };
 
-  // 간편음성메세지 전송 - ChatArea와 동일한 방식
+  // 간편음성메세지 전송 (채팅방과 동일한 음성 처리)
   const sendVoiceMessage = async (contact: any, audioBlob: Blob) => {
     try {
-      console.log('🎤 간편음성메세지 시작:', contact.contactUserId, '파일크기:', audioBlob.size);
+      console.log('🎤 간편음성메세지 전송 시작:', contact.contactUserId, '파일 크기:', audioBlob.size);
       
-      if (!user?.id) {
-        console.error('❌ 사용자 정보 없음');
-        return;
-      }
-
-      // 1. 채팅방 생성/찾기
+      // 1:1 대화방 찾기 또는 생성
       const chatRoomResponse = await apiRequest('/api/chat-rooms/direct', 'POST', {
         participantId: contact.contactUserId
       });
       
       if (!chatRoomResponse.ok) {
-        console.error('❌ 채팅방 생성 실패');
+        console.error('❌ 채팅방 생성/찾기 실패:', chatRoomResponse.status);
         return;
       }
       
       const chatRoomData = await chatRoomResponse.json();
       const chatRoomId = chatRoomData.chatRoom.id;
-      console.log('✅ 채팅방 준비:', chatRoomId);
+      
+      console.log('📁 채팅방 확인 완료 - ID:', chatRoomId);
 
-      // 2. ChatArea와 동일한 음성 처리 방식
+      // FormData로 음성 파일 업로드 (채팅방과 동일한 방식)
       const formData = new FormData();
-      formData.append('file', audioBlob, 'voice_message.webm');
-      
-      // 먼저 음성 파일을 암호화되지 않은 형태로 업로드
-      const uploadResponse = await fetch("/api/upload-voice", {
-        method: "POST",
+      const fileName = `voice_${Date.now()}_${Math.random().toString(36).substr(2, 11)}.webm`;
+      formData.append('file', audioBlob, fileName);
+      formData.append('messageType', 'voice');
+
+      console.log('📤 음성 파일 업로드 시작:', fileName);
+
+      const uploadResponse = await fetch(`/api/chat-rooms/${chatRoomId}/upload`, {
+        method: 'POST',
         headers: {
-          "x-user-id": user.id.toString()
+          'x-user-id': String(user?.id),
         },
-        body: formData
+        body: formData,
       });
-      
+
       if (!uploadResponse.ok) {
-        throw new Error('Voice upload failed');
+        console.error('❌ 음성 파일 업로드 실패:', uploadResponse.status, await uploadResponse.text());
+        return;
       }
-      
-      const uploadResult = await uploadResponse.json();
-      console.log('✅ 음성 업로드 완료:', uploadResult.fileUrl);
-      
-      // 그 다음 음성 변환 요청 (ChatArea와 동일)
-      const transcribeFormData = new FormData();
-      transcribeFormData.append('audio', audioBlob, 'voice_message.webm');
-      
-      const transcribeResponse = await fetch("/api/transcribe", {
-        method: "POST",
-        headers: {
-          "x-user-id": user.id.toString()
-        },
-        body: transcribeFormData
-      });
-      
-      const transcribeResult = await transcribeResponse.json();
-      console.log('✅ 음성 변환 완료:', transcribeResult);
-      
-      // 업로드된 파일 URL을 결과에 추가
-      const result = {
-        ...transcribeResult,
-        audioUrl: uploadResult.fileUrl
+
+      let uploadData;
+      try {
+        // 응답을 텍스트로 먼저 읽음
+        const responseText = await uploadResponse.text();
+        console.log('📤 업로드 응답 상태:', uploadResponse.status);
+        console.log('📤 업로드 응답 헤더:', Object.fromEntries(uploadResponse.headers.entries()));
+        console.log('📤 업로드 응답 원본 텍스트:', responseText.substring(0, 500));
+        
+        if (responseText.startsWith('<!DOCTYPE') || responseText.includes('<html>')) {
+          console.error('❌ HTML 응답 수신됨 - 엔드포인트가 존재하지 않거나 오류 발생');
+          throw new Error('Server returned HTML instead of JSON');
+        }
+        
+        uploadData = JSON.parse(responseText);
+        console.log('✅ 음성 파일 업로드 성공:', uploadData);
+      } catch (parseError) {
+        console.error('❌ 업로드 응답 파싱 실패:', parseError);
+        console.error('❌ 파싱 오류 세부사항:', {
+          message: parseError.message,
+          status: uploadResponse.status,
+          url: uploadResponse.url
+        });
+        
+        // 기본값으로 진행하지 않고 오류 반환
+        throw new Error(`Upload failed: ${parseError.message}`);
+      }
+
+      // 업로드된 파일로 음성 메시지 전송 (텍스트 변환 포함)
+      const messageData = {
+        content: uploadData.transcription || '음성 메시지',
+        messageType: 'voice',
+        fileUrl: uploadData.fileUrl,
+        fileName: uploadData.fileName,
+        fileSize: uploadData.fileSize || audioBlob.size,
+        voiceDuration: uploadData.duration || 3,
+        detectedLanguage: uploadData.language || 'korean',
+        confidence: uploadData.confidence || '0.9'
       };
 
-      // 3. ChatArea와 동일한 메시지 생성 및 전송
-      if (result.success && result.transcription) {
-        const messageData = {
-          content: result.transcription,
-          messageType: "voice",
-          fileUrl: result.audioUrl,
-          fileName: "voice_message.webm",
-          fileSize: 0,
-          voiceDuration: Math.round(result.duration || 0),
-          detectedLanguage: result.detectedLanguage || "korean",
-          confidence: String(result.confidence || 0.9)
-        };
+      console.log('💬 메시지 데이터 전송:', messageData);
 
-        console.log('💬 메시지 데이터 전송:', messageData);
+      const messageResponse = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages`, 'POST', messageData);
 
-        const messageResponse = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages`, 'POST', messageData);
-
-        if (messageResponse.ok) {
-          const messageResult = await messageResponse.json();
-          console.log('✅ 메시지 저장 완료:', messageResult.message.id);
-          
-          // 4. 캐시 갱신
-          try {
-            await Promise.all([
-              queryClient.invalidateQueries({ queryKey: ['/api/chat-rooms'] }),
-              queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] }),
-              queryClient.invalidateQueries({ queryKey: ['/api/unread-counts'] })
-            ]);
-            console.log('✅ 캐시 갱신 완료');
-          } catch (cacheError) {
-            console.warn('⚠️ 캐시 갱신 실패:', cacheError.message);
-          }
-          
-          // 5. 채팅방으로 이동
-          setTimeout(() => {
-            console.log('🚀 채팅방 이동:', contact.contactUserId);
-            onSelectContact(contact.contactUserId);
-            console.log('✅ 간편음성메세지 전송 완료!');
-          }, 300);
-        } else {
-          console.error('❌ 메시지 전송 실패:', messageResponse.status);
+      if (messageResponse.ok) {
+        let messageResult;
+        try {
+          const responseText = await messageResponse.text();
+          console.log('💬 메시지 응답 원본:', responseText);
+          messageResult = JSON.parse(responseText);
+          console.log('✅ 간편음성메세지 전송 성공:', messageResult);
+        } catch (parseError) {
+          console.error('❌ 메시지 응답 파싱 실패:', parseError);
+          // 파싱 실패해도 성공으로 간주하고 진행
+          messageResult = { success: true };
         }
+        
+        // 채팅방 목록과 메시지 캐시 무효화 (안전한 처리)
+        try {
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] }),
+            queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/unread-counts"] })
+          ]);
+          console.log('✅ 캐시 무효화 완료');
+        } catch (cacheError) {
+          console.warn('⚠️ 캐시 무효화 실패, 무시하고 계속:', cacheError);
+        }
+        
+        // 해당 대화방으로 이동 - createOrFindChatRoom과 동일한 로직 사용
+        setTimeout(() => {
+          console.log('🚀 간편음성메세지 후 채팅방 이동 시작:', contact.contactUserId, 'chatRoomId:', chatRoomId);
+          
+          // onSelectContact 호출 - 이미 채팅방이 존재하므로 바로 이동됨
+          onSelectContact(contact.contactUserId);
+          
+          console.log('✅ 간편음성메세지 전체 프로세스 완료');
+        }, 500);
       } else {
-        console.error('❌ 음성 변환 실패');
+        const errorText = await messageResponse.text();
+        console.error('❌ 간편음성메세지 전송 실패:', messageResponse.status, errorText);
       }
     } catch (error) {
-      console.error('❌ 간편음성메세지 실패:', error.message);
+      console.error('❌ 간편음성메세지 전체 프로세스 실패:', error);
+      console.error('❌ 오류 상세 정보:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
     }
   };
 
