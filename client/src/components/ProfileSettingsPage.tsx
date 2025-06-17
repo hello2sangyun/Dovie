@@ -75,26 +75,7 @@ export default function ProfileSettingsPage({ onBack }: ProfileSettingsPageProps
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-6" style={{ maxHeight: 'calc(100vh - 120px)' }}>
-        {/* Profile Picture Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base font-semibold flex items-center">
-              <User className="h-5 w-5 mr-2 text-blue-600" />
-              프로필 사진
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-semibold">
-                {user.displayName.charAt(0).toUpperCase()}
-              </div>
-              <Button variant="outline" className="flex items-center space-x-2">
-                <Upload className="h-4 w-4" />
-                <span>사진 변경</span>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+
 
         {/* Personal Information Form */}
         <Card>

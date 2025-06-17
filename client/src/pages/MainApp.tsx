@@ -13,6 +13,7 @@ import ChatArea from "@/components/ChatArea";
 import AddContactModal from "@/components/AddContactModal";
 import CommandModal from "@/components/CommandModal";
 import CreateGroupChatModal from "@/components/CreateGroupChatModal";
+import ProfilePhotoModal from "@/components/ProfilePhotoModal";
 
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
