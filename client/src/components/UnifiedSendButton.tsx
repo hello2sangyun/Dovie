@@ -1,10 +1,11 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Send, Mic, Square } from 'lucide-react';
 import { InteractiveButton, PulseNotification, AccessibleSpinner } from './MicroInteractions';
+import { VoiceMusicSelector } from './VoiceMusicSelector';
 
 interface UnifiedSendButtonProps {
   onSendMessage: () => void;
-  onVoiceRecordingComplete: (audioBlob: Blob, duration: number) => void;
+  onVoiceRecordingComplete: (audioBlob: Blob, duration: number, backgroundMusic?: string) => void;
   message: string;
   disabled: boolean;
   isPending: boolean;
@@ -24,6 +25,10 @@ export function UnifiedSendButton({
 }: UnifiedSendButtonProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
+  const [showMusicSelector, setShowMusicSelector] = useState(false);
+  const [transcribedText, setTranscribedText] = useState('');
+  const [recordedAudioBlob, setRecordedAudioBlob] = useState<Blob | null>(null);
+  const [recordingTime, setRecordingTime] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingStartTimeRef = useRef<number>(0);
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -54,10 +59,35 @@ export function UnifiedSendButton({
         }
       };
       
-      mediaRecorder.onstop = () => {
+      mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
         const duration = Date.now() - recordingStartTimeRef.current;
-        onVoiceRecordingComplete(audioBlob, Math.floor(duration / 1000));
+        
+        // 음성을 OpenAI로 전송해서 텍스트로 변환
+        try {
+          const formData = new FormData();
+          formData.append('audio', audioBlob, 'voice.webm');
+          
+          const response = await fetch('/api/transcribe', {
+            method: 'POST',
+            body: formData
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            setTranscribedText(result.transcription || '');
+            setRecordedAudioBlob(audioBlob);
+            setRecordingTime(Math.floor(duration / 1000));
+            setShowMusicSelector(true);
+          } else {
+            // 텍스트 변환 실패 시 음악 없이 바로 전송
+            onVoiceRecordingComplete(audioBlob, Math.floor(duration / 1000));
+          }
+        } catch (error) {
+          console.error('음성 변환 실패:', error);
+          // 오류 시 음악 없이 바로 전송
+          onVoiceRecordingComplete(audioBlob, Math.floor(duration / 1000));
+        }
         
         // 스트림 정리
         stream.getTracks().forEach(track => track.stop());

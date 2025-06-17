@@ -97,6 +97,7 @@ export const messages = pgTable("messages", {
   editedAt: timestamp("edited_at"), // When the message was last edited
   mentionedUserIds: text("mentioned_user_ids"), // JSON array of mentioned user IDs
   mentionAll: boolean("mention_all").default(false), // Whether this message mentions all users
+  backgroundMusic: text("background_music"), // 배경음악 ID (calm, happy, romantic 등)
   createdAt: timestamp("created_at").defaultNow(),
 });
 

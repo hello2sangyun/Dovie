@@ -1482,6 +1482,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Message like endpoint
+  // 음성 무드 분석 API
+  app.post('/api/analyze-voice-mood', async (req: Request, res: Response) => {
+    try {
+      const { text } = req.body;
+      
+      if (!text || typeof text !== 'string') {
+        return res.status(400).json({ error: '텍스트가 필요합니다' });
+      }
+
+      const { analyzeVoiceMood } = await import('./openai');
+      const recommendedMoods = await analyzeVoiceMood(text);
+      
+      res.json({ recommendedMoods });
+    } catch (error) {
+      console.error('음성 무드 분석 실패:', error);
+      res.status(500).json({ error: '음성 무드 분석에 실패했습니다' });
+    }
+  });
+
   app.post('/api/messages/:messageId/like', async (req: Request, res: Response) => {
     try {
       const messageId = parseInt(req.params.messageId);
