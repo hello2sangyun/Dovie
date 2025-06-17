@@ -916,6 +916,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   // File upload mutation
   const uploadFileMutation = useMutation({
     mutationFn: async (file: File) => {
+      console.log('📤 파일 업로드 시작:', file.name, `크기: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
+      
       // 업로드 시작 시 로딩 메시지 추가
       const uploadId = Date.now().toString();
       setUploadingFiles(prev => [...prev, { id: uploadId, fileName: file.name }]);
@@ -926,17 +928,29 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       try {
         const response = await fetch("/api/upload", {
           method: "POST",
+          headers: {
+            "x-user-id": user?.id?.toString() || ""
+          },
           body: formData,
         });
         
-        if (!response.ok) throw new Error("Upload failed");
+        console.log('📡 업로드 응답 상태:', response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('❌ 업로드 실패:', errorText);
+          throw new Error(`Upload failed: ${response.status} - ${errorText}`);
+        }
+        
         const result = await response.json();
+        console.log('✅ 파일 업로드 성공:', result);
         
         // 업로드 완료 시 로딩 메시지 제거
         setUploadingFiles(prev => prev.filter(f => f.id !== uploadId));
         
         return result;
       } catch (error) {
+        console.error('❌ 파일 업로드 오류:', error);
         // 에러 시 로딩 메시지 제거
         setUploadingFiles(prev => prev.filter(f => f.id !== uploadId));
         throw error;
