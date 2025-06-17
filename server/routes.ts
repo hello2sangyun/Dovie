@@ -10,7 +10,7 @@ import bcrypt from "bcryptjs";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { encryptFileData, decryptFileData, hashFileName } from "./crypto";
+import { encryptFileData, decryptFileData, hashFileName, decryptText } from "./crypto";
 import { processCommand } from "./openai";
 import { db } from "./db";
 import { eq, and, inArray, desc, gte, isNull } from "drizzle-orm";
@@ -1684,9 +1684,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let decryptedText = command.savedText;
         if (command.savedText) {
           try {
-            // Import decryptText function
-            const crypto = require("./crypto");
-            decryptedText = crypto.decryptText(command.savedText);
+            // Use the already imported decryptText function
+            decryptedText = decryptText(command.savedText);
           } catch (error) {
             console.log('Failed to decrypt saved_text for command:', command.id, error.message);
             decryptedText = command.savedText; // fallback to original
