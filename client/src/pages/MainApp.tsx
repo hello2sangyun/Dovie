@@ -23,7 +23,8 @@ import SimpleSpacePage from "@/pages/SimpleSpacePage";
 import LinkedInSpacePage from "@/pages/LinkedInSpacePage";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, Building2, Shield, UserX } from "lucide-react";
+import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, Building2, Shield, UserX, Camera } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 export default function MainApp() {
@@ -40,6 +41,7 @@ export default function MainApp() {
     addContact: false,
     command: false,
     createGroup: false,
+    profilePhoto: false,
   });
   const [commandModalData, setCommandModalData] = useState<any>(null);
   const [messageDataForCommand, setMessageDataForCommand] = useState<any>(null);
@@ -223,7 +225,7 @@ export default function MainApp() {
   };
 
   const closeModals = () => {
-    setModals({ addContact: false, command: false, createGroup: false });
+    setModals({ addContact: false, command: false, createGroup: false, profilePhoto: false });
     setCommandModalData(null);
     setMessageDataForCommand(null);
   };
@@ -388,10 +390,21 @@ export default function MainApp() {
                       onClick={() => setRightPanelContent("profile")}
                     >
                       <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center relative">
-                          <BookUser className="w-6 h-6 text-white" />
+                        <div className="relative">
+                          <Avatar 
+                            className="w-12 h-12 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setModals({ ...modals, profilePhoto: true });
+                            }}
+                          >
+                            <AvatarImage src={user?.profilePicture || undefined} />
+                            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-semibold">
+                              {user?.displayName?.charAt(0) || user?.username?.charAt(0) || "U"}
+                            </AvatarFallback>
+                          </Avatar>
                           <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-purple-600 rounded-full flex items-center justify-center">
-                            <span className="text-xs text-white font-bold">D</span>
+                            <Camera className="w-2.5 h-2.5 text-white" />
                           </div>
                         </div>
                         <div className="flex-1">
@@ -1028,6 +1041,10 @@ export default function MainApp() {
         open={modals.createGroup}
         onClose={closeModals}
         onSuccess={handleGroupChatSuccess}
+      />
+      <ProfilePhotoModal 
+        isOpen={modals.profilePhoto}
+        onClose={closeModals}
       />
 
     </div>
