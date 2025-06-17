@@ -4398,6 +4398,87 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                             </div>
                           )}
                         </div>
+                      ) : msg.messageType === "voice" ? (
+                        <div className="space-y-2">
+                          {/* 음성 메시지 플레이어 */}
+                          <div className="flex items-center space-x-3">
+                            <div 
+                              className={cn(
+                                "clickable w-10 h-10 rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform select-auto",
+                                isMe ? "bg-white/30 hover:bg-white/40" : "bg-purple-200 hover:bg-purple-300",
+                                playingVoice === msg.id ? "animate-pulse" : ""
+                              )}
+                              style={{ 
+                                userSelect: 'auto',
+                                WebkitUserSelect: 'auto',
+                                MozUserSelect: 'auto',
+                                msUserSelect: 'auto',
+                                WebkitTouchCallout: 'default'
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleVoicePlayback(msg.id, msg.fileUrl, msg.voiceDuration);
+                              }}
+                              onContextMenu={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                              }}
+                              onTouchStart={(e) => {
+                                e.stopPropagation();
+                              }}
+                            >
+                              {playingVoice === msg.id ? (
+                                <Pause className={cn(
+                                  "h-5 w-5",
+                                  isMe ? "text-white" : "text-purple-600"
+                                )} />
+                              ) : (
+                                <Play className={cn(
+                                  "h-5 w-5",
+                                  isMe ? "text-white" : "text-purple-600"
+                                )} />
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <div className={cn(
+                                "text-sm font-medium mb-1",
+                                isMe ? "text-white" : "text-gray-800"
+                              )}>
+                                🎵 음성 메시지
+                              </div>
+                              <div className={cn(
+                                "text-xs flex items-center space-x-2",
+                                isMe ? "text-white/80" : "text-gray-600"
+                              )}>
+                                <span>{msg.voiceDuration}초</span>
+                                {msg.detectedLanguage && (
+                                  <span>• {msg.detectedLanguage}</span>
+                                )}
+                                {msg.confidence && (
+                                  <span>• {Math.round(parseFloat(msg.confidence) * 100)}%</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* 변환된 텍스트 표시 */}
+                          {msg.content && (
+                            <div className={cn(
+                              "mt-2 p-2 rounded-lg text-sm",
+                              isMe ? "bg-white/20 text-white" : "bg-gray-100 text-gray-800"
+                            )}>
+                              <div className="flex items-start space-x-2">
+                                <MessageSquare className={cn(
+                                  "h-4 w-4 mt-0.5 flex-shrink-0",
+                                  isMe ? "text-white/60" : "text-gray-500"
+                                )} />
+                                <div className="flex-1">
+                                  {msg.content}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       ) : msg.messageType === "file" ? (
                         <div>
                           <MediaPreview
