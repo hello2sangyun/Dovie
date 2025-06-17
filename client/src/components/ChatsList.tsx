@@ -745,13 +745,48 @@ function ChatRoomItem({
       className={cn(
         "p-4 hover:bg-purple-50 dark:hover:bg-gray-800 cursor-pointer border-b border-gray-100 dark:border-gray-700 transition-colors relative",
         isSelected && !isMultiSelectMode && "bg-purple-50 dark:bg-gray-800",
-        isMultiSelectMode && isChecked && "bg-blue-50 dark:bg-blue-900"
+        isMultiSelectMode && isChecked && "bg-blue-50 dark:bg-blue-900",
+        isRecording && "bg-red-50 dark:bg-red-900 border-red-200 dark:border-red-700"
       )}
       onClick={onClick}
       onMouseEnter={handleMouseEnter}
+      onMouseDown={(e) => {
+        if (!isMultiSelectMode && onLongPressStart) {
+          onLongPressStart(chatRoom);
+        }
+      }}
+      onMouseUp={() => {
+        if (!isMultiSelectMode && onLongPressEnd) {
+          onLongPressEnd();
+        }
+      }}
+      onMouseLeave={() => {
+        if (!isMultiSelectMode && onLongPressEnd) {
+          onLongPressEnd();
+        }
+      }}
+      onTouchStart={(e) => {
+        if (!isMultiSelectMode && onLongPressStart) {
+          onLongPressStart(chatRoom);
+        }
+      }}
+      onTouchEnd={() => {
+        if (!isMultiSelectMode && onLongPressEnd) {
+          onLongPressEnd();
+        }
+      }}
     >
       {isPinned && !isMultiSelectMode && (
         <Pin className="absolute top-2 right-2 text-purple-500 h-3 w-3" />
+      )}
+      
+      {isRecording && (
+        <div className="absolute inset-0 bg-red-500/10 border-2 border-red-500 rounded-lg flex items-center justify-center">
+          <div className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-2">
+            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+            <span>음성 녹음 중...</span>
+          </div>
+        </div>
       )}
       
       <div className="flex items-center space-x-3">
