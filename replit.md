@@ -222,6 +222,13 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Added visual feedback with color-coded waveform bars (active vs inactive states)
   - Repositioned "음성" label to top-right corner and removed voice icon for cleaner design
   - Voice messages now provide visual audio content preview for better user experience
+- June 17, 2025: Added profile photo upload with crop functionality in settings:
+  - Created ProfilePhotoUpload component with react-image-crop integration
+  - Implemented square (1:1 aspect ratio) cropping with circular preview
+  - Added clickable profile picture in settings page to trigger upload modal
+  - Backend API endpoint for secure profile picture upload with encryption
+  - Automatic deletion of previous profile pictures when updating
+  - 5MB file size limit and image-only validation for security
 
 ## User Preferences
 

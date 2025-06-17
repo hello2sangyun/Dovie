@@ -1223,6 +1223,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Profile picture upload endpoint for new component
+  app.post("/api/upload/profile-picture", upload.single("file"), async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"];
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      // 이미지 파일만 허용
+      if (!req.file.mimetype.startsWith('image/')) {
+        return res.status(400).json({ message: "Only image files are allowed" });
+      }
+
+      // 파일 크기 제한 (5MB)
+      if (req.file.size > 5 * 1024 * 1024) {
+        return res.status(400).json({ message: "File size must be less than 5MB" });
+      }
+
+      // 파일 데이터 암호화
+      const encryptedData = encryptFileData(req.file.buffer);
+      const hashedFileName = hashFileName(req.file.originalname);
+
+      // 기존 프로필 사진 파일 삭제 (있는 경우)
+      const existingUser = await storage.getUser(Number(userId));
+      if (existingUser?.profilePicture) {
+        try {
+          const existingFileName = existingUser.profilePicture.split('/').pop();
+          if (existingFileName) {
+            const existingFilePath = path.join(uploadDir, existingFileName);
+            if (fs.existsSync(existingFilePath)) {
+              fs.unlinkSync(existingFilePath);
+            }
+          }
+        } catch (deleteError) {
+          console.log("Could not delete existing profile photo:", deleteError);
+        }
+      }
+
+      // 새 프로필 사진 저장
+      const encryptedFilePath = path.join(uploadDir, hashedFileName);
+      fs.writeFileSync(encryptedFilePath, encryptedData, 'utf8');
+
+      const fileUrl = `/uploads/${hashedFileName}`;
+
+      // 사용자 프로필 업데이트
+      await storage.updateUserProfilePicture(Number(userId), fileUrl);
+
+      res.json({
+        success: true,
+        profilePicture: fileUrl,
+      });
+    } catch (error) {
+      console.error("Profile picture upload error:", error);
+      res.status(500).json({ message: "Profile picture upload failed" });
+    }
+  });
+
   // File upload route with encryption (for non-voice files)
   app.post("/api/upload", upload.single("file"), async (req, res) => {
     try {

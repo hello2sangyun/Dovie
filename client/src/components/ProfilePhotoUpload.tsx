@@ -43,12 +43,17 @@ export default function ProfilePhotoUpload({ isOpen, onClose }: ProfilePhotoUplo
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
+      const userId = localStorage.getItem("userId");
       const formData = new FormData();
       formData.append("file", file);
       
       const response = await fetch("/api/upload/profile-picture", {
         method: "POST",
+        headers: {
+          ...(userId ? { "x-user-id": userId } : {})
+        },
         body: formData,
+        credentials: "include",
       });
       
       if (!response.ok) {
