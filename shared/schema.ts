@@ -55,8 +55,6 @@ export const chatRooms = pgTable("chat_rooms", {
   name: text("name").notNull(),
   isGroup: boolean("is_group").default(false),
   isPinned: boolean("is_pinned").default(false),
-  isLocationChat: boolean("is_location_chat").default(false), // 주변챗 구분용
-
   createdBy: integer("created_by").references(() => users.id).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
