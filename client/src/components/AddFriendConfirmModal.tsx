@@ -93,7 +93,10 @@ export default function AddFriendConfirmModal({ open, onClose, users }: AddFrien
         });
       }
       
-      onClose();
+      // 성공 시 즉시 팝업 닫기
+      setTimeout(() => {
+        onClose();
+      }, 100);
     },
     onError: (error: any) => {
       console.error("친구 추가 실패:", error);

@@ -4319,36 +4319,28 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                               )}
                             </div>
                             
-                            {/* 오디오 파형 시각화 */}
-                            <div className="flex items-center space-x-1 h-8 mb-2">
+                            {/* 컴팩트한 오디오 파형 시각화 */}
+                            <div className="flex items-center space-x-0.5 h-4 mb-2">
                               {(() => {
-                                // 파형 막대 개수 (재생 시간에 따라 조정)
-                                const duration = msg.voiceDuration || 10;
-                                const barCount = Math.min(Math.max(duration * 2, 20), 40);
-                                const bars = [];
+                                // 간단한 정적 파형 (15개 막대)
+                                const staticHeights = [0.3, 0.7, 0.5, 0.9, 0.4, 0.8, 0.6, 1.0, 0.5, 0.7, 0.4, 0.6, 0.8, 0.3, 0.5];
                                 
-                                for (let i = 0; i < barCount; i++) {
-                                  // 랜덤한 높이로 파형 생성 (실제로는 오디오 데이터 기반)
-                                  const height = Math.random() * 0.8 + 0.2; // 20% ~ 100% 높이
-                                  
-                                  bars.push(
-                                    <div
-                                      key={i}
-                                      className={cn(
-                                        "rounded-full flex-shrink-0",
-                                        isMe
-                                          ? "bg-white/60"
-                                          : "bg-purple-400"
-                                      )}
-                                      style={{
-                                        width: '2px',
-                                        height: `${height * 24}px`,
-                                        minHeight: '4px'
-                                      }}
-                                    />
-                                  );
-                                }
-                                return bars;
+                                return staticHeights.map((height, i) => (
+                                  <div
+                                    key={i}
+                                    className={cn(
+                                      "rounded-full flex-shrink-0 opacity-70",
+                                      isMe
+                                        ? "bg-white/50"
+                                        : "bg-purple-300"
+                                    )}
+                                    style={{
+                                      width: '1.5px',
+                                      height: `${height * 12}px`,
+                                      minHeight: '2px'
+                                    }}
+                                  />
+                                ));
                               })()}
                             </div>
                             

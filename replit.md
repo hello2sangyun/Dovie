@@ -268,6 +268,12 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Enhanced search logic to group commands by message ID and find content containing ALL specified hashtags
   - Updated search UI with clear indicators for single vs multi-hashtag searches
   - Verified complete workflow: file upload with hashtags → automatic command creation → immediate multi-hashtag search capability
+- June 18, 2025: Optimized voice message UI and improved friend addition UX:
+  - Made voice message waveform static and compact (15 bars, 1.5px width, 4px height)
+  - Reduced waveform opacity to 70% for less prominent appearance
+  - Implemented automatic popup closing after successful friend addition
+  - Enhanced friend addition workflow with 100ms delay before closing for better UX
+  - Voice messages now have cleaner, more compact visual presentation
 
 ## User Preferences
 
