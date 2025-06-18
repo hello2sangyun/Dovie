@@ -301,6 +301,8 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Integrated YouTube search with both voice message smart recommendations and text input
   - Users can now share actual YouTube videos as embedded messages that recipients can watch in chat
   - Enhanced detection patterns to extract search queries from voice messages like "지드래곤 유튜브 영상 봐봐"
+  - Modified voice message YouTube suggestions to preserve original voice message with transcribed text
+  - When using YouTube smart suggestion, both the voice message bubble and video preview are sent as separate messages
 
 ## User Preferences
 
