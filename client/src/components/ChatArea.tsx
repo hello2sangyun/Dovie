@@ -1604,6 +1604,34 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       messageData.mentionAll = true;
     }
 
+    // YouTube 검색 감지 및 처리
+    const youtubePatterns = [
+      /(.+)\s*유튜브\s*(본적\s*있어|봐봐|보자|찾아봐|검색|영상)/i,
+      /유튜브로?\s*(.+?)\s*(검색|찾아|봐|보자)/i,
+      /(.+?)\s*유튜브\s*영상/i,
+      /유튜브에서\s*(.+)/i
+    ];
+
+    let youtubeKeyword = null;
+    for (const pattern of youtubePatterns) {
+      const match = message.match(pattern);
+      if (match) {
+        youtubeKeyword = match[1]?.trim();
+        if (youtubeKeyword && youtubeKeyword.length > 0) {
+          console.log('🎥 YouTube 키워드 감지:', youtubeKeyword);
+          break;
+        }
+      }
+    }
+
+    if (youtubeKeyword) {
+      // YouTube 검색 모달 표시 (키워드 미리 채움)
+      setYoutubeSearchQuery(youtubeKeyword);
+      setShowYoutubeModal(true);
+      setMessage("");
+      return;
+    }
+
     sendMessageMutation.mutate(messageData);
     
     // 메시지 전송 후 임시 저장된 내용 삭제

@@ -29,15 +29,24 @@ export default function YoutubeSelectionModal({
   onSelect, 
   initialQuery 
 }: YoutubeSelectionModalProps) {
-  const [searchQuery, setSearchQuery] = useState(initialQuery);
+  const [searchQuery, setSearchQuery] = useState("");
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 모달이 열릴 때 초기 검색 실행
+  // 모달이 열릴 때 초기 검색 쿼리 설정 및 검색 실행
   useEffect(() => {
-    if (isOpen && initialQuery.trim()) {
-      performSearch(initialQuery);
+    if (isOpen) {
+      setSearchQuery(initialQuery);
+      if (initialQuery.trim()) {
+        console.log('🎥 YouTube 모달 열림, 초기 검색:', initialQuery);
+        performSearch(initialQuery);
+      }
+    } else {
+      // 모달이 닫힐 때 상태 초기화
+      setVideos([]);
+      setError(null);
+      setSearchQuery("");
     }
   }, [isOpen, initialQuery]);
 
