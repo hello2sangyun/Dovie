@@ -2912,13 +2912,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         delete modifiedMessage.confidence;
         sendMessageMutation.mutate(modifiedMessage);
       } else if (suggestion.type === 'youtube') {
-        // YouTube 검색 및 영상 임베드 - 음성메시지와 함께 공유
+        // YouTube 검색 및 영상 임베드 - 음성메시지와 함께 하나의 말풍선에
         const searchQuery = pendingVoiceMessage.content.replace(/유튜브|youtube|검색|찾아|보여|영상|봤어|봐봐/gi, '').trim();
         
         try {
-          // 먼저 원본 음성메시지 전송
-          sendMessageMutation.mutate(pendingVoiceMessage);
-          
           // YouTube 검색 API 호출
           const youtubeResponse = await fetch('/api/youtube/search', {
             method: 'POST',
@@ -2929,20 +2926,20 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           if (youtubeResponse.ok) {
             const youtubeData = await youtubeResponse.json();
             if (youtubeData.success && youtubeData.video) {
-              // YouTube 영상을 별도 메시지로 공유
-              const youtubeMessage = {
-                chatRoomId: chatRoomId,
-                senderId: user!.id,
-                content: `📺 ${searchQuery} 추천 영상\n${youtubeData.video.title}`,
-                messageType: "text",
+              // 음성메시지와 YouTube 영상을 하나의 메시지로 결합
+              const combinedMessage = {
+                ...pendingVoiceMessage,
+                content: `${pendingVoiceMessage.content}\n\n📺 ${searchQuery} 추천 영상\n${youtubeData.video.title}`,
                 youtubePreview: youtubeData.video
               };
-              
-              // 약간의 지연 후 YouTube 영상 메시지 전송
-              setTimeout(() => {
-                sendMessageMutation.mutate(youtubeMessage);
-              }, 500);
+              sendMessageMutation.mutate(combinedMessage);
+            } else {
+              // 검색 결과가 없으면 기본 메시지
+              sendMessageMutation.mutate(pendingVoiceMessage);
             }
+          } else {
+            // API 오류 시 기본 동작
+            sendMessageMutation.mutate(pendingVoiceMessage);
           }
         } catch (error) {
           // 오류 발생 시 기본 동작

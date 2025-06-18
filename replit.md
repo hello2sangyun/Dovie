@@ -309,6 +309,11 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Voice transcription triggers automatic smart recommendations after message is sent
   - Location sharing, YouTube video embedding, and other AI features work seamlessly from contact list long-press
   - Complete feature parity between regular chat voice messages and quick voice messages from contact list
+- June 18, 2025: Unified YouTube integration into single message bubbles:
+  - Modified YouTube smart suggestions to combine voice message, audio playback, and YouTube preview in one unified bubble
+  - Voice message content, YouTube video title, and video preview now appear together instead of separate messages
+  - Applied unified approach to both regular chat voice messages and quick voice messages from contact list
+  - Enhanced user experience with consolidated message display showing original transcription and YouTube content together
 
 ## User Preferences
 
