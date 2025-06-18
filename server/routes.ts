@@ -2615,56 +2615,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
   // WebSocket setup
-  const wss = new WebSocketServer({ 
-    server: httpServer, 
-    path: '/ws',
-    verifyClient: (info) => {
-      // Allow all connections for now, authenticate after connection
-      return true;
-    }
-  });
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
 
-  wss.on('connection', (ws, req) => {
+  wss.on('connection', (ws) => {
     let userId: number | null = null;
-    console.log('New WebSocket connection from:', req.socket.remoteAddress);
 
     ws.on('message', async (data) => {
       try {
         const message = JSON.parse(data.toString());
-        console.log('WebSocket message received:', message);
         
         if (message.type === 'auth' && message.userId) {
           userId = Number(message.userId);
           connections.set(userId, ws);
-          console.log('User authenticated via WebSocket:', userId);
-          
-          try {
-            await storage.updateUser(userId, { isOnline: true });
-            ws.send(JSON.stringify({ type: 'auth_success', userId }));
-          } catch (error) {
-            console.error('Failed to update user online status:', error);
-          }
+          await storage.updateUser(userId, { isOnline: true });
         }
       } catch (error) {
         console.error('WebSocket message error:', error);
-        ws.send(JSON.stringify({ type: 'error', message: 'Invalid message format' }));
       }
     });
 
     ws.on('close', async () => {
-      console.log('WebSocket connection closed for user:', userId);
       if (userId) {
         connections.delete(userId);
-        try {
-          await storage.updateUser(userId, { isOnline: false });
-        } catch (error) {
-          console.error('Failed to update user offline status:', error);
-        }
+        await storage.updateUser(userId, { isOnline: false });
       }
-    });
-
-    ws.on('error', (error) => {
-      console.error('WebSocket error for user:', userId, error);
     });
   });
 

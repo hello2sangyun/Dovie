@@ -293,12 +293,6 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Enhanced detection patterns to recognize various forms: "어디로가면 되?", "어디야?", "주소 알려줘", etc.
   - Location sharing triggers automatically when users ask location questions, prompting GPS permission
   - Shared locations appear as messages with Google Maps links for easy viewing
-- June 18, 2025: Completely removed smart recommendation feature from voice messages:
-  - Eliminated smart suggestion popup that appeared after voice message transcription
-  - Removed all smart recommendation analysis and modal components
-  - Voice messages now process directly without AI-powered suggestions
-  - Streamlined voice message workflow for immediate sending after transcription
-  - Cleaned up all related state variables and UI components
 
 ## User Preferences
 
