@@ -102,6 +102,63 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
     },
   });
 
+  // Voice settings mutation
+  const updateVoiceSettingsMutation = useMutation({
+    mutationFn: async (settings: { allowVoicePlayback?: boolean; autoPlayVoiceMessages?: boolean }) => {
+      const response = await apiRequest("/api/user/voice-settings", "PATCH", settings);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setUser(prev => prev ? { ...prev, allowVoicePlayback: data.settings.allowVoicePlayback, autoPlayVoiceMessages: data.settings.autoPlayVoiceMessages } : prev);
+      toast({
+        title: "음성 설정 업데이트 완료",
+        description: "음성 메시지 설정이 변경되었습니다.",
+      });
+    },
+    onError: (error) => {
+      console.error("Voice settings update error:", error);
+      toast({
+        variant: "destructive",
+        title: "설정 업데이트 실패",
+        description: "다시 시도해주세요.",
+      });
+    },
+  });
+
+  // Earphone detection
+  useEffect(() => {
+    const detectEarphones = async () => {
+      try {
+        if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const audioOutputs = devices.filter(device => device.kind === 'audiooutput');
+          
+          // Check for earphones/headphones (devices other than default speaker)
+          const hasEarphones = audioOutputs.some(device => 
+            device.label.toLowerCase().includes('headphone') ||
+            device.label.toLowerCase().includes('earphone') ||
+            device.label.toLowerCase().includes('bluetooth') ||
+            device.deviceId !== 'default'
+          );
+          
+          setHasEarphones(hasEarphones);
+        }
+      } catch (error) {
+        console.log('Could not detect earphones:', error);
+        setHasEarphones(false);
+      }
+    };
+
+    detectEarphones();
+    
+    // Check earphone status periodically
+    const interval = setInterval(detectEarphones, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Profile image upload mutation
   const uploadImageMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -533,6 +590,57 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
             </CardContent>
           </Card>
         )}
+
+        {/* Voice Message Settings */}
+        <Card className="w-full transition-all duration-200 hover:shadow-md active:scale-[0.98]">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center space-x-2 text-sm">
+              <Volume2 className="h-4 w-4 text-blue-600" />
+              <span>음성 메시지 설정</span>
+              {hasEarphones && (
+                <Headphones className="h-3 w-3 text-green-600" />
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-sm font-medium">음성 재생 허용</Label>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  다른 사람이 내 음성 메시지를 들을 수 있게 허용
+                </p>
+              </div>
+              <Switch
+                checked={allowVoicePlayback}
+                onCheckedChange={(checked) => {
+                  setAllowVoicePlayback(checked);
+                  updateVoiceSettingsMutation.mutate({ allowVoicePlayback: checked });
+                }}
+                className="data-[state=checked]:bg-blue-600 transition-all duration-200 hover:scale-110 active:scale-95"
+                disabled={updateVoiceSettingsMutation.isPending}
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-sm font-medium">자동 재생</Label>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  이어폰 착용 시 음성 메시지 자동 재생
+                  {!hasEarphones && " (이어폰 미연결)"}
+                </p>
+              </div>
+              <Switch
+                checked={autoPlayVoiceMessages && hasEarphones}
+                onCheckedChange={(checked) => {
+                  setAutoPlayVoiceMessages(checked);
+                  updateVoiceSettingsMutation.mutate({ autoPlayVoiceMessages: checked });
+                }}
+                className="data-[state=checked]:bg-green-600 transition-all duration-200 hover:scale-110 active:scale-95"
+                disabled={updateVoiceSettingsMutation.isPending || !hasEarphones}
+              />
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Appearance Settings - Compact */}
         <Card className="w-full transition-all duration-200 hover:shadow-md active:scale-[0.98]">

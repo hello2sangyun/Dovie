@@ -1711,7 +1711,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   }
 
   // 음성 메시지 재생/일시정지 함수
-  const handleVoicePlayback = async (messageId: number, audioUrl?: string, voiceDuration?: number) => {
+  const handleVoicePlayback = async (messageId: number, audioUrl?: string, voiceDuration?: number, senderId?: number) => {
     if (playingAudio === messageId) {
       // 현재 재생 중인 음성을 일시정지
       if (audioRef.current) {
@@ -1720,6 +1720,24 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       }
     } else {
       try {
+        // 메시지 찾기 및 발신자 정보 확인
+        const message = messages?.find(m => m.id === messageId);
+        const messageSenderId = senderId || message?.senderId;
+        
+        // 자신의 음성 메시지는 항상 재생 가능
+        if (messageSenderId && messageSenderId !== user?.id) {
+          // 발신자의 음성 재생 허용 설정 확인
+          const senderInfo = message?.sender;
+          if (senderInfo && !senderInfo.allowVoicePlayback) {
+            toast({
+              variant: "destructive",
+              title: "재생 제한",
+              description: "발신자가 음성 재생을 허용하지 않습니다.",
+            });
+            return;
+          }
+        }
+        
         // 이전 오디오 정지
         if (audioRef.current) {
           audioRef.current.pause();
@@ -4272,7 +4290,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleVoicePlayback(msg.id, msg.fileUrl, msg.voiceDuration);
+                              handleVoicePlayback(msg.id, msg.fileUrl, msg.voiceDuration, msg.senderId);
                             }}
                             className={cn(
                               "clickable w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-105 select-auto flex-shrink-0 shadow-sm",
