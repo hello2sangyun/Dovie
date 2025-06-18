@@ -433,11 +433,24 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         }
       }
 
+      // YouTube 검색 처리
+      if (type === 'youtube') {
+        const searchQuery = (originalText || content).replace(/유튜브|youtube|검색|찾아|보여/gi, '').trim();
+        if (searchQuery) {
+          const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}`;
+          return { 
+            success: true, 
+            result: `📺 YouTube 검색: ${searchQuery}\n🔗 ${youtubeSearchUrl}`,
+            action: () => window.open(youtubeSearchUrl, '_blank')
+          };
+        }
+        return { success: true, result: '📺 YouTube에서 검색할 내용을 말씀해주세요' };
+      }
+
       // 기타 기능들
       const otherResponses = {
         reminder: '30분 후 리마인드가 설정되었습니다 ⏰',
         food: '🍕 배달 앱을 확인해보세요!',
-        youtube: '📺 영상 링크를 공유해주시면 미리보기를 만들어드립니다',
         unit: '단위 변환: 요청하신 변환을 처리했습니다',
         birthday: '🎉 축하 카드가 준비되었습니다!',
         meeting: '📹 화상회의 링크: https://meet.google.com/new',
