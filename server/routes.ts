@@ -1749,6 +1749,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const commandData = insertCommandSchema.parse({
         userId: Number(userId),
         ...req.body,
+        originalTimestamp: req.body.originalTimestamp ? new Date(req.body.originalTimestamp) : null,
       });
 
       console.log("Parsed command data:", commandData);
