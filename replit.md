@@ -280,6 +280,11 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Created real-time toggle switches with immediate API updates and user feedback
   - Voice settings now accessible directly from any chat room for quick adjustments
   - Enhanced user experience with clear descriptions and status indicators for each setting
+- June 18, 2025: Improved chat room settings menu design and usability:
+  - Removed emoji icons from voice settings menu items for cleaner appearance
+  - Added click-outside functionality to automatically close settings dropdown menu
+  - Enhanced user experience with more intuitive menu interaction patterns
+  - Settings menu now displays only text labels without visual clutter
 
 ## User Preferences
 

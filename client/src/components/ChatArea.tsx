@@ -189,6 +189,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
   const [uploadingFiles, setUploadingFiles] = useState<Array<{id: string, fileName: string}>>([]);
   const [showChatSettings, setShowChatSettings] = useState(false);
+  const chatSettingsRef = useRef<HTMLDivElement>(null);
   const [showMentions, setShowMentions] = useState(false);
   const [editingMessage, setEditingMessage] = useState<any>(null);
   const [editContent, setEditContent] = useState("");
@@ -1834,6 +1835,23 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       }
     }
   }, [messages, user?.autoPlayVoiceMessages]);
+
+  // 채팅 설정 메뉴 밖 클릭 시 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (chatSettingsRef.current && !chatSettingsRef.current.contains(event.target as Node)) {
+        setShowChatSettings(false);
+      }
+    };
+
+    if (showChatSettings) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showChatSettings]);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -3942,13 +3960,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               
               {/* Chat Settings Dropdown */}
               {showChatSettings && (
-                <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 w-56">
+                <div ref={chatSettingsRef} className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 w-56">
                   <div className="py-1">
                     {/* 음성 재생 허용 설정 */}
                     <div className="px-4 py-2 border-b border-gray-100">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
-                          <span className="text-xl">🔊</span>
                           <span className="text-sm text-gray-700">음성 재생 허용</span>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
@@ -4003,7 +4020,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     <div className="px-4 py-2 border-b border-gray-100">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
-                          <span className="text-xl">🎧</span>
                           <span className="text-sm text-gray-700">음성 자동 재생</span>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
