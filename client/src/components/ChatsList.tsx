@@ -399,7 +399,13 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
       
       // 통합된 스마트 추천 사용 (서버에서 이미 분석 완료)
       console.log('🎙️ Voice transcription with integrated suggestions:', result.smartSuggestions?.length || 0);
+      console.log('🎙️ Full smartSuggestions data:', result.smartSuggestions);
       const voiceSuggestions = result.smartSuggestions || [];
+      
+      // 스마트 추천 상세 로깅
+      voiceSuggestions.forEach((suggestion: any, index: number) => {
+        console.log(`🎯 Suggestion ${index}:`, suggestion);
+      });
       
       // 먼저 음성 메시지 전송
       const messageData = {
@@ -442,7 +448,11 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
             console.log('🎥 YouTube 추천 모달 표시 with keyword:', youtubeSuggestion.keyword);
             setYoutubeSearchQuery(youtubeSuggestion.keyword);
             setRecordingChatRoom(chatRoom);
-            setShowYoutubeModal(true);
+            
+            // YouTube 모달을 약간의 딜레이와 함께 표시
+            setTimeout(() => {
+              setShowYoutubeModal(true);
+            }, 100);
           }
         }
         
@@ -848,7 +858,11 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
       {/* YouTube 선택 모달 */}
       <YoutubeSelectionModal
         isOpen={showYoutubeModal}
-        onClose={() => setShowYoutubeModal(false)}
+        onClose={() => {
+          setShowYoutubeModal(false);
+          setYoutubeSearchQuery("");
+          setRecordingChatRoom(null);
+        }}
         onSelect={handleYoutubeVideoSelect}
         initialQuery={youtubeSearchQuery}
       />
