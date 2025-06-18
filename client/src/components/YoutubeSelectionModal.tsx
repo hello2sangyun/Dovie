@@ -125,12 +125,7 @@ export default function YoutubeSelectionModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            <span>YouTube 영상 선택</span>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
-          </DialogTitle>
+          <DialogTitle>YouTube 영상 선택</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
