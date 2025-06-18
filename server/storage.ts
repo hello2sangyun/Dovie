@@ -1364,23 +1364,48 @@ export class DatabaseStorage implements IStorage {
   }
 
   detectLocationRequest(message: string): boolean {
+    // 일반적인 위치 관련 키워드
     const locationKeywords = [
-      '어디로', '어디에', '어디야', '위치', '장소', '주소',
-      '어디', '가는', '길', '찾아가', '오는', '만날',
-      '어디서', '어디까지', '어느', '방향'
+      '어디로', '어디에', '어디야', '어디지', '어디임', '어디인',
+      '위치', '장소', '주소', '어디', '가는', '길', '찾아가', 
+      '오는', '만날', '어디서', '어디까지', '어느', '방향',
+      '어떻게', '가야', '가면', '와야', '오면'
     ];
     
-    const questionWords = ['?', '？', '어떻게'];
+    // 위치 요청을 나타내는 구체적인 패턴들
+    const locationRequestPatterns = [
+      '어디로가면', '어디로 가면', '어디로 가야', '어디로가야',
+      '어디야', '어디지', '어디인', '어디임',
+      '주소 알려', '주소알려', '주소 가르쳐', '주소가르쳐',
+      '위치 알려', '위치알려', '위치 가르쳐', '위치가르쳐',
+      '어떻게 가', '어떻게가', '어떻게 와', '어떻게와',
+      '길 알려', '길알려', '길 가르쳐', '길가르쳐',
+      '어디서 만', '어디서만', '어디에서 만', '어디에서만',
+      '몇번 출구', '몇 번 출구', '어느 출구',
+      '어디쯤', '어디 쯤', '어느 쪽', '어느쪽'
+    ];
     
+    // 질문 표시어
+    const questionIndicators = ['?', '？', '요', '줘', '쳐', '해'];
+    
+    const messageText = message.toLowerCase().replace(/\s+/g, '');
+    
+    // 특정 패턴이 포함되어 있는지 확인
+    const hasSpecificPattern = locationRequestPatterns.some(pattern => 
+      messageText.includes(pattern.replace(/\s+/g, ''))
+    );
+    
+    // 일반 키워드 + 질문 표시어 조합
     const hasLocationKeyword = locationKeywords.some(keyword => 
-      message.includes(keyword)
+      messageText.includes(keyword)
     );
     
-    const hasQuestionPattern = questionWords.some(pattern => 
-      message.includes(pattern)
+    const hasQuestionIndicator = questionIndicators.some(indicator => 
+      message.includes(indicator)
     );
     
-    return hasLocationKeyword && hasQuestionPattern;
+    // 특정 패턴이 있거나, 위치 키워드와 질문 표시어가 함께 있으면 위치 요청으로 판단
+    return hasSpecificPattern || (hasLocationKeyword && hasQuestionIndicator);
   }
 }
 
