@@ -189,7 +189,7 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
       // 자동 실행되는 추천 처리
       for (const suggestion of suggestions) {
         if (suggestion.type === 'youtube') {
-          // YouTube 검색 및 영상 공유
+          // YouTube 검색 및 영상 공유 - 사용자 확인 후
           const searchQuery = transcription.replace(/유튜브|youtube|검색|찾아|보여|영상|봤어|봐봐/gi, '').trim();
           
           try {
@@ -202,14 +202,17 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
             if (youtubeResponse.ok) {
               const youtubeData = await youtubeResponse.json();
               if (youtubeData.success && youtubeData.video) {
-                // YouTube 영상을 별도 메시지로 공유
-                const youtubeMessage = {
-                  content: `📺 ${searchQuery} 추천 영상\n${youtubeData.video.title}`,
-                  messageType: "text",
-                  youtubePreview: youtubeData.video
-                };
+                // 사용자에게 YouTube 링크 전송 여부 확인
+                const confirmSend = window.confirm(`"${searchQuery}" 검색 결과\n\n${youtubeData.video.title}\n\n이 YouTube 영상을 공유하시겠습니까?`);
                 
-                setTimeout(async () => {
+                if (confirmSend) {
+                  // YouTube 영상을 별도 메시지로 공유
+                  const youtubeMessage = {
+                    content: `📺 ${searchQuery} 추천 영상\n${youtubeData.video.title}`,
+                    messageType: "text",
+                    youtubePreview: youtubeData.video
+                  };
+                  
                   await fetch(`/api/chat-rooms/${chatRoomId}/messages`, {
                     method: 'POST',
                     headers: {
@@ -218,7 +221,7 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
                     },
                     body: JSON.stringify(youtubeMessage),
                   });
-                }, 500);
+                }
               }
             }
           } catch (error) {
@@ -263,41 +266,8 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
             console.error('위치 공유 처리 실패:', error);
           }
         } else if (['translation', 'summary', 'search', 'news', 'calculation', 'currency'].includes(suggestion.type)) {
-          // 기타 스마트 추천 처리
-          try {
-            const response = await fetch('/api/smart-suggestion', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
-                type: suggestion.type, 
-                content: transcription,
-                originalText: transcription 
-              })
-            });
-
-            if (response.ok) {
-              const data = await response.json();
-              if (data.success && data.result) {
-                const smartMessage = {
-                  content: `🤖 ${suggestion.category}\n${data.result}`,
-                  messageType: "text"
-                };
-
-                setTimeout(async () => {
-                  await fetch(`/api/chat-rooms/${chatRoomId}/messages`, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'x-user-id': user!.id.toString(),
-                    },
-                    body: JSON.stringify(smartMessage),
-                  });
-                }, 500);
-              }
-            }
-          } catch (error) {
-            console.error('스마트 추천 처리 실패:', error);
-          }
+          // 기타 스마트 추천은 자동 메시지 전송하지 않음 (음성 메시지만 유지)
+          console.log('🤖 스마트 추천 감지:', suggestion.type, '- 자동 메시지 전송 생략');
         }
       }
     }

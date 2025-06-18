@@ -2912,7 +2912,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         delete modifiedMessage.confidence;
         sendMessageMutation.mutate(modifiedMessage);
       } else if (suggestion.type === 'youtube') {
-        // YouTube 검색 및 영상 임베드 - 음성메시지와 함께 공유
+        // YouTube 검색 및 영상 임베드 - 사용자 확인 후 공유
         const searchQuery = pendingVoiceMessage.content.replace(/유튜브|youtube|검색|찾아|보여|영상|봤어|봐봐/gi, '').trim();
         
         try {
@@ -2929,41 +2929,34 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           if (youtubeResponse.ok) {
             const youtubeData = await youtubeResponse.json();
             if (youtubeData.success && youtubeData.video) {
-              // YouTube 영상을 별도 메시지로 공유
-              const youtubeMessage = {
-                chatRoomId: chatRoomId,
-                senderId: user!.id,
-                content: `📺 ${searchQuery} 추천 영상\n${youtubeData.video.title}`,
-                messageType: "text",
-                youtubePreview: youtubeData.video
-              };
+              // 사용자에게 YouTube 링크 전송 여부 확인
+              const confirmSend = window.confirm(`"${searchQuery}" 검색 결과\n\n${youtubeData.video.title}\n\n이 YouTube 영상을 공유하시겠습니까?`);
               
-              // 약간의 지연 후 YouTube 영상 메시지 전송
-              setTimeout(() => {
+              if (confirmSend) {
+                // YouTube 영상을 별도 메시지로 공유
+                const youtubeMessage = {
+                  chatRoomId: chatRoomId,
+                  senderId: user!.id,
+                  content: `📺 ${searchQuery} 추천 영상\n${youtubeData.video.title}`,
+                  messageType: "text",
+                  youtubePreview: youtubeData.video
+                };
+                
                 sendMessageMutation.mutate(youtubeMessage);
-              }, 500);
+              }
             }
           }
         } catch (error) {
-          // 오류 발생 시 기본 동작
-          sendMessageMutation.mutate(pendingVoiceMessage);
+          // 오류 발생 시 기본 동작만 (원본 음성메시지는 이미 전송됨)
+          console.error('YouTube 검색 오류:', error);
         }
       } else if (suggestion.action) {
         // 액션이 있는 경우 실행하고 원본 메시지 전송
         suggestion.action();
         sendMessageMutation.mutate(pendingVoiceMessage);
       } else {
-        // 제안 결과를 텍스트 메시지로 전송
-        const modifiedMessage = {
-          ...pendingVoiceMessage,
-          content: suggestion.result,
-          messageType: "text"
-        };
-        delete modifiedMessage.fileUrl;
-        delete modifiedMessage.voiceDuration;
-        delete modifiedMessage.detectedLanguage;
-        delete modifiedMessage.confidence;
-        sendMessageMutation.mutate(modifiedMessage);
+        // 다른 타입의 제안은 원본 음성메시지만 전송 (자동 텍스트 메시지 전송 제거)
+        sendMessageMutation.mutate(pendingVoiceMessage);
       }
       
       setPendingVoiceMessage(null);
