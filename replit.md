@@ -255,6 +255,13 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Removed unnecessary UI elements (play buttons, voice icons) from reply previews for cleaner presentation
   - Fixed profile picture upload encryption error by reading file from disk before encryption
   - Added proper temporary file cleanup to prevent disk space issues
+- June 18, 2025: Completed hashtag auto-extraction system implementation:
+  - Fixed critical `saveCommand` method missing from DatabaseStorage class
+  - Implemented automatic hashtag detection and command creation for both text and file messages
+  - Enhanced hashtag regex to support Korean characters and alphanumeric tags
+  - Added comprehensive logging for hashtag extraction debugging
+  - Verified successful auto-extraction: #eee hashtag automatically saved as searchable command
+  - Tag recall feature now works seamlessly with auto-generated hashtag commands
 
 ## User Preferences
 
