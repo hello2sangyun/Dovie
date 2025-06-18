@@ -816,72 +816,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async joinLocationChatRoom(userId: number, roomId: number, profileData: { nickname: string; profileImageUrl?: string }): Promise<void> {
-    // Check if already joined
-    const existing = await db
-      .select()
-      .from(locationChatParticipants)
-      .where(and(
-        eq(locationChatParticipants.locationChatRoomId, roomId),
-        eq(locationChatParticipants.userId, userId)
-      ));
-
-    if (existing.length === 0) {
-      await db
-        .insert(locationChatParticipants)
-        .values({
-          locationChatRoomId: roomId,
-          userId,
-          nickname: profileData.nickname,
-          profileImageUrl: profileData.profileImageUrl || null
-        });
-
-      // Update participant count
-      await db
-        .update(locationChatRooms)
-        .set({
-          participantCount: sql`${locationChatRooms.participantCount} + 1`,
-          lastActivity: new Date()
-        })
-        .where(eq(locationChatRooms.id, roomId));
-    } else {
-      // Update existing participant's profile
-      await db
-        .update(locationChatParticipants)
-        .set({
-          nickname: profileData.nickname,
-          profileImageUrl: profileData.profileImageUrl || null,
-          lastSeen: new Date()
-        })
-        .where(and(
-          eq(locationChatParticipants.locationChatRoomId, roomId),
-          eq(locationChatParticipants.userId, userId)
-        ));
-    }
+    // Location chat functionality removed
+    throw new Error('Location chat rooms disabled');
   }
 
   async getLocationChatProfile(userId: number, roomId: number): Promise<{ nickname: string; profileImageUrl?: string } | undefined> {
-    const [participant] = await db
-      .select({
-        nickname: locationChatParticipants.nickname,
-        profileImageUrl: locationChatParticipants.profileImageUrl
-      })
-      .from(locationChatParticipants)
-      .where(and(
-        eq(locationChatParticipants.locationChatRoomId, roomId),
-        eq(locationChatParticipants.userId, userId)
-      ));
-
-    if (!participant || !participant.nickname) {
-      return undefined;
-    }
-
-    return {
-      nickname: participant.nickname,
-      profileImageUrl: participant.profileImageUrl || undefined
-    };
+    // Location chat functionality removed
+    return undefined;
   }
-
-
 
   async getStorageAnalytics(userId: number, timeRange: string): Promise<any> {
     const timeCondition = this.getTimeCondition(timeRange);
@@ -1008,80 +950,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async checkLocationProximity(userId: number): Promise<{ roomId: number; distance: number; hasNewChats: boolean }[]> {
-    const userLocation = await db.select()
-      .from(userLocations)
-      .where(eq(userLocations.userId, userId));
-
-    if (!userLocation.length) return [];
-
-    const { latitude: userLat, longitude: userLng } = userLocation[0];
-    
-    // 주변 50미터 내 채팅방 찾기
-    const nearbyRooms = await db.select({
-      id: locationChatRooms.id,
-      name: locationChatRooms.name,
-      latitude: locationChatRooms.latitude,
-      longitude: locationChatRooms.longitude,
-      radius: locationChatRooms.radius,
-      participantCount: locationChatRooms.participantCount,
-      lastActivity: locationChatRooms.lastActivity,
-    })
-    .from(locationChatRooms)
-    .where(eq(locationChatRooms.isActive, true));
-
-    const proximityResults = [];
-    for (const room of nearbyRooms) {
-      const distance = this.calculateDistance(
-        parseFloat(userLat.toString()),
-        parseFloat(userLng.toString()),
-        parseFloat(room.latitude.toString()),
-        parseFloat(room.longitude.toString())
-      );
-
-      if (distance <= (room.radius || 50)) {
-        // 사용자가 이미 참여하고 있는지 확인
-        const isParticipant = await db.select()
-          .from(locationChatParticipants)
-          .where(
-            and(
-              eq(locationChatParticipants.userId, userId),
-              eq(locationChatParticipants.locationChatRoomId, room.id)
-            )
-          );
-
-        const hasNewChats = !isParticipant.length;
-        
-        proximityResults.push({
-          roomId: room.id,
-          distance,
-          hasNewChats
-        });
-      }
-    }
-
-    return proximityResults;
+    // Location chat functionality removed
+    return [];
   }
 
-  // Location chat functionality removed
-
-  // Business card operations
-  async getBusinessCard(userId: number): Promise<BusinessCard | undefined> {
-    const [card] = await db.select().from(businessCards).where(eq(businessCards.userId, userId));
-    return card || undefined;
+  // Business card operations removed - digital business card functionality disabled
+  async getBusinessCard(userId: number): Promise<any> {
+    // Business card functionality removed
+    return undefined;
   }
 
-  async createOrUpdateBusinessCard(userId: number, cardData: Partial<InsertBusinessCard>): Promise<BusinessCard> {
-    const existingCard = await this.getBusinessCard(userId);
-    
-    if (existingCard) {
-      const [updatedCard] = await db
-        .update(businessCards)
-        .set({ ...cardData, updatedAt: new Date() })
-        .where(eq(businessCards.userId, userId))
-        .returning();
-      return updatedCard;
-    } else {
-      const [newCard] = await db
+  async createOrUpdateBusinessCard(userId: number, cardData: any): Promise<any> {
+    // Business card functionality removed
+    throw new Error('Business card functionality disabled');
+  }
         .insert(businessCards)
         .values({ ...cardData, userId })
         .returning();
