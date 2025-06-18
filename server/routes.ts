@@ -2338,6 +2338,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     fs.unlinkSync(req.file.path);
 
     if (result.success) {
+      console.log("📤 Sending transcribe response with smartSuggestions:", result.smartSuggestions?.length || 0);
+      console.log("📤 smartSuggestions data:", result.smartSuggestions);
+      
       res.json({
         success: true,
         transcription: result.transcription,
