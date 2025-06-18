@@ -265,13 +265,14 @@ export async function processCommand(commandText: string): Promise<CommandRespon
   }
 }
 
-// Audio transcription for voice messages with language detection
+// Audio transcription for voice messages with integrated smart suggestions
 export async function transcribeAudio(filePath: string): Promise<{ 
   success: boolean, 
   transcription?: string, 
   duration?: number, 
   detectedLanguage?: string,
   confidence?: number,
+  smartSuggestions?: any[],
   error?: string 
 }> {
   try {
@@ -334,13 +335,72 @@ export async function transcribeAudio(filePath: string): Promise<{
     };
     
     const detectedLanguage = languageNames[transcription.language] || transcription.language;
+    const transcribedText = transcription.text || "음성을 찾을 수 없습니다.";
+    
+    // Analyze transcribed text for smart suggestions using a single OpenAI call
+    let smartSuggestions: any[] = [];
+    if (transcribedText && transcribedText.length > 5) {
+      console.log("🤖 Analyzing transcription for smart suggestions:", transcribedText);
+      
+      try {
+        const analysisResponse = await openai.chat.completions.create({
+          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          messages: [
+            {
+              role: "system",
+              content: `당신은 음성 메시지 텍스트를 분석해서 사용자가 원하는 행동을 파악하는 AI입니다. 
+              다음 카테고리 중에서 해당하는 것을 찾아 JSON으로 응답하세요:
+              
+              1. youtube: 유튜브 영상 검색/추천 (예: "지드래곤 유튜브", "상남자 영상", "유튜브로 검색", "영상 봐봐")
+              2. location: 위치 공유/문의 (예: "어디야", "주소 알려줘", "어디로 가면 돼")
+              3. translation: 번역 요청 (예: "영어로", "한국어로", "번역해줘")
+              4. search: 검색 요청 (예: "검색해줘", "찾아봐")
+              5. calculation: 계산 요청 (예: "계산해줘", "얼마야")
+              6. currency: 환율 계산 (예: "달러", "원", "환율")
+              7. news: 뉴스/정보 (예: "뉴스", "소식", "정보")
+              
+              응답 형식:
+              {
+                "suggestions": [
+                  {
+                    "type": "youtube",
+                    "keyword": "추출된 키워드",
+                    "confidence": 0.9,
+                    "text": "🎥 YouTube에서 [키워드] 검색하기",
+                    "icon": "🎥"
+                  }
+                ]
+              }
+              
+              YouTube의 경우 검색할 키워드를 정확히 추출하세요.
+              매칭되는 것이 없으면 빈 배열을 반환하세요.`
+            },
+            {
+              role: "user",
+              content: transcribedText
+            }
+          ],
+          response_format: { type: "json_object" }
+        });
+        
+        const analysisResult = JSON.parse(analysisResponse.choices[0].message.content || '{"suggestions":[]}');
+        smartSuggestions = analysisResult.suggestions || [];
+        
+        console.log("🤖 Smart suggestions analysis completed:", smartSuggestions.length, "suggestions");
+        
+      } catch (analysisError) {
+        console.error("Smart suggestions analysis failed:", analysisError);
+        // Continue without suggestions rather than failing the whole transcription
+      }
+    }
     
     return {
       success: true,
-      transcription: transcription.text || "음성을 찾을 수 없습니다.",
+      transcription: transcribedText,
       duration: transcription.duration || 0,
       detectedLanguage,
-      confidence: 0.9 // Whisper doesn't provide confidence scores, but it's generally reliable
+      confidence: 0.9, // Whisper doesn't provide confidence scores, but it's generally reliable
+      smartSuggestions
     };
   } catch (error: any) {
     console.error("Audio transcription error:", {

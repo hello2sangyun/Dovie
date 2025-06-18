@@ -2344,7 +2344,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         duration: result.duration,
         detectedLanguage: result.detectedLanguage,
         confidence: result.confidence,
-        audioUrl: audioUrl
+        audioUrl: audioUrl,
+        smartSuggestions: result.smartSuggestions || []
       });
     } else {
       res.status(500).json({
