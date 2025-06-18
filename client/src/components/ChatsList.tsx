@@ -368,20 +368,19 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     return suggestions;
   };
 
-  // 음성 메시지 전송 (채팅방용)
+  // 음성 메시지 전송 (채팅방용) - 통합된 방식 사용
   const sendVoiceMessage = async (chatRoom: any, audioBlob: Blob) => {
     try {
-      console.log('🎤 채팅방 간편음성메세지 - 업로드 시작:', getChatRoomDisplayName(chatRoom));
+      console.log('🎤 채팅방 간편음성메세지 - 통합 처리 시작:', getChatRoomDisplayName(chatRoom));
       
       // FormData로 파일 업로드
       const formData = new FormData();
-      formData.append('file', audioBlob, 'voice-message.webm');
-      formData.append('messageType', 'voice');
+      formData.append('audio', audioBlob, 'voice_message.webm');
       
-      console.log('📤 FormData 생성 완료, 업로드 API 호출 중...');
+      console.log('📤 통합 음성 처리 API 호출 중...');
       
-      // 파일 업로드 (음성 -> 텍스트 변환 포함)
-      const uploadResponse = await fetch(`/api/chat-rooms/${chatRoom.id}/upload`, {
+      // 통합된 음성 처리 (ChatArea와 동일한 방식)
+      const transcribeResponse = await fetch('/api/transcribe', {
         method: 'POST',
         headers: {
           'x-user-id': user!.id.toString(),
@@ -389,40 +388,70 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
         body: formData,
       });
       
-      console.log('📡 업로드 응답 상태:', uploadResponse.status);
+      console.log('📡 통합 처리 응답 상태:', transcribeResponse.status);
       
-      let uploadData;
-      try {
-        const responseText = await uploadResponse.text();
-        console.log('📄 서버 응답 텍스트:', responseText);
-        
-        if (!uploadResponse.ok) {
-          throw new Error(`Upload failed: ${uploadResponse.status} - ${responseText}`);
+      if (!transcribeResponse.ok) {
+        throw new Error(`Transcription failed: ${transcribeResponse.status}`);
+      }
+      
+      const result = await transcribeResponse.json();
+      console.log('✅ 통합 음성 처리 성공:', result);
+      
+      // 통합된 스마트 추천 사용 (서버에서 이미 분석 완료)
+      console.log('🎙️ Voice transcription with integrated suggestions:', result.smartSuggestions?.length || 0);
+      const voiceSuggestions = result.smartSuggestions || [];
+      
+      if (voiceSuggestions.length > 0) {
+        // YouTube 자동 처리
+        const youtubeSuggestion = voiceSuggestions.find((s: any) => s.type === 'youtube');
+        if (youtubeSuggestion && youtubeSuggestion.keyword) {
+          console.log('🎥 Auto-triggering YouTube search with keyword:', youtubeSuggestion.keyword);
+          setYoutubeSearchQuery(youtubeSuggestion.keyword);
+          setRecordingChatRoom(chatRoom);
+          setShowYoutubeModal(true);
+          
+          // 음성 메시지도 함께 전송
+          const messageData = {
+            content: result.transcription,
+            messageType: "voice",
+            fileUrl: result.audioUrl,
+            fileName: "voice_message.webm",
+            fileSize: 0,
+            voiceDuration: Math.round(result.duration || 0),
+            detectedLanguage: result.detectedLanguage || "korean",
+            confidence: String(result.confidence || 0.9)
+          };
+
+          // 메시지 전송
+          const messageResponse = await fetch(`/api/chat-rooms/${chatRoom.id}/messages`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-user-id': user!.id.toString(),
+            },
+            body: JSON.stringify(messageData),
+          });
+
+          if (messageResponse.ok) {
+            console.log('✅ 채팅방 간편음성메세지 (YouTube) 전송 성공!');
+            queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoom.id}/messages`] });
+            queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+            onSelectChat(chatRoom.id);
+          }
+          return;
         }
-        
-        uploadData = JSON.parse(responseText);
-        console.log('✅ 음성 파일 업로드 성공:', uploadData);
-      } catch (parseError) {
-        console.error('❌ 업로드 응답 파싱 실패:', parseError);
-        console.error('❌ 파싱 오류 세부사항:', {
-          message: parseError instanceof Error ? parseError.message : 'Unknown error',
-          status: uploadResponse.status,
-          url: uploadResponse.url
-        });
-        
-        // 기본값으로 진행하지 않고 오류 반환
-        throw new Error(`Upload failed: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
       }
 
-      // 업로드된 파일로 음성 메시지 전송 (텍스트 변환 포함)
+      // 일반 음성 메시지 처리
       const messageData = {
-        content: uploadData.transcription || '음성 메시지',
-        messageType: 'voice',
-        fileName: uploadData.fileName,
-        fileUrl: uploadData.fileUrl,
-        fileMimeType: 'audio/webm',
-        duration: uploadData.duration || 1,
-        transcription: uploadData.transcription
+        content: result.transcription,
+        messageType: "voice",
+        fileUrl: result.audioUrl,
+        fileName: "voice_message.webm",
+        fileSize: 0,
+        voiceDuration: Math.round(result.duration || 0),
+        detectedLanguage: result.detectedLanguage || "korean",
+        confidence: String(result.confidence || 0.9)
       };
 
       console.log('📨 메시지 전송 데이터:', messageData);
@@ -440,11 +469,6 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
       if (messageResponse.ok) {
         console.log('✅ 채팅방 간편음성메세지 전송 성공!');
         
-        // 스마트 추천 처리 (음성 메시지 전송 후)
-        if (uploadData.transcription) {
-          await processSmartSuggestions(uploadData.transcription, chatRoom.id);
-        }
-        
         // 캐시 무효화로 메시지 목록 새로고침
         queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoom.id}/messages`] });
         queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
@@ -454,7 +478,7 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
         
         toast({
           title: "음성 메시지 전송 완료",
-          description: uploadData.transcription ? `"${uploadData.transcription}"` : "음성이 텍스트로 변환되어 전송되었습니다.",
+          description: result.transcription ? `"${result.transcription}"` : "음성이 텍스트로 변환되어 전송되었습니다.",
         });
       } else {
         const errorText = await messageResponse.text();
