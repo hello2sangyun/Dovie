@@ -584,59 +584,82 @@ export class DatabaseStorage implements IStorage {
     if (searchTerms.length === 0) {
       return [];
     }
-    
-    // Get all commands for this user first
-    const allCommands = await db
-      .select()
-      .from(commands)
-      .leftJoin(users, eq(commands.originalSenderId, users.id))
-      .where(eq(commands.userId, userId))
-      .orderBy(desc(commands.createdAt));
 
-    // Filter commands by decrypting and searching saved text
-    const filteredCommands = allCommands.filter(row => {
-      const command = row.commands;
+    if (searchTerms.length === 1) {
+      // Single search term - search in command names and file names
+      const term = searchTerms[0];
+      const cleanTerm = term.startsWith('#') ? term.slice(1) : term;
+      const searchPattern = `%${cleanTerm}%`;
       
-      // Search in command name and file name (not encrypted)
-      const commandNameMatch = searchTerms.some(term => {
-        const cleanTerm = term.startsWith('#') ? term.slice(1) : term;
-        return command.commandName?.toLowerCase().includes(cleanTerm.toLowerCase()) ||
-               command.fileName?.toLowerCase().includes(cleanTerm.toLowerCase());
-      });
+      const result = await db
+        .select()
+        .from(commands)
+        .leftJoin(users, eq(commands.originalSenderId, users.id))
+        .where(and(
+          eq(commands.userId, userId),
+          or(
+            like(commands.commandName, searchPattern),
+            like(commands.fileName, searchPattern)
+          )
+        ))
+        .orderBy(desc(commands.createdAt));
+
+      return result.map(row => ({
+        ...row.commands,
+        originalSender: row.users || undefined
+      }));
+    } else {
+      // Multiple search terms - find commands where ALL hashtag names exist as individual commands
+      const cleanTerms = searchTerms.map(term => term.startsWith('#') ? term.slice(1) : term);
       
-      if (commandNameMatch) return true;
+      // Get all commands that match any of the search terms
+      const matchingCommands = await db
+        .select()
+        .from(commands)
+        .leftJoin(users, eq(commands.originalSenderId, users.id))
+        .where(and(
+          eq(commands.userId, userId),
+          or(
+            ...cleanTerms.map(term => like(commands.commandName, `%${term}%`))
+          )
+        ))
+        .orderBy(desc(commands.createdAt));
+
+      // Group by message ID and find messages that have ALL required hashtags
+      const messageGroups = new Map<number, (Command & { originalSender?: User })[]>();
       
-      // Search in decrypted saved text for hashtags
-      if (command.savedText) {
-        try {
-          const decryptedText = decrypt(command.savedText);
-          
-          if (searchTerms.length === 1) {
-            // Single search term
-            const term = searchTerms[0];
-            const cleanTerm = term.startsWith('#') ? term.slice(1) : term;
-            return decryptedText.toLowerCase().includes(cleanTerm.toLowerCase()) ||
-                   decryptedText.includes(`#${cleanTerm}`);
-          } else {
-            // Multiple search terms - ALL must be present
-            return searchTerms.every(term => {
-              const cleanTerm = term.startsWith('#') ? term.slice(1) : term;
-              return decryptedText.includes(`#${cleanTerm}`);
-            });
+      matchingCommands.forEach(row => {
+        const command = { ...row.commands, originalSender: row.users || undefined };
+        if (command.messageId) {
+          if (!messageGroups.has(command.messageId)) {
+            messageGroups.set(command.messageId, []);
           }
-        } catch (error) {
-          console.error('Error decrypting saved text for search:', error);
-          return false;
+          messageGroups.get(command.messageId)!.push(command);
         }
-      }
-      
-      return false;
-    });
+      });
 
-    return filteredCommands.map(row => ({
-      ...row.commands,
-      originalSender: row.users || undefined
-    }));
+      // Find messages that have commands matching ALL search terms
+      const result: (Command & { originalSender?: User })[] = [];
+      messageGroups.forEach((commandsForMessage) => {
+        const commandNames = commandsForMessage.map(cmd => cmd.commandName?.toLowerCase() || '');
+        const hasAllTerms = cleanTerms.every(term => 
+          commandNames.some(name => name.includes(term.toLowerCase()))
+        );
+        
+        if (hasAllTerms) {
+          result.push(...commandsForMessage);
+        }
+      });
+
+      // Remove duplicates and sort by creation date
+      const uniqueResults = result.filter((command, index, self) => 
+        index === self.findIndex(c => c.id === command.id)
+      );
+      
+      return uniqueResults.sort((a, b) => 
+        new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+      );
+    }
   }
 
   async markMessagesAsRead(userId: number, chatRoomId: number, lastMessageId: number): Promise<void> {
