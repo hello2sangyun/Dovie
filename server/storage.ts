@@ -81,10 +81,7 @@ export interface IStorage {
   getBusinessProfile(userId: number): Promise<BusinessProfile | undefined>;
   createOrUpdateBusinessProfile(userId: number, profileData: Partial<InsertBusinessProfile>): Promise<BusinessProfile>;
   
-  // Business card sharing operations
-  createBusinessCardShare(userId: number): Promise<BusinessCardShare>;
-  getBusinessCardShare(shareToken: string): Promise<BusinessCardShare | undefined>;
-  getBusinessCardShareInfo(userId: number): Promise<BusinessCardShare | undefined>;
+  // Business card sharing operations (removed - feature disabled)
   
   // User posts operations
   getUserPosts(userId: number): Promise<UserPost[]>;
@@ -804,72 +801,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserLocation(userId: number, location: { latitude: number; longitude: number; accuracy: number }): Promise<void> {
-    // Use upsert to handle existing locations
-    await db
-      .insert(userLocations)
-      .values({
-        userId,
-        latitude: location.latitude.toString(),
-        longitude: location.longitude.toString(),
-        accuracy: location.accuracy.toString(),
-        updatedAt: new Date()
-      })
-      .onConflictDoUpdate({
-        target: userLocations.userId,
-        set: {
-          latitude: location.latitude.toString(),
-          longitude: location.longitude.toString(),
-          accuracy: location.accuracy.toString(),
-          updatedAt: new Date()
-        }
-      });
+    // Location functionality removed - no-op
+    console.log('Location update skipped - feature disabled');
   }
 
   async getNearbyLocationChatRooms(latitude: number, longitude: number, radius: number = 100): Promise<any[]> {
-    const result = await db
-      .select({
-        id: locationChatRooms.id,
-        name: locationChatRooms.name,
-        latitude: locationChatRooms.latitude,
-        longitude: locationChatRooms.longitude,
-        radius: locationChatRooms.radius,
-        address: locationChatRooms.address,
-        isOfficial: locationChatRooms.isOfficial,
-        participantCount: locationChatRooms.participantCount,
-        maxParticipants: locationChatRooms.maxParticipants,
-        lastActivity: locationChatRooms.lastActivity
-      })
-      .from(locationChatRooms)
-      .where(eq(locationChatRooms.isActive, true));
-    
-    return result;
+    // Location chat functionality removed
+    return [];
   }
 
   async createLocationChatRoom(userId: number, roomData: { name: string; latitude: number; longitude: number; address: string }): Promise<any> {
-    const autoDeleteAt = new Date();
-    autoDeleteAt.setHours(autoDeleteAt.getHours() + 12); // Auto delete after 12 hours
-
-    const [newRoom] = await db
-      .insert(locationChatRooms)
-      .values({
-        name: roomData.name,
-        latitude: roomData.latitude.toString(),
-        longitude: roomData.longitude.toString(),
-        address: roomData.address,
-        autoDeleteAt,
-        participantCount: 1
-      })
-      .returning();
-
-    // Auto-join the creator
-    await db
-      .insert(locationChatParticipants)
-      .values({
-        locationChatRoomId: newRoom.id,
-        userId
-      });
-
-    return newRoom;
+    // Location chat functionality removed
+    throw new Error('Location chat rooms disabled');
   }
 
   async joinLocationChatRoom(userId: number, roomId: number, profileData: { nickname: string; profileImageUrl?: string }): Promise<void> {

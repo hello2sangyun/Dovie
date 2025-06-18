@@ -11,8 +11,11 @@ export function useWebSocket(userId?: number) {
 
     const connect = () => {
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const wsUrl = `${protocol}//${window.location.host}/ws`;
+      // Use explicit port 5000 and ensure proper WebSocket path
+      const host = window.location.hostname;
+      const wsUrl = `${protocol}//${host}:5000/ws`;
       
+      console.log('Attempting WebSocket connection to:', wsUrl);
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
