@@ -179,51 +179,51 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     }
   };
 
-  // 스마트 추천 처리 함수 - YouTube 데이터 반환
-  const getYouTubeData = async (transcription: string) => {
-    const suggestions = getSmartSuggestions(transcription);
-    
-    for (const suggestion of suggestions) {
-      if (suggestion.type === 'youtube') {
-        const searchQuery = transcription.replace(/유튜브|youtube|검색|찾아|보여|영상|봤어|봐봐/gi, '').trim();
-        
-        try {
-          const youtubeResponse = await fetch('/api/youtube/search', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: searchQuery })
-          });
-          
-          if (youtubeResponse.ok) {
-            const youtubeData = await youtubeResponse.json();
-            if (youtubeData.success && youtubeData.video) {
-              return {
-                youtubePreview: youtubeData.video,
-                searchQuery: searchQuery
-              };
-            }
-          }
-        } catch (error) {
-          console.error('YouTube 검색 실패:', error);
-        }
-        break;
-      }
-    }
-    return null;
-  };
-
-  // 기타 스마트 추천 처리 함수
-  const processOtherSuggestions = async (transcription: string, chatRoomId: number) => {
+  // 스마트 추천 처리 함수
+  const processSmartSuggestions = async (transcription: string, chatRoomId: number) => {
     const suggestions = getSmartSuggestions(transcription);
     
     if (suggestions.length > 0) {
       console.log('🤖 스마트 추천 발견:', suggestions.length, '개');
       
-      // 자동 실행되는 추천 처리 (YouTube 제외)
+      // 자동 실행되는 추천 처리
       for (const suggestion of suggestions) {
         if (suggestion.type === 'youtube') {
-          // YouTube는 메시지에 통합되므로 여기서 처리하지 않음
-          continue;
+          // YouTube 검색 및 영상 공유
+          const searchQuery = transcription.replace(/유튜브|youtube|검색|찾아|보여|영상|봤어|봐봐/gi, '').trim();
+          
+          try {
+            const youtubeResponse = await fetch('/api/youtube/search', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ query: searchQuery })
+            });
+            
+            if (youtubeResponse.ok) {
+              const youtubeData = await youtubeResponse.json();
+              if (youtubeData.success && youtubeData.video) {
+                // YouTube 영상을 별도 메시지로 공유
+                const youtubeMessage = {
+                  content: `📺 ${searchQuery} 추천 영상\n${youtubeData.video.title}`,
+                  messageType: "text",
+                  youtubePreview: youtubeData.video
+                };
+                
+                setTimeout(async () => {
+                  await fetch(`/api/chat-rooms/${chatRoomId}/messages`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'x-user-id': user!.id.toString(),
+                    },
+                    body: JSON.stringify(youtubeMessage),
+                  });
+                }, 500);
+              }
+            }
+          } catch (error) {
+            console.error('YouTube 추천 처리 실패:', error);
+          }
         } else if (suggestion.type === 'location') {
           // 위치 공유 요청 감지
           try {
@@ -445,24 +445,15 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
         throw new Error(`Upload failed: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
       }
 
-      // YouTube 스마트 추천 먼저 처리
-      let youtubeData = null;
-      if (uploadData.transcription) {
-        youtubeData = await getYouTubeData(uploadData.transcription);
-      }
-
-      // 업로드된 파일로 음성 메시지 전송 (YouTube 데이터 포함)
+      // 업로드된 파일로 음성 메시지 전송 (텍스트 변환 포함)
       const messageData = {
-        content: youtubeData 
-          ? `${uploadData.transcription}\n\n📺 ${youtubeData.searchQuery} 추천 영상\n${youtubeData.youtubePreview.title}`
-          : uploadData.transcription || '음성 메시지',
+        content: uploadData.transcription || '음성 메시지',
         messageType: 'voice',
         fileName: uploadData.fileName,
         fileUrl: uploadData.fileUrl,
         fileMimeType: 'audio/webm',
         duration: uploadData.duration || 1,
-        transcription: uploadData.transcription,
-        ...(youtubeData && { youtubePreview: youtubeData.youtubePreview })
+        transcription: uploadData.transcription
       };
 
       console.log('📨 메시지 전송 데이터:', messageData);
@@ -480,9 +471,9 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
       if (messageResponse.ok) {
         console.log('✅ 채팅방 간편음성메세지 전송 성공!');
         
-        // 기타 스마트 추천 처리 (YouTube 제외)
+        // 스마트 추천 처리 (음성 메시지 전송 후)
         if (uploadData.transcription) {
-          await processOtherSuggestions(uploadData.transcription, chatRoom.id);
+          await processSmartSuggestions(uploadData.transcription, chatRoom.id);
         }
         
         // 캐시 무효화로 메시지 목록 새로고침
