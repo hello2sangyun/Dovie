@@ -401,48 +401,7 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
       console.log('🎙️ Voice transcription with integrated suggestions:', result.smartSuggestions?.length || 0);
       const voiceSuggestions = result.smartSuggestions || [];
       
-      if (voiceSuggestions.length > 0) {
-        // YouTube 자동 처리
-        const youtubeSuggestion = voiceSuggestions.find((s: any) => s.type === 'youtube');
-        if (youtubeSuggestion && youtubeSuggestion.keyword) {
-          console.log('🎥 Auto-triggering YouTube search with keyword:', youtubeSuggestion.keyword);
-          setYoutubeSearchQuery(youtubeSuggestion.keyword);
-          setRecordingChatRoom(chatRoom);
-          setShowYoutubeModal(true);
-          
-          // 음성 메시지도 함께 전송
-          const messageData = {
-            content: result.transcription,
-            messageType: "voice",
-            fileUrl: result.audioUrl,
-            fileName: "voice_message.webm",
-            fileSize: 0,
-            voiceDuration: Math.round(result.duration || 0),
-            detectedLanguage: result.detectedLanguage || "korean",
-            confidence: String(result.confidence || 0.9)
-          };
-
-          // 메시지 전송
-          const messageResponse = await fetch(`/api/chat-rooms/${chatRoom.id}/messages`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-user-id': user!.id.toString(),
-            },
-            body: JSON.stringify(messageData),
-          });
-
-          if (messageResponse.ok) {
-            console.log('✅ 채팅방 간편음성메세지 (YouTube) 전송 성공!');
-            queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoom.id}/messages`] });
-            queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
-            onSelectChat(chatRoom.id);
-          }
-          return;
-        }
-      }
-
-      // 일반 음성 메시지 처리
+      // 먼저 음성 메시지 전송
       const messageData = {
         content: result.transcription,
         messageType: "voice",
@@ -475,6 +434,17 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
         
         // 해당 채팅방으로 자동 이동
         onSelectChat(chatRoom.id);
+        
+        // YouTube 스마트 추천 처리 (메시지 전송 후)
+        if (voiceSuggestions.length > 0) {
+          const youtubeSuggestion = voiceSuggestions.find((s: any) => s.type === 'youtube');
+          if (youtubeSuggestion && youtubeSuggestion.keyword) {
+            console.log('🎥 YouTube 추천 모달 표시 with keyword:', youtubeSuggestion.keyword);
+            setYoutubeSearchQuery(youtubeSuggestion.keyword);
+            setRecordingChatRoom(chatRoom);
+            setShowYoutubeModal(true);
+          }
+        }
         
         toast({
           title: "음성 메시지 전송 완료",
