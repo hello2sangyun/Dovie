@@ -4025,16 +4025,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           </div>
         </div>
       )}
-      {/* Chat Header - Optimized Mobile Layout */}
+      {/* Clean Chat Header */}
       <div className={cn(
-        "flex-shrink-0 sticky top-0 z-10",
-        showMobileHeader ? "px-3 py-2" : "p-4",
-        uiAdaptations.compactMode && "p-2",
-        // 주변챗용 특별한 디자인
-        isLocationChatRoom 
-          ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-b-2 border-blue-200" 
-          : "bg-white border-b border-gray-200",
-        uiAdaptations.focusMode && !isLocationChatRoom && "bg-blue-50 border-blue-200"
+        "flex-shrink-0 sticky top-0 z-10 bg-white border-b border-slate-200",
+        showMobileHeader ? "px-4 py-3" : "px-6 py-4"
       )}>
         <div className="flex items-center justify-between min-h-0">
           <div className="flex items-center flex-1 min-w-0 space-x-2">
@@ -4075,7 +4069,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       <div
                         key={participant.id}
                         className={cn(
-                          "rounded-full border-2 border-white shadow-sm purple-gradient flex items-center justify-center text-white font-semibold",
+                          "rounded-full border-2 border-white shadow-sm bg-slate-500 flex items-center justify-center text-white font-medium",
                           avatarSize,
                           showMobileHeader ? "text-[10px]" : "text-xs",
                           index > 0 ? "-ml-1" : ""
