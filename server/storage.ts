@@ -1191,11 +1191,21 @@ export class DatabaseStorage implements IStorage {
 
   // Command 저장 메서드 추가 (해시태그 자동 추출용)
   async saveCommand(command: InsertCommand): Promise<Command> {
-    // 저장된 텍스트가 있으면 암호화
+    // 저장된 텍스트가 있으면 암호화, 파일 정보는 그대로 유지
     const encryptedCommand = {
       ...command,
-      savedText: command.savedText ? encryptText(command.savedText) : command.savedText
+      savedText: command.savedText ? encryptText(command.savedText) : command.savedText,
+      fileUrl: command.fileUrl || null,
+      fileName: command.fileName || null,
+      fileSize: command.fileSize || null
     };
+    
+    console.log('Saving command with file data:', {
+      commandName: command.commandName,
+      fileUrl: command.fileUrl,
+      fileName: command.fileName,
+      fileSize: command.fileSize
+    });
     
     const [newCommand] = await db
       .insert(commands)

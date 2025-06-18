@@ -990,6 +990,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 commandName: commandName,
                 messageId: message.id,
                 savedText: messageData.content,
+                fileUrl: messageData.fileUrl || null,
+                fileName: messageData.fileName || null,
+                fileSize: messageData.fileSize || null,
                 originalSenderId: Number(userId),
                 originalTimestamp: new Date()
               });
