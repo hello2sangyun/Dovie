@@ -160,6 +160,18 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     sendMessageMutation.mutate(youtubeMessage);
     setShowYoutubeModal(false);
     setYoutubeSearchQuery("");
+    
+    // 음성 처리 상태 초기화
+    setIsProcessingVoice(false);
+    setPendingVoiceMessage(null);
+    setShowSmartSuggestions(false);
+    setSmartSuggestions([]);
+    
+    // 스마트 추천 타이머 정리
+    if (suggestionTimeout) {
+      clearTimeout(suggestionTimeout);
+      setSuggestionTimeout(null);
+    }
   };
   const [showCommandSuggestions, setShowCommandSuggestions] = useState(false);
   const [showChatCommands, setShowChatCommands] = useState(false);
@@ -6133,7 +6145,22 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       {/* YouTube Selection Modal */}
       <YoutubeSelectionModal
         isOpen={showYoutubeModal}
-        onClose={() => setShowYoutubeModal(false)}
+        onClose={() => {
+          setShowYoutubeModal(false);
+          setYoutubeSearchQuery("");
+          
+          // 음성 처리 상태 초기화
+          setIsProcessingVoice(false);
+          setPendingVoiceMessage(null);
+          setShowSmartSuggestions(false);
+          setSmartSuggestions([]);
+          
+          // 스마트 추천 타이머 정리
+          if (suggestionTimeout) {
+            clearTimeout(suggestionTimeout);
+            setSuggestionTimeout(null);
+          }
+        }}
         onSelect={handleYoutubeVideoSelect}
         initialQuery={youtubeSearchQuery}
       />
