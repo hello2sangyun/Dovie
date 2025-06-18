@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Search, Pin, Users, X, Trash2, LogOut, MoreVertical, Mic } from "lucide-react";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
+import YoutubeSelectionModal from "./YoutubeSelectionModal";
 
 interface ChatsListProps {
   onSelectChat: (chatId: number) => void;
@@ -43,6 +44,36 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const [recordingStartTime, setRecordingStartTime] = useState(0);
+  
+  // YouTube 선택 모달 상태
+  const [showYoutubeModal, setShowYoutubeModal] = useState(false);
+  const [youtubeSearchQuery, setYoutubeSearchQuery] = useState("");
+
+  // YouTube 비디오 선택 핸들러
+  const handleYoutubeVideoSelect = (video: any) => {
+    if (!recordingChatRoom) return;
+    
+    const youtubeMessage = {
+      chatRoomId: recordingChatRoom.id,
+      senderId: user!.id,
+      content: `📺 ${youtubeSearchQuery} 추천 영상\n${video.title}`,
+      messageType: "text",
+      youtubePreview: video
+    };
+    
+    // YouTube 영상 메시지 전송
+    fetch('/api/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(youtubeMessage)
+    }).then(() => {
+      // 채팅방으로 이동
+      onSelectChat(recordingChatRoom.id);
+      setShowYoutubeModal(false);
+      setYoutubeSearchQuery("");
+      setRecordingChatRoom(null);
+    }).catch(console.error);
+  };
 
   // 채팅방 나가기 mutation
   const leaveChatRoomMutation = useMutation({
@@ -189,44 +220,12 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
       // 자동 실행되는 추천 처리
       for (const suggestion of suggestions) {
         if (suggestion.type === 'youtube') {
-          // YouTube 검색 및 영상 공유 - 사용자 확인 후
+          // YouTube 검색 및 영상 선택 모달 열기
           const searchQuery = transcription.replace(/유튜브|youtube|검색|찾아|보여|영상|봤어|봐봐/gi, '').trim();
           
-          try {
-            const youtubeResponse = await fetch('/api/youtube/search', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ query: searchQuery })
-            });
-            
-            if (youtubeResponse.ok) {
-              const youtubeData = await youtubeResponse.json();
-              if (youtubeData.success && youtubeData.video) {
-                // 사용자에게 YouTube 링크 전송 여부 확인
-                const confirmSend = window.confirm(`"${searchQuery}" 검색 결과\n\n${youtubeData.video.title}\n\n이 YouTube 영상을 공유하시겠습니까?`);
-                
-                if (confirmSend) {
-                  // YouTube 영상을 별도 메시지로 공유
-                  const youtubeMessage = {
-                    content: `📺 ${searchQuery} 추천 영상\n${youtubeData.video.title}`,
-                    messageType: "text",
-                    youtubePreview: youtubeData.video
-                  };
-                  
-                  await fetch(`/api/chat-rooms/${chatRoomId}/messages`, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'x-user-id': user!.id.toString(),
-                    },
-                    body: JSON.stringify(youtubeMessage),
-                  });
-                }
-              }
-            }
-          } catch (error) {
-            console.error('YouTube 추천 처리 실패:', error);
-          }
+          setYoutubeSearchQuery(searchQuery);
+          setRecordingChatRoom({ id: chatRoomId });
+          setShowYoutubeModal(true);
         } else if (suggestion.type === 'location') {
           // 위치 공유 요청 감지
           try {
@@ -851,6 +850,14 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* YouTube 선택 모달 */}
+      <YoutubeSelectionModal
+        isOpen={showYoutubeModal}
+        onClose={() => setShowYoutubeModal(false)}
+        onSelect={handleYoutubeVideoSelect}
+        initialQuery={youtubeSearchQuery}
+      />
     </div>
   );
 }
