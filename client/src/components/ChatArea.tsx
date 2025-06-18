@@ -2912,7 +2912,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         delete modifiedMessage.confidence;
         sendMessageMutation.mutate(modifiedMessage);
       } else if (suggestion.type === 'youtube') {
-        // YouTube 검색 및 영상 임베드
+        // YouTube 검색 및 영상 임베드 - 상대방이 볼 수 있도록 공유
         const searchQuery = pendingVoiceMessage.content.replace(/유튜브|youtube|검색|찾아|보여|영상|봤어|봐봐/gi, '').trim();
         
         try {
@@ -2926,37 +2926,25 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           if (youtubeResponse.ok) {
             const youtubeData = await youtubeResponse.json();
             if (youtubeData.success && youtubeData.video) {
-              // YouTube 영상 미리보기가 있는 메시지 전송
+              // YouTube 영상을 채팅방에 공유할 수 있는 메시지 전송
               const youtubeMessage = {
-                ...pendingVoiceMessage,
-                content: `🎬 ${searchQuery} 검색 결과\n\n${youtubeData.video.title}\n\n${youtubeData.video.url}`,
+                chatRoomId: chatRoomId,
+                senderId: user!.id,
+                content: `📺 ${searchQuery} 추천 영상\n${youtubeData.video.title}`,
                 messageType: "text",
-                youtubePreview: {
-                  url: youtubeData.video.url,
-                  title: youtubeData.video.title,
-                  thumbnail: youtubeData.video.thumbnail,
-                  channelTitle: youtubeData.video.channelTitle,
-                  publishedAt: youtubeData.video.publishedAt
-                }
+                youtubePreview: youtubeData.video
               };
-              delete youtubeMessage.fileUrl;
-              delete youtubeMessage.voiceDuration;
-              delete youtubeMessage.detectedLanguage;
-              delete youtubeMessage.confidence;
               sendMessageMutation.mutate(youtubeMessage);
             } else {
               // 검색 결과가 없으면 기본 메시지
-              suggestion.action?.();
               sendMessageMutation.mutate(pendingVoiceMessage);
             }
           } else {
             // API 오류 시 기본 동작
-            suggestion.action?.();
             sendMessageMutation.mutate(pendingVoiceMessage);
           }
         } catch (error) {
           // 오류 발생 시 기본 동작
-          suggestion.action?.();
           sendMessageMutation.mutate(pendingVoiceMessage);
         }
       } else if (suggestion.action) {
@@ -2980,7 +2968,35 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       setPendingVoiceMessage(null);
     } else {
       // 일반 텍스트 입력 시 기존 로직
-      if (['translation', 'emotion', 'summary', 'quote', 'decision', 'news', 'search', 'topic_info'].includes(suggestion.type)) {
+      if (suggestion.type === 'youtube') {
+        // 텍스트 입력에서 YouTube 검색 및 영상 공유
+        const searchQuery = message.replace(/유튜브|youtube|검색|찾아|보여|영상|봤어|봐봐/gi, '').trim();
+        
+        try {
+          const youtubeResponse = await fetch('/api/youtube/search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: searchQuery })
+          });
+          
+          if (youtubeResponse.ok) {
+            const youtubeData = await youtubeResponse.json();
+            if (youtubeData.success && youtubeData.video) {
+              const youtubeMessage = {
+                chatRoomId: chatRoomId,
+                senderId: user!.id,
+                content: `📺 ${searchQuery} 추천 영상\n${youtubeData.video.title}`,
+                messageType: "text",
+                youtubePreview: youtubeData.video
+              };
+              sendMessageMutation.mutate(youtubeMessage);
+              setMessage("");
+            }
+          }
+        } catch (error) {
+          console.error('YouTube search error:', error);
+        }
+      } else if (['translation', 'emotion', 'summary', 'quote', 'decision', 'news', 'search', 'topic_info'].includes(suggestion.type)) {
         try {
           setSmartResultModal({
             show: true,

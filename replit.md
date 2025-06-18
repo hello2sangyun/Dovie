@@ -293,6 +293,14 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Enhanced detection patterns to recognize various forms: "어디로가면 되?", "어디야?", "주소 알려줘", etc.
   - Location sharing triggers automatically when users ask location questions, prompting GPS permission
   - Shared locations appear as messages with Google Maps links for easy viewing
+- June 18, 2025: Enhanced YouTube video embedding functionality for message sharing:
+  - Fixed YouTube search to perform actual video searches instead of just opening browser tabs
+  - Created YouTube API endpoint (/api/youtube/search) that searches real videos using YouTube Data API v3
+  - Added YouTube video preview component with thumbnail, title, channel info, and clickable play button
+  - Updated database schema to support YouTube preview data storage (youtubePreview jsonb field)
+  - Integrated YouTube search with both voice message smart recommendations and text input
+  - Users can now share actual YouTube videos as embedded messages that recipients can watch in chat
+  - Enhanced detection patterns to extract search queries from voice messages like "지드래곤 유튜브 영상 봐봐"
 
 ## User Preferences
 
