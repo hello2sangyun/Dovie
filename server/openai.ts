@@ -307,6 +307,19 @@ export async function transcribeAudio(filePath: string): Promise<{
     if (!response.ok) {
       const errorText = await response.text();
       console.error("OpenAI API Error:", response.status, errorText);
+      
+      // Handle audio too short error as silent recording
+      if (errorText.includes("Audio file is too short") || errorText.includes("audio_too_short")) {
+        console.log("🔇 Audio file too short, treating as silent recording");
+        return {
+          text: "",
+          language: "ko",
+          duration: 0,
+          confidence: 0,
+          error: "SILENT_RECORDING"
+        };
+      }
+      
       throw new Error(`OpenAI API Error: ${response.status} ${errorText}`);
     }
     

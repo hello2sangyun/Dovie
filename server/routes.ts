@@ -2322,23 +2322,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     console.log("Processing audio file:", req.file.originalname, req.file.size, "bytes");
 
-    // Pass the file directly to transcribeAudio function
-    const result = await transcribeAudio(req.file.path);
-    
-    // 음성 파일을 uploads 폴더에 저장하고 URL 생성
-    const audioFileName = `voice_${Date.now()}.webm`;
-    const audioPath = path.join('uploads', audioFileName);
-    
-    // 음성 파일을 영구 저장
-    fs.copyFileSync(req.file.path, audioPath);
-    const audioUrl = `/uploads/${audioFileName}`;
-    
-    console.log("Audio file saved:", audioPath, "URL:", audioUrl);
-    
-    // Clean up temporary file
-    fs.unlinkSync(req.file.path);
+    try {
+      // Pass the file directly to transcribeAudio function
+      const result = await transcribeAudio(req.file.path);
+      
+      // Check for silent recording before saving file
+      if (result.error === "SILENT_RECORDING") {
+        console.log("🔇 Silent recording detected, not saving file");
+        // Clean up temporary file
+        fs.unlinkSync(req.file.path);
+        
+        return res.json({
+          success: false,
+          error: "SILENT_RECORDING",
+          message: "빈 음성 녹음이 감지되었습니다."
+        });
+      }
+      
+      // 음성 파일을 uploads 폴더에 저장하고 URL 생성
+      const audioFileName = `voice_${Date.now()}.webm`;
+      const audioPath = path.join('uploads', audioFileName);
+      
+      // 음성 파일을 영구 저장
+      fs.copyFileSync(req.file.path, audioPath);
+      const audioUrl = `/uploads/${audioFileName}`;
+      
+      console.log("Audio file saved:", audioPath, "URL:", audioUrl);
+      
+      // Clean up temporary file
+      fs.unlinkSync(req.file.path);
 
-    if (result.success) {
+      if (result.success) {
       console.log("📤 Sending transcribe response with smartSuggestions:", result.smartSuggestions?.length || 0);
       console.log("📤 smartSuggestions data:", result.smartSuggestions);
       
@@ -2355,6 +2369,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: result.error || "음성 변환에 실패했습니다."
+      });
+    }
+    } catch (error) {
+      console.error("Transcription error:", error);
+      // Clean up temporary file if it exists
+      if (req.file?.path && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      
+      res.status(500).json({
+        success: false,
+        message: "음성 변환 중 오류가 발생했습니다."
       });
     }
   });
