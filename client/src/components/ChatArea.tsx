@@ -2414,12 +2414,16 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
     for (const pattern of patterns) {
       if (pattern.test(text)) {
+        const searchQuery = text.replace(/유튜브|youtube|검색|찾아|보여/gi, '').trim();
+        const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}`;
+        
         return {
           type: 'youtube' as const,
-          text: '영상 미리보기 만들기',
-          result: `유튜브: ${text}`,
+          text: `YouTube에서 "${searchQuery}" 검색`,
+          result: `📺 YouTube 검색: ${searchQuery}\n🔗 ${youtubeSearchUrl}`,
           icon: '📺',
-          category: '동영상'
+          category: '동영상',
+          action: () => window.open(youtubeSearchUrl, '_blank')
         };
       }
     }
