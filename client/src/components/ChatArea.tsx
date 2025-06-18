@@ -604,39 +604,83 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         audioUrl: uploadResult.fileUrl
       };
     },
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
       if (result.success && result.transcription) {
-        // 음성 메시지와 텍스트 변환을 함께 전송
-        const messageData: any = {
-          content: result.transcription,
-          messageType: "voice",
-          fileUrl: result.audioUrl,
-          fileName: "voice_message.webm",
-          fileSize: 0,
-          voiceDuration: Math.round(result.duration || 0),
-          detectedLanguage: result.detectedLanguage || "korean",
-          confidence: String(result.confidence || 0.9)
-        };
+        // 음성 변환된 텍스트로 스마트 추천 분석
+        const voiceSuggestions = await analyzeTextForSmartSuggestions(result.transcription);
+        
+        if (voiceSuggestions.length > 0) {
+          // 스마트 추천이 있는 경우 팝업으로 표시
+          const maxSuggestions = voiceSuggestions.some(s => s.type === 'currency') ? voiceSuggestions.length : 3;
+          setSmartSuggestions(voiceSuggestions.slice(0, maxSuggestions));
+          setShowSmartSuggestions(true);
+          setSelectedSuggestionIndex(0);
+          setIsNavigatingWithKeyboard(false);
+          
+          // 음성 메시지 임시 저장 (사용자가 추천을 선택할 수 있도록)
+          setPendingVoiceMessage({
+            content: result.transcription,
+            messageType: "voice",
+            fileUrl: result.audioUrl,
+            fileName: "voice_message.webm",
+            fileSize: 0,
+            voiceDuration: Math.round(result.duration || 0),
+            detectedLanguage: result.detectedLanguage || "korean",
+            confidence: String(result.confidence || 0.9),
+            replyToMessageId: replyToMessage?.id,
+            replyToContent: replyToMessage?.messageType === 'voice' && replyToMessage.transcription 
+              ? replyToMessage.transcription 
+              : replyToMessage?.content,
+            replyToSender: replyToMessage?.sender.displayName
+          });
+          
+          // 10초 후 자동으로 원본 메시지 전송
+          const timeout = setTimeout(() => {
+            if (pendingVoiceMessage) {
+              sendMessageMutation.mutate(pendingVoiceMessage);
+              setPendingVoiceMessage(null);
+              setShowSmartSuggestions(false);
+              setSmartSuggestions([]);
+            }
+          }, 10000);
+          setSuggestionTimeout(timeout);
+          
+          toast({
+            title: "음성 변환 완료!",
+            description: `"${result.transcription}" - 스마트 추천을 확인해보세요`,
+          });
+        } else {
+          // 스마트 추천이 없는 경우 바로 전송
+          const messageData: any = {
+            content: result.transcription,
+            messageType: "voice",
+            fileUrl: result.audioUrl,
+            fileName: "voice_message.webm",
+            fileSize: 0,
+            voiceDuration: Math.round(result.duration || 0),
+            detectedLanguage: result.detectedLanguage || "korean",
+            confidence: String(result.confidence || 0.9)
+          };
 
-        // 회신 메시지인 경우 회신 데이터 포함
-        if (replyToMessage) {
-          messageData.replyToMessageId = replyToMessage.id;
-          // 음성 메시지인 경우 transcription 사용, 아니면 content 사용
-          messageData.replyToContent = replyToMessage.messageType === 'voice' && replyToMessage.transcription 
-            ? replyToMessage.transcription 
-            : replyToMessage.content;
-          messageData.replyToSender = replyToMessage.sender.displayName;
+          // 회신 메시지인 경우 회신 데이터 포함
+          if (replyToMessage) {
+            messageData.replyToMessageId = replyToMessage.id;
+            messageData.replyToContent = replyToMessage.messageType === 'voice' && replyToMessage.transcription 
+              ? replyToMessage.transcription 
+              : replyToMessage.content;
+            messageData.replyToSender = replyToMessage.sender.displayName;
+          }
+
+          sendMessageMutation.mutate(messageData);
+          
+          toast({
+            title: "음성 메시지 전송 완료!",
+            description: "음성이 텍스트로 변환되어 전송되었습니다.",
+          });
         }
-
-        sendMessageMutation.mutate(messageData);
         
         // 회신 모드 해제
         setReplyToMessage(null);
-        
-        toast({
-          title: "음성 메시지 전송 완료!",
-          description: "음성이 텍스트로 변환되어 전송되었습니다.",
-        });
       } else {
         toast({
           variant: "destructive",
@@ -1899,6 +1943,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [showHashSuggestions, setShowHashSuggestions] = useState(false);
   const [hashSuggestions, setHashSuggestions] = useState<string[]>([]);
   const [selectedHashIndex, setSelectedHashIndex] = useState(0);
+  // 음성 메시지 임시 저장 상태 (스마트 추천 선택 대기)
+  const [pendingVoiceMessage, setPendingVoiceMessage] = useState<any>(null);
   // 채팅방별 저장된 명령어들을 태그로 사용
   const savedCommands = (commandsData as any)?.commands || [];
   const storedTags = savedCommands.map((cmd: any) => cmd.commandName);
@@ -2815,6 +2861,173 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     setSmartSuggestions([]);
   };
 
+  // 스마트 추천 분석 함수 (텍스트와 음성 메시지 공통)
+  const analyzeTextForSmartSuggestions = async (text: string) => {
+    if (text.trim().length < 2) {
+      return [];
+    }
+    
+    const allSuggestions = [];
+    
+    // 1. 환전 기능
+    const currencyDetection = detectCurrency(text);
+    if (currencyDetection && currencyDetection.amount >= 1) {
+      try {
+        const suggestions = await getExchangeRates(currencyDetection.currency, currencyDetection.amount);
+        allSuggestions.push(...suggestions);
+      } catch (error) {
+        console.error('환율 조회 중 오류:', error);
+      }
+    }
+    
+    // 2. 계산기
+    const calculationMatch = text.match(/[\d\+\-\*\/\(\)\.\s]+$/);
+    if (calculationMatch && calculationMatch[0].length > 3) {
+      const expression = calculationMatch[0].trim();
+      if (expression && /[\+\-\*\/]/.test(expression)) {
+        try {
+          const result = evaluateExpression(expression);
+          if (result !== null && !isNaN(result)) {
+            allSuggestions.push({
+              type: 'calculation',
+              text: `${expression} = ${formatNumber(result)}`,
+              result: `${expression} = ${formatNumber(result)}`,
+              icon: '🧮',
+              category: '계산'
+            });
+          }
+        } catch (e) {
+          // 계산 오류 무시
+        }
+      }
+    }
+    
+    // 3. 번역 필요성 감지 (상대방과 다른 언어 사용 시에만)
+    if (messages?.data?.messages) {
+      const translationCheck = shouldSuggestTranslation(text, messages.data.messages);
+      if (translationCheck.shouldSuggest) {
+        allSuggestions.push({
+          type: 'translation' as const,
+          text: `${translationCheck.languageName}로 번역`,
+          result: text,
+          icon: '🌐',
+          category: '번역',
+          action: () => handleChatTranslation(translationCheck.targetLanguage!)
+        });
+      }
+    }
+    
+    // 4. 유튜브 감지
+    const youtubeDetection = detectYoutube(text);
+    if (youtubeDetection) {
+      allSuggestions.push(youtubeDetection);
+    }
+    
+    // 5. 뉴스 감지
+    const newsDetection = detectNews(text);
+    if (newsDetection) {
+      allSuggestions.push(newsDetection);
+    }
+    
+    // 6. 단위 변환 감지
+    const unitDetection = detectUnit(text);
+    if (unitDetection) {
+      allSuggestions.push(unitDetection);
+    }
+    
+    // 7. 검색 감지
+    const searchDetection = detectSearch(text);
+    if (searchDetection) {
+      allSuggestions.push(searchDetection);
+    }
+    
+    // 8. 주소 감지
+    const addressDetection = detectAddress(text);
+    if (addressDetection) {
+      allSuggestions.push(addressDetection);
+    }
+    
+    // 9. 타이머 감지
+    const timerDetection = detectTimer(text);
+    if (timerDetection) {
+      allSuggestions.push(timerDetection);
+    }
+
+    // 10. 지연 답변 감지
+    const delayedResponseDetection = detectDelayedResponse(text);
+    if (delayedResponseDetection) {
+      allSuggestions.push(delayedResponseDetection);
+    }
+
+    // 11. 질문 감지
+    const questionDetection = detectQuestion(text);
+    if (questionDetection) {
+      allSuggestions.push(questionDetection);
+    }
+
+    // 12. 의사결정 도우미 감지
+    const decisionDetection = detectDecision(text);
+    if (decisionDetection) {
+      allSuggestions.push(decisionDetection);
+    }
+
+    // 13. 카테고리 분류 감지
+    const categoryDetection = detectCategory(text);
+    if (categoryDetection) {
+      allSuggestions.push(categoryDetection);
+    }
+
+    // 14. 주제별 정보 감지
+    const topicInfoDetection = detectTopicInfo(text);
+    if (topicInfoDetection) {
+      allSuggestions.push(topicInfoDetection);
+    }
+
+    // 15. 매너톤 감지
+    const mannertoneDetection = detectMannertone(text);
+    if (mannertoneDetection) {
+      allSuggestions.push(mannertoneDetection);
+    }
+
+    // 16. 파일 요청/공유 감지
+    const fileRequestDetection = detectFileRequest(text);
+    if (fileRequestDetection) {
+      allSuggestions.push(fileRequestDetection);
+    }
+
+    // 17. 욕설 감지
+    const profanityDetection = detectProfanity(text);
+    if (profanityDetection) {
+      allSuggestions.push(profanityDetection);
+    }
+
+    // 18. 비즈니스 톤 변환 감지
+    const businessToneDetection = detectBusinessTone(text);
+    if (businessToneDetection) {
+      allSuggestions.push(businessToneDetection);
+    }
+
+    // 19. 중복 질문 감지
+    const duplicateQuestionDetection = detectDuplicateQuestion(text);
+    if (duplicateQuestionDetection) {
+      allSuggestions.push(duplicateQuestionDetection);
+    }
+
+    // 20. 대화 연결 제안
+    const conversationContinuationDetection = detectConversationContinuation(text);
+    if (conversationContinuationDetection) {
+      allSuggestions.push(conversationContinuationDetection);
+    }
+
+    // 21. 기억 회상 기능
+    const memoryRecallDetection = detectMemoryRecall(text);
+    if (memoryRecallDetection) {
+      allSuggestions.push(memoryRecallDetection);
+    }
+    
+    return allSuggestions;
+  };
+
   const handleMessageChange = async (value: string) => {
     setMessage(value);
     
@@ -2847,155 +3060,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       return;
     }
     
-    const allSuggestions = [];
-    
-    // 1. 환전 기능
-    const currencyDetection = detectCurrency(value);
-    if (currencyDetection && currencyDetection.amount >= 1) {
-      try {
-        const suggestions = await getExchangeRates(currencyDetection.currency, currencyDetection.amount);
-        allSuggestions.push(...suggestions);
-      } catch (error) {
-        console.error('환율 조회 중 오류:', error);
-      }
-    }
-    
-    // 2. 계산기
-    const calculationMatch = value.match(/[\d\+\-\*\/\(\)\.\s]+$/);
-    if (calculationMatch && calculationMatch[0].length > 3) {
-      const expression = calculationMatch[0].trim();
-      if (expression && /[\+\-\*\/]/.test(expression)) {
-        try {
-          const result = evaluateExpression(expression);
-          if (result !== null && !isNaN(result)) {
-            allSuggestions.push({
-              type: 'calculation',
-              text: `${expression} = ${formatNumber(result)}`,
-              result: `${expression} = ${formatNumber(result)}`,
-              icon: '🧮',
-              category: '계산'
-            });
-          }
-        } catch (e) {
-          // 계산 오류 무시
-        }
-      }
-    }
-    
-    // 3. 일정/시간 감지 (삭제됨)
-    
-    // 4. 번역 필요성 감지 (상대방과 다른 언어 사용 시에만)
-    if (messages?.data?.messages) {
-      const translationCheck = shouldSuggestTranslation(value, messages.data.messages);
-      if (translationCheck.shouldSuggest) {
-        allSuggestions.push({
-          type: 'translation' as const,
-          text: `${translationCheck.languageName}로 번역`,
-          result: value,
-          icon: '🌐',
-          category: '번역',
-          action: () => handleChatTranslation(translationCheck.targetLanguage!)
-        });
-      }
-    }
-    
-    // 5. 감정 감지 (삭제됨)
-    
-    // 6. 음식 감지 (삭제됨)
-    
-    // 7. 유튜브 감지
-    const youtubeDetection = detectYoutube(value);
-    if (youtubeDetection) {
-      allSuggestions.push(youtubeDetection);
-    }
-    
-    // 8. 뉴스 감지
-    const newsDetection = detectNews(value);
-    if (newsDetection) {
-      allSuggestions.push(newsDetection);
-    }
-    
-    // 9. 단위 변환 감지
-    const unitDetection = detectUnit(value);
-    if (unitDetection) {
-      allSuggestions.push(unitDetection);
-    }
-    
-    // 10. 검색 감지
-    const searchDetection = detectSearch(value);
-    if (searchDetection) {
-      allSuggestions.push(searchDetection);
-    }
-    
-    // 11. 생일/기념일 감지 (삭제됨)
-    
-    // 12. 미팅/회의 감지 (삭제됨)
-    
-    // 13. 주소 감지
-    const addressDetection = detectAddress(value);
-    if (addressDetection) {
-      allSuggestions.push(addressDetection);
-    }
-    
-    // 14. 투표 감지 (삭제됨)
-    
-    // 15. 할 일 감지 (삭제됨)
-    
-    // 16. 타이머 감지
-    const timerDetection = detectTimer(value);
-    if (timerDetection) {
-      allSuggestions.push(timerDetection);
-    }
-
-    // 17. 지연 답변 감지
-    const delayedResponseDetection = detectDelayedResponse(value);
-    if (delayedResponseDetection) {
-      allSuggestions.push(delayedResponseDetection);
-    }
-
-    // 18. 동기부여/명언 감지 (삭제됨)
-
-    // 19. 질문 감지
-    const questionDetection = detectQuestion(value);
-    if (questionDetection) {
-      allSuggestions.push(questionDetection);
-    }
-
-    // 20. 긴 메시지 요약 감지
-    const longMessageDetection = detectLongMessage(value);
-    if (longMessageDetection) {
-      allSuggestions.push(longMessageDetection);
-    }
-
-    // 21. 의사결정 도우미 감지
-    const decisionDetection = detectDecision(value);
-    if (decisionDetection) {
-      allSuggestions.push(decisionDetection);
-    }
-
-    // 22. 카테고리 분류 감지
-    const categoryDetection = detectCategory(value);
-    if (categoryDetection) {
-      allSuggestions.push(categoryDetection);
-    }
-
-    // 23. 주제별 정보 감지
-    const topicInfoDetection = detectTopicInfo(value);
-    if (topicInfoDetection) {
-      allSuggestions.push(topicInfoDetection);
-    }
-
-    // 24. 매너톤 감지
-    const mannertoneDetection = detectMannertone(value);
-    if (mannertoneDetection) {
-      allSuggestions.push(mannertoneDetection);
-    }
-
-    // 25. 파일 요청/공유 감지
-    const fileRequestDetection = detectFileRequest(value);
-    if (fileRequestDetection) {
-      allSuggestions.push(fileRequestDetection);
-    }
+    const allSuggestions = await analyzeTextForSmartSuggestions(value);
     
     // 기존 타이머 제거
     if (suggestionTimeout) {
