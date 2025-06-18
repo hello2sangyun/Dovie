@@ -3919,17 +3919,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                 <Search className="h-4 w-4" />
               </Button>
             )}
-            {/* 영상통화/전화 버튼 - 주변챗에서는 숨김 */}
-            {!isLocationChatRoom && (
-              <>
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-purple-600">
-                  <Video className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-purple-600">
-                  <Phone className="h-4 w-4" />
-                </Button>
-              </>
-            )}
+
             {/* 주변챗용 특별한 정보 버튼 */}
             {isLocationChatRoom ? (
               <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
@@ -4223,9 +4213,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                 <div 
                   ref={(el) => messageRefs.current[msg.id] = el}
                   className={cn(
-                    "flex items-start space-x-3 transition-all duration-500",
+                    "flex items-start space-x-2 mb-2 transition-all duration-500",
                     isMe ? "flex-row-reverse space-x-reverse" : "",
-                    highlightedMessageId === msg.id && "bg-yellow-100 rounded-lg p-2 -mx-2"
+                    highlightedMessageId === msg.id && "bg-yellow-100 rounded-lg p-1 -mx-1"
                   )}
                 >
                   <div className="flex flex-col items-center">
@@ -4273,7 +4263,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     "min-w-0 break-words"
                   )}>
                     {!isMe && (
-                      <div className="flex items-center space-x-2 mb-1">
+                      <div className="flex items-center space-x-2 mb-0.5">
                         <span className="text-sm font-medium text-gray-900">
                           {isLocationChatRoom 
                             ? (msg.locationProfile?.nickname || msg.sender.displayName)
@@ -4287,7 +4277,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     )}
                     
                     {isMe && (
-                      <div className="flex items-center space-x-2 mb-1">
+                      <div className="flex items-center space-x-2 mb-0.5">
                         <span className="text-xs text-gray-500">
                           {formatTime(msg.createdAt)}
                         </span>
@@ -4296,7 +4286,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
                     <div 
                       className={cn(
-                        "rounded-lg px-3 py-2 shadow-sm w-fit break-words cursor-pointer select-none",
+                        "rounded-lg px-2 py-1 shadow-sm w-fit break-words cursor-pointer select-none",
                         msg.isCommandRecall && msg.isLocalOnly
                           ? isMe 
                             ? "bg-teal-500 text-white rounded-tr-none border border-teal-400" 
