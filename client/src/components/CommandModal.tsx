@@ -52,18 +52,41 @@ export default function CommandModal({
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [commandName, setCommandName] = useState("");
+  const [hashtags, setHashtags] = useState<string[]>([]);
+  const [hashtagInput, setHashtagInput] = useState("");
+
+  // 해시태그 추가 함수
+  const addHashtag = (tag: string) => {
+    const cleanTag = tag.trim().replace(/^#/, '').toLowerCase();
+    if (cleanTag && !hashtags.includes(cleanTag)) {
+      setHashtags([...hashtags, cleanTag]);
+    }
+  };
+
+  // 해시태그 입력 처리
+  const handleHashtagKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ' || e.key === ',') {
+      e.preventDefault();
+      if (hashtagInput.trim()) {
+        addHashtag(hashtagInput);
+        setHashtagInput('');
+      }
+    }
+  };
+
+  // 해시태그 제거 함수
+  const removeHashtag = (tagToRemove: string) => {
+    setHashtags(hashtags.filter(tag => tag !== tagToRemove));
+  };
 
   const createCommandMutation = useMutation({
     mutationFn: async () => {
       if (!chatRoomId) throw new Error("Chat room ID required");
-      
-      // 영문자를 소문자로 변환
-      const processedCommandName = commandName.toLowerCase();
+      if (hashtags.length === 0) throw new Error("최소 하나의 해시태그가 필요합니다");
       
       let finalFileData = fileData;
 
-      // 메시지 데이터가 있는 경우 사용자가 입력한 태그명으로 텍스트 파일 생성
+      // 메시지 데이터가 있는 경우 첫 번째 해시태그를 파일명으로 텍스트 파일 생성
       if (messageData) {
         const textFileResponse = await fetch("/api/create-text-file", {
           method: "POST",
@@ -73,7 +96,7 @@ export default function CommandModal({
           },
           body: JSON.stringify({
             content: messageData.content,
-            fileName: processedCommandName
+            fileName: hashtags[0]
           }),
         });
 
@@ -82,31 +105,35 @@ export default function CommandModal({
         finalFileData = await textFileResponse.json();
       }
 
-      const commandData: any = {
-        chatRoomId,
-        commandName: processedCommandName,
-      };
+      // 각 해시태그별로 개별 명령어 생성
+      const promises = hashtags.map(hashtag => {
+        const commandData: any = {
+          chatRoomId,
+          commandName: hashtag,
+        };
 
-      if (finalFileData) {
-        commandData.fileUrl = finalFileData.fileUrl;
-        commandData.fileName = finalFileData.fileName;
-        commandData.fileSize = finalFileData.fileSize;
-      }
+        if (finalFileData) {
+          commandData.fileUrl = finalFileData.fileUrl;
+          commandData.fileName = finalFileData.fileName;
+          commandData.fileSize = finalFileData.fileSize;
+        }
 
-      if (messageData) {
-        commandData.savedText = messageData.content;
-        commandData.originalSenderId = messageData.senderId;
-        commandData.originalTimestamp = messageData.timestamp;
-      }
+        if (messageData) {
+          commandData.savedText = messageData.content;
+          commandData.originalSenderId = messageData.senderId;
+          commandData.originalTimestamp = new Date(messageData.timestamp);
+        }
 
-      const response = await apiRequest("/api/commands", "POST", commandData);
-      return { ...response.json(), processedCommandName };
+        return apiRequest("/api/commands", "POST", commandData).then(res => res.json());
+      });
+
+      return Promise.all(promises);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/commands"] });
       toast({
-        title: "명령어 등록 완료",
-        description: `#${commandName.toLowerCase()} 명령어가 등록되었습니다.`,
+        title: "해시태그 등록 완료",
+        description: `${hashtags.length}개의 해시태그가 등록되었습니다: ${hashtags.map(tag => `#${tag}`).join(', ')}`,
       });
       handleClose();
     },
@@ -114,8 +141,8 @@ export default function CommandModal({
       if (error.message.includes("already exists")) {
         toast({
           variant: "destructive",
-          title: "중복된 명령어",
-          description: "이미 존재하는 명령어입니다. 다른 이름을 사용해주세요.",
+          title: "중복된 해시태그",
+          description: "이미 존재하는 해시태그입니다. 다른 태그를 사용해주세요.",
         });
       } else {
         toast({
@@ -128,7 +155,8 @@ export default function CommandModal({
   });
 
   const handleClose = () => {
-    setCommandName("");
+    setHashtags([]);
+    setHashtagInput("");
     onClose();
   };
 
@@ -201,28 +229,51 @@ export default function CommandModal({
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="commandName" className="text-sm font-medium text-gray-700">
-              명령어 입력
+            <Label htmlFor="hashtags" className="text-sm font-medium text-gray-700">
+              해시태그 입력
             </Label>
+            
+            {/* 해시태그 목록 표시 */}
+            {hashtags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2 p-2 bg-gray-50 rounded-lg">
+                {hashtags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
+                  >
+                    #{tag}
+                    <button
+                      type="button"
+                      onClick={() => removeHashtag(tag)}
+                      className="ml-1 text-purple-600 hover:text-purple-800"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            
             <div className="relative mt-1">
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-600 font-medium">
                 #
               </span>
               <Input
-                id="commandName"
+                id="hashtags"
                 type="text"
-                placeholder="runpython"
-                value={commandName}
-                onChange={(e) => setCommandName(e.target.value)}
+                placeholder="여러 해시태그를 입력하세요 (엔터, 스페이스, 쉼표로 구분)"
+                value={hashtagInput}
+                onChange={(e) => setHashtagInput(e.target.value)}
+                onKeyDown={handleHashtagKeyPress}
                 className="pl-8"
                 disabled={createCommandMutation.isPending}
               />
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              채팅에서 #명령어로 {fileData ? "파일" : "메시지"}을 다시 불러올 수 있습니다
+              채팅에서 #해시태그로 {fileData ? "파일" : "메시지"}을 다시 불러올 수 있습니다
             </p>
             <p className="text-xs text-amber-600 mt-1">
-              💡 한글, 영문, 숫자, 언더바(_), 점(.)만 사용 가능 (띄어쓰기 X, 영문은 자동으로 소문자 변환)
+              💡 엔터, 스페이스, 쉼표로 여러 해시태그를 추가할 수 있습니다. 한글, 영문, 숫자, 언더바(_), 점(.)만 사용 가능
             </p>
           </div>
           
