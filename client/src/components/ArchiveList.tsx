@@ -304,9 +304,11 @@ export default function ArchiveList() {
           
           {searchTerm && (
             <div className="text-xs text-gray-500 mt-1">
-              {searchTerm.startsWith('#') ? 
-                `해시태그 "${searchTerm}" 검색 중...` : 
-                `"${searchTerm}" 검색 중... (해시태그 검색: #${searchTerm})`
+              {searchTerm.includes(' ') || searchTerm.includes(',') ? 
+                `다중 해시태그 검색: "${searchTerm}" (모든 태그가 포함된 자료 검색)` :
+                searchTerm.startsWith('#') ? 
+                  `해시태그 "${searchTerm}" 검색 중...` : 
+                  `"${searchTerm}" 검색 중... (해시태그 검색: #${searchTerm})`
               }
             </div>
           )}
