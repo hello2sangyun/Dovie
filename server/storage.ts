@@ -48,6 +48,7 @@ export interface IStorage {
   // Command operations
   getCommands(userId: number, chatRoomId?: number): Promise<(Command & { originalSender?: User })[]>;
   createCommand(command: InsertCommand): Promise<Command>;
+  saveCommand(command: InsertCommand): Promise<Command>;
   deleteCommand(commandId: number, userId: number): Promise<void>;
   getCommandByName(userId: number, chatRoomId: number, commandName: string): Promise<Command | undefined>;
   searchCommands(userId: number, searchTerm: string): Promise<(Command & { originalSender?: User })[]>;
@@ -518,6 +519,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCommand(command: InsertCommand): Promise<Command> {
+    // 저장된 텍스트가 있으면 암호화
+    const encryptedCommand = {
+      ...command,
+      savedText: command.savedText ? encryptText(command.savedText) : command.savedText
+    };
+    
+    const [newCommand] = await db
+      .insert(commands)
+      .values(encryptedCommand)
+      .returning();
+    
+    // 반환할 때는 복호화해서 반환
+    return {
+      ...newCommand,
+      savedText: newCommand.savedText ? decryptText(newCommand.savedText) : newCommand.savedText
+    };
+  }
+
+  async saveCommand(command: InsertCommand): Promise<Command> {
     // 저장된 텍스트가 있으면 암호화
     const encryptedCommand = {
       ...command,
@@ -1167,6 +1187,26 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
     
     return contact.length > 0;
+  }
+
+  // Command 저장 메서드 추가 (해시태그 자동 추출용)
+  async saveCommand(command: InsertCommand): Promise<Command> {
+    // 저장된 텍스트가 있으면 암호화
+    const encryptedCommand = {
+      ...command,
+      savedText: command.savedText ? encryptText(command.savedText) : command.savedText
+    };
+    
+    const [newCommand] = await db
+      .insert(commands)
+      .values(encryptedCommand)
+      .returning();
+    
+    // 반환할 때는 복호화해서 반환
+    return {
+      ...newCommand,
+      savedText: newCommand.savedText ? decryptText(newCommand.savedText) : newCommand.savedText
+    };
   }
 }
 

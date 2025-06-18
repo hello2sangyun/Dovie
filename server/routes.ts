@@ -974,11 +974,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const messageWithSender = await storage.getMessageById(message.id);
 
       // Extract hashtags from message content and save as commands
-      if (messageData.content && messageData.messageType === 'text') {
+      if (messageData.content && typeof messageData.content === 'string') {
         const hashtagRegex = /#[\w가-힣]+/g;
         const hashtags = messageData.content.match(hashtagRegex);
         
         if (hashtags && hashtags.length > 0) {
+          console.log(`Found hashtags in message: ${hashtags.join(', ')}`);
           for (const hashtag of hashtags) {
             // Create a command for each hashtag
             const commandName = hashtag.slice(1); // Remove the # symbol
@@ -992,6 +993,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 originalSenderId: Number(userId),
                 originalTimestamp: new Date()
               });
+              console.log(`Successfully saved hashtag command: ${commandName}`);
             } catch (error) {
               console.log(`Failed to save hashtag command for ${hashtag}:`, error);
             }
