@@ -73,6 +73,19 @@ export default function MainApp() {
     }
   }, []);
 
+  // Listen for accessibility settings modal open event
+  useEffect(() => {
+    const handleOpenAccessibilitySettings = () => {
+      setModals({ ...modals, accessibility: true });
+    };
+
+    window.addEventListener('openAccessibilitySettings', handleOpenAccessibilitySettings);
+    
+    return () => {
+      window.removeEventListener('openAccessibilitySettings', handleOpenAccessibilitySettings);
+    };
+  }, [modals]);
+
   // Get contacts to find contact user data
   const { data: contactsData } = useQuery({
     queryKey: ["/api/contacts"],
@@ -230,7 +243,7 @@ export default function MainApp() {
   };
 
   const closeModals = () => {
-    setModals({ addContact: false, command: false, createGroup: false, profilePhoto: false });
+    setModals({ addContact: false, command: false, createGroup: false, profilePhoto: false, accessibility: false });
     setCommandModalData(null);
     setMessageDataForCommand(null);
   };
