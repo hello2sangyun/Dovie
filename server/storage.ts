@@ -964,15 +964,8 @@ export class DatabaseStorage implements IStorage {
     // Business card functionality removed
     throw new Error('Business card functionality disabled');
   }
-        .insert(businessCards)
-        .values({ ...cardData, userId })
-        .returning();
-      return newCard;
-    }
-  }
 
-  // Business profile operations
-  async getBusinessProfile(userId: number): Promise<BusinessProfile | undefined> {
+  async getBusinessProfile(userId: number): Promise<any> {
     const [profile] = await db.select().from(businessProfiles).where(eq(businessProfiles.userId, userId));
     return profile || undefined;
   }
@@ -996,38 +989,21 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Business card sharing operations
-  async createBusinessCardShare(userId: number): Promise<BusinessCardShare> {
-    // Generate unique share token
-    const shareToken = Array.from({ length: 32 }, () => 
-      Math.random().toString(36).charAt(2)
-    ).join('');
-
-    const [share] = await db
-      .insert(businessCardShares)
-      .values({
-        userId,
-        shareToken,
-        isActive: true,
-        allowDownload: true
-      })
-      .returning();
-    
-    return share;
+  // Business card sharing operations removed - digital business card functionality disabled
+  async createBusinessCardShare(userId: number): Promise<any> {
+    // Business card functionality removed
+    throw new Error('Business card functionality disabled');
   }
 
-  async getBusinessCardShare(shareToken: string): Promise<BusinessCardShare | undefined> {
-    const [share] = await db
-      .select()
-      .from(businessCardShares)
-      .where(and(
-        eq(businessCardShares.shareToken, shareToken),
-        eq(businessCardShares.isActive, true)
-      ));
-    
-    if (share) {
-      // Increment view count
-      await db
+  async getBusinessCardShare(shareToken: string): Promise<any> {
+    // Business card functionality removed
+    return undefined;
+  }
+
+  async getBusinessCardShareInfo(userId: number): Promise<any> {
+    // Business card functionality removed
+    return undefined;
+  }
         .update(businessCardShares)
         .set({ viewCount: share.viewCount + 1 })
         .where(eq(businessCardShares.id, share.id));
