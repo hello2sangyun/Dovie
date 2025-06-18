@@ -274,6 +274,12 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Implemented automatic popup closing after successful friend addition
   - Enhanced friend addition workflow with 100ms delay before closing for better UX
   - Voice messages now have cleaner, more compact visual presentation
+- June 18, 2025: Added comprehensive voice message privacy controls to chat menu:
+  - Integrated voice playback permission toggle in chat room dropdown menu (three dots icon)
+  - Added auto-play voice message setting with earphone detection in chat settings
+  - Created real-time toggle switches with immediate API updates and user feedback
+  - Voice settings now accessible directly from any chat room for quick adjustments
+  - Enhanced user experience with clear descriptions and status indicators for each setting
 
 ## User Preferences
 

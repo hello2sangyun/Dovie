@@ -3952,8 +3952,118 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               
               {/* Chat Settings Dropdown */}
               {showChatSettings && (
-                <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 w-48">
+                <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 w-56">
                   <div className="py-1">
+                    {/* 음성 재생 허용 설정 */}
+                    <div className="px-4 py-2 border-b border-gray-100">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-xl">🔊</span>
+                          <span className="text-sm text-gray-700">음성 재생 허용</span>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={user?.allowVoicePlayback !== false}
+                            onChange={async (e) => {
+                              try {
+                                const response = await fetch('/api/auth/voice-settings', {
+                                  method: 'PATCH',
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                    'x-user-id': user!.id.toString()
+                                  },
+                                  body: JSON.stringify({
+                                    allowVoicePlayback: e.target.checked
+                                  })
+                                });
+                                
+                                if (response.ok) {
+                                  queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+                                  toast({
+                                    title: e.target.checked ? "음성 재생 허용됨" : "음성 재생 차단됨",
+                                    description: e.target.checked 
+                                      ? "다른 사용자가 내 음성 메시지를 들을 수 있습니다"
+                                      : "다른 사용자가 내 음성 메시지를 들을 수 없습니다"
+                                  });
+                                }
+                              } catch (error) {
+                                toast({
+                                  variant: "destructive",
+                                  title: "설정 변경 실패",
+                                  description: "다시 시도해주세요."
+                                });
+                              }
+                            }}
+                            className="sr-only"
+                          />
+                          <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-purple-600 peer-focus:ring-2 peer-focus:ring-purple-300 transition-colors">
+                            <div className="w-4 h-4 bg-white rounded-full shadow transform peer-checked:translate-x-4 transition-transform absolute top-0.5 left-0.5"></div>
+                          </div>
+                        </label>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {user?.allowVoicePlayback !== false 
+                          ? "다른 사용자가 내 음성을 재생할 수 있습니다" 
+                          : "내 음성은 텍스트로만 표시됩니다"}
+                      </p>
+                    </div>
+
+                    {/* 자동 재생 설정 */}
+                    <div className="px-4 py-2 border-b border-gray-100">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-xl">🎧</span>
+                          <span className="text-sm text-gray-700">음성 자동 재생</span>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={user?.autoPlayVoiceMessages === true}
+                            onChange={async (e) => {
+                              try {
+                                const response = await fetch('/api/auth/voice-settings', {
+                                  method: 'PATCH',
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                    'x-user-id': user!.id.toString()
+                                  },
+                                  body: JSON.stringify({
+                                    autoPlayVoiceMessages: e.target.checked
+                                  })
+                                });
+                                
+                                if (response.ok) {
+                                  queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+                                  toast({
+                                    title: e.target.checked ? "자동 재생 활성화" : "자동 재생 비활성화",
+                                    description: e.target.checked 
+                                      ? "이어폰 착용 시 음성 메시지가 자동 재생됩니다"
+                                      : "음성 메시지를 수동으로 재생해야 합니다"
+                                  });
+                                }
+                              } catch (error) {
+                                toast({
+                                  variant: "destructive",
+                                  title: "설정 변경 실패",
+                                  description: "다시 시도해주세요."
+                                });
+                              }
+                            }}
+                            className="sr-only"
+                          />
+                          <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-purple-600 peer-focus:ring-2 peer-focus:ring-purple-300 transition-colors">
+                            <div className="w-4 h-4 bg-white rounded-full shadow transform peer-checked:translate-x-4 transition-transform absolute top-0.5 left-0.5"></div>
+                          </div>
+                        </label>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {user?.autoPlayVoiceMessages 
+                          ? "이어폰 연결 시 새 음성 메시지 자동 재생" 
+                          : "음성 메시지를 수동으로 재생"}
+                      </p>
+                    </div>
+
                     <button
                       onClick={() => {
                         setShowChatSettings(false);
