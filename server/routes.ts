@@ -973,6 +973,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const message = await storage.createMessage(messageData);
       const messageWithSender = await storage.getMessageById(message.id);
 
+      // Extract hashtags from message content and save as commands
+      if (messageData.content && messageData.messageType === 'text') {
+        const hashtagRegex = /#[\w가-힣]+/g;
+        const hashtags = messageData.content.match(hashtagRegex);
+        
+        if (hashtags && hashtags.length > 0) {
+          for (const hashtag of hashtags) {
+            // Create a command for each hashtag
+            const commandName = hashtag.slice(1); // Remove the # symbol
+            try {
+              await storage.saveCommand({
+                userId: Number(userId),
+                chatRoomId: Number(req.params.chatRoomId),
+                commandName: commandName,
+                messageId: message.id,
+                savedText: messageData.content,
+                originalSenderId: Number(userId),
+                originalTimestamp: new Date()
+              });
+            } catch (error) {
+              console.log(`Failed to save hashtag command for ${hashtag}:`, error);
+            }
+          }
+        }
+      }
+
       // Handle mentions if present
       if (messageData.mentionedUserIds || messageData.mentionAll) {
         // Create mention notifications
