@@ -15,6 +15,55 @@ import { Plus, Search, Pin, Users, X, Trash2, LogOut, MoreVertical, Mic } from "
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 import YoutubeSelectionModal from "./YoutubeSelectionModal";
+// Unified smart suggestion system - copied inline to avoid import issues
+interface SmartSuggestion {
+  type: string;
+  text: string;
+  result?: string;
+  icon: string;
+  category: string;
+  keyword?: string;
+  confidence?: number;
+}
+
+const analyzeTextForSmartSuggestions = (text: string): SmartSuggestion[] => {
+  if (!text || text.trim().length < 2) {
+    return [];
+  }
+
+  const suggestions: SmartSuggestion[] = [];
+
+  // YouTube 감지
+  if (/유튜브|youtube|영상|비디오|뮤직비디오|mv|검색.*영상|영상.*검색|봐봐|보여.*영상/i.test(text)) {
+    const keyword = text
+      .replace(/유튜브|youtube|영상|비디오|뮤직비디오|mv|검색|찾아|보여|봐봐|해줘|하자|보자/gi, '')
+      .trim();
+    
+    suggestions.push({
+      type: 'youtube',
+      text: `🎥 YouTube에서 "${keyword}" 검색하기`,
+      result: `YouTube 영상을 검색합니다: ${keyword}`,
+      icon: '🎥',
+      category: 'YouTube 검색',
+      keyword: keyword || '검색',
+      confidence: 0.9
+    });
+  }
+
+  // 위치 공유 감지
+  if (/어디|위치|장소|주소|어디야|어디에|어디로|어디서|여기|거기|오세요|와|갈게|만나|위치공유|현재위치|gps/i.test(text)) {
+    suggestions.push({
+      type: 'location',
+      text: '📍 현재 위치 공유하기',
+      result: '현재 위치를 공유합니다',
+      icon: '📍',
+      category: '위치 공유',
+      confidence: 0.85
+    });
+  }
+
+  return suggestions;
+};
 
 interface ChatsListProps {
   onSelectChat: (chatId: number) => void;
@@ -400,10 +449,16 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
       // 통합된 스마트 추천 사용 (서버에서 이미 분석 완료)
       console.log('🎙️ Voice transcription with integrated suggestions:', result.smartSuggestions?.length || 0);
       console.log('🎙️ Full smartSuggestions data:', result.smartSuggestions);
-      const voiceSuggestions = result.smartSuggestions || [];
+      
+      // 서버에서 받은 스마트 추천과 클라이언트 분석 결합
+      const serverSuggestions = result.smartSuggestions || [];
+      const clientSuggestions = analyzeTextForSmartSuggestions(result.transcription || '');
+      
+      // 서버 추천이 없으면 클라이언트 분석 사용
+      const voiceSuggestions = serverSuggestions.length > 0 ? serverSuggestions : clientSuggestions;
       
       // 스마트 추천 상세 로깅
-      voiceSuggestions.forEach((suggestion: any, index: number) => {
+      voiceSuggestions.forEach((suggestion: SmartSuggestion, index: number) => {
         console.log(`🎯 Suggestion ${index}:`, suggestion);
       });
       

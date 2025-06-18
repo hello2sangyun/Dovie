@@ -29,6 +29,133 @@ import { LinkPreview } from "./LinkPreview";
 import { MessageLikeButton } from "./MessageLikeButton";
 import { LocationShareModal } from "./LocationShareModal";
 import YoutubeSelectionModal from "./YoutubeSelectionModal";
+// Using inline smart suggestion analysis to avoid import issues
+interface SmartSuggestion {
+  type: string;
+  text: string;
+  result?: string;
+  icon: string;
+  category: string;
+  keyword?: string;
+  confidence?: number;
+  action?: () => void;
+}
+
+const analyzeTextForSmartSuggestions = (text: string): SmartSuggestion[] => {
+  if (!text || text.trim().length < 2) {
+    return [];
+  }
+
+  const suggestions: SmartSuggestion[] = [];
+
+  // YouTube 감지
+  if (/유튜브|youtube|영상|비디오|뮤직비디오|mv|검색.*영상|영상.*검색|봐봐|보여.*영상/i.test(text)) {
+    const keyword = text
+      .replace(/유튜브|youtube|영상|비디오|뮤직비디오|mv|검색|찾아|보여|봐봐|해줘|하자|보자/gi, '')
+      .trim();
+    
+    suggestions.push({
+      type: 'youtube',
+      text: `🎥 YouTube에서 "${keyword}" 검색하기`,
+      result: `YouTube 영상을 검색합니다: ${keyword}`,
+      icon: '🎥',
+      category: 'YouTube 검색',
+      keyword: keyword || '검색',
+      confidence: 0.9
+    });
+  }
+
+  // 위치 공유 감지
+  if (/어디|위치|장소|주소|어디야|어디에|어디로|어디서|여기|거기|오세요|와|갈게|만나|위치공유|현재위치|gps/i.test(text)) {
+    suggestions.push({
+      type: 'location',
+      text: '📍 현재 위치 공유하기',
+      result: '현재 위치를 공유합니다',
+      icon: '📍',
+      category: '위치 공유',
+      confidence: 0.85
+    });
+  }
+
+  // 번역 감지
+  if (/번역|translate|영어로|한국어로|일본어로|중국어로|불어로|독어로|스페인어로/i.test(text)) {
+    suggestions.push({
+      type: 'translation',
+      text: '🌐 텍스트 번역하기',
+      result: '번역을 진행합니다',
+      icon: '🌐',
+      category: '번역',
+      confidence: 0.9
+    });
+  }
+
+  // 검색 감지
+  if (/검색|찾아|알아봐|search|google|네이버|다음/i.test(text)) {
+    const searchKeyword = text
+      .replace(/검색|찾아|알아봐|search|google|네이버|다음|해줘|하자/gi, '')
+      .trim();
+    
+    suggestions.push({
+      type: 'search',
+      text: '🔍 웹 검색하기',
+      result: `검색을 진행합니다: ${searchKeyword}`,
+      icon: '🔍',
+      category: '검색',
+      keyword: searchKeyword,
+      confidence: 0.8
+    });
+  }
+
+  // 계산 감지
+  if (/계산|더하기|빼기|곱하기|나누기|몇.*이야|얼마야|\+|\-|\*|\/|\=|[0-9]+.*[+\-*/].*[0-9]/i.test(text)) {
+    suggestions.push({
+      type: 'calculation',
+      text: '🔢 계산하기',
+      result: '계산을 진행합니다',
+      icon: '🔢',
+      category: '계산',
+      confidence: 0.85
+    });
+  }
+
+  // 환율 감지
+  if (/환율|달러|엔|유로|원|currency|exchange|usd|jpy|eur|krw/i.test(text)) {
+    suggestions.push({
+      type: 'currency',
+      text: '💱 환율 확인하기',
+      result: '환율 정보를 확인합니다',
+      icon: '💱',
+      category: '환율',
+      confidence: 0.8
+    });
+  }
+
+  // 뉴스 감지
+  if (/뉴스|news|기사|최신|오늘.*소식|헤드라인|속보/i.test(text)) {
+    suggestions.push({
+      type: 'news',
+      text: '📰 최신 뉴스 확인하기',
+      result: '최신 뉴스를 검색합니다',
+      icon: '📰',
+      category: '뉴스',
+      confidence: 0.75
+    });
+  }
+
+  // 요약 감지
+  if (/요약|정리|summary|간단히|핵심만|중요한.*것만/i.test(text)) {
+    suggestions.push({
+      type: 'summary',
+      text: '📝 텍스트 요약하기',
+      result: '요약을 진행합니다',
+      icon: '📝',
+      category: '요약',
+      confidence: 0.8
+    });
+  }
+
+  return suggestions;
+};
 
 import TypingIndicator, { useTypingIndicator } from "./TypingIndicator";
 import { 
@@ -3092,171 +3219,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     setSmartSuggestions([]);
   };
 
-  // 스마트 추천 분석 함수 (텍스트와 음성 메시지 공통)
-  const analyzeTextForSmartSuggestions = async (text: string) => {
-    if (text.trim().length < 2) {
-      return [];
-    }
-    
-    const allSuggestions = [];
-    
-    // 1. 환전 기능
-    const currencyDetection = detectCurrency(text);
-    if (currencyDetection && currencyDetection.amount >= 1) {
-      try {
-        const suggestions = await getExchangeRates(currencyDetection.currency, currencyDetection.amount);
-        allSuggestions.push(...suggestions);
-      } catch (error) {
-        console.error('환율 조회 중 오류:', error);
-      }
-    }
-    
-    // 2. 계산기
-    const calculationMatch = text.match(/[\d\+\-\*\/\(\)\.\s]+$/);
-    if (calculationMatch && calculationMatch[0].length > 3) {
-      const expression = calculationMatch[0].trim();
-      if (expression && /[\+\-\*\/]/.test(expression)) {
-        try {
-          const result = evaluateExpression(expression);
-          if (result !== null && !isNaN(result)) {
-            allSuggestions.push({
-              type: 'calculation',
-              text: `${expression} = ${formatNumber(result)}`,
-              result: `${expression} = ${formatNumber(result)}`,
-              icon: '🧮',
-              category: '계산'
-            });
-          }
-        } catch (e) {
-          // 계산 오류 무시
-        }
-      }
-    }
-    
-    // 3. 번역 필요성 감지 (상대방과 다른 언어 사용 시에만)
-    if (messages?.data?.messages) {
-      const translationCheck = shouldSuggestTranslation(text, messages.data.messages);
-      if (translationCheck.shouldSuggest) {
-        allSuggestions.push({
-          type: 'translation' as const,
-          text: `${translationCheck.languageName}로 번역`,
-          result: text,
-          icon: '🌐',
-          category: '번역',
-          action: () => handleChatTranslation(translationCheck.targetLanguage!)
-        });
-      }
-    }
-    
-    // 4. 유튜브 감지
-    const youtubeDetection = detectYoutube(text);
-    if (youtubeDetection) {
-      allSuggestions.push(youtubeDetection);
-    }
-    
-    // 5. 뉴스 감지
-    const newsDetection = detectNews(text);
-    if (newsDetection) {
-      allSuggestions.push(newsDetection);
-    }
-    
-    // 6. 단위 변환 감지
-    const unitDetection = detectUnit(text);
-    if (unitDetection) {
-      allSuggestions.push(unitDetection);
-    }
-    
-    // 7. 검색 감지
-    const searchDetection = detectSearch(text);
-    if (searchDetection) {
-      allSuggestions.push(searchDetection);
-    }
-    
-    // 8. 주소 감지
-    const addressDetection = detectAddress(text);
-    if (addressDetection) {
-      allSuggestions.push(addressDetection);
-    }
-    
-    // 9. 타이머 감지
-    const timerDetection = detectTimer(text);
-    if (timerDetection) {
-      allSuggestions.push(timerDetection);
-    }
-
-    // 10. 지연 답변 감지
-    const delayedResponseDetection = detectDelayedResponse(text);
-    if (delayedResponseDetection) {
-      allSuggestions.push(delayedResponseDetection);
-    }
-
-    // 11. 질문 감지
-    const questionDetection = detectQuestion(text);
-    if (questionDetection) {
-      allSuggestions.push(questionDetection);
-    }
-
-    // 12. 의사결정 도우미 감지
-    const decisionDetection = detectDecision(text);
-    if (decisionDetection) {
-      allSuggestions.push(decisionDetection);
-    }
-
-    // 13. 카테고리 분류 감지
-    const categoryDetection = detectCategory(text);
-    if (categoryDetection) {
-      allSuggestions.push(categoryDetection);
-    }
-
-    // 14. 주제별 정보 감지
-    const topicInfoDetection = detectTopicInfo(text);
-    if (topicInfoDetection) {
-      allSuggestions.push(topicInfoDetection);
-    }
-
-    // 15. 매너톤 감지
-    const mannertoneDetection = detectMannertone(text);
-    if (mannertoneDetection) {
-      allSuggestions.push(mannertoneDetection);
-    }
-
-    // 16. 파일 요청/공유 감지
-    const fileRequestDetection = detectFileRequest(text);
-    if (fileRequestDetection) {
-      allSuggestions.push(fileRequestDetection);
-    }
-
-    // 17. 욕설 감지
-    const profanityDetection = detectProfanity(text);
-    if (profanityDetection) {
-      allSuggestions.push(profanityDetection);
-    }
-
-    // 18. 비즈니스 톤 변환 감지
-    const businessToneDetection = detectBusinessTone(text);
-    if (businessToneDetection) {
-      allSuggestions.push(businessToneDetection);
-    }
-
-    // 19. 중복 질문 감지
-    const duplicateQuestionDetection = detectDuplicateQuestion(text);
-    if (duplicateQuestionDetection) {
-      allSuggestions.push(duplicateQuestionDetection);
-    }
-
-    // 20. 대화 연결 제안
-    const conversationContinuationDetection = detectConversationContinuation(text);
-    if (conversationContinuationDetection) {
-      allSuggestions.push(conversationContinuationDetection);
-    }
-
-    // 21. 기억 회상 기능
-    const memoryRecallDetection = detectMemoryRecall(text);
-    if (memoryRecallDetection) {
-      allSuggestions.push(memoryRecallDetection);
-    }
-    
-    return allSuggestions;
+  // 통합 스마트 추천 분석 함수
+  const analyzeTextForUnifiedSuggestions = (text: string): SmartSuggestion[] => {
+    return analyzeTextForSmartSuggestions(text);
   };
 
   const handleMessageChange = async (value: string) => {
