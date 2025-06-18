@@ -578,30 +578,61 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchCommands(userId: number, searchTerm: string): Promise<(Command & { originalSender?: User })[]> {
-    // Enhanced search to include hashtag patterns
-    const searchPattern = `%${searchTerm}%`;
-    const hashtagPattern = searchTerm.startsWith('#') ? searchPattern : `%#${searchTerm}%`;
+    // Support multiple hashtags separated by spaces or commas
+    const searchTerms = searchTerm.split(/[,\s]+/).filter(term => term.trim().length > 0);
     
-    const result = await db
-      .select()
-      .from(commands)
-      .leftJoin(users, eq(commands.originalSenderId, users.id))
-      .where(and(
-        eq(commands.userId, userId),
-        or(
-          like(commands.commandName, searchPattern),
-          like(commands.fileName, searchPattern),
-          like(commands.savedText, searchPattern),
-          // Search for hashtags in saved text
-          like(commands.savedText, hashtagPattern)
-        )
-      ))
-      .orderBy(desc(commands.createdAt));
+    if (searchTerms.length === 0) {
+      return [];
+    }
+    
+    if (searchTerms.length === 1) {
+      // Single search term (existing logic)
+      const term = searchTerms[0];
+      const searchPattern = `%${term}%`;
+      const hashtagPattern = term.startsWith('#') ? searchPattern : `%#${term}%`;
+      
+      const result = await db
+        .select()
+        .from(commands)
+        .leftJoin(users, eq(commands.originalSenderId, users.id))
+        .where(and(
+          eq(commands.userId, userId),
+          or(
+            like(commands.commandName, searchPattern),
+            like(commands.fileName, searchPattern),
+            like(commands.savedText, searchPattern),
+            // Search for hashtags in saved text
+            like(commands.savedText, hashtagPattern)
+          )
+        ))
+        .orderBy(desc(commands.createdAt));
 
-    return result.map(row => ({
-      ...row.commands,
-      originalSender: row.users || undefined
-    }));
+      return result.map(row => ({
+        ...row.commands,
+        originalSender: row.users || undefined
+      }));
+    } else {
+      // Multiple search terms - find commands that contain ALL hashtags
+      const hashtagConditions = searchTerms.map(term => {
+        const cleanTerm = term.startsWith('#') ? term.slice(1) : term;
+        return like(commands.savedText, `%#${cleanTerm}%`);
+      });
+      
+      const result = await db
+        .select()
+        .from(commands)
+        .leftJoin(users, eq(commands.originalSenderId, users.id))
+        .where(and(
+          eq(commands.userId, userId),
+          ...hashtagConditions // All hashtags must be present
+        ))
+        .orderBy(desc(commands.createdAt));
+
+      return result.map(row => ({
+        ...row.commands,
+        originalSender: row.users || undefined
+      }));
+    }
   }
 
   async markMessagesAsRead(userId: number, chatRoomId: number, lastMessageId: number): Promise<void> {

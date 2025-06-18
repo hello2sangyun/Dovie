@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { HashtagInput } from './HashtagInput';
 import { X, Upload, File, Image, Video, Music, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { queryClient } from '@/lib/queryClient';
 
 interface FileUploadModalProps {
   isOpen: boolean;
@@ -106,6 +107,10 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
     setIsUploading(true);
     try {
       await onUpload(selectedFiles, caption, hashtags);
+      
+      // 업로드 완료 후 commands 캐시를 무효화하여 즉시 검색 가능하게 함
+      await queryClient.invalidateQueries({ queryKey: ['/api/commands'] });
+      
       handleClose();
       toast({
         title: "업로드 완료",
