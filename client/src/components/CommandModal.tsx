@@ -58,6 +58,19 @@ export default function CommandModal({
   // 해시태그 추가 함수
   const addHashtag = (tag: string) => {
     const cleanTag = tag.trim().replace(/^#/, '').toLowerCase();
+    
+    // 유효성 검사
+    const validation = validateHashtag(cleanTag);
+    if (!validation.isValid) {
+      toast({
+        variant: "destructive",
+        title: "입력 오류",
+        description: validation.error,
+      });
+      return;
+    }
+    
+    // 중복 체크 및 추가
     if (cleanTag && !hashtags.includes(cleanTag)) {
       setHashtags([...hashtags, cleanTag]);
     }
@@ -160,20 +173,20 @@ export default function CommandModal({
     onClose();
   };
 
-  // 태그 유효성 검사 함수
-  const validateTagName = (tagName: string): { isValid: boolean; error?: string } => {
-    if (!tagName.trim()) {
-      return { isValid: false, error: "명령어를 입력해주세요." };
+  // 해시태그 유효성 검사 함수
+  const validateHashtag = (tag: string): { isValid: boolean; error?: string } => {
+    if (!tag.trim()) {
+      return { isValid: false, error: "해시태그를 입력해주세요." };
     }
 
     // 띄어쓰기 체크
-    if (tagName.includes(' ')) {
-      return { isValid: false, error: "태그에는 띄어쓰기를 사용할 수 없습니다." };
+    if (tag.includes(' ')) {
+      return { isValid: false, error: "해시태그에는 띄어쓰기를 사용할 수 없습니다." };
     }
 
     // 허용된 문자만 사용하는지 체크 (한글, 영문, 숫자, _, .)
     const validPattern = /^[가-힣a-zA-Z0-9_.]+$/;
-    if (!validPattern.test(tagName)) {
+    if (!validPattern.test(tag)) {
       return { isValid: false, error: "한글, 영문, 숫자, 언더바(_), 점(.)만 사용 가능합니다." };
     }
 
@@ -183,12 +196,17 @@ export default function CommandModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const validation = validateTagName(commandName);
-    if (!validation.isValid) {
+    // 입력 중인 해시태그가 있으면 추가
+    if (hashtagInput.trim()) {
+      addHashtag(hashtagInput);
+      setHashtagInput('');
+    }
+    
+    if (hashtags.length === 0 && !hashtagInput.trim()) {
       toast({
         variant: "destructive",
         title: "입력 오류",
-        description: validation.error,
+        description: "최소 하나의 해시태그를 입력해주세요.",
       });
       return;
     }
@@ -200,7 +218,7 @@ export default function CommandModal({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="w-full max-w-md">
         <DialogHeader>
-          <DialogTitle>명령어 등록</DialogTitle>
+          <DialogTitle>해시태그 저장</DialogTitle>
         </DialogHeader>
         
         {(fileData || messageData) && (
