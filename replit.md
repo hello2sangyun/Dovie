@@ -262,6 +262,12 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Added comprehensive logging for hashtag extraction debugging
   - Verified successful auto-extraction: #eee hashtag automatically saved as searchable command
   - Tag recall feature now works seamlessly with auto-generated hashtag commands
+- June 18, 2025: Enhanced hashtag search functionality with immediate access:
+  - Added React Query cache invalidation to FileUploadModal for instant search availability
+  - Implemented multi-hashtag search capability (e.g., "#테스트 #다중" finds content with both tags)
+  - Enhanced search logic to group commands by message ID and find content containing ALL specified hashtags
+  - Updated search UI with clear indicators for single vs multi-hashtag searches
+  - Verified complete workflow: file upload with hashtags → automatic command creation → immediate multi-hashtag search capability
 
 ## User Preferences
 
