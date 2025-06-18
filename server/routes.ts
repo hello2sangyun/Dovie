@@ -2353,24 +2353,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       fs.unlinkSync(req.file.path);
 
       if (result.success) {
-      console.log("📤 Sending transcribe response with smartSuggestions:", result.smartSuggestions?.length || 0);
-      console.log("📤 smartSuggestions data:", result.smartSuggestions);
-      
-      res.json({
-        success: true,
-        transcription: result.transcription,
-        duration: result.duration,
-        detectedLanguage: result.detectedLanguage,
-        confidence: result.confidence,
-        audioUrl: audioUrl,
-        smartSuggestions: result.smartSuggestions || []
-      });
-    } else {
-      res.status(500).json({
-        success: false,
-        message: result.error || "음성 변환에 실패했습니다."
-      });
-    }
+        console.log("📤 Sending transcribe response with smartSuggestions:", result.smartSuggestions?.length || 0);
+        console.log("📤 smartSuggestions data:", result.smartSuggestions);
+        
+        res.json({
+          success: true,
+          transcription: result.transcription,
+          duration: result.duration,
+          detectedLanguage: result.detectedLanguage,
+          confidence: result.confidence,
+          audioUrl: audioUrl,
+          smartSuggestions: result.smartSuggestions || []
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          message: result.error || "음성 변환에 실패했습니다."
+        });
+      }
     } catch (error) {
       console.error("Transcription error:", error);
       // Clean up temporary file if it exists
