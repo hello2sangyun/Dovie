@@ -1001,6 +1001,54 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   });
 
   const messages = messagesData?.messages || [];
+
+  // 채팅방 진입 시 읽지 않은 메시지부터 표시하는 기능
+  useEffect(() => {
+    if (messages && messages.length > 0 && chatScrollRef.current && !isLoading) {
+      // 약간의 지연을 두어 DOM이 완전히 렌더링된 후 스크롤
+      setTimeout(() => {
+        if (firstUnreadMessageId && messageRefs.current[firstUnreadMessageId]) {
+          // 읽지 않은 메시지가 있으면 해당 위치로 스크롤
+          messageRefs.current[firstUnreadMessageId]?.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+          });
+        } else {
+          // 모든 메시지를 읽었거나 읽지 않은 메시지가 없으면 최신 메시지로 스크롤
+          if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+          }
+        }
+      }, 100);
+    }
+  }, [chatRoomId, messages.length, firstUnreadMessageId, isLoading]);
+
+  // 읽지 않은 메시지 ID 계산
+  useEffect(() => {
+    if (messages && messages.length > 0 && user?.id) {
+      // 마지막으로 읽은 시간을 기준으로 읽지 않은 메시지 찾기
+      // 현재는 간단하게 가장 오래된 메시지를 기준으로 설정
+      // 실제로는 사용자의 마지막 읽기 시간을 서버에서 가져와야 함
+      const unreadMessages = messages.filter((msg: any) => {
+        // 자신의 메시지는 제외
+        if (msg.senderId === user.id) return false;
+        
+        // 현재는 모든 상대방 메시지를 읽지 않은 것으로 간주하는 대신
+        // 실제로는 lastReadAt 시간을 비교해야 함
+        const messageTime = new Date(msg.createdAt).getTime();
+        const oneHourAgo = Date.now() - (60 * 60 * 1000); // 1시간 전
+        
+        // 1시간 이내의 상대방 메시지를 읽지 않은 것으로 간주
+        return messageTime > oneHourAgo;
+      });
+      
+      if (unreadMessages.length > 0) {
+        setFirstUnreadMessageId(unreadMessages[0].id);
+      } else {
+        setFirstUnreadMessageId(null);
+      }
+    }
+  }, [messages, user?.id]);
   const commands = commandsData?.commands || [];
   const contacts = contactsData?.contacts || [];
 
@@ -3934,7 +3982,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       {/* Chat Messages */}
       <div 
         ref={chatScrollRef}
-        className="flex-1 overflow-y-auto px-4 py-2 space-y-3 min-h-0 overscroll-behavior-y-contain pb-16 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 relative"
+        className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-2 space-y-3 min-h-0 overscroll-behavior-y-contain overscroll-behavior-x-none pb-16 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 relative w-full"
+        style={{ wordBreak: 'break-word' }}
       >
         {/* Security Notice - WhatsApp Style */}
         <div className="flex justify-center mb-6 px-4">
@@ -4047,7 +4096,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   <div className={cn(
                     "flex flex-col",
                     msg.replyToMessageId ? "max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl" : "max-w-xs sm:max-w-sm md:max-w-md lg:max-w-xl",
-                    isMe ? "items-end" : "items-start"
+                    isMe ? "items-end" : "items-start",
+                    "min-w-0 break-words"
                   )}>
                     {!isMe && (
                       <div className="flex items-center space-x-2 mb-1">
