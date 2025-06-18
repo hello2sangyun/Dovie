@@ -18,6 +18,8 @@ import { BannerNotificationContainer } from "@/components/MobileBannerNotificati
 
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
+import AccessibilitySettingsModal from "@/components/AccessibilitySettingsModal";
+import { useAccessibility } from "@/contexts/AccessibilityContext";
 
 import BlockedContactsPage from "@/components/BlockedContactsPage";
 import SimpleSpacePage from "@/pages/SimpleSpacePage";
@@ -32,6 +34,7 @@ export default function MainApp() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { settings: accessibilitySettings, updateSettings: updateAccessibilitySettings } = useAccessibility();
   const [activeTab, setActiveTab] = useState("chats");
   const [activeMobileTab, setActiveMobileTab] = useState("chats");
   const [showSettings, setShowSettings] = useState(false);
@@ -43,6 +46,7 @@ export default function MainApp() {
     command: false,
     createGroup: false,
     profilePhoto: false,
+    accessibility: false,
   });
   const [commandModalData, setCommandModalData] = useState<any>(null);
   const [messageDataForCommand, setMessageDataForCommand] = useState<any>(null);
@@ -1046,6 +1050,13 @@ export default function MainApp() {
       <ProfilePhotoModal 
         isOpen={modals.profilePhoto}
         onClose={closeModals}
+      />
+
+      <AccessibilitySettingsModal
+        isOpen={modals.accessibility}
+        onClose={closeModals}
+        settings={accessibilitySettings}
+        onSettingsChange={updateAccessibilitySettings}
       />
 
       {/* Mobile Banner Notifications - replaces bottom popup notifications */}
