@@ -1710,6 +1710,29 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     });
   }
 
+  // 이어폰 감지 및 자동 재생 함수
+  const checkEarphonesAndAutoPlay = async () => {
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const audioOutputs = devices.filter(device => device.kind === 'audiooutput');
+        
+        // 이어폰/헤드폰 감지
+        const hasEarphones = audioOutputs.some(device => 
+          device.label.toLowerCase().includes('headphone') ||
+          device.label.toLowerCase().includes('earphone') ||
+          device.label.toLowerCase().includes('bluetooth') ||
+          (device.deviceId !== 'default' && device.deviceId !== 'communications')
+        );
+        
+        return hasEarphones;
+      }
+    } catch (error) {
+      console.log('Earphone detection failed:', error);
+    }
+    return false;
+  };
+
   // 음성 메시지 재생/일시정지 함수
   const handleVoicePlayback = async (messageId: number, audioUrl?: string, voiceDuration?: number, senderId?: number) => {
     if (playingAudio === messageId) {
@@ -1728,7 +1751,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         if (messageSenderId && messageSenderId !== user?.id) {
           // 발신자의 음성 재생 허용 설정 확인
           const senderInfo = message?.sender;
-          if (senderInfo && !senderInfo.allowVoicePlayback) {
+          if (senderInfo && senderInfo.allowVoicePlayback === false) {
             toast({
               variant: "destructive",
               title: "재생 제한",
@@ -1788,7 +1811,29 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         });
       }
     }
-  };;
+  };
+
+  // 새 음성 메시지 자동 재생 체크 (이어폰 착용 시)
+  useEffect(() => {
+    if (user?.autoPlayVoiceMessages && messages && messages.length > 0) {
+      const latestMessage = messages[messages.length - 1];
+      
+      // 새로운 음성 메시지이고 다른 사용자가 보낸 것인 경우
+      if (latestMessage.messageType === 'voice' && 
+          latestMessage.senderId !== user.id && 
+          latestMessage.sender?.allowVoicePlayback !== false) {
+        
+        // 이어폰 감지 후 자동 재생
+        checkEarphonesAndAutoPlay().then(hasEarphones => {
+          if (hasEarphones && latestMessage.fileUrl) {
+            setTimeout(() => {
+              handleVoicePlayback(latestMessage.id, latestMessage.fileUrl, latestMessage.voiceDuration, latestMessage.senderId);
+            }, 500); // 500ms 지연 후 자동 재생
+          }
+        });
+      }
+    }
+  }, [messages, user?.autoPlayVoiceMessages]);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -4337,25 +4382,25 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                               )}
                             </div>
                             
-                            {/* 컴팩트한 오디오 파형 시각화 */}
-                            <div className="flex items-center space-x-0.5 h-4 mb-2">
+                            {/* 컴팩트한 정적 오디오 파형 */}
+                            <div className="flex items-center space-x-0.5 h-3 mb-2">
                               {(() => {
-                                // 간단한 정적 파형 (15개 막대)
-                                const staticHeights = [0.3, 0.7, 0.5, 0.9, 0.4, 0.8, 0.6, 1.0, 0.5, 0.7, 0.4, 0.6, 0.8, 0.3, 0.5];
+                                // 정적 파형 (15개 막대, 더 컴팩트)
+                                const staticHeights = [0.3, 0.6, 0.4, 0.8, 0.3, 0.7, 0.5, 0.9, 0.4, 0.6, 0.3, 0.5, 0.7, 0.2, 0.4];
                                 
                                 return staticHeights.map((height, i) => (
                                   <div
                                     key={i}
                                     className={cn(
-                                      "rounded-full flex-shrink-0 opacity-70",
+                                      "rounded-full flex-shrink-0 opacity-60",
                                       isMe
-                                        ? "bg-white/50"
-                                        : "bg-purple-300"
+                                        ? "bg-white/40"
+                                        : "bg-purple-200"
                                     )}
                                     style={{
                                       width: '1.5px',
-                                      height: `${height * 12}px`,
-                                      minHeight: '2px'
+                                      height: `${height * 8}px`,
+                                      minHeight: '1.5px'
                                     }}
                                   />
                                 ));
