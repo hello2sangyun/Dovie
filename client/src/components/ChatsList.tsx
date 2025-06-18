@@ -918,8 +918,8 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
           setYoutubeSearchQuery("");
           setRecordingChatRoom(null);
         }}
-        onSelect={handleYoutubeVideoSelect}
-        initialQuery={youtubeSearchQuery}
+        onVideoSelect={handleYoutubeVideoSelect}
+        initialKeyword={youtubeSearchQuery}
       />
     </div>
   );
