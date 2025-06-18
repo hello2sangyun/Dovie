@@ -303,6 +303,12 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Enhanced detection patterns to extract search queries from voice messages like "지드래곤 유튜브 영상 봐봐"
   - Modified voice message YouTube suggestions to preserve original voice message with transcribed text
   - When using YouTube smart suggestion, both the voice message bubble and video preview are sent as separate messages
+- June 18, 2025: Integrated all smart recommendation features into quick voice messages:
+  - Added comprehensive smart suggestion processing to ChatsList component for long-press voice messages
+  - Quick voice messages now automatically detect and process YouTube, location, translation, search, news, calculation, and currency requests
+  - Voice transcription triggers automatic smart recommendations after message is sent
+  - Location sharing, YouTube video embedding, and other AI features work seamlessly from contact list long-press
+  - Complete feature parity between regular chat voice messages and quick voice messages from contact list
 
 ## User Preferences
 

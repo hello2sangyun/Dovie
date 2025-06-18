@@ -179,6 +179,226 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     }
   };
 
+  // 스마트 추천 처리 함수
+  const processSmartSuggestions = async (transcription: string, chatRoomId: number) => {
+    const suggestions = getSmartSuggestions(transcription);
+    
+    if (suggestions.length > 0) {
+      console.log('🤖 스마트 추천 발견:', suggestions.length, '개');
+      
+      // 자동 실행되는 추천 처리
+      for (const suggestion of suggestions) {
+        if (suggestion.type === 'youtube') {
+          // YouTube 검색 및 영상 공유
+          const searchQuery = transcription.replace(/유튜브|youtube|검색|찾아|보여|영상|봤어|봐봐/gi, '').trim();
+          
+          try {
+            const youtubeResponse = await fetch('/api/youtube/search', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ query: searchQuery })
+            });
+            
+            if (youtubeResponse.ok) {
+              const youtubeData = await youtubeResponse.json();
+              if (youtubeData.success && youtubeData.video) {
+                // YouTube 영상을 별도 메시지로 공유
+                const youtubeMessage = {
+                  content: `📺 ${searchQuery} 추천 영상\n${youtubeData.video.title}`,
+                  messageType: "text",
+                  youtubePreview: youtubeData.video
+                };
+                
+                setTimeout(async () => {
+                  await fetch(`/api/chat-rooms/${chatRoomId}/messages`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'x-user-id': user!.id.toString(),
+                    },
+                    body: JSON.stringify(youtubeMessage),
+                  });
+                }, 500);
+              }
+            }
+          } catch (error) {
+            console.error('YouTube 추천 처리 실패:', error);
+          }
+        } else if (suggestion.type === 'location') {
+          // 위치 공유 요청 감지
+          try {
+            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 60000
+              });
+            });
+
+            const { latitude, longitude } = position.coords;
+            const googleMapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
+
+            const locationMessage = {
+              content: `📍 현재 위치를 공유했습니다`,
+              messageType: "text",
+              locationShare: {
+                latitude: latitude.toString(),
+                longitude: longitude.toString(),
+                googleMapsUrl,
+                accuracy: position.coords.accuracy?.toString()
+              }
+            };
+
+            setTimeout(async () => {
+              await fetch(`/api/chat-rooms/${chatRoomId}/messages`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'x-user-id': user!.id.toString(),
+                },
+                body: JSON.stringify(locationMessage),
+              });
+            }, 500);
+          } catch (error) {
+            console.error('위치 공유 처리 실패:', error);
+          }
+        } else if (['translation', 'summary', 'search', 'news', 'calculation', 'currency'].includes(suggestion.type)) {
+          // 기타 스마트 추천 처리
+          try {
+            const response = await fetch('/api/smart-suggestion', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                type: suggestion.type, 
+                content: transcription,
+                originalText: transcription 
+              })
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              if (data.success && data.result) {
+                const smartMessage = {
+                  content: `🤖 ${suggestion.category}\n${data.result}`,
+                  messageType: "text"
+                };
+
+                setTimeout(async () => {
+                  await fetch(`/api/chat-rooms/${chatRoomId}/messages`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'x-user-id': user!.id.toString(),
+                    },
+                    body: JSON.stringify(smartMessage),
+                  });
+                }, 500);
+              }
+            }
+          } catch (error) {
+            console.error('스마트 추천 처리 실패:', error);
+          }
+        }
+      }
+    }
+  };
+
+  // 스마트 추천 함수 (ChatArea에서 가져옴)
+  const getSmartSuggestions = (text: string) => {
+    const suggestions = [];
+    const lowerText = text.toLowerCase();
+
+    // YouTube 감지
+    if (/유튜브|youtube|영상|비디오|뮤직비디오|mv/i.test(text)) {
+      suggestions.push({
+        type: 'youtube',
+        text: '🎬 YouTube 영상',
+        result: '영상을 검색해서 공유할게요',
+        icon: '🎬',
+        category: 'YouTube 검색'
+      });
+    }
+
+    // 위치 관련 감지
+    if (/어디|위치|장소|주소|어디야|어디에|어디로|어디서|여기|거기|오세요|와|갈게|만나|시간|위치공유/i.test(text)) {
+      suggestions.push({
+        type: 'location',
+        text: '📍 위치 공유',
+        result: '현재 위치를 공유할게요',
+        icon: '📍',
+        category: '위치 공유'
+      });
+    }
+
+    // 번역 감지
+    if (/번역|translate|영어로|한국어로|일본어로|중국어로/i.test(text)) {
+      suggestions.push({
+        type: 'translation',
+        text: '🌐 번역',
+        result: '번역해드릴게요',
+        icon: '🌐',
+        category: '번역'
+      });
+    }
+
+    // 검색 감지
+    if (/검색|찾아|알아봐|search|google/i.test(text)) {
+      suggestions.push({
+        type: 'search',
+        text: '🔍 검색',
+        result: '검색해드릴게요',
+        icon: '🔍',
+        category: '검색'
+      });
+    }
+
+    // 요약 감지
+    if (/요약|정리|summary|간단히/i.test(text)) {
+      suggestions.push({
+        type: 'summary',
+        text: '📝 요약',
+        result: '요약해드릴게요',
+        icon: '📝',
+        category: '요약'
+      });
+    }
+
+    // 뉴스 감지
+    if (/뉴스|news|기사|최신|오늘/i.test(text)) {
+      suggestions.push({
+        type: 'news',
+        text: '📰 뉴스',
+        result: '최신 뉴스를 찾아드릴게요',
+        icon: '📰',
+        category: '뉴스'
+      });
+    }
+
+    // 계산 감지
+    if (/계산|더하기|빼기|곱하기|나누기|\+|\-|\*|\/|\=|[0-9]/i.test(text)) {
+      suggestions.push({
+        type: 'calculation',
+        text: '🔢 계산',
+        result: '계산해드릴게요',
+        icon: '🔢',
+        category: '계산'
+      });
+    }
+
+    // 환율 감지
+    if (/환율|달러|엔|유로|원|currency|exchange/i.test(text)) {
+      suggestions.push({
+        type: 'currency',
+        text: '💱 환율',
+        result: '환율을 확인해드릴게요',
+        icon: '💱',
+        category: '환율'
+      });
+    }
+
+    return suggestions;
+  };
+
   // 음성 메시지 전송 (채팅방용)
   const sendVoiceMessage = async (chatRoom: any, audioBlob: Blob) => {
     try {
@@ -250,6 +470,11 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
 
       if (messageResponse.ok) {
         console.log('✅ 채팅방 간편음성메세지 전송 성공!');
+        
+        // 스마트 추천 처리 (음성 메시지 전송 후)
+        if (uploadData.transcription) {
+          await processSmartSuggestions(uploadData.transcription, chatRoom.id);
+        }
         
         // 캐시 무효화로 메시지 목록 새로고침
         queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoom.id}/messages`] });
