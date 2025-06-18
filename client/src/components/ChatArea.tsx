@@ -28,6 +28,7 @@ import { FileUploadModal } from "./FileUploadModal";
 import { LinkPreview } from "./LinkPreview";
 import { MessageLikeButton } from "./MessageLikeButton";
 import { LocationShareModal } from "./LocationShareModal";
+import YoutubeSelectionModal from "./YoutubeSelectionModal";
 
 import TypingIndicator, { useTypingIndicator } from "./TypingIndicator";
 import { 
@@ -171,6 +172,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [isTranslating, setIsTranslating] = useState(false);
   const [showLocationShareModal, setShowLocationShareModal] = useState(false);
   const [locationRequestId, setLocationRequestId] = useState<number | undefined>();
+  const [showYoutubeModal, setShowYoutubeModal] = useState(false);
+  const [youtubeSearchQuery, setYoutubeSearchQuery] = useState("");
   
 
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);

@@ -2688,7 +2688,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // YouTube search API endpoint
   app.post("/api/youtube/search", async (req, res) => {
     try {
-      const { query } = req.body;
+      const { query, maxResults = 8 } = req.body;
       
       if (!query || query.trim().length === 0) {
         return res.status(400).json({ success: false, error: "검색어가 필요합니다." });
@@ -2698,54 +2698,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
       
       if (!YOUTUBE_API_KEY) {
-        console.log("YouTube API 키가 설정되지 않았습니다. 기본 검색 URL을 반환합니다.");
-        const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
-        return res.json({
-          success: true,
-          video: {
-            title: `"${query}" 검색 결과`,
-            url: searchUrl,
-            thumbnail: "https://via.placeholder.com/320x180/ff0000/ffffff?text=YouTube",
-            channelTitle: "YouTube 검색",
-            publishedAt: new Date().toISOString()
-          }
+        console.log("YouTube API 키가 설정되지 않았습니다.");
+        return res.status(500).json({ 
+          success: false, 
+          error: "YouTube API 키가 설정되지 않았습니다." 
         });
       }
 
-      // YouTube API 호출
-      const youtubeApiUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=1&key=${YOUTUBE_API_KEY}`;
+      // YouTube API 호출 - 여러 비디오 검색
+      const youtubeApiUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=${maxResults}&key=${YOUTUBE_API_KEY}`;
       
       const response = await fetch(youtubeApiUrl);
       const data = await response.json();
       
       if (data.items && data.items.length > 0) {
-        const video = data.items[0];
-        const videoId = video.id.videoId;
-        const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+        // 비디오 ID들을 수집하여 추가 정보 가져오기
+        const videoIds = data.items.map((item: any) => item.id.videoId).join(',');
+        
+        // 비디오 상세 정보 (duration, viewCount 등) 가져오기
+        const detailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics&id=${videoIds}&key=${YOUTUBE_API_KEY}`;
+        const detailsResponse = await fetch(detailsUrl);
+        const detailsData = await detailsResponse.json();
+        
+        // 검색 결과와 상세 정보 결합
+        const videos = data.items.map((item: any, index: number) => {
+          const details = detailsData.items?.[index];
+          const videoId = item.id.videoId;
+          const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+          
+          return {
+            videoId: videoId,
+            title: item.snippet.title,
+            url: videoUrl,
+            thumbnailUrl: item.snippet.thumbnails.medium?.url || item.snippet.thumbnails.default?.url,
+            channelTitle: item.snippet.channelTitle,
+            publishedAt: item.snippet.publishedAt,
+            description: item.snippet.description,
+            duration: details?.contentDetails?.duration,
+            viewCount: details?.statistics?.viewCount
+          };
+        });
         
         res.json({
           success: true,
-          video: {
-            title: video.snippet.title,
-            url: videoUrl,
-            thumbnail: video.snippet.thumbnails.medium?.url || video.snippet.thumbnails.default?.url,
-            channelTitle: video.snippet.channelTitle,
-            publishedAt: video.snippet.publishedAt,
-            description: video.snippet.description
-          }
+          videos: videos,
+          video: videos[0] // 호환성을 위해 첫 번째 비디오도 반환
         });
       } else {
-        // 검색 결과가 없을 때
-        const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
         res.json({
-          success: true,
-          video: {
-            title: `"${query}" 검색 결과`,
-            url: searchUrl,
-            thumbnail: "https://via.placeholder.com/320x180/ff0000/ffffff?text=YouTube",
-            channelTitle: "YouTube 검색",
-            publishedAt: new Date().toISOString()
-          }
+          success: false,
+          error: "검색 결과를 찾을 수 없습니다.",
+          videos: []
         });
       }
     } catch (error) {
