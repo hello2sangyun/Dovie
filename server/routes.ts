@@ -2741,8 +2741,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         res.json({
           success: true,
-          videos: videos,
-          video: videos[0] // 호환성을 위해 첫 번째 비디오도 반환
+          videos: videos
         });
       } else {
         res.json({
@@ -2760,13 +2759,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({
         success: true,
-        video: {
+        videos: [{
+          videoId: "fallback",
           title: `"${query || "검색"}" 검색 결과`,
           url: searchUrl,
-          thumbnail: "https://via.placeholder.com/320x180/ff0000/ffffff?text=YouTube",
+          thumbnailUrl: "https://via.placeholder.com/320x180/ff0000/ffffff?text=YouTube",
           channelTitle: "YouTube 검색",
-          publishedAt: new Date().toISOString()
-        }
+          publishedAt: new Date().toISOString(),
+          description: "YouTube에서 직접 검색하기"
+        }]
       });
     }
   });
