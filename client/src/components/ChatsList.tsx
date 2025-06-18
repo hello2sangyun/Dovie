@@ -446,6 +446,12 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
       const result = await transcribeResponse.json();
       console.log('✅ 통합 음성 처리 성공:', result);
       
+      // 빈 음성 녹음 감지 시 조용히 취소
+      if (result.error === "SILENT_RECORDING") {
+        console.log("🔇 빈 음성 녹음 감지됨 (ChatsList), 메시지 전송 취소");
+        return;
+      }
+      
       // 통합된 스마트 추천 사용 (서버에서 이미 분석 완료)
       console.log('🎙️ Voice transcription with integrated suggestions:', result.smartSuggestions?.length || 0);
       console.log('🎙️ Full smartSuggestions data:', result.smartSuggestions);

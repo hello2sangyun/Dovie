@@ -335,7 +335,41 @@ export async function transcribeAudio(filePath: string): Promise<{
     };
     
     const detectedLanguage = languageNames[transcription.language] || transcription.language;
-    const transcribedText = transcription.text || "음성을 찾을 수 없습니다.";
+    const transcribedText = transcription.text || "";
+    
+    // Check if transcription contains meaningful content
+    const isEmptyOrNoise = (text: string): boolean => {
+      if (!text || text.trim().length === 0) return true;
+      
+      // Common noise patterns and meaningless transcriptions
+      const noisePatterns = [
+        /^[\s.,!?]*$/,  // Only punctuation and whitespace
+        /^(um|uh|ah|eh|hmm|mm|아|어|음|으|아우|어우|음\.\.\.|\.\.\.)+[\s.,!?]*$/i,  // Filler sounds
+        /^[\uD83C-\uDBFF\uDC00-\uDFFF]+[\s.,!?]*$/,  // Only emojis
+        /^[📢🎵🎤🔊🔇📻]+[\s.,!?]*$/,  // Audio/sound emojis
+        /thank you|감사합니다|고마워|sorry|죄송|미안/i  // Common polite expressions that might be background audio
+      ];
+      
+      // Check text length (very short transcriptions are likely noise)
+      if (text.trim().length < 3) return true;
+      
+      // Check against noise patterns
+      return noisePatterns.some(pattern => pattern.test(text.trim()));
+    };
+    
+    // If transcription is empty or just noise, return cancellation response
+    if (isEmptyOrNoise(transcribedText)) {
+      console.log("🔇 Voice recording contains no meaningful speech, canceling message");
+      return {
+        success: false,
+        transcription: "",
+        error: "SILENT_RECORDING", // Special error code for silent recordings
+        duration: transcription.duration || 0,
+        detectedLanguage,
+        confidence: 0,
+        smartSuggestions: []
+      };
+    }
     
     // Analyze transcribed text for smart suggestions using a single OpenAI call
     let smartSuggestions: any[] = [];

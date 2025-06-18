@@ -914,6 +914,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         
         // 회신 모드 해제
         setReplyToMessage(null);
+      } else if (result.error === "SILENT_RECORDING") {
+        // 빈 음성 녹음의 경우 조용히 취소 (사용자에게 알리지 않음)
+        console.log("🔇 빈 음성 녹음 감지됨, 메시지 전송 취소");
       } else {
         toast({
           variant: "destructive",
