@@ -87,6 +87,9 @@ export interface IStorage {
   // User posts operations
   getUserPosts(userId: number): Promise<UserPost[]>;
   createUserPost(userId: number, postData: Partial<InsertUserPost>): Promise<UserPost>;
+  
+  // Voice settings operations
+  updateVoiceSettings(userId: number, settings: { allowVoicePlayback?: boolean; autoPlayVoiceMessages?: boolean }): Promise<User | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1275,6 +1278,31 @@ export class DatabaseStorage implements IStorage {
       ...newCommand,
       savedText: newCommand.savedText ? decryptText(newCommand.savedText) : newCommand.savedText
     };
+  }
+
+  // Voice settings operations
+  async updateVoiceSettings(userId: number, settings: { allowVoicePlayback?: boolean; autoPlayVoiceMessages?: boolean }): Promise<User | undefined> {
+    const updateData: any = {};
+    
+    if (settings.allowVoicePlayback !== undefined) {
+      updateData.allowVoicePlayback = settings.allowVoicePlayback;
+    }
+    
+    if (settings.autoPlayVoiceMessages !== undefined) {
+      updateData.autoPlayVoiceMessages = settings.autoPlayVoiceMessages;
+    }
+    
+    if (Object.keys(updateData).length === 0) {
+      return this.getUser(userId);
+    }
+    
+    const [updatedUser] = await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return updatedUser || undefined;
   }
 }
 

@@ -2870,6 +2870,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Voice Settings API
+  app.patch("/api/user/voice-settings", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    try {
+      const { allowVoicePlayback, autoPlayVoiceMessages } = req.body;
+      
+      const updatedUser = await storage.updateVoiceSettings(Number(userId), {
+        allowVoicePlayback,
+        autoPlayVoiceMessages
+      });
+
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      res.json({ 
+        success: true,
+        settings: {
+          allowVoicePlayback: updatedUser.allowVoicePlayback,
+          autoPlayVoiceMessages: updatedUser.autoPlayVoiceMessages
+        }
+      });
+    } catch (error) {
+      console.error("Error updating voice settings:", error);
+      res.status(500).json({ error: "Failed to update voice settings" });
+    }
+  });
+
   // Space Notifications API
   app.get("/api/space/notifications", async (req, res) => {
     const userId = req.headers["x-user-id"];

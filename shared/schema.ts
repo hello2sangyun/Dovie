@@ -26,6 +26,9 @@ export const users = pgTable("users", {
   businessLatitude: decimal("business_latitude", { precision: 10, scale: 8 }),
   businessLongitude: decimal("business_longitude", { precision: 11, scale: 8 }),
   isBusinessVerified: boolean("is_business_verified").default(false),
+  // 음성 메시지 설정
+  allowVoicePlayback: boolean("allow_voice_playback").default(true), // 다른 사람이 내 음성을 들을 수 있는지
+  autoPlayVoiceMessages: boolean("auto_play_voice_messages").default(false), // 이어폰 착용 시 자동 재생
   createdAt: timestamp("created_at").defaultNow(),
 });
 

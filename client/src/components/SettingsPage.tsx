@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
 import { ImageCropper } from "@/components/ImageCropper";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Camera, User, LogOut, Building2, Moon, Sun, Check, X, Loader2, CreditCard, Plus, Edit, Trash2, Briefcase, Share2 } from "lucide-react";
+import { Camera, User, LogOut, Building2, Moon, Sun, Check, X, Loader2, CreditCard, Plus, Edit, Trash2, Briefcase, Share2, Volume2, Headphones } from "lucide-react";
 import BusinessCard from "./BusinessCard";
 import BusinessProfile from "./BusinessProfile";
 import { Switch } from "@/components/ui/switch";
@@ -42,6 +42,11 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
     }
     return false;
   });
+  
+  // Voice settings states
+  const [allowVoicePlayback, setAllowVoicePlayback] = useState(user?.allowVoicePlayback ?? true);
+  const [autoPlayVoiceMessages, setAutoPlayVoiceMessages] = useState(user?.autoPlayVoiceMessages ?? false);
+  const [hasEarphones, setHasEarphones] = useState(false);
   
   // Business card states
   const [showBusinessCardDialog, setShowBusinessCardDialog] = useState(false);
