@@ -1,13 +1,15 @@
 import { 
   users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications,
-  fileUploads, fileDownloads, businessProfiles, userPosts,
+  fileUploads, fileDownloads, businessProfiles, userPosts, locationShareRequests, locationShares,
   type User, type InsertUser, type Contact, type InsertContact,
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
   type Command, type InsertCommand, type MessageRead, type InsertMessageRead,
   type PhoneVerification, type InsertPhoneVerification,
   type FileUpload, type InsertFileUpload, type FileDownload, type InsertFileDownload,
   type BusinessProfile, type InsertBusinessProfile,
-  type UserPost, type InsertUserPost
+  type UserPost, type InsertUserPost,
+  type LocationShareRequest, type InsertLocationShareRequest,
+  type LocationShare, type InsertLocationShare
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, or, count, gt, lt, sql, inArray } from "drizzle-orm";
@@ -90,6 +92,14 @@ export interface IStorage {
   
   // Voice settings operations
   updateVoiceSettings(userId: number, settings: { allowVoicePlayback?: boolean; autoPlayVoiceMessages?: boolean }): Promise<User | undefined>;
+
+  // Location sharing operations
+  createLocationShareRequest(request: InsertLocationShareRequest): Promise<LocationShareRequest>;
+  getLocationShareRequest(requestId: number): Promise<LocationShareRequest | undefined>;
+  updateLocationShareRequest(requestId: number, updates: Partial<InsertLocationShareRequest>): Promise<LocationShareRequest | undefined>;
+  createLocationShare(share: InsertLocationShare): Promise<LocationShare>;
+  getLocationSharesForChatRoom(chatRoomId: number): Promise<LocationShare[]>;
+  detectLocationRequest(message: string): boolean;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1303,6 +1313,74 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     return updatedUser || undefined;
+  }
+
+  // Location sharing operations
+  async createLocationShareRequest(request: InsertLocationShareRequest): Promise<LocationShareRequest> {
+    const [newRequest] = await db
+      .insert(locationShareRequests)
+      .values(request)
+      .returning();
+    
+    return newRequest;
+  }
+
+  async getLocationShareRequest(requestId: number): Promise<LocationShareRequest | undefined> {
+    const [request] = await db
+      .select()
+      .from(locationShareRequests)
+      .where(eq(locationShareRequests.id, requestId));
+    
+    return request || undefined;
+  }
+
+  async updateLocationShareRequest(requestId: number, updates: Partial<InsertLocationShareRequest>): Promise<LocationShareRequest | undefined> {
+    const [updatedRequest] = await db
+      .update(locationShareRequests)
+      .set(updates)
+      .where(eq(locationShareRequests.id, requestId))
+      .returning();
+    
+    return updatedRequest || undefined;
+  }
+
+  async createLocationShare(share: InsertLocationShare): Promise<LocationShare> {
+    const [newShare] = await db
+      .insert(locationShares)
+      .values(share)
+      .returning();
+    
+    return newShare;
+  }
+
+  async getLocationSharesForChatRoom(chatRoomId: number): Promise<LocationShare[]> {
+    const shares = await db
+      .select()
+      .from(locationShares)
+      .where(eq(locationShares.chatRoomId, chatRoomId))
+      .orderBy(desc(locationShares.createdAt));
+    
+    return shares;
+  }
+
+  detectLocationRequest(message: string): boolean {
+    const locationKeywords = [
+      '어디로', '어디에', '어디야', '위치', '장소', '주소',
+      '어디', '가는', '길', '찾아가', '오는', '만날',
+      '어디서', '어디까지', '어느', '방향'
+    ];
+    
+    const questionWords = ['?', '？', '어떻게'];
+    
+    const hasLocationKeyword = locationKeywords.some(keyword => 
+      message.includes(keyword)
+    );
+    
+    const hasQuestionPattern = questionWords.some(pattern => 
+      message.includes(pattern)
+    );
+    
+    return hasLocationKeyword && hasQuestionPattern;
   }
 }
 

@@ -297,6 +297,40 @@ export const companyProfiles = pgTable("company_profiles", {
   uniqueUserCompany: unique().on(table.userId),
 }));
 
+// 위치 공유 요청 테이블
+export const locationShareRequests = pgTable("location_share_requests", {
+  id: serial("id").primaryKey(),
+  chatRoomId: integer("chat_room_id").references(() => chatRooms.id).notNull(),
+  requesterId: integer("requester_id").references(() => users.id).notNull(),
+  targetUserId: integer("target_user_id").references(() => users.id).notNull(),
+  messageId: integer("message_id").references(() => messages.id),
+  requestMessage: text("request_message"),
+  status: text("status").default("pending"), // pending, approved, denied, expired
+  latitude: decimal("latitude", { precision: 10, scale: 8 }),
+  longitude: decimal("longitude", { precision: 11, scale: 8 }),
+  address: text("address"),
+  googleMapsUrl: text("google_maps_url"),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  respondedAt: timestamp("responded_at"),
+});
+
+// 위치 공유 이력 테이블
+export const locationShares = pgTable("location_shares", {
+  id: serial("id").primaryKey(),
+  chatRoomId: integer("chat_room_id").references(() => chatRooms.id).notNull(),
+  senderId: integer("sender_id").references(() => users.id).notNull(),
+  latitude: decimal("latitude", { precision: 10, scale: 8 }).notNull(),
+  longitude: decimal("longitude", { precision: 11, scale: 8 }).notNull(),
+  address: text("address"),
+  googleMapsUrl: text("google_maps_url").notNull(),
+  messageId: integer("message_id").references(() => messages.id),
+  accuracy: decimal("accuracy", { precision: 6, scale: 2 }),
+  isLiveLocation: boolean("is_live_location").default(false),
+  liveUntil: timestamp("live_until"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const usersRelations = relations(users, ({ many }) => ({
   contacts: many(contacts, { relationName: "userContacts" }),
   contactOf: many(contacts, { relationName: "contactUser" }),
@@ -598,7 +632,52 @@ export const postCommentsRelations = relations(postComments, ({ one, many }) => 
   replies: many(postComments),
 }));
 
-// Business card shares relations removed - digital business card functionality disabled
+// Location share relations
+export const locationShareRequestsRelations = relations(locationShareRequests, ({ one }) => ({
+  chatRoom: one(chatRooms, {
+    fields: [locationShareRequests.chatRoomId],
+    references: [chatRooms.id],
+  }),
+  requester: one(users, {
+    fields: [locationShareRequests.requesterId],
+    references: [users.id],
+  }),
+  targetUser: one(users, {
+    fields: [locationShareRequests.targetUserId],
+    references: [users.id],
+  }),
+  message: one(messages, {
+    fields: [locationShareRequests.messageId],
+    references: [messages.id],
+  }),
+}));
+
+export const locationSharesRelations = relations(locationShares, ({ one }) => ({
+  chatRoom: one(chatRooms, {
+    fields: [locationShares.chatRoomId],
+    references: [chatRooms.id],
+  }),
+  sender: one(users, {
+    fields: [locationShares.senderId],
+    references: [users.id],
+  }),
+  message: one(messages, {
+    fields: [locationShares.messageId],
+    references: [messages.id],
+  }),
+}));
+
+// Location share insert schemas
+export const insertLocationShareRequestSchema = createInsertSchema(locationShareRequests).omit({
+  id: true,
+  createdAt: true,
+  respondedAt: true,
+});
+
+export const insertLocationShareSchema = createInsertSchema(locationShares).omit({
+  id: true,
+  createdAt: true,
+});
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -719,6 +798,10 @@ export type CompanyChannel = typeof companyChannels.$inferSelect;
 export type InsertCompanyChannel = z.infer<typeof insertCompanyChannelSchema>;
 export type PostLike = typeof postLikes.$inferSelect;
 export type InsertPostLike = z.infer<typeof insertPostLikeSchema>;
+export type LocationShareRequest = typeof locationShareRequests.$inferSelect;
+export type InsertLocationShareRequest = z.infer<typeof insertLocationShareRequestSchema>;
+export type LocationShare = typeof locationShares.$inferSelect;
+export type InsertLocationShare = z.infer<typeof insertLocationShareSchema>;
 export type PostComment = typeof postComments.$inferSelect;
 export type InsertPostComment = z.infer<typeof insertPostCommentSchema>;
 export type CompanyProfile = typeof companyProfiles.$inferSelect;
