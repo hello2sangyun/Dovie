@@ -2807,56 +2807,141 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // 스마트 제안 선택 처리
   const handleSmartSuggestionSelect = async (suggestion: typeof smartSuggestions[0]) => {
-    // AI 기능들은 API 호출 후 모달로 결과 표시
-    if (['translation', 'emotion', 'summary', 'quote', 'decision', 'news', 'search', 'topic_info'].includes(suggestion.type)) {
-      try {
-        setSmartResultModal({
-          show: true,
-          title: `${suggestion.category} 처리 중...`,
-          content: '잠시만 기다려주세요...'
-        });
+    // 음성 메시지 대기 중인 경우 처리
+    if (pendingVoiceMessage) {
+      // 타이머 취소
+      if (suggestionTimeout) {
+        clearTimeout(suggestionTimeout);
+        setSuggestionTimeout(null);
+      }
+      
+      // AI 기능들은 API 호출 후 모달로 결과 표시
+      if (['translation', 'emotion', 'summary', 'quote', 'decision', 'news', 'search', 'topic_info'].includes(suggestion.type)) {
+        try {
+          setSmartResultModal({
+            show: true,
+            title: `${suggestion.category} 처리 중...`,
+            content: '잠시만 기다려주세요...'
+          });
 
-        const response = await fetch('/api/smart-suggestion', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            type: suggestion.type, 
-            content: message,
-            originalText: message 
-          })
-        });
-        
-        if (!response.ok) {
-          throw new Error('API 요청 실패');
+          const response = await fetch('/api/smart-suggestion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              type: suggestion.type, 
+              content: pendingVoiceMessage.content,
+              originalText: pendingVoiceMessage.content 
+            })
+          });
+          
+          if (!response.ok) {
+            throw new Error('API 요청 실패');
+          }
+          
+          const result = await response.json();
+          
+          setSmartResultModal({
+            show: true,
+            title: suggestion.text,
+            content: result.result || "처리할 수 없습니다."
+          });
+          
+          // 원본 음성 메시지도 전송
+          sendMessageMutation.mutate(pendingVoiceMessage);
+          
+        } catch (error) {
+          setSmartResultModal({
+            show: true,
+            title: "오류 발생",
+            content: "서비스를 사용할 수 없습니다. 잠시 후 다시 시도해주세요."
+          });
+          
+          // 오류 발생 시에도 원본 메시지 전송
+          sendMessageMutation.mutate(pendingVoiceMessage);
         }
-        
-        const result = await response.json();
-        
-        setSmartResultModal({
-          show: true,
-          title: suggestion.text,
-          content: result.result || "처리할 수 없습니다."
-        });
-        
-      } catch (error) {
-        setSmartResultModal({
-          show: true,
-          title: "오류 발생",
-          content: "서비스를 사용할 수 없습니다. 잠시 후 다시 시도해주세요."
+      } else if (suggestion.type === 'currency') {
+        // 환율 변환 제안 선택 - 음성 메시지를 환율 결과로 변경
+        updateCurrencyUsage(suggestion.fromCurrency, suggestion.toCurrency);
+        const modifiedMessage = {
+          ...pendingVoiceMessage,
+          content: suggestion.result,
+          messageType: "text" // 환율 변환은 텍스트 메시지로
+        };
+        delete modifiedMessage.fileUrl; // 음성 파일 제거
+        delete modifiedMessage.voiceDuration;
+        delete modifiedMessage.detectedLanguage;
+        delete modifiedMessage.confidence;
+        sendMessageMutation.mutate(modifiedMessage);
+      } else if (suggestion.action) {
+        // 액션이 있는 경우 실행하고 원본 메시지 전송
+        suggestion.action();
+        sendMessageMutation.mutate(pendingVoiceMessage);
+      } else {
+        // 제안 결과를 텍스트 메시지로 전송
+        const modifiedMessage = {
+          ...pendingVoiceMessage,
+          content: suggestion.result,
+          messageType: "text"
+        };
+        delete modifiedMessage.fileUrl;
+        delete modifiedMessage.voiceDuration;
+        delete modifiedMessage.detectedLanguage;
+        delete modifiedMessage.confidence;
+        sendMessageMutation.mutate(modifiedMessage);
+      }
+      
+      setPendingVoiceMessage(null);
+    } else {
+      // 일반 텍스트 입력 시 기존 로직
+      if (['translation', 'emotion', 'summary', 'quote', 'decision', 'news', 'search', 'topic_info'].includes(suggestion.type)) {
+        try {
+          setSmartResultModal({
+            show: true,
+            title: `${suggestion.category} 처리 중...`,
+            content: '잠시만 기다려주세요...'
+          });
+
+          const response = await fetch('/api/smart-suggestion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              type: suggestion.type, 
+              content: message,
+              originalText: message 
+            })
+          });
+          
+          if (!response.ok) {
+            throw new Error('API 요청 실패');
+          }
+          
+          const result = await response.json();
+          
+          setSmartResultModal({
+            show: true,
+            title: suggestion.text,
+            content: result.result || "처리할 수 없습니다."
+          });
+          
+        } catch (error) {
+          setSmartResultModal({
+            show: true,
+            title: "오류 발생",
+            content: "서비스를 사용할 수 없습니다. 잠시 후 다시 시도해주세요."
+          });
+        }
+      } else if (suggestion.action) {
+        suggestion.action();
+      } else {
+        sendMessageMutation.mutate({
+          content: suggestion.result,
+          messageType: "text"
         });
       }
-    } else if (suggestion.action) {
-      // 액션이 있는 경우 실행
-      suggestion.action();
-    } else {
-      // 일반적인 경우 메시지 전송
-      sendMessageMutation.mutate({
-        content: suggestion.result,
-        messageType: "text"
-      });
+      
+      setMessage('');
     }
     
-    setMessage('');
     setShowSmartSuggestions(false);
     setSmartSuggestions([]);
   };
@@ -5342,8 +5427,103 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               </div>
             )}
 
-            {/* 스마트 채팅 제안 - 컴팩트 디자인 */}
-            {showSmartSuggestions && smartSuggestions.length > 0 && (
+            {/* 음성 메시지 스마트 추천 팝업 */}
+            {pendingVoiceMessage && showSmartSuggestions && smartSuggestions.length > 0 && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-96 overflow-hidden">
+                  <div className="p-4 border-b border-gray-200">
+                    <h3 className="text-lg font-semibold text-gray-900">음성 메시지 스마트 추천</h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      "{pendingVoiceMessage.content}"
+                    </p>
+                    <p className="text-xs text-gray-500 mt-2">
+                      추천 중 하나를 선택하거나 원본 메시지를 전송하세요 (10초 후 자동 전송)
+                    </p>
+                  </div>
+                  
+                  <div className="max-h-64 overflow-y-auto">
+                    {smartSuggestions.map((suggestion, index) => (
+                      <div
+                        key={index}
+                        className="p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={() => handleSmartSuggestionSelect(suggestion)}
+                      >
+                        <div className="flex items-start space-x-3">
+                          <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                            suggestion.type === 'calculation' ? 'bg-blue-100' :
+                            suggestion.type === 'currency' ? 'bg-green-100' :
+                            suggestion.type === 'translation' ? 'bg-indigo-100' :
+                            suggestion.type === 'search' ? 'bg-yellow-100' :
+                            suggestion.type === 'news' ? 'bg-blue-100' :
+                            suggestion.type === 'unit' ? 'bg-purple-100' :
+                            suggestion.type === 'timer' ? 'bg-amber-100' :
+                            'bg-gray-100'
+                          }`}>
+                            <span className={`text-sm font-medium ${
+                              suggestion.type === 'calculation' ? 'text-blue-600' :
+                              suggestion.type === 'currency' ? 'text-green-600' :
+                              suggestion.type === 'translation' ? 'text-indigo-600' :
+                              suggestion.type === 'search' ? 'text-yellow-600' :
+                              suggestion.type === 'news' ? 'text-blue-600' :
+                              suggestion.type === 'unit' ? 'text-purple-600' :
+                              suggestion.type === 'timer' ? 'text-amber-600' :
+                              'text-gray-600'
+                            }`}>
+                              {suggestion.icon || suggestion.type.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-gray-900 text-sm">
+                              {suggestion.text}
+                            </p>
+                            <p className="text-xs text-gray-600 mt-1 truncate">
+                              {suggestion.result}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="p-4 border-t border-gray-200 flex space-x-3">
+                    <button
+                      onClick={() => {
+                        // 원본 음성 메시지 전송
+                        if (suggestionTimeout) {
+                          clearTimeout(suggestionTimeout);
+                          setSuggestionTimeout(null);
+                        }
+                        sendMessageMutation.mutate(pendingVoiceMessage);
+                        setPendingVoiceMessage(null);
+                        setShowSmartSuggestions(false);
+                        setSmartSuggestions([]);
+                      }}
+                      className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                    >
+                      원본 메시지 전송
+                    </button>
+                    <button
+                      onClick={() => {
+                        // 취소 (메시지 삭제)
+                        if (suggestionTimeout) {
+                          clearTimeout(suggestionTimeout);
+                          setSuggestionTimeout(null);
+                        }
+                        setPendingVoiceMessage(null);
+                        setShowSmartSuggestions(false);
+                        setSmartSuggestions([]);
+                      }}
+                      className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+                    >
+                      취소
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 일반 텍스트 입력 스마트 채팅 제안 - 컴팩트 디자인 */}
+            {!pendingVoiceMessage && showSmartSuggestions && smartSuggestions.length > 0 && (
               <div 
                 className="absolute bottom-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mb-1 max-h-60 overflow-y-auto z-50"
                 onMouseEnter={() => {
