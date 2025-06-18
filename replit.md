@@ -316,6 +316,13 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Added manual search input refinement capability within the modal interface
   - Users can now browse and select from multiple YouTube videos before sharing in chat
   - Eliminated redundant third message bubble in YouTube sharing workflow for cleaner interface
+- June 18, 2025: Implemented cost-efficient integrated voice transcription and smart suggestions:
+  - Combined OpenAI Whisper transcription and GPT-4o smart suggestion analysis into single API call
+  - Reduced AI API costs by eliminating separate analysis requests for voice messages
+  - Enhanced voice transcription to automatically detect YouTube search requests and extract keywords
+  - Voice messages like "지드래곤 유튜브 영상 보니까 좋더라" now automatically trigger YouTube search modal with "지드래곤" pre-filled
+  - Added automatic YouTube search detection for both text and voice messages with keyword extraction
+  - Streamlined smart suggestion processing with server-side analysis and client-side action handling
 
 ## User Preferences
 

@@ -659,13 +659,54 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     },
     onSuccess: async (result) => {
       if (result.success && result.transcription) {
-        // 음성 변환된 텍스트로 스마트 추천 분석
-        const voiceSuggestions = await analyzeTextForSmartSuggestions(result.transcription);
+        // 통합된 스마트 추천 사용 (서버에서 이미 분석 완료)
+        console.log('🎙️ Voice transcription with integrated suggestions:', result.smartSuggestions?.length || 0);
+        const voiceSuggestions = result.smartSuggestions || [];
         
         if (voiceSuggestions.length > 0) {
-          // 스마트 추천이 있는 경우 팝업으로 표시
-          const maxSuggestions = voiceSuggestions.some(s => s.type === 'currency') ? voiceSuggestions.length : 3;
-          setSmartSuggestions(voiceSuggestions.slice(0, maxSuggestions));
+          // YouTube 자동 처리
+          const youtubeSuggestion = voiceSuggestions.find((s: any) => s.type === 'youtube');
+          if (youtubeSuggestion && youtubeSuggestion.keyword) {
+            console.log('🎥 Auto-triggering YouTube search with keyword:', youtubeSuggestion.keyword);
+            setYoutubeSearchQuery(youtubeSuggestion.keyword);
+            setShowYoutubeModal(true);
+            
+            // 음성 메시지도 함께 전송
+            const messageData: any = {
+              content: result.transcription,
+              messageType: "voice",
+              fileUrl: result.audioUrl,
+              fileName: "voice_message.webm",
+              fileSize: 0,
+              voiceDuration: Math.round(result.duration || 0),
+              detectedLanguage: result.detectedLanguage || "korean",
+              confidence: String(result.confidence || 0.9)
+            };
+
+            if (replyToMessage) {
+              messageData.replyToMessageId = replyToMessage.id;
+              messageData.replyToContent = replyToMessage?.messageType === 'voice' && replyToMessage.transcription 
+                ? replyToMessage.transcription 
+                : replyToMessage?.content;
+              messageData.replyToSender = replyToMessage?.sender.displayName;
+            }
+
+            sendMessageMutation.mutate(messageData);
+            setReplyToMessage(null);
+            return;
+          }
+          
+          // 다른 스마트 추천이 있는 경우 팝업으로 표시
+          const convertedSuggestions = voiceSuggestions.map((s: any) => ({
+            type: s.type,
+            text: s.text || s.keyword,
+            icon: s.icon || '🤖',
+            result: s.keyword || '',
+            category: s.type
+          }));
+          
+          const maxSuggestions = convertedSuggestions.some((s: any) => s.type === 'currency') ? convertedSuggestions.length : 3;
+          setSmartSuggestions(convertedSuggestions.slice(0, maxSuggestions));
           setShowSmartSuggestions(true);
           setSelectedSuggestionIndex(0);
           setIsNavigatingWithKeyboard(false);
