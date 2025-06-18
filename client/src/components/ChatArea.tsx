@@ -27,6 +27,7 @@ import { UnifiedSendButton } from "./UnifiedSendButton";
 import { FileUploadModal } from "./FileUploadModal";
 import { LinkPreview } from "./LinkPreview";
 import { MessageLikeButton } from "./MessageLikeButton";
+import { LocationShareModal } from "./LocationShareModal";
 
 import TypingIndicator, { useTypingIndicator } from "./TypingIndicator";
 import { 
@@ -168,6 +169,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [translatedMessages, setTranslatedMessages] = useState<{[key: number]: {text: string, language: string}}>({});
   const [translatingMessages, setTranslatingMessages] = useState<Set<number>>(new Set());
   const [isTranslating, setIsTranslating] = useState(false);
+  const [showLocationShareModal, setShowLocationShareModal] = useState(false);
+  const [locationRequestId, setLocationRequestId] = useState<number | undefined>();
   
 
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
@@ -319,6 +322,25 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       const endpoint = isLocationChatRoom 
         ? `/api/location/chat-rooms/${chatRoomId}/messages`
         : `/api/chat-rooms/${chatRoomId}/messages`;
+      
+      // Check for location requests in the message content
+      if (messageData.content && messageData.messageType === 'text') {
+        try {
+          const locationDetectionResponse = await apiRequest("/api/location/detect", "POST", {
+            message: messageData.content
+          });
+          const { isLocationRequest } = await locationDetectionResponse.json();
+          
+          if (isLocationRequest) {
+            // Trigger location sharing modal after a short delay
+            setTimeout(() => {
+              setShowLocationShareModal(true);
+            }, 500);
+          }
+        } catch (error) {
+          console.log("Location detection failed, continuing with message send");
+        }
+      }
       
       const response = await apiRequest(endpoint, "POST", messageData);
       return response.json();
@@ -5946,6 +5968,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         onClose={() => setShowFileUploadModal(false)}
         onUpload={handleFileUploadWithHashtags}
         maxFiles={10}
+      />
+
+      {/* Location Share Modal */}
+      <LocationShareModal
+        isOpen={showLocationShareModal}
+        onClose={() => setShowLocationShareModal(false)}
+        chatRoomId={chatRoomId}
+        requestId={locationRequestId}
       />
 
     </div>

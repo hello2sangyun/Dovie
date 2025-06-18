@@ -3882,5 +3882,175 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Location sharing API routes
+  app.post("/api/location/detect", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { message } = req.body;
+      
+      if (!message) {
+        return res.status(400).json({ message: "Message content required" });
+      }
+
+      const isLocationRequest = storage.detectLocationRequest(message);
+      
+      res.json({ isLocationRequest });
+    } catch (error) {
+      console.error("Location detection error:", error);
+      res.status(500).json({ message: "Failed to detect location request" });
+    }
+  });
+
+  app.post("/api/location/request", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const requestData = insertLocationShareRequestSchema.parse(req.body);
+      const request = await storage.createLocationShareRequest({
+        ...requestData,
+        requesterId: parseInt(userId as string)
+      });
+
+      // Notify the target user via WebSocket
+      broadcastToUser(requestData.targetUserId, {
+        type: 'location_share_request',
+        data: request
+      });
+
+      res.json({ request });
+    } catch (error) {
+      console.error("Location share request error:", error);
+      res.status(500).json({ message: "Failed to create location share request" });
+    }
+  });
+
+  app.post("/api/location/respond", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { requestId, approved } = req.body;
+      
+      if (typeof requestId !== 'number' || typeof approved !== 'boolean') {
+        return res.status(400).json({ message: "Invalid request data" });
+      }
+
+      const request = await storage.getLocationShareRequest(requestId);
+      if (!request) {
+        return res.status(404).json({ message: "Location share request not found" });
+      }
+
+      if (request.targetUserId !== parseInt(userId as string)) {
+        return res.status(403).json({ message: "Not authorized to respond to this request" });
+      }
+
+      // Update the request with response
+      const updatedRequest = await storage.updateLocationShareRequest(requestId, {
+        response: approved ? 'approved' : 'denied',
+        respondedAt: new Date()
+      });
+
+      // If approved, ask for location from the target user
+      if (approved) {
+        broadcastToUser(request.targetUserId, {
+          type: 'location_share_approved',
+          data: { requestId }
+        });
+      } else {
+        // Notify requester of denial
+        broadcastToUser(request.requesterId, {
+          type: 'location_share_denied',
+          data: { requestId }
+        });
+      }
+
+      res.json({ request: updatedRequest });
+    } catch (error) {
+      console.error("Location share response error:", error);
+      res.status(500).json({ message: "Failed to respond to location share request" });
+    }
+  });
+
+  app.post("/api/location/share", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const shareData = insertLocationShareSchema.parse(req.body);
+      const locationShare = await storage.createLocationShare({
+        ...shareData,
+        senderId: parseInt(userId as string)
+      });
+
+      // Create a message with the location share
+      const locationMessage = await storage.createMessage({
+        chatRoomId: shareData.chatRoomId,
+        senderId: parseInt(userId as string),
+        content: `내 위치를 공유했습니다: ${shareData.locationName || '현재 위치'}`,
+        messageType: 'location',
+        locationData: JSON.stringify({
+          latitude: shareData.latitude,
+          longitude: shareData.longitude,
+          locationName: shareData.locationName,
+          googleMapsUrl: `https://maps.google.com/maps?q=${shareData.latitude},${shareData.longitude}`
+        })
+      });
+
+      // Broadcast location share to chat room
+      broadcastToRoom(shareData.chatRoomId, {
+        type: 'new_message',
+        data: locationMessage
+      });
+
+      res.json({ locationShare, message: locationMessage });
+    } catch (error) {
+      console.error("Location share error:", error);
+      res.status(500).json({ message: "Failed to share location" });
+    }
+  });
+
+  app.get("/api/location/shares/:chatRoomId", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { chatRoomId } = req.params;
+      
+      if (!chatRoomId || isNaN(Number(chatRoomId))) {
+        return res.status(400).json({ message: "Valid chat room ID required" });
+      }
+
+      // Verify user has access to this chat room
+      const chatRoom = await storage.getChatRoomById(Number(chatRoomId));
+      if (!chatRoom) {
+        return res.status(404).json({ message: "Chat room not found" });
+      }
+
+      const hasAccess = chatRoom.participants.some(p => p.id === parseInt(userId as string));
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Access denied to this chat room" });
+      }
+
+      const shares = await storage.getLocationSharesForChatRoom(Number(chatRoomId));
+      res.json({ shares });
+    } catch (error) {
+      console.error("Get location shares error:", error);
+      res.status(500).json({ message: "Failed to get location shares" });
+    }
+  });
+
   return httpServer;
 }
