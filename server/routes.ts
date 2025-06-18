@@ -2685,6 +2685,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }
 
+  // YouTube search API endpoint
+  app.post("/api/youtube/search", async (req, res) => {
+    try {
+      const { query } = req.body;
+      
+      if (!query || query.trim().length === 0) {
+        return res.status(400).json({ success: false, error: "검색어가 필요합니다." });
+      }
+
+      // YouTube Data API v3를 사용한 검색
+      const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
+      
+      if (!YOUTUBE_API_KEY) {
+        console.log("YouTube API 키가 설정되지 않았습니다. 기본 검색 URL을 반환합니다.");
+        const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+        return res.json({
+          success: true,
+          video: {
+            title: `"${query}" 검색 결과`,
+            url: searchUrl,
+            thumbnail: "https://via.placeholder.com/320x180/ff0000/ffffff?text=YouTube",
+            channelTitle: "YouTube 검색",
+            publishedAt: new Date().toISOString()
+          }
+        });
+      }
+
+      // YouTube API 호출
+      const youtubeApiUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=1&key=${YOUTUBE_API_KEY}`;
+      
+      const response = await fetch(youtubeApiUrl);
+      const data = await response.json();
+      
+      if (data.items && data.items.length > 0) {
+        const video = data.items[0];
+        const videoId = video.id.videoId;
+        const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+        
+        res.json({
+          success: true,
+          video: {
+            title: video.snippet.title,
+            url: videoUrl,
+            thumbnail: video.snippet.thumbnails.medium?.url || video.snippet.thumbnails.default?.url,
+            channelTitle: video.snippet.channelTitle,
+            publishedAt: video.snippet.publishedAt,
+            description: video.snippet.description
+          }
+        });
+      } else {
+        // 검색 결과가 없을 때
+        const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+        res.json({
+          success: true,
+          video: {
+            title: `"${query}" 검색 결과`,
+            url: searchUrl,
+            thumbnail: "https://via.placeholder.com/320x180/ff0000/ffffff?text=YouTube",
+            channelTitle: "YouTube 검색",
+            publishedAt: new Date().toISOString()
+          }
+        });
+      }
+    } catch (error) {
+      console.error("YouTube 검색 오류:", error);
+      
+      // 오류 발생 시 기본 검색 URL 반환
+      const { query } = req.body;
+      const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query || "")}`;
+      
+      res.json({
+        success: true,
+        video: {
+          title: `"${query || "검색"}" 검색 결과`,
+          url: searchUrl,
+          thumbnail: "https://via.placeholder.com/320x180/ff0000/ffffff?text=YouTube",
+          channelTitle: "YouTube 검색",
+          publishedAt: new Date().toISOString()
+        }
+      });
+    }
+  });
+
   // Smart suggestion API endpoint
   app.post("/api/smart-suggestion", async (req, res) => {
     try {

@@ -2911,6 +2911,54 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         delete modifiedMessage.detectedLanguage;
         delete modifiedMessage.confidence;
         sendMessageMutation.mutate(modifiedMessage);
+      } else if (suggestion.type === 'youtube') {
+        // YouTube 검색 및 영상 임베드
+        const searchQuery = pendingVoiceMessage.content.replace(/유튜브|youtube|검색|찾아|보여|영상|봤어|봐봐/gi, '').trim();
+        
+        try {
+          // YouTube 검색 API 호출
+          const youtubeResponse = await fetch('/api/youtube/search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: searchQuery })
+          });
+          
+          if (youtubeResponse.ok) {
+            const youtubeData = await youtubeResponse.json();
+            if (youtubeData.success && youtubeData.video) {
+              // YouTube 영상 미리보기가 있는 메시지 전송
+              const youtubeMessage = {
+                ...pendingVoiceMessage,
+                content: `🎬 ${searchQuery} 검색 결과\n\n${youtubeData.video.title}\n\n${youtubeData.video.url}`,
+                messageType: "text",
+                youtubePreview: {
+                  url: youtubeData.video.url,
+                  title: youtubeData.video.title,
+                  thumbnail: youtubeData.video.thumbnail,
+                  channelTitle: youtubeData.video.channelTitle,
+                  publishedAt: youtubeData.video.publishedAt
+                }
+              };
+              delete youtubeMessage.fileUrl;
+              delete youtubeMessage.voiceDuration;
+              delete youtubeMessage.detectedLanguage;
+              delete youtubeMessage.confidence;
+              sendMessageMutation.mutate(youtubeMessage);
+            } else {
+              // 검색 결과가 없으면 기본 메시지
+              suggestion.action?.();
+              sendMessageMutation.mutate(pendingVoiceMessage);
+            }
+          } else {
+            // API 오류 시 기본 동작
+            suggestion.action?.();
+            sendMessageMutation.mutate(pendingVoiceMessage);
+          }
+        } catch (error) {
+          // 오류 발생 시 기본 동작
+          suggestion.action?.();
+          sendMessageMutation.mutate(pendingVoiceMessage);
+        }
       } else if (suggestion.action) {
         // 액션이 있는 경우 실행하고 원본 메시지 전송
         suggestion.action();
@@ -4846,6 +4894,46 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           "text-sm relative",
                           isMe ? "text-white" : "text-gray-900"
                         )}>
+                          {/* YouTube Preview */}
+                          {(msg as any).youtubePreview && (
+                            <div className="mb-3 rounded-lg overflow-hidden bg-white shadow-sm border">
+                              <div className="relative">
+                                <img 
+                                  src={(msg as any).youtubePreview.thumbnail}
+                                  alt={(msg as any).youtubePreview.title}
+                                  className="w-full h-48 object-cover"
+                                  onError={(e) => {
+                                    e.currentTarget.src = "https://via.placeholder.com/320x180/ff0000/ffffff?text=YouTube";
+                                  }}
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
+                                  <button
+                                    onClick={() => window.open((msg as any).youtubePreview.url, '_blank')}
+                                    className="clickable w-16 h-16 rounded-full bg-red-600 hover:bg-red-700 flex items-center justify-center text-white transition-all hover:scale-105"
+                                  >
+                                    <svg className="w-8 h-8 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                                      <path d="M8 5v14l11-7z"/>
+                                    </svg>
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="p-3">
+                                <h3 className="font-medium text-gray-900 text-sm line-clamp-2 mb-1">
+                                  {(msg as any).youtubePreview.title}
+                                </h3>
+                                <p className="text-xs text-gray-600 mb-2">
+                                  {(msg as any).youtubePreview.channelTitle}
+                                </p>
+                                <button
+                                  onClick={() => window.open((msg as any).youtubePreview.url, '_blank')}
+                                  className="clickable text-xs text-blue-600 hover:text-blue-800 font-medium"
+                                >
+                                  YouTube에서 보기 →
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                          
                           {/* Mood Indicator for Creative/Casual Conversations */}
                           {uiAdaptations.showMoodIndicator && msg.senderId === user?.id && (
                             <div className="flex items-center space-x-1 mb-1">
