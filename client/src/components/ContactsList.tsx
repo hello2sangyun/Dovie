@@ -55,6 +55,27 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const [recordingStartTime, setRecordingStartTime] = useState(0);
+  const contextMenuRef = useRef<HTMLDivElement>(null);
+
+  // 컨텍스트 메뉴 외부 클릭 감지로 자동 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: Event) => {
+      if (showContextMenu && contextMenuRef.current && !contextMenuRef.current.contains(event.target as Node)) {
+        setShowContextMenu(false);
+        setSelectedContact(null);
+      }
+    };
+
+    if (showContextMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [showContextMenu]);
 
   // 길게 누르기 시작 - 컨텍스트 메뉴 표시
   const handleLongPressStart = (contact: any, event: any) => {
@@ -548,7 +569,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                 <div key={contact.id} className="flex flex-col items-center space-y-1 flex-shrink-0">
                   <div 
                     className={cn(
-                      "relative cursor-pointer hover:opacity-75 transition-opacity select-none",
+                      "relative cursor-pointer hover:opacity-75 transition-opacity select-none rounded-full",
                       isRecording && recordingContact?.id === contact.id && "ring-2 ring-red-300"
                     )}
                     style={{ 
@@ -571,7 +592,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                       fallbackText={displayName}
                       size="md"
                       showOnlineStatus={false}
-                      className="shadow-md"
+                      className="rounded-full overflow-hidden"
                     />
                     {contact.contactUser.isOnline && (
                       <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full z-20"></div>
@@ -841,6 +862,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
           
           {/* 컨텍스트 메뉴 */}
           <div 
+            ref={contextMenuRef}
             className="fixed z-50 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 min-w-48"
             style={{
               left: Math.max(10, Math.min(contextMenuPosition.x - 100, window.innerWidth - 210)),
