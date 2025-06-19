@@ -51,7 +51,7 @@ export default function MainApp() {
   const [contactFilter, setContactFilter] = useState<number | null>(null);
   const [friendFilter, setFriendFilter] = useState<number | null>(null);
   const { preloadUserImages, preloadImages, getCacheStats } = useAdvancedImageCache();
-  const { preloadVisibleImages, preloadScrollAheadImages } = useGlobalImagePreloader();
+  const { preloadVisibleImages, preloadScrollAheadImages, startBackgroundPreloading } = useGlobalImagePreloader();
 
   useWebSocket(user?.id);
 
@@ -114,72 +114,83 @@ export default function MainApp() {
     refetchInterval: 5000,
   });
 
-  // Advanced profile image caching with comprehensive preloading
+  // Enhanced background image preloading system
   useEffect(() => {
     if (!user) return;
     
-    const preloadProfileImages = () => {
-      const allUsers: any[] = [];
+    const performAggressivePreloading = () => {
+      // 1. Immediate visible images (highest priority)
+      const visibleUrls: string[] = [];
       
-      // Add current user (highest priority)
-      if (user) {
-        allUsers.push(user);
+      // Current user profile (always visible)
+      if (user?.profilePicture) {
+        visibleUrls.push(user.profilePicture);
       }
       
-      // Add contact users (high priority)
-      if ((contactsData as any)?.contacts) {
-        (contactsData as any).contacts.forEach((contact: any) => {
-          if (contact.contactUser) {
-            allUsers.push(contact.contactUser);
+      // First 8 visible contacts in list
+      if (contactsData?.contacts) {
+        contactsData.contacts.slice(0, 8).forEach((contact: any) => {
+          if (contact.contactUser?.profilePicture) {
+            visibleUrls.push(contact.contactUser.profilePicture);
           }
         });
       }
       
-      // Add chat room participants (medium priority)
-      if ((chatRoomsData as any)?.chatRooms) {
-        (chatRoomsData as any).chatRooms.forEach((room: any) => {
-          if (room.participants) {
-            room.participants.forEach((participant: any) => {
-              if (participant.id !== user?.id) {
-                allUsers.push(participant);
-              }
-            });
+      // First 5 visible chat rooms
+      if (chatRoomsData?.chatRooms) {
+        chatRoomsData.chatRooms.slice(0, 5).forEach((room: any) => {
+          if (room.groupImage) {
+            visibleUrls.push(room.groupImage);
+          }
+          // First participant in each visible room
+          if (room.participants?.[0]?.profilePicture) {
+            visibleUrls.push(room.participants[0].profilePicture);
           }
         });
       }
       
-      // Remove duplicates and preload with priority
-      const uniqueUsers = allUsers.filter((user, index, self) => 
-        index === self.findIndex(u => u.id === user.id)
-      );
-      
-      // Preload current user with highest priority
-      if (user) {
-        preloadUserImages([user], 10);
+      // Preload visible images immediately
+      if (visibleUrls.length > 0) {
+        preloadVisibleImages(visibleUrls);
       }
       
-      // Preload contacts with high priority
-      const contacts = uniqueUsers.filter(u => 
-        (contactsData as any)?.contacts?.some((c: any) => c.contactUser?.id === u.id)
-      );
-      if (contacts.length > 0) {
-        preloadUserImages(contacts, 8);
+      // 2. Scroll-ahead images (high priority) - next items user might scroll to
+      const scrollAheadUrls: string[] = [];
+      
+      // Next 12 contacts after visible ones
+      if (contactsData?.contacts) {
+        contactsData.contacts.slice(8, 20).forEach((contact: any) => {
+          if (contact.contactUser?.profilePicture) {
+            scrollAheadUrls.push(contact.contactUser.profilePicture);
+          }
+        });
       }
       
-      // Preload other chat participants with medium priority
-      const others = uniqueUsers.filter(u => 
-        u.id !== user?.id && 
-        !contacts.some(c => c.id === u.id)
-      );
-      if (others.length > 0) {
-        preloadUserImages(others, 5);
+      // Next 10 chat rooms and their participants
+      if (chatRoomsData?.chatRooms) {
+        chatRoomsData.chatRooms.slice(5, 15).forEach((room: any) => {
+          if (room.groupImage) {
+            scrollAheadUrls.push(room.groupImage);
+          }
+          room.participants?.forEach((participant: any) => {
+            if (participant.profilePicture && participant.id !== user?.id) {
+              scrollAheadUrls.push(participant.profilePicture);
+            }
+          });
+        });
+      }
+      
+      // Preload scroll-ahead images
+      if (scrollAheadUrls.length > 0) {
+        preloadScrollAheadImages(scrollAheadUrls);
       }
     };
     
-    // Debounce to avoid rapid re-execution
-    const timeoutId = setTimeout(preloadProfileImages, 500);
-    return () => clearTimeout(timeoutId);
-  }, [user?.id, (contactsData as any)?.contacts?.length, (chatRoomsData as any)?.chatRooms?.length]);
+    // Start aggressive preloading when data is available
+    if (contactsData || chatRoomsData) {
+      performAggressivePreloading();
+    }
+  }, [contactsData, chatRoomsData, user, preloadVisibleImages, preloadScrollAheadImages]);
 
   // 친구와의 채팅방 찾기 또는 생성
   const createOrFindChatRoom = (contactUserId: number, contactUser: any) => {
