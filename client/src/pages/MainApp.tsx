@@ -4,7 +4,7 @@ import { useWebSocket } from "@/hooks/useWebSocket";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useGlobalBlobCache } from "@/hooks/useGlobalBlobCache";
+import { useImagePreloader, preloadGlobalImage } from "@/hooks/useImagePreloader";
 
 import VaultLogo from "@/components/VaultLogo";
 import ContactsList from "@/components/ContactsList";
@@ -34,7 +34,7 @@ export default function MainApp() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { preloadAllImages, cacheReady, cacheSize } = useGlobalBlobCache();
+  const { preloadImage, isLoading: imagePreloading } = useImagePreloader();
   const [activeTab, setActiveTab] = useState("chats");
   const [activeMobileTab, setActiveMobileTab] = useState("chats");
   const [showSettings, setShowSettings] = useState(false);
@@ -54,13 +54,57 @@ export default function MainApp() {
 
   useWebSocket(user?.id);
 
-  // 앱 시작 시 전역 이미지 캐시 초기화
+  // 앱 시작 시 모든 프로필 이미지 사전 다운로드
   useEffect(() => {
-    if (user && !cacheReady) {
-      console.log('🚀 Initializing global image cache...');
-      preloadAllImages();
+    if (user && contactsData && chatRoomsData) {
+      console.log('🚀 Starting profile image preloading...');
+      
+      const profileImagesToPreload = new Set<string>();
+      
+      // 사용자 자신의 프로필 이미지
+      if (user.profilePicture) {
+        profileImagesToPreload.add(user.profilePicture);
+      }
+      
+      // 연락처 프로필 이미지들
+      if ((contactsData as any)?.contacts) {
+        (contactsData as any).contacts.forEach((contact: any) => {
+          if (contact.contactUser?.profilePicture) {
+            profileImagesToPreload.add(contact.contactUser.profilePicture);
+          }
+        });
+      }
+      
+      // 채팅방 참가자 프로필 이미지들
+      if ((chatRoomsData as any)?.chatRooms) {
+        (chatRoomsData as any).chatRooms.forEach((room: any) => {
+          if (room.participants) {
+            room.participants.forEach((participant: any) => {
+              if (participant.profilePicture) {
+                profileImagesToPreload.add(participant.profilePicture);
+              }
+            });
+          }
+        });
+      }
+      
+      // 모든 프로필 이미지를 백그라운드에서 병렬로 다운로드
+      const preloadPromises = Array.from(profileImagesToPreload).map(async (imageUrl, index) => {
+        try {
+          // 각 이미지를 50ms씩 지연시켜 서버 부하 분산
+          await new Promise(resolve => setTimeout(resolve, index * 50));
+          await preloadGlobalImage(imageUrl);
+          console.log(`✅ Preloaded profile image: ${imageUrl}`);
+        } catch (error) {
+          console.warn(`❌ Failed to preload image: ${imageUrl}`, error);
+        }
+      });
+      
+      Promise.all(preloadPromises).then(() => {
+        console.log(`🎉 Profile image preloading completed! Total: ${profileImagesToPreload.size} images`);
+      });
     }
-  }, [user, cacheReady, preloadAllImages]);
+  }, [user, contactsData, chatRoomsData, preloadImage]);
 
   // Handle URL parameters for friend filter
   useEffect(() => {

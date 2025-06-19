@@ -1,97 +1,155 @@
 import { useState, useEffect, useRef } from 'react';
 
-interface PreloadedImage {
-  url: string;
-  loaded: boolean;
-  element?: HTMLImageElement;
-  timestamp: number;
+interface ImageCache {
+  [key: string]: string; // URL -> blob URL
 }
 
-// 전역 이미지 캐시 (컴포넌트 재마운트 시에도 유지)
-const globalImageCache = new Map<string, PreloadedImage>();
+interface ImagePreloaderHook {
+  preloadedImages: ImageCache;
+  isLoading: boolean;
+  preloadImage: (url: string) => Promise<string>;
+  clearCache: () => void;
+  getCachedImage: (url: string) => string | null;
+}
 
-export function useImagePreloader() {
-  const [preloadedImages, setPreloadedImages] = useState<Map<string, PreloadedImage>>(globalImageCache);
-  const preloadQueueRef = useRef<string[]>([]);
-  const isProcessingRef = useRef(false);
+// 전역 캐시 - 앱 전체에서 공유
+const globalImageCache: ImageCache = {};
+const loadingPromises = new Map<string, Promise<string>>();
 
-  const preloadImage = (url: string): Promise<HTMLImageElement> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = "anonymous"; // CORS 지원
-      img.onload = () => resolve(img);
-      img.onerror = reject;
-      // 캐시 활용을 위한 헤더 설정
-      img.src = url;
-    });
-  };
+export function useImagePreloader(): ImagePreloaderHook {
+  const [preloadedImages, setPreloadedImages] = useState<ImageCache>(globalImageCache);
+  const [isLoading, setIsLoading] = useState(false);
+  const mountedRef = useRef(true);
 
-  const processPreloadQueue = async () => {
-    if (isProcessingRef.current || preloadQueueRef.current.length === 0) {
-      return;
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  const preloadImage = async (url: string): Promise<string> => {
+    if (!url || url === 'null' || url === 'undefined') {
+      return '';
     }
 
-    isProcessingRef.current = true;
+    // 이미 캐시된 경우 즉시 반환
+    if (globalImageCache[url]) {
+      return globalImageCache[url];
+    }
 
-    while (preloadQueueRef.current.length > 0) {
-      const url = preloadQueueRef.current.shift();
-      if (!url) continue;
+    // 이미 로딩 중인 경우 기존 Promise 반환
+    if (loadingPromises.has(url)) {
+      return loadingPromises.get(url)!;
+    }
 
-      // 이미 로드된 이미지는 건너뛰기
-      if (preloadedImages.has(url) && preloadedImages.get(url)?.loaded) {
-        continue;
-      }
-
+    // 새로운 이미지 로딩 시작
+    const loadPromise = new Promise<string>(async (resolve, reject) => {
       try {
-        const img = await preloadImage(url);
-        const imageData = {
-          url,
-          loaded: true,
-          element: img,
-          timestamp: Date.now()
-        };
-        globalImageCache.set(url, imageData);
-        setPreloadedImages(prev => new Map(prev).set(url, imageData));
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Failed to load image: ${response.status}`);
+        }
+
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        
+        // 전역 캐시에 저장
+        globalImageCache[url] = blobUrl;
+        
+        if (mountedRef.current) {
+          setPreloadedImages({ ...globalImageCache });
+        }
+        
+        resolve(blobUrl);
       } catch (error) {
-        console.warn('Failed to preload image:', url, error);
-        const imageData = {
-          url,
-          loaded: false,
-          timestamp: Date.now()
-        };
-        globalImageCache.set(url, imageData);
-        setPreloadedImages(prev => new Map(prev).set(url, imageData));
+        console.error('Failed to preload image:', url, error);
+        reject(error);
+      } finally {
+        loadingPromises.delete(url);
       }
+    });
+
+    loadingPromises.set(url, loadPromise);
+    return loadPromise;
+  };
+
+  const getCachedImage = (url: string): string | null => {
+    if (!url || url === 'null' || url === 'undefined') {
+      return null;
     }
-
-    isProcessingRef.current = false;
+    return globalImageCache[url] || null;
   };
 
-  const addToPreloadQueue = (urls: string[]) => {
-    const newUrls = urls.filter(url => 
-      url && 
-      !preloadedImages.has(url) && 
-      !preloadQueueRef.current.includes(url)
-    );
+  const clearCache = () => {
+    // Blob URLs 해제
+    Object.values(globalImageCache).forEach(blobUrl => {
+      if (blobUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(blobUrl);
+      }
+    });
     
-    preloadQueueRef.current.push(...newUrls);
+    // 캐시 초기화
+    Object.keys(globalImageCache).forEach(key => {
+      delete globalImageCache[key];
+    });
     
-    // 즉시 처리 시작
-    processPreloadQueue();
-  };
-
-  const isImageLoaded = (url: string): boolean => {
-    return preloadedImages.get(url)?.loaded || false;
-  };
-
-  const getPreloadedImage = (url: string): HTMLImageElement | undefined => {
-    return preloadedImages.get(url)?.element;
+    loadingPromises.clear();
+    
+    if (mountedRef.current) {
+      setPreloadedImages({});
+    }
   };
 
   return {
-    addToPreloadQueue,
-    isImageLoaded,
-    getPreloadedImage,
-    preloadedImages: preloadedImages
+    preloadedImages,
+    isLoading,
+    preloadImage,
+    clearCache,
+    getCachedImage
   };
 }
+
+// 전역 함수들 - 다른 컴포넌트에서 직접 사용 가능
+export const getGlobalCachedImage = (url: string): string | null => {
+  if (!url || url === 'null' || url === 'undefined') {
+    return null;
+  }
+  return globalImageCache[url] || null;
+};
+
+export const preloadGlobalImage = async (url: string): Promise<string> => {
+  if (!url || url === 'null' || url === 'undefined') {
+    return '';
+  }
+
+  if (globalImageCache[url]) {
+    return globalImageCache[url];
+  }
+
+  if (loadingPromises.has(url)) {
+    return loadingPromises.get(url)!;
+  }
+
+  const loadPromise = fetch(url)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Failed to load image: ${response.status}`);
+      }
+      return response.blob();
+    })
+    .then(blob => {
+      const blobUrl = URL.createObjectURL(blob);
+      globalImageCache[url] = blobUrl;
+      return blobUrl;
+    })
+    .catch(error => {
+      console.error('Failed to preload image:', url, error);
+      return '';
+    })
+    .finally(() => {
+      loadingPromises.delete(url);
+    });
+
+  loadingPromises.set(url, loadPromise);
+  return loadPromise;
+};

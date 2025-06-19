@@ -7,7 +7,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-import InstantAvatar from "@/components/InstantAvatar";
+import ZeroDelayAvatar from "@/components/ZeroDelayAvatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   DropdownMenu, 
