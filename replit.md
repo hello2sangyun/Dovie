@@ -392,8 +392,6 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Removed redundant profile image preloading logic from MainApp component to prevent duplicate downloads
   - Users now see "프로필 이미지를 다운로드하는 중..." message and cannot access app until all images are cached
   - System ensures zero loading delays for profile pictures once user enters main application interface
-  - Fixed React Hooks order issue by using overlay approach instead of early returns
-  - Successfully tested with 4 profile images: all downloaded and cached during login for instant display
 
 ## User Preferences
 
