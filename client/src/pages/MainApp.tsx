@@ -4,7 +4,7 @@ import { useWebSocket } from "@/hooks/useWebSocket";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useImagePreloader } from "@/hooks/useImagePreloader";
+import { useAdvancedImageCache } from "@/hooks/useAdvancedImageCache";
 import VaultLogo from "@/components/VaultLogo";
 import ContactsList from "@/components/ContactsList";
 import ChatsList from "@/components/ChatsList";
@@ -14,6 +14,7 @@ import AddContactModal from "@/components/AddContactModal";
 import CommandModal from "@/components/CommandModal";
 import CreateGroupChatModal from "@/components/CreateGroupChatModal";
 import ProfilePhotoModal from "@/components/ProfilePhotoModal";
+import FastLoadingAvatar from "@/components/FastLoadingAvatar";
 import { BannerNotificationContainer } from "@/components/MobileBannerNotification";
 
 
@@ -48,7 +49,7 @@ export default function MainApp() {
   const [messageDataForCommand, setMessageDataForCommand] = useState<any>(null);
   const [contactFilter, setContactFilter] = useState<number | null>(null);
   const [friendFilter, setFriendFilter] = useState<number | null>(null);
-  const { addToPreloadQueue } = useImagePreloader();
+  const { preloadUserImages, preloadImages, getCacheStats } = useAdvancedImageCache();
 
   useWebSocket(user?.id);
 
@@ -111,51 +112,70 @@ export default function MainApp() {
     refetchInterval: 5000,
   });
 
-  // Optimized profile image preloading with debounce and limits
+  // Advanced profile image caching with comprehensive preloading
   useEffect(() => {
     if (!user) return;
     
-    const timeoutId = setTimeout(() => {
-      const imagesToPreload = new Set<string>();
+    const preloadProfileImages = () => {
+      const allUsers: any[] = [];
       
-      // Add current user's profile image
-      if (user?.profilePicture) {
-        imagesToPreload.add(`${user.profilePicture}?v=${user.id}`);
+      // Add current user (highest priority)
+      if (user) {
+        allUsers.push(user);
       }
       
-      // Add contact profile images (limit to first 8 for performance)
+      // Add contact users (high priority)
       if ((contactsData as any)?.contacts) {
-        (contactsData as any).contacts.slice(0, 8).forEach((contact: any) => {
-          if (contact.contactUser?.profilePicture) {
-            imagesToPreload.add(`${contact.contactUser.profilePicture}?v=${contact.contactUser.id}`);
+        (contactsData as any).contacts.forEach((contact: any) => {
+          if (contact.contactUser) {
+            allUsers.push(contact.contactUser);
           }
         });
       }
       
-      // Add chat room participants' profile images (limit to recent 5 rooms)
+      // Add chat room participants (medium priority)
       if ((chatRoomsData as any)?.chatRooms) {
-        (chatRoomsData as any).chatRooms.slice(0, 5).forEach((room: any) => {
+        (chatRoomsData as any).chatRooms.forEach((room: any) => {
           if (room.participants) {
-            room.participants.slice(0, 3).forEach((participant: any) => {
-              if (participant.profilePicture && participant.id !== user?.id) {
-                imagesToPreload.add(`${participant.profilePicture}?v=${participant.id}`);
+            room.participants.forEach((participant: any) => {
+              if (participant.id !== user?.id) {
+                allUsers.push(participant);
               }
             });
           }
         });
       }
       
-      // Batch preload with rate limiting to prevent network congestion
-      if (imagesToPreload.size > 0) {
-        Array.from(imagesToPreload).forEach((imageUrl, index) => {
-          setTimeout(() => {
-            const img = new Image();
-            img.src = imageUrl;
-          }, index * 100); // Stagger requests by 100ms
-        });
+      // Remove duplicates and preload with priority
+      const uniqueUsers = allUsers.filter((user, index, self) => 
+        index === self.findIndex(u => u.id === user.id)
+      );
+      
+      // Preload current user with highest priority
+      if (user) {
+        preloadUserImages([user], 10);
       }
-    }, 800); // Debounce by 800ms to avoid rapid re-execution
+      
+      // Preload contacts with high priority
+      const contacts = uniqueUsers.filter(u => 
+        (contactsData as any)?.contacts?.some((c: any) => c.contactUser?.id === u.id)
+      );
+      if (contacts.length > 0) {
+        preloadUserImages(contacts, 8);
+      }
+      
+      // Preload other chat participants with medium priority
+      const others = uniqueUsers.filter(u => 
+        u.id !== user?.id && 
+        !contacts.some(c => c.id === u.id)
+      );
+      if (others.length > 0) {
+        preloadUserImages(others, 5);
+      }
+    };
     
+    // Debounce to avoid rapid re-execution
+    const timeoutId = setTimeout(preloadProfileImages, 500);
     return () => clearTimeout(timeoutId);
   }, [user?.id, (contactsData as any)?.contacts?.length, (chatRoomsData as any)?.chatRooms?.length]);
 

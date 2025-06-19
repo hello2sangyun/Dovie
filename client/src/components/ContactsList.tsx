@@ -6,8 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { OptimizedAvatar } from "@/components/OptimizedAvatar";
-import PrismAvatar from "@/components/PrismAvatar";
+import FastLoadingAvatar from "@/components/FastLoadingAvatar";
+import { useAdvancedImageCache } from "@/hooks/useAdvancedImageCache";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   DropdownMenu, 
