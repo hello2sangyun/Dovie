@@ -1,7 +1,7 @@
-import React, { useState, useEffect, memo } from 'react';
+import { memo, useState, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { cn, getInitials, getAvatarColor } from "@/lib/utils";
-import { useInstantImageCache } from "@/hooks/useInstantImageCache";
+import { cn } from "@/lib/utils";
+import { useGlobalBlobCache } from '@/hooks/useGlobalBlobCache';
 
 interface InstantAvatarProps {
   src?: string | null;
@@ -20,90 +20,100 @@ const sizeClasses = {
   xl: 'h-16 w-16 text-lg'
 };
 
-const InstantAvatar = memo(({ 
-  src, 
-  alt = '', 
-  fallbackText = '',
+const colorClasses = [
+  'bg-red-500',
+  'bg-blue-500', 
+  'bg-green-500',
+  'bg-yellow-500',
+  'bg-purple-500',
+  'bg-pink-500',
+  'bg-indigo-500',
+  'bg-teal-500'
+];
+
+function getAvatarColor(text: string = ''): string {
+  const hash = text.split('').reduce((acc, char) => {
+    return char.charCodeAt(0) + ((acc << 5) - acc);
+  }, 0);
+  return colorClasses[Math.abs(hash) % colorClasses.length];
+}
+
+export const InstantAvatar = memo(function InstantAvatar({
+  src,
+  alt = "Avatar",
+  fallbackText = "?",
   size = 'md',
-  className,
+  className = "",
   showOnlineStatus = false,
   isOnline = false
-}: InstantAvatarProps) => {
-  const [imageReady, setImageReady] = useState(false);
-  const [instantSrc, setInstantSrc] = useState<string | null>(null);
-  const { getInstantImage, isImageReady } = useInstantImageCache();
+}: InstantAvatarProps) {
+  const [displaySrc, setDisplaySrc] = useState<string | null>(null);
+  const [showFallback, setShowFallback] = useState(false);
+  const { getInstantImage, loadImageAsBlob } = useGlobalBlobCache();
 
-  // 이미지 URL이 변경되면 즉시 캐시에서 확인
+  // 이니셜 생성
+  const initials = fallbackText
+    .split(' ')
+    .map(word => word.charAt(0))
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
+  const colorClass = getAvatarColor(fallbackText);
+
   useEffect(() => {
     if (!src) {
-      setImageReady(false);
-      setInstantSrc(null);
+      setDisplaySrc(null);
+      setShowFallback(true);
       return;
     }
 
-    // 캐시에서 즉시 사용 가능한 이미지 확인
-    if (isImageReady(src)) {
-      const cachedUrl = getInstantImage(src);
-      if (cachedUrl) {
-        setInstantSrc(cachedUrl);
-        setImageReady(true);
-        return;
-      }
+    // 즉시 캐시된 이미지 확인
+    const cachedImage = getInstantImage(src);
+    if (cachedImage) {
+      setDisplaySrc(cachedImage);
+      setShowFallback(false);
+      return;
     }
 
-    // 캐시에 없으면 원본 URL 시도 (폴백)
-    setInstantSrc(src);
-    setImageReady(false);
-  }, [src, isImageReady, getInstantImage]);
-
-  // 이미지 로드 성공시 상태 업데이트
-  const handleImageLoad = () => {
-    setImageReady(true);
-  };
-
-  // 이미지 로드 실패시 폴백 표시
-  const handleImageError = () => {
-    setImageReady(false);
-    setInstantSrc(null);
-  };
+    // 캐시에 없으면 비동기 로딩
+    setShowFallback(true);
+    loadImageAsBlob(src)
+      .then(objectUrl => {
+        setDisplaySrc(objectUrl);
+        setShowFallback(false);
+      })
+      .catch(error => {
+        console.error('InstantAvatar: Failed to load image', src, error);
+        setShowFallback(true);
+      });
+  }, [src, getInstantImage, loadImageAsBlob]);
 
   return (
     <div className="relative">
       <Avatar className={cn(sizeClasses[size], className)}>
-        {/* 캐시된 이미지 또는 원본 이미지 */}
-        {instantSrc && (
+        {displaySrc && !showFallback ? (
           <AvatarImage 
-            src={instantSrc}
+            src={displaySrc} 
             alt={alt}
-            className={cn(
-              "transition-opacity duration-75",
-              imageReady ? "opacity-100" : "opacity-90"
-            )}
-            onLoad={handleImageLoad}
-            onError={handleImageError}
+            className="object-cover"
+            onError={() => setShowFallback(true)}
           />
+        ) : (
+          <AvatarFallback className={cn(
+            "font-medium text-white",
+            colorClass
+          )}>
+            {initials}
+          </AvatarFallback>
         )}
-        
-        {/* 폴백 아바타 - 이미지가 없거나 로딩 실패시 항상 표시 */}
-        <AvatarFallback 
-          className={cn(
-            "transition-opacity duration-75 font-medium",
-            imageReady && instantSrc ? "opacity-0" : "opacity-100",
-            getAvatarColor(fallbackText)
-          )}
-        >
-          {getInitials(fallbackText)}
-        </AvatarFallback>
       </Avatar>
       
-      {/* 온라인 상태 표시 */}
       {showOnlineStatus && (
         <div className={cn(
-          "absolute bottom-0 right-0 rounded-full border-2 border-white",
-          size === 'sm' ? "w-2.5 h-2.5" : 
-          size === 'md' ? "w-3 h-3" :
-          size === 'lg' ? "w-3.5 h-3.5" : "w-4 h-4",
-          isOnline ? "bg-green-500" : "bg-gray-400"
+          "absolute -bottom-0.5 -right-0.5 rounded-full border-2 border-white",
+          isOnline ? "bg-green-500" : "bg-gray-400",
+          size === 'sm' ? "h-2.5 w-2.5" : size === 'md' ? "h-3 w-3" : "h-3.5 w-3.5"
         )} />
       )}
     </div>

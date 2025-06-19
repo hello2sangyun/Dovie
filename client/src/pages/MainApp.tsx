@@ -4,6 +4,7 @@ import { useWebSocket } from "@/hooks/useWebSocket";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useGlobalBlobCache } from "@/hooks/useGlobalBlobCache";
 
 import VaultLogo from "@/components/VaultLogo";
 import ContactsList from "@/components/ContactsList";
@@ -33,6 +34,7 @@ export default function MainApp() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { preloadAllImages, cacheReady, cacheSize } = useGlobalBlobCache();
   const [activeTab, setActiveTab] = useState("chats");
   const [activeMobileTab, setActiveMobileTab] = useState("chats");
   const [showSettings, setShowSettings] = useState(false);
@@ -50,8 +52,15 @@ export default function MainApp() {
   const [contactFilter, setContactFilter] = useState<number | null>(null);
   const [friendFilter, setFriendFilter] = useState<number | null>(null);
 
-
   useWebSocket(user?.id);
+
+  // 앱 시작 시 전역 이미지 캐시 초기화
+  useEffect(() => {
+    if (user && !cacheReady) {
+      console.log('🚀 Initializing global image cache...');
+      preloadAllImages();
+    }
+  }, [user, cacheReady, preloadAllImages]);
 
   // Handle URL parameters for friend filter
   useEffect(() => {
