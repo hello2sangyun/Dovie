@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -6,7 +6,6 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
 import ZeroDelayAvatar from "@/components/ZeroDelayAvatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
@@ -26,7 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, Star, MoreVertical, UserX, Trash2, Shield, Mic } from "lucide-react";
+import { Plus, Search, Star, MoreVertical, UserX, Trash2, Shield } from "lucide-react";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 
 interface ContactsListProps {
@@ -83,10 +82,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
 
   // 프로필 보기 핸들러
   const handleViewProfile = (contact: any) => {
-    // MainApp의 프로필 보기 기능 사용
-    // TODO: MainApp에서 프로필 모달을 열도록 이벤트 전달
     setShowContactMenu(false);
-    // 임시로 대화방으로 이동
     onSelectContact(contact.contactUserId);
   };
 
@@ -114,70 +110,39 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
     },
     onError: () => {
-      // 차단 실패 - 알림 제거
+      toast({
+        title: "차단 실패",
+        description: "연락처 차단에 실패했습니다. 다시 시도해주세요.",
+        variant: "destructive",
+      });
     },
   });
 
   // Delete contact mutation
   const deleteContactMutation = useMutation({
-    mutationFn: async (contactUserId: number) => {
-      const response = await apiRequest(`/api/contacts/${contactUserId}`, "DELETE");
+    mutationFn: async (contactId: number) => {
+      const response = await apiRequest(`/api/contacts/${contactId}`, "DELETE");
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
     },
     onError: () => {
-      // 삭제 실패 - 알림 제거
-    },
-  });
-
-  const { data: contactsData, isLoading } = useQuery({
-    queryKey: ["/api/contacts"],
-    enabled: !!user,
-    queryFn: async () => {
-      const response = await fetch("/api/contacts", {
-        headers: { "x-user-id": user!.id.toString() },
+      toast({
+        title: "삭제 실패",
+        description: "연락처 삭제에 실패했습니다. 다시 시도해주세요.",
+        variant: "destructive",
       });
-      if (!response.ok) throw new Error("Failed to fetch contacts");
-      return response.json();
     },
   });
 
-  // Contact profile images are preloaded automatically in the background
-
-  // 최근 포스팅한 친구들 데이터 가져오기
-  const { data: recentPostsData } = useQuery({
-    queryKey: ["/api/contacts/recent-posts"],
-    enabled: !!user,
-    queryFn: async () => {
-      const response = await fetch("/api/contacts/recent-posts", {
-        headers: { "x-user-id": user!.id.toString() },
-      });
-      if (!response.ok) throw new Error("Failed to fetch recent posts");
-      return response.json();
-    },
-    refetchInterval: 30000, // 30초마다 새로고침
-  });
-
-  const contacts = contactsData?.contacts || [];
-  const recentPosts = recentPostsData || [];
-
-  // 특정 사용자가 최근에 포스팅했는지 확인하는 함수
-  const hasRecentPost = (userId: number) => {
-    return recentPosts.some((post: any) => post.userId === userId);
-  };
-
-  const handleBlockContact = (contact: any) => {
-    setContactToBlock(contact);
-    setShowBlockConfirm(true);
-  };
-
+  // Delete contact handler
   const handleDeleteContact = (contact: any) => {
     setContactToDelete(contact);
     setShowDeleteConfirm(true);
   };
 
+  // Confirm block contact
   const confirmBlockContact = () => {
     if (contactToBlock) {
       blockContactMutation.mutate(contactToBlock.contactUserId);
@@ -186,61 +151,47 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     }
   };
 
+  // Confirm delete contact
   const confirmDeleteContact = () => {
     if (contactToDelete) {
-      deleteContactMutation.mutate(contactToDelete.contactUserId);
+      deleteContactMutation.mutate(contactToDelete.id);
       setShowDeleteConfirm(false);
       setContactToDelete(null);
     }
   };
 
-  // 즐겨찾기 친구와 모든 친구 분리
-  const favoriteContacts = contacts.filter((contact: any) => contact.isPinned);
+  // Fetch contacts
+  const { data: contacts = [], isLoading } = useQuery({
+    queryKey: ["/api/contacts"],
+    queryFn: async () => {
+      const res = await apiRequest("/api/contacts");
+      return res.json();
+    },
+  });
 
+  // Filter and sort contacts
   const filteredAndSortedContacts = contacts
     .filter((contact: any) => {
-      // 본인 계정 제외
-      if (contact.contactUser.id === user?.id) {
-        return false;
-      }
-      
-      const searchLower = searchTerm.toLowerCase();
-      const nickname = contact.nickname || contact.contactUser.displayName;
-      return nickname.toLowerCase().includes(searchLower) ||
-             contact.contactUser.username.toLowerCase().includes(searchLower);
+      const displayName = contact.nickname || contact.contactUser.displayName || contact.contactUser.username;
+      return displayName.toLowerCase().includes(searchTerm.toLowerCase());
     })
     .sort((a: any, b: any) => {
-      const aName = a.nickname || a.contactUser.displayName;
-      const bName = b.nickname || b.contactUser.displayName;
+      const getDisplayName = (contact: any) => contact.nickname || contact.contactUser.displayName || contact.contactUser.username;
       
-      switch (sortBy) {
-        case "nickname":
-          return aName.localeCompare(bName);
-        case "username":
-          return a.contactUser.username.localeCompare(b.contactUser.username);
-        case "lastSeen":
-          return new Date(b.contactUser.lastSeen || 0).getTime() - new Date(a.contactUser.lastSeen || 0).getTime();
-        default:
-          return 0;
+      if (sortBy === "nickname") {
+        return getDisplayName(a).localeCompare(getDisplayName(b));
+      } else if (sortBy === "recent") {
+        return new Date(b.lastMessageTime || 0).getTime() - new Date(a.lastMessageTime || 0).getTime();
+      } else if (sortBy === "favorite") {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        return getDisplayName(a).localeCompare(getDisplayName(b));
       }
+      return 0;
     });
 
-  const getInitials = (name: string) => {
-    return name.charAt(0).toUpperCase();
-  };
-
-  const getOnlineStatus = (user: any) => {
-    if (user.isOnline) return "온라인";
-    if (!user.lastSeen) return "오프라인";
-    
-    const lastSeen = new Date(user.lastSeen);
-    const now = new Date();
-    const diffMinutes = Math.floor((now.getTime() - lastSeen.getTime()) / (1000 * 60));
-    
-    if (diffMinutes < 60) return `${diffMinutes}분 전 접속`;
-    if (diffMinutes < 1440) return `${Math.floor(diffMinutes / 60)}시간 전 접속`;
-    return `${Math.floor(diffMinutes / 1440)}일 전 접속`;
-  };
+  // Get favorite contacts
+  const favoriteContacts = filteredAndSortedContacts.filter((contact: any) => contact.isPinned);
 
   if (isLoading) {
     return (
@@ -251,50 +202,50 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col bg-white">
+      {/* Header */}
       <div className="p-3 border-b border-gray-200">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold text-gray-900 text-sm">연락처</h3>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold text-gray-800">연락처</h2>
           <Button
-            variant="ghost"
-            size="sm"
-            className="text-purple-600 hover:text-purple-700 h-7 w-7 p-0"
             onClick={onAddContact}
+            size="sm"
+            className="bg-purple-600 hover:bg-purple-700 text-white"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4 mr-1" />
+            친구 추가
           </Button>
         </div>
-        
-        <div className="relative mb-2">
-          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-3 w-3" />
+
+        {/* Search */}
+        <div className="relative mb-3">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
-            type="text"
-            placeholder="검색..."
+            placeholder="연락처 검색..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-7 h-7 text-xs"
+            className="pl-10"
           />
         </div>
-        
+
+        {/* Sort */}
         <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="h-7 text-xs">
-            <SelectValue placeholder="정렬" />
+          <SelectTrigger className="w-full">
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="nickname">닉네임순</SelectItem>
-            <SelectItem value="username">이름순</SelectItem>
-            <SelectItem value="lastSeen">접속순</SelectItem>
+            <SelectItem value="nickname">이름순</SelectItem>
+            <SelectItem value="recent">최근 대화순</SelectItem>
+            <SelectItem value="favorite">즐겨찾기</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {/* 즐겨찾기 친구 버블 */}
+      {/* Favorite contacts horizontal scroll */}
       {favoriteContacts.length > 0 && (
         <div className="px-3 py-2 border-b border-gray-100">
-          <div className="flex items-center space-x-2 mb-2">
-            <h4 className="text-xs font-medium text-gray-600">즐겨찾기</h4>
-          </div>
-          <div className="flex space-x-3 overflow-x-auto scrollbar-none pb-1">
+          <h3 className="text-sm font-medium text-gray-600 mb-2">즐겨찾기</h3>
+          <div className="flex space-x-3 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 pb-2">
             {favoriteContacts.map((contact: any) => {
               const displayName = contact.nickname || contact.contactUser.displayName;
               return (
@@ -354,79 +305,74 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                   >
                     <ZeroDelayAvatar
                       src={contact.contactUser.profilePicture}
-                      fallbackText={contact.nickname || contact.contactUser.displayName}
+                      fallbackText={contact.nickname || contact.contactUser.displayName || contact.contactUser.username}
                       size="sm"
-                      className="hover:ring-2 hover:ring-blue-300 transition-all"
+                      showOnlineStatus={true}
+                      className="flex-shrink-0"
                     />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <p className="font-medium text-gray-900 truncate text-sm">
-                        {contact.nickname || contact.contactUser.displayName}
-                      </p>
-                      <div className={cn(
-                        "w-2 h-2 rounded-full ml-2 flex-shrink-0",
-                        contact.contactUser.isOnline ? "bg-green-500" : "bg-gray-300"
-                      )} />
+                    <div className="flex items-center space-x-2">
+                      <h3 className="font-medium text-gray-900 truncate">
+                        {contact.nickname || contact.contactUser.displayName || contact.contactUser.username}
+                      </h3>
+                      {contact.isPinned && (
+                        <Star className="h-3 w-3 text-yellow-400 fill-current flex-shrink-0" />
+                      )}
                     </div>
-                    <p className="text-xs text-gray-500 truncate">@{contact.contactUser.username}</p>
-                    <p className="text-xs text-gray-400 truncate">
-                      {getOnlineStatus(contact.contactUser)}
+                    <p className="text-sm text-gray-500 truncate">
+                      {contact.contactUser.email || `@${contact.contactUser.username}`}
                     </p>
+                    {contact.lastMessageTime && (
+                      <p className="text-xs text-gray-400">
+                        마지막 대화: {new Date(contact.lastMessageTime).toLocaleDateString()}
+                      </p>
+                    )}
                   </div>
                 </div>
-                
-                <div className="flex items-center space-x-1">
-                  {/* 즐겨찾기 버튼 */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={cn(
-                      "h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity",
-                      contact.isPinned && "opacity-100"
-                    )}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleFavoriteMutation.mutate({
-                        contactId: contact.id,
-                        isPinned: !contact.isPinned
-                      });
-                    }}
-                  >
-                    <Star 
-                      className={cn(
-                        "h-4 w-4",
-                        contact.isPinned 
-                          ? "fill-yellow-400 text-yellow-400" 
-                          : "text-gray-400 hover:text-yellow-400"
-                      )} 
-                    />
-                  </Button>
 
-                  {/* 옵션 메뉴 */}
+                {/* Contact menu dropdown */}
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <MoreVertical className="h-4 w-4 text-gray-400" />
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuContent align="end">
                       <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleBlockContact(contact);
+                          toggleFavoriteMutation.mutate({
+                            contactId: contact.id,
+                            isPinned: !contact.isPinned
+                          });
+                        }}
+                      >
+                        <Star className={cn("h-4 w-4 mr-2", contact.isPinned ? "fill-yellow-400 text-yellow-400" : "")} />
+                        {contact.isPinned ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setLocation(`/friend/${contact.contactUserId}`);
+                        }}
+                      >
+                        <MoreVertical className="h-4 w-4 mr-2" />
+                        프로필 보기
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setContactToBlock(contact);
+                          setShowBlockConfirm(true);
                         }}
                         className="text-orange-600"
                       >
                         <Shield className="h-4 w-4 mr-2" />
                         차단하기
                       </DropdownMenuItem>
-                      <DropdownMenuSeparator />
                       <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();
