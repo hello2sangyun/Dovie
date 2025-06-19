@@ -4,7 +4,7 @@ import { useWebSocket } from "@/hooks/useWebSocket";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useBackgroundImagePreloader } from "@/hooks/useBackgroundImagePreloader";
+
 import VaultLogo from "@/components/VaultLogo";
 import ContactsList from "@/components/ContactsList";
 import ChatsList from "@/components/ChatsList";
@@ -112,15 +112,12 @@ export default function MainApp() {
     refetchInterval: 5000,
   });
 
-  // Background image preloading system
-  const { startBackgroundPreloading, cacheSize } = useBackgroundImagePreloader();
-  
+  // Background image preloading will be implemented after fixing rendering issues
   useEffect(() => {
     if (!user) return;
     
-    console.log('Initializing background image preloading...');
-    startBackgroundPreloading();
-  }, [user, startBackgroundPreloading]);
+    console.log('MainApp rendering with user:', user.id);
+  }, [user]);
 
   // 친구와의 채팅방 찾기 또는 생성
   const createOrFindChatRoom = (contactUserId: number, contactUser: any) => {
