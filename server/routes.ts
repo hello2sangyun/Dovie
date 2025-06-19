@@ -3606,6 +3606,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Location sharing endpoints
+  app.post("/api/location/share", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { chatRoomId, latitude, longitude, address, googleMapsUrl, requestMessage } = req.body;
+
+      // Create location share record
+      const [locationShare] = await db.insert(locationShares).values({
+        userId: Number(userId),
+        chatRoomId: Number(chatRoomId),
+        latitude,
+        longitude,
+        address,
+        googleMapsUrl,
+      }).returning();
+
+      // Create a message with the location
+      const locationMessage = await storage.createMessage({
+        chatRoomId: Number(chatRoomId),
+        senderId: Number(userId),
+        content: `📍 위치 공유: ${address || '현재 위치'}`,
+        messageType: 'location',
+        locationData: {
+          latitude: parseFloat(latitude),
+          longitude: parseFloat(longitude),
+          address,
+          googleMapsUrl
+        }
+      });
+
+      // Broadcast the location message to chat participants
+      const participants = await storage.getChatParticipants(Number(chatRoomId));
+      participants.forEach(participant => {
+        if (wsConnections.has(participant.userId)) {
+          const ws = wsConnections.get(participant.userId);
+          if (ws && ws.readyState === 1) {
+            ws.send(JSON.stringify({
+              type: 'new_message',
+              message: locationMessage,
+              chatRoomId: Number(chatRoomId)
+            }));
+          }
+        }
+      });
+
+      res.json({ 
+        success: true, 
+        locationShare,
+        message: locationMessage
+      });
+    } catch (error) {
+      console.error('Location share error:', error);
+      res.status(500).json({ message: "Failed to share location" });
+    }
+  });
+
+  app.post("/api/location/detect", async (req, res) => {
+    try {
+      const { text } = req.body;
+      
+      // Simple location-related keyword detection
+      const locationKeywords = [
+        '주소', '위치', '어디야', '어디로', '맵', '지도', 
+        '길', '내비', '구글맵', '카카오맵', '찾아와',
+        '여기로', '거기로', '보내줄게', '알려줄게'
+      ];
+      
+      const isLocationRequest = locationKeywords.some(keyword => 
+        text.toLowerCase().includes(keyword)
+      );
+      
+      res.json({ isLocationRequest });
+    } catch (error) {
+      console.error('Location detection error:', error);
+      res.status(500).json({ message: "Failed to detect location intent" });
+    }
+  });
+
   // Space 피드 API (기존 userPosts 테이블 사용)
   app.get("/api/space/feed", async (req, res) => {
     const userId = req.headers["x-user-id"];
