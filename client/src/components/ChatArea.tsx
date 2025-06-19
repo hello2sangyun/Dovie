@@ -394,6 +394,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [showUnreadButton, setShowUnreadButton] = useState(false);
   const [firstUnreadMessageId, setFirstUnreadMessageId] = useState<number | null>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
+  
+  // Intelligent auto-scroll state
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+  const [lastScrollTop, setLastScrollTop] = useState(0);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Get chat room details (only for regular chats, not location chats)
   const { data: chatRoomsData } = useQuery({
@@ -1282,6 +1288,77 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   });
 
   const messages = messagesData?.messages || [];
+
+  // Intelligent auto-scroll function with smooth transitions
+  const scrollToBottom = (behavior: 'smooth' | 'instant' = 'smooth') => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ 
+        behavior,
+        block: 'end'
+      });
+    }
+  };
+
+  // Scroll event handler to detect user scrolling
+  const handleScroll = () => {
+    if (!chatScrollRef.current) return;
+    
+    const container = chatScrollRef.current;
+    const scrollTop = container.scrollTop;
+    const scrollHeight = container.scrollHeight;
+    const clientHeight = container.clientHeight;
+    
+    // Check if user is near the bottom (within 100px)
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+    
+    // Detect if user is manually scrolling
+    const isScrollingUp = scrollTop < lastScrollTop;
+    
+    if (isScrollingUp && !isNearBottom) {
+      setIsUserScrolling(true);
+      setShouldAutoScroll(false);
+    } else if (isNearBottom) {
+      setIsUserScrolling(false);
+      setShouldAutoScroll(true);
+    }
+    
+    setLastScrollTop(scrollTop);
+    
+    // Clear the scroll timeout
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+    
+    // Set a timeout to reset user scrolling state
+    scrollTimeoutRef.current = setTimeout(() => {
+      setIsUserScrolling(false);
+    }, 1000);
+  };
+
+  // Auto-scroll on new messages
+  useEffect(() => {
+    if (messages && messages.length > 0) {
+      const messageCount = messages.length;
+      
+      // Only auto-scroll if user hasn't manually scrolled up or this is initial load
+      if (shouldAutoScroll && (!lastMessageCount || messageCount > lastMessageCount)) {
+        setTimeout(() => {
+          scrollToBottom('smooth');
+        }, 100); // Small delay to ensure DOM is updated
+      }
+      
+      setLastMessageCount(messageCount);
+    }
+  }, [messages, shouldAutoScroll, lastMessageCount]);
+
+  // Cleanup scroll timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // 채팅방 진입 시 읽지 않은 메시지부터 표시하는 기능
   useEffect(() => {
@@ -4421,6 +4498,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         ref={chatScrollRef}
         className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-2 space-y-3 min-h-0 overscroll-behavior-y-contain overscroll-behavior-x-none pb-16 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 relative w-full"
         style={{ wordBreak: 'break-word' }}
+        onScroll={handleScroll}
       >
         {/* Security Notice - WhatsApp Style */}
         <div className="flex justify-center mb-6 px-4">
@@ -5168,6 +5246,32 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Floating Scroll to Bottom Button */}
+      {!shouldAutoScroll && (
+        <button
+          onClick={() => {
+            setShouldAutoScroll(true);
+            scrollToBottom('smooth');
+          }}
+          className="fixed bottom-24 right-6 z-40 bg-purple-500 hover:bg-purple-600 text-white rounded-full p-3 shadow-lg transition-all duration-200 transform hover:scale-105"
+          aria-label="최신 메시지로 이동"
+        >
+          <svg 
+            className="w-5 h-5" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth={2} 
+              d="M19 14l-7 7m0 0l-7-7m7 7V3" 
+            />
+          </svg>
+        </button>
+      )}
 
       {/* Floating Button for Unread Messages - Moved much higher to avoid covering other buttons */}
       {showUnreadButton && firstUnreadMessageId && (
