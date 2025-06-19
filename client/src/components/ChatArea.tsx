@@ -5021,11 +5021,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                             <div className="mb-3 rounded-lg overflow-hidden bg-white shadow-sm border">
                               <div className="relative">
                                 <img 
-                                  src={(msg as any).youtubePreview.thumbnail}
+                                  src={(msg as any).youtubePreview.thumbnailUrl || (msg as any).youtubePreview.thumbnail}
                                   alt={(msg as any).youtubePreview.title}
                                   className="w-full h-48 object-cover"
                                   onError={(e) => {
-                                    e.currentTarget.src = "https://via.placeholder.com/320x180/ff0000/ffffff?text=YouTube";
+                                    e.currentTarget.src = `https://img.youtube.com/vi/${(msg as any).youtubePreview.videoId}/hqdefault.jpg`;
                                   }}
                                 />
                                 <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
