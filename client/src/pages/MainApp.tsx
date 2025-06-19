@@ -5,6 +5,7 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAdvancedImageCache } from "@/hooks/useAdvancedImageCache";
+import { useGlobalImagePreloader } from "@/hooks/useGlobalImagePreloader";
 import VaultLogo from "@/components/VaultLogo";
 import ContactsList from "@/components/ContactsList";
 import ChatsList from "@/components/ChatsList";
@@ -50,6 +51,7 @@ export default function MainApp() {
   const [contactFilter, setContactFilter] = useState<number | null>(null);
   const [friendFilter, setFriendFilter] = useState<number | null>(null);
   const { preloadUserImages, preloadImages, getCacheStats } = useAdvancedImageCache();
+  const { preloadVisibleImages, preloadScrollAheadImages } = useGlobalImagePreloader();
 
   useWebSocket(user?.id);
 
