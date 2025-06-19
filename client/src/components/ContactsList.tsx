@@ -45,12 +45,8 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [contactToBlock, setContactToBlock] = useState<any>(null);
   const [contactToDelete, setContactToDelete] = useState<any>(null);
-  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingContact, setRecordingContact] = useState<any>(null);
-  const [showContextMenu, setShowContextMenu] = useState(false);
-  const [selectedContact, setSelectedContact] = useState<any>(null);
-  const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
+
+
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
