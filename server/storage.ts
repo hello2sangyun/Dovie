@@ -276,54 +276,22 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(users, eq(chatParticipants.userId, users.id))
       .where(inArray(chatParticipants.chatRoomId, chatRoomIds));
 
-    // Get last messages for each chat room - optimized query
+    // Get last messages for each chat room - complete query
     const lastMessages = await db
-      .select({
-        id: messages.id,
-        chatRoomId: messages.chatRoomId,
-        senderId: messages.senderId,
-        content: messages.content,
-        messageType: messages.messageType,
-        fileName: messages.fileName,
-        isCommandRecall: messages.isCommandRecall,
-        createdAt: messages.createdAt,
-        sender: users
-      })
+      .select()
       .from(messages)
       .innerJoin(users, eq(messages.senderId, users.id))
       .where(inArray(messages.chatRoomId, chatRoomIds))
       .orderBy(messages.chatRoomId, desc(messages.createdAt));
 
     // Group by chat room and get the latest message for each
-    const lastMessageByRoom = new Map<number, Message & { sender: User }>();
+    const lastMessageByRoom = new Map<number, any>();
     for (const message of lastMessages) {
-      if (!lastMessageByRoom.has(message.chatRoomId)) {
-        lastMessageByRoom.set(message.chatRoomId, {
-          id: message.id,
-          chatRoomId: message.chatRoomId,
-          senderId: message.senderId,
-          content: decryptText(message.content),
-          messageType: message.messageType,
-          fileUrl: message.fileUrl,
-          fileName: message.fileName,
-          fileSize: message.fileSize,
-          voiceDuration: message.voiceDuration,
-          detectedLanguage: message.detectedLanguage,
-          confidence: message.confidence,
-          replyToMessageId: message.replyToMessageId,
-          replyToContent: message.replyToContent,
-          replyToSenderName: message.replyToSenderName,
-          isCommandRecall: message.isCommandRecall,
-          commandName: message.commandName,
-          commandResult: message.commandResult,
-          linkPreview: message.linkPreview,
-          youtubePreview: message.youtubePreview,
-          expiresAt: message.expiresAt,
-          isTemporary: message.isTemporary,
-          editedAt: message.editedAt,
-          isEdited: message.isEdited,
-          createdAt: message.createdAt,
-          sender: message.sender
+      if (!lastMessageByRoom.has(message.messages.chatRoomId)) {
+        lastMessageByRoom.set(message.messages.chatRoomId, {
+          ...message.messages,
+          content: decryptText(message.messages.content),
+          sender: message.users
         });
       }
     }
@@ -353,7 +321,11 @@ export class DatabaseStorage implements IStorage {
           participant.id !== userId && blockedUserIds.has(participant.id)
         );
       })
-      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+      .sort((a, b) => {
+        const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+        const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+        return dateB - dateA;
+      });
   }
 
   async getChatRoomById(chatRoomId: number): Promise<(ChatRoom & { participants: User[] }) | undefined> {
@@ -482,7 +454,7 @@ export class DatabaseStorage implements IStorage {
     // 메시지 내용 암호화
     const encryptedMessage = {
       ...message,
-      content: encryptText(message.content)
+      content: message.content ? encryptText(String(message.content)) : null
     };
     
     const [newMessage] = await db
