@@ -63,28 +63,71 @@ async function checkAndSendReminders() {
 async function sendReminderNotification(reminder: any) {
   const { userId, reminderText, chatRoomId } = reminder;
   
-  // Format notification message
-  const notificationData = {
-    type: "reminder_notification",
-    title: "⏰ 리마인더 알림",
-    message: reminderText,
-    chatRoomId: chatRoomId,
-    timestamp: new Date().toISOString(),
-    reminderId: reminder.id
-  };
-  
-  // Send WebSocket notification if user is online
-  if (connections && connections.has(userId)) {
-    try {
-      broadcastToUser(userId, notificationData);
-      console.log(`📱 WebSocket notification sent to user ${userId}`);
-    } catch (error) {
-      console.error(`Failed to send WebSocket notification to user ${userId}:`, error);
+  try {
+    // Create a system message in the chat room for the reminder
+    const systemMessage = {
+      chatRoomId: chatRoomId,
+      senderId: userId, // Use the user who set the reminder as sender
+      content: `⏰ 리마인더: ${reminderText}`,
+      messageType: "text" as const,
+      isSystemMessage: true
+    };
+
+    // Save the reminder message to the database
+    const savedMessage = await storage.createMessage(systemMessage);
+    console.log(`💬 Reminder message created: ${savedMessage.id}`);
+
+    // Get chat room participants to broadcast the message
+    const chatRoom = await storage.getChatRoom(chatRoomId);
+    if (chatRoom && chatRoom.participants) {
+      // Broadcast the new reminder message to all participants
+      const messageData = {
+        type: "new_message",
+        message: {
+          ...savedMessage,
+          sender: { id: userId, displayName: "시스템" }
+        },
+        chatRoomId: chatRoomId
+      };
+
+      // Send to all participants in the chat room
+      chatRoom.participants.forEach((participant: any) => {
+        const ws = connections?.get(participant.id);
+        if (ws && ws.readyState === 1) { // WebSocket.OPEN = 1
+          try {
+            ws.send(JSON.stringify(messageData));
+            console.log(`📱 Reminder message sent to participant ${participant.id}`);
+          } catch (error) {
+            console.error(`Failed to send reminder message to participant ${participant.id}:`, error);
+          }
+        }
+      });
     }
+
+    // Also send a system notification for immediate attention
+    const notificationData = {
+      type: "reminder_notification", 
+      title: "⏰ 리마인더 알림",
+      message: reminderText,
+      chatRoomId: chatRoomId,
+      timestamp: new Date().toISOString(),
+      reminderId: reminder.id
+    };
+
+    if (connections && connections.has(userId)) {
+      try {
+        broadcastToUser(userId, notificationData);
+        console.log(`📱 Additional notification sent to user ${userId}`);
+      } catch (error) {
+        console.error(`Failed to send notification to user ${userId}:`, error);
+      }
+    }
+
+    console.log(`✅ Reminder sent as chat message for chat room ${chatRoomId}: ${reminderText}`);
+  } catch (error) {
+    console.error(`❌ Failed to send reminder notification:`, error);
+    throw error;
   }
-  
-  // Send a simple notification without creating system message to avoid type conflicts
-  console.log(`💬 Reminder notification sent for chat room ${chatRoomId}: ${reminderText}`);
 }
 
 // Export for external use

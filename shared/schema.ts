@@ -128,6 +128,7 @@ export const messages = pgTable("messages", {
   mentionedUserIds: text("mentioned_user_ids"), // JSON array of mentioned user IDs
   mentionAll: boolean("mention_all").default(false), // Whether this message mentions all users
   youtubePreview: jsonb("youtube_preview"), // YouTube video preview data
+  isSystemMessage: boolean("is_system_message").default(false), // For system-generated messages like reminders
   createdAt: timestamp("created_at").defaultNow(),
 });
 
