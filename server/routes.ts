@@ -940,6 +940,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Quick action shortcuts for chat rooms
+  app.post("/api/chat-rooms/:chatRoomId/pin", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const chatRoomId = Number(req.params.chatRoomId);
+      await storage.toggleChatRoomPin(chatRoomId, Number(userId));
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Failed to toggle pin chat room:", error);
+      res.status(500).json({ message: "Failed to pin/unpin chat room" });
+    }
+  });
+
+  app.post("/api/chat-rooms/:chatRoomId/archive", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const chatRoomId = Number(req.params.chatRoomId);
+      await storage.archiveChatRoom(chatRoomId, Number(userId));
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Failed to archive chat room:", error);
+      res.status(500).json({ message: "Failed to archive chat room" });
+    }
+  });
+
+  app.post("/api/chat-rooms/:chatRoomId/mark-read", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const chatRoomId = Number(req.params.chatRoomId);
+      await storage.markChatRoomAsRead(chatRoomId, Number(userId));
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Failed to mark chat room as read:", error);
+      res.status(500).json({ message: "Failed to mark as read" });
+    }
+  });
+
   // Message routes
   app.get("/api/chat-rooms/:chatRoomId/messages", async (req, res) => {
     try {

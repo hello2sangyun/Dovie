@@ -41,6 +41,9 @@ export interface IStorage {
   deleteChatRoom(chatRoomId: number, userId: number): Promise<void>;
   updateChatRoom(chatRoomId: number, updates: Partial<InsertChatRoom>): Promise<ChatRoom | undefined>;
   leaveChatRoom(chatRoomId: number, userId: number, saveFiles: boolean): Promise<void>;
+  toggleChatRoomPin(chatRoomId: number, userId: number): Promise<void>;
+  archiveChatRoom(chatRoomId: number, userId: number): Promise<void>;
+  markChatRoomAsRead(chatRoomId: number, userId: number): Promise<void>;
 
   // Message operations
   getMessages(chatRoomId: number, limit?: number): Promise<(Message & { sender: User })[]>;
@@ -651,6 +654,70 @@ export class DatabaseStorage implements IStorage {
   detectLocationRequest(message: string): boolean {
     const locationKeywords = ['어디', '위치', '주소', '장소', 'where', 'location', 'address'];
     return locationKeywords.some(keyword => message.toLowerCase().includes(keyword));
+  }
+
+  async toggleChatRoomPin(chatRoomId: number, userId: number): Promise<void> {
+    // Get current pin status
+    const participant = await db
+      .select()
+      .from(chatParticipants)
+      .where(
+        and(
+          eq(chatParticipants.chatRoomId, chatRoomId),
+          eq(chatParticipants.userId, userId)
+        )
+      );
+
+    if (participant.length > 0) {
+      const currentPinned = participant[0].isPinned || false;
+      await db
+        .update(chatParticipants)
+        .set({ isPinned: !currentPinned })
+        .where(
+          and(
+            eq(chatParticipants.chatRoomId, chatRoomId),
+            eq(chatParticipants.userId, userId)
+          )
+        );
+    }
+  }
+
+  async archiveChatRoom(chatRoomId: number, userId: number): Promise<void> {
+    await db
+      .update(chatParticipants)
+      .set({ 
+        isArchived: true,
+        archivedAt: new Date()
+      })
+      .where(
+        and(
+          eq(chatParticipants.chatRoomId, chatRoomId),
+          eq(chatParticipants.userId, userId)
+        )
+      );
+  }
+
+  async markChatRoomAsRead(chatRoomId: number, userId: number): Promise<void> {
+    // Get all messages in the chat room
+    const chatMessages = await db
+      .select({ id: messages.id })
+      .from(messages)
+      .where(eq(messages.chatRoomId, chatRoomId));
+
+    if (chatMessages.length > 0) {
+      const messageIds = chatMessages.map(msg => msg.id);
+      
+      // Mark all messages as read
+      await db.insert(messageReads)
+        .values(
+          messageIds.map(messageId => ({
+            messageId,
+            userId,
+            readAt: new Date()
+          }))
+        )
+        .onConflictDoNothing();
+    }
   }
 }
 
