@@ -1696,7 +1696,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Legacy encrypted file serving for non-profile images
-  app.get("/api/encrypted-files/:filename", async (req, res) => {
+  app.get("/api/encrypted-files/:filename", async (req: Request, res: Response) => {
     try {
       const filename = req.params.filename;
       const filePath = path.join(uploadDir, filename);
@@ -1708,75 +1708,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 파일이 암호화되었는지 확인 후 처리
       let decryptedBuffer: Buffer;
           
-          try {
-            // 먼저 암호화된 텍스트로 읽기 시도
-            const encryptedData = fs.readFileSync(filePath, 'utf8');
-            decryptedBuffer = decryptFileData(encryptedData);
-          } catch (decryptError) {
-            // 복호화 실패시 바이너리로 읽기 (암호화되지 않은 파일)
-            decryptedBuffer = fs.readFileSync(filePath);
-          }
-          
-          // 파일 확장자에 따른 Content-Type 설정
-          const ext = path.extname(filename).toLowerCase();
-          let contentType = 'application/octet-stream';
-          
-          if (ext === '.txt') contentType = 'text/plain; charset=utf-8';
-          else if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
-          else if (ext === '.png') contentType = 'image/png';
-          else if (ext === '.gif') contentType = 'image/gif';
-          else if (ext === '.webp') contentType = 'image/webp';
-          else if (ext === '.bmp') contentType = 'image/bmp';
-          else if (ext === '.svg') contentType = 'image/svg+xml';
-          else if (ext === '.mp4') contentType = 'video/mp4';
-          else if (ext === '.webm') contentType = 'video/webm';
-          else if (ext === '.mov') contentType = 'video/quicktime';
-          else if (ext === '.avi') contentType = 'video/x-msvideo';
-          else if (ext === '.pdf') contentType = 'application/pdf';
-          
-          res.set({
-            'Content-Type': contentType,
-            'Content-Length': decryptedBuffer.length,
-            'Cache-Control': 'public, max-age=31536000',
-            'Access-Control-Allow-Origin': '*',
-            'Cross-Origin-Resource-Policy': 'cross-origin'
-          });
-          
-          res.send(decryptedBuffer);
-        } catch (decryptError) {
-          console.error('File decryption error:', decryptError);
-          // 복호화 실패시 원본 파일을 직접 제공 시도
-          try {
-            const fileBuffer = fs.readFileSync(filePath);
-            const ext = path.extname(filename).toLowerCase();
-            let contentType = 'application/octet-stream';
-            
-            if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
-            else if (ext === '.png') contentType = 'image/png';
-            else if (ext === '.gif') contentType = 'image/gif';
-            else if (ext === '.webp') contentType = 'image/webp';
-            
-            res.set({
-              'Content-Type': contentType,
-              'Content-Length': fileBuffer.length,
-              'Cache-Control': 'public, max-age=31536000',
-              'Access-Control-Allow-Origin': '*',
-              'Cross-Origin-Resource-Policy': 'cross-origin'
-            });
-            
-            res.send(fileBuffer);
-          } catch (fallbackError) {
-            console.error('Fallback file serving error:', fallbackError);
-            return res.status(500).json({ message: "File processing error" });
-          }
-        }
-      } catch (error) {
-        console.error('Encrypted file serving error:', error);
-        res.status(500).json({ message: "Failed to serve encrypted file" });
+      try {
+        // 먼저 암호화된 텍스트로 읽기 시도
+        const encryptedData = fs.readFileSync(filePath, 'utf8');
+        decryptedBuffer = decryptFileData(encryptedData);
+      } catch (decryptError) {
+        // 복호화 실패시 바이너리로 읽기 (암호화되지 않은 파일)
+        decryptedBuffer = fs.readFileSync(filePath);
       }
-    } else {
-      console.log('File does not exist:', filePath);
-      res.status(404).json({ message: "File not found" });
+      
+      // 파일 확장자에 따른 Content-Type 설정
+      const ext = path.extname(filename).toLowerCase();
+      let contentType = 'application/octet-stream';
+      
+      if (ext === '.txt') contentType = 'text/plain; charset=utf-8';
+      else if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
+      else if (ext === '.png') contentType = 'image/png';
+      else if (ext === '.gif') contentType = 'image/gif';
+      else if (ext === '.webp') contentType = 'image/webp';
+      else if (ext === '.bmp') contentType = 'image/bmp';
+      else if (ext === '.svg') contentType = 'image/svg+xml';
+      else if (ext === '.mp4') contentType = 'video/mp4';
+      else if (ext === '.webm') contentType = 'video/webm';
+      else if (ext === '.mov') contentType = 'video/quicktime';
+      else if (ext === '.avi') contentType = 'video/x-msvideo';
+      else if (ext === '.pdf') contentType = 'application/pdf';
+      
+      res.set({
+        'Content-Type': contentType,
+        'Content-Length': decryptedBuffer.length,
+        'Cache-Control': 'public, max-age=31536000',
+        'Access-Control-Allow-Origin': '*',
+        'Cross-Origin-Resource-Policy': 'cross-origin'
+      });
+      
+      res.send(decryptedBuffer);
+    } catch (error) {
+      console.error('Encrypted file serving error:', error);
+      res.status(500).json({ message: "Failed to serve encrypted file" });
     }
   });
 

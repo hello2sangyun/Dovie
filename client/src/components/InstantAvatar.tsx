@@ -1,7 +1,7 @@
 import { memo, useState, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { useGlobalBlobCache } from '@/hooks/useGlobalBlobCache';
+import { useInstantImageCache } from '@/hooks/useInstantImageCache';
 
 interface InstantAvatarProps {
   src?: string | null;
