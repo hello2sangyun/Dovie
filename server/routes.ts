@@ -1518,7 +1518,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/messages/:messageId/like', async (req: Request, res: Response) => {
     try {
       const messageId = parseInt(req.params.messageId);
-      const userId = req.session.userId;
+      const userId = req.headers["x-user-id"];
 
       if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });

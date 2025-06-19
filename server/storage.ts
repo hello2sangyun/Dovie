@@ -81,11 +81,7 @@ export interface IStorage {
   // Business profile operations
   getBusinessProfile(userId: number): Promise<BusinessProfile | undefined>;
   createOrUpdateBusinessProfile(userId: number, profileData: Partial<InsertBusinessProfile>): Promise<BusinessProfile>;
-  
-  // Business card sharing operations
-  createBusinessCardShare(userId: number): Promise<BusinessCardShare>;
-  getBusinessCardShare(shareToken: string): Promise<BusinessCardShare | undefined>;
-  getBusinessCardShareInfo(userId: number): Promise<BusinessCardShare | undefined>;
+
   
   // User posts operations
   getUserPosts(userId: number): Promise<UserPost[]>;
@@ -754,7 +750,7 @@ export class DatabaseStorage implements IStorage {
 
       if (unreadCount > 0) {
         unreadCounts.push({
-          chatRoomId: room.chatRoomId,
+          chatRoomId: row.chatRoomId,
           unreadCount,
         });
       }
@@ -810,45 +806,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserLocation(userId: number, location: { latitude: number; longitude: number; accuracy: number }): Promise<void> {
-    // Use upsert to handle existing locations
-    await db
-      .insert(userLocations)
-      .values({
-        userId,
-        latitude: location.latitude.toString(),
-        longitude: location.longitude.toString(),
-        accuracy: location.accuracy.toString(),
-        updatedAt: new Date()
-      })
-      .onConflictDoUpdate({
-        target: userLocations.userId,
-        set: {
-          latitude: location.latitude.toString(),
-          longitude: location.longitude.toString(),
-          accuracy: location.accuracy.toString(),
-          updatedAt: new Date()
-        }
-      });
+    // Location functionality has been removed from the app
+    console.log('Location update ignored - functionality disabled');
   }
 
   async getNearbyLocationChatRooms(latitude: number, longitude: number, radius: number = 100): Promise<any[]> {
-    const result = await db
-      .select({
-        id: locationChatRooms.id,
-        name: locationChatRooms.name,
-        latitude: locationChatRooms.latitude,
-        longitude: locationChatRooms.longitude,
-        radius: locationChatRooms.radius,
-        address: locationChatRooms.address,
-        isOfficial: locationChatRooms.isOfficial,
-        participantCount: locationChatRooms.participantCount,
-        maxParticipants: locationChatRooms.maxParticipants,
-        lastActivity: locationChatRooms.lastActivity
-      })
-      .from(locationChatRooms)
-      .where(eq(locationChatRooms.isActive, true));
-    
-    return result;
+    // Location-based chat functionality has been removed
+    return [];
   }
 
   async createLocationChatRoom(userId: number, roomData: { name: string; latitude: number; longitude: number; address: string }): Promise<any> {
