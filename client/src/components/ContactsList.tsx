@@ -48,37 +48,39 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingContact, setRecordingContact] = useState<any>(null);
+  const [showContextMenu, setShowContextMenu] = useState(false);
+  const [selectedContact, setSelectedContact] = useState<any>(null);
+  const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const [recordingStartTime, setRecordingStartTime] = useState(0);
 
-  // 길게 누르기 시작
-  const handleLongPressStart = (contact: any) => {
-    console.log('🎯 간편음성메세지 - 길게 누르기 시작:', contact.contactUser.displayName || contact.contactUser.nickname || contact.contactUser.username);
+  // 길게 누르기 시작 - 컨텍스트 메뉴 표시
+  const handleLongPressStart = (contact: any, event: any) => {
+    console.log('📋 컨텍스트 메뉴 - 길게 누르기 시작:', contact.contactUser.displayName || contact.contactUser.nickname || contact.contactUser.username);
     
     const timer = setTimeout(() => {
-      console.log('🎤 간편음성메세지 - 0.5초 후 녹음 시작');
-      setRecordingContact(contact);
-      startVoiceRecording(contact);
-    }, 500); // 0.5초 후 녹음 시작
+      console.log('📋 컨텍스트 메뉴 - 0.5초 후 메뉴 표시');
+      setSelectedContact(contact);
+      
+      // 터치 이벤트 또는 마우스 이벤트에서 위치 가져오기
+      const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+      const clientY = event.touches ? event.touches[0].clientY : event.clientY;
+      
+      setContextMenuPosition({ x: clientX, y: clientY });
+      setShowContextMenu(true);
+    }, 500); // 0.5초 후 메뉴 표시
     
     setLongPressTimer(timer);
   };
 
   // 길게 누르기 끝
   const handleLongPressEnd = () => {
-    console.log('🛑 간편음성메세지 - 길게 누르기 끝, 녹음 중:', isRecording);
-    
     if (longPressTimer) {
       clearTimeout(longPressTimer);
       setLongPressTimer(null);
       console.log('⏰ 타이머 취소됨 (0.5초 전에 놓음)');
-    }
-    
-    if (isRecording) {
-      console.log('🎤 녹음 종료 시작');
-      stopVoiceRecording();
     }
   };
 
@@ -407,6 +409,38 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     }
   };
 
+  // 컨텍스트 메뉴 핸들러들
+  const handleContextMenuAction = (action: string) => {
+    if (!selectedContact) return;
+    
+    setShowContextMenu(false);
+    
+    switch (action) {
+      case 'favorite':
+        toggleFavoriteMutation.mutate({
+          contactId: selectedContact.id,
+          isPinned: !selectedContact.isPinned
+        });
+        break;
+      case 'block':
+        setContactToBlock(selectedContact);
+        setShowBlockConfirm(true);
+        break;
+      case 'delete':
+        setContactToDelete(selectedContact);
+        setShowDeleteConfirm(true);
+        break;
+    }
+    
+    setSelectedContact(null);
+  };
+
+  // 컨텍스트 메뉴 닫기
+  const closeContextMenu = () => {
+    setShowContextMenu(false);
+    setSelectedContact(null);
+  };
+
   // 즐겨찾기 친구와 모든 친구 분리
   const favoriteContacts = contacts.filter((contact: any) => contact.isPinned);
 
@@ -525,10 +559,10 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                       WebkitTouchCallout: 'none'
                     }}
                     onClick={() => setLocation(`/friend/${contact.contactUserId}`)}
-                    onMouseDown={() => handleLongPressStart(contact)}
+                    onMouseDown={(e) => handleLongPressStart(contact, e)}
                     onMouseUp={handleLongPressEnd}
                     onMouseLeave={handleLongPressEnd}
-                    onTouchStart={() => handleLongPressStart(contact)}
+                    onTouchStart={(e) => handleLongPressStart(contact, e)}
                     onTouchEnd={handleLongPressEnd}
                     onContextMenu={(e) => e.preventDefault()}
                   >
@@ -594,14 +628,14 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                   }}
                   onMouseDown={(e) => {
                     console.log('🖱️ 마우스 다운:', contact.contactUser.displayName);
-                    handleLongPressStart(contact);
+                    handleLongPressStart(contact, e);
                   }}
                   onMouseUp={handleLongPressEnd}
                   onMouseLeave={handleLongPressEnd}
                   onTouchStart={(e) => {
                     console.log('👆 터치 시작:', contact.contactUser.displayName);
                     e.preventDefault(); // 기본 터치 동작 방지
-                    handleLongPressStart(contact);
+                    handleLongPressStart(contact, e);
                   }}
                   onTouchEnd={handleLongPressEnd}
                   onContextMenu={(e) => e.preventDefault()}
