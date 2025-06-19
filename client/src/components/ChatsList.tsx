@@ -640,6 +640,10 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
       if (!response.ok) throw new Error("Failed to fetch chat rooms");
       return response.json();
     },
+    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    gcTime: 10 * 60 * 1000, // 10분간 메모리 유지
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 방지
+    refetchOnMount: false, // 마운트 시 캐시된 데이터 사용
   });
 
   // 연락처 정보 가져오기
@@ -653,6 +657,10 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
       if (!response.ok) throw new Error("Failed to fetch contacts");
       return response.json();
     },
+    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    gcTime: 10 * 60 * 1000, // 10분간 메모리 유지
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 방지
+    refetchOnMount: false, // 마운트 시 캐시된 데이터 사용
   });
 
   // 읽지 않은 메시지 수 가져오기
@@ -666,6 +674,10 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
       if (!response.ok) throw new Error("Failed to fetch unread counts");
       return response.json();
     },
+    staleTime: 30 * 1000, // 30초간 캐시 유지 (실시간성 필요)
+    gcTime: 5 * 60 * 1000, // 5분간 메모리 유지
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 방지
+    refetchInterval: 5000, // 5초마다 자동 갱신 (실시간 알림용)
   });
 
   const chatRooms = chatRoomsData?.chatRooms || [];

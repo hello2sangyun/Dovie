@@ -402,6 +402,14 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Enhanced hasRecentPost function with useCallback to prevent unnecessary function recreation
   - Profile images in contacts tab now display instantly without any visible flickering or loading delays
   - Maintained all existing functionality while significantly improving rendering performance and user experience
+- June 19, 2025: Comprehensive React Query optimization to prevent tab re-rendering and improve caching:
+  - Applied aggressive caching strategy across ContactsList, ChatsList, and MainApp components
+  - Set 5-minute staleTime and 10-minute gcTime for contacts and chat rooms data to minimize API calls
+  - Disabled refetchOnWindowFocus and refetchOnMount to prevent unnecessary re-renders when switching tabs
+  - Maintained real-time functionality for unread counts with 5-second refresh intervals
+  - Enhanced profile image preloading system to include all contacts and chat room participants during login
+  - Contacts and chat tabs now use cached data immediately without re-fetching when clicked
+  - Eliminated repetitive API requests that caused tab switching delays and re-rendering issues
 
 ## User Preferences
 
