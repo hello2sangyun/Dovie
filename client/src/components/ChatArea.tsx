@@ -28,8 +28,8 @@ import { FileUploadModal } from "./FileUploadModal";
 import { LinkPreview } from "./LinkPreview";
 import { MessageLikeButton } from "./MessageLikeButton";
 import { LocationShareModal } from "./LocationShareModal";
-import YoutubeSelectionModal from "./YoutubeSelectionModal";
 import ReminderTimeModal from "./ReminderTimeModal";
+import YoutubeSelectionModal from "./YoutubeSelectionModal";
 // Using inline smart suggestion analysis to avoid import issues
 interface SmartSuggestion {
   type: string;
@@ -288,6 +288,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [isTranslating, setIsTranslating] = useState(false);
   const [showLocationShareModal, setShowLocationShareModal] = useState(false);
   const [locationRequestId, setLocationRequestId] = useState<number | undefined>();
+  
+  // 리마인더 모달 상태
+  const [showReminderModal, setShowReminderModal] = useState(false);
+  const [reminderText, setReminderText] = useState("");
   const [showYoutubeModal, setShowYoutubeModal] = useState(false);
   const [youtubeSearchQuery, setYoutubeSearchQuery] = useState("");
   
