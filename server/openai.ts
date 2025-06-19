@@ -312,11 +312,13 @@ export async function transcribeAudio(filePath: string): Promise<{
       if (errorText.includes("Audio file is too short") || errorText.includes("audio_too_short")) {
         console.log("🔇 Audio file too short, treating as silent recording");
         return {
-          text: "",
-          language: "ko",
+          success: false,
+          transcription: "",
+          detectedLanguage: "ko",
           duration: 0,
           confidence: 0,
-          error: "SILENT_RECORDING"
+          error: "SILENT_RECORDING",
+          smartSuggestions: []
         };
       }
       
@@ -395,16 +397,12 @@ export async function transcribeAudio(filePath: string): Promise<{
           messages: [
             {
               role: "system",
-              content: `당신은 음성 메시지 텍스트를 분석해서 사용자가 원하는 행동을 파악하는 AI입니다. 
-              다음 카테고리 중에서 해당하는 것을 찾아 JSON으로 응답하세요:
+              content: `당신은 음성 메시지 텍스트를 분석해서 사용자가 YouTube 영상을 원하는지 파악하는 AI입니다. 
+              오직 YouTube 관련 요청만 감지하고 JSON으로 응답하세요:
               
-              1. youtube: 유튜브 영상 검색/추천 (예: "지드래곤 유튜브", "상남자 영상", "유튜브로 검색", "영상 봐봐")
-              2. location: 위치 공유/문의 (예: "어디야", "주소 알려줘", "어디로 가면 돼")
-              3. translation: 번역 요청 (예: "영어로", "한국어로", "번역해줘")
-              4. search: 검색 요청 (예: "검색해줘", "찾아봐")
-              5. calculation: 계산 요청 (예: "계산해줘", "얼마야")
-              6. currency: 환율 계산 (예: "달러", "원", "환율")
-              7. news: 뉴스/정보 (예: "뉴스", "소식", "정보")
+              YouTube 감지 조건:
+              - 유튜브, youtube, 영상, 비디오, 뮤직비디오, mv 등의 키워드
+              - "영상 봐봐", "유튜브로 검색", "[아티스트명] 영상" 등의 표현
               
               응답 형식:
               {
@@ -418,6 +416,8 @@ export async function transcribeAudio(filePath: string): Promise<{
                   }
                 ]
               }
+              
+              YouTube 관련이 아니면 빈 배열로 응답: {"suggestions": []}
               
               YouTube의 경우 검색할 키워드를 정확히 추출하세요.
               매칭되는 것이 없으면 빈 배열을 반환하세요.`

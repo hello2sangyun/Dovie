@@ -48,7 +48,7 @@ const analyzeTextForSmartSuggestions = (text: string): SmartSuggestion[] => {
 
   const suggestions: SmartSuggestion[] = [];
 
-  // YouTube 감지
+  // YouTube 감지만 유지
   if (/유튜브|youtube|영상|비디오|뮤직비디오|mv|검색.*영상|영상.*검색|봐봐|보여.*영상/i.test(text)) {
     const keyword = text
       .replace(/유튜브|youtube|영상|비디오|뮤직비디오|mv|검색|찾아|보여|봐봐|해줘|하자|보자/gi, '')
@@ -62,95 +62,6 @@ const analyzeTextForSmartSuggestions = (text: string): SmartSuggestion[] => {
       category: 'YouTube 검색',
       keyword: keyword || '검색',
       confidence: 0.9
-    });
-  }
-
-  // 위치 공유 감지
-  if (/어디|위치|장소|주소|어디야|어디에|어디로|어디서|여기|거기|오세요|와|갈게|만나|위치공유|현재위치|gps/i.test(text)) {
-    suggestions.push({
-      type: 'location',
-      text: '📍 현재 위치 공유하기',
-      result: '현재 위치를 공유합니다',
-      icon: '📍',
-      category: '위치 공유',
-      confidence: 0.85
-    });
-  }
-
-  // 번역 감지
-  if (/번역|translate|영어로|한국어로|일본어로|중국어로|불어로|독어로|스페인어로/i.test(text)) {
-    suggestions.push({
-      type: 'translation',
-      text: '🌐 텍스트 번역하기',
-      result: '번역을 진행합니다',
-      icon: '🌐',
-      category: '번역',
-      confidence: 0.9
-    });
-  }
-
-  // 검색 감지
-  if (/검색|찾아|알아봐|search|google|네이버|다음/i.test(text)) {
-    const searchKeyword = text
-      .replace(/검색|찾아|알아봐|search|google|네이버|다음|해줘|하자/gi, '')
-      .trim();
-    
-    suggestions.push({
-      type: 'search',
-      text: '🔍 웹 검색하기',
-      result: `검색을 진행합니다: ${searchKeyword}`,
-      icon: '🔍',
-      category: '검색',
-      keyword: searchKeyword,
-      confidence: 0.8
-    });
-  }
-
-  // 계산 감지
-  if (/계산|더하기|빼기|곱하기|나누기|몇.*이야|얼마야|\+|\-|\*|\/|\=|[0-9]+.*[+\-*/].*[0-9]/i.test(text)) {
-    suggestions.push({
-      type: 'calculation',
-      text: '🔢 계산하기',
-      result: '계산을 진행합니다',
-      icon: '🔢',
-      category: '계산',
-      confidence: 0.85
-    });
-  }
-
-  // 환율 감지
-  if (/환율|달러|엔|유로|원|currency|exchange|usd|jpy|eur|krw/i.test(text)) {
-    suggestions.push({
-      type: 'currency',
-      text: '💱 환율 확인하기',
-      result: '환율 정보를 확인합니다',
-      icon: '💱',
-      category: '환율',
-      confidence: 0.8
-    });
-  }
-
-  // 뉴스 감지
-  if (/뉴스|news|기사|최신|오늘.*소식|헤드라인|속보/i.test(text)) {
-    suggestions.push({
-      type: 'news',
-      text: '📰 최신 뉴스 확인하기',
-      result: '최신 뉴스를 검색합니다',
-      icon: '📰',
-      category: '뉴스',
-      confidence: 0.75
-    });
-  }
-
-  // 요약 감지
-  if (/요약|정리|summary|간단히|핵심만|중요한.*것만/i.test(text)) {
-    suggestions.push({
-      type: 'summary',
-      text: '📝 텍스트 요약하기',
-      result: '요약을 진행합니다',
-      icon: '📝',
-      category: '요약',
-      confidence: 0.8
     });
   }
 
@@ -3173,7 +3084,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     return null;
   };
 
-  // 스마트 제안 선택 처리
+  // 스마트 제안 선택 처리 (YouTube만 유지)
   const handleSmartSuggestionSelect = async (suggestion: typeof smartSuggestions[0]) => {
     // 음성 메시지 대기 중인 경우 처리
     if (pendingVoiceMessage) {
@@ -3183,64 +3094,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         setSuggestionTimeout(null);
       }
       
-      // AI 기능들은 API 호출 후 모달로 결과 표시
-      if (['translation', 'emotion', 'summary', 'quote', 'decision', 'news', 'search', 'topic_info'].includes(suggestion.type)) {
-        try {
-          setSmartResultModal({
-            show: true,
-            title: `${suggestion.category} 처리 중...`,
-            content: '잠시만 기다려주세요...'
-          });
-
-          const response = await fetch('/api/smart-suggestion', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              type: suggestion.type, 
-              content: pendingVoiceMessage.content,
-              originalText: pendingVoiceMessage.content 
-            })
-          });
-          
-          if (!response.ok) {
-            throw new Error('API 요청 실패');
-          }
-          
-          const result = await response.json();
-          
-          setSmartResultModal({
-            show: true,
-            title: suggestion.text,
-            content: result.result || "처리할 수 없습니다."
-          });
-          
-          // 원본 음성 메시지도 전송
-          sendMessageMutation.mutate(pendingVoiceMessage);
-          
-        } catch (error) {
-          setSmartResultModal({
-            show: true,
-            title: "오류 발생",
-            content: "서비스를 사용할 수 없습니다. 잠시 후 다시 시도해주세요."
-          });
-          
-          // 오류 발생 시에도 원본 메시지 전송
-          sendMessageMutation.mutate(pendingVoiceMessage);
-        }
-      } else if (suggestion.type === 'currency') {
-        // 환율 변환 제안 선택 - 음성 메시지를 환율 결과로 변경
-        updateCurrencyUsage(suggestion.fromCurrency, suggestion.toCurrency);
-        const modifiedMessage = {
-          ...pendingVoiceMessage,
-          content: suggestion.result,
-          messageType: "text" // 환율 변환은 텍스트 메시지로
-        };
-        delete modifiedMessage.fileUrl; // 음성 파일 제거
-        delete modifiedMessage.voiceDuration;
-        delete modifiedMessage.detectedLanguage;
-        delete modifiedMessage.confidence;
-        sendMessageMutation.mutate(modifiedMessage);
-      } else if (suggestion.type === 'youtube') {
+      if (suggestion.type === 'youtube') {
         // YouTube 검색 및 영상 임베드 - 선택 모달 사용
         const searchQuery = pendingVoiceMessage.content.replace(/유튜브|youtube|검색|찾아|보여|영상|봤어|봐봐/gi, '').trim();
         
@@ -3250,18 +3104,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         // YouTube 선택 모달 열기
         setYoutubeSearchQuery(searchQuery);
         setShowYoutubeModal(true);
-      } else if (suggestion.action) {
-        // 액션이 있는 경우 실행하고 원본 메시지 전송
-        suggestion.action();
-        sendMessageMutation.mutate(pendingVoiceMessage);
       } else {
-        // 다른 타입의 제안은 원본 음성메시지만 전송 (자동 텍스트 메시지 전송 제거)
+        // 다른 타입의 제안은 원본 음성메시지만 전송
         sendMessageMutation.mutate(pendingVoiceMessage);
       }
       
       setPendingVoiceMessage(null);
     } else {
-      // 일반 텍스트 입력 시 기존 로직
+      // 일반 텍스트 입력 시 YouTube만 처리
       if (suggestion.type === 'youtube') {
         // 텍스트 입력에서 YouTube 검색 및 영상 선택 모달
         const searchQuery = message.replace(/유튜브|youtube|검색|찾아|보여|영상|봤어|봐봐/gi, '').trim();
@@ -3269,53 +3119,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         setYoutubeSearchQuery(searchQuery);
         setShowYoutubeModal(true);
         setMessage("");
-      } else if (['translation', 'emotion', 'summary', 'quote', 'decision', 'news', 'search', 'topic_info'].includes(suggestion.type)) {
-        try {
-          setSmartResultModal({
-            show: true,
-            title: `${suggestion.category} 처리 중...`,
-            content: '잠시만 기다려주세요...'
-          });
-
-          const response = await fetch('/api/smart-suggestion', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              type: suggestion.type, 
-              content: message,
-              originalText: message 
-            })
-          });
-          
-          if (!response.ok) {
-            throw new Error('API 요청 실패');
-          }
-          
-          const result = await response.json();
-          
-          setSmartResultModal({
-            show: true,
-            title: suggestion.text,
-            content: result.result || "처리할 수 없습니다."
-          });
-          
-        } catch (error) {
-          setSmartResultModal({
-            show: true,
-            title: "오류 발생",
-            content: "서비스를 사용할 수 없습니다. 잠시 후 다시 시도해주세요."
-          });
-        }
-      } else if (suggestion.action) {
-        suggestion.action();
-      } else {
-        sendMessageMutation.mutate({
-          content: suggestion.result,
-          messageType: "text"
-        });
       }
-      
-      setMessage('');
     }
     
     setShowSmartSuggestions(false);
