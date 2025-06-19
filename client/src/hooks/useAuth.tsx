@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { User } from "@shared/schema";
+import { useInstantImageCache } from "./useInstantImageCache";
 
 interface AuthContextType {
   user: User | null;
@@ -14,6 +15,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [initialized, setInitialized] = useState(false);
+  const [profileImagesLoaded, setProfileImagesLoaded] = useState(false);
+
 
   // Try to get user from localStorage on app start
   const storedUserId = localStorage.getItem("userId");
@@ -45,20 +48,98 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     retry: false,
   });
 
+  // 연락처와 채팅룸 데이터에서 프로필 이미지 URL 추출 및 프리로딩
+  const preloadProfileImages = async (userId: string) => {
+    try {
+      console.log("🚀 Starting profile image preloading...");
+      
+      // 연락처 데이터 가져오기
+      const contactsResponse = await fetch("/api/contacts", {
+        headers: { "x-user-id": userId },
+      });
+      
+      // 채팅룸 데이터 가져오기
+      const chatRoomsResponse = await fetch("/api/chat-rooms", {
+        headers: { "x-user-id": userId },
+      });
+      
+      const profileImageUrls = new Set<string>();
+      
+      if (contactsResponse.ok) {
+        const contactsData = await contactsResponse.json();
+        contactsData.contacts?.forEach((contact: any) => {
+          if (contact.contactUser?.profilePicture) {
+            profileImageUrls.add(contact.contactUser.profilePicture);
+          }
+        });
+      }
+      
+      if (chatRoomsResponse.ok) {
+        const chatRoomsData = await chatRoomsResponse.json();
+        chatRoomsData.chatRooms?.forEach((chatRoom: any) => {
+          if (chatRoom.profilePicture) {
+            profileImageUrls.add(chatRoom.profilePicture);
+          }
+        });
+      }
+      
+      // 모든 프로필 이미지를 병렬로 다운로드
+      const imagePromises = Array.from(profileImageUrls).map(async (imageUrl) => {
+        try {
+          const response = await fetch(imageUrl);
+          if (response.ok) {
+            const blob = await response.blob();
+            const objectUrl = URL.createObjectURL(blob);
+            
+            // 전역 캐시 초기화 (없으면 생성)
+            if (!(window as any).globalImageCache) {
+              (window as any).globalImageCache = new Map();
+            }
+            
+            // 이미지 캐시에 저장
+            (window as any).globalImageCache.set(imageUrl, {
+              blob,
+              objectUrl,
+              timestamp: Date.now(),
+              preloaded: true
+            });
+            
+            console.log("✅ Preloaded profile image:", imageUrl);
+          }
+        } catch (error) {
+          console.error("❌ Failed to preload image:", imageUrl, error);
+        }
+      });
+      
+      await Promise.all(imagePromises);
+      console.log("🎉 Profile image preloading completed! Total:", profileImageUrls.size, "images");
+      setProfileImagesLoaded(true);
+    } catch (error) {
+      console.error("❌ Profile image preloading failed:", error);
+      setProfileImagesLoaded(true); // 실패해도 로그인은 진행
+    }
+  };
+
   useEffect(() => {
     if (data?.user) {
       console.log("🔄 Auth context updating user:", data.user.id, "profilePicture:", data.user.profilePicture);
       setUser(data.user);
-      setInitialized(true);
+      
+      // 프로필 이미지 프리로딩 시작
+      preloadProfileImages(data.user.id.toString()).then(() => {
+        setInitialized(true);
+      });
     } else if (error) {
       // Clear user data if authentication fails
       console.log("❌ Authentication failed, clearing user data");
       setUser(null);
       localStorage.removeItem("userId");
       setInitialized(true);
+      setProfileImagesLoaded(false);
     } else if (!storedUserId) {
       // No stored user ID, mark as initialized
       setInitialized(true);
+      setProfileImagesLoaded(false);
     }
   }, [data, error, storedUserId]);
 

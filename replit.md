@@ -378,6 +378,13 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - ContactsList now uses same InstantAvatar component as ChatsList for consistent performance
   - All profile images across the application now benefit from instant loading without delays
   - Completed unified instant image loading system across all user interface components
+- June 19, 2025: Implemented login-time profile image preloading for zero-delay user experience:
+  - Modified useAuth hook to automatically download all profile images during login process
+  - Added preloadProfileImages function that fetches contacts and chat room data to collect image URLs
+  - Implemented parallel image downloading with Blob conversion and global cache storage
+  - Login completion now waits for all profile images to be preloaded before allowing app access
+  - Profile images are stored in global cache for instant access throughout application
+  - Enhanced user experience by eliminating loading delays for profile pictures during navigation
 
 ## User Preferences
 
