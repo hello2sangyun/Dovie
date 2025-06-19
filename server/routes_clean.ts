@@ -299,8 +299,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { content, messageType = "text" } = req.body;
       
       const message = await storage.createMessage({
-        chatRoomId: Number(chatRoomId),
-        senderId: Number(userId),
+        chatRoomId: Number(chatRoomId) as any,
+        senderId: Number(userId) as any,
         content,
         messageType
       });
