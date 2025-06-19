@@ -216,83 +216,110 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   }
 
   return (
-    <div className="h-full flex flex-col bg-white">
-      {/* Debug Info */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="p-2 bg-yellow-50 border-b text-xs">
-          <div>연락처 데이터: {contacts.length}개</div>
-          <div>필터링된 연락처: {filteredAndSortedContacts.length}개</div>
-          <div>검색어: "{searchTerm}"</div>
-          <div>정렬: {sortBy}</div>
-        </div>
-      )}
-      
-      {/* Header */}
-      <div className="p-3 border-b border-gray-200">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-gray-800">연락처</h2>
-          <Button
-            onClick={onAddContact}
-            size="sm"
-            className="bg-purple-600 hover:bg-purple-700 text-white"
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            친구 추가
-          </Button>
-        </div>
+    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
+      {/* Modern Header */}
+      <div className="bg-white dark:bg-gray-800 shadow-sm">
+        <div className="p-6 pb-4">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">연락처</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                {contacts.length}명의 친구
+              </p>
+            </div>
+            <Button
+              onClick={onAddContact}
+              className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg rounded-full h-12 w-12 p-0 hover:scale-105 transition-all duration-200"
+            >
+              <Plus className="h-5 w-5" />
+            </Button>
+          </div>
 
-        {/* Search */}
-        <div className="relative mb-3">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="연락처 검색..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
+          {/* Modern Search Bar */}
+          <div className="relative mb-4">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Input
+              placeholder="친구 이름 또는 이메일 검색..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-12 h-12 bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+            />
+          </div>
 
-        {/* Sort */}
-        <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="nickname">이름순</SelectItem>
-            <SelectItem value="recent">최근 대화순</SelectItem>
-            <SelectItem value="favorite">즐겨찾기</SelectItem>
-          </SelectContent>
-        </Select>
+          {/* Filter Tabs */}
+          <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+            <button
+              onClick={() => setSortBy("nickname")}
+              className={cn(
+                "flex-1 py-2.5 px-4 rounded-md text-sm font-medium transition-all duration-200",
+                sortBy === "nickname" 
+                  ? "bg-white dark:bg-gray-600 text-purple-600 dark:text-purple-400 shadow-sm" 
+                  : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-600"
+              )}
+            >
+              이름순
+            </button>
+            <button
+              onClick={() => setSortBy("recent")}
+              className={cn(
+                "flex-1 py-2.5 px-4 rounded-md text-sm font-medium transition-all duration-200",
+                sortBy === "recent" 
+                  ? "bg-white dark:bg-gray-600 text-purple-600 dark:text-purple-400 shadow-sm" 
+                  : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-600"
+              )}
+            >
+              최근 대화
+            </button>
+            <button
+              onClick={() => setSortBy("favorite")}
+              className={cn(
+                "flex-1 py-2.5 px-4 rounded-md text-sm font-medium transition-all duration-200",
+                sortBy === "favorite" 
+                  ? "bg-white dark:bg-gray-600 text-purple-600 dark:text-purple-400 shadow-sm" 
+                  : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-600"
+              )}
+            >
+              즐겨찾기
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Favorite contacts horizontal scroll */}
       {favoriteContacts.length > 0 && (
-        <div className="px-3 py-2 border-b border-gray-100">
-          <h3 className="text-sm font-medium text-gray-600 mb-2">즐겨찾기</h3>
-          <div className="flex space-x-3 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 pb-2">
+        <div className="bg-white dark:bg-gray-800 px-6 py-5 border-b border-gray-100 dark:border-gray-700">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">즐겨찾기</h3>
+            <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
+              {favoriteContacts.length}명
+            </span>
+          </div>
+          <div className="flex space-x-5 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 pb-2">
             {favoriteContacts.map((contact: any) => {
-              const displayName = contact.nickname || contact.contactUser.displayName;
+              const displayName = contact.nickname || contact.contactUser.displayName || contact.contactUser.username;
               return (
-                <div key={contact.id} className="flex flex-col items-center space-y-1 flex-shrink-0">
+                <div key={contact.id} className="flex flex-col items-center space-y-3 flex-shrink-0 group">
                   <div 
-                    className="relative cursor-pointer hover:opacity-75 transition-opacity"
-                    onClick={() => handleContactClick(contact)}
-                  >
-                    <ZeroDelayAvatar
-                      src={contact.contactUser.profilePicture}
-                      fallbackText={displayName}
-                      size="md"
-                      showOnlineStatus={false}
-                      className="shadow-md"
-                    />
-                    {contact.contactUser.isOnline && (
-                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full z-20"></div>
-                    )}
-                  </div>
-                  <span 
-                    className="text-xs text-gray-700 text-center max-w-[60px] truncate cursor-pointer hover:text-blue-600"
+                    className="relative cursor-pointer transform hover:scale-105 transition-all duration-200"
                     onClick={() => onSelectContact(contact.contactUserId)}
                   >
+                    <div className="relative">
+                      <ZeroDelayAvatar
+                        src={contact.contactUser.profilePicture}
+                        fallbackText={displayName}
+                        size="lg"
+                        showOnlineStatus={false}
+                        className="shadow-lg border-2 border-yellow-400"
+                      />
+                      {contact.contactUser.isOnline && (
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full z-20"></div>
+                      )}
+                      <div className="absolute -top-1 -right-1 bg-yellow-400 rounded-full p-1.5 shadow-sm">
+                        <Star className="h-2.5 w-2.5 text-white fill-current" />
+                      </div>
+                    </div>
+                  </div>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 text-center max-w-[70px] truncate">
                     {displayName}
                   </span>
                 </div>
