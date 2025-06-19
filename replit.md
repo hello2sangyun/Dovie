@@ -366,6 +366,12 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Replaced ScrollArea component with native overflow scrolling to eliminate double-touch requirement
   - Added immediate touch activation and focus management for first-touch scrolling capability
   - Implemented touchAction: 'pan-y' and overscroll-behavior controls for responsive mobile interaction
+- June 19, 2025: Replaced contacts long-press voice recording with context menu functionality:
+  - Modified ContactsList component to show context menu instead of starting voice recording on long press
+  - Added comprehensive context menu with options for favorites, blocking, and deleting contacts
+  - Implemented proper touch and mouse event handling for reliable long-press detection
+  - Created responsive context menu positioning that adapts to screen boundaries on mobile devices
+  - Users can now manage contact relationships directly from the contacts list interface
 
 ## User Preferences
 

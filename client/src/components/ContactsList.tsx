@@ -828,6 +828,60 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* 컨텍스트 메뉴 */}
+      {showContextMenu && selectedContact && (
+        <>
+          {/* 배경 오버레이 */}
+          <div 
+            className="fixed inset-0 z-40"
+            onClick={closeContextMenu}
+            onTouchStart={closeContextMenu}
+          />
+          
+          {/* 컨텍스트 메뉴 */}
+          <div 
+            className="fixed z-50 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 min-w-48"
+            style={{
+              left: Math.max(10, Math.min(contextMenuPosition.x - 100, window.innerWidth - 210)),
+              top: Math.max(10, Math.min(contextMenuPosition.y - 50, window.innerHeight - 210))
+            }}
+          >
+            <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-600">
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                {selectedContact.nickname || selectedContact.contactUser.displayName}
+              </p>
+            </div>
+            
+            <button
+              className="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              onClick={() => handleContextMenuAction('favorite')}
+            >
+              <Star className={cn(
+                "h-4 w-4 mr-3",
+                selectedContact.isPinned ? "text-yellow-500 fill-current" : "text-gray-400"
+              )} />
+              {selectedContact.isPinned ? '즐겨찾기 해제' : '즐겨찾기 추가'}
+            </button>
+            
+            <button
+              className="w-full flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+              onClick={() => handleContextMenuAction('block')}
+            >
+              <Shield className="h-4 w-4 mr-3" />
+              친구 차단하기
+            </button>
+            
+            <button
+              className="w-full flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+              onClick={() => handleContextMenuAction('delete')}
+            >
+              <Trash2 className="h-4 w-4 mr-3" />
+              친구 삭제하기
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
