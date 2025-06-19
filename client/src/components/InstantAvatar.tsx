@@ -68,8 +68,17 @@ export const InstantAvatar = memo(function InstantAvatar({
       return;
     }
 
+    // 기존 /uploads/ URL을 최적화된 /api/profile-images/ URL로 변환
+    let optimizedSrc = src;
+    if (src.startsWith('/uploads/')) {
+      const filename = src.split('/').pop();
+      if (filename) {
+        optimizedSrc = `/api/profile-images/${filename}`;
+      }
+    }
+
     // 즉시 캐시된 이미지 확인
-    const cachedImage = getInstantImage(src);
+    const cachedImage = getInstantImage(optimizedSrc);
     if (cachedImage) {
       setDisplaySrc(cachedImage);
       setShowFallback(false);
@@ -78,13 +87,13 @@ export const InstantAvatar = memo(function InstantAvatar({
 
     // 캐시에 없으면 비동기 로딩
     setShowFallback(true);
-    loadImageAsBlob(src)
+    loadImageAsBlob(optimizedSrc)
       .then(objectUrl => {
         setDisplaySrc(objectUrl);
         setShowFallback(false);
       })
       .catch(error => {
-        console.error('InstantAvatar: Failed to load image', src, error);
+        console.error('InstantAvatar: Failed to load image', optimizedSrc, error);
         setShowFallback(true);
       });
   }, [src, getInstantImage, loadImageAsBlob]);

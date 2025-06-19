@@ -77,7 +77,12 @@ export function useInstantImageCache(): InstantImageCache {
         const contactsData = await contactsResponse.json();
         contactsData.contacts?.forEach((contact: any) => {
           if (contact.contactUser?.profilePicture) {
-            imageUrls.add(contact.contactUser.profilePicture);
+            // 기존 /uploads/ URL을 최적화된 /api/profile-images/ URL로 변환
+            const originalUrl = contact.contactUser.profilePicture;
+            const filename = originalUrl.split('/').pop();
+            if (filename) {
+              imageUrls.add(`/api/profile-images/${filename}`);
+            }
           }
         });
       }
@@ -87,11 +92,19 @@ export function useInstantImageCache(): InstantImageCache {
         const chatRoomsData = await chatRoomsResponse.json();
         chatRoomsData.chatRooms?.forEach((room: any) => {
           if (room.groupImage) {
-            imageUrls.add(room.groupImage);
+            const originalUrl = room.groupImage;
+            const filename = originalUrl.split('/').pop();
+            if (filename) {
+              imageUrls.add(`/api/profile-images/${filename}`);
+            }
           }
           room.participants?.forEach((participant: any) => {
             if (participant.profilePicture) {
-              imageUrls.add(participant.profilePicture);
+              const originalUrl = participant.profilePicture;
+              const filename = originalUrl.split('/').pop();
+              if (filename) {
+                imageUrls.add(`/api/profile-images/${filename}`);
+              }
             }
           });
         });
@@ -100,7 +113,11 @@ export function useInstantImageCache(): InstantImageCache {
       // 현재 사용자 프로필 이미지
       const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
       if (currentUser.profilePicture) {
-        imageUrls.add(currentUser.profilePicture);
+        const originalUrl = currentUser.profilePicture;
+        const filename = originalUrl.split('/').pop();
+        if (filename) {
+          imageUrls.add(`/api/profile-images/${filename}`);
+        }
       }
 
       console.log(`Preloading ${imageUrls.size} profile images...`);

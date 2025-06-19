@@ -1561,6 +1561,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 프로필 이미지 전용 빠른 서빙을 위한 메모리 캐시
+  const profileImageCache = new Map<string, { buffer: Buffer; contentType: string; timestamp: number }>();
+  const CACHE_TTL = 60 * 60 * 1000; // 1시간
+  
+  // 프로필 이미지 전용 엔드포인트 (최적화된 성능)
+  app.get("/api/profile-images/:filename", async (req, res) => {
+    try {
+      const filename = req.params.filename;
+      const cacheKey = filename;
+      
+      // 메모리 캐시에서 확인
+      const cached = profileImageCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+        res.set({
+          'Content-Type': cached.contentType,
+          'Content-Length': cached.buffer.length,
+          'Cache-Control': 'public, max-age=31536000',
+          'Access-Control-Allow-Origin': '*',
+          'ETag': `"${filename}"`
+        });
+        return res.send(cached.buffer);
+      }
+      
+      const filePath = path.join(uploadDir, filename);
+      
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ message: "Profile image not found" });
+      }
+      
+      // 이미지 확장자에 따른 Content-Type 설정
+      const ext = path.extname(filename).toLowerCase();
+      let contentType = 'image/jpeg'; // 기본값
+      
+      if (ext === '.png') contentType = 'image/png';
+      else if (ext === '.gif') contentType = 'image/gif';
+      else if (ext === '.webp') contentType = 'image/webp';
+      else if (ext === '.bmp') contentType = 'image/bmp';
+      else if (ext === '.svg') contentType = 'image/svg+xml';
+      
+      let fileBuffer: Buffer;
+      
+      try {
+        // 먼저 암호화된 파일로 시도
+        const encryptedData = fs.readFileSync(filePath, 'utf8');
+        fileBuffer = decryptFileData(encryptedData);
+      } catch (decryptError) {
+        // 복호화 실패시 일반 파일로 읽기
+        fileBuffer = fs.readFileSync(filePath);
+      }
+      
+      // 메모리 캐시에 저장
+      profileImageCache.set(cacheKey, {
+        buffer: fileBuffer,
+        contentType,
+        timestamp: Date.now()
+      });
+      
+      res.set({
+        'Content-Type': contentType,
+        'Content-Length': fileBuffer.length,
+        'Cache-Control': 'public, max-age=31536000',
+        'Access-Control-Allow-Origin': '*',
+        'ETag': `"${filename}"`
+      });
+      
+      res.send(fileBuffer);
+    } catch (error) {
+      console.error('Profile image serving error:', error);
+      res.status(500).json({ message: "Failed to serve profile image" });
+    }
+  });
+
   // Serve files (both encrypted and unencrypted)
   app.get("/uploads/:filename", async (req, res) => {
     try {
@@ -1590,7 +1662,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         res.send(fileBuffer);
       } else if (isProfileImage) {
-        // 프로필 이미지는 암호화되지 않았으므로 직접 제공 (빠른 로딩을 위해)
+        // 프로필 이미지는 최적화된 엔드포인트로 리다이렉트
+        return res.redirect(`/api/profile-images/${filename}`);
+      } else {
+        // 프로필 이미지가 아닌 경우 기존 로직 사용
         const fileBuffer = fs.readFileSync(filePath);
         
         // 이미지 확장자에 따른 Content-Type 설정
@@ -1688,7 +1763,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Message read tracking routes
-  app.post("/api/chat-rooms/:chatRoomId/mark-read", async (req, res) => {
+  app.post("/api/chat-rooms/:chatRoomId/mark-read", async (req: Request, res: Response) => {
     const userId = req.headers["x-user-id"];
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
