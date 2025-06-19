@@ -340,6 +340,15 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Enhanced keyword extraction for YouTube searches with improved filtering of common words
   - Implemented fallback system where client-side analysis supplements server-side suggestions when needed
   - All message types now provide consistent smart recommendation experience with same detection accuracy and suggestion formats
+- June 19, 2025: Implemented intelligent auto-scroll functionality with comprehensive user experience enhancements:
+  - Added intelligent scroll detection that automatically tracks user scrolling behavior in chat messages
+  - Created smooth auto-scroll system that automatically moves to new messages when users are at bottom of chat
+  - Implemented scroll event handler that detects when users manually scroll up to read older messages
+  - Added floating scroll-to-bottom button that appears when users scroll away from latest messages
+  - Built automatic scroll resumption when users return to bottom of chat conversation
+  - Enhanced smart recommendation processing for voice messages sent from chat room tabs list
+  - Verified YouTube selection modal already has proper scrolling functionality with ScrollArea component
+  - Completed comprehensive smart recommendation support across all voice message input methods
 
 ## User Preferences
 

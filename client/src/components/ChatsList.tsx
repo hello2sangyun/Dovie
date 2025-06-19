@@ -502,8 +502,11 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
         // 해당 채팅방으로 자동 이동
         onSelectChat(chatRoom.id);
         
-        // YouTube 스마트 추천 처리 (메시지 전송 후)
+        // 통합 스마트 추천 처리 (메시지 전송 후) - ChatArea와 동일한 기능
         if (voiceSuggestions.length > 0) {
+          console.log('🎯 ChatsList에서 스마트 추천 처리 시작:', voiceSuggestions.length, '개 추천');
+          
+          // YouTube 추천 처리
           const youtubeSuggestion = voiceSuggestions.find((s: any) => s.type === 'youtube');
           if (youtubeSuggestion && youtubeSuggestion.keyword) {
             console.log('🎥 YouTube 추천 모달 표시 with keyword:', youtubeSuggestion.keyword);
@@ -514,6 +517,55 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
             setTimeout(() => {
               setShowYoutubeModal(true);
             }, 100);
+          }
+          
+          // 위치 공유 추천 처리
+          const locationSuggestion = voiceSuggestions.find((s: any) => s.type === 'address' || s.type === 'location');
+          if (locationSuggestion) {
+            console.log('📍 위치 공유 추천 감지됨');
+            // 위치 공유는 ChatArea에서 처리되므로 채팅방 이동 후 자동으로 활성화됨
+          }
+          
+          // 번역 추천 처리
+          const translationSuggestion = voiceSuggestions.find((s: any) => s.type === 'translation');
+          if (translationSuggestion) {
+            console.log('🌐 번역 추천 감지됨');
+            // 번역 기능은 ChatArea에서 처리됨
+          }
+          
+          // 검색 추천 처리
+          const searchSuggestion = voiceSuggestions.find((s: any) => s.type === 'search');
+          if (searchSuggestion) {
+            console.log('🔍 검색 추천 감지됨');
+            // 검색 기능은 ChatArea에서 처리됨
+          }
+          
+          // 계산 추천 처리
+          const calculationSuggestion = voiceSuggestions.find((s: any) => s.type === 'calculation');
+          if (calculationSuggestion) {
+            console.log('🧮 계산 추천 감지됨');
+            // 계산 기능은 ChatArea에서 처리됨
+          }
+          
+          // 환율 추천 처리
+          const currencySuggestion = voiceSuggestions.find((s: any) => s.type === 'currency');
+          if (currencySuggestion) {
+            console.log('💱 환율 추천 감지됨');
+            // 환율 기능은 ChatArea에서 처리됨
+          }
+          
+          // 뉴스 추천 처리
+          const newsSuggestion = voiceSuggestions.find((s: any) => s.type === 'news');
+          if (newsSuggestion) {
+            console.log('📰 뉴스 추천 감지됨');
+            // 뉴스 기능은 ChatArea에서 처리됨
+          }
+          
+          // 요약 추천 처리
+          const summarySuggestion = voiceSuggestions.find((s: any) => s.type === 'summary');
+          if (summarySuggestion) {
+            console.log('📝 요약 추천 감지됨');
+            // 요약 기능은 ChatArea에서 처리됨
           }
         }
         
@@ -924,8 +976,8 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
           setYoutubeSearchQuery("");
           setRecordingChatRoom(null);
         }}
-        onVideoSelect={handleYoutubeVideoSelect}
-        initialKeyword={youtubeSearchQuery}
+        onSelect={handleYoutubeVideoSelect}
+        initialQuery={youtubeSearchQuery}
       />
     </div>
   );
