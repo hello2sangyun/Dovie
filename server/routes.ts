@@ -14,6 +14,7 @@ import { encryptFileData, decryptFileData, hashFileName, decryptText } from "./c
 import { processCommand } from "./openai";
 import { db } from "./db";
 import { eq, and, inArray, desc, gte, isNull } from "drizzle-orm";
+import { initializeNotificationScheduler } from "./notification-scheduler";
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
