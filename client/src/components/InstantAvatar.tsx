@@ -49,7 +49,7 @@ export const InstantAvatar = memo(function InstantAvatar({
 }: InstantAvatarProps) {
   const [displaySrc, setDisplaySrc] = useState<string | null>(null);
   const [showFallback, setShowFallback] = useState(false);
-  const { getInstantImage, loadImageAsBlob } = useGlobalBlobCache();
+  const { getInstantImage } = useInstantImageCache();
 
   // 이니셜 생성
   const initials = fallbackText
@@ -85,18 +85,10 @@ export const InstantAvatar = memo(function InstantAvatar({
       return;
     }
 
-    // 캐시에 없으면 비동기 로딩
-    setShowFallback(true);
-    loadImageAsBlob(optimizedSrc)
-      .then(objectUrl => {
-        setDisplaySrc(objectUrl);
-        setShowFallback(false);
-      })
-      .catch(error => {
-        console.error('InstantAvatar: Failed to load image', optimizedSrc, error);
-        setShowFallback(true);
-      });
-  }, [src, getInstantImage, loadImageAsBlob]);
+    // 캐시에 없으면 원본 URL 사용
+    setDisplaySrc(optimizedSrc);
+    setShowFallback(false);
+  }, [src, getInstantImage]);
 
   return (
     <div className="relative">
