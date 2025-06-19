@@ -4,9 +4,7 @@ import { useWebSocket } from "@/hooks/useWebSocket";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useAdvancedImageCache } from "@/hooks/useAdvancedImageCache";
-import { useGlobalImagePreloader } from "@/hooks/useGlobalImagePreloader";
-import { useInstantImageCache } from "@/hooks/useInstantImageCache";
+import { useGlobalImageCache } from "@/hooks/useGlobalImageCache";
 import VaultLogo from "@/components/VaultLogo";
 import ContactsList from "@/components/ContactsList";
 import ChatsList from "@/components/ChatsList";
@@ -51,8 +49,7 @@ export default function MainApp() {
   const [messageDataForCommand, setMessageDataForCommand] = useState<any>(null);
   const [contactFilter, setContactFilter] = useState<number | null>(null);
   const [friendFilter, setFriendFilter] = useState<number | null>(null);
-  const { preloadUserImages, preloadImages, getCacheStats } = useAdvancedImageCache();
-  const { preloadVisibleImages, preloadScrollAheadImages, startBackgroundPreloading } = useGlobalImagePreloader();
+
 
   useWebSocket(user?.id);
 
@@ -115,29 +112,25 @@ export default function MainApp() {
     refetchInterval: 5000,
   });
 
-  // Instant image preloading system - loads all images immediately on app start
-  const { preloadAllImages, getCacheSize: getInstantCacheSize } = useInstantImageCache();
+  // Global image cache system - eliminates flickering completely
+  const { preloadAllImages, cacheReady, cacheSize } = useGlobalImageCache();
   
   useEffect(() => {
     if (!user) return;
     
-    const startInstantPreloading = async () => {
-      console.log('🚀 Starting instant image preloading...');
+    const initializeImageCache = async () => {
+      console.log('Initializing global image cache...');
       
       try {
-        // Preload all profile images immediately when app starts
         await preloadAllImages();
-        
-        const cacheSize = getInstantCacheSize();
-        console.log(`✅ Instant preloading complete! ${cacheSize} images cached and ready`);
+        console.log(`Image cache initialized: ${cacheSize} images ready`);
       } catch (error) {
-        console.error('❌ Instant preloading failed:', error);
+        console.error('Image cache initialization failed:', error);
       }
     };
 
-    // Start instant preloading immediately
-    startInstantPreloading();
-  }, [user, preloadAllImages, getInstantCacheSize]);
+    initializeImageCache();
+  }, [user, preloadAllImages, cacheSize]);
 
   // 친구와의 채팅방 찾기 또는 생성
   const createOrFindChatRoom = (contactUserId: number, contactUser: any) => {

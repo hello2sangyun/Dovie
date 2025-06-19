@@ -7,7 +7,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAdvancedImageCache } from "@/hooks/useAdvancedImageCache";
-import InstantAvatar from "@/components/InstantAvatar";
+import ZeroFlickerAvatar from "@/components/ZeroFlickerAvatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   DropdownMenu, 
@@ -624,7 +624,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                       setLocation(`/friend/${contact.contactUserId}`);
                     }}
                   >
-                    <InstantAvatar
+                    <ZeroFlickerAvatar
                       src={contact.contactUser.profilePicture}
                       fallbackText={contact.nickname || contact.contactUser.displayName}
                       size="sm"
