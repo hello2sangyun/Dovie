@@ -304,8 +304,24 @@ export class DatabaseStorage implements IStorage {
           senderId: message.senderId,
           content: decryptText(message.content),
           messageType: message.messageType,
+          fileUrl: message.fileUrl,
           fileName: message.fileName,
+          fileSize: message.fileSize,
+          voiceDuration: message.voiceDuration,
+          detectedLanguage: message.detectedLanguage,
+          confidence: message.confidence,
+          replyToMessageId: message.replyToMessageId,
+          replyToContent: message.replyToContent,
+          replyToSenderName: message.replyToSenderName,
           isCommandRecall: message.isCommandRecall,
+          commandName: message.commandName,
+          commandResult: message.commandResult,
+          linkPreview: message.linkPreview,
+          youtubePreview: message.youtubePreview,
+          expiresAt: message.expiresAt,
+          isTemporary: message.isTemporary,
+          editedAt: message.editedAt,
+          isEdited: message.isEdited,
           createdAt: message.createdAt,
           sender: message.sender
         });
@@ -816,87 +832,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createLocationChatRoom(userId: number, roomData: { name: string; latitude: number; longitude: number; address: string }): Promise<any> {
-    const autoDeleteAt = new Date();
-    autoDeleteAt.setHours(autoDeleteAt.getHours() + 12); // Auto delete after 12 hours
-
-    const [newRoom] = await db
-      .insert(locationChatRooms)
-      .values({
-        name: roomData.name,
-        latitude: roomData.latitude.toString(),
-        longitude: roomData.longitude.toString(),
-        address: roomData.address,
-        autoDeleteAt,
-        participantCount: 1
-      })
-      .returning();
-
-    // Auto-join the creator
-    await db
-      .insert(locationChatParticipants)
-      .values({
-        locationChatRoomId: newRoom.id,
-        userId
-      });
-
-    return newRoom;
+    // Location chat functionality has been removed
+    return null;
   }
 
   async joinLocationChatRoom(userId: number, roomId: number, profileData: { nickname: string; profileImageUrl?: string }): Promise<void> {
-    // Check if already joined
-    const existing = await db
-      .select()
-      .from(locationChatParticipants)
-      .where(and(
-        eq(locationChatParticipants.locationChatRoomId, roomId),
-        eq(locationChatParticipants.userId, userId)
-      ));
-
-    if (existing.length === 0) {
-      await db
-        .insert(locationChatParticipants)
-        .values({
-          locationChatRoomId: roomId,
-          userId,
-          nickname: profileData.nickname,
-          profileImageUrl: profileData.profileImageUrl || null
-        });
-
-      // Update participant count
-      await db
-        .update(locationChatRooms)
-        .set({
-          participantCount: sql`${locationChatRooms.participantCount} + 1`,
-          lastActivity: new Date()
-        })
-        .where(eq(locationChatRooms.id, roomId));
-    } else {
-      // Update existing participant's profile
-      await db
-        .update(locationChatParticipants)
-        .set({
-          nickname: profileData.nickname,
-          profileImageUrl: profileData.profileImageUrl || null,
-          lastSeen: new Date()
-        })
-        .where(and(
-          eq(locationChatParticipants.locationChatRoomId, roomId),
-          eq(locationChatParticipants.userId, userId)
-        ));
-    }
+    // Location chat functionality has been removed
   }
 
   async getLocationChatProfile(userId: number, roomId: number): Promise<{ nickname: string; profileImageUrl?: string } | undefined> {
-    const [participant] = await db
-      .select({
-        nickname: locationChatParticipants.nickname,
-        profileImageUrl: locationChatParticipants.profileImageUrl
-      })
-      .from(locationChatParticipants)
-      .where(and(
-        eq(locationChatParticipants.locationChatRoomId, roomId),
-        eq(locationChatParticipants.userId, userId)
-      ));
+    // Location chat functionality has been removed
+    return undefined;
 
     if (!participant || !participant.nickname) {
       return undefined;
@@ -1035,85 +981,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async checkLocationProximity(userId: number): Promise<{ roomId: number; distance: number; hasNewChats: boolean }[]> {
-    const userLocation = await db.select()
-      .from(userLocations)
-      .where(eq(userLocations.userId, userId));
-
-    if (!userLocation.length) return [];
-
-    const { latitude: userLat, longitude: userLng } = userLocation[0];
-    
-    // 주변 50미터 내 채팅방 찾기
-    const nearbyRooms = await db.select({
-      id: locationChatRooms.id,
-      name: locationChatRooms.name,
-      latitude: locationChatRooms.latitude,
-      longitude: locationChatRooms.longitude,
-      radius: locationChatRooms.radius,
-      participantCount: locationChatRooms.participantCount,
-      lastActivity: locationChatRooms.lastActivity,
-    })
-    .from(locationChatRooms)
-    .where(eq(locationChatRooms.isActive, true));
-
-    const proximityResults = [];
-    for (const room of nearbyRooms) {
-      const distance = this.calculateDistance(
-        parseFloat(userLat.toString()),
-        parseFloat(userLng.toString()),
-        parseFloat(room.latitude.toString()),
-        parseFloat(room.longitude.toString())
-      );
-
-      if (distance <= (room.radius || 50)) {
-        // 사용자가 이미 참여하고 있는지 확인
-        const isParticipant = await db.select()
-          .from(locationChatParticipants)
-          .where(
-            and(
-              eq(locationChatParticipants.userId, userId),
-              eq(locationChatParticipants.locationChatRoomId, room.id)
-            )
-          );
-
-        const hasNewChats = !isParticipant.length;
-        
-        proximityResults.push({
-          roomId: room.id,
-          distance,
-          hasNewChats
-        });
-      }
-    }
-
-    return proximityResults;
+    // Location functionality has been removed
+    return [];
   }
 
   // Location chat functionality removed
 
   // Business card operations
-  async getBusinessCard(userId: number): Promise<BusinessCard | undefined> {
-    const [card] = await db.select().from(businessCards).where(eq(businessCards.userId, userId));
-    return card || undefined;
+  async getBusinessCard(userId: number): Promise<any | undefined> {
+    // Business card functionality has been removed
+    return undefined;
   }
 
-  async createOrUpdateBusinessCard(userId: number, cardData: Partial<InsertBusinessCard>): Promise<BusinessCard> {
-    const existingCard = await this.getBusinessCard(userId);
-    
-    if (existingCard) {
-      const [updatedCard] = await db
-        .update(businessCards)
-        .set({ ...cardData, updatedAt: new Date() })
-        .where(eq(businessCards.userId, userId))
-        .returning();
-      return updatedCard;
-    } else {
-      const [newCard] = await db
-        .insert(businessCards)
-        .values({ ...cardData, userId })
-        .returning();
-      return newCard;
-    }
+  async createOrUpdateBusinessCard(userId: number, cardData: any): Promise<any> {
+    // Business card functionality has been removed
+    return null;
   }
 
   // Business profile operations
@@ -1141,58 +1023,17 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Business card sharing operations
-  async createBusinessCardShare(userId: number): Promise<BusinessCardShare> {
-    // Generate unique share token
-    const shareToken = Array.from({ length: 32 }, () => 
-      Math.random().toString(36).charAt(2)
-    ).join('');
-
-    const [share] = await db
-      .insert(businessCardShares)
-      .values({
-        userId,
-        shareToken,
-        isActive: true,
-        allowDownload: true
-      })
-      .returning();
-    
-    return share;
+  // Business card sharing operations (removed)
+  async createBusinessCardShare(userId: number): Promise<any> {
+    return null;
   }
 
-  async getBusinessCardShare(shareToken: string): Promise<BusinessCardShare | undefined> {
-    const [share] = await db
-      .select()
-      .from(businessCardShares)
-      .where(and(
-        eq(businessCardShares.shareToken, shareToken),
-        eq(businessCardShares.isActive, true)
-      ));
-    
-    if (share) {
-      // Increment view count
-      await db
-        .update(businessCardShares)
-        .set({ viewCount: share.viewCount + 1 })
-        .where(eq(businessCardShares.id, share.id));
-    }
-    
-    return share || undefined;
+  async getBusinessCardShare(shareToken: string): Promise<any | undefined> {
+    return undefined;
   }
 
-  async getBusinessCardShareInfo(userId: number): Promise<BusinessCardShare | undefined> {
-    const [share] = await db
-      .select()
-      .from(businessCardShares)
-      .where(and(
-        eq(businessCardShares.userId, userId),
-        eq(businessCardShares.isActive, true)
-      ))
-      .orderBy(desc(businessCardShares.createdAt))
-      .limit(1);
-    
-    return share || undefined;
+  async getBusinessCardShareInfo(userId: number): Promise<any | undefined> {
+    return undefined;
   }
 
   // User posts operations
