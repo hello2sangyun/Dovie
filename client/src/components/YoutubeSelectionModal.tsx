@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +33,7 @@ export default function YoutubeSelectionModal({
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   // 모달이 열릴 때 초기 검색 쿼리 설정 및 검색 실행
   useEffect(() => {
@@ -42,6 +43,20 @@ export default function YoutubeSelectionModal({
         console.log('🎥 YouTube 모달 열림, 초기 검색:', initialQuery);
         performSearch(initialQuery);
       }
+      // 스크롤 영역을 즉시 활성화
+      setTimeout(() => {
+        if (scrollRef.current) {
+          scrollRef.current.focus();
+          scrollRef.current.style.touchAction = 'pan-y';
+          // 터치 이벤트 핸들러 추가하여 즉시 스크롤 활성화
+          const enableTouch = () => {
+            if (scrollRef.current) {
+              scrollRef.current.style.pointerEvents = 'auto';
+            }
+          };
+          scrollRef.current.addEventListener('touchstart', enableTouch, { passive: true });
+        }
+      }, 50);
     } else {
       // 모달이 닫힐 때 상태 초기화
       setVideos([]);
@@ -161,9 +176,13 @@ export default function YoutubeSelectionModal({
 
           {/* 검색 결과 */}
           {!isLoading && !error && videos.length > 0 && (
-            <div className="flex-1 min-h-0">
-              <ScrollArea className="h-full" style={{ WebkitOverflowScrolling: 'touch' }}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-4 pb-4">
+            <div 
+              ref={scrollRef}
+              className="flex-1 min-h-0 overflow-y-auto overscroll-behavior-y-contain focus:outline-none" 
+              style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
+              tabIndex={0}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
                   {videos.map((video, index) => (
                     <div
                       key={video.videoId}
@@ -201,8 +220,7 @@ export default function YoutubeSelectionModal({
                     </div>
                     </div>
                   ))}
-                </div>
-              </ScrollArea>
+              </div>
             </div>
           )}
 
