@@ -226,7 +226,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Chat rooms - minimal implementation
+  // Chat rooms implementation
   app.get("/api/chat-rooms", async (req, res) => {
     const userId = req.headers["x-user-id"];
     if (!userId) {
@@ -239,6 +239,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Get chat rooms error:", error);
       res.status(500).json({ message: "Failed to get chat rooms" });
+    }
+  });
+
+  // Create chat room
+  app.post("/api/chat-rooms", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { participantIds, name, type = "direct" } = req.body;
+      
+      // Ensure current user is included in participants
+      const allParticipantIds = [Number(userId), ...participantIds].filter((id, index, arr) => arr.indexOf(id) === index);
+      
+      const chatRoom = await storage.createChatRoom({
+        name: name || null,
+        isGroup: allParticipantIds.length > 2,
+        createdBy: Number(userId)
+      }, allParticipantIds);
+
+      res.json({ chatRoom });
+    } catch (error) {
+      console.error("Create chat room error:", error);
+      res.status(500).json({ message: "Failed to create chat room" });
+    }
+  });
+
+  // Get messages for a chat room
+  app.get("/api/chat-rooms/:chatRoomId/messages", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    const { chatRoomId } = req.params;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const messages = await storage.getMessages(Number(chatRoomId), 50);
+      res.json({ messages });
+    } catch (error) {
+      console.error("Get messages error:", error);
+      res.status(500).json({ message: "Failed to get messages" });
+    }
+  });
+
+  // Send message
+  app.post("/api/chat-rooms/:chatRoomId/messages", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    const { chatRoomId } = req.params;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { content, messageType = "text" } = req.body;
+      
+      const message = await storage.createMessage({
+        chatRoomId: Number(chatRoomId),
+        senderId: Number(userId),
+        content,
+        messageType
+      });
+
+      res.json({ message });
+    } catch (error) {
+      console.error("Send message error:", error);
+      res.status(500).json({ message: "Failed to send message" });
+    }
+  });
+
+  // Get unread counts
+  app.get("/api/unread-counts", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const unreadCounts = await storage.getUnreadCounts(Number(userId));
+      res.json(unreadCounts);
+    } catch (error) {
+      console.error("Get unread counts error:", error);
+      res.status(500).json({ message: "Failed to get unread counts" });
     }
   });
 

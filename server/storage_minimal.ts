@@ -201,17 +201,118 @@ export class DatabaseStorage implements IStorage {
     }));
   }
 
-  // Simplified implementations for other methods to avoid TypeScript errors
+  // Chat room implementations
   async getChatRooms(userId: number): Promise<any[]> {
-    return [];
+    try {
+      const results = await db
+        .select({
+          id: chatRooms.id,
+          name: chatRooms.name,
+          isGroup: chatRooms.isGroup,
+          createdAt: chatRooms.createdAt,
+          updatedAt: chatRooms.updatedAt
+        })
+        .from(chatRooms)
+        .innerJoin(chatParticipants, eq(chatRooms.id, chatParticipants.chatRoomId))
+        .where(eq(chatParticipants.userId, userId))
+        .orderBy(desc(chatRooms.updatedAt));
+
+      // Get participants for each chat room
+      const chatRoomsWithParticipants = await Promise.all(
+        results.map(async (room) => {
+          const participants = await db
+            .select({
+              id: users.id,
+              username: users.username,
+              displayName: users.displayName,
+              profilePicture: users.profilePicture
+            })
+            .from(chatParticipants)
+            .innerJoin(users, eq(chatParticipants.userId, users.id))
+            .where(eq(chatParticipants.chatRoomId, room.id));
+
+          // Get last message
+          const lastMessages = await db
+            .select({
+              id: messages.id,
+              content: messages.content,
+              messageType: messages.messageType,
+              createdAt: messages.createdAt,
+              senderId: messages.senderId,
+              senderUsername: users.username,
+              senderDisplayName: users.displayName
+            })
+            .from(messages)
+            .innerJoin(users, eq(messages.senderId, users.id))
+            .where(eq(messages.chatRoomId, room.id))
+            .orderBy(desc(messages.createdAt))
+            .limit(1);
+
+          const lastMessage = lastMessages[0] || null;
+
+          return {
+            ...room,
+            participants,
+            lastMessage: lastMessage ? {
+              ...lastMessage,
+              sender: {
+                id: lastMessage.senderId,
+                username: lastMessage.senderUsername,
+                displayName: lastMessage.senderDisplayName
+              }
+            } : null
+          };
+        })
+      );
+
+      return chatRoomsWithParticipants;
+    } catch (error) {
+      console.error("Get chat rooms error:", error);
+      return [];
+    }
   }
 
   async getChatRoomById(chatRoomId: number): Promise<any> {
-    return undefined;
+    try {
+      const [room] = await db
+        .select()
+        .from(chatRooms)
+        .where(eq(chatRooms.id, chatRoomId));
+
+      if (!room) return undefined;
+
+      const participants = await db
+        .select({
+          id: users.id,
+          username: users.username,
+          displayName: users.displayName,
+          profilePicture: users.profilePicture
+        })
+        .from(chatParticipants)
+        .innerJoin(users, eq(chatParticipants.userId, users.id))
+        .where(eq(chatParticipants.chatRoomId, chatRoomId));
+
+      return {
+        ...room,
+        participants
+      };
+    } catch (error) {
+      console.error("Get chat room by ID error:", error);
+      return undefined;
+    }
   }
 
   async createChatRoom(chatRoom: InsertChatRoom, participantIds: number[]): Promise<ChatRoom> {
     const [newChatRoom] = await db.insert(chatRooms).values(chatRoom).returning();
+    
+    // Add participants to chat room
+    const participantData = participantIds.map(userId => ({
+      chatRoomId: newChatRoom.id,
+      userId
+    }));
+    
+    await db.insert(chatParticipants).values(participantData);
+    
     return newChatRoom;
   }
 
@@ -225,7 +326,35 @@ export class DatabaseStorage implements IStorage {
   async leaveChatRoom(chatRoomId: number, userId: number, saveFiles: boolean): Promise<void> {}
 
   async getMessages(chatRoomId: number, limit: number = 50): Promise<any[]> {
-    return [];
+    try {
+      const results = await db
+        .select({
+          id: messages.id,
+          content: messages.content,
+          messageType: messages.messageType,
+          createdAt: messages.createdAt,
+          senderId: messages.senderId,
+          senderUsername: users.username,
+          senderDisplayName: users.displayName
+        })
+        .from(messages)
+        .innerJoin(users, eq(messages.senderId, users.id))
+        .where(eq(messages.chatRoomId, chatRoomId))
+        .orderBy(desc(messages.createdAt))
+        .limit(limit);
+
+      return results.map(msg => ({
+        ...msg,
+        sender: {
+          id: msg.senderId,
+          username: msg.senderUsername,
+          displayName: msg.senderDisplayName
+        }
+      }));
+    } catch (error) {
+      console.error("Get messages error:", error);
+      return [];
+    }
   }
 
   async createMessage(message: InsertMessage): Promise<Message> {
