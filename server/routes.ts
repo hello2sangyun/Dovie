@@ -2672,28 +2672,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // WebSocket setup
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
 
-  wss.on('connection', (ws) => {
+  wss.on('connection', (ws, req) => {
+    console.log('WebSocket connection attempt from:', req.url);
     let userId: number | null = null;
 
     ws.on('message', async (data) => {
       try {
         const message = JSON.parse(data.toString());
+        console.log('WebSocket message received:', message);
         
         if (message.type === 'auth' && message.userId) {
           userId = Number(message.userId);
           connections.set(userId, ws);
-          await storage.updateUser(userId, { isOnline: true });
+          console.log('WebSocket user authenticated:', userId);
+          
+          try {
+            await storage.updateUser(userId, { isOnline: true });
+            // Send confirmation back to client
+            ws.send(JSON.stringify({ type: 'auth_success', userId }));
+          } catch (error) {
+            console.error('Error updating user online status:', error);
+            ws.send(JSON.stringify({ type: 'auth_error', error: 'Failed to update status' }));
+          }
         }
       } catch (error) {
         console.error('WebSocket message error:', error);
+        ws.send(JSON.stringify({ type: 'error', message: 'Invalid message format' }));
       }
     });
 
     ws.on('close', async () => {
+      console.log('WebSocket connection closed for user:', userId);
       if (userId) {
         connections.delete(userId);
-        await storage.updateUser(userId, { isOnline: false });
+        try {
+          await storage.updateUser(userId, { isOnline: false });
+        } catch (error) {
+          console.error('Error updating user offline status:', error);
+        }
       }
+    });
+
+    ws.on('error', (error) => {
+      console.error('WebSocket error for user:', userId, error);
     });
   });
 

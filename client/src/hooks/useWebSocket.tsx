@@ -28,8 +28,17 @@ export function useWebSocket(userId?: number) {
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
+          console.log("WebSocket message received:", data);
           
           switch (data.type) {
+            case "auth_success":
+              console.log("WebSocket authentication successful for user:", data.userId);
+              break;
+            
+            case "auth_error":
+              console.error("WebSocket authentication failed:", data.error);
+              break;
+            
             case "new_message":
               // Invalidate messages query to fetch new message
               if (data.message?.chatRoomId) {
@@ -54,6 +63,10 @@ export function useWebSocket(userId?: number) {
               queryClient.invalidateQueries({ 
                 queryKey: ["/api/contacts"] 
               });
+              break;
+            
+            case "error":
+              console.error("WebSocket server error:", data.message);
               break;
             
             default:
