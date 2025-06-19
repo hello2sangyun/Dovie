@@ -399,6 +399,13 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Blocked contacts are now exclusively visible in settings tab under blocked contacts section
   - Added updateContactPin method to DatabaseStorage class for proper star functionality
   - Complete contact management workflow: star for favorites, dropdown menu for blocking/deleting
+- June 19, 2025: Removed all smart recommendation features except YouTube functionality:
+  - Eliminated location sharing, translation, calculation, currency conversion, news, search, and summary smart recommendation features
+  - Updated analyzeTextForSmartSuggestions function to only detect YouTube-related content
+  - Modified handleSmartSuggestionSelect function to process only YouTube suggestions
+  - Updated backend OpenAI analysis prompt to exclusively detect YouTube video search requests
+  - Smart recommendation system now focuses solely on YouTube video search and sharing functionality
+  - Application maintains clean messaging experience with minimal smart recommendation overhead
 
 ## User Preferences
 
