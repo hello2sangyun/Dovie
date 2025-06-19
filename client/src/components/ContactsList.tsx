@@ -358,14 +358,6 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                       <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleToggleFavorite(contact);
-                        }}
-                      >
-                        {contact.isPinned ? "즐겨찾기 해제" : "즐겨찾기 추가"}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
                           handleBlockContact(contact);
                         }}
                         className="text-orange-600"

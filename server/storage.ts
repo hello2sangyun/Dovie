@@ -135,7 +135,10 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(contacts)
       .innerJoin(users, eq(contacts.contactUserId, users.id))
-      .where(eq(contacts.userId, userId));
+      .where(and(
+        eq(contacts.userId, userId),
+        eq(contacts.isBlocked, false)
+      ));
 
     return results.map(row => ({
       ...row.contacts,
