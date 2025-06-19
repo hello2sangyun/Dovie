@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
-import { OptimizedAvatar } from "@/components/OptimizedAvatar";
+import { InstantAvatar } from "@/components/InstantAvatar";
 import { UserX, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -53,7 +53,7 @@ export default function BlockedContactsPage({ onBack }: BlockedContactsPageProps
     },
   });
 
-  const blockedContacts = blockedContactsData?.blockedContacts || [];
+  const blockedContacts = blockedContactsData?.contacts || [];
 
   if (isLoading) {
     return (
@@ -114,26 +114,26 @@ export default function BlockedContactsPage({ onBack }: BlockedContactsPageProps
               <div key={contact.id} className="bg-white rounded-lg p-4 border border-gray-200">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
-                    <OptimizedAvatar 
-                      src={contact.blockedUser.profilePicture}
-                      name={contact.blockedUser.displayName}
+                    <InstantAvatar 
+                      src={contact.contactUser.profilePicture}
+                      name={contact.contactUser.displayName}
                       className="w-12 h-12"
                       fallbackClassName="text-sm"
                     />
                     <div>
                       <h3 className="font-semibold text-gray-900">
-                        {contact.blockedUser.displayName}
+                        {contact.nickname || contact.contactUser.displayName}
                       </h3>
-                      <p className="text-sm text-gray-500">@{contact.blockedUser.username}</p>
+                      <p className="text-sm text-gray-500">@{contact.contactUser.username}</p>
                       <p className="text-xs text-gray-400">
-                        차단일: {new Date(contact.blockedAt).toLocaleDateString('ko-KR')}
+                        차단일: {new Date(contact.createdAt).toLocaleDateString('ko-KR')}
                       </p>
                     </div>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => unblockContactMutation.mutate(contact.blockedUserId)}
+                    onClick={() => unblockContactMutation.mutate(contact.contactUserId)}
                     disabled={unblockContactMutation.isPending}
                     className="text-blue-600 hover:text-blue-700"
                   >

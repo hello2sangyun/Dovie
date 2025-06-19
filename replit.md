@@ -392,6 +392,13 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Removed redundant profile image preloading logic from MainApp component to prevent duplicate downloads
   - Users now see "프로필 이미지를 다운로드하는 중..." message and cannot access app until all images are cached
   - System ensures zero loading delays for profile pictures once user enters main application interface
+- June 19, 2025: Refined contact management system with improved favorite and blocking functionality:
+  - Removed favorite option from dropdown menu, keeping only star icon for favorites toggle
+  - Fixed blocking functionality to properly hide blocked contacts from main contacts list
+  - Modified getContacts method in storage layer to filter out contacts where isBlocked is true
+  - Blocked contacts are now exclusively visible in settings tab under blocked contacts section
+  - Added updateContactPin method to DatabaseStorage class for proper star functionality
+  - Complete contact management workflow: star for favorites, dropdown menu for blocking/deleting
 
 ## User Preferences
 
