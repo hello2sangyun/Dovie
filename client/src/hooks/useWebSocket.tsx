@@ -1,10 +1,14 @@
 import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useMobileNotification } from "./useMobileNotification";
+import { useAuth } from "./useAuth";
 
 export function useWebSocket(userId?: number) {
   const wsRef = useRef<WebSocket | null>(null);
   const queryClient = useQueryClient();
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const { showNotification } = useMobileNotification();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (!userId) return;
@@ -48,6 +52,21 @@ export function useWebSocket(userId?: number) {
                 queryClient.invalidateQueries({ 
                   queryKey: ["/api/chat-rooms"] 
                 });
+                
+                // Show notification if message is not from current user and notifications are enabled
+                if (data.message.senderId !== userId && user?.notificationsEnabled !== false) {
+                  const senderName = data.message.sender?.displayName || data.message.sender?.username || "알 수 없는 사용자";
+                  const messagePreview = data.message.content?.length > 50 
+                    ? data.message.content.substring(0, 50) + "..." 
+                    : data.message.content || "새 메시지";
+                  
+                  showNotification({
+                    title: senderName,
+                    description: messagePreview,
+                    variant: "default",
+                    duration: 4000
+                  });
+                }
               }
               break;
             
