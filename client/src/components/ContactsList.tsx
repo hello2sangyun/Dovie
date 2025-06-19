@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -82,10 +82,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
 
   // 길게 누르기 시작 - 컨텍스트 메뉴 표시
   const handleLongPressStart = (contact: any, event: any) => {
-    console.log('📋 컨텍스트 메뉴 - 길게 누르기 시작:', contact.contactUser.displayName || contact.contactUser.nickname || contact.contactUser.username);
-    
     const timer = setTimeout(() => {
-      console.log('📋 컨텍스트 메뉴 - 0.5초 후 메뉴 표시');
       setSelectedContact(contact);
       
       // 터치 이벤트 또는 마우스 이벤트에서 위치 가져오기
@@ -94,7 +91,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       
       setContextMenuPosition({ x: clientX, y: clientY });
       setShowContextMenu(true);
-    }, 500); // 0.5초 후 메뉴 표시
+    }, 500);
     
     setLongPressTimer(timer);
   };
@@ -104,7 +101,6 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     if (longPressTimer) {
       clearTimeout(longPressTimer);
       setLongPressTimer(null);
-      console.log('⏰ 타이머 취소됨 (0.5초 전에 놓음)');
     }
   };
 
@@ -620,7 +616,6 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
           </div>
         ) : (
           filteredAndSortedContacts.map((contact: any) => {
-            console.log('🔍 연락처 렌더링:', contact.contactUser?.displayName || contact.contactUser?.username);
             return (
             <div
               key={contact.id}
@@ -640,8 +635,6 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                     WebkitTouchCallout: 'none'
                   }}
                   onClick={(e) => {
-                    console.log('💿 연락처 클릭:', contact.contactUser.displayName);
-                    // 길게 누르기가 진행 중이면 클릭 무시
                     if (longPressTimer) {
                       e.preventDefault();
                       e.stopPropagation();
@@ -649,15 +642,11 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                     }
                     onSelectContact(contact.contactUserId);
                   }}
-                  onMouseDown={(e) => {
-                    console.log('🖱️ 마우스 다운:', contact.contactUser.displayName);
-                    handleLongPressStart(contact, e);
-                  }}
+                  onMouseDown={(e) => handleLongPressStart(contact, e)}
                   onMouseUp={handleLongPressEnd}
                   onMouseLeave={handleLongPressEnd}
                   onTouchStart={(e) => {
-                    console.log('👆 터치 시작:', contact.contactUser.displayName);
-                    e.preventDefault(); // 기본 터치 동작 방지
+                    e.preventDefault();
                     handleLongPressStart(contact, e);
                   }}
                   onTouchEnd={handleLongPressEnd}
