@@ -123,14 +123,14 @@ export default function YoutubeSelectionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>YouTube 영상 선택</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4">
+        <div className="space-y-4 flex-1 flex flex-col min-h-0">
           {/* 검색 입력 */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-shrink-0">
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -161,14 +161,15 @@ export default function YoutubeSelectionModal({
 
           {/* 검색 결과 */}
           {!isLoading && !error && videos.length > 0 && (
-            <ScrollArea className="h-96">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-4">
-                {videos.map((video, index) => (
-                  <div
-                    key={video.videoId}
-                    className="border rounded-lg p-3 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
-                    onClick={() => onSelect(video)}
-                  >
+            <div className="flex-1 min-h-0">
+              <ScrollArea className="h-full" style={{ WebkitOverflowScrolling: 'touch' }}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-4 pb-4">
+                  {videos.map((video, index) => (
+                    <div
+                      key={video.videoId}
+                      className="border rounded-lg p-3 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+                      onClick={() => onSelect(video)}
+                    >
                     <div className="relative">
                       <img
                         src={video.thumbnailUrl}
@@ -198,10 +199,11 @@ export default function YoutubeSelectionModal({
                         </p>
                       )}
                     </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
           )}
 
           {/* 검색 결과 없음 */}
