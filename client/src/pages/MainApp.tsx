@@ -112,25 +112,15 @@ export default function MainApp() {
     refetchInterval: 5000,
   });
 
-  // Global image cache system - eliminates flickering completely
-  const { preloadAllImages, cacheReady, cacheSize } = useGlobalImageCache();
+  // Background image preloading system
+  const { startBackgroundPreloading, cacheSize } = useBackgroundImagePreloader();
   
   useEffect(() => {
     if (!user) return;
     
-    const initializeImageCache = async () => {
-      console.log('Initializing global image cache...');
-      
-      try {
-        await preloadAllImages();
-        console.log(`Image cache initialized: ${cacheSize} images ready`);
-      } catch (error) {
-        console.error('Image cache initialization failed:', error);
-      }
-    };
-
-    initializeImageCache();
-  }, [user, preloadAllImages, cacheSize]);
+    console.log('Initializing background image preloading...');
+    startBackgroundPreloading();
+  }, [user, startBackgroundPreloading]);
 
   // 친구와의 채팅방 찾기 또는 생성
   const createOrFindChatRoom = (contactUserId: number, contactUser: any) => {

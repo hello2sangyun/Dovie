@@ -67,8 +67,8 @@ export function useBackgroundImagePreloader() {
     const imageUrls = new Set<string>();
 
     // 연락처의 프로필 이미지
-    if (contactsData?.contacts) {
-      contactsData.contacts.forEach((contact: any) => {
+    if ((contactsData as any)?.contacts) {
+      (contactsData as any).contacts.forEach((contact: any) => {
         if (contact.contactUser?.profilePicture) {
           imageUrls.add(contact.contactUser.profilePicture);
         }
@@ -76,8 +76,8 @@ export function useBackgroundImagePreloader() {
     }
 
     // 채팅방 참가자의 프로필 이미지
-    if (chatRoomsData?.chatRooms) {
-      chatRoomsData.chatRooms.forEach((room: any) => {
+    if ((chatRoomsData as any)?.chatRooms) {
+      (chatRoomsData as any).chatRooms.forEach((room: any) => {
         if (room.participants) {
           room.participants.forEach((participant: any) => {
             if (participant.profilePicture) {

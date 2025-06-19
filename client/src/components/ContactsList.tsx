@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAdvancedImageCache } from "@/hooks/useAdvancedImageCache";
+
 import PreloadedAvatar from "@/components/PreloadedAvatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
@@ -48,7 +48,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingContact, setRecordingContact] = useState<any>(null);
-  const { preloadUserImages } = useAdvancedImageCache();
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const [recordingStartTime, setRecordingStartTime] = useState(0);
@@ -357,18 +357,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     },
   });
 
-  // Preload contact profile images for instant loading
-  useEffect(() => {
-    if (contactsData?.contacts) {
-      const contactUsers = contactsData.contacts
-        .map((contact: any) => contact.contactUser)
-        .filter(Boolean);
-      
-      if (contactUsers.length > 0) {
-        preloadUserImages(contactUsers, 8); // High priority for contacts list
-      }
-    }
-  }, [contactsData?.contacts, preloadUserImages]);
+  // Contact profile images are preloaded automatically in the background
 
   // 최근 포스팅한 친구들 데이터 가져오기
   const { data: recentPostsData } = useQuery({
