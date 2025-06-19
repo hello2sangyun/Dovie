@@ -7,7 +7,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAdvancedImageCache } from "@/hooks/useAdvancedImageCache";
-import FastLoadingAvatar from "@/components/FastLoadingAvatar";
+import InstantAvatar from "@/components/InstantAvatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   DropdownMenu, 
@@ -543,11 +543,10 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                     onTouchEnd={handleLongPressEnd}
                     onContextMenu={(e) => e.preventDefault()}
                   >
-                    <FastLoadingAvatar
+                    <InstantAvatar
                       src={contact.contactUser.profilePicture}
                       fallbackText={displayName}
                       size="md"
-                      priority={8}
                       showOnlineStatus={false}
                       className="shadow-md"
                     />
@@ -625,11 +624,10 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                       setLocation(`/friend/${contact.contactUserId}`);
                     }}
                   >
-                    <FastLoadingAvatar
+                    <InstantAvatar
                       src={contact.contactUser.profilePicture}
                       fallbackText={contact.nickname || contact.contactUser.displayName}
                       size="sm"
-                      priority={8}
                       className="hover:ring-2 hover:ring-blue-300 transition-all"
                     />
                   </div>

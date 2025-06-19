@@ -169,7 +169,8 @@ export function useInstantImageCache(): InstantImageCache {
       const now = Date.now();
       const thirtyMinutes = 30 * 60 * 1000;
       
-      for (const [url, entry] of globalImageCache.entries()) {
+      const entries = Array.from(globalImageCache.entries());
+      for (const [url, entry] of entries) {
         if (now - entry.timestamp > thirtyMinutes) {
           URL.revokeObjectURL(entry.objectUrl);
           globalImageCache.delete(url);
