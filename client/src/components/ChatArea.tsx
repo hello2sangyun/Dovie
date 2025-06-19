@@ -1864,22 +1864,45 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       messageData.mentionAll = true;
     }
 
-    // YouTube 검색 감지 및 처리
+    // YouTube 검색 감지 및 처리 - 음성 메시지와 동일한 강력한 패턴 매칭
     const youtubePatterns = [
-      /(.+)\s*유튜브\s*(본적\s*있어|봐봐|보자|찾아봐|검색|영상)/i,
-      /유튜브로?\s*(.+?)\s*(검색|찾아|봐|보자)/i,
-      /(.+?)\s*유튜브\s*영상/i,
-      /유튜브에서\s*(.+)/i
+      // 기본 유튜브 언급
+      /(.+)\s*유튜브\s*(본적\s*있어|봐봐|보자|찾아봐|검색|영상|뮤직비디오|mv)/i,
+      /유튜브로?\s*(.+?)\s*(검색|찾아|봐|보자|들어봐)/i,
+      /(.+?)\s*유튜브\s*(영상|뮤직비디오|mv)/i,
+      /유튜브에서\s*(.+)/i,
+      
+      // 영상/비디오 관련
+      /(.+)\s*(영상|비디오|뮤직비디오|mv)\s*(봐봐|보자|찾아|검색)/i,
+      /(영상|비디오|뮤직비디오|mv)\s*(.+?)\s*(봐|보자|찾아)/i,
+      
+      // YouTube 영어 표기
+      /(.+)\s*youtube\s*(video|music|mv|watch)/i,
+      /youtube\s*(.+)/i,
+      
+      // 간접적 표현
+      /(.+)\s*(뮤직비디오|음악|노래)\s*(봐봐|들어봐|찾아|검색)/i,
+      /(.+)\s*(좋더라|재밌더라|봤는데)\s*(유튜브|영상)/i,
+      
+      // 추천/공유 의도
+      /(.+)\s*(추천|공유|같이\s*봐|보여줄게)/i
     ];
 
     let youtubeKeyword = null;
     for (const pattern of youtubePatterns) {
       const match = message.match(pattern);
       if (match) {
-        youtubeKeyword = match[1]?.trim();
-        if (youtubeKeyword && youtubeKeyword.length > 0) {
-          console.log('🎥 YouTube 키워드 감지:', youtubeKeyword);
-          break;
+        // 키워드 추출 및 정제
+        const rawKeyword = match[1] || match[2];
+        if (rawKeyword) {
+          youtubeKeyword = rawKeyword
+            .replace(/유튜브|youtube|영상|비디오|뮤직비디오|mv|검색|찾아|보여|봐봐|해줘|하자|보자|들어봐|좋더라|재밌더라|봤는데|추천|공유|같이|보여줄게/gi, '')
+            .trim();
+          
+          if (youtubeKeyword && youtubeKeyword.length > 0) {
+            console.log('🎥 텍스트 YouTube 키워드 감지:', youtubeKeyword);
+            break;
+          }
         }
       }
     }
