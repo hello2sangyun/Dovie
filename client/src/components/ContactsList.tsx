@@ -32,6 +32,9 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   const toggleFavoriteMutation = useMutation({
     mutationFn: async ({ contactId, isPinned }: { contactId: number; isPinned: boolean }) => {
       const response = await apiRequest(`/api/contacts/${contactId}/pin`, "POST", { isPinned });
+      if (!response.ok) {
+        throw new Error('Failed to toggle favorite');
+      }
       return response.json();
     },
     onSuccess: () => {
@@ -43,10 +46,14 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   const blockContactMutation = useMutation({
     mutationFn: async (contactUserId: number) => {
       const response = await apiRequest(`/api/contacts/${contactUserId}/block`, "POST");
+      if (!response.ok) {
+        throw new Error('Failed to block contact');
+      }
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/contacts/blocked"] });
     },
   });
 
@@ -122,6 +129,8 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   };
 
   const handleToggleFavorite = (contact: any) => {
+    if (toggleFavoriteMutation.isPending) return;
+    
     toggleFavoriteMutation.mutate({
       contactId: contact.id,
       isPinned: !contact.isPinned
@@ -237,13 +246,15 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
               
               return (
                 <div key={contact.id} className="flex flex-col items-center space-y-1 min-w-[60px] group">
-                  <div className="relative">
+                  <div 
+                    className="relative cursor-pointer"
+                    onClick={() => onSelectContact(contact.contactUserId)}
+                  >
                     <InstantAvatar
                       src={contact.contactUser.profilePicture}
                       fallbackText={displayName}
                       size="md"
-                      className="cursor-pointer group-hover:ring-2 group-hover:ring-blue-300 transition-all"
-                      onClick={() => onSelectContact(contact.contactUserId)}
+                      className="group-hover:ring-2 group-hover:ring-blue-300 transition-all"
                     />
                     {hasRecentPost(contact.contactUserId) && (
                       <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 border-2 border-white rounded-full flex items-center justify-center z-20">
@@ -326,6 +337,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                       e.stopPropagation();
                       handleToggleFavorite(contact);
                     }}
+                    disabled={toggleFavoriteMutation.isPending}
                   >
                     <Star className={cn("h-4 w-4", contact.isPinned && "fill-current")} />
                   </Button>
