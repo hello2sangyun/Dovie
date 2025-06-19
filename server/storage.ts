@@ -451,28 +451,35 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createMessage(message: InsertMessage): Promise<Message> {
-    // 메시지 내용 암호화
-    const encryptedMessage = {
-      ...message,
-      content: message.content ? encryptText(String(message.content)) : null
-    };
-    
-    const [newMessage] = await db
-      .insert(messages)
-      .values(encryptedMessage)
-      .returning();
+    try {
+      // 메시지 내용 암호화
+      const encryptedMessage = {
+        ...message,
+        content: message.content && typeof message.content === 'string' ? encryptText(message.content) : null
+      };
+      
+      const [newMessage] = await db
+        .insert(messages)
+        .values(encryptedMessage)
+        .returning();
 
-    // 채팅방 업데이트 시간 갱신 (최신 메시지 기준 정렬을 위해)
-    await db
-      .update(chatRooms)
-      .set({ updatedAt: new Date() })
-      .where(eq(chatRooms.id, message.chatRoomId));
-    
-    // 반환할 때는 복호화해서 반환
-    return {
-      ...newMessage,
-      content: decryptText(newMessage.content)
-    };
+      // 채팅방 업데이트 시간 갱신 (최신 메시지 기준 정렬을 위해)  
+      if (message.chatRoomId) {
+        await db
+          .update(chatRooms)
+          .set({ updatedAt: new Date() })
+          .where(eq(chatRooms.id, message.chatRoomId));
+      }
+      
+      // 반환할 때는 복호화해서 반환
+      return {
+        ...newMessage,
+        content: newMessage.content ? decryptText(newMessage.content) : null
+      } as Message;
+    } catch (error) {
+      console.error('Error creating message:', error);
+      throw error;
+    }
   }
 
   async getMessageById(messageId: number): Promise<(Message & { sender: User }) | undefined> {
@@ -815,15 +822,6 @@ export class DatabaseStorage implements IStorage {
   async getLocationChatProfile(userId: number, roomId: number): Promise<{ nickname: string; profileImageUrl?: string } | undefined> {
     // Location chat functionality has been removed
     return undefined;
-
-    if (!participant || !participant.nickname) {
-      return undefined;
-    }
-
-    return {
-      nickname: participant.nickname,
-      profileImageUrl: participant.profileImageUrl || undefined
-    };
   }
 
 
