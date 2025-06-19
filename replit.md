@@ -406,6 +406,15 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Updated backend OpenAI analysis prompt to exclusively detect YouTube video search requests
   - Smart recommendation system now focuses solely on YouTube video search and sharing functionality
   - Application maintains clean messaging experience with minimal smart recommendation overhead
+- June 19, 2025: Implemented smart recommendation reminders as chat messages:
+  - Enhanced notification scheduler to create system messages in chat rooms for reminders
+  - Added isSystemMessage field to messages schema for identifying system-generated content
+  - Smart recommendation reminders now appear as actual chat messages with "⏰ 리마인더:" prefix
+  - Real-time delivery via WebSocket to all chat room participants
+  - System messages show sender as "시스템" (System) for clear identification
+  - Complete workflow: reminder detection → message creation → database storage → real-time broadcast → completion marking
+  - Users receive both chat message and notification for immediate attention
+  - Verified functionality with test reminders successfully appearing in chat interface
 
 ## User Preferences
 

@@ -478,7 +478,20 @@ export const businessProfiles = pgTable("business_profiles", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Message likes table
+// Message reactions table (enhanced from likes to support emoji reactions)
+export const messageReactions = pgTable("message_reactions", {
+  id: serial("id").primaryKey(),
+  messageId: integer("message_id").references(() => messages.id, { onDelete: "cascade" }).notNull(),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  emoji: text("emoji").notNull(), // The actual emoji (❤️, 😀, 👍, etc.)
+  emojiName: text("emoji_name").notNull(), // Human readable name (heart, smile, thumbs_up, etc.)
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  // Unique constraint to prevent duplicate reactions from same user with same emoji on same message
+  uniqueUserMessageEmoji: unique().on(table.userId, table.messageId, table.emoji),
+}));
+
+// Keep message_likes for backward compatibility
 export const messageLikes = pgTable("message_likes", {
   id: serial("id").primaryKey(),
   messageId: integer("message_id").references(() => messages.id, { onDelete: "cascade" }).notNull(),
@@ -799,10 +812,17 @@ export type InsertPostComment = z.infer<typeof insertPostCommentSchema>;
 export type CompanyProfile = typeof companyProfiles.$inferSelect;
 export type InsertCompanyProfile = z.infer<typeof insertCompanyProfileSchema>;
 
-// Message likes and link previews types
+// Message reactions and likes types
+export const insertMessageReactionSchema = createInsertSchema(messageReactions).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertMessageLikeSchema = createInsertSchema(messageLikes);
 export const insertLinkPreviewSchema = createInsertSchema(linkPreviews);
 
+export type MessageReaction = typeof messageReactions.$inferSelect;
+export type InsertMessageReaction = z.infer<typeof insertMessageReactionSchema>;
 export type MessageLike = typeof messageLikes.$inferSelect;
 export type InsertMessageLike = z.infer<typeof insertMessageLikeSchema>;
 export type LinkPreview = typeof linkPreviews.$inferSelect;
