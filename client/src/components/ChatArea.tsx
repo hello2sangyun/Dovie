@@ -5079,14 +5079,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                             )}
                           </div>
                           
-                          {/* Message Like Button */}
+                          {/* Message Reaction Button with AI-powered emoji suggestions */}
                           {!isLocationChatRoom && (
                             <div className="mt-2 flex justify-end">
-                              <MessageLikeButton
+                              <MessageReactionButton
                                 messageId={msg.id}
                                 chatRoomId={chatRoomId}
-                                isLiked={msg.isLiked || false}
-                                likeCount={msg.likeCount || 0}
+                                currentUserId={user?.id || 0}
                                 className="opacity-75 hover:opacity-100 transition-opacity"
                               />
                             </div>
