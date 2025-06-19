@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -82,7 +82,10 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
 
   // 길게 누르기 시작 - 컨텍스트 메뉴 표시
   const handleLongPressStart = (contact: any, event: any) => {
+    console.log('📋 컨텍스트 메뉴 - 길게 누르기 시작:', contact.contactUser.displayName || contact.contactUser.nickname || contact.contactUser.username);
+    
     const timer = setTimeout(() => {
+      console.log('📋 컨텍스트 메뉴 - 0.5초 후 메뉴 표시');
       setSelectedContact(contact);
       
       // 터치 이벤트 또는 마우스 이벤트에서 위치 가져오기
@@ -91,7 +94,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       
       setContextMenuPosition({ x: clientX, y: clientY });
       setShowContextMenu(true);
-    }, 500);
+    }, 500); // 0.5초 후 메뉴 표시
     
     setLongPressTimer(timer);
   };
@@ -101,6 +104,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     if (longPressTimer) {
       clearTimeout(longPressTimer);
       setLongPressTimer(null);
+      console.log('⏰ 타이머 취소됨 (0.5초 전에 놓음)');
     }
   };
 
@@ -377,10 +381,6 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       if (!response.ok) throw new Error("Failed to fetch contacts");
       return response.json();
     },
-    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
-    gcTime: 10 * 60 * 1000, // 10분간 메모리 유지
-    refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 방지
-    refetchOnMount: false, // 마운트 시 캐시된 데이터 사용
   });
 
   // Contact profile images are preloaded automatically in the background
@@ -396,20 +396,16 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       if (!response.ok) throw new Error("Failed to fetch recent posts");
       return response.json();
     },
-    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
-    gcTime: 10 * 60 * 1000, // 10분간 메모리 유지
-    refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 방지
-    refetchOnMount: false, // 마운트 시 캐시된 데이터 사용
     refetchInterval: 30000, // 30초마다 새로고침
   });
 
   const contacts = contactsData?.contacts || [];
   const recentPosts = recentPostsData || [];
 
-  // 특정 사용자가 최근에 포스팅했는지 확인하는 함수 (memoized)
-  const hasRecentPost = useCallback((userId: number) => {
+  // 특정 사용자가 최근에 포스팅했는지 확인하는 함수
+  const hasRecentPost = (userId: number) => {
     return recentPosts.some((post: any) => post.userId === userId);
-  }, [recentPosts]);
+  };
 
   const handleBlockContact = (contact: any) => {
     setContactToBlock(contact);
@@ -469,42 +465,36 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     setSelectedContact(null);
   };
 
-  // 즐겨찾기 친구와 모든 친구 분리 (memoized)
-  const favoriteContacts = useMemo(() => 
-    contacts.filter((contact: any) => contact.isPinned), 
-    [contacts]
-  );
+  // 즐겨찾기 친구와 모든 친구 분리
+  const favoriteContacts = contacts.filter((contact: any) => contact.isPinned);
 
-  const filteredAndSortedContacts = useMemo(() => 
-    contacts
-      .filter((contact: any) => {
-        // 본인 계정 제외
-        if (contact.contactUser.id === user?.id) {
-          return false;
-        }
-        
-        const searchLower = searchTerm.toLowerCase();
-        const nickname = contact.nickname || contact.contactUser.displayName;
-        return nickname.toLowerCase().includes(searchLower) ||
-               contact.contactUser.username.toLowerCase().includes(searchLower);
-      })
-      .sort((a: any, b: any) => {
-        const aName = a.nickname || a.contactUser.displayName;
-        const bName = b.nickname || b.contactUser.displayName;
-        
-        switch (sortBy) {
-          case "nickname":
-            return aName.localeCompare(bName);
-          case "username":
-            return a.contactUser.username.localeCompare(b.contactUser.username);
-          case "lastSeen":
-            return new Date(b.contactUser.lastSeen || 0).getTime() - new Date(a.contactUser.lastSeen || 0).getTime();
-          default:
-            return 0;
-        }
-      }),
-    [contacts, searchTerm, sortBy, user?.id]
-  );
+  const filteredAndSortedContacts = contacts
+    .filter((contact: any) => {
+      // 본인 계정 제외
+      if (contact.contactUser.id === user?.id) {
+        return false;
+      }
+      
+      const searchLower = searchTerm.toLowerCase();
+      const nickname = contact.nickname || contact.contactUser.displayName;
+      return nickname.toLowerCase().includes(searchLower) ||
+             contact.contactUser.username.toLowerCase().includes(searchLower);
+    })
+    .sort((a: any, b: any) => {
+      const aName = a.nickname || a.contactUser.displayName;
+      const bName = b.nickname || b.contactUser.displayName;
+      
+      switch (sortBy) {
+        case "nickname":
+          return aName.localeCompare(bName);
+        case "username":
+          return a.contactUser.username.localeCompare(b.contactUser.username);
+        case "lastSeen":
+          return new Date(b.contactUser.lastSeen || 0).getTime() - new Date(a.contactUser.lastSeen || 0).getTime();
+        default:
+          return 0;
+      }
+    });
 
   const getInitials = (name: string) => {
     return name.charAt(0).toUpperCase();
@@ -630,6 +620,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
           </div>
         ) : (
           filteredAndSortedContacts.map((contact: any) => {
+            console.log('🔍 연락처 렌더링:', contact.contactUser?.displayName || contact.contactUser?.username);
             return (
             <div
               key={contact.id}
@@ -649,6 +640,8 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                     WebkitTouchCallout: 'none'
                   }}
                   onClick={(e) => {
+                    console.log('💿 연락처 클릭:', contact.contactUser.displayName);
+                    // 길게 누르기가 진행 중이면 클릭 무시
                     if (longPressTimer) {
                       e.preventDefault();
                       e.stopPropagation();
@@ -656,11 +649,15 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                     }
                     onSelectContact(contact.contactUserId);
                   }}
-                  onMouseDown={(e) => handleLongPressStart(contact, e)}
+                  onMouseDown={(e) => {
+                    console.log('🖱️ 마우스 다운:', contact.contactUser.displayName);
+                    handleLongPressStart(contact, e);
+                  }}
                   onMouseUp={handleLongPressEnd}
                   onMouseLeave={handleLongPressEnd}
                   onTouchStart={(e) => {
-                    e.preventDefault();
+                    console.log('👆 터치 시작:', contact.contactUser.displayName);
+                    e.preventDefault(); // 기본 터치 동작 방지
                     handleLongPressStart(contact, e);
                   }}
                   onTouchEnd={handleLongPressEnd}

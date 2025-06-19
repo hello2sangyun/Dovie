@@ -76,20 +76,12 @@ export default function MainApp() {
   const { data: contactsData } = useQuery({
     queryKey: ["/api/contacts"],
     enabled: !!user,
-    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
-    gcTime: 10 * 60 * 1000, // 10분간 메모리 유지
-    refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 방지
-    refetchOnMount: false, // 마운트 시 캐시된 데이터 사용
   });
 
   // Get chat rooms data
   const { data: chatRoomsData } = useQuery({
     queryKey: ["/api/chat-rooms"],
     enabled: !!user,
-    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
-    gcTime: 10 * 60 * 1000, // 10분간 메모리 유지
-    refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 방지
-    refetchOnMount: false, // 마운트 시 캐시된 데이터 사용
   });
 
   // Profile images are now preloaded during authentication in useAuth hook
