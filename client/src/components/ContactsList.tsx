@@ -543,7 +543,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                     onTouchEnd={handleLongPressEnd}
                     onContextMenu={(e) => e.preventDefault()}
                   >
-                    <InstantAvatar
+                    <ZeroFlickerAvatar
                       src={contact.contactUser.profilePicture}
                       fallbackText={displayName}
                       size="md"

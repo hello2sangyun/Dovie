@@ -4170,5 +4170,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all profile images for preloading
+  app.get("/api/users/all-profile-images", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      // Get all users with profile pictures
+      const users = await storage.getAllUsers();
+      const images = users
+        .filter(user => user.profilePicture)
+        .map(user => user.profilePicture)
+        .filter(Boolean);
+
+      res.json({ images });
+    } catch (error) {
+      console.error("Get profile images error:", error);
+      res.status(500).json({ message: "Failed to get profile images" });
+    }
+  });
+
   return httpServer;
 }
