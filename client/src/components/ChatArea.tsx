@@ -29,6 +29,7 @@ import { LinkPreview } from "./LinkPreview";
 import { MessageLikeButton } from "./MessageLikeButton";
 import { LocationShareModal } from "./LocationShareModal";
 import YoutubeSelectionModal from "./YoutubeSelectionModal";
+import ReminderTimeModal from "./ReminderTimeModal";
 // Using inline smart suggestion analysis to avoid import issues
 interface SmartSuggestion {
   type: string;
@@ -48,7 +49,7 @@ const analyzeTextForSmartSuggestions = (text: string): SmartSuggestion[] => {
 
   const suggestions: SmartSuggestion[] = [];
 
-  // YouTube 감지만 유지
+  // YouTube 감지
   if (/유튜브|youtube|영상|비디오|뮤직비디오|mv|검색.*영상|영상.*검색|봐봐|보여.*영상/i.test(text)) {
     const keyword = text
       .replace(/유튜브|youtube|영상|비디오|뮤직비디오|mv|검색|찾아|보여|봐봐|해줘|하자|보자/gi, '')
@@ -62,6 +63,18 @@ const analyzeTextForSmartSuggestions = (text: string): SmartSuggestion[] => {
       category: 'YouTube 검색',
       keyword: keyword || '검색',
       confidence: 0.9
+    });
+  }
+
+  // 나중에알림 감지
+  if (/나중에|다시|리마인드|알림|연락할게|조금.*있다가|후에.*연락|잊지.*말고|기억해|까먹지.*말고|다음에.*얘기|잠시.*후|잠깐.*있다가/i.test(text)) {
+    suggestions.push({
+      type: 'reminder',
+      text: '⏰ 추후 미리알림을 해드릴까요?',
+      result: '리마인더를 설정합니다',
+      icon: '⏰',
+      category: '나중에알림',
+      confidence: 0.85
     });
   }
 
@@ -211,6 +224,44 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       setSuggestionTimeout(null);
     }
   };
+
+  // 리마인더 설정 핸들러
+  const handleSetReminder = async (reminderTime: Date, reminderText: string) => {
+    try {
+      const response = await fetch('/api/reminders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': user!.id.toString(),
+        },
+        body: JSON.stringify({
+          chatRoomId: chatRoomId,
+          reminderTime: reminderTime.toISOString(),
+          reminderText: reminderText,
+          userId: user!.id
+        })
+      });
+
+      if (response.ok) {
+        toast({
+          title: "리마인더 설정 완료!",
+          description: `${reminderTime.toLocaleString('ko-KR')}에 알림을 보내드릴게요.`,
+        });
+      } else {
+        throw new Error('리마인더 설정 실패');
+      }
+    } catch (error) {
+      console.error('리마인더 설정 오류:', error);
+      toast({
+        variant: "destructive",
+        title: "리마인더 설정 실패",
+        description: "다시 시도해 주세요.",
+      });
+    }
+    
+    setShowReminderModal(false);
+    setReminderText('');
+  };
   const [showCommandSuggestions, setShowCommandSuggestions] = useState(false);
   const [showChatCommands, setShowChatCommands] = useState(false);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
@@ -240,6 +291,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [showYoutubeModal, setShowYoutubeModal] = useState(false);
   const [youtubeSearchQuery, setYoutubeSearchQuery] = useState("");
   
+  // 리마인더 모달 상태
+  const [showReminderModal, setShowReminderModal] = useState(false);
+  const [reminderText, setReminderText] = useState('');
 
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -3084,7 +3138,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     return null;
   };
 
-  // 스마트 제안 선택 처리 (YouTube만 유지)
+  // 스마트 제안 선택 처리 (YouTube와 리마인더)
   const handleSmartSuggestionSelect = async (suggestion: typeof smartSuggestions[0]) => {
     // 음성 메시지 대기 중인 경우 처리
     if (pendingVoiceMessage) {
@@ -3104,6 +3158,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         // YouTube 선택 모달 열기
         setYoutubeSearchQuery(searchQuery);
         setShowYoutubeModal(true);
+      } else if (suggestion.type === 'reminder') {
+        // 리마인더 설정 모달 열기
+        setReminderText(pendingVoiceMessage.content);
+        setShowReminderModal(true);
+        
+        // 원본 음성메시지 전송
+        sendMessageMutation.mutate(pendingVoiceMessage);
       } else {
         // 다른 타입의 제안은 원본 음성메시지만 전송
         sendMessageMutation.mutate(pendingVoiceMessage);
@@ -3111,13 +3172,18 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       
       setPendingVoiceMessage(null);
     } else {
-      // 일반 텍스트 입력 시 YouTube만 처리
+      // 일반 텍스트 입력 시 처리
       if (suggestion.type === 'youtube') {
         // 텍스트 입력에서 YouTube 검색 및 영상 선택 모달
         const searchQuery = message.replace(/유튜브|youtube|검색|찾아|보여|영상|봤어|봐봐/gi, '').trim();
         
         setYoutubeSearchQuery(searchQuery);
         setShowYoutubeModal(true);
+        setMessage("");
+      } else if (suggestion.type === 'reminder') {
+        // 리마인더 설정 모달 열기
+        setReminderText(message);
+        setShowReminderModal(true);
         setMessage("");
       }
     }
@@ -6056,6 +6122,17 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         }}
         onSelect={handleYoutubeVideoSelect}
         initialQuery={youtubeSearchQuery}
+      />
+
+      {/* Reminder Time Selection Modal */}
+      <ReminderTimeModal
+        isOpen={showReminderModal}
+        onClose={() => {
+          setShowReminderModal(false);
+          setReminderText('');
+        }}
+        onSetReminder={handleSetReminder}
+        reminderText={reminderText}
       />
 
     </div>
