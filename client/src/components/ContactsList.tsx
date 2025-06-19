@@ -161,22 +161,36 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   };
 
   // Fetch contacts
-  const { data: contacts = [], isLoading } = useQuery({
+  const { data: contactsData, isLoading } = useQuery({
     queryKey: ["/api/contacts"],
     queryFn: async () => {
       const res = await apiRequest("/api/contacts");
-      return res.json();
+      const data = await res.json();
+      console.log('연락처 API 응답:', data);
+      return data;
     },
   });
 
-  // Filter and sort contacts
+  const contacts = contactsData?.contacts || [];
+
+  console.log('연락처 데이터:', contacts.length, '개');
+
+  // Filter and sort contacts - with safety checks
   const filteredAndSortedContacts = contacts
     .filter((contact: any) => {
-      const displayName = contact.nickname || contact.contactUser.displayName || contact.contactUser.username;
+      // Safety check for contact structure
+      if (!contact || !contact.contactUser) {
+        console.warn('연락처 데이터 구조 문제:', contact);
+        return false;
+      }
+      const displayName = contact.nickname || contact.contactUser.displayName || contact.contactUser.username || '';
       return displayName.toLowerCase().includes(searchTerm.toLowerCase());
     })
     .sort((a: any, b: any) => {
-      const getDisplayName = (contact: any) => contact.nickname || contact.contactUser.displayName || contact.contactUser.username;
+      const getDisplayName = (contact: any) => {
+        if (!contact || !contact.contactUser) return '';
+        return contact.nickname || contact.contactUser.displayName || contact.contactUser.username || '';
+      };
       
       if (sortBy === "nickname") {
         return getDisplayName(a).localeCompare(getDisplayName(b));
@@ -203,6 +217,16 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
 
   return (
     <div className="h-full flex flex-col bg-white">
+      {/* Debug Info */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="p-2 bg-yellow-50 border-b text-xs">
+          <div>연락처 데이터: {contacts.length}개</div>
+          <div>필터링된 연락처: {filteredAndSortedContacts.length}개</div>
+          <div>검색어: "{searchTerm}"</div>
+          <div>정렬: {sortBy}</div>
+        </div>
+      )}
+      
       {/* Header */}
       <div className="p-3 border-b border-gray-200">
         <div className="flex items-center justify-between mb-3">
