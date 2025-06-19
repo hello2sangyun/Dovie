@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -6,8 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import FastLoadingAvatar from "@/components/FastLoadingAvatar";
 import { useAdvancedImageCache } from "@/hooks/useAdvancedImageCache";
+import FastLoadingAvatar from "@/components/FastLoadingAvatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   DropdownMenu, 
@@ -48,6 +48,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingContact, setRecordingContact] = useState<any>(null);
+  const { preloadUserImages } = useAdvancedImageCache();
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const [recordingStartTime, setRecordingStartTime] = useState(0);
@@ -356,6 +357,19 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     },
   });
 
+  // Preload contact profile images for instant loading
+  useEffect(() => {
+    if (contactsData?.contacts) {
+      const contactUsers = contactsData.contacts
+        .map((contact: any) => contact.contactUser)
+        .filter(Boolean);
+      
+      if (contactUsers.length > 0) {
+        preloadUserImages(contactUsers, 8); // High priority for contacts list
+      }
+    }
+  }, [contactsData?.contacts, preloadUserImages]);
+
   // 최근 포스팅한 친구들 데이터 가져오기
   const { data: recentPostsData } = useQuery({
     queryKey: ["/api/contacts/recent-posts"],
@@ -529,11 +543,12 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                     onTouchEnd={handleLongPressEnd}
                     onContextMenu={(e) => e.preventDefault()}
                   >
-                    <PrismAvatar
+                    <FastLoadingAvatar
                       src={contact.contactUser.profilePicture}
-                      fallback={getInitials(displayName)}
-                      hasNewPost={hasRecentPost(contact.contactUserId)}
+                      fallbackText={displayName}
                       size="md"
+                      priority={8}
+                      showOnlineStatus={false}
                       className="shadow-md"
                     />
                     {contact.contactUser.isOnline && (
@@ -610,11 +625,11 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                       setLocation(`/friend/${contact.contactUserId}`);
                     }}
                   >
-                    <PrismAvatar
+                    <FastLoadingAvatar
                       src={contact.contactUser.profilePicture}
-                      fallback={getInitials(contact.nickname || contact.contactUser.displayName)}
-                      hasNewPost={hasRecentPost(contact.contactUserId)}
+                      fallbackText={contact.nickname || contact.contactUser.displayName}
                       size="sm"
+                      priority={8}
                       className="hover:ring-2 hover:ring-blue-300 transition-all"
                     />
                   </div>
