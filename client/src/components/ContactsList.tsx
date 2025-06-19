@@ -30,8 +30,8 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
 
   // Toggle favorite mutation
   const toggleFavoriteMutation = useMutation({
-    mutationFn: async ({ contactId, isPinned }: { contactId: number; isPinned: boolean }) => {
-      const response = await apiRequest(`/api/contacts/${contactId}/pin`, "POST", { isPinned });
+    mutationFn: async ({ contactUserId, isPinned }: { contactUserId: number; isPinned: boolean }) => {
+      const response = await apiRequest(`/api/contacts/${contactUserId}/pin`, "POST", { isPinned });
       if (!response.ok) {
         throw new Error('Failed to toggle favorite');
       }
@@ -132,7 +132,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     if (toggleFavoriteMutation.isPending) return;
     
     toggleFavoriteMutation.mutate({
-      contactId: contact.id,
+      contactUserId: contact.contactUserId,
       isPinned: !contact.isPinned
     });
   };

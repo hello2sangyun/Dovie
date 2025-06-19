@@ -30,6 +30,7 @@ export interface IStorage {
   addContact(contact: InsertContact): Promise<Contact>;
   removeContact(userId: number, contactUserId: number): Promise<void>;
   updateContact(userId: number, contactUserId: number, updates: Partial<InsertContact>): Promise<Contact | undefined>;
+  updateContactPin(userId: number, contactUserId: number, isPinned: boolean): Promise<void>;
   blockContact(userId: number, contactUserId: number): Promise<void>;
   unblockContact(userId: number, contactUserId: number): Promise<void>;
   getBlockedContacts(userId: number): Promise<(Contact & { contactUser: User })[]>;

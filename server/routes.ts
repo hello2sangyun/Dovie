@@ -633,6 +633,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Pin/unpin contact route
+  app.post("/api/contacts/:contactUserId/pin", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { isPinned } = req.body;
+      await storage.updateContactPin(Number(userId), Number(req.params.contactUserId), isPinned);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating contact pin status:", error);
+      res.status(500).json({ message: "Failed to update contact pin status" });
+    }
+  });
+
   // Get blocked contacts route
   app.get("/api/contacts/blocked", async (req, res) => {
     const userId = req.headers["x-user-id"];
