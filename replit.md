@@ -372,6 +372,12 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Implemented proper touch and mouse event handling for reliable long-press detection
   - Created responsive context menu positioning that adapts to screen boundaries on mobile devices
   - Users can now manage contact relationships directly from the contacts list interface
+- June 19, 2025: Extended instant image loading optimization to contacts tab:
+  - Replaced all ZeroDelayAvatar instances with InstantAvatar in ContactsList component
+  - Applied instant loading system to both favorites section and main contact list
+  - ContactsList now uses same InstantAvatar component as ChatsList for consistent performance
+  - All profile images across the application now benefit from instant loading without delays
+  - Completed unified instant image loading system across all user interface components
 
 ## User Preferences
 
