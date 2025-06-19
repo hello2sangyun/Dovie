@@ -8,21 +8,9 @@ export default function LandingPage() {
   const testLoginMutation = useTestLogin();
 
   useEffect(() => {
-    // Check if user is already stored
-    const storedUserId = localStorage.getItem("userId");
-    
-    if (storedUserId) {
-      // User exists, go to app
-      setLocation("/app");
-    } else {
-      // Auto-login for development/testing
-      const timer = setTimeout(() => {
-        testLoginMutation.mutate();
-      }, 1000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [setLocation, testLoginMutation]);
+    // Auto-login for development/testing without delay
+    testLoginMutation.mutate();
+  }, [testLoginMutation]);
 
   return (
     <div className="fixed inset-0 bg-white flex items-center justify-center z-50">

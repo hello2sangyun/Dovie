@@ -210,7 +210,7 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     
     const timer = setTimeout(() => {
       startVoiceRecording(chatRoom);
-    }, 800); // 800ms 후 음성 녹음 시작
+    }, 300); // 300ms 후 음성 녹음 시작
     
     setLongPressTimer(timer);
   };
@@ -559,7 +559,7 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
           // 다른 스마트 추천들은 ChatArea에서 처리될 것임
           const otherSuggestions = voiceSuggestions.filter((s: any) => s.type !== 'youtube');
           if (otherSuggestions.length > 0) {
-            console.log('🎯 다른 스마트 추천들 감지됨:', otherSuggestions.map(s => s.type).join(', '));
+            console.log('🎯 다른 스마트 추천들 감지됨:', otherSuggestions.map((s: any) => s.type).join(', '));
             console.log('🎯 이 추천들은 ChatArea에서 처리될 예정');
           }
         }
