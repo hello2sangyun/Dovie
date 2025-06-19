@@ -532,7 +532,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                     onTouchEnd={handleLongPressEnd}
                     onContextMenu={(e) => e.preventDefault()}
                   >
-                    <InstantAvatar
+                    <ZeroDelayAvatar
                       src={contact.contactUser.profilePicture}
                       fallbackText={displayName}
                       size="md"
@@ -613,7 +613,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                       setLocation(`/friend/${contact.contactUserId}`);
                     }}
                   >
-                    <InstantAvatar
+                    <ZeroDelayAvatar
                       src={contact.contactUser.profilePicture}
                       fallbackText={contact.nickname || contact.contactUser.displayName}
                       size="sm"

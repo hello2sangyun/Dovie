@@ -15,7 +15,7 @@ import AddContactModal from "@/components/AddContactModal";
 import CommandModal from "@/components/CommandModal";
 import CreateGroupChatModal from "@/components/CreateGroupChatModal";
 import ProfilePhotoModal from "@/components/ProfilePhotoModal";
-import FastLoadingAvatar from "@/components/FastLoadingAvatar";
+import ZeroDelayAvatar from "@/components/ZeroDelayAvatar";
 import { BannerNotificationContainer } from "@/components/MobileBannerNotification";
 
 
@@ -53,6 +53,35 @@ export default function MainApp() {
   const [friendFilter, setFriendFilter] = useState<number | null>(null);
 
   useWebSocket(user?.id);
+
+  // Handle URL parameters for friend filter
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const friendFilterParam = urlParams.get('friendFilter');
+    
+    if (friendFilterParam) {
+      const friendId = parseInt(friendFilterParam);
+      setFriendFilter(friendId);
+      setActiveMobileTab("chats");
+      setActiveTab("chats");
+      
+      // Clear the URL parameter after setting the filter
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, []);
+
+  // Get contacts to find contact user data
+  const { data: contactsData } = useQuery({
+    queryKey: ["/api/contacts"],
+    enabled: !!user,
+  });
+
+  // Get chat rooms data
+  const { data: chatRoomsData } = useQuery({
+    queryKey: ["/api/chat-rooms"],
+    enabled: !!user,
+  });
 
   // 앱 시작 시 모든 프로필 이미지 사전 다운로드
   useEffect(() => {
@@ -104,36 +133,7 @@ export default function MainApp() {
         console.log(`🎉 Profile image preloading completed! Total: ${profileImagesToPreload.size} images`);
       });
     }
-  }, [user, contactsData, chatRoomsData, preloadImage]);
-
-  // Handle URL parameters for friend filter
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const friendFilterParam = urlParams.get('friendFilter');
-    
-    if (friendFilterParam) {
-      const friendId = parseInt(friendFilterParam);
-      setFriendFilter(friendId);
-      setActiveMobileTab("chats");
-      setActiveTab("chats");
-      
-      // Clear the URL parameter after setting the filter
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, '', newUrl);
-    }
-  }, []);
-
-  // Get contacts to find contact user data
-  const { data: contactsData } = useQuery({
-    queryKey: ["/api/contacts"],
-    enabled: !!user,
-  });
-
-  // Get chat rooms data
-  const { data: chatRoomsData } = useQuery({
-    queryKey: ["/api/chat-rooms"],
-    enabled: !!user,
-  });
+  }, [user, contactsData, chatRoomsData]);
 
   // Prefetch messages for recent chat rooms
   useEffect(() => {
