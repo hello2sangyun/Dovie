@@ -43,6 +43,33 @@ export const contacts = pgTable("contacts", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// 위치 공유 요청 테이블
+export const locationShareRequests = pgTable("location_share_requests", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  chatRoomId: integer("chat_room_id").references(() => chatRooms.id).notNull(),
+  requestMessage: text("request_message").notNull(),
+  latitude: decimal("latitude", { precision: 10, scale: 8 }),
+  longitude: decimal("longitude", { precision: 11, scale: 8 }),
+  address: text("address"),
+  isShared: boolean("is_shared").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// 위치 공유 데이터 테이블
+export const locationShares = pgTable("location_shares", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  chatRoomId: integer("chat_room_id").references(() => chatRooms.id).notNull(),
+  messageId: integer("message_id").references(() => messages.id),
+  latitude: decimal("latitude", { precision: 10, scale: 8 }).notNull(),
+  longitude: decimal("longitude", { precision: 11, scale: 8 }).notNull(),
+  address: text("address"),
+  mapImageUrl: text("map_image_url"),
+  googleMapsUrl: text("google_maps_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const spaceNotifications = pgTable("space_notifications", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
@@ -298,39 +325,7 @@ export const companyProfiles = pgTable("company_profiles", {
   uniqueUserCompany: unique().on(table.userId),
 }));
 
-// 위치 공유 요청 테이블
-export const locationShareRequests = pgTable("location_share_requests", {
-  id: serial("id").primaryKey(),
-  chatRoomId: integer("chat_room_id").references(() => chatRooms.id).notNull(),
-  requesterId: integer("requester_id").references(() => users.id).notNull(),
-  targetUserId: integer("target_user_id").references(() => users.id).notNull(),
-  messageId: integer("message_id").references(() => messages.id),
-  requestMessage: text("request_message"),
-  status: text("status").default("pending"), // pending, approved, denied, expired
-  latitude: decimal("latitude", { precision: 10, scale: 8 }),
-  longitude: decimal("longitude", { precision: 11, scale: 8 }),
-  address: text("address"),
-  googleMapsUrl: text("google_maps_url"),
-  expiresAt: timestamp("expires_at"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  respondedAt: timestamp("responded_at"),
-});
 
-// 위치 공유 이력 테이블
-export const locationShares = pgTable("location_shares", {
-  id: serial("id").primaryKey(),
-  chatRoomId: integer("chat_room_id").references(() => chatRooms.id).notNull(),
-  senderId: integer("sender_id").references(() => users.id).notNull(),
-  latitude: decimal("latitude", { precision: 10, scale: 8 }).notNull(),
-  longitude: decimal("longitude", { precision: 11, scale: 8 }).notNull(),
-  address: text("address"),
-  googleMapsUrl: text("google_maps_url").notNull(),
-  messageId: integer("message_id").references(() => messages.id),
-  accuracy: decimal("accuracy", { precision: 6, scale: 2 }),
-  isLiveLocation: boolean("is_live_location").default(false),
-  liveUntil: timestamp("live_until"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
 
 // 리마인더 테이블
 export const reminders = pgTable("reminders", {
@@ -579,6 +574,8 @@ export const postComments = pgTable("post_comments", {
 
 // Business card relations removed - digital business card functionality disabled
 
+
+
 export const businessProfilesRelations = relations(businessProfiles, ({ one }) => ({
   user: one(users, {
     fields: [businessProfiles.userId],
@@ -646,52 +643,23 @@ export const postCommentsRelations = relations(postComments, ({ one, many }) => 
   replies: many(postComments),
 }));
 
-// Location share relations
-export const locationShareRequestsRelations = relations(locationShareRequests, ({ one }) => ({
-  chatRoom: one(chatRooms, {
-    fields: [locationShareRequests.chatRoomId],
-    references: [chatRooms.id],
-  }),
-  requester: one(users, {
-    fields: [locationShareRequests.requesterId],
-    references: [users.id],
-  }),
-  targetUser: one(users, {
-    fields: [locationShareRequests.targetUserId],
-    references: [users.id],
-  }),
-  message: one(messages, {
-    fields: [locationShareRequests.messageId],
-    references: [messages.id],
-  }),
-}));
-
-export const locationSharesRelations = relations(locationShares, ({ one }) => ({
-  chatRoom: one(chatRooms, {
-    fields: [locationShares.chatRoomId],
-    references: [chatRooms.id],
-  }),
-  sender: one(users, {
-    fields: [locationShares.senderId],
-    references: [users.id],
-  }),
-  message: one(messages, {
-    fields: [locationShares.messageId],
-    references: [messages.id],
-  }),
-}));
-
-// Location share insert schemas
+// Location share insert schemas and types
 export const insertLocationShareRequestSchema = createInsertSchema(locationShareRequests).omit({
   id: true,
   createdAt: true,
-  respondedAt: true,
 });
 
 export const insertLocationShareSchema = createInsertSchema(locationShares).omit({
   id: true,
   createdAt: true,
 });
+
+export type InsertLocationShareRequest = z.infer<typeof insertLocationShareRequestSchema>;
+export type SelectLocationShareRequest = typeof locationShareRequests.$inferSelect;
+export type InsertLocationShare = z.infer<typeof insertLocationShareSchema>;
+export type SelectLocationShare = typeof locationShares.$inferSelect;
+
+
 
 // Reminder insert schema
 export const insertReminderSchema = createInsertSchema(reminders).omit({
