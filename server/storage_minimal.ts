@@ -372,12 +372,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateMessage(messageId: number, updates: Partial<InsertMessage>): Promise<Message | undefined> {
-    const [message] = await db
-      .update(messages)
-      .set(updates)
-      .where(eq(messages.id, messageId))
-      .returning();
-    return message;
+    try {
+      const result = await db
+        .update(messages)
+        .set(updates)
+        .where(eq(messages.id, messageId))
+        .returning();
+      return result[0] as Message;
+    } catch (error) {
+      console.error("Update message error:", error);
+      return undefined;
+    }
   }
 
   async getCommands(userId: number, chatRoomId?: number): Promise<any[]> {
