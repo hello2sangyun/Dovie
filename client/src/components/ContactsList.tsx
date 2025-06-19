@@ -59,21 +59,24 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
 
   // 컨텍스트 메뉴 외부 클릭 감지로 자동 닫기
   useEffect(() => {
-    const handleClickOutside = (event: Event) => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (showContextMenu && contextMenuRef.current && !contextMenuRef.current.contains(event.target as Node)) {
         setShowContextMenu(false);
         setSelectedContact(null);
       }
     };
 
+    const handleMouseDown = (event: MouseEvent) => handleClickOutside(event);
+    const handleTouchStart = (event: TouchEvent) => handleClickOutside(event);
+
     if (showContextMenu) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside);
+      document.addEventListener('mousedown', handleMouseDown);
+      document.addEventListener('touchstart', handleTouchStart);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('touchstart', handleTouchStart);
     };
   }, [showContextMenu]);
 
