@@ -6,6 +6,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAdvancedImageCache } from "@/hooks/useAdvancedImageCache";
 import { useGlobalImagePreloader } from "@/hooks/useGlobalImagePreloader";
+import { useInstantImageCache } from "@/hooks/useInstantImageCache";
 import VaultLogo from "@/components/VaultLogo";
 import ContactsList from "@/components/ContactsList";
 import ChatsList from "@/components/ChatsList";
@@ -114,83 +115,29 @@ export default function MainApp() {
     refetchInterval: 5000,
   });
 
-  // Enhanced background image preloading system
+  // Instant image preloading system - loads all images immediately on app start
+  const { preloadAllImages, getCacheSize: getInstantCacheSize } = useInstantImageCache();
+  
   useEffect(() => {
     if (!user) return;
     
-    const performAggressivePreloading = () => {
-      // 1. Immediate visible images (highest priority)
-      const visibleUrls: string[] = [];
+    const startInstantPreloading = async () => {
+      console.log('🚀 Starting instant image preloading...');
       
-      // Current user profile (always visible)
-      if (user?.profilePicture) {
-        visibleUrls.push(user.profilePicture);
-      }
-      
-      // First 8 visible contacts in list
-      if (contactsData?.contacts) {
-        contactsData.contacts.slice(0, 8).forEach((contact: any) => {
-          if (contact.contactUser?.profilePicture) {
-            visibleUrls.push(contact.contactUser.profilePicture);
-          }
-        });
-      }
-      
-      // First 5 visible chat rooms
-      if (chatRoomsData?.chatRooms) {
-        chatRoomsData.chatRooms.slice(0, 5).forEach((room: any) => {
-          if (room.groupImage) {
-            visibleUrls.push(room.groupImage);
-          }
-          // First participant in each visible room
-          if (room.participants?.[0]?.profilePicture) {
-            visibleUrls.push(room.participants[0].profilePicture);
-          }
-        });
-      }
-      
-      // Preload visible images immediately
-      if (visibleUrls.length > 0) {
-        preloadVisibleImages(visibleUrls);
-      }
-      
-      // 2. Scroll-ahead images (high priority) - next items user might scroll to
-      const scrollAheadUrls: string[] = [];
-      
-      // Next 12 contacts after visible ones
-      if (contactsData?.contacts) {
-        contactsData.contacts.slice(8, 20).forEach((contact: any) => {
-          if (contact.contactUser?.profilePicture) {
-            scrollAheadUrls.push(contact.contactUser.profilePicture);
-          }
-        });
-      }
-      
-      // Next 10 chat rooms and their participants
-      if (chatRoomsData?.chatRooms) {
-        chatRoomsData.chatRooms.slice(5, 15).forEach((room: any) => {
-          if (room.groupImage) {
-            scrollAheadUrls.push(room.groupImage);
-          }
-          room.participants?.forEach((participant: any) => {
-            if (participant.profilePicture && participant.id !== user?.id) {
-              scrollAheadUrls.push(participant.profilePicture);
-            }
-          });
-        });
-      }
-      
-      // Preload scroll-ahead images
-      if (scrollAheadUrls.length > 0) {
-        preloadScrollAheadImages(scrollAheadUrls);
+      try {
+        // Preload all profile images immediately when app starts
+        await preloadAllImages();
+        
+        const cacheSize = getInstantCacheSize();
+        console.log(`✅ Instant preloading complete! ${cacheSize} images cached and ready`);
+      } catch (error) {
+        console.error('❌ Instant preloading failed:', error);
       }
     };
-    
-    // Start aggressive preloading when data is available
-    if (contactsData || chatRoomsData) {
-      performAggressivePreloading();
-    }
-  }, [contactsData, chatRoomsData, user, preloadVisibleImages, preloadScrollAheadImages]);
+
+    // Start instant preloading immediately
+    startInstantPreloading();
+  }, [user, preloadAllImages, getInstantCacheSize]);
 
   // 친구와의 채팅방 찾기 또는 생성
   const createOrFindChatRoom = (contactUserId: number, contactUser: any) => {
