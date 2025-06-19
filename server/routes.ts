@@ -2841,6 +2841,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }
 
+  // Initialize notification scheduler
+  initializeNotificationScheduler(connections, broadcastToUser);
+
   // YouTube search API endpoint
   app.post("/api/youtube/search", async (req, res) => {
     try {

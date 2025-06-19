@@ -84,6 +84,28 @@ export function useWebSocket(userId?: number) {
               });
               break;
             
+            case "reminder_notification":
+              // Handle reminder notifications
+              showNotification({
+                title: data.title || "⏰ 리마인더 알림",
+                description: data.message || "설정한 리마인더 시간입니다.",
+                variant: "default",
+                duration: 6000
+              });
+              
+              // Invalidate chat rooms to refresh if needed
+              queryClient.invalidateQueries({ 
+                queryKey: ["/api/chat-rooms"] 
+              });
+              
+              // Navigate to chat room if chatRoomId is provided
+              if (data.chatRoomId) {
+                queryClient.invalidateQueries({ 
+                  queryKey: ["/api/chat-rooms", data.chatRoomId, "messages"] 
+                });
+              }
+              break;
+            
             case "error":
               console.error("WebSocket server error:", data.message);
               break;
