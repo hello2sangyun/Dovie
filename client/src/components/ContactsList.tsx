@@ -25,7 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, Star, MoreVertical, UserX, Trash2, Shield } from "lucide-react";
+import { Plus, Search, Star, MoreVertical, UserX, Trash2, Shield, Users, User } from "lucide-react";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 
 interface ContactsListProps {
@@ -329,68 +329,92 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto max-h-[calc(100vh-240px)] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+      <div className="flex-1 overflow-y-auto p-4 space-y-2">
         {filteredAndSortedContacts.length === 0 ? (
-          <div className="p-3 text-center text-gray-500 text-sm">
-            {searchTerm ? "검색 결과가 없습니다" : "연락처가 없습니다"}
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
+              <Users className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">
+              {searchTerm ? "검색 결과가 없습니다" : "연락처가 없습니다"}
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              {searchTerm ? "다른 검색어를 사용해보세요" : "새로운 친구를 추가해보세요"}
+            </p>
+            {!searchTerm && (
+              <Button
+                onClick={onAddContact}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                친구 추가
+              </Button>
+            )}
           </div>
         ) : (
           filteredAndSortedContacts.map((contact: any) => {
-            console.log('🔍 연락처 렌더링:', contact.contactUser?.displayName || contact.contactUser?.username);
+            const displayName = contact.nickname || contact.contactUser.displayName || contact.contactUser.username;
             return (
             <div
               key={contact.id}
-              className="px-3 py-2 hover:bg-purple-50 border-b border-gray-100 transition-colors group"
+              className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md border border-gray-100 dark:border-gray-700 transition-all duration-200 group hover:scale-[1.02]"
             >
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-4">
                 <div 
-                  className="cursor-pointer flex-1 flex items-center space-x-2"
+                  className="cursor-pointer"
+                  onClick={(e?: React.MouseEvent) => {
+                    e?.stopPropagation();
+                    setLocation(`/friend/${contact.contactUserId}`);
+                  }}
+                >
+                  <ZeroDelayAvatar
+                    src={contact.contactUser.profilePicture}
+                    fallbackText={displayName}
+                    size="md"
+                    showOnlineStatus={true}
+                    className="shadow-md hover:shadow-lg transition-shadow duration-200"
+                  />
+                </div>
+                
+                <div 
+                  className="flex-1 min-w-0 cursor-pointer"
                   onClick={() => onSelectContact(contact.contactUserId)}
                 >
-                  <div
-                    className="cursor-pointer"
-                    onClick={(e?: React.MouseEvent) => {
-                      e?.stopPropagation();
-                      setLocation(`/friend/${contact.contactUserId}`);
-                    }}
-                  >
-                    <ZeroDelayAvatar
-                      src={contact.contactUser.profilePicture}
-                      fallbackText={contact.nickname || contact.contactUser.displayName || contact.contactUser.username}
-                      size="sm"
-                      showOnlineStatus={true}
-                      className="flex-shrink-0"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2">
-                      <h3 className="font-medium text-gray-900 truncate">
-                        {contact.nickname || contact.contactUser.displayName || contact.contactUser.username}
-                      </h3>
-                      {contact.isPinned && (
-                        <Star className="h-3 w-3 text-yellow-400 fill-current flex-shrink-0" />
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-500 truncate">
-                      {contact.contactUser.email || `@${contact.contactUser.username}`}
-                    </p>
-                    {contact.lastMessageTime && (
-                      <p className="text-xs text-gray-400">
-                        마지막 대화: {new Date(contact.lastMessageTime).toLocaleDateString()}
-                      </p>
+                  <div className="flex items-center space-x-2 mb-1">
+                    <h3 className="font-semibold text-gray-900 dark:text-white truncate text-lg">
+                      {displayName}
+                    </h3>
+                    {contact.isPinned && (
+                      <div className="bg-yellow-100 dark:bg-yellow-900 p-1 rounded-full">
+                        <Star className="h-3 w-3 text-yellow-500 fill-current" />
+                      </div>
                     )}
                   </div>
+                  
+                  <p className="text-sm text-gray-600 dark:text-gray-300 truncate mb-1">
+                    {contact.contactUser.email || `@${contact.contactUser.username}`}
+                  </p>
+                  
+                  {contact.lastMessageTime && (
+                    <p className="text-xs text-gray-400 dark:text-gray-500">
+                      마지막 대화: {new Date(contact.lastMessageTime).toLocaleDateString('ko-KR')}
+                    </p>
+                  )}
                 </div>
 
-                {/* Contact menu dropdown */}
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                {/* Modern Contact Actions */}
+                <div className="opacity-0 group-hover:opacity-100 transition-all duration-200">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <MoreVertical className="h-4 w-4" />
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-10 w-10 p-0 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
+                      >
+                        <MoreVertical className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+                    <DropdownMenuContent align="end" className="w-48 shadow-lg border-gray-200 dark:border-gray-700">
                       <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();
@@ -399,40 +423,48 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                             isPinned: !contact.isPinned
                           });
                         }}
+                        className="hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-colors"
                       >
-                        <Star className={cn("h-4 w-4 mr-2", contact.isPinned ? "fill-yellow-400 text-yellow-400" : "")} />
-                        {contact.isPinned ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+                        <Star className={cn("h-4 w-4 mr-3", contact.isPinned ? "fill-yellow-400 text-yellow-400" : "text-gray-400")} />
+                        <span className="font-medium">
+                          {contact.isPinned ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+                        </span>
                       </DropdownMenuItem>
+                      
                       <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();
                           setLocation(`/friend/${contact.contactUserId}`);
                         }}
+                        className="hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                       >
-                        <MoreVertical className="h-4 w-4 mr-2" />
-                        프로필 보기
+                        <User className="h-4 w-4 mr-3 text-blue-500" />
+                        <span className="font-medium">프로필 보기</span>
                       </DropdownMenuItem>
-                      <DropdownMenuSeparator />
+                      
+                      <DropdownMenuSeparator className="my-1" />
+                      
                       <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();
                           setContactToBlock(contact);
                           setShowBlockConfirm(true);
                         }}
-                        className="text-orange-600"
+                        className="text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors"
                       >
-                        <Shield className="h-4 w-4 mr-2" />
-                        차단하기
+                        <Shield className="h-4 w-4 mr-3" />
+                        <span className="font-medium">차단하기</span>
                       </DropdownMenuItem>
+                      
                       <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeleteContact(contact);
                         }}
-                        className="text-red-600"
+                        className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                       >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        삭제하기
+                        <Trash2 className="h-4 w-4 mr-3" />
+                        <span className="font-medium">삭제하기</span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
