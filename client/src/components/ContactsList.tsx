@@ -377,6 +377,10 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       if (!response.ok) throw new Error("Failed to fetch contacts");
       return response.json();
     },
+    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    gcTime: 10 * 60 * 1000, // 10분간 메모리 유지
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 방지
+    refetchOnMount: false, // 마운트 시 캐시된 데이터 사용
   });
 
   // Contact profile images are preloaded automatically in the background
@@ -392,16 +396,20 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       if (!response.ok) throw new Error("Failed to fetch recent posts");
       return response.json();
     },
+    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    gcTime: 10 * 60 * 1000, // 10분간 메모리 유지
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 방지
+    refetchOnMount: false, // 마운트 시 캐시된 데이터 사용
     refetchInterval: 30000, // 30초마다 새로고침
   });
 
   const contacts = contactsData?.contacts || [];
   const recentPosts = recentPostsData || [];
 
-  // 특정 사용자가 최근에 포스팅했는지 확인하는 함수
-  const hasRecentPost = (userId: number) => {
+  // 특정 사용자가 최근에 포스팅했는지 확인하는 함수 (memoized)
+  const hasRecentPost = useCallback((userId: number) => {
     return recentPosts.some((post: any) => post.userId === userId);
-  };
+  }, [recentPosts]);
 
   const handleBlockContact = (contact: any) => {
     setContactToBlock(contact);
@@ -461,36 +469,42 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     setSelectedContact(null);
   };
 
-  // 즐겨찾기 친구와 모든 친구 분리
-  const favoriteContacts = contacts.filter((contact: any) => contact.isPinned);
+  // 즐겨찾기 친구와 모든 친구 분리 (memoized)
+  const favoriteContacts = useMemo(() => 
+    contacts.filter((contact: any) => contact.isPinned), 
+    [contacts]
+  );
 
-  const filteredAndSortedContacts = contacts
-    .filter((contact: any) => {
-      // 본인 계정 제외
-      if (contact.contactUser.id === user?.id) {
-        return false;
-      }
-      
-      const searchLower = searchTerm.toLowerCase();
-      const nickname = contact.nickname || contact.contactUser.displayName;
-      return nickname.toLowerCase().includes(searchLower) ||
-             contact.contactUser.username.toLowerCase().includes(searchLower);
-    })
-    .sort((a: any, b: any) => {
-      const aName = a.nickname || a.contactUser.displayName;
-      const bName = b.nickname || b.contactUser.displayName;
-      
-      switch (sortBy) {
-        case "nickname":
-          return aName.localeCompare(bName);
-        case "username":
-          return a.contactUser.username.localeCompare(b.contactUser.username);
-        case "lastSeen":
-          return new Date(b.contactUser.lastSeen || 0).getTime() - new Date(a.contactUser.lastSeen || 0).getTime();
-        default:
-          return 0;
-      }
-    });
+  const filteredAndSortedContacts = useMemo(() => 
+    contacts
+      .filter((contact: any) => {
+        // 본인 계정 제외
+        if (contact.contactUser.id === user?.id) {
+          return false;
+        }
+        
+        const searchLower = searchTerm.toLowerCase();
+        const nickname = contact.nickname || contact.contactUser.displayName;
+        return nickname.toLowerCase().includes(searchLower) ||
+               contact.contactUser.username.toLowerCase().includes(searchLower);
+      })
+      .sort((a: any, b: any) => {
+        const aName = a.nickname || a.contactUser.displayName;
+        const bName = b.nickname || b.contactUser.displayName;
+        
+        switch (sortBy) {
+          case "nickname":
+            return aName.localeCompare(bName);
+          case "username":
+            return a.contactUser.username.localeCompare(b.contactUser.username);
+          case "lastSeen":
+            return new Date(b.contactUser.lastSeen || 0).getTime() - new Date(a.contactUser.lastSeen || 0).getTime();
+          default:
+            return 0;
+        }
+      }),
+    [contacts, searchTerm, sortBy, user?.id]
+  );
 
   const getInitials = (name: string) => {
     return name.charAt(0).toUpperCase();

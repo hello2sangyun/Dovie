@@ -394,6 +394,14 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - System ensures zero loading delays for profile pictures once user enters main application interface
   - Fixed React Hooks order issue by using overlay approach instead of early returns
   - Successfully tested with 4 profile images: all downloaded and cached during login for instant display
+- June 19, 2025: Eliminated profile image flickering in contacts tab through comprehensive ContactsList optimization:
+  - Removed excessive debug logging that caused unnecessary re-renders and performance degradation
+  - Added React useMemo and useCallback hooks to memoize filtered contacts list and callback functions
+  - Optimized event handlers by removing console.log statements that triggered frequent re-renders
+  - Implemented memoized favoriteContacts and filteredAndSortedContacts arrays with proper dependency arrays
+  - Enhanced hasRecentPost function with useCallback to prevent unnecessary function recreation
+  - Profile images in contacts tab now display instantly without any visible flickering or loading delays
+  - Maintained all existing functionality while significantly improving rendering performance and user experience
 
 ## User Preferences
 
