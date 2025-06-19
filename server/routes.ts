@@ -1292,20 +1292,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "File size must be less than 5MB" });
       }
 
-      // 파일 데이터 읽기 및 암호화
-      const fileBuffer = fs.readFileSync(req.file.path);
-      const encryptedData = encryptFileData(fileBuffer);
-      const hashedFileName = hashFileName(req.file.originalname);
-
-      // 임시 파일 정리
-      fs.unlinkSync(req.file.path);
+      // 프로필 이미지는 암호화하지 않고 원본 저장 (빠른 로딩을 위해)
+      const timestamp = Date.now();
+      const randomString = Math.random().toString(36).substring(2, 15);
+      const fileExtension = path.extname(req.file.originalname);
+      const profileFileName = `profile_${timestamp}_${randomString}${fileExtension}`;
+      const finalPath = path.join(uploadDir, profileFileName);
+      
+      // 파일을 최종 위치로 이동 (암호화 없음)
+      fs.renameSync(req.file.path, finalPath);
 
       // 기존 프로필 사진 파일 삭제 (있는 경우)
       const existingUser = await storage.getUser(Number(userId));
       if (existingUser?.profilePicture) {
         try {
           const existingFileName = existingUser.profilePicture.split('/').pop();
-          if (existingFileName) {
+          if (existingFileName && existingFileName.startsWith('profile_')) {
             const existingFilePath = path.join(uploadDir, existingFileName);
             if (fs.existsSync(existingFilePath)) {
               fs.unlinkSync(existingFilePath);
@@ -1316,11 +1318,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // 새 프로필 사진 저장
-      const encryptedFilePath = path.join(uploadDir, hashedFileName);
-      fs.writeFileSync(encryptedFilePath, encryptedData, 'utf8');
-
-      const fileUrl = `/uploads/${hashedFileName}`;
+      const fileUrl = `/uploads/${profileFileName}`;
 
       // 사용자 프로필 업데이트
       await storage.updateUserProfilePicture(Number(userId), fileUrl);
@@ -1576,6 +1574,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // 음성 파일인지 확인 (voice_로 시작하는 파일명)
       const isVoiceFile = filename.startsWith('voice_') && filename.endsWith('.webm');
+      // 프로필 이미지인지 확인 (profile_로 시작하는 파일명)
+      const isProfileImage = filename.startsWith('profile_');
       
       if (isVoiceFile) {
         // 음성 파일은 암호화되지 않았으므로 직접 제공
@@ -1586,6 +1586,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'Content-Length': fileBuffer.length,
           'Accept-Ranges': 'bytes',
           'Cache-Control': 'public, max-age=31536000'
+        });
+        
+        res.send(fileBuffer);
+      } else if (isProfileImage) {
+        // 프로필 이미지는 암호화되지 않았으므로 직접 제공 (빠른 로딩을 위해)
+        const fileBuffer = fs.readFileSync(filePath);
+        
+        // 이미지 확장자에 따른 Content-Type 설정
+        const ext = path.extname(filename).toLowerCase();
+        let contentType = 'application/octet-stream';
+        
+        if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
+        else if (ext === '.png') contentType = 'image/png';
+        else if (ext === '.gif') contentType = 'image/gif';
+        else if (ext === '.webp') contentType = 'image/webp';
+        else if (ext === '.bmp') contentType = 'image/bmp';
+        else if (ext === '.svg') contentType = 'image/svg+xml';
+        
+        res.set({
+          'Content-Type': contentType,
+          'Content-Length': fileBuffer.length,
+          'Cache-Control': 'public, max-age=31536000',
+          'Access-Control-Allow-Origin': '*',
+          'Accept-Ranges': 'bytes'
         });
         
         res.send(fileBuffer);
