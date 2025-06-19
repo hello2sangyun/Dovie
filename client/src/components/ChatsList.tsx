@@ -98,30 +98,59 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
   const [showYoutubeModal, setShowYoutubeModal] = useState(false);
   const [youtubeSearchQuery, setYoutubeSearchQuery] = useState("");
 
-  // YouTube 비디오 선택 핸들러
-  const handleYoutubeVideoSelect = (video: any) => {
-    if (!recordingChatRoom) return;
+  // YouTube 비디오 선택 핸들러 - ChatArea와 동일한 구조로 수정
+  const handleYoutubeVideoSelect = async (video: any) => {
+    if (!recordingChatRoom) {
+      console.error('❌ recordingChatRoom이 없음');
+      return;
+    }
+    
+    console.log('🎥 YouTube 비디오 선택됨:', video.title, 'for chat room:', recordingChatRoom.id);
     
     const youtubeMessage = {
-      chatRoomId: recordingChatRoom.id,
-      senderId: user!.id,
       content: `📺 ${youtubeSearchQuery} 추천 영상\n${video.title}`,
       messageType: "text",
       youtubePreview: video
     };
     
-    // YouTube 영상 메시지 전송
-    fetch('/api/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(youtubeMessage)
-    }).then(() => {
-      // 채팅방으로 이동
-      onSelectChat(recordingChatRoom.id);
-      setShowYoutubeModal(false);
-      setYoutubeSearchQuery("");
-      setRecordingChatRoom(null);
-    }).catch(console.error);
+    try {
+      // 정확한 API 엔드포인트 사용
+      const response = await fetch(`/api/chat-rooms/${recordingChatRoom.id}/messages`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-user-id': user!.id.toString(),
+        },
+        body: JSON.stringify(youtubeMessage)
+      });
+      
+      if (response.ok) {
+        console.log('✅ YouTube 영상 메시지 전송 성공');
+        
+        // 캐시 무효화
+        queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${recordingChatRoom.id}/messages`] });
+        queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+        
+        // 모달 닫기 및 상태 초기화
+        setShowYoutubeModal(false);
+        setYoutubeSearchQuery("");
+        setRecordingChatRoom(null);
+        
+        toast({
+          title: "YouTube 영상 공유 완료",
+          description: video.title,
+        });
+      } else {
+        throw new Error(`Failed to send YouTube message: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('❌ YouTube 영상 메시지 전송 실패:', error);
+      toast({
+        variant: "destructive",
+        title: "YouTube 영상 공유 실패",
+        description: "다시 시도해주세요.",
+      });
+    }
   };
 
   // 채팅방 나가기 mutation
@@ -502,70 +531,35 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
         // 해당 채팅방으로 자동 이동
         onSelectChat(chatRoom.id);
         
-        // 통합 스마트 추천 처리 (메시지 전송 후) - ChatArea와 동일한 기능
+        // 핵심 문제 해결: 채팅방 이동 전에 스마트 추천 처리해야 함
         if (voiceSuggestions.length > 0) {
-          console.log('🎯 ChatsList에서 스마트 추천 처리 시작:', voiceSuggestions.length, '개 추천');
+          console.log('🎯 ChatsList 스마트 추천 처리 시작:', voiceSuggestions.length, '개');
           
-          // YouTube 추천 처리
+          // YouTube 추천 우선 처리 (채팅방 이동 전)
           const youtubeSuggestion = voiceSuggestions.find((s: any) => s.type === 'youtube');
           if (youtubeSuggestion && youtubeSuggestion.keyword) {
-            console.log('🎥 YouTube 추천 모달 표시 with keyword:', youtubeSuggestion.keyword);
+            console.log('🎥 YouTube 추천 감지 - 키워드:', youtubeSuggestion.keyword);
+            console.log('🎥 recordingChatRoom 설정:', chatRoom.id);
+            
+            // 상태 설정
             setYoutubeSearchQuery(youtubeSuggestion.keyword);
             setRecordingChatRoom(chatRoom);
             
-            // YouTube 모달을 약간의 딜레이와 함께 표시
+            // 채팅방 이동 후 YouTube 모달 표시
             setTimeout(() => {
+              console.log('🎥 YouTube 모달 표시 시도');
+              console.log('🎥 현재 상태 - showYoutubeModal:', false, '→ true');
+              console.log('🎥 현재 상태 - youtubeSearchQuery:', youtubeSuggestion.keyword);
+              console.log('🎥 현재 상태 - recordingChatRoom:', chatRoom.id);
               setShowYoutubeModal(true);
-            }, 100);
+            }, 500); // 더 긴 딜레이로 채팅방 전환 완료 대기
           }
           
-          // 위치 공유 추천 처리
-          const locationSuggestion = voiceSuggestions.find((s: any) => s.type === 'address' || s.type === 'location');
-          if (locationSuggestion) {
-            console.log('📍 위치 공유 추천 감지됨');
-            // 위치 공유는 ChatArea에서 처리되므로 채팅방 이동 후 자동으로 활성화됨
-          }
-          
-          // 번역 추천 처리
-          const translationSuggestion = voiceSuggestions.find((s: any) => s.type === 'translation');
-          if (translationSuggestion) {
-            console.log('🌐 번역 추천 감지됨');
-            // 번역 기능은 ChatArea에서 처리됨
-          }
-          
-          // 검색 추천 처리
-          const searchSuggestion = voiceSuggestions.find((s: any) => s.type === 'search');
-          if (searchSuggestion) {
-            console.log('🔍 검색 추천 감지됨');
-            // 검색 기능은 ChatArea에서 처리됨
-          }
-          
-          // 계산 추천 처리
-          const calculationSuggestion = voiceSuggestions.find((s: any) => s.type === 'calculation');
-          if (calculationSuggestion) {
-            console.log('🧮 계산 추천 감지됨');
-            // 계산 기능은 ChatArea에서 처리됨
-          }
-          
-          // 환율 추천 처리
-          const currencySuggestion = voiceSuggestions.find((s: any) => s.type === 'currency');
-          if (currencySuggestion) {
-            console.log('💱 환율 추천 감지됨');
-            // 환율 기능은 ChatArea에서 처리됨
-          }
-          
-          // 뉴스 추천 처리
-          const newsSuggestion = voiceSuggestions.find((s: any) => s.type === 'news');
-          if (newsSuggestion) {
-            console.log('📰 뉴스 추천 감지됨');
-            // 뉴스 기능은 ChatArea에서 처리됨
-          }
-          
-          // 요약 추천 처리
-          const summarySuggestion = voiceSuggestions.find((s: any) => s.type === 'summary');
-          if (summarySuggestion) {
-            console.log('📝 요약 추천 감지됨');
-            // 요약 기능은 ChatArea에서 처리됨
+          // 다른 스마트 추천들은 ChatArea에서 처리될 것임
+          const otherSuggestions = voiceSuggestions.filter((s: any) => s.type !== 'youtube');
+          if (otherSuggestions.length > 0) {
+            console.log('🎯 다른 스마트 추천들 감지됨:', otherSuggestions.map(s => s.type).join(', '));
+            console.log('🎯 이 추천들은 ChatArea에서 처리될 예정');
           }
         }
         
