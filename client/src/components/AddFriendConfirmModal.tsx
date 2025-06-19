@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -26,6 +26,14 @@ export default function AddFriendConfirmModal({ open, onClose, users }: AddFrien
   const queryClient = useQueryClient();
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [selectAll, setSelectAll] = useState(false);
+
+  // Reset states when modal opens
+  useEffect(() => {
+    if (open) {
+      setSelectedUsers([]);
+      setSelectAll(false);
+    }
+  }, [open]);
 
   // 전체 선택/해제 기능
   const handleSelectAll = () => {
@@ -93,7 +101,11 @@ export default function AddFriendConfirmModal({ open, onClose, users }: AddFrien
         });
       }
       
-      // 성공 시 즉시 팝업 닫기
+      // Reset all states before closing
+      setSelectedUsers([]);
+      setSelectAll(false);
+      
+      // Close popup automatically after success
       setTimeout(() => {
         onClose();
       }, 100);
