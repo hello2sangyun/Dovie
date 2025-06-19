@@ -624,7 +624,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                       setLocation(`/friend/${contact.contactUserId}`);
                     }}
                   >
-                    <ZeroFlickerAvatar
+                    <PreloadedAvatar
                       src={contact.contactUser.profilePicture}
                       fallbackText={contact.nickname || contact.contactUser.displayName}
                       size="sm"
