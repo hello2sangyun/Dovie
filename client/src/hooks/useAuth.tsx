@@ -13,6 +13,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
   // Try to get user from localStorage on app start
   const storedUserId = localStorage.getItem("userId");
@@ -48,8 +49,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (data?.user) {
       console.log("🔄 Auth context updating user:", data.user.id, "profilePicture:", data.user.profilePicture);
       setUser(data.user);
+      setInitialized(true);
+    } else if (error) {
+      // Clear user data if authentication fails
+      console.log("❌ Authentication failed, clearing user data");
+      setUser(null);
+      localStorage.removeItem("userId");
+      setInitialized(true);
+    } else if (!storedUserId) {
+      // No stored user ID, mark as initialized
+      setInitialized(true);
     }
-  }, [data]);
+  }, [data, error, storedUserId]);
 
   // Clear user data when logging out
   const handleSetUser = (newUser: User | null) => {
@@ -84,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user, 
       setUser: handleSetUser, 
       logout,
-      isLoading: isLoading && !!storedUserId
+      isLoading: (isLoading && !!storedUserId) || !initialized
     }}>
       {children}
     </AuthContext.Provider>
