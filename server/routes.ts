@@ -4172,7 +4172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Get all profile images for preloading
   app.get("/api/users/all-profile-images", async (req, res) => {
-    const userId = req.headers["x-user-id"];
+    const userId = req.session?.userId || req.headers["x-user-id"];
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }

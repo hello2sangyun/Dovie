@@ -7,7 +7,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAdvancedImageCache } from "@/hooks/useAdvancedImageCache";
-import ZeroFlickerAvatar from "@/components/ZeroFlickerAvatar";
+import PreloadedAvatar from "@/components/PreloadedAvatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   DropdownMenu, 
@@ -543,7 +543,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                     onTouchEnd={handleLongPressEnd}
                     onContextMenu={(e) => e.preventDefault()}
                   >
-                    <ZeroFlickerAvatar
+                    <PreloadedAvatar
                       src={contact.contactUser.profilePicture}
                       fallbackText={displayName}
                       size="md"
