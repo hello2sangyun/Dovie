@@ -179,6 +179,10 @@ export class DatabaseStorage implements IStorage {
     await this.updateContact(userId, contactUserId, { isBlocked: false });
   }
 
+  async updateContactPin(userId: number, contactUserId: number, isPinned: boolean): Promise<void> {
+    await this.updateContact(userId, contactUserId, { isPinned });
+  }
+
   async getBlockedContacts(userId: number): Promise<(Contact & { contactUser: User })[]> {
     const results = await db
       .select()
