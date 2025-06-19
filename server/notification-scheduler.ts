@@ -78,7 +78,7 @@ async function sendReminderNotification(reminder: any) {
     console.log(`💬 Reminder message created: ${savedMessage.id}`);
 
     // Get chat room participants to broadcast the message
-    const chatRoom = await storage.getChatRoom(chatRoomId);
+    const chatRoom = await storage.getChatRoomById(chatRoomId);
     if (chatRoom && chatRoom.participants) {
       // Broadcast the new reminder message to all participants
       const messageData = {
