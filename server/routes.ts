@@ -4494,5 +4494,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Message reaction API endpoints
+  app.post("/api/messages/:messageId/react", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const messageId = Number(req.params.messageId);
+      const { emoji, emojiName } = req.body;
+
+      if (!emoji || !emojiName) {
+        return res.status(400).json({ message: "Emoji and emoji name are required" });
+      }
+
+      await storage.addMessageReaction(messageId, Number(userId), emoji, emojiName);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Message reaction error:", error);
+      res.status(500).json({ message: "Failed to add reaction" });
+    }
+  });
+
+  app.delete("/api/messages/:messageId/react", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const messageId = Number(req.params.messageId);
+      const { emoji } = req.body;
+
+      if (!emoji) {
+        return res.status(400).json({ message: "Emoji is required" });
+      }
+
+      await storage.removeMessageReaction(messageId, Number(userId), emoji);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Message reaction removal error:", error);
+      res.status(500).json({ message: "Failed to remove reaction" });
+    }
+  });
+
+  app.get("/api/messages/:messageId/reactions", async (req, res) => {
+    try {
+      const messageId = Number(req.params.messageId);
+      const reactions = await storage.getMessageReactions(messageId);
+      res.json({ reactions });
+    } catch (error) {
+      console.error("Get message reactions error:", error);
+      res.status(500).json({ message: "Failed to get reactions" });
+    }
+  });
+
+  app.get("/api/messages/:messageId/reaction-suggestions", async (req, res) => {
+    try {
+      const messageId = Number(req.params.messageId);
+      const suggestions = await storage.getMessageReactionSuggestions(messageId);
+      res.json({ suggestions });
+    } catch (error) {
+      console.error("Get reaction suggestions error:", error);
+      res.status(500).json({ message: "Failed to get suggestions" });
+    }
+  });
+
   return httpServer;
 }

@@ -26,7 +26,7 @@ import VoiceRecorder from "./VoiceRecorder";
 import { UnifiedSendButton } from "./UnifiedSendButton";
 import { FileUploadModal } from "./FileUploadModal";
 import { LinkPreview } from "./LinkPreview";
-import { MessageLikeButton } from "./MessageLikeButton";
+import { MessageReactionButton } from "./MessageReactionButton";
 import { LocationShareModal } from "./LocationShareModal";
 import ReminderTimeModal from "./ReminderTimeModal";
 import YoutubeSelectionModal from "./YoutubeSelectionModal";
