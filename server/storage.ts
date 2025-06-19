@@ -1,6 +1,6 @@
 import { 
   users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications,
-  fileUploads, fileDownloads, businessProfiles, userPosts, locationShareRequests, locationShares,
+  fileUploads, fileDownloads, businessProfiles, userPosts, locationShareRequests, locationShares, reminders,
   type User, type InsertUser, type Contact, type InsertContact,
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
   type Command, type InsertCommand, type MessageRead, type InsertMessageRead,
@@ -9,7 +9,8 @@ import {
   type BusinessProfile, type InsertBusinessProfile,
   type UserPost, type InsertUserPost,
   type LocationShareRequest, type InsertLocationShareRequest,
-  type LocationShare, type InsertLocationShare
+  type LocationShare, type InsertLocationShare,
+  type Reminder, type InsertReminder
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, or, count, gt, lt, sql, inArray } from "drizzle-orm";
@@ -93,6 +94,14 @@ export interface IStorage {
   createLocationShare(share: InsertLocationShare): Promise<LocationShare>;
   getLocationSharesForChatRoom(chatRoomId: number): Promise<LocationShare[]>;
   detectLocationRequest(message: string): boolean;
+
+  // Reminder operations
+  createReminder(reminder: InsertReminder): Promise<Reminder>;
+  getUserReminders(userId: number): Promise<Reminder[]>;
+  getChatRoomReminders(userId: number, chatRoomId: number): Promise<Reminder[]>;
+  updateReminder(reminderId: number, userId: number, updates: Partial<InsertReminder>): Promise<Reminder | undefined>;
+  deleteReminder(reminderId: number, userId: number): Promise<void>;
+  getPendingReminders(): Promise<Reminder[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -659,6 +668,52 @@ export class DatabaseStorage implements IStorage {
   detectLocationRequest(message: string): boolean {
     const locationKeywords = ['어디', '위치', '주소', '장소', 'where', 'location', 'address'];
     return locationKeywords.some(keyword => message.toLowerCase().includes(keyword));
+  }
+
+  // Reminder operations implementation
+  async createReminder(reminder: InsertReminder): Promise<Reminder> {
+    const [newReminder] = await db.insert(reminders).values(reminder).returning();
+    return newReminder;
+  }
+
+  async getUserReminders(userId: number): Promise<Reminder[]> {
+    return await db.select().from(reminders)
+      .where(and(eq(reminders.userId, userId), eq(reminders.isCompleted, false)))
+      .orderBy(asc(reminders.reminderTime));
+  }
+
+  async getChatRoomReminders(userId: number, chatRoomId: number): Promise<Reminder[]> {
+    return await db.select().from(reminders)
+      .where(and(
+        eq(reminders.userId, userId),
+        eq(reminders.chatRoomId, chatRoomId),
+        eq(reminders.isCompleted, false)
+      ))
+      .orderBy(asc(reminders.reminderTime));
+  }
+
+  async updateReminder(reminderId: number, userId: number, updates: Partial<InsertReminder>): Promise<Reminder | undefined> {
+    const [updatedReminder] = await db
+      .update(reminders)
+      .set(updates)
+      .where(and(eq(reminders.id, reminderId), eq(reminders.userId, userId)))
+      .returning();
+    return updatedReminder;
+  }
+
+  async deleteReminder(reminderId: number, userId: number): Promise<void> {
+    await db.delete(reminders)
+      .where(and(eq(reminders.id, reminderId), eq(reminders.userId, userId)));
+  }
+
+  async getPendingReminders(): Promise<Reminder[]> {
+    const now = new Date();
+    return await db.select().from(reminders)
+      .where(and(
+        eq(reminders.isCompleted, false),
+        lt(reminders.reminderTime, now)
+      ))
+      .orderBy(asc(reminders.reminderTime));
   }
 }
 

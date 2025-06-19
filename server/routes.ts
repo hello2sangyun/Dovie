@@ -4316,5 +4316,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Reminder endpoints
+  app.post('/api/reminders', async (req, res) => {
+    const userId = Number(req.headers['x-user-id']);
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { chatRoomId, reminderTime, reminderText } = req.body;
+      
+      if (!chatRoomId || !reminderTime || !reminderText) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      const reminder = await storage.createReminder({
+        chatRoomId: Number(chatRoomId),
+        userId: userId,
+        reminderText: reminderText,
+        reminderTime: new Date(reminderTime),
+        isPrivate: true
+      });
+
+      res.json({ reminder });
+    } catch (error) {
+      console.error("Create reminder error:", error);
+      res.status(500).json({ message: "Failed to create reminder" });
+    }
+  });
+
+  app.get('/api/reminders', async (req, res) => {
+    const userId = Number(req.headers['x-user-id']);
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { chatRoomId } = req.query;
+      
+      let reminders;
+      if (chatRoomId) {
+        reminders = await storage.getChatRoomReminders(userId, Number(chatRoomId));
+      } else {
+        reminders = await storage.getUserReminders(userId);
+      }
+
+      res.json({ reminders });
+    } catch (error) {
+      console.error("Get reminders error:", error);
+      res.status(500).json({ message: "Failed to get reminders" });
+    }
+  });
+
+  app.put('/api/reminders/:id', async (req, res) => {
+    const userId = Number(req.headers['x-user-id']);
+    const reminderId = Number(req.params.id);
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const updates = req.body;
+      const reminder = await storage.updateReminder(reminderId, userId, updates);
+      
+      if (!reminder) {
+        return res.status(404).json({ message: "Reminder not found" });
+      }
+
+      res.json({ reminder });
+    } catch (error) {
+      console.error("Update reminder error:", error);
+      res.status(500).json({ message: "Failed to update reminder" });
+    }
+  });
+
+  app.delete('/api/reminders/:id', async (req, res) => {
+    const userId = Number(req.headers['x-user-id']);
+    const reminderId = Number(req.params.id);
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      await storage.deleteReminder(reminderId, userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete reminder error:", error);
+      res.status(500).json({ message: "Failed to delete reminder" });
+    }
+  });
+
   return httpServer;
 }

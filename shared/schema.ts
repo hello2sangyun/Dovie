@@ -332,6 +332,19 @@ export const locationShares = pgTable("location_shares", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// 리마인더 테이블
+export const reminders = pgTable("reminders", {
+  id: serial("id").primaryKey(),
+  chatRoomId: integer("chat_room_id").references(() => chatRooms.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  reminderText: text("reminder_text").notNull(),
+  reminderTime: timestamp("reminder_time").notNull(),
+  isCompleted: boolean("is_completed").default(false),
+  isPrivate: boolean("is_private").default(true), // 나만 볼 수 있는 개인 리마인더
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+});
+
 export const usersRelations = relations(users, ({ many }) => ({
   contacts: many(contacts, { relationName: "userContacts" }),
   contactOf: many(contacts, { relationName: "contactUser" }),
@@ -680,6 +693,13 @@ export const insertLocationShareSchema = createInsertSchema(locationShares).omit
   createdAt: true,
 });
 
+// Reminder insert schema
+export const insertReminderSchema = createInsertSchema(reminders).omit({
+  id: true,
+  createdAt: true,
+  completedAt: true,
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
@@ -803,6 +823,8 @@ export type LocationShareRequest = typeof locationShareRequests.$inferSelect;
 export type InsertLocationShareRequest = z.infer<typeof insertLocationShareRequestSchema>;
 export type LocationShare = typeof locationShares.$inferSelect;
 export type InsertLocationShare = z.infer<typeof insertLocationShareSchema>;
+export type Reminder = typeof reminders.$inferSelect;
+export type InsertReminder = z.infer<typeof insertReminderSchema>;
 export type PostComment = typeof postComments.$inferSelect;
 export type InsertPostComment = z.infer<typeof insertPostCommentSchema>;
 export type CompanyProfile = typeof companyProfiles.$inferSelect;
