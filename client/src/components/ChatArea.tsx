@@ -294,10 +294,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [reminderText, setReminderText] = useState("");
   const [showYoutubeModal, setShowYoutubeModal] = useState(false);
   const [youtubeSearchQuery, setYoutubeSearchQuery] = useState("");
-  
-  // 리마인더 모달 상태
-  const [showReminderModal, setShowReminderModal] = useState(false);
-  const [reminderText, setReminderText] = useState('');
 
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
