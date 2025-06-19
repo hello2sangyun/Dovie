@@ -17,6 +17,7 @@ import CreateGroupChatModal from "@/components/CreateGroupChatModal";
 import ProfilePhotoModal from "@/components/ProfilePhotoModal";
 import ZeroDelayAvatar from "@/components/ZeroDelayAvatar";
 import { BannerNotificationContainer } from "@/components/MobileBannerNotification";
+import LoadingScreen from "@/components/LoadingScreen";
 
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
@@ -31,7 +32,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 export default function MainApp() {
-  const { user } = useAuth();
+  const { user, isLoading, isPreloadingImages } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { preloadImage, isLoading: imagePreloading } = useImagePreloader();
