@@ -1688,10 +1688,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         
         res.send(fileBuffer);
-      } else {
-        try {
-          // 파일이 암호화되었는지 확인 후 처리
-          let decryptedBuffer: Buffer;
+      }
+    } catch (error) {
+      console.error('File serving error:', error);
+      res.status(500).json({ message: "Failed to serve file" });
+    }
+  });
+
+  // Legacy encrypted file serving for non-profile images
+  app.get("/api/encrypted-files/:filename", async (req, res) => {
+    try {
+      const filename = req.params.filename;
+      const filePath = path.join(uploadDir, filename);
+      
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ message: "File not found" });
+      }
+
+      // 파일이 암호화되었는지 확인 후 처리
+      let decryptedBuffer: Buffer;
           
           try {
             // 먼저 암호화된 텍스트로 읽기 시도
@@ -1755,10 +1770,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return res.status(500).json({ message: "File processing error" });
           }
         }
+      } catch (error) {
+        console.error('Encrypted file serving error:', error);
+        res.status(500).json({ message: "Failed to serve encrypted file" });
       }
-    } catch (error) {
-      console.error('File serving error:', error);
-      res.status(500).json({ message: "Failed to serve file" });
+    } else {
+      console.log('File does not exist:', filePath);
+      res.status(404).json({ message: "File not found" });
     }
   });
 
