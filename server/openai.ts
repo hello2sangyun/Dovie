@@ -552,3 +552,74 @@ export async function generateFileSummary(fileName: string, fileType: string, fi
     }
   }
 }
+
+// Analyze message content and suggest personalized emoji reactions
+export async function analyzeMessageForEmojiSuggestions(
+  messageContent: string, 
+  messageType: string = 'text',
+  senderContext?: string
+): Promise<{ success: boolean; suggestions: Array<{ emoji: string; name: string; confidence: number }> }> {
+  try {
+    // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `You are an expert emoji suggestion system. Analyze the given message content and suggest 3-5 most relevant emoji reactions that users might want to use to react to this message.
+
+Consider:
+- Message sentiment and emotion
+- Content topic and context
+- Cultural appropriateness (Korean/international context)
+- Popular reaction patterns on messaging apps
+
+Return your response in JSON format with this structure:
+{
+  "suggestions": [
+    {
+      "emoji": "😀",
+      "name": "grinning_face",
+      "confidence": 0.85
+    }
+  ]
+}
+
+Prioritize commonly used reaction emojis like: ❤️, 😂, 😢, 😮, 👍, 👎, 🔥, 💯, 🎉, 😍, 🤔, 😡, 😭, 🙏, 👏, etc.`
+        },
+        {
+          role: "user",
+          content: `Analyze this ${messageType} message and suggest emoji reactions: "${messageContent}"`
+        }
+      ],
+      response_format: { type: "json_object" },
+      max_tokens: 300,
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || '{"suggestions": []}');
+    
+    // Validate and filter suggestions
+    const validSuggestions = (result.suggestions || [])
+      .filter((s: any) => s.emoji && s.name && typeof s.confidence === 'number')
+      .slice(0, 5); // Limit to 5 suggestions
+
+    return {
+      success: true,
+      suggestions: validSuggestions
+    };
+    
+  } catch (error) {
+    console.error('Error analyzing message for emoji suggestions:', error);
+    
+    // Return default popular reactions as fallback
+    return {
+      success: false,
+      suggestions: [
+        { emoji: "❤️", name: "heart", confidence: 0.7 },
+        { emoji: "😂", name: "joy", confidence: 0.6 },
+        { emoji: "👍", name: "thumbs_up", confidence: 0.6 },
+        { emoji: "😮", name: "open_mouth", confidence: 0.5 }
+      ]
+    };
+  }
+}

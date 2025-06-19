@@ -1,6 +1,7 @@
 import { 
   users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications,
   fileUploads, fileDownloads, businessProfiles, userPosts, locationShareRequests, locationShares, reminders,
+  messageReactions, messageLikes,
   type User, type InsertUser, type Contact, type InsertContact,
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
   type Command, type InsertCommand, type MessageRead, type InsertMessageRead,
@@ -10,7 +11,8 @@ import {
   type UserPost, type InsertUserPost,
   type LocationShareRequest, type InsertLocationShareRequest,
   type LocationShare, type InsertLocationShare,
-  type Reminder, type InsertReminder
+  type Reminder, type InsertReminder,
+  type MessageReaction, type InsertMessageReaction
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, or, count, gt, lt, sql, inArray } from "drizzle-orm";
@@ -102,6 +104,12 @@ export interface IStorage {
   updateReminder(reminderId: number, userId: number, updates: Partial<InsertReminder>): Promise<Reminder | undefined>;
   deleteReminder(reminderId: number, userId: number): Promise<void>;
   getPendingReminders(): Promise<Reminder[]>;
+
+  // Message reaction operations
+  addMessageReaction(messageId: number, userId: number, emoji: string, emojiName: string): Promise<void>;
+  removeMessageReaction(messageId: number, userId: number, emoji: string): Promise<void>;
+  getMessageReactions(messageId: number): Promise<Array<{ emoji: string; emojiName: string; count: number; userReacted: boolean; userId?: number }>>;
+  getMessageReactionSuggestions(messageId: number): Promise<Array<{ emoji: string; name: string; confidence: number }>>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -714,6 +722,83 @@ export class DatabaseStorage implements IStorage {
         lt(reminders.reminderTime, now)
       ))
       .orderBy(asc(reminders.reminderTime));
+  }
+
+  // Message reaction operations
+  async addMessageReaction(messageId: number, userId: number, emoji: string, emojiName: string): Promise<void> {
+    try {
+      await db.insert(messageReactions).values({
+        messageId,
+        userId,
+        emoji,
+        emojiName
+      });
+    } catch (error) {
+      // Handle duplicate reaction by updating instead
+      await db.delete(messageReactions)
+        .where(and(
+          eq(messageReactions.messageId, messageId),
+          eq(messageReactions.userId, userId),
+          eq(messageReactions.emoji, emoji)
+        ));
+      
+      await db.insert(messageReactions).values({
+        messageId,
+        userId,
+        emoji,
+        emojiName
+      });
+    }
+  }
+
+  async removeMessageReaction(messageId: number, userId: number, emoji: string): Promise<void> {
+    await db.delete(messageReactions)
+      .where(and(
+        eq(messageReactions.messageId, messageId),
+        eq(messageReactions.userId, userId),
+        eq(messageReactions.emoji, emoji)
+      ));
+  }
+
+  async getMessageReactions(messageId: number): Promise<Array<{ emoji: string; emojiName: string; count: number; userReacted: boolean; userId?: number }>> {
+    const reactions = await db.select().from(messageReactions)
+      .where(eq(messageReactions.messageId, messageId));
+
+    // Group reactions by emoji
+    const grouped = reactions.reduce((acc, reaction) => {
+      if (!acc[reaction.emoji]) {
+        acc[reaction.emoji] = {
+          emoji: reaction.emoji,
+          emojiName: reaction.emojiName,
+          count: 0,
+          userReacted: false,
+          users: []
+        };
+      }
+      acc[reaction.emoji].count++;
+      acc[reaction.emoji].users.push(reaction.userId);
+      return acc;
+    }, {} as Record<string, any>);
+
+    return Object.values(grouped);
+  }
+
+  async getMessageReactionSuggestions(messageId: number): Promise<Array<{ emoji: string; name: string; confidence: number }>> {
+    // Get the message content to analyze
+    const message = await this.getMessageById(messageId);
+    if (!message) {
+      return [];
+    }
+
+    // Import the OpenAI analysis function
+    const { analyzeMessageForEmojiSuggestions } = await import('./openai');
+    
+    const result = await analyzeMessageForEmojiSuggestions(
+      message.content || '',
+      message.messageType || 'text'
+    );
+
+    return result.suggestions;
   }
 }
 
