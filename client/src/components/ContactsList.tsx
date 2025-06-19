@@ -85,7 +85,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     console.log('📋 컨텍스트 메뉴 - 길게 누르기 시작:', contact.contactUser.displayName || contact.contactUser.nickname || contact.contactUser.username);
     
     const timer = setTimeout(() => {
-      console.log('📋 컨텍스트 메뉴 - 0.3초 후 메뉴 표시');
+      console.log('📋 컨텍스트 메뉴 - 0.5초 후 메뉴 표시');
       setSelectedContact(contact);
       
       // 터치 이벤트 또는 마우스 이벤트에서 위치 가져오기
@@ -94,7 +94,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       
       setContextMenuPosition({ x: clientX, y: clientY });
       setShowContextMenu(true);
-    }, 300); // 0.3초 후 메뉴 표시
+    }, 500); // 0.5초 후 메뉴 표시
     
     setLongPressTimer(timer);
   };

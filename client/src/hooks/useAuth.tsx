@@ -20,9 +20,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["/api/auth/me"],
-    enabled: !!storedUserId && !user, // Only query if we have stored ID and no current user
+    enabled: !!storedUserId, // Always query if we have stored ID
     refetchInterval: 30000, // 30초마다 자동 새로고침
-    staleTime: 5000, // 5초 동안 캐시 유지
+    staleTime: 1000, // 1초 동안만 캐시 유지
     queryFn: async () => {
       if (!storedUserId) {
         throw new Error("No stored user ID");
@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       return response.json();
     },
-    retry: 1,
+    retry: false,
   });
 
   useEffect(() => {

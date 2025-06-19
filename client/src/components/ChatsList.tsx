@@ -12,7 +12,7 @@ import ZeroDelayAvatar from "@/components/ZeroDelayAvatar";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Search, Pin, Users, X, Trash2, LogOut, MoreVertical, Mic, Archive, CheckCheck, Bookmark, BookmarkX } from "lucide-react";
+import { Plus, Search, Pin, Users, X, Trash2, LogOut, MoreVertical, Mic } from "lucide-react";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 import YoutubeSelectionModal from "./YoutubeSelectionModal";
@@ -210,7 +210,7 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     
     const timer = setTimeout(() => {
       startVoiceRecording(chatRoom);
-    }, 300); // 300ms 후 음성 녹음 시작
+    }, 800); // 800ms 후 음성 녹음 시작
     
     setLongPressTimer(timer);
   };
@@ -559,7 +559,7 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
           // 다른 스마트 추천들은 ChatArea에서 처리될 것임
           const otherSuggestions = voiceSuggestions.filter((s: any) => s.type !== 'youtube');
           if (otherSuggestions.length > 0) {
-            console.log('🎯 다른 스마트 추천들 감지됨:', otherSuggestions.map((s: any) => s.type).join(', '));
+            console.log('🎯 다른 스마트 추천들 감지됨:', otherSuggestions.map(s => s.type).join(', '));
             console.log('🎯 이 추천들은 ChatArea에서 처리될 예정');
           }
         }
@@ -1008,56 +1008,7 @@ function ChatRoomItem({
   isRecording?: boolean;
 }) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [showQuickActions, setShowQuickActions] = useState(false);
-
-  // Quick action mutations
-  const pinChatRoomMutation = useMutation({
-    mutationFn: async (roomId: number) => {
-      const response = await apiRequest(`/api/chat-rooms/${roomId}/pin`, "POST");
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
-      toast({
-        title: isPinned ? "채팅방 고정 해제" : "채팅방 고정 완료",
-        description: isPinned ? "채팅방이 일반 목록으로 이동되었습니다." : "채팅방이 상단에 고정되었습니다.",
-      });
-      setShowQuickActions(false);
-    },
-  });
-
-  const markAsReadMutation = useMutation({
-    mutationFn: async (roomId: number) => {
-      const response = await apiRequest(`/api/chat-rooms/${roomId}/mark-read`, "POST");
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/unread-counts"] });
-      toast({
-        title: "읽음 처리 완료",
-        description: "모든 메시지가 읽음으로 표시되었습니다.",
-      });
-      setShowQuickActions(false);
-    },
-  });
-
-  const deleteChatRoomMutation = useMutation({
-    mutationFn: async (roomId: number) => {
-      const response = await apiRequest(`/api/chat-rooms/${roomId}/leave`, "POST", { saveFiles: false });
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
-      toast({
-        title: "채팅방 삭제 완료",
-        description: "채팅방이 삭제되었습니다.",
-      });
-      setShowQuickActions(false);
-    },
-  });
 
   // 호버 시 메시지 미리 로딩
   const handleMouseEnter = async () => {
@@ -1109,94 +1060,47 @@ function ChatRoomItem({
   };
 
   return (
-    <div className="relative group">
-      {/* Quick Action Buttons - Show on hover */}
-      <div className={cn(
-        "absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 transition-all duration-200 z-10",
-        showQuickActions || "opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0"
-      )}>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900"
-          onClick={(e) => {
-            e.stopPropagation();
-            pinChatRoomMutation.mutate(chatRoom.id);
-          }}
-          title={isPinned ? "고정 해제" : "고정"}
-        >
-          {isPinned ? <BookmarkX className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
-        </Button>
-        {unreadCount > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900"
-            onClick={(e) => {
-              e.stopPropagation();
-              markAsReadMutation.mutate(chatRoom.id);
-            }}
-            title="읽음 처리"
-          >
-            <CheckCheck className="h-4 w-4" />
-          </Button>
-        )}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900"
-          onClick={(e) => {
-            e.stopPropagation();
-            deleteChatRoomMutation.mutate(chatRoom.id);
-          }}
-          title="삭제"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </div>
-
-      {/* Main Chat Room Content */}
-      <div
-        className={cn(
-          "p-4 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer border-b border-slate-200 dark:border-slate-700 transition-colors relative select-none",
-          isSelected && !isMultiSelectMode && "bg-slate-50 dark:bg-slate-800",
-          isMultiSelectMode && isChecked && "bg-blue-50 dark:bg-blue-900",
-          isRecording && "bg-red-50 dark:bg-red-900 border-red-200 dark:border-red-700"
-        )}
-        style={{ 
-          userSelect: 'none',
-          WebkitUserSelect: 'none',
-          msUserSelect: 'none',
-          WebkitTouchCallout: 'none'
-        }}
-        onClick={onClick}
-        onMouseEnter={handleMouseEnter}
-        onMouseDown={(e) => {
-          if (!isMultiSelectMode && onLongPressStart) {
-            onLongPressStart(chatRoom);
-          }
-        }}
-        onMouseUp={() => {
-          if (!isMultiSelectMode && onLongPressEnd) {
-            onLongPressEnd();
-          }
-        }}
-        onMouseLeave={() => {
-          if (!isMultiSelectMode && onLongPressEnd) {
-            onLongPressEnd();
-          }
-        }}
-        onTouchStart={(e) => {
-          if (!isMultiSelectMode && onLongPressStart) {
-            onLongPressStart(chatRoom);
-          }
-        }}
-        onTouchEnd={() => {
-          if (!isMultiSelectMode && onLongPressEnd) {
-            onLongPressEnd();
-          }
-        }}
-      >
+    <div
+      className={cn(
+        "p-4 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer border-b border-slate-200 dark:border-slate-700 transition-colors relative select-none",
+        isSelected && !isMultiSelectMode && "bg-slate-50 dark:bg-slate-800",
+        isMultiSelectMode && isChecked && "bg-blue-50 dark:bg-blue-900",
+        isRecording && "bg-red-50 dark:bg-red-900 border-red-200 dark:border-red-700"
+      )}
+      style={{ 
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        msUserSelect: 'none',
+        WebkitTouchCallout: 'none'
+      }}
+      onClick={onClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseDown={(e) => {
+        if (!isMultiSelectMode && onLongPressStart) {
+          onLongPressStart(chatRoom);
+        }
+      }}
+      onMouseUp={() => {
+        if (!isMultiSelectMode && onLongPressEnd) {
+          onLongPressEnd();
+        }
+      }}
+      onMouseLeave={() => {
+        if (!isMultiSelectMode && onLongPressEnd) {
+          onLongPressEnd();
+        }
+      }}
+      onTouchStart={(e) => {
+        if (!isMultiSelectMode && onLongPressStart) {
+          onLongPressStart(chatRoom);
+        }
+      }}
+      onTouchEnd={() => {
+        if (!isMultiSelectMode && onLongPressEnd) {
+          onLongPressEnd();
+        }
+      }}
+    >
       {isPinned && !isMultiSelectMode && (
         <Pin className="absolute top-2 right-2 text-purple-500 h-3 w-3" />
       )}
@@ -1299,7 +1203,6 @@ function ChatRoomItem({
           )}
         </div>
       </div>
-    </div>
     </div>
   );
 }
