@@ -255,16 +255,24 @@ export function UnifiedSendButton({
             </div>
             
             {/* 슬라이드 인디케이터 */}
-            <div className="relative w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-4">
+            <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden mb-4">
               <div 
                 className={`h-full transition-all duration-200 rounded-full ${
-                  isCancelZone ? 'bg-red-500' : 'bg-gray-400'
+                  isCancelZone ? 'bg-red-500 shadow-lg' : 'bg-blue-400'
                 }`}
                 style={{ 
-                  width: `${Math.min((slideOffset / 150) * 100, 100)}%`,
-                  opacity: slideOffset > 10 ? 1 : 0.3
+                  width: `${Math.min((slideOffset / 120) * 100, 100)}%`,
+                  opacity: slideOffset > 5 ? 1 : 0.3
                 }}
               />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className={`w-1 h-1 rounded-full transition-all duration-200 ${
+                  isCancelZone ? 'bg-white' : 'bg-gray-600'
+                }`} style={{ 
+                  left: `${Math.min((slideOffset / 120) * 100, 95)}%`,
+                  opacity: slideOffset > 10 ? 1 : 0
+                }} />
+              </div>
             </div>
             
             {/* 하단 안내 텍스트 */}
@@ -297,7 +305,8 @@ export function UnifiedSendButton({
                 : 'bg-purple-500 hover:bg-purple-600 text-white'
           } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
           style={{
-            transform: isRecording ? `translateX(-${Math.min(slideOffset * 0.3, 40)}px)` : 'translateX(0)'
+            transform: isRecording ? `translateX(-${Math.min(slideOffset * 0.2, 30)}px) scale(${isCancelZone ? 1.1 : 1})` : 'translateX(0)',
+            touchAction: 'manipulation'
           }}
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}

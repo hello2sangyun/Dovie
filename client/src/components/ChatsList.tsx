@@ -1233,13 +1233,21 @@ function ChatRoomItem({
             <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden mb-4">
               <div 
                 className={`h-full transition-all duration-200 rounded-full ${
-                  isCancelZone ? 'bg-red-500' : 'bg-gray-400'
+                  isCancelZone ? 'bg-red-500 shadow-lg' : 'bg-blue-400'
                 }`}
                 style={{ 
-                  width: `${Math.min((slideOffset / 150) * 100, 100)}%`,
-                  opacity: slideOffset > 10 ? 1 : 0.3
+                  width: `${Math.min((slideOffset / 120) * 100, 100)}%`,
+                  opacity: slideOffset > 5 ? 1 : 0.3
                 }}
               />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className={`w-1 h-1 rounded-full transition-all duration-200 ${
+                  isCancelZone ? 'bg-white' : 'bg-gray-600'
+                }`} style={{ 
+                  left: `${Math.min((slideOffset / 120) * 100, 95)}%`,
+                  opacity: slideOffset > 10 ? 1 : 0
+                }} />
+              </div>
             </div>
             
             {/* 안내 텍스트 */}
