@@ -429,6 +429,14 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Restored mark-read API functionality with proper ON CONFLICT handling for upsert operations
   - Unread count badges now correctly disappear after reading messages in chat rooms
   - Complete workflow verified: unread messages display red badges → user reads messages → badges automatically disappear
+- June 20, 2025: Implemented comprehensive slide-to-cancel voice recording functionality:
+  - Added touch gesture detection for voice recording cancellation in both chat area and contacts list
+  - Implemented visual "← 밀어서 취소" indicator that appears when sliding left during recording
+  - Added cancel zone activation after 100px slide distance with color-coded feedback
+  - Enhanced UnifiedSendButton with slide offset tracking and visual animations
+  - Updated ChatsList component with slide-to-cancel interface for long-press voice messages
+  - Voice recording now cancels when sliding left >100px, completes normally when releasing in safe zone
+  - Removed Dovie logo from login loading screen, centered spinner for cleaner interface
 
 ## User Preferences
 

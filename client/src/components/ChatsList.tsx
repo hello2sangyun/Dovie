@@ -1136,28 +1136,38 @@ function ChatRoomItem({
       onClick={onClick}
       onMouseEnter={handleMouseEnter}
       onMouseDown={(e) => {
-        if (!isMultiSelectMode && onLongPressStart) {
-          onLongPressStart(chatRoom);
+        // Mouse events use the old long press behavior
+        if (!isMultiSelectMode) {
+          const timer = setTimeout(() => {
+            if (onTouchStart) {
+              onTouchStart(chatRoom, { touches: [{ clientX: e.clientX }] } as any);
+            }
+          }, 800);
         }
       }}
       onMouseUp={() => {
-        if (!isMultiSelectMode && onLongPressEnd) {
-          onLongPressEnd();
+        if (!isMultiSelectMode && onTouchEnd) {
+          onTouchEnd();
         }
       }}
       onMouseLeave={() => {
-        if (!isMultiSelectMode && onLongPressEnd) {
-          onLongPressEnd();
+        if (!isMultiSelectMode && onTouchEnd) {
+          onTouchEnd();
         }
       }}
       onTouchStart={(e) => {
-        if (!isMultiSelectMode && onLongPressStart) {
-          onLongPressStart(chatRoom);
+        if (!isMultiSelectMode && onTouchStart) {
+          onTouchStart(chatRoom, e);
+        }
+      }}
+      onTouchMove={(e) => {
+        if (!isMultiSelectMode && onTouchMove) {
+          onTouchMove(e);
         }
       }}
       onTouchEnd={() => {
-        if (!isMultiSelectMode && onLongPressEnd) {
-          onLongPressEnd();
+        if (!isMultiSelectMode && onTouchEnd) {
+          onTouchEnd();
         }
       }}
     >
@@ -1166,7 +1176,21 @@ function ChatRoomItem({
       )}
       
       {isRecording && (
-        <div className="absolute inset-0 bg-red-500/10 border-2 border-red-500 rounded-lg flex items-center justify-center">
+        <div className="absolute inset-0 bg-red-500/10 border-2 border-red-500 rounded-lg flex items-center justify-between px-4">
+          {/* 왼쪽 취소 영역 */}
+          <div 
+            className={`flex items-center gap-2 px-3 py-1 rounded-full transition-all duration-200 ${
+              isCancelZone ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-500'
+            }`}
+            style={{ 
+              transform: `translateX(-${Math.min(slideOffset, 120)}px)`,
+              opacity: slideOffset > 20 ? 1 : 0 
+            }}
+          >
+            <span className="text-sm font-medium">← 밀어서 취소</span>
+          </div>
+          
+          {/* 오른쪽 녹음 상태 */}
           <div className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-2">
             <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
             <span>음성 녹음 중...</span>
