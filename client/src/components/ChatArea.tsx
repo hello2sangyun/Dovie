@@ -4532,13 +4532,16 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     <div 
                       className={cn(
                         "rounded-lg px-2 py-1 shadow-sm w-fit break-words cursor-pointer select-none",
-                        msg.isCommandRecall && msg.isLocalOnly
-                          ? isMe 
-                            ? "bg-teal-500 text-white rounded-tr-none border border-teal-400" 
-                            : "bg-teal-50 text-teal-900 rounded-tl-none border border-teal-200"
-                          : isMe 
-                            ? "bg-purple-600 text-white rounded-tr-none" 
-                            : "bg-white text-gray-900 rounded-tl-none border border-gray-200"
+                        // 시스템 메시지 (리마인더)는 해시태그 회상과 같은 스타일 적용
+                        msg.isSystemMessage
+                          ? "bg-teal-50 text-teal-900 rounded-lg border border-teal-200"
+                          : msg.isCommandRecall && msg.isLocalOnly
+                            ? isMe 
+                              ? "bg-teal-500 text-white rounded-tr-none border border-teal-400" 
+                              : "bg-teal-50 text-teal-900 rounded-tl-none border border-teal-200"
+                            : isMe 
+                              ? "bg-purple-600 text-white rounded-tr-none" 
+                              : "bg-white text-gray-900 rounded-tl-none border border-gray-200"
                       )}
                       style={{ 
                         userSelect: 'none',
@@ -4884,9 +4887,26 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       ) : (
                         <div className={cn(
                           "text-sm relative",
-                          isMe ? "text-white" : "text-gray-900"
+                          msg.isSystemMessage ? "text-teal-900" : isMe ? "text-white" : "text-gray-900"
                         )}>
-                          {/* YouTube Preview */}
+                          {/* 시스템 리마인더 메시지 특별 처리 */}
+                          {msg.isSystemMessage && msg.content && msg.content.includes('⏰ 리마인더:') ? (
+                            <div>
+                              <div className="flex items-center space-x-2 mb-2">
+                                <Hash className="h-4 w-4 text-teal-600" />
+                                <span className="text-xs text-teal-600 font-medium">태그로 불러옴 (나만 보임)</span>
+                              </div>
+                              <span className="px-2 py-1 rounded text-xs font-medium bg-teal-200 text-teal-800">
+                                {msg.content.replace('⏰ 리마인더: ', '#리마인더 ')}
+                              </span>
+                              <p className="text-xs mt-1 text-teal-600">
+                                스마트 추천으로 생성된 리마인더
+                              </p>
+                            </div>
+                          ) : (
+                            // 일반 메시지 렌더링
+                            <>
+                              {/* YouTube Preview */}
                           {(msg as any).youtubePreview && (
                             <div className="mb-3 rounded-lg overflow-hidden bg-white shadow-sm border">
                               <div className="relative">
