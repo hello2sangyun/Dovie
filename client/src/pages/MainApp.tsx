@@ -53,7 +53,7 @@ export default function MainApp() {
   const [contactFilter, setContactFilter] = useState<number | null>(null);
   const [friendFilter, setFriendFilter] = useState<number | null>(null);
 
-  useWebSocket(user?.id);
+  const { sendMessage, connectionState, pendingMessageCount } = useWebSocket(user?.id);
 
   // Handle URL parameters for friend filter
   useEffect(() => {
@@ -847,11 +847,22 @@ export default function MainApp() {
               </div>
             </div>
           ) : selectedChatRoom ? (
-            <ChatArea 
-              chatRoomId={selectedChatRoom}
-              onCreateCommand={handleCreateCommand}
-              isLocationChat={false}
-            />
+            <div className="flex-1 flex flex-col">
+              {/* Connection Status Indicator */}
+              <div className="flex-shrink-0 p-2">
+                <ConnectionStatusIndicator 
+                  connectionState={connectionState}
+                  pendingMessageCount={pendingMessageCount}
+                  className="mx-auto max-w-sm"
+                />
+              </div>
+              
+              <ChatArea 
+                chatRoomId={selectedChatRoom}
+                onCreateCommand={handleCreateCommand}
+                isLocationChat={false}
+              />
+            </div>
           ) : (
             <div className="flex-1 flex items-center justify-center bg-gray-50">
               <div className="text-center">
@@ -910,6 +921,15 @@ export default function MainApp() {
 
           {showMobileChat && selectedChatRoom && (
             <div className="h-full flex flex-col overflow-hidden">
+              {/* Mobile Connection Status Indicator */}
+              <div className="flex-shrink-0 p-2">
+                <ConnectionStatusIndicator 
+                  connectionState={connectionState}
+                  pendingMessageCount={pendingMessageCount}
+                  className="mx-auto max-w-xs"
+                />
+              </div>
+              
               <div className="flex-1 min-h-0">
                 <ChatArea 
                   chatRoomId={selectedChatRoom}
