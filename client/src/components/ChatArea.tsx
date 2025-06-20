@@ -4396,8 +4396,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         onScroll={handleScroll}
       >
         {/* Security Notice - WhatsApp Style */}
-        <div className="flex justify-center mb-6 px-4">
-          <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-xl px-4 py-3 max-w-sm mx-auto shadow-lg transform hover:scale-105 transition-all duration-200 backdrop-blur-sm">
+        <div className="flex justify-center mb-2 px-2">
+          <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-lg px-2 py-1 max-w-sm mx-auto shadow-sm transition-all duration-200 backdrop-blur-sm">
             <div className="flex items-center justify-center space-x-2">
               <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse shadow-sm"></div>
               <p className="text-xs text-yellow-800 text-center font-semibold">
@@ -4716,16 +4716,16 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           {/* 오디오 파형 그래프 영역 */}
                           <div className="flex-1 min-w-0 max-w-xs">
                             {/* 음성 라벨을 우측 상단에 배치 */}
-                            <div className="flex items-center justify-end space-x-2 mb-2">
+                            <div className="flex items-center justify-end space-x-1 mb-1">
                               <div className={cn(
-                                "px-2 py-1 rounded-full text-xs font-medium",
+                                "px-1.5 py-0.5 rounded-full text-xs font-medium",
                                 isMe ? "bg-white/20 text-white" : "bg-purple-100 text-purple-600"
                               )}>
                                 음성
                               </div>
                               {msg.voiceDuration && (
                                 <span className={cn(
-                                  "text-xs px-2 py-1 rounded-full",
+                                  "text-xs px-1.5 py-0.5 rounded-full",
                                   isMe ? "bg-white/20 text-white/70" : "bg-gray-100 text-gray-500"
                                 )}>
                                   {msg.voiceDuration}초
@@ -4734,7 +4734,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                             </div>
                             
                             {/* 컴팩트한 정적 오디오 파형 */}
-                            <div className="flex items-center space-x-0.5 h-3 mb-2">
+                            <div className="flex items-center space-x-0.5 h-2 mb-1">
                               {(() => {
                                 // 정적 파형 (15개 막대, 더 컴팩트)
                                 const staticHeights = [0.3, 0.6, 0.4, 0.8, 0.3, 0.7, 0.5, 0.9, 0.4, 0.6, 0.3, 0.5, 0.7, 0.2, 0.4];

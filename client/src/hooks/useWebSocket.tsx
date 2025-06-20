@@ -1,14 +1,106 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMobileNotification } from "./useMobileNotification";
 import { useAuth } from "./useAuth";
+
+interface PendingMessage {
+  id: string;
+  message: any;
+  timestamp: number;
+  retryCount: number;
+  maxRetries: number;
+}
+
+interface ConnectionState {
+  isConnected: boolean;
+  isReconnecting: boolean;
+  reconnectAttempts: number;
+  lastReconnectTime: number;
+}
 
 export function useWebSocket(userId?: number) {
   const wsRef = useRef<WebSocket | null>(null);
   const queryClient = useQueryClient();
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const retryTimeoutRef = useRef<NodeJS.Timeout>();
+  const pendingMessages = useRef<Map<string, PendingMessage>>(new Map());
   const { showNotification } = useMobileNotification();
   const { user } = useAuth();
+  
+  const [connectionState, setConnectionState] = useState<ConnectionState>({
+    isConnected: false,
+    isReconnecting: false,
+    reconnectAttempts: 0,
+    lastReconnectTime: 0
+  });
+
+  // Adaptive backoff calculation
+  const getReconnectDelay = (attempts: number): number => {
+    const baseDelay = 1000; // 1 second
+    const maxDelay = 60000; // 1 minute
+    const exponentialDelay = Math.min(baseDelay * Math.pow(2, attempts), maxDelay);
+    // Add jitter to prevent thundering herd
+    const jitter = Math.random() * 0.3 * exponentialDelay;
+    return Math.floor(exponentialDelay + jitter);
+  };
+
+  // Message retry with exponential backoff
+  const retryMessage = (messageId: string) => {
+    const pendingMsg = pendingMessages.current.get(messageId);
+    if (!pendingMsg) return;
+
+    if (pendingMsg.retryCount >= pendingMsg.maxRetries) {
+      console.warn(`Message ${messageId} exceeded max retries, giving up`);
+      pendingMessages.current.delete(messageId);
+      showNotification({
+        title: "메시지 전송 실패",
+        description: "네트워크 문제로 메시지를 전송할 수 없습니다.",
+        variant: "destructive",
+        duration: 5000
+      });
+      return;
+    }
+
+    const retryDelay = getReconnectDelay(pendingMsg.retryCount);
+    pendingMsg.retryCount++;
+    
+    console.log(`Retrying message ${messageId} (attempt ${pendingMsg.retryCount}/${pendingMsg.maxRetries}) in ${retryDelay}ms`);
+    
+    setTimeout(() => {
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        try {
+          wsRef.current.send(JSON.stringify(pendingMsg.message));
+          console.log(`Message ${messageId} retried successfully`);
+          pendingMessages.current.delete(messageId);
+        } catch (error) {
+          console.error(`Failed to retry message ${messageId}:`, error);
+          retryMessage(messageId); // Retry again
+        }
+      } else {
+        // WebSocket not ready, keep message pending
+        console.log(`WebSocket not ready for retry of message ${messageId}`);
+      }
+    }, retryDelay);
+  };
+
+  // Process all pending messages when connection is restored
+  const processPendingMessages = () => {
+    if (wsRef.current?.readyState !== WebSocket.OPEN) return;
+    
+    const messages = Array.from(pendingMessages.current.entries());
+    console.log(`Processing ${messages.length} pending messages`);
+    
+    for (const [messageId, pendingMsg] of messages) {
+      try {
+        wsRef.current.send(JSON.stringify(pendingMsg.message));
+        pendingMessages.current.delete(messageId);
+        console.log(`Pending message ${messageId} sent successfully`);
+      } catch (error) {
+        console.error(`Failed to send pending message ${messageId}:`, error);
+        retryMessage(messageId);
+      }
+    }
+  };
 
   useEffect(() => {
     if (!userId) return;
