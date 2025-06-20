@@ -55,7 +55,7 @@ export default function LoadingScreen({
 
         {/* Additional Info */}
         <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mt-4">
-          처음 로그인 시 모든 프로필 이미지를 다운로드하여 빠른 채팅 경험을 제공합니다
+          빠른 채팅을 위해 프로필 이미지를 준비하고 있습니다
         </p>
       </div>
     </div>
