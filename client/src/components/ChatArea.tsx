@@ -4391,7 +4391,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       {/* Chat Messages */}
       <div 
         ref={chatScrollRef}
-        className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-2 space-y-3 min-h-0 overscroll-behavior-y-contain overscroll-behavior-x-none pb-16 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 relative w-full"
+        className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-1 space-y-1 min-h-0 overscroll-behavior-y-contain overscroll-behavior-x-none pb-16 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 relative w-full"
         style={{ wordBreak: 'break-word' }}
         onScroll={handleScroll}
       >
@@ -4461,7 +4461,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   id={`message-${msg.id}`}
                   ref={(el) => messageRefs.current[msg.id] = el}
                   className={cn(
-                    "flex items-start space-x-2 mb-2 transition-all duration-500",
+                    "flex items-start space-x-2 mb-1 transition-all duration-500",
                     isMe ? "flex-row-reverse space-x-reverse" : "",
                     highlightedMessageId === msg.id && "bg-yellow-100 rounded-lg p-1 -mx-1"
                   )}
@@ -4525,7 +4525,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     )}
                     
                     {isMe && (
-                      <div className="flex items-center space-x-2 mb-0.5">
+                      <div className="flex items-center space-x-2 mb-0">
                         <span className="text-xs text-gray-500">
                           {formatTime(msg.createdAt)}
                         </span>
@@ -4534,7 +4534,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
                     <div 
                       className={cn(
-                        "rounded-lg px-2 py-1 shadow-sm w-fit break-words cursor-pointer select-none",
+                        "rounded-lg px-2 py-0.5 shadow-sm w-fit break-words cursor-pointer select-none",
                         // 시스템 메시지 (리마인더)는 해시태그 회상과 같은 스타일 적용
                         msg.isSystemMessage
                           ? "bg-teal-50 text-teal-900 rounded-lg border border-teal-200"
@@ -4585,7 +4585,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       {msg.replyToMessageId && (
                         <div 
                           className={cn(
-                            "clickable mb-2 p-2 border-l-3 rounded-r-lg cursor-pointer transition-all duration-200 hover:shadow-md select-auto",
+                            "clickable mb-1 p-1 border-l-3 rounded-r-lg cursor-pointer transition-all duration-200 hover:shadow-md select-auto",
                             isMe 
                               ? "border-white bg-white/20 hover:bg-white/30 backdrop-blur-sm" 
                               : "border-purple-500 bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 shadow-sm"
