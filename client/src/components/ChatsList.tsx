@@ -208,9 +208,13 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     setSelectedRoomIds([]);
   };
 
-  // 길게 누르기 시작
-  const handleLongPressStart = (chatRoom: any) => {
-    console.log('🎯 채팅방 간편음성메세지 - 길게 누르기 시작:', getChatRoomDisplayName(chatRoom));
+  // 터치 시작 - 위치 추적 시작
+  const handleTouchStart = (chatRoom: any, e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    startTouchXRef.current = touch.clientX;
+    currentTouchXRef.current = touch.clientX;
+    
+    console.log('🎯 채팅방 간편음성메세지 - 터치 시작:', getChatRoomDisplayName(chatRoom));
     
     const timer = setTimeout(() => {
       startVoiceRecording(chatRoom);
@@ -219,15 +223,36 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     setLongPressTimer(timer);
   };
 
-  // 길게 누르기 끝
-  const handleLongPressEnd = () => {
+  // 터치 이동 - 슬라이드 감지
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isRecording) return;
+    
+    const touch = e.touches[0];
+    currentTouchXRef.current = touch.clientX;
+    
+    const deltaX = startTouchXRef.current - touch.clientX;
+    const maxSlide = 150; // 최대 슬라이드 거리
+    const normalizedOffset = Math.max(0, Math.min(deltaX, maxSlide));
+    
+    setSlideOffset(normalizedOffset);
+    setIsCancelZone(normalizedOffset > 100); // 100px 이상 슬라이드하면 취소 영역
+  };
+
+  // 터치 끝 - 녹음 완료 또는 취소 결정
+  const handleTouchEnd = () => {
     if (longPressTimer) {
       clearTimeout(longPressTimer);
       setLongPressTimer(null);
     }
     
     if (isRecording) {
-      stopVoiceRecording();
+      if (isCancelZone) {
+        // 취소 영역에서 손을 뗐으면 녹음 취소
+        cancelVoiceRecording();
+      } else {
+        // 일반적인 녹음 완료
+        stopVoiceRecording();
+      }
     }
   };
 
@@ -290,6 +315,25 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       setRecordingChatRoom(null);
+      setSlideOffset(0);
+      setIsCancelZone(false);
+    }
+  };
+
+  // 음성 녹음 취소
+  const cancelVoiceRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      console.log('❌ 음성 녹음 취소');
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      setRecordingChatRoom(null);
+      setSlideOffset(0);
+      setIsCancelZone(false);
+      
+      // 스트림 정리 (녹음은 저장하지 않음)
+      if (mediaRecorderRef.current.stream) {
+        mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      }
     }
   };
 
@@ -889,9 +933,12 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
                 draftPreview={getDraftPreview(chatRoom.id)}
                 isMultiSelectMode={isMultiSelectMode}
                 isChecked={selectedRoomIds.includes(chatRoom.id)}
-                onLongPressStart={handleLongPressStart}
-                onLongPressEnd={handleLongPressEnd}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
                 isRecording={isRecording && recordingChatRoom?.id === chatRoom.id}
+                slideOffset={slideOffset}
+                isCancelZone={isCancelZone}
               />
             ))}
           </>
@@ -916,9 +963,12 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
                 draftPreview={getDraftPreview(chatRoom.id)}
                 isMultiSelectMode={isMultiSelectMode}
                 isChecked={selectedRoomIds.includes(chatRoom.id)}
-                onLongPressStart={handleLongPressStart}
-                onLongPressEnd={handleLongPressEnd}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
                 isRecording={isRecording && recordingChatRoom?.id === chatRoom.id}
+                slideOffset={slideOffset}
+                isCancelZone={isCancelZone}
               />
             ))}
           </>
@@ -993,9 +1043,12 @@ function ChatRoomItem({
   draftPreview = "",
   isMultiSelectMode = false,
   isChecked = false,
-  onLongPressStart,
-  onLongPressEnd,
-  isRecording = false
+  onTouchStart,
+  onTouchMove,
+  onTouchEnd,
+  isRecording = false,
+  slideOffset = 0,
+  isCancelZone = false
 }: {
   chatRoom: any;
   displayName: string;
@@ -1007,9 +1060,12 @@ function ChatRoomItem({
   draftPreview?: string;
   isMultiSelectMode?: boolean;
   isChecked?: boolean;
-  onLongPressStart?: (chatRoom: any) => void;
-  onLongPressEnd?: () => void;
+  onTouchStart?: (chatRoom: any, e: React.TouchEvent) => void;
+  onTouchMove?: (e: React.TouchEvent) => void;
+  onTouchEnd?: () => void;
   isRecording?: boolean;
+  slideOffset?: number;
+  isCancelZone?: boolean;
 }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
