@@ -109,16 +109,44 @@ export function useWebSocket(userId?: number) {
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
       const wsUrl = `${protocol}//${window.location.host}/ws`;
       
+      setConnectionState(prev => ({
+        ...prev,
+        isReconnecting: true
+      }));
+      
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
       ws.onopen = () => {
-        console.log("WebSocket connected");
+        console.log("WebSocket connected successfully");
+        
+        setConnectionState({
+          isConnected: true,
+          isReconnecting: false,
+          reconnectAttempts: 0,
+          lastReconnectTime: Date.now()
+        });
+        
         // Authenticate with the server
         ws.send(JSON.stringify({
           type: "auth",
           userId: userId,
         }));
+        
+        // Show connection restored notification if this was a reconnection
+        if (connectionState.reconnectAttempts > 0) {
+          showNotification({
+            title: "연결 복구",
+            description: "채팅 서버에 다시 연결되었습니다.",
+            variant: "default",
+            duration: 3000
+          });
+        }
+        
+        // Process any pending messages
+        setTimeout(() => {
+          processPendingMessages();
+        }, 100);
       };
 
       ws.onmessage = (event) => {
@@ -214,19 +242,60 @@ export function useWebSocket(userId?: number) {
         console.log("WebSocket disconnected:", event.code, event.reason);
         wsRef.current = null;
         
+        setConnectionState(prev => ({
+          ...prev,
+          isConnected: false,
+          isReconnecting: false
+        }));
+        
         // Attempt to reconnect after a delay if the connection wasn't closed intentionally
-        if (event.code !== 1000) {
+        if (event.code !== 1000 && userId) {
+          const currentAttempts = connectionState.reconnectAttempts + 1;
+          const reconnectDelay = getReconnectDelay(currentAttempts);
+          
+          setConnectionState(prev => ({
+            ...prev,
+            reconnectAttempts: currentAttempts,
+            isReconnecting: true
+          }));
+          
+          console.log(`WebSocket disconnected. Reconnecting in ${reconnectDelay}ms (attempt ${currentAttempts})`);
+          
+          // Show connection lost notification for first disconnect
+          if (currentAttempts === 1) {
+            showNotification({
+              title: "연결 끊김",
+              description: "채팅 서버와의 연결이 끊어졌습니다. 재연결 중...",
+              variant: "destructive",
+              duration: 4000
+            });
+          }
+          
           reconnectTimeoutRef.current = setTimeout(() => {
             if (userId) {
-              console.log("Attempting to reconnect WebSocket...");
+              console.log(`Attempting to reconnect WebSocket (attempt ${currentAttempts})...`);
               connect();
             }
-          }, 3000);
+          }, reconnectDelay);
         }
       };
 
       ws.onerror = (error) => {
         console.error("WebSocket error:", error);
+        
+        setConnectionState(prev => ({
+          ...prev,
+          isConnected: false
+        }));
+        
+        // Log error details for debugging
+        if (error instanceof Event) {
+          console.error("WebSocket error event:", {
+            type: error.type,
+            target: error.target,
+            timeStamp: error.timeStamp
+          });
+        }
       };
     };
 
@@ -244,14 +313,91 @@ export function useWebSocket(userId?: number) {
     };
   }, [userId, queryClient]);
 
-  // Return a function to send messages if needed
-  const sendMessage = (message: any) => {
+  // Smart message sending with retry mechanism
+  const sendMessage = (message: any, options: { maxRetries?: number, priority?: 'high' | 'normal' | 'low' } = {}) => {
+    const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const maxRetries = options.maxRetries || 3;
+    
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify(message));
-    } else {
-      console.warn("WebSocket not connected, cannot send message");
+      try {
+        wsRef.current.send(JSON.stringify(message));
+        console.log(`Message ${messageId} sent immediately`);
+        return { success: true, messageId };
+      } catch (error) {
+        console.error(`Failed to send message ${messageId} immediately:`, error);
+        // Fall through to queue the message
+      }
     }
+    
+    // Queue message for retry if WebSocket is not ready
+    const pendingMessage: PendingMessage = {
+      id: messageId,
+      message,
+      timestamp: Date.now(),
+      retryCount: 0,
+      maxRetries
+    };
+    
+    pendingMessages.current.set(messageId, pendingMessage);
+    console.log(`Message ${messageId} queued for retry (WebSocket state: ${wsRef.current?.readyState})`);
+    
+    // Show user feedback for queued message
+    if (!connectionState.isConnected) {
+      showNotification({
+        title: "메시지 대기 중",
+        description: "연결이 복구되면 메시지가 전송됩니다.",
+        variant: "default",
+        duration: 3000
+      });
+    }
+    
+    // Try to send immediately if connection becomes available
+    if (connectionState.isReconnecting) {
+      const checkConnection = () => {
+        if (wsRef.current?.readyState === WebSocket.OPEN) {
+          processPendingMessages();
+        } else if (wsRef.current?.readyState === WebSocket.CONNECTING) {
+          setTimeout(checkConnection, 500);
+        }
+      };
+      setTimeout(checkConnection, 100);
+    } else {
+      // Start retry process
+      retryMessage(messageId);
+    }
+    
+    return { success: false, messageId, queued: true };
   };
 
-  return { sendMessage };
+  // Clean up expired pending messages
+  const cleanupExpiredMessages = () => {
+    const now = Date.now();
+    const expiredThreshold = 5 * 60 * 1000; // 5 minutes
+    
+    const messagesToDelete: string[] = [];
+    const entries = Array.from(pendingMessages.current.entries());
+    
+    for (const [messageId, pendingMsg] of entries) {
+      if (now - pendingMsg.timestamp > expiredThreshold) {
+        messagesToDelete.push(messageId);
+      }
+    }
+    
+    messagesToDelete.forEach(messageId => {
+      console.log(`Removing expired message ${messageId}`);
+      pendingMessages.current.delete(messageId);
+    });
+  };
+
+  // Clean up expired messages periodically
+  useEffect(() => {
+    const cleanup = setInterval(cleanupExpiredMessages, 60000); // Every minute
+    return () => clearInterval(cleanup);
+  }, []);
+
+  return { 
+    sendMessage, 
+    connectionState,
+    pendingMessageCount: pendingMessages.current.size
+  };
 }

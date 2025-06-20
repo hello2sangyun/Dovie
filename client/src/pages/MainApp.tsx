@@ -18,7 +18,7 @@ import ProfilePhotoModal from "@/components/ProfilePhotoModal";
 import ZeroDelayAvatar from "@/components/ZeroDelayAvatar";
 import { BannerNotificationContainer } from "@/components/MobileBannerNotification";
 import LoadingScreen from "@/components/LoadingScreen";
-
+import { ConnectionStatusIndicator } from "@/components/ConnectionStatusIndicator";
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
 

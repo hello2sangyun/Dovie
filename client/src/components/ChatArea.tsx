@@ -30,6 +30,7 @@ import { MessageReactionButton } from "./MessageReactionButton";
 import { LocationShareModal } from "./LocationShareModal";
 import ReminderTimeModal from "./ReminderTimeModal";
 import YoutubeSelectionModal from "./YoutubeSelectionModal";
+import { ConnectionStatusIndicator } from "./ConnectionStatusIndicator";
 // Using inline smart suggestion analysis to avoid import issues
 interface SmartSuggestion {
   type: string;
