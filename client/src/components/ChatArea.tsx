@@ -118,6 +118,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     isLocationChatRoom,
     showMobileHeader
   });
+
+
   const queryClient = useQueryClient();
   const [message, setMessage] = useState("");
   
@@ -4456,6 +4458,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                 )}
                 
                 <div 
+                  id={`message-${msg.id}`}
                   ref={(el) => messageRefs.current[msg.id] = el}
                   className={cn(
                     "flex items-start space-x-2 mb-2 transition-all duration-500",
@@ -4891,16 +4894,23 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                         )}>
                           {/* 시스템 리마인더 메시지 특별 처리 */}
                           {msg.isSystemMessage && msg.content && msg.content.includes('⏰ 리마인더:') && (
-                            <div className="mb-2">
+                            <div 
+                              className="mb-2 cursor-pointer hover:bg-teal-25 rounded-lg p-2 transition-colors"
+                              onClick={() => {
+                                // 원문 메시지로 스크롤 (originalMessageId가 있다면)
+                                if (msg.originalMessageId) {
+                                  scrollToMessage(msg.originalMessageId);
+                                }
+                              }}
+                            >
                               <div className="flex items-center space-x-2 mb-2">
-                                <Hash className="h-4 w-4 text-teal-600" />
-                                <span className="text-xs text-teal-600 font-medium">태그로 불러옴 (나만 보임)</span>
+                                <span className="text-sm font-medium text-teal-700">⏰ 리마인더</span>
                               </div>
-                              <span className="px-2 py-1 rounded text-xs font-medium bg-teal-200 text-teal-800">
-                                {msg.content.replace('⏰ 리마인더: ', '#리마인더 ')}
-                              </span>
+                              <div className="text-sm text-teal-800">
+                                {msg.content.replace('⏰ 리마인더: ', '')}
+                              </div>
                               <p className="text-xs mt-1 text-teal-600">
-                                스마트 추천으로 생성된 리마인더
+                                클릭하여 원문으로 이동
                               </p>
                             </div>
                           )}
