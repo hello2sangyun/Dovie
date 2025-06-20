@@ -4890,8 +4890,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           msg.isSystemMessage ? "text-teal-900" : isMe ? "text-white" : "text-gray-900"
                         )}>
                           {/* 시스템 리마인더 메시지 특별 처리 */}
-                          {msg.isSystemMessage && msg.content && msg.content.includes('⏰ 리마인더:') ? (
-                            <div>
+                          {msg.isSystemMessage && msg.content && msg.content.includes('⏰ 리마인더:') && (
+                            <div className="mb-2">
                               <div className="flex items-center space-x-2 mb-2">
                                 <Hash className="h-4 w-4 text-teal-600" />
                                 <span className="text-xs text-teal-600 font-medium">태그로 불러옴 (나만 보임)</span>
@@ -4903,8 +4903,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                                 스마트 추천으로 생성된 리마인더
                               </p>
                             </div>
-                          ) : (
-                            // 일반 메시지 렌더링
+                          )}
+                          
+                          {/* 일반 메시지 내용 (시스템 메시지가 아닌 경우에만 표시) */}
+                          {!msg.isSystemMessage && (
                             <>
                               {/* YouTube Preview */}
                           {(msg as any).youtubePreview && (
@@ -5099,16 +5101,18 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                             )}
                           </div>
                           
-                          {/* Message Reaction Button with AI-powered emoji suggestions */}
-                          {!isLocationChatRoom && (
-                            <div className="mt-2 flex justify-end">
-                              <MessageReactionButton
-                                messageId={msg.id}
-                                chatRoomId={chatRoomId}
-                                currentUserId={user?.id || 0}
-                                className="opacity-75 hover:opacity-100 transition-opacity"
-                              />
-                            </div>
+                              {/* Message Reaction Button with AI-powered emoji suggestions */}
+                              {!isLocationChatRoom && (
+                                <div className="mt-2 flex justify-end">
+                                  <MessageReactionButton
+                                    messageId={msg.id}
+                                    chatRoomId={chatRoomId}
+                                    currentUserId={user?.id || 0}
+                                    className="opacity-75 hover:opacity-100 transition-opacity"
+                                  />
+                                </div>
+                              )}
+                            </>
                           )}
                         </div>
                       )}
