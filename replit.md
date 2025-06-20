@@ -429,6 +429,11 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Restored mark-read API functionality with proper ON CONFLICT handling for upsert operations
   - Unread count badges now correctly disappear after reading messages in chat rooms
   - Complete workflow verified: unread messages display red badges → user reads messages → badges automatically disappear
+- June 20, 2025: Simplified profile image loading screen design:
+  - Removed Dovie Messenger logo from LoadingScreen component for cleaner interface
+  - Centered circular loading spinner as the primary visual element
+  - Maintained loading message and progress indicators below the spinner
+  - Enhanced visual hierarchy with logo-free minimal design approach
 
 ## User Preferences
 
