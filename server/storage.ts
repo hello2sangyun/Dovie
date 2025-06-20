@@ -546,9 +546,71 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUnreadCounts(userId: number): Promise<{ chatRoomId: number; unreadCount: number }[]> {
-    // This is a simplified implementation
-    // In practice, you'd want to calculate unread counts based on message reads
-    return [];
+    try {
+      // 사용자가 참여한 모든 채팅방 가져오기
+      const userChatRooms = await db
+        .select({ chatRoomId: chatParticipants.chatRoomId })
+        .from(chatParticipants)
+        .where(eq(chatParticipants.userId, userId));
+
+      const unreadCounts = [];
+
+      for (const room of userChatRooms) {
+        // 해당 채팅방에서 마지막으로 읽은 메시지 ID 가져오기
+        const [lastRead] = await db
+          .select({ lastReadMessageId: messageReads.lastReadMessageId })
+          .from(messageReads)
+          .where(
+            and(
+              eq(messageReads.userId, userId),
+              eq(messageReads.chatRoomId, room.chatRoomId)
+            )
+          );
+
+        let unreadCount = 0;
+
+        if (!lastRead?.lastReadMessageId) {
+          // 읽은 기록이 없으면 자신이 보내지 않은 모든 메시지가 안읽음
+          const [totalMessages] = await db
+            .select({ count: count(messages.id) })
+            .from(messages)
+            .where(
+              and(
+                eq(messages.chatRoomId, room.chatRoomId),
+                sql`${messages.senderId} != ${userId}` // 자신이 보낸 메시지 제외
+              )
+            );
+          
+          unreadCount = totalMessages.count;
+        } else {
+          // 마지막 읽은 메시지 이후의 자신이 보내지 않은 메시지 수 계산
+          const [newMessages] = await db
+            .select({ count: count(messages.id) })
+            .from(messages)
+            .where(
+              and(
+                eq(messages.chatRoomId, room.chatRoomId),
+                gt(messages.id, lastRead.lastReadMessageId),
+                sql`${messages.senderId} != ${userId}` // 자신이 보낸 메시지 제외
+              )
+            );
+          
+          unreadCount = newMessages.count;
+        }
+
+        if (unreadCount > 0) {
+          unreadCounts.push({
+            chatRoomId: room.chatRoomId,
+            unreadCount
+          });
+        }
+      }
+
+      return unreadCounts;
+    } catch (error) {
+      console.error('Error getting unread counts:', error);
+      return [];
+    }
   }
 
   async createPhoneVerification(verification: InsertPhoneVerification): Promise<PhoneVerification> {
