@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import VaultLogo from "@/components/VaultLogo";
 
 interface LoadingScreenProps {
   message?: string;
@@ -24,15 +23,10 @@ export default function LoadingScreen({
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex flex-col items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
       <div className="text-center space-y-6">
-        {/* Logo */}
-        <div className="mb-8">
-          <VaultLogo />
-        </div>
-
-        {/* Loading Spinner */}
-        <div className="relative">
+        {/* Loading Spinner - Centered */}
+        <div className="flex justify-center">
           <div className="w-16 h-16 border-4 border-blue-200 dark:border-gray-600 rounded-full animate-spin">
             <div className="w-full h-full border-t-4 border-blue-600 dark:border-blue-400 rounded-full"></div>
           </div>
