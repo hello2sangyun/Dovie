@@ -422,6 +422,13 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Red number badges appear on chat room list items when unread messages are present
   - Unread counts automatically update in real-time through existing API polling system
   - Enhanced user experience with clear visual indicators for message status and interactive reminder navigation
+- June 20, 2025: Fixed critical unread message count persistence issue:
+  - Resolved message_reactions table missing error that was preventing mark-read API functionality
+  - Created missing message_reactions table with proper foreign key constraints
+  - Fixed message_reads table by removing duplicate records and adding unique constraint for (user_id, chat_room_id)
+  - Restored mark-read API functionality with proper ON CONFLICT handling for upsert operations
+  - Unread count badges now correctly disappear after reading messages in chat rooms
+  - Complete workflow verified: unread messages display red badges → user reads messages → badges automatically disappear
 
 ## User Preferences
 
