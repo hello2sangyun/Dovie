@@ -4899,7 +4899,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                               onClick={() => {
                                 // 원문 메시지로 스크롤 (originalMessageId가 있다면)
                                 if (msg.originalMessageId) {
-                                  scrollToMessage(msg.originalMessageId);
+                                  const messageElement = messageRefs.current[msg.originalMessageId];
+                                  if (messageElement) {
+                                    messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    setHighlightedMessageId(msg.originalMessageId);
+                                    setTimeout(() => {
+                                      setHighlightedMessageId(null);
+                                    }, 3000);
+                                  }
                                 }
                               }}
                             >

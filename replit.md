@@ -415,6 +415,13 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Complete workflow: reminder detection → message creation → database storage → real-time broadcast → completion marking
   - Users receive both chat message and notification for immediate attention
   - Verified functionality with test reminders successfully appearing in chat interface
+- June 20, 2025: Enhanced reminder message display and unread count functionality:
+  - Modified smart recommendation reminder messages to display with custom styling: title shows "⏰ 리마인더" and body shows original message content
+  - Added click functionality to reminder messages for navigation to original message with smooth scrolling and highlight effect
+  - Confirmed unread message count system already implemented with red badge display on chat room tabs
+  - Red number badges appear on chat room list items when unread messages are present
+  - Unread counts automatically update in real-time through existing API polling system
+  - Enhanced user experience with clear visual indicators for message status and interactive reminder navigation
 
 ## User Preferences
 
