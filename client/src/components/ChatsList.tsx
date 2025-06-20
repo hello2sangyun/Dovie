@@ -91,13 +91,9 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingChatRoom, setRecordingChatRoom] = useState<any>(null);
-  const [slideOffset, setSlideOffset] = useState(0);
-  const [isCancelZone, setIsCancelZone] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const [recordingStartTime, setRecordingStartTime] = useState(0);
-  const startTouchXRef = useRef<number>(0);
-  const currentTouchXRef = useRef<number>(0);
   
   // YouTube 선택 모달 상태
   const [showYoutubeModal, setShowYoutubeModal] = useState(false);
@@ -208,13 +204,9 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     setSelectedRoomIds([]);
   };
 
-  // 터치 시작 - 위치 추적 시작
-  const handleTouchStart = (chatRoom: any, e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    startTouchXRef.current = touch.clientX;
-    currentTouchXRef.current = touch.clientX;
-    
-    console.log('🎯 채팅방 간편음성메세지 - 터치 시작:', getChatRoomDisplayName(chatRoom));
+  // 길게 누르기 시작
+  const handleLongPressStart = (chatRoom: any) => {
+    console.log('🎯 채팅방 간편음성메세지 - 길게 누르기 시작:', getChatRoomDisplayName(chatRoom));
     
     const timer = setTimeout(() => {
       startVoiceRecording(chatRoom);
@@ -223,45 +215,15 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     setLongPressTimer(timer);
   };
 
-  // 터치 이동 - 슬라이드 감지
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isRecording) return;
-    
-    const touch = e.touches[0];
-    currentTouchXRef.current = touch.clientX;
-    
-    const deltaX = startTouchXRef.current - touch.clientX;
-    const maxSlide = 120; // 모바일에 최적화된 슬라이드 거리
-    const normalizedOffset = Math.max(0, Math.min(deltaX, maxSlide));
-    
-    setSlideOffset(normalizedOffset);
-    const newIsCancelZone = normalizedOffset > 80; // 80px로 더 쉽게 취소 영역 진입
-    
-    // 취소 영역 진입 시 햅틱 피드백
-    if (newIsCancelZone !== isCancelZone && newIsCancelZone) {
-      if ('vibrate' in navigator) {
-        navigator.vibrate(50); // 짧은 진동으로 피드백
-      }
-    }
-    
-    setIsCancelZone(newIsCancelZone);
-  };
-
-  // 터치 끝 - 녹음 완료 또는 취소 결정
-  const handleTouchEnd = () => {
+  // 길게 누르기 끝
+  const handleLongPressEnd = () => {
     if (longPressTimer) {
       clearTimeout(longPressTimer);
       setLongPressTimer(null);
     }
     
     if (isRecording) {
-      if (isCancelZone) {
-        // 취소 영역에서 손을 뗐으면 녹음 취소
-        cancelVoiceRecording();
-      } else {
-        // 일반적인 녹음 완료
-        stopVoiceRecording();
-      }
+      stopVoiceRecording();
     }
   };
 
@@ -324,25 +286,6 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       setRecordingChatRoom(null);
-      setSlideOffset(0);
-      setIsCancelZone(false);
-    }
-  };
-
-  // 음성 녹음 취소
-  const cancelVoiceRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      console.log('❌ 음성 녹음 취소');
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-      setRecordingChatRoom(null);
-      setSlideOffset(0);
-      setIsCancelZone(false);
-      
-      // 스트림 정리 (녹음은 저장하지 않음)
-      if (mediaRecorderRef.current.stream) {
-        mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
-      }
     }
   };
 
@@ -942,12 +885,9 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
                 draftPreview={getDraftPreview(chatRoom.id)}
                 isMultiSelectMode={isMultiSelectMode}
                 isChecked={selectedRoomIds.includes(chatRoom.id)}
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
+                onLongPressStart={handleLongPressStart}
+                onLongPressEnd={handleLongPressEnd}
                 isRecording={isRecording && recordingChatRoom?.id === chatRoom.id}
-                slideOffset={slideOffset}
-                isCancelZone={isCancelZone}
               />
             ))}
           </>
@@ -972,12 +912,9 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
                 draftPreview={getDraftPreview(chatRoom.id)}
                 isMultiSelectMode={isMultiSelectMode}
                 isChecked={selectedRoomIds.includes(chatRoom.id)}
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
+                onLongPressStart={handleLongPressStart}
+                onLongPressEnd={handleLongPressEnd}
                 isRecording={isRecording && recordingChatRoom?.id === chatRoom.id}
-                slideOffset={slideOffset}
-                isCancelZone={isCancelZone}
               />
             ))}
           </>
@@ -1052,12 +989,9 @@ function ChatRoomItem({
   draftPreview = "",
   isMultiSelectMode = false,
   isChecked = false,
-  onTouchStart,
-  onTouchMove,
-  onTouchEnd,
-  isRecording = false,
-  slideOffset = 0,
-  isCancelZone = false
+  onLongPressStart,
+  onLongPressEnd,
+  isRecording = false
 }: {
   chatRoom: any;
   displayName: string;
@@ -1069,12 +1003,9 @@ function ChatRoomItem({
   draftPreview?: string;
   isMultiSelectMode?: boolean;
   isChecked?: boolean;
-  onTouchStart?: (chatRoom: any, e: React.TouchEvent) => void;
-  onTouchMove?: (e: React.TouchEvent) => void;
-  onTouchEnd?: () => void;
+  onLongPressStart?: (chatRoom: any) => void;
+  onLongPressEnd?: () => void;
   isRecording?: boolean;
-  slideOffset?: number;
-  isCancelZone?: boolean;
 }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -1145,38 +1076,28 @@ function ChatRoomItem({
       onClick={onClick}
       onMouseEnter={handleMouseEnter}
       onMouseDown={(e) => {
-        // Mouse events use the old long press behavior
-        if (!isMultiSelectMode) {
-          const timer = setTimeout(() => {
-            if (onTouchStart) {
-              onTouchStart(chatRoom, { touches: [{ clientX: e.clientX }] } as any);
-            }
-          }, 800);
+        if (!isMultiSelectMode && onLongPressStart) {
+          onLongPressStart(chatRoom);
         }
       }}
       onMouseUp={() => {
-        if (!isMultiSelectMode && onTouchEnd) {
-          onTouchEnd();
+        if (!isMultiSelectMode && onLongPressEnd) {
+          onLongPressEnd();
         }
       }}
       onMouseLeave={() => {
-        if (!isMultiSelectMode && onTouchEnd) {
-          onTouchEnd();
+        if (!isMultiSelectMode && onLongPressEnd) {
+          onLongPressEnd();
         }
       }}
       onTouchStart={(e) => {
-        if (!isMultiSelectMode && onTouchStart) {
-          onTouchStart(chatRoom, e);
-        }
-      }}
-      onTouchMove={(e) => {
-        if (!isMultiSelectMode && onTouchMove) {
-          onTouchMove(e);
+        if (!isMultiSelectMode && onLongPressStart) {
+          onLongPressStart(chatRoom);
         }
       }}
       onTouchEnd={() => {
-        if (!isMultiSelectMode && onTouchEnd) {
-          onTouchEnd();
+        if (!isMultiSelectMode && onLongPressEnd) {
+          onLongPressEnd();
         }
       }}
     >
@@ -1185,80 +1106,10 @@ function ChatRoomItem({
       )}
       
       {isRecording && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-xl p-6 mx-4 w-full max-w-sm shadow-2xl">
-            {/* 취소 가이드 */}
-            <div className="text-center mb-6">
-              <div 
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${
-                  isCancelZone 
-                    ? 'bg-red-100 text-red-600 scale-110 shadow-lg' 
-                    : slideOffset > 30 
-                      ? 'bg-gray-100 text-gray-600' 
-                      : 'bg-transparent text-gray-400'
-                }`}
-                style={{ 
-                  opacity: slideOffset > 10 ? 1 : 0.5,
-                }}
-              >
-                <span className="text-2xl">←</span>
-                <span className="font-medium">밀어서 취소</span>
-              </div>
-            </div>
-            
-            {/* 채팅방 이름 */}
-            <div className="text-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-800">
-                간편 음성메시지
-              </h3>
-              <p className="text-sm text-gray-500">
-                채팅방으로 전송
-              </p>
-            </div>
-            
-            {/* 녹음 상태 */}
-            <div className="flex items-center justify-center mb-6">
-              <div className="flex items-center gap-3 px-6 py-3 bg-red-50 rounded-full">
-                <div className="relative">
-                  <div className="w-4 h-4 bg-red-500 rounded-full animate-pulse" />
-                  <div className="absolute inset-0 w-4 h-4 bg-red-500 rounded-full animate-ping opacity-30" />
-                </div>
-                <span className="text-lg font-semibold text-red-600">
-                  녹음 중...
-                </span>
-              </div>
-            </div>
-            
-            {/* 슬라이드 인디케이터 */}
-            <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden mb-4">
-              <div 
-                className={`h-full transition-all duration-200 rounded-full ${
-                  isCancelZone ? 'bg-red-500 shadow-lg' : 'bg-blue-400'
-                }`}
-                style={{ 
-                  width: `${Math.min((slideOffset / 120) * 100, 100)}%`,
-                  opacity: slideOffset > 5 ? 1 : 0.3
-                }}
-              />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className={`w-1 h-1 rounded-full transition-all duration-200 ${
-                  isCancelZone ? 'bg-white' : 'bg-gray-600'
-                }`} style={{ 
-                  left: `${Math.min((slideOffset / 120) * 100, 95)}%`,
-                  opacity: slideOffset > 10 ? 1 : 0
-                }} />
-              </div>
-            </div>
-            
-            {/* 안내 텍스트 */}
-            <div className="text-center">
-              <p className="text-sm text-gray-600">
-                {isCancelZone 
-                  ? '손을 떼면 녹음이 취소됩니다' 
-                  : '왼쪽으로 밀어서 취소하거나 손을 떼서 완료'
-                }
-              </p>
-            </div>
+        <div className="absolute inset-0 bg-red-500/10 border-2 border-red-500 rounded-lg flex items-center justify-center">
+          <div className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-2">
+            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+            <span>음성 녹음 중...</span>
           </div>
         </div>
       )}
