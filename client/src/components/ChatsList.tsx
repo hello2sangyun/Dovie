@@ -91,9 +91,13 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingChatRoom, setRecordingChatRoom] = useState<any>(null);
+  const [slideOffset, setSlideOffset] = useState(0);
+  const [isCancelZone, setIsCancelZone] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const [recordingStartTime, setRecordingStartTime] = useState(0);
+  const startTouchXRef = useRef<number>(0);
+  const currentTouchXRef = useRef<number>(0);
   
   // YouTube 선택 모달 상태
   const [showYoutubeModal, setShowYoutubeModal] = useState(false);

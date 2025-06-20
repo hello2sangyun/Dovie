@@ -24,11 +24,15 @@ export function UnifiedSendButton({
 }: UnifiedSendButtonProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
+  const [slideOffset, setSlideOffset] = useState(0);
+  const [isCancelZone, setIsCancelZone] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingStartTimeRef = useRef<number>(0);
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const longPressTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isLongPressRef = useRef(false);
+  const startTouchXRef = useRef<number>(0);
+  const currentTouchXRef = useRef<number>(0);
 
   // 녹음 시작
   const startRecording = useCallback(async () => {
@@ -86,10 +90,33 @@ export function UnifiedSendButton({
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       setRecordingDuration(0);
+      setSlideOffset(0);
+      setIsCancelZone(false);
       
       if (durationIntervalRef.current) {
         clearInterval(durationIntervalRef.current);
         durationIntervalRef.current = null;
+      }
+    }
+  }, [isRecording]);
+
+  // 녹음 취소
+  const cancelRecording = useCallback(() => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      setRecordingDuration(0);
+      setSlideOffset(0);
+      setIsCancelZone(false);
+      
+      if (durationIntervalRef.current) {
+        clearInterval(durationIntervalRef.current);
+        durationIntervalRef.current = null;
+      }
+      
+      // 스트림 정리 (녹음은 저장하지 않음)
+      if (mediaRecorderRef.current.stream) {
+        mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
       }
     }
   }, [isRecording]);
@@ -133,13 +160,38 @@ export function UnifiedSendButton({
   // 터치 이벤트 (모바일용)
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
+    const touch = e.touches[0];
+    startTouchXRef.current = touch.clientX;
+    currentTouchXRef.current = touch.clientX;
     handleMouseDown();
   }, [handleMouseDown]);
 
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isRecording) return;
+    
+    e.preventDefault();
+    const touch = e.touches[0];
+    currentTouchXRef.current = touch.clientX;
+    
+    const deltaX = startTouchXRef.current - touch.clientX;
+    const maxSlide = 150; // 최대 슬라이드 거리
+    const normalizedOffset = Math.max(0, Math.min(deltaX, maxSlide));
+    
+    setSlideOffset(normalizedOffset);
+    setIsCancelZone(normalizedOffset > 100); // 100px 이상 슬라이드하면 취소 영역
+  }, [isRecording]);
+
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
-    handleMouseUp();
-  }, [handleMouseUp]);
+    
+    if (isRecording && isCancelZone) {
+      // 취소 영역에서 손을 뗐으면 녹음 취소
+      cancelRecording();
+    } else {
+      // 일반적인 녹음 완료
+      handleMouseUp();
+    }
+  }, [isRecording, isCancelZone, cancelRecording, handleMouseUp]);
 
   // 녹음 시간 포맷팅
   const formatDuration = (ms: number) => {
@@ -156,9 +208,35 @@ export function UnifiedSendButton({
   const showStopIcon = isRecording;
 
   return (
-    <div className="flex items-center gap-2">
-      {/* 녹음 시간 표시 */}
+    <div className="relative flex items-center gap-2">
+      {/* 녹음 중일 때 슬라이드 취소 인터페이스 */}
       {isRecording && (
+        <div className="absolute inset-0 flex items-center justify-between w-full pointer-events-none z-10">
+          {/* 왼쪽 취소 영역 */}
+          <div 
+            className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 ${
+              isCancelZone ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-500'
+            }`}
+            style={{ 
+              transform: `translateX(-${Math.min(slideOffset, 120)}px)`,
+              opacity: slideOffset > 20 ? 1 : 0 
+            }}
+          >
+            <span className="text-sm font-medium">← 밀어서 취소</span>
+          </div>
+          
+          {/* 녹음 시간 및 상태 */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 px-3 py-1 bg-red-100 text-red-600 rounded-full text-sm font-medium">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+              {formatDuration(recordingDuration)}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* 일반 상태 - 녹음 시간 표시 */}
+      {isRecording && slideOffset < 20 && (
         <div className="flex items-center gap-1 px-2 py-1 bg-red-100 text-red-600 rounded-full text-xs font-medium">
           <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
           {formatDuration(recordingDuration)}
@@ -174,19 +252,25 @@ export function UnifiedSendButton({
         <div
           className={`h-12 w-12 p-3 rounded-full transition-all duration-200 select-none cursor-pointer flex items-center justify-center shadow-lg ${
             isRecording 
-              ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
+              ? isCancelZone
+                ? 'bg-red-600 text-white scale-110'
+                : 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
               : hasMessage 
                 ? 'bg-blue-600 hover:bg-blue-700 text-white'
                 : 'bg-purple-500 hover:bg-purple-600 text-white'
           } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          style={{
+            transform: isRecording ? `translateX(-${Math.min(slideOffset * 0.3, 40)}px)` : 'translateX(0)'
+          }}
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseLeave}
           onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           aria-label={
             isRecording 
-              ? '녹음 중지' 
+              ? isCancelZone ? '녹음 취소' : '녹음 중지' 
               : hasMessage 
                 ? '메시지 전송' 
                 : '길게 누르면 음성 녹음'
