@@ -174,12 +174,21 @@ export function UnifiedSendButton({
     currentTouchXRef.current = touch.clientX;
     
     const deltaX = startTouchXRef.current - touch.clientX;
-    const maxSlide = 150; // 최대 슬라이드 거리
+    const maxSlide = 120; // 모바일에 최적화된 슬라이드 거리
     const normalizedOffset = Math.max(0, Math.min(deltaX, maxSlide));
     
     setSlideOffset(normalizedOffset);
-    setIsCancelZone(normalizedOffset > 100); // 100px 이상 슬라이드하면 취소 영역
-  }, [isRecording]);
+    const newIsCancelZone = normalizedOffset > 80; // 80px로 더 쉽게 취소 영역 진입
+    
+    // 취소 영역 진입 시 햅틱 피드백
+    if (newIsCancelZone !== isCancelZone && newIsCancelZone) {
+      if ('vibrate' in navigator) {
+        navigator.vibrate(50); // 짧은 진동으로 피드백
+      }
+    }
+    
+    setIsCancelZone(newIsCancelZone);
+  }, [isRecording, isCancelZone]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
@@ -208,38 +217,66 @@ export function UnifiedSendButton({
   const showStopIcon = isRecording;
 
   return (
-    <div className="relative flex items-center gap-2">
-      {/* 녹음 중일 때 슬라이드 취소 인터페이스 */}
+    <div className="relative flex items-center gap-2 min-h-[60px]">
+      {/* 모바일 최적화된 녹음 인터페이스 */}
       {isRecording && (
-        <div className="absolute inset-0 flex items-center justify-between w-full pointer-events-none z-10">
-          {/* 왼쪽 취소 영역 */}
-          <div 
-            className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 ${
-              isCancelZone ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-500'
-            }`}
-            style={{ 
-              transform: `translateX(-${Math.min(slideOffset, 120)}px)`,
-              opacity: slideOffset > 20 ? 1 : 0 
-            }}
-          >
-            <span className="text-sm font-medium">← 밀어서 취소</span>
-          </div>
-          
-          {/* 녹음 시간 및 상태 */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 px-3 py-1 bg-red-100 text-red-600 rounded-full text-sm font-medium">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-              {formatDuration(recordingDuration)}
+        <div className="fixed inset-x-0 bottom-0 bg-white/95 backdrop-blur-sm border-t-2 border-red-200 p-4 z-50 shadow-2xl">
+          <div className="max-w-md mx-auto">
+            {/* 상단 취소 가이드 */}
+            <div className="text-center mb-4">
+              <div 
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${
+                  isCancelZone 
+                    ? 'bg-red-100 text-red-600 scale-110 shadow-lg' 
+                    : slideOffset > 30 
+                      ? 'bg-gray-100 text-gray-600' 
+                      : 'bg-transparent text-gray-400'
+                }`}
+                style={{ 
+                  opacity: slideOffset > 10 ? 1 : 0.5,
+                }}
+              >
+                <span className="text-2xl">←</span>
+                <span className="font-medium">밀어서 취소</span>
+              </div>
+            </div>
+            
+            {/* 중앙 녹음 상태 */}
+            <div className="flex items-center justify-center mb-6">
+              <div className="flex items-center gap-3 px-6 py-3 bg-red-50 rounded-full">
+                <div className="relative">
+                  <div className="w-4 h-4 bg-red-500 rounded-full animate-pulse" />
+                  <div className="absolute inset-0 w-4 h-4 bg-red-500 rounded-full animate-ping opacity-30" />
+                </div>
+                <span className="text-lg font-semibold text-red-600">
+                  {formatDuration(recordingDuration)}
+                </span>
+              </div>
+            </div>
+            
+            {/* 슬라이드 인디케이터 */}
+            <div className="relative w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-4">
+              <div 
+                className={`h-full transition-all duration-200 rounded-full ${
+                  isCancelZone ? 'bg-red-500' : 'bg-gray-400'
+                }`}
+                style={{ 
+                  width: `${Math.min((slideOffset / 150) * 100, 100)}%`,
+                  opacity: slideOffset > 10 ? 1 : 0.3
+                }}
+              />
+            </div>
+            
+            {/* 하단 안내 텍스트 */}
+            <div className="text-center">
+              <p className="text-sm text-gray-600">
+                {isCancelZone 
+                  ? '손을 떼면 녹음이 취소됩니다' 
+                  : '왼쪽으로 밀어서 취소하거나 손을 떼서 완료'
+                }
+              </p>
             </div>
           </div>
-        </div>
-      )}
-      
-      {/* 일반 상태 - 녹음 시간 표시 */}
-      {isRecording && slideOffset < 20 && (
-        <div className="flex items-center gap-1 px-2 py-1 bg-red-100 text-red-600 rounded-full text-xs font-medium">
-          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-          {formatDuration(recordingDuration)}
         </div>
       )}
       

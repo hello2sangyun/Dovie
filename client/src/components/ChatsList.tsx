@@ -231,11 +231,20 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     currentTouchXRef.current = touch.clientX;
     
     const deltaX = startTouchXRef.current - touch.clientX;
-    const maxSlide = 150; // 최대 슬라이드 거리
+    const maxSlide = 120; // 모바일에 최적화된 슬라이드 거리
     const normalizedOffset = Math.max(0, Math.min(deltaX, maxSlide));
     
     setSlideOffset(normalizedOffset);
-    setIsCancelZone(normalizedOffset > 100); // 100px 이상 슬라이드하면 취소 영역
+    const newIsCancelZone = normalizedOffset > 80; // 80px로 더 쉽게 취소 영역 진입
+    
+    // 취소 영역 진입 시 햅틱 피드백
+    if (newIsCancelZone !== isCancelZone && newIsCancelZone) {
+      if ('vibrate' in navigator) {
+        navigator.vibrate(50); // 짧은 진동으로 피드백
+      }
+    }
+    
+    setIsCancelZone(newIsCancelZone);
   };
 
   // 터치 끝 - 녹음 완료 또는 취소 결정
@@ -1176,24 +1185,72 @@ function ChatRoomItem({
       )}
       
       {isRecording && (
-        <div className="absolute inset-0 bg-red-500/10 border-2 border-red-500 rounded-lg flex items-center justify-between px-4">
-          {/* 왼쪽 취소 영역 */}
-          <div 
-            className={`flex items-center gap-2 px-3 py-1 rounded-full transition-all duration-200 ${
-              isCancelZone ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-500'
-            }`}
-            style={{ 
-              transform: `translateX(-${Math.min(slideOffset, 120)}px)`,
-              opacity: slideOffset > 20 ? 1 : 0 
-            }}
-          >
-            <span className="text-sm font-medium">← 밀어서 취소</span>
-          </div>
-          
-          {/* 오른쪽 녹음 상태 */}
-          <div className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-2">
-            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-            <span>음성 녹음 중...</span>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-xl p-6 mx-4 w-full max-w-sm shadow-2xl">
+            {/* 취소 가이드 */}
+            <div className="text-center mb-6">
+              <div 
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${
+                  isCancelZone 
+                    ? 'bg-red-100 text-red-600 scale-110 shadow-lg' 
+                    : slideOffset > 30 
+                      ? 'bg-gray-100 text-gray-600' 
+                      : 'bg-transparent text-gray-400'
+                }`}
+                style={{ 
+                  opacity: slideOffset > 10 ? 1 : 0.5,
+                }}
+              >
+                <span className="text-2xl">←</span>
+                <span className="font-medium">밀어서 취소</span>
+              </div>
+            </div>
+            
+            {/* 채팅방 이름 */}
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">
+                간편 음성메시지
+              </h3>
+              <p className="text-sm text-gray-500">
+                채팅방으로 전송
+              </p>
+            </div>
+            
+            {/* 녹음 상태 */}
+            <div className="flex items-center justify-center mb-6">
+              <div className="flex items-center gap-3 px-6 py-3 bg-red-50 rounded-full">
+                <div className="relative">
+                  <div className="w-4 h-4 bg-red-500 rounded-full animate-pulse" />
+                  <div className="absolute inset-0 w-4 h-4 bg-red-500 rounded-full animate-ping opacity-30" />
+                </div>
+                <span className="text-lg font-semibold text-red-600">
+                  녹음 중...
+                </span>
+              </div>
+            </div>
+            
+            {/* 슬라이드 인디케이터 */}
+            <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden mb-4">
+              <div 
+                className={`h-full transition-all duration-200 rounded-full ${
+                  isCancelZone ? 'bg-red-500' : 'bg-gray-400'
+                }`}
+                style={{ 
+                  width: `${Math.min((slideOffset / 150) * 100, 100)}%`,
+                  opacity: slideOffset > 10 ? 1 : 0.3
+                }}
+              />
+            </div>
+            
+            {/* 안내 텍스트 */}
+            <div className="text-center">
+              <p className="text-sm text-gray-600">
+                {isCancelZone 
+                  ? '손을 떼면 녹음이 취소됩니다' 
+                  : '왼쪽으로 밀어서 취소하거나 손을 떼서 완료'
+                }
+              </p>
+            </div>
           </div>
         </div>
       )}
