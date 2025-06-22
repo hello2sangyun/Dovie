@@ -1904,6 +1904,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       
       processCommandMutation.mutate(message);
       setMessage("");
+      resetTextareaSize();
       setShowChatCommands(false); // AI 커맨드 창 닫기
       return;
     }
@@ -2026,16 +2027,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       setYoutubeSearchQuery(youtubeKeyword);
       setShowYoutubeModal(true);
       setMessage("");
+      resetTextareaSize();
       return;
     }
 
     sendMessageMutation.mutate(messageData);
     
     // 메시지 전송 후 텍스트박스 크기 초기화
-    if (messageInputRef.current) {
-      messageInputRef.current.style.height = '32px';
-      messageInputRef.current.style.overflow = 'hidden';
-    }
+    resetTextareaSize();
     
     // 메시지 전송 후 임시 저장된 내용 삭제
     clearDraftMessage(chatRoomId);
