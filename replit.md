@@ -481,6 +481,12 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Limited popup to show only one suggestion instead of multiple options for cleaner interface
   - Changed button text from "원본 메시지 전송" to "알림설정 하지 않고 메시지 보내기" per user preference
   - Improved overall popup aesthetics with modern, minimalist design approach
+- June 22, 2025: Fixed OpenAI Whisper hallucination issue in voice messages:
+  - Resolved "MBC 뉴스 이덕영입니다" appearing in silent/empty voice recordings
+  - Enhanced noise pattern detection to include news anchor patterns, formal greetings, and Korean filler words
+  - Strengthened silent recording detection with minimum 5-character threshold
+  - Empty or meaningless voice messages now automatically cancel without user notification
+  - Eliminated false transcriptions from OpenAI Whisper's Korean language model hallucinations
 
 ## User Preferences
 

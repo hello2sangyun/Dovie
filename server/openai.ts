@@ -362,11 +362,14 @@ export async function transcribeAudio(filePath: string): Promise<{
         /^(um|uh|ah|eh|hmm|mm|아|어|음|으|아우|어우|음\.\.\.|\.\.\.)+[\s.,!?]*$/i,  // Filler sounds
         /^[\uD83C-\uDBFF\uDC00-\uDFFF]+[\s.,!?]*$/,  // Only emojis
         /^[📢🎵🎤🔊🔇📻]+[\s.,!?]*$/,  // Audio/sound emojis
-        /thank you|감사합니다|고마워|sorry|죄송|미안/i  // Common polite expressions that might be background audio
+        /thank you|감사합니다|고마워|sorry|죄송|미안/i,  // Common polite expressions that might be background audio
+        /MBC 뉴스.*입니다|KBS 뉴스|SBS 뉴스|뉴스데스크|뉴스룸/i,  // News anchor patterns (Whisper hallucination)
+        /안녕하세요.*입니다|여러분.*입니다|시청해.*주셔서/i,  // Generic formal greeting patterns
+        /^(네|예|아|어|음|그|저|뭐|잠깐|잠시|어서|이제|그럼|그래서)[\s.,!?]*$/i  // Single Korean filler words
       ];
       
       // Check text length (very short transcriptions are likely noise)
-      if (text.trim().length < 3) return true;
+      if (text.trim().length < 5) return true;
       
       // Check against noise patterns
       return noisePatterns.some(pattern => pattern.test(text.trim()));
