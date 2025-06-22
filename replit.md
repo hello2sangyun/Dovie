@@ -459,6 +459,15 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Fixed voice message send functionality to properly use transcribed audio files
   - Integrated compact modal design with reduced padding and smaller UI elements
   - Users can now review, edit, and confirm voice messages before transmission
+- June 22, 2025: Redesigned chat message bubbles with smart, compact, and elegant design:
+  - Enhanced message bubbles with gradient backgrounds and subtle shadow effects for visual depth
+  - Applied rounded-2xl corners for modern, smooth appearance with custom corner adjustments
+  - Integrated hover animations and group interaction effects for enhanced user experience
+  - Reduced avatar size to 8x8 pixels (32px) with enhanced shadow and ring effects for compactness
+  - Improved message spacing with tighter layout (space-y-0.5) for maximum message density
+  - Added backdrop-blur effects and enhanced color gradients for premium visual appeal
+  - Purple scrollbar theming to match the overall application design language
+  - Smart responsive shadows that adapt to message type (own vs received messages)
 
 ## User Preferences
 

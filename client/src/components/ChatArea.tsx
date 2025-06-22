@@ -4438,7 +4438,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       {/* Chat Messages */}
       <div 
         ref={chatScrollRef}
-        className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-1 space-y-1 min-h-0 overscroll-behavior-y-contain overscroll-behavior-x-none pb-16 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 relative w-full"
+        className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-2 space-y-0.5 min-h-0 overscroll-behavior-y-contain overscroll-behavior-x-none pb-16 scrollbar-thin scrollbar-thumb-purple-300 scrollbar-track-gray-100 relative w-full"
         style={{ wordBreak: 'break-word' }}
         onScroll={handleScroll}
       >
@@ -4508,15 +4508,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   id={`message-${msg.id}`}
                   ref={(el) => messageRefs.current[msg.id] = el}
                   className={cn(
-                    "flex items-start space-x-2 mb-1 transition-all duration-500",
+                    "flex items-end space-x-3 mb-2 transition-all duration-500 group",
                     isMe ? "flex-row-reverse space-x-reverse" : "",
-                    highlightedMessageId === msg.id && "bg-yellow-100 rounded-lg p-1 -mx-1"
+                    highlightedMessageId === msg.id && "bg-yellow-100/50 rounded-xl p-2 -mx-2"
                   )}
                 >
-                  <div className="flex flex-col items-center">
+                  <div className="flex flex-col items-center flex-shrink-0">
                     {isLocationChatRoom ? (
                       // 주변챗에서는 임시 프로필 표시
-                      <div className="w-10 h-10 rounded-full border-2 border-white shadow-sm">
+                      <div className="w-8 h-8 rounded-full border-2 border-white shadow-lg ring-2 ring-white/50 group-hover:scale-105 transition-transform duration-200">
                         {isMe && locationChatProfile?.profileImageUrl ? (
                           <img 
                             src={locationChatProfile.profileImageUrl} 
@@ -4530,25 +4530,21 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                             className="w-full h-full rounded-full object-cover"
                           />
                         ) : (
-                          <div className={`w-full h-full rounded-full bg-gradient-to-br ${getAvatarColor(isMe ? (locationChatProfile?.nickname || "나") : (msg.locationProfile?.nickname || msg.sender.displayName))} flex items-center justify-center text-white text-sm font-semibold`}>
+                          <div className={`w-full h-full rounded-full bg-gradient-to-br ${getAvatarColor(isMe ? (locationChatProfile?.nickname || "나") : (msg.locationProfile?.nickname || msg.sender.displayName))} flex items-center justify-center text-white text-xs font-bold shadow-inner`}>
                             {(isMe ? (locationChatProfile?.nickname || "나") : (msg.locationProfile?.nickname || msg.sender.displayName)).charAt(0).toUpperCase()}
                           </div>
                         )}
                       </div>
                     ) : (
-                      // 일반 채팅에서는 원래 프로필 표시
-                      <UserAvatar 
-                        user={isMe ? user : msg.sender} 
-                        size="md" 
-                        fallbackClassName={`bg-gradient-to-br ${getAvatarColor(isMe ? (user?.displayName || "Me") : msg.sender.displayName)}`}
-                      />
+                      // 일반 채팅에서는 원래 프로필 표시 - 컴팩트하게
+                      <div className="w-8 h-8 rounded-full shadow-lg ring-2 ring-white/50 group-hover:scale-105 transition-transform duration-200 overflow-hidden">
+                        <UserAvatar 
+                          user={isMe ? user : msg.sender} 
+                          size="sm" 
+                          fallbackClassName={`w-full h-full bg-gradient-to-br ${getAvatarColor(isMe ? (user?.displayName || "Me") : msg.sender.displayName)} text-xs font-bold shadow-inner`}
+                        />
+                      </div>
                     )}
-                    <span className="text-xs text-gray-600 mt-1 text-center max-w-[60px] truncate">
-                      {isLocationChatRoom 
-                        ? (isMe ? (locationChatProfile?.nickname || "나") : (msg.locationProfile?.nickname || msg.sender.displayName))
-                        : (isMe ? (user?.displayName || "나") : msg.sender.displayName)
-                      }
-                    </span>
                   </div>
                   
                   <div className={cn(
@@ -4558,22 +4554,22 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     "min-w-0 break-words"
                   )}>
                     {!isMe && (
-                      <div className="flex items-center space-x-2 mb-0.5">
-                        <span className="text-sm font-medium text-gray-900">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <span className="text-xs font-semibold text-gray-700">
                           {isLocationChatRoom 
                             ? (msg.locationProfile?.nickname || msg.sender.displayName)
                             : msg.sender.displayName
                           }
                         </span>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-gray-400 font-medium">
                           {formatTime(msg.createdAt)}
                         </span>
                       </div>
                     )}
                     
                     {isMe && (
-                      <div className="flex items-center space-x-2 mb-0">
-                        <span className="text-xs text-gray-500">
+                      <div className="flex items-center space-x-2 mb-0.5">
+                        <span className="text-xs text-gray-400 font-medium">
                           {formatTime(msg.createdAt)}
                         </span>
                       </div>
@@ -4581,17 +4577,18 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
                     <div 
                       className={cn(
-                        "rounded-lg px-2 py-0.5 shadow-sm w-fit break-words cursor-pointer select-none",
+                        "rounded-2xl px-3 py-2 w-fit break-words cursor-pointer select-none relative overflow-hidden",
+                        // Enhanced shadows and modern design
                         // 시스템 메시지 (리마인더)는 해시태그 회상과 같은 스타일 적용
                         msg.isSystemMessage
-                          ? "bg-teal-50 text-teal-900 rounded-lg border border-teal-200"
+                          ? "bg-gradient-to-br from-teal-50 to-cyan-50 text-teal-900 shadow-md border border-teal-200/50 backdrop-blur-sm"
                           : msg.isCommandRecall && msg.isLocalOnly
                             ? isMe 
-                              ? "bg-teal-500 text-white rounded-tr-none border border-teal-400" 
-                              : "bg-teal-50 text-teal-900 rounded-tl-none border border-teal-200"
+                              ? "bg-gradient-to-br from-teal-500 to-teal-600 text-white shadow-lg shadow-teal-500/25 border border-teal-400/30 rounded-tr-md backdrop-blur-sm" 
+                              : "bg-gradient-to-br from-teal-50 to-cyan-50 text-teal-900 shadow-md border border-teal-200/50 rounded-tl-md backdrop-blur-sm"
                             : isMe 
-                              ? "bg-purple-600 text-white rounded-tr-none" 
-                              : "bg-white text-gray-900 rounded-tl-none border border-gray-200"
+                              ? "bg-gradient-to-br from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/25 rounded-tr-md backdrop-blur-sm hover:shadow-xl hover:shadow-purple-500/30 transition-all duration-300" 
+                              : "bg-gradient-to-br from-white to-gray-50 text-gray-900 shadow-md shadow-gray-200/50 border border-gray-200/80 rounded-tl-md backdrop-blur-sm hover:shadow-lg hover:shadow-gray-300/40 transition-all duration-300"
                       )}
                       style={{ 
                         userSelect: 'none',
