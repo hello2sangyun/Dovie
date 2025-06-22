@@ -1,11 +1,9 @@
 import { useEffect } from "react";
 import { useLocation } from "wouter";
 import VaultLogo from "@/components/VaultLogo";
-import { useTestLogin } from "@/hooks/useTestLogin";
 
 export default function LandingPage() {
   const [, setLocation] = useLocation();
-  const testLoginMutation = useTestLogin();
 
   useEffect(() => {
     // Check if user is already stored
@@ -15,14 +13,14 @@ export default function LandingPage() {
       // User exists, go to app
       setLocation("/app");
     } else {
-      // Auto-login for development/testing
+      // Redirect to login page after brief landing display
       const timer = setTimeout(() => {
-        testLoginMutation.mutate();
-      }, 1000);
+        setLocation("/login");
+      }, 2000);
 
       return () => clearTimeout(timer);
     }
-  }, [setLocation, testLoginMutation]);
+  }, [setLocation]);
 
   return (
     <div className="fixed inset-0 bg-white flex items-center justify-center z-50">

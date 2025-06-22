@@ -15,6 +15,7 @@ import { processCommand } from "./openai";
 import { db } from "./db";
 import { eq, and, inArray, desc, gte, isNull } from "drizzle-orm";
 import { initializeNotificationScheduler } from "./notification-scheduler";
+import twilio from "twilio";
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -46,36 +47,6 @@ const connections = new Map<number, WebSocket>();
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
-  app.post("/api/auth/test-login", async (req, res) => {
-    try {
-      const { username } = req.body;
-      if (!username) {
-        return res.status(400).json({ message: "Username is required" });
-      }
-
-      let user = await storage.getUserByUsername(username);
-      if (!user) {
-        // 테스트 사용자용 기본 데이터
-        const userData = {
-          username,
-          displayName: username,
-          email: `${username}@test.com`, // 테스트용 이메일
-          password: "test123", // 테스트용 비밀번호
-          isEmailVerified: true,
-          isProfileComplete: true, // 테스트 사용자는 프로필 완성 상태
-        };
-        user = await storage.createUser(userData);
-      }
-
-      // Update user as online
-      await storage.updateUser(user.id, { isOnline: true });
-
-      res.json({ user });
-    } catch (error) {
-      console.error("Test login error:", error);
-      res.status(500).json({ message: "Login failed" });
-    }
-  });
 
   // SMS 인증 코드 전송
   app.post("/api/auth/send-sms", async (req, res) => {
@@ -104,16 +75,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isVerified: false,
       });
 
-      // 실제 SMS 전송은 여기에 구현 (Twilio, AWS SNS 등)
-      // 개발 환경에서는 콘솔에 로그
-      console.log(`SMS 인증 코드: ${verificationCode} (${phoneNumber})`);
+      // Twilio 클라이언트 초기화
+      const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
-      res.json({ 
-        success: true, 
-        message: "인증 코드를 전송했습니다.",
-        // 개발용으로만 포함 (프로덕션에서는 제거)
-        ...(process.env.NODE_ENV === 'development' && { verificationCode })
-      });
+      try {
+        // 실제 SMS 전송
+        const message = await client.messages.create({
+          body: `Dovie Messenger 인증 코드: ${verificationCode}`,
+          from: process.env.TWILIO_PHONE_NUMBER,
+          to: phoneNumber
+        });
+
+        console.log(`SMS 전송 성공: ${message.sid} (${phoneNumber})`);
+
+        res.json({ 
+          success: true, 
+          message: "인증 코드를 전송했습니다.",
+          messageSid: message.sid
+        });
+      } catch (smsError) {
+        console.error("Twilio SMS 전송 오류:", smsError);
+        // SMS 전송 실패 시에도 인증 코드는 콘솔에 표시 (개발용)
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`개발용 인증 코드: ${verificationCode} (${phoneNumber})`);
+        }
+        throw new Error("SMS 전송에 실패했습니다.");
+      }
     } catch (error) {
       console.error("SMS send error:", error);
       res.status(500).json({ message: "인증 코드 전송에 실패했습니다." });
