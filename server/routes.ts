@@ -1716,6 +1716,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Push notification subscription management
+  app.post('/api/push-subscription', async (req, res) => {
+    try {
+      const { user } = req as any;
+      if (!user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { endpoint, keys } = req.body;
+      const { p256dh, auth } = keys;
+      const userAgent = req.headers['user-agent'] || '';
+
+      // 기존 구독이 있다면 업데이트, 없다면 새로 생성
+      await storage.upsertPushSubscription(user.id, {
+        endpoint,
+        p256dh,
+        auth,
+        userAgent
+      });
+
+      res.json({ success: true, message: "푸시 알림 구독이 완료되었습니다." });
+    } catch (error) {
+      console.error("Push subscription error:", error);
+      res.status(500).json({ message: "푸시 알림 구독 중 오류가 발생했습니다." });
+    }
+  });
+
+  app.delete('/api/push-subscription', async (req, res) => {
+    try {
+      const { user } = req as any;
+      if (!user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { endpoint } = req.body;
+      await storage.deletePushSubscription(user.id, endpoint);
+
+      res.json({ success: true, message: "푸시 알림 구독이 해제되었습니다." });
+    } catch (error) {
+      console.error("Push unsubscription error:", error);
+      res.status(500).json({ message: "푸시 알림 구독 해제 중 오류가 발생했습니다." });
+    }
+  });
+
   // Bulk delete commands endpoint
   app.post("/api/commands/bulk-delete", async (req, res) => {
     try {
