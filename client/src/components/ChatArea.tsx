@@ -308,13 +308,45 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   // 해시태그 관련 추천 쿼리
   const fetchRelatedHashtags = async (hashtag: string) => {
     try {
-      const response = await fetch(`/api/hashtags/related?hashtag=${encodeURIComponent(hashtag)}`);
+      const response = await fetch(`/api/hashtags/complete?hashtag=${encodeURIComponent(hashtag)}`, {
+        headers: {
+          'x-user-id': String(user?.id || 0)
+        }
+      });
       if (!response.ok) throw new Error('Failed to fetch related hashtags');
       const data = await response.json();
-      return data.relatedHashtags || [];
+      return data.hashtags || [];
     } catch (error) {
       console.error('Error fetching related hashtags:', error);
       return [];
+    }
+  };
+  
+  // 해시태그 자동완성 감지 및 처리
+  const handleHashtagAutoComplete = async (text: string) => {
+    // #cb 뒤에 공백이 있는 패턴 감지
+    const hashtagPattern = /#cb\s$/;
+    const match = text.match(hashtagPattern);
+    
+    if (match) {
+      console.log('Detected #cb pattern, fetching related hashtags...');
+      try {
+        const relatedTags = await fetchRelatedHashtags('cb');
+        console.log('Fetched related hashtags:', relatedTags);
+        
+        if (relatedTags.length > 0) {
+          setHashSuggestions(relatedTags);
+          setShowHashSuggestions(true);
+          setSelectedHashIndex(0);
+        }
+      } catch (error) {
+        console.error('Failed to fetch related hashtags:', error);
+      }
+    } else {
+      // 패턴이 일치하지 않으면 추천 숨김
+      setShowHashSuggestions(false);
+      setHashSuggestions([]);
+      setSelectedHashIndex(0);
     }
   };
 
@@ -5631,7 +5663,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               ref={messageInputRef}
               placeholder={isLocationChatRoom ? "📍 주변챗에 메시지를 입력하세요..." : "메시지를 입력하세요..."}
               value={message}
-              onChange={(e) => {
+              onChange={async (e) => {
                 const newValue = e.target.value;
                 setMessage(newValue);
                 handleMessageChange(newValue);
@@ -5639,6 +5671,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                 // 멘션 감지 및 자동완성
                 const cursorPosition = e.target.selectionStart || 0;
                 handleMentionSearch(newValue, cursorPosition);
+                
+                // 해시태그 자동완성 감지 및 처리
+                await handleHashtagAutoComplete(newValue);
                 
                 // 일반 텍스트 입력 시 키보드 네비게이션 상태 해제
                 setIsNavigatingWithKeyboard(false);
@@ -5797,7 +5832,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           : 'hover:bg-gray-50 text-gray-700'
                       }`}
                       onClick={() => {
-                        const currentMessage = message.replace(/#[^#\s]*$/, `#${tag}`);
+                        // Replace #cb with #cb #selectedTag
+                        const currentMessage = message.replace(/#cb\s$/, `#cb #${tag} `);
                         setMessage(currentMessage);
                         setShowHashSuggestions(false);
                         setHashSuggestions([]);
