@@ -151,7 +151,7 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] max-w-md sm:max-w-lg max-h-[85vh] overflow-y-auto mx-2">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Upload className="h-5 w-5 text-purple-600" />
@@ -163,7 +163,7 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
           {/* File Drop Zone */}
           {!selectedFiles && (
             <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+              className={`border-2 border-dashed rounded-lg p-4 sm:p-6 text-center transition-colors ${
                 dragActive 
                   ? 'border-purple-500 bg-purple-50' 
                   : 'border-gray-300 hover:border-purple-400'
@@ -173,8 +173,8 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
               onDragOver={handleDrag}
               onDrop={handleDrop}
             >
-              <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 mb-2">파일을 드래그하여 놓거나</p>
+              <Upload className="h-8 w-8 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-2 sm:mb-4" />
+              <p className="text-sm sm:text-base text-gray-600 mb-2">파일을 드래그하여 놓거나</p>
               <Button
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
@@ -255,24 +255,24 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
               </div>
               
               {/* 안내 메시지 */}
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-2 sm:p-3">
                 <div className="flex items-start space-x-2">
-                  <div className="w-5 h-5 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-4 h-4 sm:w-5 sm:h-5 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                     <span className="text-purple-600 text-xs font-bold">💡</span>
                   </div>
-                  <div className="text-sm text-purple-700">
+                  <div className="text-xs sm:text-sm text-purple-700">
                     <p className="font-medium mb-1">해시태그 입력 가이드</p>
                     <p className="text-xs leading-relaxed mb-2">
                       <strong>한 개의 해시태그만 입력할 수 있습니다.</strong> 언더바(_)를 사용해서 여러 단어를 조합하세요.
                     </p>
                     <div className="space-y-1 text-xs">
                       <p><strong>좋은 예시:</strong></p>
-                      <ul className="list-disc list-inside ml-2 space-y-0.5 text-purple-600">
-                        <li><code>soeun_passport</code> (소은이 여권)</li>
-                        <li><code>회의록_2025</code> (2025년 회의록)</li>
-                        <li><code>계약서_중요</code> (중요한 계약서)</li>
-                        <li><code>사진_여행</code> (여행 사진)</li>
-                      </ul>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-purple-600">
+                        <div><code>soeun_passport</code></div>
+                        <div><code>회의록_2025</code></div>
+                        <div><code>계약서_중요</code></div>
+                        <div><code>사진_여행</code></div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -281,19 +281,19 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex space-x-3 pt-4">
+          <div className="flex space-x-2 sm:space-x-3 pt-2 sm:pt-4">
             <Button
               variant="outline"
               onClick={handleClose}
               disabled={isUploading}
-              className="flex-1"
+              className="flex-1 text-sm sm:text-base py-2 sm:py-2.5"
             >
               취소
             </Button>
             <Button
               onClick={handleUpload}
               disabled={!selectedFiles || isUploading}
-              className="flex-1 purple-gradient hover:purple-gradient-hover text-white"
+              className="flex-1 purple-gradient hover:purple-gradient-hover text-white text-sm sm:text-base py-2 sm:py-2.5"
             >
               {isUploading ? "업로드 중..." : "업로드"}
             </Button>
