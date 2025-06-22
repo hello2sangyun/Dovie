@@ -241,13 +241,16 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
 
 
 
-          {/* 단일 해시태그 입력 */}
+          {/* 해시태그 입력 */}
           <div className="space-y-3">
-            <label className="text-sm font-medium text-gray-700">해시태그 입력</label>
-            <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700 flex items-center space-x-2">
+              <Hash className="h-4 w-4 text-purple-500" />
+              <span>해시태그 입력</span>
+            </Label>
+            <div className="space-y-3">
               <div className="relative">
                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-500 font-medium">#</span>
-                <input
+                <Input
                   type="text"
                   value={hashtag}
                   onChange={(e) => setHashtag(e.target.value.replace(/[^a-zA-Z0-9가-힣_]/g, ''))}

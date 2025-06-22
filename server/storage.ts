@@ -979,15 +979,17 @@ export class DatabaseStorage implements IStorage {
   async searchFilesByHashtags(userId: number, hashtags: string[]): Promise<(FileUpload & { hashtags: string[] })[]> {
     const normalizedHashtags = hashtags.map(tag => tag.toLowerCase().trim());
     
-    // Get hashtag IDs
-    const hashtagIds = await db
+    // Get hashtag IDs  
+    const hashtagRecords = await db
       .select({ id: hashtags.id })
       .from(hashtags)
       .where(inArray(hashtags.normalizedTag, normalizedHashtags));
 
-    if (hashtagIds.length === 0) {
+    if (hashtagRecords.length === 0) {
       return [];
     }
+
+    const hashtagIds = hashtagRecords.map(h => h.id);
 
     // Find files that have ALL specified hashtags
     const files = await db
@@ -1010,11 +1012,11 @@ export class DatabaseStorage implements IStorage {
         and(
           eq(fileUploads.userId, userId),
           eq(fileUploads.isDeleted, false),
-          inArray(fileHashtags.hashtagId, hashtagIds.map(h => h.id))
+          inArray(fileHashtags.hashtagId, hashtagIds)
         )
       )
       .groupBy(fileUploads.id)
-      .having(sql`COUNT(DISTINCT ${fileHashtags.hashtagId}) = ${hashtagIds.length}`)
+      .having(sql`COUNT(DISTINCT ${fileHashtags.hashtagId}) = ${hashtagRecords.length}`)
       .orderBy(desc(fileUploads.uploadedAt));
 
     // Add hashtag names to each file
