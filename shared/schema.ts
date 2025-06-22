@@ -138,7 +138,9 @@ export const messageReads = pgTable("message_reads", {
   chatRoomId: integer("chat_room_id").references(() => chatRooms.id).notNull(),
   lastReadMessageId: integer("last_read_message_id").references(() => messages.id),
   lastReadAt: timestamp("last_read_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  uniqueUserChatRoom: unique().on(table.userId, table.chatRoomId),
+}));
 
 export const commands = pgTable("commands", {
   id: serial("id").primaryKey(),

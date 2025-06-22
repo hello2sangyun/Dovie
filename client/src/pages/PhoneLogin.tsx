@@ -55,7 +55,7 @@ export default function PhoneLogin() {
 
   // SMS 인증 확인
   const verifySMSMutation = useMutation({
-    mutationFn: async (data: { phoneNumber: string; verificationCode: string }) => {
+    mutationFn: async (data: { phoneNumber: string; verificationCode: string; countryCode: string }) => {
       const response = await apiRequest("/api/auth/verify-sms", "POST", data);
       return response;
     },
@@ -104,8 +104,9 @@ export default function PhoneLogin() {
     }
 
     verifySMSMutation.mutate({
-      phoneNumber: fullPhoneNumber,
+      phoneNumber: phoneNumber,
       verificationCode,
+      countryCode: selectedCountry.dialCode,
     });
   };
 

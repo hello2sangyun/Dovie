@@ -67,7 +67,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.cleanupExpiredVerifications();
 
       // 전화번호 정규화 (국가코드 + 전화번호)
-      const fullPhoneNumber = `${countryCode}${phoneNumber}`;
+      // Twilio expects +36703566630 format, not HU+36703566630
+      const fullPhoneNumber = countryCode.startsWith('+') ? `${countryCode}${phoneNumber}` : `+${countryCode}${phoneNumber}`;
 
       // 새 인증 코드 저장 (정규화된 전화번호로)
       const verification = await storage.createPhoneVerification({
@@ -125,14 +126,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // SMS 인증 코드 확인
   app.post("/api/auth/verify-sms", async (req, res) => {
     try {
-      const { phoneNumber, verificationCode } = req.body;
+      const { phoneNumber, verificationCode, countryCode } = req.body;
       
-      if (!phoneNumber || !verificationCode) {
-        return res.status(400).json({ message: "Phone number and verification code are required" });
+      if (!phoneNumber || !verificationCode || !countryCode) {
+        return res.status(400).json({ message: "Phone number, country code, and verification code are required" });
       }
 
+      // 전화번호 정규화 (저장된 형식과 동일하게)
+      const fullPhoneNumber = countryCode.startsWith('+') ? `${countryCode}${phoneNumber}` : `+${countryCode}${phoneNumber}`;
+
       // 인증 코드 확인
-      const verification = await storage.getPhoneVerification(phoneNumber, verificationCode);
+      const verification = await storage.getPhoneVerification(fullPhoneNumber, verificationCode);
       
       if (!verification) {
         return res.status(400).json({ message: "Invalid or expired verification code" });
