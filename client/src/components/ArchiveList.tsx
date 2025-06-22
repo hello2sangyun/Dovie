@@ -97,6 +97,200 @@ function FolderView({
   );
 }
 
+// Search results view component showing all files
+function SearchResultsView({
+  files,
+  searchTerm,
+  sortBy,
+  onCommandClick,
+  selectedItems,
+  onItemSelect,
+  selectionMode
+}: {
+  files: any[];
+  searchTerm: string;
+  sortBy: string;
+  onCommandClick: (command: any) => void;
+  selectedItems: Set<number>;
+  onItemSelect: (id: number) => void;
+  selectionMode: boolean;
+}) {
+  const filteredAndSortedFiles = useMemo(() => {
+    let filtered = files;
+    
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter((file: any) => {
+        const fileName = file.fileName?.toLowerCase() || '';
+        const savedText = file.savedText?.toLowerCase() || '';
+        const commandName = file.commandName?.toLowerCase() || '';
+        const chatRoomName = file.chatRoomName?.toLowerCase() || '';
+        
+        return fileName.includes(searchLower) || 
+               savedText.includes(searchLower) || 
+               commandName.includes(searchLower) ||
+               chatRoomName.includes(searchLower);
+      });
+    }
+    
+    // Apply sorting
+    filtered.sort((a: any, b: any) => {
+      switch (sortBy) {
+        case 'newest':
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case 'oldest':
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        case 'name':
+          const nameA = a.fileName || a.commandName || '';
+          const nameB = b.fileName || b.commandName || '';
+          return nameA.localeCompare(nameB);
+        default:
+          return 0;
+      }
+    });
+
+    return filtered;
+  }, [files, searchTerm, sortBy]);
+
+  const getFileIcon = (fileName: string) => {
+    if (!fileName) return Hash;
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    switch (ext) {
+      case 'pdf':
+      case 'doc':
+      case 'docx':
+        return FileText;
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+      case 'webp':
+        return FileImage;
+      case 'mp3':
+      case 'wav':
+      case 'webm':
+      case 'mp4':
+        return Video;
+      case 'xlsx':
+      case 'xls':
+      case 'csv':
+        return FileSpreadsheet;
+      case 'js':
+      case 'ts':
+      case 'jsx':
+      case 'tsx':
+      case 'html':
+      case 'css':
+        return Code;
+      default:
+        return File;
+    }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    if (date.toDateString() === today.toDateString()) {
+      return date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return '어제';
+    } else {
+      return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+    }
+  };
+
+  if (filteredAndSortedFiles.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        <File className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+        <p className="text-sm font-medium">검색 결과가 없습니다</p>
+        <p className="text-sm text-gray-400 mt-1">다른 검색어를 시도해보세요</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white">
+      {filteredAndSortedFiles.map((file: any, index: number) => {
+        const Icon = getFileIcon(file.fileName || "");
+        const isSelected = selectedItems.has(file.id);
+        
+        return (
+          <div
+            key={file.id}
+            onClick={() => selectionMode ? onItemSelect(file.id) : onCommandClick(file)}
+            className={`flex items-center px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors ${
+              index !== filteredAndSortedFiles.length - 1 ? 'border-b border-gray-100' : ''
+            } ${isSelected ? 'bg-blue-50' : ''}`}
+          >
+            {/* Checkbox for selection mode */}
+            {selectionMode && (
+              <div className="flex-shrink-0 mr-3" onClick={(e) => e.stopPropagation()}>
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={() => onItemSelect(file.id)}
+                  className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                />
+              </div>
+            )}
+            
+            {/* File icon */}
+            <div className="flex-shrink-0 mr-3">
+              <Icon className="h-4 w-4 text-gray-500" />
+            </div>
+            
+            {/* File info */}
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium text-gray-900 truncate">
+                {file.fileName ? 
+                  (file.fileName.length > 30 ? 
+                    `${file.fileName.substring(0, 27)}...` : 
+                    file.fileName
+                  ) : 
+                  file.commandName
+                }
+              </div>
+              <div className="text-xs text-gray-500 truncate mt-0.5">
+                📁 {file.chatRoomName}
+              </div>
+              {file.savedText && !file.fileName && (
+                <div className="text-xs text-gray-500 truncate mt-0.5">
+                  {file.savedText.length > 40 ? 
+                    `${file.savedText.substring(0, 40)}...` : 
+                    file.savedText
+                  }
+                </div>
+              )}
+            </div>
+            
+            {/* File size and date */}
+            <div className="flex-shrink-0 text-right ml-2">
+              {file.fileSize && (
+                <div className="text-xs text-gray-400">
+                  {formatFileSize(file.fileSize)}
+                </div>
+              )}
+              <div className="text-xs text-gray-400 mt-0.5">
+                {formatDate(file.createdAt)}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // File list view component for a specific folder
 function FileListView({ 
   folder, 
@@ -412,6 +606,24 @@ export default function ArchiveList() {
     return Array.from(folderMap.values()).sort((a, b) => a.name.localeCompare(b.name));
   }, [commandsData, chatRoomsData]);
 
+  // Get all files when searching
+  const allFiles = useMemo(() => {
+    const commands = commandsData?.commands || [];
+    const chatRooms = chatRoomsData?.chatRooms || [];
+    
+    // Create a map of chat room ID to chat room name
+    const chatRoomMap = new Map();
+    chatRooms.forEach((room: any) => {
+      chatRoomMap.set(room.id, room.name);
+    });
+    
+    // Add chat room name to each file for display
+    return commands.map((command: any) => ({
+      ...command,
+      chatRoomName: chatRoomMap.get(command.chatRoomId) || `채팅방 ${command.chatRoomId}`
+    }));
+  }, [commandsData, chatRoomsData]);
+
   const handleCommandClick = useCallback((command: any) => {
     setSelectedCommand(command);
     setShowPreview(true);
@@ -609,6 +821,16 @@ export default function ArchiveList() {
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
           </div>
+        ) : debouncedSearchTerm.trim() ? (
+          <SearchResultsView
+            files={allFiles}
+            searchTerm={debouncedSearchTerm}
+            sortBy={sortBy}
+            onCommandClick={handleCommandClick}
+            selectedItems={selectedItems}
+            onItemSelect={handleItemSelect}
+            selectionMode={selectionMode}
+          />
         ) : currentFolder ? (
           <FileListView
             folder={currentFolder}
