@@ -1,7 +1,7 @@
 import { 
   users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications,
   fileUploads, fileDownloads, businessProfiles, userPosts, locationShareRequests, locationShares, reminders,
-  messageReactions, messageLikes,
+  messageReactions, messageLikes, pushSubscriptions,
   type User, type InsertUser, type Contact, type InsertContact,
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
   type Command, type InsertCommand, type MessageRead, type InsertMessageRead,
@@ -113,6 +113,11 @@ export interface IStorage {
   removeMessageReaction(messageId: number, userId: number, emoji: string): Promise<void>;
   getMessageReactions(messageId: number): Promise<Array<{ emoji: string; emojiName: string; count: number; userReacted: boolean; userId?: number }>>;
   getMessageReactionSuggestions(messageId: number): Promise<Array<{ emoji: string; name: string; confidence: number }>>;
+
+  // Push notification operations
+  upsertPushSubscription(userId: number, subscription: { endpoint: string; p256dh: string; auth: string; userAgent: string }): Promise<void>;
+  deletePushSubscription(userId: number, endpoint: string): Promise<void>;
+  getPushSubscriptions(userId: number): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -893,6 +898,46 @@ export class DatabaseStorage implements IStorage {
     );
 
     return result.suggestions;
+  }
+
+  // Push notification operations
+  async upsertPushSubscription(userId: number, subscription: { endpoint: string; p256dh: string; auth: string; userAgent: string }): Promise<void> {
+    const [existingSubscription] = await db
+      .select()
+      .from(pushSubscriptions)
+      .where(and(eq(pushSubscriptions.userId, userId), eq(pushSubscriptions.endpoint, subscription.endpoint)));
+
+    if (existingSubscription) {
+      await db
+        .update(pushSubscriptions)
+        .set({
+          p256dh: subscription.p256dh,
+          auth: subscription.auth,
+          userAgent: subscription.userAgent
+        })
+        .where(eq(pushSubscriptions.id, existingSubscription.id));
+    } else {
+      await db.insert(pushSubscriptions).values({
+        userId,
+        endpoint: subscription.endpoint,
+        p256dh: subscription.p256dh,
+        auth: subscription.auth,
+        userAgent: subscription.userAgent
+      });
+    }
+  }
+
+  async deletePushSubscription(userId: number, endpoint: string): Promise<void> {
+    await db
+      .delete(pushSubscriptions)
+      .where(and(eq(pushSubscriptions.userId, userId), eq(pushSubscriptions.endpoint, endpoint)));
+  }
+
+  async getPushSubscriptions(userId: number): Promise<any[]> {
+    return await db
+      .select()
+      .from(pushSubscriptions)
+      .where(eq(pushSubscriptions.userId, userId));
   }
 }
 
