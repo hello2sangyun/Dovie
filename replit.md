@@ -594,6 +594,11 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Applied conditional padding removal (pt-0 pb-0) in chat mode for full-screen chat utilization
   - Chat interface now provides complete focus on conversation content without UI clutter
   - Tab navigation and header automatically return when exiting chat rooms
+- June 22, 2025: Enhanced chat navigation with permanent back button:
+  - Added always-visible back button in chat room header for seamless navigation
+  - Removed conditional display logic to ensure button appears on all devices
+  - Users can now easily return to chat list from any chat room
+  - Like buttons repositioned outside message bubbles for better user interaction
 
 ## User Preferences
 

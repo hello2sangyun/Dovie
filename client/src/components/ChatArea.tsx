@@ -95,17 +95,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          {/* Back button for mobile navigation */}
-          {showMobileHeader && onBackClick && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onBackClick}
-              className="p-2 h-8 w-8 hover:bg-gray-100 rounded-full"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          )}
+          {/* Back button - always visible for navigation */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onBackClick}
+            className="p-2 h-8 w-8 hover:bg-gray-100 rounded-full"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
           
           <div className="flex items-center space-x-3">
             <InstantAvatar
