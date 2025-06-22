@@ -307,10 +307,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     audioBlob: Blob | null;
     transcribedText: string;
     duration: number;
+    audioUrl?: string;
   }>({
     audioBlob: null,
     transcribedText: "",
-    duration: 0
+    duration: 0,
+    audioUrl: ""
   });
   const [isDragOver, setIsDragOver] = useState(false);
   const [playingAudio, setPlayingAudio] = useState<number | null>(null);
@@ -874,7 +876,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           setVoicePreviewData({
             audioBlob: result.audioBlob || null,
             transcribedText: result.transcription,
-            duration: result.duration || 0
+            duration: result.duration || 0,
+            audioUrl: result.audioUrl || ""
           });
           setShowVoicePreview(true);
         }
@@ -1252,62 +1255,50 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const handleSendVoiceMessage = async (editedText: string) => {
     setShowVoicePreview(false);
     
-    // Need to upload the audio file first
-    if (voicePreviewData.audioBlob) {
-      try {
-        const formData = new FormData();
-        formData.append('file', voicePreviewData.audioBlob, 'voice_message.webm');
-        
-        const uploadResponse = await fetch("/api/upload", {
-          method: "POST",
-          headers: {
-            "x-user-id": user?.id?.toString() || ""
-          },
-          body: formData
-        });
-        
-        const uploadResult = await uploadResponse.json();
-        if (uploadResult.success) {
-          const messageData: any = {
-            content: editedText,
-            messageType: "voice",
-            fileUrl: uploadResult.fileUrl,
-            fileName: "voice_message.webm",
-            fileSize: voicePreviewData.audioBlob.size,
-            voiceDuration: Math.round(voicePreviewData.duration),
-            detectedLanguage: "korean",
-            confidence: "0.9"
-          };
+    try {
+      const messageData: any = {
+        content: editedText,
+        messageType: "voice",
+        fileUrl: voicePreviewData.audioUrl || "",
+        fileName: "voice_message.webm",
+        fileSize: voicePreviewData.audioBlob?.size || 0,
+        voiceDuration: Math.round(voicePreviewData.duration),
+        detectedLanguage: "korean",
+        confidence: "0.9"
+      };
 
-          // Include reply data if replying
-          if (replyToMessage) {
-            messageData.replyToMessageId = replyToMessage.id;
-            messageData.replyToContent = replyToMessage.messageType === 'voice' && replyToMessage.transcription 
-              ? replyToMessage.transcription 
-              : replyToMessage.content;
-            messageData.replyToSender = replyToMessage.sender.displayName;
-          }
-
-          sendMessageMutation.mutate(messageData);
-          
-          toast({
-            title: "음성 메시지 전송 완료!",
-            description: "수정된 텍스트로 전송되었습니다.",
-          });
-        }
-      } catch (error) {
-        console.error('Voice file upload failed:', error);
-        toast({
-          variant: "destructive",
-          title: "전송 실패",
-          description: "음성 파일 업로드에 실패했습니다.",
-        });
+      // Include reply data if replying
+      if (replyToMessage) {
+        messageData.replyToMessageId = replyToMessage.id;
+        messageData.replyToContent = replyToMessage.messageType === 'voice' && replyToMessage.transcription 
+          ? replyToMessage.transcription 
+          : replyToMessage.content;
+        messageData.replyToSender = replyToMessage.sender.displayName;
       }
+
+      sendMessageMutation.mutate(messageData);
+      
+      toast({
+        title: "음성 메시지 전송 완료!",
+        description: "수정된 텍스트로 전송되었습니다.",
+      });
+    } catch (error) {
+      console.error('Voice message send failed:', error);
+      toast({
+        variant: "destructive",
+        title: "전송 실패",
+        description: "메시지 전송에 실패했습니다.",
+      });
     }
     
-    // Clear reply mode
+    // Clear reply mode and state
     setReplyToMessage(null);
     setIsProcessingVoice(false);
+    setVoicePreviewData({
+      audioBlob: null,
+      transcribedText: "",
+      duration: 0
+    });
   };
 
   const messages = messagesData?.messages || [];
