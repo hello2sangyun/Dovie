@@ -1171,7 +1171,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const messageWithSender = await storage.getMessageById(message.id);
 
       // Extract hashtags from message content and save as commands
-      if (messageData.content && typeof messageData.content === 'string') {
+      // Skip hashtag extraction for YouTube messages and recommendation messages
+      const skipHashtagExtraction = messageData.messageType === 'youtube' || 
+                                   (messageData.content && messageData.content.includes('🎬 YouTube 동영상')) ||
+                                   (messageData.content && messageData.content.includes('유튜브 검색'));
+      
+      if (messageData.content && typeof messageData.content === 'string' && !skipHashtagExtraction) {
         const hashtagRegex = /#[\w가-힣]+/g;
         const hashtags = messageData.content.match(hashtagRegex);
         
@@ -1199,6 +1204,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
         }
+      } else if (skipHashtagExtraction) {
+        console.log('Skipping hashtag extraction for YouTube message');
       }
 
       // Handle mentions if present

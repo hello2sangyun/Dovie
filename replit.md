@@ -615,6 +615,12 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Implemented overflow:hidden for single-line content, overflow:auto only when needed
   - Text input now grows vertically with content and scrolls only when exceeding maximum height
   - Enhanced user experience by eliminating empty-state scrolling while maintaining responsive design
+- June 22, 2025: Prevented hashtag auto-extraction for YouTube search recommendation messages:
+  - Modified message creation API to skip hashtag extraction for YouTube message types
+  - Added detection logic for YouTube-related content ('🎬 YouTube 동영상', '유튜브 검색')
+  - YouTube search recommendation messages no longer save hashtags and links to storage
+  - Maintains clean archive (자료실) without unwanted YouTube-related command entries
+  - Preserves hashtag functionality for regular text and file messages
 
 ## User Preferences
 
