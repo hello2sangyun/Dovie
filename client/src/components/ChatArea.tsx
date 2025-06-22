@@ -430,6 +430,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const messageRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
   
+  // 텍스트박스 크기 초기화 헬퍼 함수
+  const resetTextareaSize = () => {
+    if (messageInputRef.current) {
+      messageInputRef.current.style.height = '32px';
+      messageInputRef.current.style.overflow = 'hidden';
+    }
+  };
+  
   // Unread messages floating button state
   const [showUnreadButton, setShowUnreadButton] = useState(false);
   const [firstUnreadMessageId, setFirstUnreadMessageId] = useState<number | null>(null);
@@ -1749,6 +1757,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           setTextToTranslate(textToTranslate);
           setShowLanguageModal(true);
           setMessage("");
+          resetTextareaSize();
           setShowChatCommands(false);
           return;
         }
@@ -1760,6 +1769,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         if (expression) {
           handleCalculatorCommand(expression);
           setMessage("");
+          resetTextareaSize();
           setShowChatCommands(false);
           return;
         }
@@ -1772,6 +1782,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           setPollQuestion(question);
           setShowPollModal(true);
           setMessage("");
+          resetTextareaSize();
           setShowChatCommands(false);
           return;
         }
@@ -2019,6 +2030,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
 
     sendMessageMutation.mutate(messageData);
+    
+    // 메시지 전송 후 텍스트박스 크기 초기화
+    if (messageInputRef.current) {
+      messageInputRef.current.style.height = '32px';
+      messageInputRef.current.style.overflow = 'hidden';
+    }
     
     // 메시지 전송 후 임시 저장된 내용 삭제
     clearDraftMessage(chatRoomId);
