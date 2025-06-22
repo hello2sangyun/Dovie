@@ -6,61 +6,131 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Filter, FileText, Code, FileImage, FileSpreadsheet, File, Video, Trash2, X, Hash } from "lucide-react";
+import { Search, Filter, FileText, Code, FileImage, FileSpreadsheet, File, Video, Trash2, X, Hash, Folder, FolderOpen, ChevronRight, ArrowLeft } from "lucide-react";
 import PreviewModal from "./PreviewModal";
 import { debounce } from "@/lib/utils";
 
-// Telegram-style compact file list component
-function TelegramFileList({ searchTerm, filterType, sortBy, onCommandClick, selectedItems, onItemSelect, selectionMode }: {
+interface ChatRoomFolder {
+  id: number;
+  name: string;
+  fileCount: number;
+  files: any[];
+}
+
+// Folder view component
+function FolderView({ 
+  folders, 
+  onFolderClick, 
+  searchTerm, 
+  selectedItems, 
+  onItemSelect, 
+  selectionMode 
+}: {
+  folders: ChatRoomFolder[];
+  onFolderClick: (folder: ChatRoomFolder) => void;
   searchTerm: string;
-  filterType: string;
+  selectedItems: Set<number>;
+  onItemSelect: (id: number) => void;
+  selectionMode: boolean;
+}) {
+  const filteredFolders = useMemo(() => {
+    if (!searchTerm.trim()) return folders;
+    
+    const searchLower = searchTerm.toLowerCase();
+    return folders.filter(folder => 
+      folder.name.toLowerCase().includes(searchLower) ||
+      folder.files.some(file => 
+        (file.fileName?.toLowerCase() || '').includes(searchLower) ||
+        (file.savedText?.toLowerCase() || '').includes(searchLower)
+      )
+    );
+  }, [folders, searchTerm]);
+
+  if (filteredFolders.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        <Folder className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+        <p className="text-sm font-medium">
+          {searchTerm ? '검색 결과가 없습니다' : '파일이 저장된 채팅방이 없습니다'}
+        </p>
+        {searchTerm && (
+          <p className="text-sm text-gray-400 mt-1">
+            다른 검색어를 시도해보세요
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white">
+      {filteredFolders.map((folder, index) => (
+        <div
+          key={folder.id}
+          onClick={() => !selectionMode && onFolderClick(folder)}
+          className={`flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors ${
+            index !== filteredFolders.length - 1 ? 'border-b border-gray-100' : ''
+          }`}
+        >
+          {/* Folder icon */}
+          <div className="flex-shrink-0 mr-3">
+            <Folder className="h-5 w-5 text-blue-500" />
+          </div>
+          
+          {/* Folder info */}
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-medium text-gray-900 truncate">
+              {folder.name}
+            </div>
+            <div className="text-xs text-gray-500 mt-0.5">
+              {folder.fileCount}개 파일
+            </div>
+          </div>
+          
+          {/* Arrow icon */}
+          <div className="flex-shrink-0 ml-2">
+            <ChevronRight className="h-4 w-4 text-gray-400" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// File list view component for a specific folder
+function FileListView({ 
+  folder, 
+  onBack, 
+  searchTerm, 
+  sortBy, 
+  onCommandClick,
+  selectedItems,
+  onItemSelect,
+  selectionMode 
+}: {
+  folder: ChatRoomFolder;
+  onBack: () => void;
+  searchTerm: string;
   sortBy: string;
   onCommandClick: (command: any) => void;
   selectedItems: Set<number>;
   onItemSelect: (id: number) => void;
   selectionMode: boolean;
 }) {
-  const { user } = useAuth();
-  
-  const { data: commandsData, isLoading } = useQuery({
-    queryKey: ["/api/commands", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const response = await fetch("/api/commands", {
-        headers: { "x-user-id": user!.id.toString() },
-      });
-      if (!response.ok) throw new Error("Failed to fetch commands");
-      return response.json();
-    },
-    staleTime: 30 * 1000,
-  });
-
-  const commands = commandsData?.commands || [];
-  
-  // Filtering and sorting logic
-  const filteredAndSortedCommands = useMemo(() => {
-    let filtered = commands;
+  const filteredAndSortedFiles = useMemo(() => {
+    let filtered = folder.files;
     
     // Apply search filter
     if (searchTerm.trim()) {
       const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter((cmd: any) => {
-        const commandName = cmd.commandName?.toLowerCase() || '';
-        const savedText = cmd.savedText?.toLowerCase() || '';
-        const fileName = cmd.fileName?.toLowerCase() || '';
+      filtered = filtered.filter((file: any) => {
+        const fileName = file.fileName?.toLowerCase() || '';
+        const savedText = file.savedText?.toLowerCase() || '';
+        const commandName = file.commandName?.toLowerCase() || '';
         
-        return commandName.includes(searchLower) || 
+        return fileName.includes(searchLower) || 
                savedText.includes(searchLower) || 
-               fileName.includes(searchLower);
-      });
-    }
-    
-    // Apply type filter
-    if (filterType !== "all") {
-      filtered = filtered.filter((command: any) => {
-        if (filterType === 'files') return command.fileName;
-        if (filterType === 'text') return !command.fileName;
-        return true;
+               commandName.includes(searchLower);
       });
     }
     
@@ -81,14 +151,7 @@ function TelegramFileList({ searchTerm, filterType, sortBy, onCommandClick, sele
     });
 
     return filtered;
-  }, [commands, searchTerm, filterType, sortBy]);
-
-  // Helper functions for file display
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
+  }, [folder.files, searchTerm, sortBy]);
 
   const getFileIcon = (fileName: string) => {
     if (!fileName) return Hash;
@@ -125,6 +188,12 @@ function TelegramFileList({ searchTerm, filterType, sortBy, onCommandClick, sele
     }
   };
 
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const today = new Date();
@@ -140,42 +209,61 @@ function TelegramFileList({ searchTerm, filterType, sortBy, onCommandClick, sele
     }
   };
 
-  if (isLoading) {
+  if (filteredAndSortedFiles.length === 0) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-      </div>
-    );
-  }
-
-  if (!filteredAndSortedCommands || filteredAndSortedCommands.length === 0) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        <File className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-        <p className="text-sm font-medium">
-          {searchTerm ? '검색 결과가 없습니다' : '저장된 파일이 없습니다'}
-        </p>
-        {searchTerm && (
-          <p className="text-sm text-gray-400 mt-1">
-            다른 검색어를 시도해보세요
+      <div className="bg-white">
+        {/* Header with back button */}
+        <div className="flex items-center px-4 py-3 border-b border-gray-200 bg-gray-50">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onBack}
+            className="mr-3 p-1"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <FolderOpen className="h-4 w-4 text-blue-500 mr-2" />
+          <span className="text-sm font-medium text-gray-900">{folder.name}</span>
+        </div>
+        
+        <div className="text-center py-8 text-gray-500">
+          <File className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+          <p className="text-sm font-medium">
+            {searchTerm ? '검색 결과가 없습니다' : '이 폴더에 파일이 없습니다'}
           </p>
-        )}
+        </div>
       </div>
     );
   }
 
   return (
     <div className="bg-white">
-      {filteredAndSortedCommands.map((command: any, index: number) => {
-        const Icon = getFileIcon(command.fileName || "");
-        const isSelected = selectedItems.has(command.id);
+      {/* Header with back button */}
+      <div className="flex items-center px-4 py-3 border-b border-gray-200 bg-gray-50">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onBack}
+          className="mr-3 p-1"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <FolderOpen className="h-4 w-4 text-blue-500 mr-2" />
+        <span className="text-sm font-medium text-gray-900">{folder.name}</span>
+        <span className="text-xs text-gray-500 ml-2">({filteredAndSortedFiles.length}개 파일)</span>
+      </div>
+      
+      {/* File list */}
+      {filteredAndSortedFiles.map((file: any, index: number) => {
+        const Icon = getFileIcon(file.fileName || "");
+        const isSelected = selectedItems.has(file.id);
         
         return (
           <div
-            key={command.id}
-            onClick={() => selectionMode ? onItemSelect(command.id) : onCommandClick(command)}
-            className={`flex items-center px-3 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors ${
-              index !== filteredAndSortedCommands.length - 1 ? 'border-b border-gray-100' : ''
+            key={file.id}
+            onClick={() => selectionMode ? onItemSelect(file.id) : onCommandClick(file)}
+            className={`flex items-center px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors ${
+              index !== filteredAndSortedFiles.length - 1 ? 'border-b border-gray-100' : ''
             } ${isSelected ? 'bg-blue-50' : ''}`}
           >
             {/* Checkbox for selection mode */}
@@ -183,7 +271,7 @@ function TelegramFileList({ searchTerm, filterType, sortBy, onCommandClick, sele
               <div className="flex-shrink-0 mr-3" onClick={(e) => e.stopPropagation()}>
                 <Checkbox
                   checked={isSelected}
-                  onCheckedChange={() => onItemSelect(command.id)}
+                  onCheckedChange={() => onItemSelect(file.id)}
                   className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
                 />
               </div>
@@ -197,19 +285,19 @@ function TelegramFileList({ searchTerm, filterType, sortBy, onCommandClick, sele
             {/* File info */}
             <div className="flex-1 min-w-0">
               <div className="text-sm font-medium text-gray-900 truncate">
-                {command.fileName ? 
-                  (command.fileName.length > 30 ? 
-                    `${command.fileName.substring(0, 27)}...` : 
-                    command.fileName
+                {file.fileName ? 
+                  (file.fileName.length > 30 ? 
+                    `${file.fileName.substring(0, 27)}...` : 
+                    file.fileName
                   ) : 
-                  command.commandName
+                  file.commandName
                 }
               </div>
-              {command.savedText && !command.fileName && (
+              {file.savedText && !file.fileName && (
                 <div className="text-xs text-gray-500 truncate mt-0.5">
-                  {command.savedText.length > 40 ? 
-                    `${command.savedText.substring(0, 40)}...` : 
-                    command.savedText
+                  {file.savedText.length > 40 ? 
+                    `${file.savedText.substring(0, 40)}...` : 
+                    file.savedText
                   }
                 </div>
               )}
@@ -217,13 +305,13 @@ function TelegramFileList({ searchTerm, filterType, sortBy, onCommandClick, sele
             
             {/* File size and date */}
             <div className="flex-shrink-0 text-right ml-2">
-              {command.fileSize && (
+              {file.fileSize && (
                 <div className="text-xs text-gray-400">
-                  {formatFileSize(command.fileSize)}
+                  {formatFileSize(file.fileSize)}
                 </div>
               )}
               <div className="text-xs text-gray-400 mt-0.5">
-                {formatDate(command.createdAt)}
+                {formatDate(file.createdAt)}
               </div>
             </div>
           </div>
@@ -240,14 +328,41 @@ export default function ArchiveList() {
   
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
   const [selectedCommand, setSelectedCommand] = useState<any>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [currentFolder, setCurrentFolder] = useState<ChatRoomFolder | null>(null);
   
   // Multi-select state
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
+
+  // Fetch commands and chat rooms
+  const { data: commandsData, isLoading: commandsLoading } = useQuery({
+    queryKey: ["/api/commands", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const response = await fetch("/api/commands", {
+        headers: { "x-user-id": user!.id.toString() },
+      });
+      if (!response.ok) throw new Error("Failed to fetch commands");
+      return response.json();
+    },
+    staleTime: 30 * 1000,
+  });
+
+  const { data: chatRoomsData, isLoading: chatRoomsLoading } = useQuery({
+    queryKey: ["/api/chat-rooms", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const response = await fetch("/api/chat-rooms", {
+        headers: { "x-user-id": user!.id.toString() },
+      });
+      if (!response.ok) throw new Error("Failed to fetch chat rooms");
+      return response.json();
+    },
+    staleTime: 30 * 1000,
+  });
 
   // Debounced search implementation
   const debouncedSetSearch = useMemo(
@@ -261,9 +376,57 @@ export default function ArchiveList() {
     debouncedSetSearch(searchInput);
   }, [searchInput, debouncedSetSearch]);
 
+  // Create folder structure from commands and chat rooms
+  const folders = useMemo(() => {
+    const commands = commandsData?.commands || [];
+    const chatRooms = chatRoomsData?.chatRooms || [];
+    
+    // Create a map of chat room ID to chat room name
+    const chatRoomMap = new Map();
+    chatRooms.forEach((room: any) => {
+      chatRoomMap.set(room.id, room.name);
+    });
+    
+    // Group commands by chat room
+    const folderMap = new Map<number, ChatRoomFolder>();
+    
+    commands.forEach((command: any) => {
+      if (command.chatRoomId) {
+        const chatRoomName = chatRoomMap.get(command.chatRoomId) || `채팅방 ${command.chatRoomId}`;
+        
+        if (!folderMap.has(command.chatRoomId)) {
+          folderMap.set(command.chatRoomId, {
+            id: command.chatRoomId,
+            name: chatRoomName,
+            fileCount: 0,
+            files: []
+          });
+        }
+        
+        const folder = folderMap.get(command.chatRoomId)!;
+        folder.files.push(command);
+        folder.fileCount = folder.files.length;
+      }
+    });
+    
+    return Array.from(folderMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [commandsData, chatRoomsData]);
+
   const handleCommandClick = useCallback((command: any) => {
     setSelectedCommand(command);
     setShowPreview(true);
+  }, []);
+
+  const handleFolderClick = useCallback((folder: ChatRoomFolder) => {
+    setCurrentFolder(folder);
+    setSelectionMode(false);
+    setSelectedItems(new Set());
+  }, []);
+
+  const handleBackToFolders = useCallback(() => {
+    setCurrentFolder(null);
+    setSelectionMode(false);
+    setSelectedItems(new Set());
   }, []);
 
   // Multi-select handlers
@@ -280,9 +443,11 @@ export default function ArchiveList() {
   }, []);
 
   const handleSelectAll = useCallback(() => {
-    // We need to get all command IDs from the current filtered list
-    setSelectedItems(new Set());
-  }, []);
+    if (currentFolder) {
+      const allFileIds = new Set(currentFolder.files.map(file => file.id));
+      setSelectedItems(allFileIds);
+    }
+  }, [currentFolder]);
 
   const handleDeselectAll = useCallback(() => {
     setSelectedItems(new Set());
@@ -339,14 +504,18 @@ export default function ArchiveList() {
     }
   }, [selectedItems, deleteMutation]);
 
+  const isLoading = commandsLoading || chatRoomsLoading;
+
   return (
     <div className="h-full flex flex-col">
-      {/* Header - 고정 영역 */}
+      {/* Header */}
       <div className="p-4 border-b border-gray-200 bg-white">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-gray-900">저장소</h3>
+          <h3 className="font-semibold text-gray-900">
+            {currentFolder ? currentFolder.name : "저장소"}
+          </h3>
           <div className="flex items-center space-x-2">
-            {!selectionMode ? (
+            {currentFolder && !selectionMode ? (
               <>
                 <Button
                   variant="ghost"
@@ -364,7 +533,7 @@ export default function ArchiveList() {
                   <Filter className="h-5 w-5" />
                 </Button>
               </>
-            ) : (
+            ) : selectionMode ? (
               <Button
                 variant="ghost"
                 size="sm"
@@ -374,12 +543,12 @@ export default function ArchiveList() {
                 <X className="h-4 w-4 mr-1" />
                 취소
               </Button>
-            )}
+            ) : null}
           </div>
         </div>
         
         {/* Selection mode header */}
-        {selectionMode && (
+        {selectionMode && currentFolder && (
           <div className="flex items-center justify-between mb-3 p-3 bg-blue-50 rounded-lg">
             <div className="flex items-center space-x-4">
               <span className="text-sm font-medium text-blue-700">
@@ -411,49 +580,56 @@ export default function ArchiveList() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
             type="text"
-            placeholder="파일명, 해시태그로 검색..."
+            placeholder={currentFolder ? "파일명으로 검색..." : "폴더명, 파일명으로 검색..."}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             className="pl-10 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
           />
         </div>
 
-        <div className="flex space-x-2">
-          <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">전체</SelectItem>
-              <SelectItem value="files">파일</SelectItem>
-              <SelectItem value="text">텍스트</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">최신순</SelectItem>
-              <SelectItem value="oldest">오래된순</SelectItem>
-              <SelectItem value="name">이름순</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {currentFolder && (
+          <div className="flex space-x-2">
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">최신순</SelectItem>
+                <SelectItem value="oldest">오래된순</SelectItem>
+                <SelectItem value="name">이름순</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
-      {/* File list content */}
+      {/* Content area */}
       <div className="flex-1 overflow-hidden">
-        <TelegramFileList
-          searchTerm={debouncedSearchTerm}
-          filterType={filterType}
-          sortBy={sortBy}
-          onCommandClick={handleCommandClick}
-          selectedItems={selectedItems}
-          onItemSelect={handleItemSelect}
-          selectionMode={selectionMode}
-        />
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+          </div>
+        ) : currentFolder ? (
+          <FileListView
+            folder={currentFolder}
+            onBack={handleBackToFolders}
+            searchTerm={debouncedSearchTerm}
+            sortBy={sortBy}
+            onCommandClick={handleCommandClick}
+            selectedItems={selectedItems}
+            onItemSelect={handleItemSelect}
+            selectionMode={selectionMode}
+          />
+        ) : (
+          <FolderView
+            folders={folders}
+            onFolderClick={handleFolderClick}
+            searchTerm={debouncedSearchTerm}
+            selectedItems={selectedItems}
+            onItemSelect={handleItemSelect}
+            selectionMode={selectionMode}
+          />
+        )}
       </div>
 
       {/* Preview Modal */}
