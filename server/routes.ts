@@ -161,7 +161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: `${cleanPhoneNumber}@phone.local`,
           password: hashedPassword,
           isEmailVerified: true,
-          isProfileComplete: true,
+          isProfileComplete: false,
         });
         user = await storage.createUser(userData);
       }

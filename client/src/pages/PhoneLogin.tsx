@@ -61,10 +61,19 @@ export default function PhoneLogin() {
     },
     onSuccess: (data) => {
       setUser(data.user);
+      localStorage.setItem("userId", data.user.id.toString());
+      
       toast({
         title: "로그인 성공",
         description: "Dovie Messenger에 오신 것을 환영합니다!",
       });
+      
+      // 프로필이 완료되지 않은 경우 프로필 설정 페이지로 이동
+      if (!data.user.isProfileComplete) {
+        window.location.href = "/profile-setup";
+      } else {
+        window.location.href = "/app";
+      }
     },
     onError: (error: any) => {
       toast({

@@ -537,6 +537,14 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Users can now register and login using real phone numbers with SMS verification
   - Application supports international phone authentication across all countries
   - Development environment displays verification codes in console when SMS delivery fails
+- June 22, 2025: Fixed SMS authentication system and implemented profile setup flow:
+  - Resolved phone number format duplication causing Twilio API errors (+HU+36... format fixed to +36...)
+  - Added getUserByPhoneNumber method to storage interface for proper user lookup
+  - Fixed user creation logic to avoid username conflicts with timestamp-based usernames
+  - Corrected new phone-authenticated users to have isProfileComplete: false for proper onboarding
+  - Implemented automatic redirect to profile setup page (/profile-setup) for new users
+  - Added localStorage userId storage and proper navigation flow after SMS verification
+  - Users now properly navigate through: SMS verification → profile setup → main application
 
 ## User Preferences
 
