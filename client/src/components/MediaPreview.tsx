@@ -300,7 +300,7 @@ const ImagePreview = ({ src, fileName, isMe }: { src: string; fileName: string; 
   return (
     <>
       <div className={cn(
-        "relative rounded-lg overflow-hidden max-w-md cursor-pointer",
+        "relative rounded-lg overflow-hidden w-full max-w-[280px] sm:max-w-[400px] cursor-pointer",
         isMe ? "ml-auto" : "mr-auto"
       )} onClick={() => setIsFullscreen(true)}>
         {isLoading && (
@@ -312,8 +312,8 @@ const ImagePreview = ({ src, fileName, isMe }: { src: string; fileName: string; 
         {hasError ? (
           <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
             <ImageIcon className="h-8 w-8 text-gray-400" />
-            <div>
-              <p className="text-sm font-medium text-gray-900">{fileName}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-gray-900 truncate">{fileName}</p>
               <p className="text-xs text-gray-500">이미지를 불러올 수 없습니다</p>
             </div>
           </div>
@@ -321,7 +321,7 @@ const ImagePreview = ({ src, fileName, isMe }: { src: string; fileName: string; 
           <img
             src={src}
             alt={fileName}
-            className="w-full h-auto max-h-48 object-cover"
+            className="w-full h-auto max-h-40 sm:max-h-48 object-cover"
             onLoad={() => setIsLoading(false)}
             onError={() => {
               setIsLoading(false);
@@ -332,21 +332,21 @@ const ImagePreview = ({ src, fileName, isMe }: { src: string; fileName: string; 
         
         {!hasError && !isLoading && (
           <>
-            <div className="absolute top-2 left-2 bg-black/50 rounded px-2 py-1">
-              <span className="text-white text-xs">{fileName}</span>
+            <div className="absolute top-1 left-1 sm:top-2 sm:left-2 bg-black/50 rounded px-1.5 py-0.5 sm:px-2 sm:py-1">
+              <span className="text-white text-xs truncate max-w-[120px] sm:max-w-[200px] block">{fileName}</span>
             </div>
-            <div className="absolute top-2 right-2">
+            <div className="absolute top-1 right-1 sm:top-2 sm:right-2">
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-white hover:bg-white/20 p-1 h-8 w-8"
+                className="text-white hover:bg-white/20 p-1 h-6 w-6 sm:h-8 sm:w-8"
                 onClick={(e) => {
                   e.stopPropagation();
                   window.open(src, '_blank');
                 }}
                 title="다운로드"
               >
-                <Download className="h-4 w-4" />
+                <Download className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </div>
           </>

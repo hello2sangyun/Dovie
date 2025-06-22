@@ -236,17 +236,7 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
             </div>
           )}
 
-          {/* Caption Input */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">설명</label>
-            <Textarea
-              placeholder="파일에 대한 설명을 입력하세요..."
-              value={caption}
-              onChange={(e) => setCaption(e.target.value)}
-              rows={3}
-              className="resize-none"
-            />
-          </div>
+
 
           {/* 단일 해시태그 입력 */}
           <div className="space-y-3">

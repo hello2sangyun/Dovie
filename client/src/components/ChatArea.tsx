@@ -4577,7 +4577,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
                     <div 
                       className={cn(
-                        "rounded-2xl px-3 py-2 w-fit break-words cursor-pointer select-none relative overflow-hidden",
+                        "rounded-2xl px-3 py-2 w-fit max-w-[280px] sm:max-w-[400px] break-words cursor-pointer select-none relative overflow-hidden",
                         // Enhanced shadows and modern design
                         // 시스템 메시지 (리마인더)는 해시태그 회상과 같은 스타일 적용
                         msg.isSystemMessage
