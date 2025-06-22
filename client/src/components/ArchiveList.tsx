@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,160 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, Filter, Download, FileText, Code, Quote, FileImage, FileSpreadsheet, File, Video } from "lucide-react";
 import PreviewModal from "./PreviewModal";
 import { debounce } from "@/lib/utils";
+
+// 검색 결과만 렌더링하는 별도 컴포넌트
+function SearchResults({ searchTerm, filterType, sortBy, onCommandClick }: {
+  searchTerm: string;
+  filterType: string;
+  sortBy: string;
+  onCommandClick: (command: any) => void;
+}) {
+  const { user } = useAuth();
+  
+  const { data: commandsData, isLoading } = useQuery({
+    queryKey: ["/api/commands", { search: searchTerm }],
+    enabled: !!user,
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (searchTerm) params.append("search", searchTerm);
+      
+      const response = await fetch(`/api/commands?${params}`, {
+        headers: { "x-user-id": user!.id.toString() },
+      });
+      if (!response.ok) throw new Error("Failed to fetch commands");
+      return response.json();
+    },
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const commands = commandsData?.commands || [];
+  
+  // 필터링 및 정렬 로직
+  const filteredAndSortedCommands = useMemo(() => {
+    let filtered = commands;
+    
+    if (filterType !== "all") {
+      filtered = commands.filter((command: any) => {
+        const fileType = getFileType(command.fileName || "");
+        return fileType === filterType;
+      });
+    }
+    
+    return filtered.sort((a: any, b: any) => {
+      if (sortBy === "newest") {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      } else if (sortBy === "oldest") {
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      } else if (sortBy === "name") {
+        return (a.commandName || a.fileName || "").localeCompare(b.commandName || b.fileName || "");
+      }
+      return 0;
+    });
+  }, [commands, filterType, sortBy]);
+
+  const getFileType = (fileName: string) => {
+    if (!fileName) return "text";
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext || '')) return 'image';
+    if (['mp4', 'avi', 'mov', 'wmv'].includes(ext || '')) return 'video';
+    if (['pdf', 'doc', 'docx'].includes(ext || '')) return 'document';
+    if (['xls', 'xlsx', 'csv'].includes(ext || '')) return 'spreadsheet';
+    if (['js', 'ts', 'py', 'html', 'css'].includes(ext || '')) return 'code';
+    return 'text';
+  };
+
+  const getFileIcon = (fileName: string) => {
+    const fileType = getFileType(fileName);
+    switch (fileType) {
+      case 'image': return FileImage;
+      case 'video': return Video;
+      case 'document': return FileText;
+      case 'spreadsheet': return FileSpreadsheet;
+      case 'code': return Code;
+      default: return File;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    
+    if (days === 0) return "오늘";
+    if (days === 1) return "어제";
+    if (days < 7) return `${days}일 전`;
+    if (days < 30) return `${Math.floor(days / 7)}주 전`;
+    if (days < 365) return `${Math.floor(days / 30)}개월 전`;
+    return `${Math.floor(days / 365)}년 전`;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-gray-500">검색 중...</div>
+      </div>
+    );
+  }
+
+  if (filteredAndSortedCommands.length === 0) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-8">
+        <File className="h-12 w-12 text-gray-300 mb-3" />
+        <p className="text-gray-500 text-center">
+          {searchTerm ? "검색 결과가 없습니다" : "저장된 자료가 없습니다"}
+        </p>
+        {searchTerm && (
+          <p className="text-sm text-gray-400 mt-1">
+            다른 검색어를 시도해보세요
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto">
+      <div className="p-4 space-y-3">
+        {filteredAndSortedCommands.map((command: any) => {
+          const Icon = getFileIcon(command.fileName || "");
+          return (
+            <div
+              key={command.id}
+              onClick={() => onCommandClick(command)}
+              className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+            >
+              <div className="flex items-start space-x-3">
+                <Icon className="h-5 w-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-gray-900 truncate">
+                      {command.commandName || command.fileName || "제목 없음"}
+                    </h4>
+                    <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
+                      {formatDate(command.createdAt)}
+                    </span>
+                  </div>
+                  {command.fileName && command.commandName && (
+                    <p className="text-sm text-gray-600 mt-1">
+                      파일: {command.fileName}
+                    </p>
+                  )}
+                  {command.savedText && (
+                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                      {command.savedText.substring(0, 100)}...
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function ArchiveList() {
   const { user } = useAuth();
@@ -30,175 +184,64 @@ export default function ArchiveList() {
     debouncedSetSearch(searchInput);
   }, [searchInput, debouncedSetSearch]);
 
-  const { data: commandsData, isLoading } = useQuery({
-    queryKey: ["/api/commands", { search: debouncedSearchTerm }],
+  const handleCommandClick = useCallback((command: any) => {
+    setSelectedCommand(command);
+    setShowPreview(true);
+  }, []);
+
+  // 기본 데이터 조회 (한 번만)
+  const { data: allCommandsData } = useQuery({
+    queryKey: ["/api/commands"],
     enabled: !!user,
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (debouncedSearchTerm) params.append("search", debouncedSearchTerm);
-      
-      const response = await fetch(`/api/commands?${params}`, {
+      const response = await fetch("/api/commands", {
         headers: { "x-user-id": user!.id.toString() },
       });
       if (!response.ok) throw new Error("Failed to fetch commands");
       return response.json();
     },
-    staleTime: 30 * 1000, // Cache for 30 seconds
-    refetchOnWindowFocus: false, // Prevent refetch on focus
+    staleTime: 30 * 1000,
   });
 
-  const commands = commandsData?.commands || [];
+  const allCommands = allCommandsData?.commands || [];
 
-  const filteredAndSortedCommands = commands
-    .filter((command: any) => {
-      if (filterType === "all") return true;
-      if (filterType === "file") return command.fileUrl;
-      if (filterType === "message") return command.savedText;
-      if (filterType === "command") return command.commandName;
-      return true;
-    })
-    .sort((a: any, b: any) => {
-      switch (sortBy) {
-        case "newest":
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        case "oldest":
-          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-        case "name":
-          return a.commandName.localeCompare(b.commandName);
-        default:
-          return 0;
-      }
-    });
-
-  const getCommandIcon = (command: any) => {
-    if (command.fileUrl && command.fileName) {
-      const extension = command.fileName.split('.').pop()?.toLowerCase();
-      switch (extension) {
-        case 'pdf':
-          return <FileText className="text-red-500" />;
-        case 'doc':
-        case 'docx':
-          return <FileText className="text-blue-600" />;
-        case 'xls':
-        case 'xlsx':
-          return <FileSpreadsheet className="text-green-600" />;
-        case 'ppt':
-        case 'pptx':
-          return <FileText className="text-orange-500" />;
-        case 'jpg':
-        case 'jpeg':
-        case 'png':
-        case 'gif':
-        case 'bmp':
-        case 'webp':
-          return <FileImage className="text-purple-500" />;
-        case 'mp4':
-        case 'avi':
-        case 'mov':
-        case 'wmv':
-          return <Video className="text-pink-500" />;
-        case 'js':
-        case 'ts':
-        case 'py':
-        case 'java':
-        case 'cpp':
-        case 'c':
-        case 'html':
-        case 'css':
-          return <Code className="text-purple-600" />;
-        default:
-          return <File className="text-gray-500" />;
-      }
-    }
-    return <Quote className="text-blue-600" />;
-  };
-
-  const getCommandBadgeColor = (command: any) => {
-    if (command.fileUrl) {
-      const extension = command.fileName?.split('.').pop()?.toLowerCase();
-      if (['js', 'ts', 'py', 'java', 'cpp', 'c', 'html', 'css'].includes(extension || '')) {
-        return "bg-purple-100 text-purple-700";
-      }
-      return "bg-green-100 text-green-700";
-    }
-    return "bg-blue-100 text-blue-700";
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  // Helper function to truncate file names
-  const truncateFileName = (fileName: string, maxLength: number) => {
-    if (fileName.length <= maxLength) return fileName;
-    const extension = fileName.lastIndexOf('.') > 0 ? fileName.substring(fileName.lastIndexOf('.')) : '';
-    const name = fileName.substring(0, fileName.lastIndexOf('.') > 0 ? fileName.lastIndexOf('.') : fileName.length);
-    const truncatedName = name.substring(0, maxLength - extension.length - 3);
-    return `${truncatedName}...${extension}`;
-  };
-
-  // Helper function to extract hashtags from text
-  const extractHashtags = (text: string): string[] => {
-    if (!text) return [];
-    const hashtagRegex = /#[\w가-힣]+/g;
-    return text.match(hashtagRegex) || [];
-  };
-
-  // Highlight search terms in text
-  const highlightSearchTerm = (text: string, searchTerm: string) => {
-    if (!searchTerm || !text) return text;
+  // 해시태그 추천을 위한 함수
+  const getHashtagSuggestions = useCallback(() => {
+    const hashtags = new Set<string>();
     
-    const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-    const parts = text.split(regex);
-    
-    return parts.map((part, index) => 
-      regex.test(part) ? (
-        <span key={index} className="bg-yellow-200 text-yellow-800 px-1 rounded">
-          {part}
-        </span>
-      ) : part
-    );
-  };
-
-  // Get hashtag suggestions from all commands
-  const getHashtagSuggestions = () => {
-    if (!commands || commands.length === 0) return [];
-    
-    const allHashtags = new Set<string>();
-    commands.forEach((command: any) => {
+    allCommands.forEach((command: any) => {
       if (command.savedText) {
-        const hashtags = extractHashtags(command.savedText);
-        hashtags.forEach(tag => allHashtags.add(tag));
+        const hashtagMatches = command.savedText.match(/#[\w가-힣]+/g);
+        if (hashtagMatches) {
+          hashtagMatches.forEach((hashtag: string) => hashtags.add(hashtag));
+        }
+      }
+      
+      if (command.fileName) {
+        const fileHashtagMatches = command.fileName.match(/#[\w가-힣]+/g);
+        if (fileHashtagMatches) {
+          fileHashtagMatches.forEach((hashtag: string) => hashtags.add(hashtag));
+        }
       }
     });
     
-    const hashtagArray = Array.from(allHashtags);
+    const hashtagArray = Array.from(hashtags);
     
-    // Filter based on current search input
     if (searchInput) {
-      const filtered = hashtagArray.filter(tag => 
-        tag.toLowerCase().includes(searchInput.toLowerCase())
+      const filtered = hashtagArray.filter(hashtag => 
+        hashtag.toLowerCase().includes(searchInput.toLowerCase()) &&
+        hashtag.toLowerCase() !== searchInput.toLowerCase()
       );
-      return filtered.slice(0, 6); // Show top 6 suggestions
+      return filtered.slice(0, 6);
     }
     
-    // Show most recent/popular hashtags when no search term
     return hashtagArray.slice(0, 8);
-  };
+  }, [searchInput, allCommands]);
 
-  // Get search suggestions based on filenames and command names
-  const getSearchSuggestions = () => {
-    if (!commands || commands.length === 0) return [];
-    
+  const getSearchSuggestions = useCallback(() => {
     const suggestions = new Set<string>();
     
-    commands.forEach((command: any) => {
+    allCommands.forEach((command: any) => {
       // Add command names
       if (command.commandName && command.commandName.length > 1) {
         suggestions.add(command.commandName);
@@ -224,24 +267,12 @@ export default function ArchiveList() {
     }
     
     return suggestionsArray.slice(0, 6);
-  };
-
-  const handleCommandClick = (command: any) => {
-    setSelectedCommand(command);
-    setShowPreview(true);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-gray-500">저장소를 불러오는 중...</div>
-      </div>
-    );
-  }
+  }, [searchInput, allCommands]);
 
   return (
     <div className="h-full flex flex-col">
-      <div className="p-4 border-b border-gray-200">
+      {/* Header - 고정 영역 */}
+      <div className="p-4 border-b border-gray-200 bg-white">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-semibold text-gray-900">저장소</h3>
           <Button
@@ -301,7 +332,7 @@ export default function ArchiveList() {
                           setSearchInput(suggestion);
                           setShowSuggestions(false);
                         }}
-                        className="block w-full text-left px-2 py-1 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                        className="block w-full text-left px-2 py-1 text-sm text-gray-700 hover:bg-gray-100 rounded transition-colors"
                       >
                         {suggestion}
                       </button>
@@ -309,43 +340,27 @@ export default function ArchiveList() {
                   </div>
                 </div>
               )}
-              
-              {/* Empty state */}
-              {getHashtagSuggestions().length === 0 && getSearchSuggestions().length === 0 && (
-                <div className="p-4 text-center text-gray-500 text-sm">
-                  저장된 항목이 없습니다
-                </div>
-              )}
-            </div>
-          )}
-          
-          {searchInput && (
-            <div className="text-xs text-gray-500 mt-1">
-              {searchInput.includes(' ') || searchInput.includes(',') ? 
-                `다중 해시태그 검색: "${searchInput}" (모든 태그가 포함된 자료 검색)` :
-                searchInput.startsWith('#') ? 
-                  `해시태그 "${searchInput}" 검색 중...` : 
-                  `"${searchInput}" 검색 중... (해시태그 검색: #${searchInput})`
-              }
             </div>
           )}
         </div>
         
         <div className="flex space-x-2">
           <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className="flex-1">
-              <SelectValue placeholder="타입 필터" />
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="필터" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">모든 타입</SelectItem>
-              <SelectItem value="file">파일</SelectItem>
-              <SelectItem value="message">메시지</SelectItem>
-              <SelectItem value="command">명령어</SelectItem>
+              <SelectItem value="all">전체</SelectItem>
+              <SelectItem value="text">텍스트</SelectItem>
+              <SelectItem value="image">이미지</SelectItem>
+              <SelectItem value="document">문서</SelectItem>
+              <SelectItem value="code">코드</SelectItem>
+              <SelectItem value="video">비디오</SelectItem>
             </SelectContent>
           </Select>
           
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="flex-1">
+            <SelectTrigger className="w-32">
               <SelectValue placeholder="정렬" />
             </SelectTrigger>
             <SelectContent>
@@ -357,101 +372,19 @@ export default function ArchiveList() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
-        {filteredAndSortedCommands.length === 0 ? (
-          <div className="p-4 text-center text-gray-500">
-            {debouncedSearchTerm ? "검색 결과가 없습니다" : "저장된 명령어가 없습니다"}
-          </div>
-        ) : (
-          <>
-            <div className="p-3 bg-gray-50">
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                저장된 항목들
-              </p>
-            </div>
-            
-            {filteredAndSortedCommands.map((command: any) => (
-              <div
-                key={command.id}
-                className="p-3 hover:bg-purple-50 cursor-pointer border-b border-gray-100 transition-colors"
-                onClick={() => handleCommandClick(command)}
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    {getCommandIcon(command)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${getCommandBadgeColor(command)}`}>
-                        #{command.commandName}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        채팅방
-                      </span>
-                    </div>
-                    <p className="font-medium text-gray-900 text-sm truncate" title={command.fileName || command.savedText || "저장된 메시지"}>
-                      {debouncedSearchTerm ? 
-                        highlightSearchTerm(command.fileName || command.savedText || "저장된 메시지", debouncedSearchTerm) :
-                        truncateFileName(command.fileName || command.savedText || "저장된 메시지", 40)
-                      }
-                    </p>
-                    {/* Display hashtags if found in saved text */}
-                    {command.savedText && extractHashtags(command.savedText).length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {extractHashtags(command.savedText).slice(0, 3).map((hashtag, index) => (
-                          <span 
-                            key={index}
-                            className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full"
-                          >
-                            {hashtag}
-                          </span>
-                        ))}
-                        {extractHashtags(command.savedText).length > 3 && (
-                          <span className="text-xs text-gray-500">
-                            +{extractHashtags(command.savedText).length - 3}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs text-gray-500">
-                        {formatDate(command.createdAt)}
-                      </p>
-                      {command.originalSender && (
-                        <p className="text-xs text-gray-500 truncate max-w-20" title={command.originalSender.displayName}>
-                          {command.originalSender.displayName}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  {command.fileUrl && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-gray-400 hover:text-purple-600 flex-shrink-0"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        window.open(command.fileUrl, '_blank');
-                      }}
-                    >
-                      <Download className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </>
-        )}
-      </div>
+      {/* 검색 결과 컨테이너 - 이 부분만 업데이트됨 */}
+      <SearchResults
+        searchTerm={debouncedSearchTerm}
+        filterType={filterType}
+        sortBy={sortBy}
+        onCommandClick={handleCommandClick}
+      />
 
       {/* Preview Modal */}
-      {selectedCommand && (
+      {showPreview && selectedCommand && (
         <PreviewModal
           open={showPreview}
-          onClose={() => {
-            setShowPreview(false);
-            setSelectedCommand(null);
-          }}
+          onClose={() => setShowPreview(false)}
           command={selectedCommand}
         />
       )}
