@@ -41,6 +41,7 @@ interface SmartSuggestion {
   category: string;
   keyword?: string;
   confidence?: number;
+  fileData?: any;
   action?: () => void;
 }
 
@@ -3246,14 +3247,83 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     return analyzeTextForSmartSuggestions(text);
   };
 
+  // 다중 해시태그 파일 검색 함수
+  const analyzeHashtagsForFileSearch = async (hashtags: string[]): Promise<SmartSuggestion[]> => {
+    try {
+      const cleanHashtags = hashtags.map(tag => tag.replace('#', '').toLowerCase());
+      const response = await fetch(`/api/commands/search-hashtags`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hashtags: cleanHashtags })
+      });
+      
+      if (!response.ok) return [];
+      
+      const data = await response.json();
+      const files = data.files || [];
+      
+      if (files.length === 0) return [];
+      
+      // 파일 결과를 SmartSuggestion 형태로 변환
+      return files.map((file: any, index: number) => ({
+        type: 'file_search',
+        text: `${file.originalFileName || '파일'}`,
+        result: `${file.hashtags?.join(' ')} - ${Math.round((file.fileSize || 0) / 1024)}KB`,
+        icon: '📁',
+        category: 'file',
+        confidence: 0.9,
+        fileData: file, // 파일 데이터 저장
+        action: () => handleFileRedownload(file)
+      }));
+    } catch (error) {
+      console.error('해시태그 파일 검색 실패:', error);
+      return [];
+    }
+  };
+
+  // 파일 재다운로드 함수
+  const handleFileRedownload = async (fileData: any) => {
+    try {
+      // 파일 다시 다운로드
+      const response = await fetch(`/api/encrypted-files/${fileData.fileName}`);
+      if (!response.ok) throw new Error('파일 다운로드 실패');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileData.originalFileName || fileData.fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      // 성공 메시지 표시
+      toast({
+        title: "파일 다운로드 완료",
+        description: `${fileData.originalFileName || '파일'}을 다운로드했습니다.`,
+      });
+      
+    } catch (error) {
+      console.error('파일 재다운로드 실패:', error);
+      toast({
+        variant: "destructive",
+        title: "다운로드 실패",
+        description: "파일을 다운로드할 수 없습니다.",
+      });
+    }
+  };
+
   const handleMessageChange = async (value: string) => {
     setMessage(value);
     
     // 입력할 때마다 자동으로 임시 저장
     saveDraftMessage(chatRoomId, value);
     
-    // # 태그 감지 및 추천 (모든 언어 지원)
+    // 다중 해시태그 검색 및 추천 (모든 언어 지원)
+    const allHashtags = value.match(/#[^\s#]+/g) || [];
     const hashMatch = value.match(/#([^#\s]*)$/);
+    
     if (hashMatch) {
       const currentTag = hashMatch[1].toLowerCase();
       const filteredTags = storedTags.filter((tag: string) => 
@@ -3261,15 +3331,36 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       );
       setHashSuggestions(filteredTags);
       setShowHashSuggestions(filteredTags.length > 0);
-      setSelectedHashIndex(0); // 선택 인덱스 초기화
-      // 태그 추천 활성화 시 스마트 추천 비활성화
-      setShowSmartSuggestions(false);
-      setSmartSuggestions([]);
-      return; // 태그 모드일 때는 스마트 추천 로직 실행하지 않음
+      setSelectedHashIndex(0);
+      
+      // 다중 해시태그가 있는 경우 스마트 추천으로 파일 검색 결과 표시
+      if (allHashtags.length > 1) {
+        const hashtagSearchSuggestions = await analyzeHashtagsForFileSearch(allHashtags);
+        if (hashtagSearchSuggestions.length > 0) {
+          setSmartSuggestions(hashtagSearchSuggestions);
+          setShowSmartSuggestions(true);
+          setSelectedSuggestionIndex(0);
+        }
+      } else {
+        setShowSmartSuggestions(false);
+        setSmartSuggestions([]);
+      }
+      return;
     } else {
       setShowHashSuggestions(false);
       setHashSuggestions([]);
       setSelectedHashIndex(0);
+      
+      // 완성된 다중 해시태그가 있는 경우에만 파일 검색
+      if (allHashtags.length >= 2) {
+        const hashtagSearchSuggestions = await analyzeHashtagsForFileSearch(allHashtags);
+        if (hashtagSearchSuggestions.length > 0) {
+          setSmartSuggestions(hashtagSearchSuggestions);
+          setShowSmartSuggestions(true);
+          setSelectedSuggestionIndex(0);
+          return;
+        }
+      }
     }
     
     if (value.trim().length < 2) {

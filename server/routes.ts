@@ -4500,6 +4500,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Multi-hashtag file search endpoint
+  app.post("/api/commands/search-hashtags", async (req, res) => {
+    try {
+      const { hashtags } = req.body;
+      if (!hashtags || !Array.isArray(hashtags) || hashtags.length === 0) {
+        return res.status(400).json({ error: "Hashtags array is required" });
+      }
+
+      console.log("🔍 다중 해시태그 검색 요청:", hashtags);
+
+      // 모든 해시태그를 포함하는 커맨드 검색
+      const results = await storage.searchCommandsByMultipleHashtags(hashtags);
+      
+      // 커맨드에서 파일 정보 추출 및 그룹화
+      const fileMap = new Map();
+      
+      for (const command of results) {
+        try {
+          // 저장된 텍스트 복호화
+          let savedText = command.savedText || '';
+          if (savedText) {
+            try {
+              savedText = decryptText(savedText);
+            } catch {
+              // 복호화 실패 시 원본 사용
+            }
+          }
+
+          // 파일 정보 파싱
+          if (savedText.includes('originalFileName') || savedText.includes('fileName')) {
+            let fileInfo;
+            try {
+              fileInfo = JSON.parse(savedText);
+            } catch {
+              // JSON 파싱 실패 시 텍스트에서 추출
+              const fileNameMatch = savedText.match(/파일명:\s*([^\n]+)/);
+              const fileSizeMatch = savedText.match(/크기:\s*([^\n]+)/);
+              fileInfo = {
+                originalFileName: fileNameMatch ? fileNameMatch[1].trim() : '알 수 없는 파일',
+                fileSize: fileSizeMatch ? parseInt(fileSizeMatch[1]) : 0
+              };
+            }
+
+            if (fileInfo && fileInfo.originalFileName) {
+              const messageId = command.messageId;
+              if (!fileMap.has(messageId)) {
+                // 해당 메시지의 모든 해시태그 수집
+                const messageHashtags = results
+                  .filter(c => c.messageId === messageId)
+                  .map(c => c.commandName.replace('#', ''))
+                  .filter((tag, index, arr) => arr.indexOf(tag) === index);
+
+                // 요청된 모든 해시태그가 포함되어 있는지 확인
+                const hasAllHashtags = hashtags.every(hashtag => 
+                  messageHashtags.some(tag => tag.toLowerCase() === hashtag.toLowerCase())
+                );
+
+                if (hasAllHashtags) {
+                  fileMap.set(messageId, {
+                    messageId,
+                    originalFileName: fileInfo.originalFileName,
+                    fileName: fileInfo.fileName || fileInfo.originalFileName,
+                    fileSize: fileInfo.fileSize || 0,
+                    hashtags: messageHashtags.map(tag => `#${tag}`)
+                  });
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error("파일 정보 처리 오류:", error);
+        }
+      }
+
+      const files = Array.from(fileMap.values());
+      console.log("🔍 검색 결과:", files.length, "개 파일");
+
+      res.json({ files, count: files.length });
+    } catch (error) {
+      console.error("다중 해시태그 검색 오류:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Message reaction API endpoints
   app.post("/api/messages/:messageId/react", async (req, res) => {
     const userId = req.headers["x-user-id"];
