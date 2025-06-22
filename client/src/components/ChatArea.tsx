@@ -64,8 +64,11 @@ export default function ChatArea({
     enabled: !!chatRoomId,
   });
 
-  const messages = messagesData?.messages || [];
-  const participants = messagesData?.participants || [];
+  const messages = (messagesData as any)?.messages || [];
+  const participants = (messagesData as any)?.participants || [];
+  
+  // Type-safe chat room data
+  const chatRoom = (chatRoomData as any) || {};
 
   // Auto-scroll functionality
   const scrollToBottom = useCallback((force = false) => {
@@ -185,7 +188,9 @@ export default function ChatArea({
             <InstantAvatar 
               src={participants.find((p: any) => p.userId === msg.senderId)?.profilePicture}
               alt={participants.find((p: any) => p.userId === msg.senderId)?.displayName || 'User'}
-              className="w-8 h-8 ring-2 ring-white shadow-md"
+              fallbackText={participants.find((p: any) => p.userId === msg.senderId)?.displayName || 'U'}
+              size="sm"
+              className="ring-2 ring-white shadow-md"
             />
           )}
           
@@ -337,13 +342,14 @@ export default function ChatArea({
             
             <div className="flex items-center space-x-3">
               <InstantAvatar 
-                src={chatRoomData?.profilePicture || participants[0]?.profilePicture}
-                alt={chatRoomData?.name || participants[0]?.displayName || 'Chat'}
-                className="w-8 h-8"
+                src={chatRoom?.profilePicture || participants[0]?.profilePicture}
+                alt={chatRoom?.name || participants[0]?.displayName || 'Chat'}
+                fallbackText={chatRoom?.name || participants[0]?.displayName || 'C'}
+                size="sm"
               />
               <div>
                 <h3 className="font-medium text-sm">
-                  {chatRoomData?.name || participants.find((p: any) => p.userId !== user?.id)?.displayName || '채팅방'}
+                  {chatRoom?.name || participants.find((p: any) => p.userId !== user?.id)?.displayName || '채팅방'}
                 </h3>
                 <p className="text-xs text-gray-500">
                   {participants.length}명 참여
