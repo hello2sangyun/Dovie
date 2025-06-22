@@ -264,6 +264,19 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
           </CardContent>
         </Card>
 
+        {/* Push Notification Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base font-semibold flex items-center">
+              <Bell className="h-5 w-5 mr-2 text-blue-600" />
+              푸시 알림 관리
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PushNotificationManager />
+          </CardContent>
+        </Card>
+
         {/* Save Button */}
         <div className="pt-4">
           <Button 
