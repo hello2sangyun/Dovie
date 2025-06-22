@@ -327,6 +327,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // 이메일 중복 확인 (기존 사용자가 아닌 경우)
+      if (email) {
+        const existingUserByEmail = await storage.getUserByEmail(email);
+        if (existingUserByEmail && existingUserByEmail.id !== Number(userId)) {
+          return res.status(400).json({ message: "이미 사용 중인 이메일입니다." });
+        }
+      }
+
       const updateData: any = {};
       if (username) updateData.username = username;
       if (displayName) updateData.displayName = displayName;

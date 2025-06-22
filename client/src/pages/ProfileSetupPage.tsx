@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -20,13 +20,27 @@ export default function ProfileSetupPage() {
   const [formData, setFormData] = useState({
     username: user?.username || "",
     displayName: user?.displayName || "",
-    email: user?.email || "",
+    email: user?.email?.includes('@phone.local') ? "" : (user?.email || ""),
     phoneNumber: user?.phoneNumber || "",
     birthday: "",
     profilePicture: "",
   });
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
+
+  // Update form data when user data changes
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        username: user.username || "",
+        displayName: user.displayName || "",
+        email: user.email?.includes('@phone.local') ? "" : (user.email || ""),
+        phoneNumber: user.phoneNumber || "",
+        birthday: "",
+        profilePicture: user.profilePicture || "",
+      });
+    }
+  }, [user]);
 
   const uploadImageMutation = useMutation({
     mutationFn: async (file: File) => {
