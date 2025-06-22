@@ -517,12 +517,18 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Fixed server-side Content-Type detection for various image formats (JPEG, PNG, GIF, WebP)
   - Images uploaded to chat rooms now display correctly with proper decryption and content serving
 - June 22, 2025: Optimized FileUploadModal for mobile screen compatibility:
-  - Adjusted modal container width to 95% viewport width with maximum 400px on mobile
+  - Adjusted modal container width to 95% viewport width with maximum 400px on mobile (changed from max-w-md to max-w-sm)
   - Reduced padding and spacing throughout the modal for compact mobile display
   - Compressed file drop zone with responsive icon sizes and text
   - Optimized hashtag guide with grid layout and smaller padding on mobile
   - Enhanced action buttons with responsive text sizing and spacing
   - Modal now fits properly within mobile screen boundaries without overflow
+- June 22, 2025: Enhanced filename display with truncation for long filenames:
+  - Implemented filename truncation to prevent modal overflow on mobile screens
+  - Long filenames (>25 characters) now display first 22 characters followed by "..." ellipsis
+  - Added title attribute to show full filename on hover for accessibility
+  - Responsive font sizing for file list items (text-xs on mobile, text-sm on desktop)
+  - Optimized spacing and icon sizes throughout file list display for mobile compatibility
 
 ## User Preferences
 

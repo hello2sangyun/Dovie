@@ -151,7 +151,7 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="w-[95vw] max-w-md sm:max-w-lg max-h-[85vh] overflow-y-auto mx-2">
+      <DialogContent className="w-[95vw] max-w-sm sm:max-w-lg max-h-[90vh] overflow-y-auto mx-2 p-3 sm:p-6">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Upload className="h-5 w-5 text-purple-600" />
@@ -159,7 +159,7 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {/* File Drop Zone */}
           {!selectedFiles && (
             <div
@@ -173,16 +173,16 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
               onDragOver={handleDrag}
               onDrop={handleDrop}
             >
-              <Upload className="h-8 w-8 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-2 sm:mb-4" />
-              <p className="text-sm sm:text-base text-gray-600 mb-2">파일을 드래그하여 놓거나</p>
+              <Upload className="h-6 w-6 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-1 sm:mb-4" />
+              <p className="text-xs sm:text-base text-gray-600 mb-1 sm:mb-2">파일을 드래그하여 놓거나</p>
               <Button
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
-                className="text-purple-600 border-purple-300 hover:bg-purple-50"
+                className="text-purple-600 border-purple-300 hover:bg-purple-50 text-xs sm:text-sm py-1 sm:py-2"
               >
                 파일 선택
               </Button>
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-gray-500 mt-1 sm:mt-2">
                 최대 {maxFiles}개 파일, 각 파일 5MB 이하
               </p>
             </div>
@@ -206,10 +206,12 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
               <div className="max-h-32 overflow-y-auto space-y-2">
                 {Array.from(selectedFiles).map((file, index) => (
                   <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-3 flex-1 min-w-0">
+                    <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
                       {getFileIcon(file.name)}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
+                        <p className="text-xs sm:text-sm font-medium text-gray-900 truncate" title={file.name}>
+                          {file.name.length > 25 ? `${file.name.substring(0, 22)}...` : file.name}
+                        </p>
                         <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
                       </div>
                     </div>
