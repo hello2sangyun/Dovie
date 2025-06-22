@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import InstantAvatar from "./InstantAvatar";
 import { Badge } from "@/components/ui/badge";
 import { 
   User, 
@@ -95,12 +96,12 @@ export default function ModernSettingsPage({ isMobile = false }: ModernSettingsP
             <CardContent className="p-6">
               <div className="flex items-center space-x-4">
                 <div className="relative cursor-pointer" onClick={() => setShowProfilePhotoUpload(true)}>
-                  <Avatar className="w-16 h-16 border-4 border-white shadow-lg transition-transform hover:scale-105">
-                    <AvatarImage src={user.profilePicture || undefined} />
-                    <AvatarFallback className={`${getAvatarColor(user.displayName)} text-white font-bold text-lg`}>
-                      {getInitials(user.displayName)}
-                    </AvatarFallback>
-                  </Avatar>
+                  <InstantAvatar 
+                    src={user.profilePicture}
+                    fallbackText={getInitials(user.displayName)}
+                    size="xl"
+                    className="w-16 h-16 border-4 border-white shadow-lg transition-transform hover:scale-105"
+                  />
                   <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform">
                     <Edit3 className="w-3 h-3 text-white" />
                   </div>

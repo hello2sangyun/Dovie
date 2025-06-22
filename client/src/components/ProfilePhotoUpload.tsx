@@ -31,7 +31,7 @@ function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: numbe
 }
 
 export default function ProfilePhotoUpload({ isOpen, onClose }: ProfilePhotoUploadProps) {
-  const { setUser } = useAuth();
+  const { user, setUser } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [imgSrc, setImgSrc] = useState("");
@@ -75,8 +75,17 @@ export default function ProfilePhotoUpload({ isOpen, onClose }: ProfilePhotoUplo
       await queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
       
       // 전역 이미지 캐시 무효화 (InstantAvatar 컴포넌트용)
-      if ((window as any).globalImageCache && data.profilePicture) {
-        (window as any).globalImageCache.delete(data.profilePicture);
+      if ((window as any).globalImageCache) {
+        // 모든 프로필 이미지 관련 캐시 삭제
+        const cache = (window as any).globalImageCache;
+        const keysToDelete = [];
+        for (const [key] of cache) {
+          if (key.includes('profile_') || key.includes('/uploads/')) {
+            keysToDelete.push(key);
+          }
+        }
+        keysToDelete.forEach(key => cache.delete(key));
+        console.log("Profile image cache cleared for immediate update");
       }
       
       toast({
