@@ -621,6 +621,16 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - YouTube search recommendation messages no longer save hashtags and links to storage
   - Maintains clean archive (자료실) without unwanted YouTube-related command entries
   - Preserves hashtag functionality for regular text and file messages
+- June 22, 2025: Implemented PC-style folder structure for storage tab with automatic file organization:
+  - Created folder-based file explorer similar to Windows/Mac file systems
+  - Folders automatically generated based on chat room names for intuitive organization
+  - Files uploaded to chat rooms automatically appear in corresponding folder within storage tab
+  - Added folder view showing file count for each chat room with navigation arrows
+  - Implemented file list view within folders with back navigation and breadcrumb header
+  - Fixed automatic file storage system - all file uploads now save to commands table with filename as command name
+  - Multi-select functionality works within folders for bulk file operations
+  - Search functionality works across folder names and file contents for comprehensive discovery
+  - PC-style navigation: folders → files with proper visual hierarchy and file type icons
 
 ## User Preferences
 
