@@ -66,14 +66,6 @@ export default function ProfilePhotoUpload({ isOpen, onClose }: ProfilePhotoUplo
     onSuccess: async (data) => {
       console.log("Profile photo uploaded successfully:", data);
       
-      // 모든 관련 쿼리 무효화 및 재로드
-      await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      await queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
-      await queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
-      
-      // 사용자 데이터 다시 가져오기
-      await queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
-      
       // 전역 이미지 캐시 무효화 (InstantAvatar 컴포넌트용)
       if ((window as any).globalImageCache) {
         // 모든 프로필 이미지 관련 캐시 삭제
@@ -88,9 +80,33 @@ export default function ProfilePhotoUpload({ isOpen, onClose }: ProfilePhotoUplo
         console.log("Profile image cache cleared for immediate update");
       }
       
+      // 새 프로필 이미지 URL을 즉시 캐시에 추가
+      if (data.profilePicture && (window as any).globalImageCache) {
+        try {
+          const response = await fetch(data.profilePicture);
+          const blob = await response.blob();
+          (window as any).globalImageCache.set(data.profilePicture, blob);
+        } catch (error) {
+          console.log("Failed to cache new profile image:", error);
+        }
+      }
+      
+      // 모든 관련 쿼리 무효화 및 재로드
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      
+      // 사용자 데이터 다시 가져오기
+      await queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
+      
+      // 즉시 모든 InstantAvatar 컴포넌트를 강제로 리렌더링
+      window.dispatchEvent(new CustomEvent('profileImageUpdated', { 
+        detail: { newUrl: data.profilePicture } 
+      }));
+      
       toast({
         title: "프로필 사진 업데이트 완료",
-        description: "프로필 사진이 성공적으로 변경되었습니다. 다른 사용자들에게도 표시됩니다.",
+        description: "프로필 사진이 성공적으로 변경되었습니다.",
       });
       onClose();
       setImgSrc("");
