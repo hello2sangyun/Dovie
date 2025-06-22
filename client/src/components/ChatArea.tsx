@@ -31,6 +31,7 @@ import { LocationShareModal } from "./LocationShareModal";
 import ReminderTimeModal from "./ReminderTimeModal";
 import YoutubeSelectionModal from "./YoutubeSelectionModal";
 import { ConnectionStatusIndicator } from "./ConnectionStatusIndicator";
+import { VoiceMessagePreviewModal } from "./VoiceMessagePreviewModal";
 // Using inline smart suggestion analysis to avoid import issues
 interface SmartSuggestion {
   type: string;
@@ -299,6 +300,18 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [youtubeSearchQuery, setYoutubeSearchQuery] = useState("");
 
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
+  
+  // Voice message preview modal state
+  const [showVoicePreview, setShowVoicePreview] = useState(false);
+  const [voicePreviewData, setVoicePreviewData] = useState<{
+    audioBlob: Blob | null;
+    transcribedText: string;
+    duration: number;
+  }>({
+    audioBlob: null,
+    transcribedText: "",
+    duration: 0
+  });
   const [isDragOver, setIsDragOver] = useState(false);
   const [playingAudio, setPlayingAudio] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -857,33 +870,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             description: `"${result.transcription}" - 스마트 추천을 확인해보세요`,
           });
         } else {
-          // 스마트 추천이 없는 경우 바로 전송
-          const messageData: any = {
-            content: result.transcription,
-            messageType: "voice",
-            fileUrl: result.audioUrl,
-            fileName: "voice_message.webm",
-            fileSize: 0,
-            voiceDuration: Math.round(result.duration || 0),
-            detectedLanguage: result.detectedLanguage || "korean",
-            confidence: String(result.confidence || 0.9)
-          };
-
-          // 회신 메시지인 경우 회신 데이터 포함
-          if (replyToMessage) {
-            messageData.replyToMessageId = replyToMessage.id;
-            messageData.replyToContent = replyToMessage.messageType === 'voice' && replyToMessage.transcription 
-              ? replyToMessage.transcription 
-              : replyToMessage.content;
-            messageData.replyToSender = replyToMessage.sender.displayName;
-          }
-
-          sendMessageMutation.mutate(messageData);
-          
-          toast({
-            title: "음성 메시지 전송 완료!",
-            description: "음성이 텍스트로 변환되어 전송되었습니다.",
+          // 스마트 추천이 없는 경우도 미리보기 모달 표시
+          setVoicePreviewData({
+            audioBlob: audioBlob,
+            transcribedText: result.transcription,
+            duration: result.duration || 0
           });
+          setShowVoicePreview(true);
         }
         
         // 회신 모드 해제
