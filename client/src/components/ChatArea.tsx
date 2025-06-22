@@ -4593,53 +4593,52 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   id={`message-${msg.id}`}
                   ref={(el) => messageRefs.current[msg.id] = el}
                   className={cn(
-                    "flex items-end space-x-3 mb-2 transition-all duration-500 group",
-                    isMe ? "flex-row-reverse space-x-reverse" : "",
+                    "flex items-end mb-1 transition-all duration-500 group relative",
+                    isMe ? "flex-row-reverse" : "",
                     highlightedMessageId === msg.id && "bg-yellow-100/50 rounded-xl p-2 -mx-2"
                   )}
                 >
-                  <div className="flex flex-col items-center flex-shrink-0">
-                    {isLocationChatRoom ? (
-                      // 주변챗에서는 임시 프로필 표시
-                      <div className="w-8 h-8 rounded-full border-2 border-white shadow-lg ring-2 ring-white/50 group-hover:scale-105 transition-transform duration-200">
-                        {isMe && locationChatProfile?.profileImageUrl ? (
-                          <img 
-                            src={locationChatProfile.profileImageUrl} 
-                            alt="프로필" 
-                            className="w-full h-full rounded-full object-cover"
-                          />
-                        ) : !isMe && msg.locationProfile?.profileImageUrl ? (
-                          <img 
-                            src={msg.locationProfile.profileImageUrl} 
-                            alt="프로필" 
-                            className="w-full h-full rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className={`w-full h-full rounded-full bg-gradient-to-br ${getAvatarColor(isMe ? (locationChatProfile?.nickname || "나") : (msg.locationProfile?.nickname || msg.sender.displayName))} flex items-center justify-center text-white text-xs font-bold shadow-inner`}>
-                            {(isMe ? (locationChatProfile?.nickname || "나") : (msg.locationProfile?.nickname || msg.sender.displayName)).charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      // 일반 채팅에서는 원래 프로필 표시 - 컴팩트하게
-                      <div className="w-8 h-8 rounded-full shadow-lg ring-2 ring-white/50 group-hover:scale-105 transition-transform duration-200 overflow-hidden">
-                        <InstantAvatar 
-                          src={isMe ? user?.profilePicture : msg.sender?.profilePicture}
-                          alt={isMe ? (user?.displayName || "Me") : msg.sender.displayName}
-                          fallbackText={isMe ? (user?.displayName || "Me") : msg.sender.displayName}
-                          size="sm" 
-                          className={`w-full h-full bg-gradient-to-br ${getAvatarColor(isMe ? (user?.displayName || "Me") : msg.sender.displayName)} text-xs font-bold shadow-inner`}
+                  {/* Profile Picture - Enhanced visibility */}
+                  <div className="flex flex-col items-center flex-shrink-0 mr-3">
+                    <div className="w-10 h-10 rounded-full shadow-md border-2 border-white/80 group-hover:scale-105 transition-transform duration-200 overflow-hidden bg-white">
+                      <InstantAvatar 
+                        src={isMe ? user?.profilePicture : msg.sender?.profilePicture}
+                        alt={isMe ? (user?.displayName || "Me") : msg.sender.displayName}
+                        fallbackText={isMe ? (user?.displayName || "Me") : msg.sender.displayName}
+                        size="md" 
+                        className={`w-full h-full bg-gradient-to-br ${getAvatarColor(isMe ? (user?.displayName || "Me") : msg.sender.displayName)} text-sm font-semibold text-white`}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Message Content Container */}
+                  <div className={cn(
+                    "flex items-end space-x-2",
+                    isMe ? "flex-row-reverse space-x-reverse" : "",
+                    "flex-1"
+                  )}>
+                    {/* Like Button - Outside message bubble */}
+                    {!isLocationChatRoom && (
+                      <div className={cn(
+                        "flex items-center opacity-0 group-hover:opacity-100 transition-opacity duration-200",
+                        isMe ? "order-2" : "order-2"
+                      )}>
+                        <MessageReactionButton
+                          messageId={msg.id}
+                          chatRoomId={chatRoomId}
+                          currentUserId={user?.id || 0}
+                          className="w-6 h-6 rounded-full hover:bg-gray-100 p-1 transition-colors"
                         />
                       </div>
                     )}
-                  </div>
-                  
-                  <div className={cn(
-                    "flex flex-col",
-                    msg.replyToMessageId ? "max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl" : "max-w-xs sm:max-w-sm md:max-w-md lg:max-w-xl",
-                    isMe ? "items-end" : "items-start",
-                    "min-w-0 break-words"
-                  )}>
+                    
+                    {/* Message Bubble */}
+                    <div className={cn(
+                      "flex flex-col order-1",
+                      msg.replyToMessageId ? "max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl" : "max-w-xs sm:max-w-sm md:max-w-md lg:max-w-xl",
+                      isMe ? "items-end" : "items-start",
+                      "min-w-0 break-words"
+                    )}>
                     {!isMe && (
                       <div className="flex items-center space-x-2 mb-1">
                         <span className="text-xs font-semibold text-gray-700">
@@ -5253,18 +5252,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                               </div>
                             )}
                           </div>
-                          
-                              {/* Message Reaction Button with AI-powered emoji suggestions */}
-                              {!isLocationChatRoom && (
-                                <div className="mt-2 flex justify-end">
-                                  <MessageReactionButton
-                                    messageId={msg.id}
-                                    chatRoomId={chatRoomId}
-                                    currentUserId={user?.id || 0}
-                                    className="opacity-75 hover:opacity-100 transition-opacity"
-                                  />
-                                </div>
-                              )}
                             </>
                           )}
                         </div>
@@ -5273,8 +5260,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     </GestureQuickReply>
                   </div>
                 </div>
-              </div>
-            );
+              );
           })}
           
           {/* 업로드 중인 파일들을 로딩 메시지로 표시 */}
@@ -5306,7 +5292,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             </div>
           ))}
         </>
-        )}
         
         {/* Typing Indicator */}
         <TypingIndicator
