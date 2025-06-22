@@ -288,7 +288,7 @@ export default function ArchiveList() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
             type="text"
-            placeholder="다중 해시태그 검색... (예: #회의 #문서, #중요 #업무)"
+            placeholder="단일 해시태그 검색... (예: #soeun_passport, #회의록_2025)"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             onFocus={() => setShowSuggestions(true)}

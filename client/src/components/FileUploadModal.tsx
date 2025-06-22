@@ -22,7 +22,7 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
 }) => {
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
   const [caption, setCaption] = useState('');
-  const [hashtags, setHashtags] = useState<string[]>([]);
+  const [hashtag, setHashtag] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -106,7 +106,9 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
 
     setIsUploading(true);
     try {
-      await onUpload(selectedFiles, caption, hashtags);
+      // 단일 해시태그를 배열로 변환하여 기존 API 호환성 유지
+      const hashtagArray = hashtag.trim() ? [hashtag.trim()] : [];
+      await onUpload(selectedFiles, caption, hashtagArray);
       
       // 업로드 완료 후 commands 캐시를 무효화하여 즉시 검색 가능하게 함
       await queryClient.invalidateQueries({ queryKey: ['/api/commands'] });
@@ -130,7 +132,7 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
   const handleClose = () => {
     setSelectedFiles(null);
     setCaption('');
-    setHashtags([]);
+    setHashtag('');
     setIsUploading(false);
     setDragActive(false);
     onClose();
@@ -246,15 +248,46 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
             />
           </div>
 
-          {/* Hashtag Input */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">해시태그</label>
-            <HashtagInput
-              hashtags={hashtags}
-              onHashtagsChange={setHashtags}
-              placeholder="해시태그를 입력하세요... (예: #중요, #업무, #사진)"
-              maxTags={10}
-            />
+          {/* 단일 해시태그 입력 */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-gray-700">해시태그 입력</label>
+            <div className="space-y-2">
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-500 font-medium">#</span>
+                <input
+                  type="text"
+                  value={hashtag}
+                  onChange={(e) => setHashtag(e.target.value.replace(/[^a-zA-Z0-9가-힣_]/g, ''))}
+                  placeholder="한 개의 해시태그를 입력하세요 (예: soeun_passport)"
+                  className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  maxLength={50}
+                />
+              </div>
+              
+              {/* 안내 메시지 */}
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                <div className="flex items-start space-x-2">
+                  <div className="w-5 h-5 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-purple-600 text-xs font-bold">💡</span>
+                  </div>
+                  <div className="text-sm text-purple-700">
+                    <p className="font-medium mb-1">해시태그 입력 가이드</p>
+                    <p className="text-xs leading-relaxed mb-2">
+                      <strong>한 개의 해시태그만 입력할 수 있습니다.</strong> 언더바(_)를 사용해서 여러 단어를 조합하세요.
+                    </p>
+                    <div className="space-y-1 text-xs">
+                      <p><strong>좋은 예시:</strong></p>
+                      <ul className="list-disc list-inside ml-2 space-y-0.5 text-purple-600">
+                        <li><code>soeun_passport</code> (소은이 여권)</li>
+                        <li><code>회의록_2025</code> (2025년 회의록)</li>
+                        <li><code>계약서_중요</code> (중요한 계약서)</li>
+                        <li><code>사진_여행</code> (여행 사진)</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Action Buttons */}

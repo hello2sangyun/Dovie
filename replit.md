@@ -487,6 +487,22 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Strengthened silent recording detection with minimum 5-character threshold
   - Empty or meaningless voice messages now automatically cancel without user notification
   - Eliminated false transcriptions from OpenAI Whisper's Korean language model hallucinations
+- June 22, 2025: Redesigned smart suggestion notification popup with improved UX/UI:
+  - Replaced previous green-heavy design with modern gradient purple/indigo color scheme
+  - Enhanced backdrop blur and shadow effects for premium visual appeal
+  - Restructured layout with clear header section showing notification icon and purpose
+  - Added voice message content preview with clean typography and icon representation
+  - Implemented single suggestion display with prominent call-to-action design
+  - Updated button text to "알림 없이 바로 전송" for clearer user understanding
+  - Removed confusing visual elements and streamlined interaction flow
+- June 22, 2025: Implemented single hashtag system for simplified file organization:
+  - Modified FileUploadModal to support only one hashtag per file upload
+  - Added comprehensive hashtag input guide with examples (soeun_passport, 회의록_2025, 계약서_중요, 사진_여행)
+  - Updated search functionality in ArchiveList to handle single hashtag queries
+  - Enhanced input validation to allow Korean characters, alphanumeric, and underscores only
+  - Provided detailed user guidance on combining multiple concepts using underscore notation
+  - Simplified search interface with updated placeholder text for single hashtag searches
+  - Maintained backend API compatibility by converting single hashtag to array format
 
 ## User Preferences
 
