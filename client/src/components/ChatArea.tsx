@@ -33,6 +33,7 @@ import ReminderTimeModal from "./ReminderTimeModal";
 import YoutubeSelectionModal from "./YoutubeSelectionModal";
 import { ConnectionStatusIndicator } from "./ConnectionStatusIndicator";
 import { VoiceMessagePreviewModal } from "./VoiceMessagePreviewModal";
+import GestureQuickReply from "./GestureQuickReply";
 // Using inline smart suggestion analysis to avoid import issues
 interface SmartSuggestion {
   type: string;
@@ -1162,6 +1163,56 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         title: "투표 오류",
         description: "투표 생성 중 오류가 발생했습니다.",
       });
+    }
+  };
+
+  // Quick reply mutation
+  const quickReplyMutation = useMutation({
+    mutationFn: async ({ messageId, content, type }: { messageId: number; content: string; type: 'reaction' | 'text' }) => {
+      if (type === 'reaction') {
+        // Add reaction to message
+        const response = await apiRequest(`/api/messages/${messageId}/react`, "POST", { 
+          reaction: content 
+        });
+        return response.json();
+      } else {
+        // Send quick text reply
+        return sendMessageMutation.mutate({
+          content,
+          messageType: "text",
+          replyToMessageId: messageId
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["/api/chat-rooms", chatRoomId, "messages"]);
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "빠른 답장 실패",
+        description: "빠른 답장을 보내는 중 오류가 발생했습니다.",
+      });
+    },
+  });
+
+  // Handle quick reply
+  const handleQuickReply = (messageId: number, content: string, type: 'reaction' | 'text') => {
+    quickReplyMutation.mutate({ messageId, content, type });
+  };
+
+  // Handle swipe reply
+  const handleSwipeReply = (messageId: number) => {
+    const targetMessage = messages?.data?.messages?.find(m => m.id === messageId);
+    if (targetMessage) {
+      setReplyToMessage(targetMessage);
+      // Focus on input field
+      setTimeout(() => {
+        const inputElement = document.querySelector('input[placeholder*="메시지"]') as HTMLInputElement;
+        if (inputElement) {
+          inputElement.focus();
+        }
+      }, 100);
     }
   };
 
@@ -4546,12 +4597,18 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     )}
                   </div>
                   
-                  <div className={cn(
-                    "flex flex-col",
-                    msg.replyToMessageId ? "max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl" : "max-w-xs sm:max-w-sm md:max-w-md lg:max-w-xl",
-                    isMe ? "items-end" : "items-start",
-                    "min-w-0 break-words"
-                  )}>
+                  <GestureQuickReply
+                    messageId={msg.id}
+                    onQuickReply={handleQuickReply}
+                    onSwipeReply={handleSwipeReply}
+                    className={cn(
+                      "flex flex-col",
+                      msg.replyToMessageId ? "max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl" : "max-w-xs sm:max-w-sm md:max-w-md lg:max-w-xl",
+                      isMe ? "items-end" : "items-start",
+                      "min-w-0 break-words"
+                    )}
+                  >
+                    <div>
                     {!isMe && (
                       <div className="flex items-center space-x-2 mb-1">
                         <span className="text-xs font-semibold text-gray-700">
@@ -5177,7 +5234,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                         </div>
                       )}
                     </div>
-                  </div>
+                  </GestureQuickReply>
                 </div>
               </div>
             );
