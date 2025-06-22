@@ -1792,10 +1792,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const { lastMessageId } = req.body;
-      await storage.markMessagesAsRead(Number(userId), Number(req.params.chatRoomId), lastMessageId);
+      console.log(`Mark read request: userId=${userId}, chatRoomId=${req.params.chatRoomId}, lastMessageId=${lastMessageId}`);
+      
+      if (!lastMessageId) {
+        return res.status(400).json({ message: "lastMessageId is required" });
+      }
+      
+      await storage.markMessagesAsRead(Number(userId), Number(req.params.chatRoomId), Number(lastMessageId));
       res.json({ success: true });
     } catch (error) {
-      res.status(500).json({ message: "Failed to mark messages as read" });
+      console.error("Mark read error:", error);
+      res.status(500).json({ message: "Failed to mark messages as read", error: error.message });
     }
   });
 

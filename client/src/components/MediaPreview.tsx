@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Play, Pause, Volume2, VolumeX, Download, ExternalLink, Image as ImageIcon, Video, FileText, Eye, File } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { ImageViewerModal } from "./ImageViewerModal";
 
 interface MediaPreviewProps {
   fileUrl: string;
@@ -295,14 +296,14 @@ const FilePreview = ({ fileUrl, fileName, fileSize, isMe, summary }: { fileUrl: 
 const ImagePreview = ({ src, fileName, isMe }: { src: string; fileName: string; isMe: boolean }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
 
   return (
     <>
       <div className={cn(
         "relative rounded-lg overflow-hidden w-full max-w-[280px] sm:max-w-[400px] cursor-pointer",
         isMe ? "ml-auto" : "mr-auto"
-      )} onClick={() => setIsFullscreen(true)}>
+      )} onClick={() => setIsViewerOpen(true)}>
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-100 min-h-32">
             <div className="animate-spin w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full"></div>
@@ -358,28 +359,13 @@ const ImagePreview = ({ src, fileName, isMe }: { src: string; fileName: string; 
         )}
       </div>
 
-      {/* 전체화면 모달 */}
-      {isFullscreen && (
-        <div 
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
-          onClick={() => setIsFullscreen(false)}
-        >
-          <img
-            src={src}
-            alt={fileName}
-            className="max-w-full max-h-full object-contain"
-            onClick={(e) => e.stopPropagation()}
-          />
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute top-4 right-4 text-white hover:bg-white/20"
-            onClick={() => setIsFullscreen(false)}
-          >
-            ✕
-          </Button>
-        </div>
-      )}
+      {/* 이미지 뷰어 모달 */}
+      <ImageViewerModal
+        isOpen={isViewerOpen}
+        onClose={() => setIsViewerOpen(false)}
+        imageUrl={src}
+        fileName={fileName}
+      />
     </>
   );
 };
