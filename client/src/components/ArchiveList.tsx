@@ -1,19 +1,24 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, Download, FileText, Code, Quote, FileImage, FileSpreadsheet, File, Video } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/hooks/use-toast";
+import { Search, Filter, Download, FileText, Code, Quote, FileImage, FileSpreadsheet, File, Video, Trash2, X } from "lucide-react";
 import PreviewModal from "./PreviewModal";
 import { debounce } from "@/lib/utils";
 
 // 검색 결과만 렌더링하는 별도 컴포넌트
-function SearchResults({ searchTerm, filterType, sortBy, onCommandClick }: {
+function SearchResults({ searchTerm, filterType, sortBy, onCommandClick, selectedItems, onItemSelect, selectionMode }: {
   searchTerm: string;
   filterType: string;
   sortBy: string;
   onCommandClick: (command: any) => void;
+  selectedItems: Set<number>;
+  onItemSelect: (id: number) => void;
+  selectionMode: boolean;
 }) {
   const { user } = useAuth();
   
@@ -122,35 +127,59 @@ function SearchResults({ searchTerm, filterType, sortBy, onCommandClick }: {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="p-4 space-y-3">
+      <div className="divide-y divide-gray-100">
         {filteredAndSortedCommands.map((command: any) => {
           const Icon = getFileIcon(command.fileName || "");
+          const isSelected = selectedItems.has(command.id);
+          
           return (
             <div
               key={command.id}
-              onClick={() => onCommandClick(command)}
-              className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+              onClick={() => selectionMode ? onItemSelect(command.id) : onCommandClick(command)}
+              className={`flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors ${
+                isSelected ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+              }`}
             >
-              <div className="flex items-start space-x-3">
-                <Icon className="h-5 w-5 text-gray-400 mt-0.5 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-medium text-gray-900 truncate">
-                      {command.commandName || command.fileName || "제목 없음"}
-                    </h4>
-                    <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
-                      {formatDate(command.createdAt)}
+              {/* Checkbox for selection mode */}
+              {selectionMode && (
+                <div className="mr-3" onClick={(e) => e.stopPropagation()}>
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={() => onItemSelect(command.id)}
+                    className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                  />
+                </div>
+              )}
+              
+              {/* File icon */}
+              <div className="flex-shrink-0 mr-3">
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <Icon className="h-5 w-5 text-gray-600" />
+                </div>
+              </div>
+              
+              {/* File content */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-medium text-gray-900 truncate text-sm">
+                    {command.commandName || command.fileName || "제목 없음"}
+                  </h4>
+                  <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
+                    {formatDate(command.createdAt)}
+                  </span>
+                </div>
+                
+                {/* File size or content preview */}
+                <div className="flex items-center mt-1">
+                  {command.fileSize && (
+                    <span className="text-xs text-gray-500">
+                      {(command.fileSize / 1024).toFixed(1)} KB
                     </span>
-                  </div>
-                  {command.fileName && command.commandName && (
-                    <p className="text-sm text-gray-600 mt-1">
-                      파일: {command.fileName}
-                    </p>
                   )}
-                  {command.savedText && (
-                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                      {command.savedText.substring(0, 100)}...
-                    </p>
+                  {command.savedText && !command.fileName && (
+                    <span className="text-xs text-gray-500 truncate">
+                      {command.savedText.substring(0, 50)}...
+                    </span>
                   )}
                 </div>
               </div>
@@ -164,6 +193,9 @@ function SearchResults({ searchTerm, filterType, sortBy, onCommandClick }: {
 
 export default function ArchiveList() {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
@@ -171,6 +203,10 @@ export default function ArchiveList() {
   const [selectedCommand, setSelectedCommand] = useState<any>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  
+  // Multi-select state
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
 
   // Debounced search implementation
   const debouncedSetSearch = useMemo(
@@ -188,6 +224,79 @@ export default function ArchiveList() {
     setSelectedCommand(command);
     setShowPreview(true);
   }, []);
+
+  // Multi-select handlers
+  const handleItemSelect = useCallback((id: number) => {
+    setSelectedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const handleSelectAll = useCallback(() => {
+    const allIds = allCommandsData?.commands?.map((cmd: any) => cmd.id) || [];
+    setSelectedItems(new Set(allIds));
+  }, [allCommandsData]);
+
+  const handleDeselectAll = useCallback(() => {
+    setSelectedItems(new Set());
+  }, []);
+
+  const toggleSelectionMode = useCallback(() => {
+    setSelectionMode(prev => !prev);
+    if (selectionMode) {
+      setSelectedItems(new Set());
+    }
+  }, [selectionMode]);
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (commandIds: number[]) => {
+      const response = await fetch("/api/commands/bulk-delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-user-id": user!.id.toString(),
+        },
+        body: JSON.stringify({ commandIds }),
+      });
+      if (!response.ok) throw new Error("Failed to delete commands");
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "삭제 완료",
+        description: `${selectedItems.size}개의 파일이 삭제되었습니다.`,
+      });
+      setSelectedItems(new Set());
+      setSelectionMode(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/commands"] });
+    },
+    onError: () => {
+      toast({
+        title: "삭제 실패",
+        description: "파일 삭제 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDelete = useCallback(() => {
+    if (selectedItems.size === 0) return;
+    
+    const confirmDelete = window.confirm(
+      `선택한 ${selectedItems.size}개의 파일을 삭제하시겠습니까?`
+    );
+    
+    if (confirmDelete) {
+      deleteMutation.mutate(Array.from(selectedItems));
+    }
+  }, [selectedItems, deleteMutation]);
 
   // 기본 데이터 조회 (한 번만)
   const { data: allCommandsData } = useQuery({
@@ -275,14 +384,68 @@ export default function ArchiveList() {
       <div className="p-4 border-b border-gray-200 bg-white">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-semibold text-gray-900">저장소</h3>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-purple-600 hover:text-purple-700"
-          >
-            <Filter className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center space-x-2">
+            {!selectionMode ? (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleSelectionMode}
+                  className="text-purple-600 hover:text-purple-700"
+                >
+                  선택
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowSuggestions(!showSuggestions)}
+                  className="text-purple-600 hover:text-purple-700"
+                >
+                  <Filter className="h-5 w-5" />
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleSelectionMode}
+                className="text-red-600 hover:text-red-700"
+              >
+                <X className="h-4 w-4 mr-1" />
+                취소
+              </Button>
+            )}
+          </div>
         </div>
+        
+        {/* Selection mode header */}
+        {selectionMode && (
+          <div className="flex items-center justify-between mb-3 p-3 bg-blue-50 rounded-lg">
+            <div className="flex items-center space-x-4">
+              <span className="text-sm font-medium text-blue-700">
+                {selectedItems.size}개 선택됨
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={selectedItems.size > 0 ? handleDeselectAll : handleSelectAll}
+                className="text-blue-600 hover:text-blue-700 text-xs"
+              >
+                {selectedItems.size > 0 ? "선택 해제" : "모두 선택"}
+              </Button>
+            </div>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleDelete}
+              disabled={selectedItems.size === 0 || deleteMutation.isPending}
+              className="flex items-center space-x-1"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span>삭제</span>
+            </Button>
+          </div>
+        )}
         
         <div className="relative mb-2">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -378,6 +541,9 @@ export default function ArchiveList() {
         filterType={filterType}
         sortBy={sortBy}
         onCommandClick={handleCommandClick}
+        selectedItems={selectedItems}
+        onItemSelect={handleItemSelect}
+        selectionMode={selectionMode}
       />
 
       {/* Preview Modal */}
