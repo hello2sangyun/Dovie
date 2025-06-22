@@ -66,9 +66,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 기존 미인증 코드 정리
       await storage.cleanupExpiredVerifications();
 
-      // 새 인증 코드 저장
+      // 전화번호 정규화 (국가코드 + 전화번호)
+      const fullPhoneNumber = `${countryCode}${phoneNumber}`;
+
+      // 새 인증 코드 저장 (정규화된 전화번호로)
       const verification = await storage.createPhoneVerification({
-        phoneNumber,
+        phoneNumber: fullPhoneNumber,
         countryCode,
         verificationCode,
         expiresAt,
@@ -83,10 +86,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const message = await client.messages.create({
           body: `Dovie Messenger 인증 코드: ${verificationCode}`,
           from: process.env.TWILIO_PHONE_NUMBER,
-          to: phoneNumber
+          to: fullPhoneNumber
         });
 
-        console.log(`SMS 전송 성공: ${message.sid} (${phoneNumber})`);
+        console.log(`SMS 전송 성공: ${message.sid} (${fullPhoneNumber})`);
 
         res.json({ 
           success: true, 
@@ -99,7 +102,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Trial 계정 제한이나 기타 SMS 전송 실패 시 개발 모드에서는 성공으로 처리
         if (process.env.NODE_ENV === 'development') {
           console.log(`🔧 개발 모드: SMS 전송 실패하였지만 테스트를 위해 성공으로 처리`);
-          console.log(`📱 인증 코드: ${verificationCode} (${phoneNumber})`);
+          console.log(`📱 인증 코드: ${verificationCode} (${fullPhoneNumber})`);
           console.log(`💡 실제 운영환경에서는 Twilio 계정을 업그레이드하거나 번호를 검증해주세요.`);
           
           res.json({ 
@@ -142,10 +145,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let user = await storage.getUserByUsername(phoneNumber.replace(/[^\d]/g, ''));
       
       if (!user) {
+        const hashedPassword = await bcrypt.hash("phone_auth_temp", 10);
         const userData = insertUserSchema.parse({
           username: `user_${phoneNumber.replace(/[^\d]/g, '').slice(-8)}`,
           displayName: `사용자 ${phoneNumber.slice(-4)}`,
           phoneNumber: phoneNumber,
+          email: `${phoneNumber.replace(/[^\d]/g, '')}@phone.local`,
+          password: hashedPassword,
+          isEmailVerified: true,
+          isProfileComplete: true,
         });
         user = await storage.createUser(userData);
       }
