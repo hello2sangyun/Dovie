@@ -134,6 +134,7 @@ export default function ArchiveList() {
     });
   };
 
+  // Helper function to truncate file names
   const truncateFileName = (fileName: string, maxLength: number) => {
     if (fileName.length <= maxLength) return fileName;
     const extension = fileName.lastIndexOf('.') > 0 ? fileName.substring(fileName.lastIndexOf('.')) : '';
@@ -142,7 +143,7 @@ export default function ArchiveList() {
     return `${truncatedName}...${extension}`;
   };
 
-  // Extract hashtags from text
+  // Helper function to extract hashtags from text
   const extractHashtags = (text: string): string[] => {
     if (!text) return [];
     const hashtagRegex = /#[\w가-힣]+/g;
@@ -359,7 +360,7 @@ export default function ArchiveList() {
       <div className="flex-1 overflow-y-auto">
         {filteredAndSortedCommands.length === 0 ? (
           <div className="p-4 text-center text-gray-500">
-            {searchTerm ? "검색 결과가 없습니다" : "저장된 명령어가 없습니다"}
+            {debouncedSearchTerm ? "검색 결과가 없습니다" : "저장된 명령어가 없습니다"}
           </div>
         ) : (
           <>
@@ -389,8 +390,8 @@ export default function ArchiveList() {
                       </span>
                     </div>
                     <p className="font-medium text-gray-900 text-sm truncate" title={command.fileName || command.savedText || "저장된 메시지"}>
-                      {searchTerm ? 
-                        highlightSearchTerm(command.fileName || command.savedText || "저장된 메시지", searchTerm) :
+                      {debouncedSearchTerm ? 
+                        highlightSearchTerm(command.fileName || command.savedText || "저장된 메시지", debouncedSearchTerm) :
                         truncateFileName(command.fileName || command.savedText || "저장된 메시지", 40)
                       }
                     </p>
