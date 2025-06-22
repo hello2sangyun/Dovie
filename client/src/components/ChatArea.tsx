@@ -300,10 +300,23 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [showYoutubeModal, setShowYoutubeModal] = useState(false);
   const [youtubeSearchQuery, setYoutubeSearchQuery] = useState("");
 
-  // Hashtag auto-completion state
-  const [showHashtagSuggestions, setShowHashtagSuggestions] = useState(false);
-  const [hashtagSuggestions, setHashtagSuggestions] = useState<string[]>([]);
-  const [hashtagTrigger, setHashtagTrigger] = useState<string>("");
+  // 해시태그 추천 상태
+  const [showHashSuggestions, setShowHashSuggestions] = useState(false);
+  const [hashSuggestions, setHashSuggestions] = useState<string[]>([]);
+  const [selectedHashIndex, setSelectedHashIndex] = useState(0);
+  
+  // 해시태그 관련 추천 쿼리
+  const fetchRelatedHashtags = async (hashtag: string) => {
+    try {
+      const response = await fetch(`/api/hashtags/related?hashtag=${encodeURIComponent(hashtag)}`);
+      if (!response.ok) throw new Error('Failed to fetch related hashtags');
+      const data = await response.json();
+      return data.relatedHashtags || [];
+    } catch (error) {
+      console.error('Error fetching related hashtags:', error);
+      return [];
+    }
+  };
 
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
   
@@ -2324,9 +2337,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     title: '',
     content: ''
   });
-  const [showHashSuggestions, setShowHashSuggestions] = useState(false);
-  const [hashSuggestions, setHashSuggestions] = useState<string[]>([]);
-  const [selectedHashIndex, setSelectedHashIndex] = useState(0);
   // 음성 메시지 임시 저장 상태 (스마트 추천 선택 대기)
   const [pendingVoiceMessage, setPendingVoiceMessage] = useState<any>(null);
   // 채팅방별 저장된 명령어들을 태그로 사용
