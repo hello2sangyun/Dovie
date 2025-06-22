@@ -756,7 +756,7 @@ export default function MainApp() {
         </div>
 
         {/* Mobile Content with padding for fixed header and footer */}
-        <div className="flex-1 overflow-hidden pt-16 pb-14 relative">
+        <div className="flex-1 overflow-hidden pt-20 pb-14 relative">
           <AnimatePresence mode="wait">
             {activeMobileTab === "contacts" && (
               <motion.div
