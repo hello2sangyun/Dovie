@@ -22,7 +22,7 @@ export default function LoginPage() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [keepLoggedIn, setKeepLoggedIn] = useState(true);
-  const [username] = useState(`testuser_${Math.floor(Math.random() * 10000)}`);
+  // Test login functionality removed
 
 
 
@@ -87,21 +87,7 @@ export default function LoginPage() {
     },
   });
 
-  const testLoginMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest("/api/auth/test-login", "POST", { username });
-      return response.json();
-    },
-    onSuccess: (data) => {
-      setUser(data.user);
-      localStorage.setItem("userId", data.user.id.toString());
-      setLocation("/app");
-      // 테스트 로그인 성공 - 알림 제거
-    },
-    onError: () => {
-      // 테스트 로그인 실패 - 알림 제거
-    },
-  });
+  // Test login functionality removed per user request
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -215,19 +201,7 @@ export default function LoginPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-purple-50 border-purple-200">
-              <CardContent className="p-4">
-                <Button 
-                  className="w-full"
-                  variant="outline"
-                  onClick={() => testLoginMutation.mutate()}
-                  disabled={testLoginMutation.isPending}
-                >
-                  <Play className="mr-2 h-4 w-4" />
-                  {testLoginMutation.isPending ? "로그인 중..." : "테스트 계정으로 시작"}
-                </Button>
-              </CardContent>
-            </Card>
+            {/* Test login functionality removed per user request */}
           </div>
         </div>
 

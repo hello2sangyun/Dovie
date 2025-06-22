@@ -23,6 +23,7 @@ export const countries: Country[] = [
   { name: "France", code: "FR", dialCode: "+33", flag: "🇫🇷" },
   { name: "Germany", code: "DE", dialCode: "+49", flag: "🇩🇪" },
   { name: "Greece", code: "GR", dialCode: "+30", flag: "🇬🇷" },
+  { name: "Hungary", code: "HU", dialCode: "+36", flag: "🇭🇺" },
   { name: "India", code: "IN", dialCode: "+91", flag: "🇮🇳" },
   { name: "Indonesia", code: "ID", dialCode: "+62", flag: "🇮🇩" },
   { name: "Italy", code: "IT", dialCode: "+39", flag: "🇮🇹" },
