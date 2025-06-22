@@ -1036,6 +1036,7 @@ export default function MainApp() {
                 <ModernSettingsPage isMobile={true} />
               </motion.div>
             )}
+          </AnimatePresence>
         </div>
 
         {/* Fixed Mobile Bottom Navigation - Hide when in chat */}
