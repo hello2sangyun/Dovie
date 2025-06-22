@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import VaultLogo from "@/components/VaultLogo";
 import { countries } from "@/data/countries";
@@ -120,21 +120,27 @@ export default function PhoneLogin() {
       const response = await apiRequest("/api/auth/verify-sms", "POST", data);
       return response;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      console.log("SMS verification successful, user data:", data.user);
       setUser(data.user);
       localStorage.setItem("userId", data.user.id.toString());
+      
+      // React Query 캐시 무효화로 인증 상태 즉시 업데이트
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       
       toast({
         title: "로그인 성공",
         description: "Dovie Messenger에 오신 것을 환영합니다!",
       });
       
-      // 프로필이 완료되지 않은 경우 프로필 설정 페이지로 이동
-      if (!data.user.isProfileComplete) {
-        window.location.href = "/profile-setup";
-      } else {
-        window.location.href = "/app";
-      }
+      // 인증 상태 업데이트 후 페이지 이동
+      setTimeout(() => {
+        if (!data.user.isProfileComplete) {
+          window.location.href = "/profile-setup";
+        } else {
+          window.location.href = "/app";
+        }
+      }, 500);
     },
     onError: (error: any) => {
       toast({
