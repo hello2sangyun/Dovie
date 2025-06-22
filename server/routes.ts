@@ -137,15 +137,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`SMS 인증 확인 시도: ${fullPhoneNumber}, 코드: ${verificationCode}`);
 
-      // 인증 코드 확인
+      // 인증 코드 확인 (아직 사용되지 않고 만료되지 않은 코드)
       const verification = await storage.getPhoneVerification(fullPhoneNumber, verificationCode);
       
       if (!verification) {
         return res.status(400).json({ message: "Invalid or expired verification code" });
       }
-
-      // 인증 코드를 사용됨으로 표시
-      await storage.markPhoneVerificationAsUsed(verification.id);
 
       // 사용자 찾기 또는 생성
       let user = await storage.getUserByPhoneNumber(fullPhoneNumber);
@@ -168,6 +165,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // 사용자 온라인 상태 업데이트
       await storage.updateUser(user.id, { isOnline: true, phoneNumber: fullPhoneNumber });
+
+      // 성공적으로 로그인 완료된 후에만 인증 코드를 사용됨으로 표시
+      await storage.markPhoneVerificationAsUsed(verification.id);
 
       res.json({ user });
     } catch (error) {
