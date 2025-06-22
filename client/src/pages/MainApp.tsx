@@ -745,21 +745,26 @@ export default function MainApp() {
 
       {/* Mobile Layout */}
       <div className="lg:hidden h-full flex flex-col">
-        {/* Fixed Mobile Header */}
-        <div className="flex-shrink-0 purple-gradient p-4 text-white fixed top-0 left-0 right-0 z-50 lg:hidden">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <VaultLogo size="sm" className="brightness-0 invert" />
-              <h1 className="text-lg font-bold">Dovie Messenger</h1>
+        {/* Fixed Mobile Header - Hide when viewing chat */}
+        {!showMobileChat && (
+          <div className="flex-shrink-0 purple-gradient p-4 text-white fixed top-0 left-0 right-0 z-50 lg:hidden">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <VaultLogo size="sm" className="brightness-0 invert" />
+                <h1 className="text-lg font-bold">Dovie Messenger</h1>
+              </div>
+              <Button variant="ghost" size="sm" className="text-white">
+                <Search className="h-5 w-5" />
+              </Button>
             </div>
-            <Button variant="ghost" size="sm" className="text-white">
-              <Search className="h-5 w-5" />
-            </Button>
           </div>
-        </div>
+        )}
 
-        {/* Mobile Content with padding for fixed header and footer */}
-        <div className="flex-1 overflow-hidden pt-20 pb-14 relative">
+        {/* Mobile Content with conditional padding */}
+        <div className={cn(
+          "flex-1 overflow-hidden relative",
+          showMobileChat ? "pt-0 pb-0" : "pt-20 pb-14"
+        )}>
           <AnimatePresence mode="wait">
             {activeMobileTab === "contacts" && (
               <motion.div
@@ -915,7 +920,7 @@ export default function MainApp() {
         </div>
 
         {/* Fixed Mobile Bottom Navigation - Always visible */}
-        {(
+        {!showMobileChat && (
           <div className="bg-white border-t border-gray-200 pb-0 pt-1 px-2 fixed bottom-0 left-0 right-0 z-40 lg:hidden">
             <div className="flex justify-around">
               <Button
