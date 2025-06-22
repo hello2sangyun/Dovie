@@ -468,6 +468,13 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Added backdrop-blur effects and enhanced color gradients for premium visual appeal
   - Purple scrollbar theming to match the overall application design language
   - Smart responsive shadows that adapt to message type (own vs received messages)
+- June 22, 2025: Implemented debounced search functionality for archive (자료실):
+  - Added 500ms debounce delay to prevent forced refresh on every keystroke
+  - Enhanced search performance by reducing unnecessary API calls during typing
+  - Maintained full hashtag and filename search capabilities with improved responsiveness
+  - Optimized React Query caching with 30-second stale time for better performance
+  - Fixed duplicate function declarations and improved code organization
+  - Users can now search archive smoothly without interrupting refresh behavior
 
 ## User Preferences
 

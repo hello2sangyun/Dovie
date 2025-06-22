@@ -2767,9 +2767,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log('WebSocket user authenticated:', userId);
           
           try {
-            await storage.updateUser(userId, { isOnline: true });
-            // Send confirmation back to client
-            ws.send(JSON.stringify({ type: 'auth_success', userId }));
+            // Verify user exists before updating status
+            const user = await storage.getUser(userId);
+            if (user) {
+              await storage.updateUser(userId, { isOnline: true });
+              // Send confirmation back to client
+              ws.send(JSON.stringify({ type: 'auth_success', userId }));
+            } else {
+              ws.send(JSON.stringify({ type: 'auth_error', error: 'User not found' }));
+            }
           } catch (error) {
             console.error('Error updating user online status:', error);
             ws.send(JSON.stringify({ type: 'auth_error', error: 'Failed to update status' }));
