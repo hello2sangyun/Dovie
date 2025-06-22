@@ -872,7 +872,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         } else {
           // 스마트 추천이 없는 경우도 미리보기 모달 표시
           setVoicePreviewData({
-            audioBlob: audioBlob,
+            audioBlob: result.audioBlob || null,
             transcribedText: result.transcription,
             duration: result.duration || 0
           });
@@ -1247,6 +1247,68 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       });
     },
   });
+
+  // Handle sending voice message from preview modal
+  const handleSendVoiceMessage = async (editedText: string) => {
+    setShowVoicePreview(false);
+    
+    // Need to upload the audio file first
+    if (voicePreviewData.audioBlob) {
+      try {
+        const formData = new FormData();
+        formData.append('file', voicePreviewData.audioBlob, 'voice_message.webm');
+        
+        const uploadResponse = await fetch("/api/upload", {
+          method: "POST",
+          headers: {
+            "x-user-id": user?.id?.toString() || ""
+          },
+          body: formData
+        });
+        
+        const uploadResult = await uploadResponse.json();
+        if (uploadResult.success) {
+          const messageData: any = {
+            content: editedText,
+            messageType: "voice",
+            fileUrl: uploadResult.fileUrl,
+            fileName: "voice_message.webm",
+            fileSize: voicePreviewData.audioBlob.size,
+            voiceDuration: Math.round(voicePreviewData.duration),
+            detectedLanguage: "korean",
+            confidence: "0.9"
+          };
+
+          // Include reply data if replying
+          if (replyToMessage) {
+            messageData.replyToMessageId = replyToMessage.id;
+            messageData.replyToContent = replyToMessage.messageType === 'voice' && replyToMessage.transcription 
+              ? replyToMessage.transcription 
+              : replyToMessage.content;
+            messageData.replyToSender = replyToMessage.sender.displayName;
+          }
+
+          sendMessageMutation.mutate(messageData);
+          
+          toast({
+            title: "음성 메시지 전송 완료!",
+            description: "수정된 텍스트로 전송되었습니다.",
+          });
+        }
+      } catch (error) {
+        console.error('Voice file upload failed:', error);
+        toast({
+          variant: "destructive",
+          title: "전송 실패",
+          description: "음성 파일 업로드에 실패했습니다.",
+        });
+      }
+    }
+    
+    // Clear reply mode
+    setReplyToMessage(null);
+    setIsProcessingVoice(false);
+  };
 
   const messages = messagesData?.messages || [];
 
@@ -6167,6 +6229,17 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         }}
         onSetReminder={handleSetReminder}
         reminderText={reminderText}
+      />
+
+      {/* Voice Message Preview Modal */}
+      <VoiceMessagePreviewModal
+        isOpen={showVoicePreview}
+        onClose={() => setShowVoicePreview(false)}
+        onSend={handleSendVoiceMessage}
+        audioBlob={voicePreviewData.audioBlob}
+        transcribedText={voicePreviewData.transcribedText}
+        duration={voicePreviewData.duration}
+        isProcessing={isProcessingVoice}
       />
 
     </div>
