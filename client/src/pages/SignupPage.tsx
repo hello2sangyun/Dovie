@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Mail, Lock, User, Eye, EyeOff, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function SignupPage() {
@@ -16,7 +17,8 @@ export default function SignupPage() {
   const { setUser } = useAuth();
   const { toast } = useToast();
   
-  const [formData, setFormData] = useState({
+  const [usernameFormData, setUsernameFormData] = useState({
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -25,13 +27,18 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // Phone signup redirects to phone login
+  const handlePhoneSignup = () => {
+    setLocation("/phone-login");
+  };
+
   const signupMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
+    mutationFn: async (data: typeof usernameFormData) => {
       const response = await apiRequest("/api/auth/signup", "POST", {
         email: data.email,
         password: data.password,
         displayName: data.displayName,
-        username: data.email.split('@')[0] + '_' + Math.floor(Math.random() * 1000),
+        username: data.username,
       });
       return response.json();
     },
@@ -53,10 +60,19 @@ export default function SignupPage() {
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleUsernameSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (formData.password !== formData.confirmPassword) {
+    if (!usernameFormData.username.trim()) {
+      toast({
+        variant: "destructive",
+        title: "사용자명 오류",
+        description: "사용자명을 입력해주세요.",
+      });
+      return;
+    }
+    
+    if (usernameFormData.password !== usernameFormData.confirmPassword) {
       toast({
         variant: "destructive",
         title: "비밀번호 불일치",
@@ -65,7 +81,7 @@ export default function SignupPage() {
       return;
     }
 
-    if (formData.password.length < 6) {
+    if (usernameFormData.password.length < 6) {
       toast({
         variant: "destructive",
         title: "비밀번호 오류",
@@ -74,7 +90,7 @@ export default function SignupPage() {
       return;
     }
 
-    signupMutation.mutate(formData);
+    signupMutation.mutate(usernameFormData);
   };
 
   return (
@@ -91,97 +107,140 @@ export default function SignupPage() {
             <CardTitle className="text-center text-lg">회원가입</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="displayName">이름</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
-                    id="displayName"
-                    type="text"
-                    placeholder="실명을 입력해주세요"
-                    value={formData.displayName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </div>
+            <Tabs defaultValue="username" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="username" className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  사용자명
+                </TabsTrigger>
+                <TabsTrigger value="phone" className="flex items-center gap-2">
+                  <Phone className="h-4 w-4" />
+                  휴대폰
+                </TabsTrigger>
+              </TabsList>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">이메일</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="example@company.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </div>
+              <TabsContent value="username" className="mt-6">
+                <form onSubmit={handleUsernameSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="username">사용자명 (ID)</Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <Input
+                        id="username"
+                        type="text"
+                        placeholder="사용자명을 입력해주세요"
+                        value={usernameFormData.username}
+                        onChange={(e) => setUsernameFormData(prev => ({ ...prev, username: e.target.value }))}
+                        className="pl-10"
+                        required
+                      />
+                    </div>
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">비밀번호</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="6자 이상 입력해주세요"
-                    value={formData.password}
-                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                    className="pl-10 pr-10"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  <div className="space-y-2">
+                    <Label htmlFor="displayName">이름</Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <Input
+                        id="displayName"
+                        type="text"
+                        placeholder="실명을 입력해주세요"
+                        value={usernameFormData.displayName}
+                        onChange={(e) => setUsernameFormData(prev => ({ ...prev, displayName: e.target.value }))}
+                        className="pl-10"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="email">이메일</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="이메일을 입력해주세요"
+                        value={usernameFormData.email}
+                        onChange={(e) => setUsernameFormData(prev => ({ ...prev, email: e.target.value }))}
+                        className="pl-10"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="password">비밀번호</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="비밀번호를 입력해주세요"
+                        value={usernameFormData.password}
+                        onChange={(e) => setUsernameFormData(prev => ({ ...prev, password: e.target.value }))}
+                        className="pl-10 pr-10"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">비밀번호 확인</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <Input
+                        id="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="비밀번호를 다시 입력해주세요"
+                        value={usernameFormData.confirmPassword}
+                        onChange={(e) => setUsernameFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                        className="pl-10 pr-10"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                    disabled={signupMutation.isPending}
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
+                    {signupMutation.isPending ? "계정 생성 중..." : "계정 만들기"}
+                  </Button>
+                </form>
+              </TabsContent>
 
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">비밀번호 확인</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="비밀번호를 다시 입력해주세요"
-                    value={formData.confirmPassword}
-                    onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                    className="pl-10 pr-10"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              <TabsContent value="phone" className="mt-6">
+                <div className="text-center space-y-4">
+                  <p className="text-gray-600">휴대폰 인증을 통해 가입하시겠습니까?</p>
+                  <Button
+                    onClick={handlePhoneSignup}
+                    className="w-full bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700"
                   >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
+                    휴대폰 인증으로 가입하기
+                  </Button>
                 </div>
-              </div>
-
-              <Button 
-                type="submit" 
-                className="w-full purple-gradient hover:purple-gradient-hover"
-                disabled={signupMutation.isPending}
-              >
-                {signupMutation.isPending ? "계정 생성 중..." : "계정 만들기"}
-              </Button>
-            </form>
+              </TabsContent>
+            </Tabs>
 
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
-                이미 계정이 있으신가요?{" "}
+                이미 계정이 있나요?{" "}
                 <button
                   onClick={() => setLocation("/login")}
                   className="text-purple-600 hover:text-purple-700 font-medium"
@@ -192,13 +251,6 @@ export default function SignupPage() {
             </div>
           </CardContent>
         </Card>
-
-        <div className="mt-6 text-center">
-          <p className="text-xs text-gray-500">
-            계정을 만들면 <span className="text-purple-600">이용약관</span> 및{" "}
-            <span className="text-purple-600">개인정보처리방침</span>에 동의한 것으로 간주됩니다.
-          </p>
-        </div>
       </div>
     </div>
   );
