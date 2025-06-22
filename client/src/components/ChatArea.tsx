@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { UserAvatar } from "@/components/UserAvatar";
+import InstantAvatar from "@/components/InstantAvatar";
 import MediaPreview from "@/components/MediaPreview";
 import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause, MoreVertical, LogOut, Settings, MapPin } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
@@ -4538,10 +4539,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     ) : (
                       // 일반 채팅에서는 원래 프로필 표시 - 컴팩트하게
                       <div className="w-8 h-8 rounded-full shadow-lg ring-2 ring-white/50 group-hover:scale-105 transition-transform duration-200 overflow-hidden">
-                        <UserAvatar 
-                          user={isMe ? user : msg.sender} 
+                        <InstantAvatar 
+                          src={isMe ? user?.profileImageUrl : msg.sender?.profileImageUrl}
+                          alt={isMe ? (user?.displayName || "Me") : msg.sender.displayName}
+                          fallbackText={isMe ? (user?.displayName || "Me") : msg.sender.displayName}
                           size="sm" 
-                          fallbackClassName={`w-full h-full bg-gradient-to-br ${getAvatarColor(isMe ? (user?.displayName || "Me") : msg.sender.displayName)} text-xs font-bold shadow-inner`}
+                          className={`w-full h-full bg-gradient-to-br ${getAvatarColor(isMe ? (user?.displayName || "Me") : msg.sender.displayName)} text-xs font-bold shadow-inner`}
                         />
                       </div>
                     )}
@@ -5187,10 +5190,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           {/* 업로드 중인 파일들을 로딩 메시지로 표시 */}
           {uploadingFiles.map((uploadingFile) => (
             <div key={uploadingFile.id} className="flex items-start space-x-3 flex-row-reverse space-x-reverse mb-4">
-              <UserAvatar 
-                user={user || undefined} 
+              <InstantAvatar 
+                src={user?.profileImageUrl}
+                alt={user?.displayName || "Me"}
+                fallbackText={user?.displayName || "Me"}
                 size="md" 
-                fallbackClassName="purple-gradient"
+                className="purple-gradient"
               />
               
               <div className="flex flex-col items-end max-w-xs lg:max-w-md">

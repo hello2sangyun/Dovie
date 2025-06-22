@@ -66,8 +66,13 @@ export function ConnectionStatusIndicator({
   const statusInfo = getStatusInfo();
   const StatusIcon = statusInfo.icon;
   
-  // Don't show if connected and no pending messages
+  // Don't show if connected and no pending messages, or if just disconnected briefly
   if (connectionState.isConnected && pendingMessageCount === 0) {
+    return null;
+  }
+  
+  // Don't show disconnection notice for the first few seconds to avoid flashing
+  if (!connectionState.isConnected && !connectionState.isReconnecting && connectionState.reconnectAttempts < 2) {
     return null;
   }
 
