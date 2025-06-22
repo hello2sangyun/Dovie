@@ -1096,7 +1096,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // 제스처 기반 퀵 리액션 API 엔드포인트
   app.post("/api/messages/:messageId/quick-reply", async (req, res) => {
-    const userId = req.session.userId;
+    const userId = req.headers["x-user-id"];
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
@@ -1106,26 +1106,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { content, type } = req.body;
 
       if (type === 'reaction') {
-        // 리액션 처리 - 기존 좋아요 토글 사용
-        const result = await storage.toggleMessageLike(messageId, userId);
+        // 리액션 처리 - 기존 좋아요 API 사용
+        const response = await fetch(`http://localhost:5000/api/messages/${messageId}/like`, {
+          method: 'POST',
+          headers: {
+            'x-user-id': userId as string,
+            'Content-Type': 'application/json'
+          }
+        });
+        const result = await response.json();
         res.json(result);
       } else if (type === 'text') {
-        // 텍스트 답장 처리
-        const message = await storage.getMessage(messageId);
-        if (!message) {
+        // 텍스트 답장 처리 - 새 메시지 생성
+        const messages = await storage.getMessages(0); // 임시로 모든 메시지 조회
+        const originalMessage = messages.find(m => m.id === messageId);
+        
+        if (!originalMessage) {
           return res.status(404).json({ message: 'Message not found' });
         }
 
         const newMessage = await storage.createMessage({
-          chatRoomId: message.chatRoomId,
-          senderId: userId,
+          chatRoomId: originalMessage.chatRoomId,
+          senderId: Number(userId),
           content,
-          messageType: 'text' as const,
+          messageType: 'text',
           replyToMessageId: messageId
         });
 
         // WebSocket으로 실시간 전송
-        broadcastToRoom(message.chatRoomId, {
+        broadcastToRoom(originalMessage.chatRoomId, {
           type: 'new_message',
           message: newMessage
         });
