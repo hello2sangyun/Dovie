@@ -6,6 +6,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useImagePreloader, preloadGlobalImage } from "@/hooks/useImagePreloader";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLocation } from "wouter";
 
 import VaultLogo from "@/components/VaultLogo";
 import ContactsList from "@/components/ContactsList";
@@ -38,6 +39,7 @@ export default function MainApp() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { preloadImage, isLoading: imagePreloading } = useImagePreloader();
+  const [location, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("chats");
   const [activeMobileTab, setActiveMobileTab] = useState("chats");
   const [showSettings, setShowSettings] = useState(false);
@@ -56,6 +58,80 @@ export default function MainApp() {
   const [friendFilter, setFriendFilter] = useState<number | null>(null);
 
   const { sendMessage, connectionState, pendingMessageCount } = useWebSocket(user?.id);
+
+  // 브라우저 뒤로가기 버튼 처리 - 앱 내 네비게이션 관리
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state;
+      
+      // 채팅방이 열려있는 경우 채팅방을 닫고 목록으로 돌아가기
+      if (showMobileChat && selectedChatRoom) {
+        setShowMobileChat(false);
+        setSelectedChatRoom(null);
+        return;
+      }
+      
+      // 설정 페이지가 열려있는 경우 설정 닫기
+      if (showSettings) {
+        setShowSettings(false);
+        return;
+      }
+      
+      // 모달이 열려있는 경우 모달 닫기
+      if (modals.addContact || modals.command || modals.createGroup || modals.profilePhoto) {
+        setModals({
+          addContact: false,
+          command: false,
+          createGroup: false,
+          profilePhoto: false,
+        });
+        return;
+      }
+
+      // 상태가 있으면 해당 상태로 복원
+      if (state) {
+        if (state.tab) setActiveTab(state.tab);
+        if (state.mobileTab) setActiveMobileTab(state.mobileTab);
+        if (state.chatRoom) setSelectedChatRoom(state.chatRoom);
+        if (state.showMobileChat !== undefined) setShowMobileChat(state.showMobileChat);
+        if (state.showSettings !== undefined) setShowSettings(state.showSettings);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    
+    // 초기 히스토리 상태 설정
+    if (!window.history.state) {
+      window.history.replaceState({
+        tab: activeTab,
+        mobileTab: activeMobileTab,
+        chatRoom: selectedChatRoom,
+        showMobileChat,
+        showSettings
+      }, '', location);
+    }
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [showMobileChat, selectedChatRoom, showSettings, modals, activeTab, activeMobileTab, location]);
+
+  // 상태 변경 시 히스토리 업데이트
+  useEffect(() => {
+    const newState = {
+      tab: activeTab,
+      mobileTab: activeMobileTab,
+      chatRoom: selectedChatRoom,
+      showMobileChat,
+      showSettings
+    };
+    
+    // 현재 상태와 다른 경우에만 히스토리 추가
+    const currentState = window.history.state;
+    if (!currentState || JSON.stringify(currentState) !== JSON.stringify(newState)) {
+      window.history.pushState(newState, '', location);
+    }
+  }, [activeTab, activeMobileTab, selectedChatRoom, showMobileChat, showSettings, location]);
 
   // Handle URL parameters for friend filter
   useEffect(() => {

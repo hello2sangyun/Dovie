@@ -240,7 +240,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Logout function
-  const logout = async () => {
+  const logout = async (forceRedirect: boolean = true) => {
     try {
       // Call logout API endpoint
       await fetch("/api/auth/logout", {
@@ -254,8 +254,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem("userId");
       setUser(null);
       
-      // Redirect to login page
-      window.location.href = "/login";
+      // 강제 리디렉션을 원하는 경우에만 로그인 페이지로 이동
+      if (forceRedirect) {
+        window.location.href = "/login";
+      }
     }
   };
 

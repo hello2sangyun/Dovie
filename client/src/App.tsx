@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -43,6 +43,26 @@ function App() {
     } else {
       document.documentElement.classList.remove('dark');
     }
+  }, []);
+
+  // 브라우저 뒤로 가기 버튼 처리 - 로그아웃 대신 페이지 히스토리 기반 네비게이션
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      // popstate 이벤트는 자연스럽게 발생하도록 하고, 로그아웃을 방지
+      console.log('Browser back button pressed, navigating to previous page');
+    };
+
+    // 브라우저 히스토리 변경 감지
+    window.addEventListener('popstate', handlePopState);
+
+    // 히스토리 스택에 현재 페이지 추가 (처음 방문 시)
+    if (window.history.state === null) {
+      window.history.replaceState({ page: window.location.pathname }, '', window.location.pathname);
+    }
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
   }, []);
 
   // 선택적 드래그 앤 드롭 이벤트 처리로 페이지 깜빡임 방지
