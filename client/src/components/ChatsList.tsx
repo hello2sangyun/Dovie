@@ -1145,7 +1145,7 @@ function ChatRoomItem({
                   }}
                 >
                   <InstantAvatar 
-                    src={participant?.profileImageUrl}
+                    src={participant?.profilePicture}
                     fallbackText={participant?.displayName || participant?.username}
                     size="sm" 
                     className="purple-gradient"
@@ -1156,7 +1156,7 @@ function ChatRoomItem({
           </div>
         ) : (
           <InstantAvatar 
-            src={getOtherParticipant(chatRoom)?.profileImageUrl}
+            src={getOtherParticipant(chatRoom)?.profilePicture}
             fallbackText={displayName}
             size="lg" 
             className={`bg-gradient-to-br ${getAvatarColor(displayName)}`}
