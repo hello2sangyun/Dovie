@@ -86,7 +86,7 @@ export default function PhoneLogin() {
   const sendSMSMutation = useMutation({
     mutationFn: async (data: { phoneNumber: string; countryCode: string }) => {
       const response = await apiRequest("/api/auth/send-sms", "POST", data);
-      return response;
+      return response.json();
     },
     onSuccess: (data) => {
       setFullPhoneNumber(`${selectedCountry.dialCode}${phoneNumber}`);
@@ -118,7 +118,7 @@ export default function PhoneLogin() {
   const verifySMSMutation = useMutation({
     mutationFn: async (data: { phoneNumber: string; verificationCode: string; countryCode: string }) => {
       const response = await apiRequest("/api/auth/verify-sms", "POST", data);
-      return response;
+      return response.json();
     },
     onSuccess: async (data) => {
       console.log("SMS verification successful, user data:", data.user);
