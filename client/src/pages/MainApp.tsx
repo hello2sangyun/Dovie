@@ -942,19 +942,33 @@ export default function MainApp() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="absolute inset-0"
+                className="absolute inset-0 flex flex-col"
               >
-                <ContactsList 
-                  onAddContact={() => openModal("addContact")}
-                  onSelectContact={(contactUserId) => {
-                    // 해당 친구와의 채팅방 찾기 또는 생성 (모바일)
-                    const contact = (contactsData as any)?.contacts?.find((c: any) => c.contactUserId === contactUserId);
-                    if (contact) {
-                      createOrFindChatRoom(contactUserId, contact.contactUser);
-                      setActiveMobileTab("chats");
-                    }
-                  }}
-                />
+                {/* Search Header for Contacts */}
+                <div className="flex-shrink-0 p-4 bg-gray-50 border-b border-gray-200">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <input
+                      type="text"
+                      placeholder="연락처 검색..."
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex-1 overflow-hidden">
+                  <ContactsList 
+                    onAddContact={() => openModal("addContact")}
+                    onSelectContact={(contactUserId) => {
+                      // 해당 친구와의 채팅방 찾기 또는 생성 (모바일)
+                      const contact = (contactsData as any)?.contacts?.find((c: any) => c.contactUserId === contactUserId);
+                      if (contact) {
+                        createOrFindChatRoom(contactUserId, contact.contactUser);
+                        setActiveMobileTab("chats");
+                      }
+                    }}
+                  />
+                </div>
               </motion.div>
             )}
             {activeMobileTab === "chats" && !showMobileChat && (
@@ -964,20 +978,34 @@ export default function MainApp() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="absolute inset-0"
+                className="absolute inset-0 flex flex-col"
               >
-                <ChatsList 
-                  onSelectChat={(chatId) => {
-                    setSelectedChatRoom(chatId);
-                    setShowMobileChat(true);
-                  }}
-                  selectedChatId={selectedChatRoom}
-                  onCreateGroup={() => setModals({ ...modals, createGroup: true })}
-                  contactFilter={contactFilter || undefined}
-                  onClearFilter={() => setContactFilter(null)}
-                  friendFilter={friendFilter}
-                  onClearFriendFilter={() => setFriendFilter(null)}
-                />
+                {/* Search Header for Chats */}
+                <div className="flex-shrink-0 p-4 bg-gray-50 border-b border-gray-200">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <input
+                      type="text"
+                      placeholder="채팅방 검색..."
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex-1 overflow-hidden">
+                  <ChatsList 
+                    onSelectChat={(chatId) => {
+                      setSelectedChatRoom(chatId);
+                      setShowMobileChat(true);
+                    }}
+                    selectedChatId={selectedChatRoom}
+                    onCreateGroup={() => setModals({ ...modals, createGroup: true })}
+                    contactFilter={contactFilter || undefined}
+                    onClearFilter={() => setContactFilter(null)}
+                    friendFilter={friendFilter}
+                    onClearFriendFilter={() => setFriendFilter(null)}
+                  />
+                </div>
               </motion.div>
             )}
 
@@ -1019,9 +1047,23 @@ export default function MainApp() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="absolute inset-0"
+                className="absolute inset-0 flex flex-col"
               >
-                <ArchiveList />
+                {/* Search Header for Archive */}
+                <div className="flex-shrink-0 p-4 bg-gray-50 border-b border-gray-200">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <input
+                      type="text"
+                      placeholder="자료실 검색..."
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex-1 overflow-hidden">
+                  <ArchiveList />
+                </div>
               </motion.div>
             )}
             {activeMobileTab === "settings" && (
@@ -1031,9 +1073,16 @@ export default function MainApp() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 30 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="absolute inset-0"
+                className="absolute inset-0 flex flex-col"
               >
-                <ModernSettingsPage isMobile={true} />
+                {/* Header for Settings */}
+                <div className="flex-shrink-0 p-4 bg-gray-50 border-b border-gray-200">
+                  <h2 className="text-lg font-semibold text-gray-900">설정</h2>
+                </div>
+                
+                <div className="flex-1 overflow-hidden">
+                  <ModernSettingsPage isMobile={true} />
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
