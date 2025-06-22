@@ -198,9 +198,43 @@ export const fileUploads = pgTable("file_uploads", {
   fileSize: integer("file_size").notNull(),
   fileType: text("file_type").notNull(),
   filePath: text("file_path").notNull(),
+  hashtags: text("hashtags").array(), // 해시태그 배열 저장
   uploadedAt: timestamp("uploaded_at").defaultNow(),
   isDeleted: boolean("is_deleted").default(false)
 });
+
+// 해시태그 테이블 (정규화된 해시태그 저장)
+export const hashtags = pgTable("hashtags", {
+  id: serial("id").primaryKey(),
+  tag: text("tag").notNull().unique(), // #을 제외한 태그명 (예: "invoice", "디자인")
+  normalizedTag: text("normalized_tag").notNull(), // 소문자/정규화된 태그 (검색용)
+  usageCount: integer("usage_count").default(1), // 사용 횟수
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// 파일-해시태그 연결 테이블 (다대다 관계)
+export const fileHashtags = pgTable("file_hashtags", {
+  id: serial("id").primaryKey(),
+  fileUploadId: integer("file_upload_id").references(() => fileUploads.id).notNull(),
+  hashtagId: integer("hashtag_id").references(() => hashtags.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(), // 개인별 접근 제어
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  uniqueFileHashtag: unique().on(table.fileUploadId, table.hashtagId),
+}));
+
+// 사용자별 해시태그 인덱스 (빠른 자동완성을 위한 역색인)
+export const userHashtagIndex = pgTable("user_hashtag_index", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  hashtagId: integer("hashtag_id").references(() => hashtags.id).notNull(),
+  fileCount: integer("file_count").default(1), // 해당 해시태그로 태그된 파일 수
+  lastUsedAt: timestamp("last_used_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  uniqueUserHashtag: unique().on(table.userId, table.hashtagId),
+}));
 
 export const fileDownloads = pgTable("file_downloads", {
   id: serial("id").primaryKey(),
@@ -712,6 +746,39 @@ export const insertMessageReadSchema = createInsertSchema(messageReads).omit({
   lastReadAt: true,
 });
 
+// 해시태그 관련 타입 정의
+export const insertHashtagSchema = createInsertSchema(hashtags).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertFileHashtagSchema = createInsertSchema(fileHashtags).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserHashtagIndexSchema = createInsertSchema(userHashtagIndex).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type Hashtag = typeof hashtags.$inferSelect;
+export type InsertHashtag = z.infer<typeof insertHashtagSchema>;
+export type FileHashtag = typeof fileHashtags.$inferSelect;
+export type InsertFileHashtag = z.infer<typeof insertFileHashtagSchema>;
+export type UserHashtagIndex = typeof userHashtagIndex.$inferSelect;
+export type InsertUserHashtagIndex = z.infer<typeof insertUserHashtagIndexSchema>;
+
+// fileUploads 타입에 hashtags 필드 추가
+export const insertFileUploadSchema = createInsertSchema(fileUploads).omit({
+  id: true,
+  uploadedAt: true,
+});
+
+export type FileUpload = typeof fileUploads.$inferSelect;
+export type InsertFileUpload = z.infer<typeof insertFileUploadSchema>;
+
 export const insertCommandSchema = createInsertSchema(commands).omit({
   id: true,
   createdAt: true,
@@ -723,11 +790,6 @@ export const insertPhoneVerificationSchema = createInsertSchema(phoneVerificatio
 });
 
 
-
-export const insertFileUploadSchema = createInsertSchema(fileUploads).omit({
-  id: true,
-  uploadedAt: true,
-});
 
 export const insertFileDownloadSchema = createInsertSchema(fileDownloads).omit({
   id: true,
@@ -789,8 +851,6 @@ export type PhoneVerification = typeof phoneVerifications.$inferSelect;
 export type InsertPhoneVerification = z.infer<typeof insertPhoneVerificationSchema>;
 
 
-export type FileUpload = typeof fileUploads.$inferSelect;
-export type InsertFileUpload = z.infer<typeof insertFileUploadSchema>;
 export type FileDownload = typeof fileDownloads.$inferSelect;
 export type InsertFileDownload = z.infer<typeof insertFileDownloadSchema>;
 // Business card types removed - digital business card functionality disabled
