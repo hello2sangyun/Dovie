@@ -4140,12 +4140,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       )}>
         <div className="flex items-center justify-between min-h-0">
           <div className="flex items-center flex-1 min-w-0 space-x-2">
-            {showMobileHeader && onBackClick && (
+            {onBackClick && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onBackClick}
-                className="p-2 -ml-1 lg:hidden flex-shrink-0 hover:bg-gray-100 rounded-full transition-colors"
+                className="p-2 -ml-1 flex-shrink-0 hover:bg-gray-100 rounded-full transition-colors"
               >
                 <svg 
                   width="20" 
@@ -4593,12 +4593,16 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   id={`message-${msg.id}`}
                   ref={(el) => messageRefs.current[msg.id] = el}
                   className={cn(
-                    "flex items-end space-x-3 mb-2 transition-all duration-500 group",
-                    isMe ? "flex-row-reverse space-x-reverse" : "",
+                    "mb-2 transition-all duration-500 group",
                     highlightedMessageId === msg.id && "bg-yellow-100/50 rounded-xl p-2 -mx-2"
                   )}
                 >
-                  <div className="flex flex-col items-center flex-shrink-0">
+                  {/* Message bubble with avatar */}
+                  <div className={cn(
+                    "flex items-end space-x-3",
+                    isMe ? "flex-row-reverse space-x-reverse" : ""
+                  )}>
+                    <div className="flex flex-col items-center flex-shrink-0">
                     {isLocationChatRoom ? (
                       // 주변챗에서는 임시 프로필 표시
                       <div className="w-8 h-8 rounded-full border-2 border-white shadow-lg ring-2 ring-white/50 group-hover:scale-105 transition-transform duration-200">
@@ -5253,27 +5257,29 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                               </div>
                             )}
                           </div>
-                          
-                              {/* Message Reaction Button with AI-powered emoji suggestions */}
-                              {!isLocationChatRoom && (
-                                <div className="mt-2 flex justify-end">
-                                  <MessageReactionButton
-                                    messageId={msg.id}
-                                    chatRoomId={chatRoomId}
-                                    currentUserId={user?.id || 0}
-                                    className="opacity-75 hover:opacity-100 transition-opacity"
-                                  />
-                                </div>
-                              )}
-                            </>
+                          </>
                           )}
                         </div>
                       )}
                     </div>
                     </GestureQuickReply>
                   </div>
+                  
+                  {/* Like Button Outside Message Bubble */}
+                  {!isLocationChatRoom && (
+                    <div className={cn(
+                      "flex mt-1",
+                      isMe ? "justify-end pr-11" : "justify-start pl-11"
+                    )}>
+                      <MessageReactionButton
+                        messageId={msg.id}
+                        chatRoomId={chatRoomId}
+                        currentUserId={user?.id || 0}
+                        className="opacity-75 hover:opacity-100 transition-opacity"
+                      />
+                    </div>
+                  )}
                 </div>
-              </div>
             );
           })}
           
@@ -5308,13 +5314,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         </>
         )}
         
-        {/* Typing Indicator */}
-        <TypingIndicator
-          typingUsers={typingUsers}
-          accessibilityMode={accessibilitySettings.reducedMotion}
-          animationStyle={accessibilitySettings.reducedMotion ? 'minimal' : 'enhanced'}
-          showUserNames={true}
-        />
+        <div ref={messagesEndRef} />
+      </div>
         
         <div ref={messagesEndRef} />
       </div>
