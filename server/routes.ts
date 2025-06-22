@@ -1698,6 +1698,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Bulk delete commands endpoint
+  app.post("/api/commands/bulk-delete", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"];
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { commandIds } = req.body;
+      if (!Array.isArray(commandIds) || commandIds.length === 0) {
+        return res.status(400).json({ message: "Command IDs are required" });
+      }
+
+      // Get commands to delete (verify ownership)
+      const commandsToDelete = await storage.getCommandsByIds(Number(userId), commandIds);
+      
+      if (commandsToDelete.length === 0) {
+        return res.status(404).json({ message: "No commands found to delete" });
+      }
+
+      // Delete associated files from filesystem
+      for (const command of commandsToDelete) {
+        if (command.fileName) {
+          try {
+            const filePath = path.join(uploadDir, command.fileName);
+            if (fs.existsSync(filePath)) {
+              fs.unlinkSync(filePath);
+            }
+          } catch (fileError) {
+            console.error(`Failed to delete file ${command.fileName}:`, fileError);
+            // Continue with database deletion even if file deletion fails
+          }
+        }
+      }
+
+      // Delete commands from database
+      await storage.deleteCommands(Number(userId), commandIds);
+
+      res.json({ 
+        success: true, 
+        deletedCount: commandsToDelete.length,
+        message: `${commandsToDelete.length}개의 파일이 삭제되었습니다.`
+      });
+    } catch (error) {
+      console.error("Bulk delete error:", error);
+      res.status(500).json({ message: "파일 삭제 중 오류가 발생했습니다." });
+    }
+  });
+
   // Link preview endpoint
   app.get('/api/link-preview', async (req: Request, res: Response) => {
     try {

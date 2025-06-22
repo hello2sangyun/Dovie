@@ -60,6 +60,8 @@ export interface IStorage {
   deleteCommand(commandId: number, userId: number): Promise<void>;
   getCommandByName(userId: number, chatRoomId: number, commandName: string): Promise<Command | undefined>;
   searchCommands(userId: number, searchTerm: string): Promise<(Command & { originalSender?: User })[]>;
+  getCommandsByIds(userId: number, commandIds: number[]): Promise<Command[]>;
+  deleteCommands(userId: number, commandIds: number[]): Promise<void>;
 
   // Message read tracking
   markMessagesAsRead(userId: number, chatRoomId: number, lastMessageId: number): Promise<void>;
@@ -531,6 +533,30 @@ export class DatabaseStorage implements IStorage {
       ...row.commands,
       originalSender: row.users || undefined
     }));
+  }
+
+  async getCommandsByIds(userId: number, commandIds: number[]): Promise<Command[]> {
+    const results = await db
+      .select()
+      .from(commands)
+      .where(
+        and(
+          eq(commands.userId, userId),
+          inArray(commands.id, commandIds)
+        )
+      );
+    return results;
+  }
+
+  async deleteCommands(userId: number, commandIds: number[]): Promise<void> {
+    await db
+      .delete(commands)
+      .where(
+        and(
+          eq(commands.userId, userId),
+          inArray(commands.id, commandIds)
+        )
+      );
   }
 
   async markMessagesAsRead(userId: number, chatRoomId: number, lastMessageId: number): Promise<void> {

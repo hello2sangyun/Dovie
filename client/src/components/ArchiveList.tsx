@@ -10,8 +10,8 @@ import { Search, Filter, Download, FileText, Code, Quote, FileImage, FileSpreads
 import PreviewModal from "./PreviewModal";
 import { debounce } from "@/lib/utils";
 
-// 검색 결과만 렌더링하는 별도 컴포넌트
-function SearchResults({ searchTerm, filterType, sortBy, onCommandClick, selectedItems, onItemSelect, selectionMode }: {
+// Telegram-style compact file list component
+function TelegramFileList({ searchTerm, filterType, sortBy, onCommandClick, selectedItems, onItemSelect, selectionMode }: {
   searchTerm: string;
   filterType: string;
   sortBy: string;
@@ -23,46 +23,215 @@ function SearchResults({ searchTerm, filterType, sortBy, onCommandClick, selecte
   const { user } = useAuth();
   
   const { data: commandsData, isLoading } = useQuery({
-    queryKey: ["/api/commands", { search: searchTerm }],
+    queryKey: ["/api/commands", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (searchTerm) params.append("search", searchTerm);
-      
-      const response = await fetch(`/api/commands?${params}`, {
+      const response = await fetch("/api/commands", {
         headers: { "x-user-id": user!.id.toString() },
       });
       if (!response.ok) throw new Error("Failed to fetch commands");
       return response.json();
     },
     staleTime: 30 * 1000,
-    refetchOnWindowFocus: false,
   });
 
   const commands = commandsData?.commands || [];
   
-  // 필터링 및 정렬 로직
+  // Filtering and sorting logic
   const filteredAndSortedCommands = useMemo(() => {
     let filtered = commands;
     
-    if (filterType !== "all") {
-      filtered = commands.filter((command: any) => {
-        const fileType = getFileType(command.fileName || "");
-        return fileType === filterType;
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter((cmd: any) => {
+        const commandName = cmd.commandName?.toLowerCase() || '';
+        const savedText = cmd.savedText?.toLowerCase() || '';
+        const fileName = cmd.fileName?.toLowerCase() || '';
+        
+        return commandName.includes(searchLower) || 
+               savedText.includes(searchLower) || 
+               fileName.includes(searchLower);
       });
     }
     
-    return filtered.sort((a: any, b: any) => {
-      if (sortBy === "newest") {
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      } else if (sortBy === "oldest") {
-        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-      } else if (sortBy === "name") {
-        return (a.commandName || a.fileName || "").localeCompare(b.commandName || b.fileName || "");
+    // Apply type filter
+    if (filterType !== "all") {
+      filtered = filtered.filter((command: any) => {
+        if (filterType === 'files') return command.fileName;
+        if (filterType === 'text') return !command.fileName;
+        return true;
+      });
+    }
+    
+    // Apply sorting
+    filtered.sort((a: any, b: any) => {
+      switch (sortBy) {
+        case 'newest':
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case 'oldest':
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        case 'name':
+          const nameA = a.fileName || a.commandName || '';
+          const nameB = b.fileName || b.commandName || '';
+          return nameA.localeCompare(nameB);
+        default:
+          return 0;
       }
-      return 0;
     });
-  }, [commands, filterType, sortBy]);
+
+    return filtered;
+  }, [commands, searchTerm, filterType, sortBy]);
+
+  // Helper functions for file display
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const getFileIcon = (fileName: string) => {
+    if (!fileName) return FileText;
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    switch (ext) {
+      case 'pdf':
+        return FileText;
+      case 'doc':
+      case 'docx':
+        return FileText;
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+      case 'webp':
+        return FileImage;
+      case 'mp3':
+      case 'wav':
+      case 'webm':
+        return Video;
+      case 'xlsx':
+      case 'xls':
+      case 'csv':
+        return FileSpreadsheet;
+      case 'js':
+      case 'ts':
+      case 'jsx':
+      case 'tsx':
+      case 'html':
+      case 'css':
+        return Code;
+      default:
+        return File;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    if (date.toDateString() === today.toDateString()) {
+      return date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return '어제';
+    } else {
+      return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
+
+  if (!filteredAndSortedCommands || filteredAndSortedCommands.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        <File className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+        <p className="text-sm font-medium">
+          {searchTerm ? '검색 결과가 없습니다' : '저장된 파일이 없습니다'}
+        </p>
+        {searchTerm && (
+          <p className="text-sm text-gray-400 mt-1">
+            다른 검색어를 시도해보세요
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white">
+      {filteredAndSortedCommands.map((command: any, index: number) => {
+        const Icon = getFileIcon(command.fileName || "");
+        const isSelected = selectedItems.has(command.id);
+        
+        return (
+          <div
+            key={command.id}
+            onClick={() => selectionMode ? onItemSelect(command.id) : onCommandClick(command)}
+            className={`flex items-center px-3 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors ${
+              index !== filteredAndSortedCommands.length - 1 ? 'border-b border-gray-100' : ''
+            } ${isSelected ? 'bg-blue-50' : ''}`}
+          >
+            {/* Checkbox for selection mode */}
+            {selectionMode && (
+              <div className="flex-shrink-0 mr-3" onClick={(e) => e.stopPropagation()}>
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={() => onItemSelect(command.id)}
+                  className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                />
+              </div>
+            )}
+            
+            {/* File icon */}
+            <div className="flex-shrink-0 mr-3">
+              <Icon className="h-4 w-4 text-gray-500" />
+            </div>
+            
+            {/* File info */}
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium text-gray-900 truncate">
+                {command.fileName ? 
+                  (command.fileName.length > 30 ? 
+                    `${command.fileName.substring(0, 27)}...` : 
+                    command.fileName
+                  ) : 
+                  command.commandName
+                }
+              </div>
+              {command.savedText && !command.fileName && (
+                <div className="text-xs text-gray-500 truncate mt-0.5">
+                  {command.savedText.length > 40 ? 
+                    `${command.savedText.substring(0, 40)}...` : 
+                    command.savedText
+                  }
+                </div>
+              )}
+            </div>
+            
+            {/* File size and date */}
+            <div className="flex-shrink-0 text-right ml-2">
+              {command.fileSize && (
+                <div className="text-xs text-gray-400">
+                  {formatFileSize(command.fileSize)}
+                </div>
+              )}
+              <div className="text-xs text-gray-400 mt-0.5">
+                {formatDate(command.createdAt)}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
   const getFileType = (fileName: string) => {
     if (!fileName) return "text";
