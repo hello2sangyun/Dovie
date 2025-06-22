@@ -22,6 +22,8 @@ export default function ProfileSetupPage() {
     displayName: user?.displayName || "",
     email: user?.email?.includes('@phone.local') ? "" : (user?.email || ""),
     phoneNumber: user?.phoneNumber || "",
+    password: "",
+    confirmPassword: "",
     birthday: "",
     profilePicture: "",
   });
@@ -36,6 +38,8 @@ export default function ProfileSetupPage() {
         displayName: user.displayName || "",
         email: user.email?.includes('@phone.local') ? "" : (user.email || ""),
         phoneNumber: user.phoneNumber || "",
+        password: "",
+        confirmPassword: "",
         birthday: "",
         profilePicture: user.profilePicture || "",
       });
@@ -110,6 +114,26 @@ export default function ProfileSetupPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Password validation
+    if (!formData.password || formData.password.length < 6) {
+      toast({
+        variant: "destructive",
+        title: "비밀번호 오류",
+        description: "비밀번호는 최소 6자 이상이어야 합니다.",
+      });
+      return;
+    }
+    
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        variant: "destructive",
+        title: "비밀번호 불일치",
+        description: "비밀번호가 일치하지 않습니다.",
+      });
+      return;
+    }
+    
     updateProfileMutation.mutate(formData);
   };
 
@@ -205,6 +229,40 @@ export default function ProfileSetupPage() {
                     required
                   />
                 </div>
+              </div>
+
+              {/* 비밀번호 */}
+              <div className="space-y-2">
+                <Label htmlFor="password">비밀번호</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="비밀번호를 입력해주세요 (최소 6자)"
+                    value={formData.password}
+                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                    required
+                    minLength={6}
+                  />
+                </div>
+              </div>
+
+              {/* 비밀번호 확인 */}
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">비밀번호 확인</Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="비밀번호를 다시 입력해주세요"
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                    required
+                  />
+                </div>
+                {formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                  <p className="text-xs text-red-500">비밀번호가 일치하지 않습니다</p>
+                )}
               </div>
 
               {/* 전화번호 */}

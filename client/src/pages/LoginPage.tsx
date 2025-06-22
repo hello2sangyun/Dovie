@@ -1,216 +1,174 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useAuth } from "@/hooks/useAuth";
-import VaultLogo from "@/components/VaultLogo";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Lock, Phone, Play, Eye, EyeOff } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { apiRequest } from "@/lib/queryClient";
+import VaultLogo from "@/components/VaultLogo";
+import { User, Lock, Phone } from "lucide-react";
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
-  const { setUser } = useAuth();
   const { toast } = useToast();
+  const { setUser } = useAuth();
   
-  const [formData, setFormData] = useState({
-    email: "",
+  // Username/Password login state
+  const [usernameLoginData, setUsernameLoginData] = useState({
+    username: "",
     password: "",
   });
-  const [showPassword, setShowPassword] = useState(false);
-  const [keepLoggedIn, setKeepLoggedIn] = useState(true);
-  // Test login functionality removed
+  
+  // Phone login state - redirect to phone login page
+  const handlePhoneLogin = () => {
+    setLocation("/phone-login");
+  };
 
-
-
-  const loginMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
-      const response = await apiRequest("/api/auth/login", "POST", data);
+  const usernameLoginMutation = useMutation({
+    mutationFn: async (data: typeof usernameLoginData) => {
+      const response = await apiRequest("/api/auth/username-login", "POST", data);
       return response.json();
     },
     onSuccess: (data) => {
-      console.log("로그인 성공, 사용자 데이터:", data.user);
-      
-      // 사용자 정보와 localStorage를 동시에 설정
       setUser(data.user);
       localStorage.setItem("userId", data.user.id.toString());
       
-      // 로그인 유지 설정
-      if (keepLoggedIn) {
-        localStorage.setItem("keepLoggedIn", "true");
-        localStorage.setItem("userToken", data.token || "");
-      }
-      
-      // 관리자 계정 체크
-      if (formData.email === "master@master.com") {
-        console.log("관리자 로그인 - /admin으로 이동");
-        setTimeout(() => setLocation("/admin"), 50);
-        // 관리자 로그인 - 알림 제거
-        return;
-      }
-      
-      // 프로필이 완성되지 않은 경우 프로필 설정 페이지로
       if (!data.user.isProfileComplete) {
-        console.log("프로필 미완성 - /profile-setup으로 이동");
-        setTimeout(() => setLocation("/profile-setup"), 50);
-        // 프로필 미완성 - 알림 제거
+        setLocation("/profile-setup");
       } else {
-        console.log("프로필 완성됨 - /app으로 이동");
-        
-        // React Query 캐시 무효화하여 사용자 상태 즉시 업데이트
-        queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-        
-        // 로그인 성공 - 알림 제거
-        
-        // 마이크 권한 요청
-        const requestMicrophonePermission = async () => {
-          try {
-            await navigator.mediaDevices.getUserMedia({ audio: true });
-            console.log("마이크 권한 승인됨");
-          } catch (error) {
-            console.log("마이크 권한 거부됨:", error);
-            // 권한이 거부되어도 로그인은 계속 진행
-          }
-        };
-        
-        // 마이크 권한 요청 후 라우팅
-        requestMicrophonePermission().finally(() => {
-          setTimeout(() => setLocation("/app"), 100);
-        });
+        setLocation("/app");
       }
     },
     onError: (error: any) => {
-      // 로그인 실패 - 알림 제거
+      toast({
+        variant: "destructive",
+        title: "로그인 실패",
+        description: error.message || "사용자명 또는 비밀번호를 확인해주세요.",
+      });
     },
   });
 
-  // Test login functionality removed per user request
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleUsernameSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    loginMutation.mutate(formData);
+    
+    if (!usernameLoginData.username || !usernameLoginData.password) {
+      toast({
+        variant: "destructive",
+        title: "입력 오류",
+        description: "사용자명과 비밀번호를 모두 입력해주세요.",
+      });
+      return;
+    }
+    
+    usernameLoginMutation.mutate(usernameLoginData);
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-50 flex items-center justify-center">
-      <div className="w-full max-w-md p-8 animate-slide-up">
-        <div className="text-center mb-8">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div className="text-center">
           <VaultLogo size="lg" className="mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Dovie Messenger</h2>
-          <p className="text-gray-600">비즈니스 메신저 서비스에 로그인하세요</p>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Dovie 메신저</h2>
+          <p className="text-gray-600">안전하고 스마트한 메신저</p>
         </div>
 
-        <div className="space-y-4">
-          {/* 이메일 로그인 */}
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-center text-lg">이메일로 로그인</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">이메일</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="example@company.com"
-                      value={formData.email}
-                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                      className="pl-10"
-                      required
-                    />
+        <Card className="border-0 shadow-xl">
+          <CardHeader>
+            <CardTitle className="text-center text-xl">로그인</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="username" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="username" className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  아이디 로그인
+                </TabsTrigger>
+                <TabsTrigger value="phone" className="flex items-center gap-2">
+                  <Phone className="h-4 w-4" />
+                  전화번호 로그인
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="username">
+                <form onSubmit={handleUsernameSubmit} className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="username">사용자명 (아이디)</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <Input
+                          id="username"
+                          type="text"
+                          placeholder="사용자명을 입력하세요"
+                          value={usernameLoginData.username}
+                          onChange={(e) => setUsernameLoginData(prev => ({ ...prev, username: e.target.value }))}
+                          className="pl-10"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="password">비밀번호</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <Input
+                          id="password"
+                          type="password"
+                          placeholder="비밀번호를 입력하세요"
+                          value={usernameLoginData.password}
+                          onChange={(e) => setUsernameLoginData(prev => ({ ...prev, password: e.target.value }))}
+                          className="pl-10"
+                          required
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="password">비밀번호</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="비밀번호를 입력하세요"
-                      value={formData.password}
-                      onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                      className="pl-10 pr-10"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-2 mb-4">
-                  <input
-                    type="checkbox"
-                    id="keepLoggedIn"
-                    checked={keepLoggedIn}
-                    onChange={(e) => setKeepLoggedIn(e.target.checked)}
-                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                  />
-                  <label htmlFor="keepLoggedIn" className="text-sm text-gray-700">
-                    로그인 상태 유지
-                  </label>
-                </div>
-
-                <Button 
-                  type="submit" 
-                  className="w-full purple-gradient hover:purple-gradient-hover"
-                  disabled={loginMutation.isPending}
-                >
-                  {loginMutation.isPending ? "로그인 중..." : "로그인"}
-                </Button>
-              </form>
-
-              <div className="mt-4 text-center">
-                <p className="text-sm text-gray-600">
-                  계정이 없으신가요?{" "}
-                  <button
-                    onClick={() => setLocation("/signup")}
-                    className="text-purple-600 hover:text-purple-700 font-medium"
+                  <Button
+                    type="submit"
+                    className="w-full bg-purple-600 hover:bg-purple-700"
+                    disabled={usernameLoginMutation.isPending}
                   >
-                    회원가입하기
-                  </button>
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+                    {usernameLoginMutation.isPending ? "로그인 중..." : "로그인"}
+                  </Button>
+                </form>
 
-          {/* 기타 로그인 옵션 */}
-          <div className="space-y-3">
-            <Card className="bg-gray-50 border">
-              <CardContent className="p-4">
-                <Button 
-                  className="w-full" 
-                  variant="secondary" 
-                  onClick={() => setLocation("/phone-login")}
-                >
-                  <Phone className="mr-2 h-4 w-4" />
-                  전화번호로 로그인
-                </Button>
-              </CardContent>
-            </Card>
+                <div className="mt-6 text-center">
+                  <p className="text-sm text-gray-600">
+                    계정이 없으신가요?{" "}
+                    <Button variant="link" className="p-0" onClick={() => setLocation("/signup")}>
+                      회원가입
+                    </Button>
+                  </p>
+                </div>
+              </TabsContent>
 
-            {/* Test login functionality removed per user request */}
-          </div>
-        </div>
-
-        <div className="mt-8 text-center">
-          <p className="text-xs text-gray-500">
-            계속 진행하면 <span className="text-purple-600">이용약관</span> 및{" "}
-            <span className="text-purple-600">개인정보처리방침</span>에 동의한 것으로 간주됩니다.
-          </p>
-        </div>
+              <TabsContent value="phone">
+                <div className="space-y-6">
+                  <div className="text-center py-8">
+                    <Phone className="mx-auto h-12 w-12 text-purple-600 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">전화번호로 로그인</h3>
+                    <p className="text-sm text-gray-600 mb-6">
+                      전화번호 인증을 통해 안전하게 로그인하세요
+                    </p>
+                    
+                    <Button
+                      onClick={handlePhoneLogin}
+                      className="w-full bg-green-600 hover:bg-green-700"
+                    >
+                      전화번호 인증 시작하기
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -238,7 +238,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 로그인 API
+  // 사용자명 로그인 API
+  app.post("/api/auth/username-login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ message: "사용자명과 비밀번호를 입력해주세요." });
+      }
+
+      // 사용자명으로 사용자 찾기
+      const user = await storage.getUserByUsername(username);
+      if (!user) {
+        return res.status(401).json({ message: "사용자명 또는 비밀번호가 올바르지 않습니다." });
+      }
+
+      // 비밀번호 확인
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: "사용자명 또는 비밀번호가 올바르지 않습니다." });
+      }
+
+      // 사용자 온라인 상태 업데이트
+      await storage.updateUser(user.id, { isOnline: true });
+
+      res.json({ user });
+    } catch (error: any) {
+      console.error("Username login error:", error);
+      res.status(500).json({ message: "로그인에 실패했습니다." });
+    }
+  });
+
+  // 이메일 로그인 API (기존 유지)
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { email, password } = req.body;
@@ -317,7 +348,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "권한이 없습니다." });
       }
 
-      const { username, displayName, email, phoneNumber, birthday, profilePicture, isProfileComplete } = req.body;
+      const { username, displayName, email, phoneNumber, birthday, profilePicture, password, isProfileComplete } = req.body;
       
       // 사용자명 중복 확인 (기존 사용자가 아닌 경우)
       if (username) {
@@ -343,6 +374,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (birthday) updateData.birthday = birthday;
       if (profilePicture) updateData.profilePicture = profilePicture;
       if (typeof isProfileComplete === 'boolean') updateData.isProfileComplete = isProfileComplete;
+      
+      // 비밀번호 업데이트 (해싱 필요)
+      if (password) {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        updateData.password = hashedPassword;
+      }
 
       const updatedUser = await storage.updateUser(Number(userId), updateData);
       
