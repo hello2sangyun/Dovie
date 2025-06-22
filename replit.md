@@ -475,6 +475,12 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Optimized React Query caching with 30-second stale time for better performance
   - Fixed duplicate function declarations and improved code organization
   - Users can now search archive smoothly without interrupting refresh behavior
+- June 22, 2025: Enhanced voice message smart suggestion popup design:
+  - Removed all icons from smart suggestion popup (especially clock icons that appeared childish)
+  - Replaced with clean gradient square custom icon design for professional appearance
+  - Limited popup to show only one suggestion instead of multiple options for cleaner interface
+  - Changed button text from "원본 메시지 전송" to "알림설정 하지 않고 메시지 보내기" per user preference
+  - Improved overall popup aesthetics with modern, minimalist design approach
 
 ## User Preferences
 

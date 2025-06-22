@@ -5671,42 +5671,22 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   </div>
                   
                   <div className="max-h-64 overflow-y-auto">
-                    {smartSuggestions.map((suggestion, index) => (
+                    {smartSuggestions.slice(0, 1).map((suggestion, index) => (
                       <div
                         key={index}
-                        className="p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors"
+                        className="p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors"
                         onClick={() => handleSmartSuggestionSelect(suggestion)}
                       >
                         <div className="flex items-start space-x-3">
-                          <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                            suggestion.type === 'calculation' ? 'bg-blue-100' :
-                            suggestion.type === 'currency' ? 'bg-green-100' :
-                            suggestion.type === 'translation' ? 'bg-indigo-100' :
-                            suggestion.type === 'search' ? 'bg-yellow-100' :
-                            suggestion.type === 'news' ? 'bg-blue-100' :
-                            suggestion.type === 'unit' ? 'bg-purple-100' :
-                            suggestion.type === 'timer' ? 'bg-amber-100' :
-                            'bg-gray-100'
-                          }`}>
-                            <span className={`text-sm font-medium ${
-                              suggestion.type === 'calculation' ? 'text-blue-600' :
-                              suggestion.type === 'currency' ? 'text-green-600' :
-                              suggestion.type === 'translation' ? 'text-indigo-600' :
-                              suggestion.type === 'search' ? 'text-yellow-600' :
-                              suggestion.type === 'news' ? 'text-blue-600' :
-                              suggestion.type === 'unit' ? 'text-purple-600' :
-                              suggestion.type === 'timer' ? 'text-amber-600' :
-                              'text-gray-600'
-                            }`}>
-                              {suggestion.icon || suggestion.type.charAt(0).toUpperCase()}
-                            </span>
+                          <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-sm">
+                            <div className="w-4 h-4 bg-white rounded-sm"></div>
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-gray-900 text-sm">
                               {suggestion.text}
                             </p>
                             <p className="text-xs text-gray-600 mt-1 truncate">
-                              {suggestion.result}
+                              {suggestion.reminderText || suggestion.result}
                             </p>
                           </div>
                         </div>
@@ -5729,7 +5709,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       }}
                       className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
                     >
-                      원본 메시지 전송
+                      알림설정 하지 않고 메시지 보내기
                     </button>
                     <button
                       onClick={() => {
