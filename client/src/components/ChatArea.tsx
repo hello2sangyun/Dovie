@@ -4561,7 +4561,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             {messagesData ? "대화를 시작해보세요!" : "메시지를 불러오는 중..."}
           </div>
         ) : (
-          <div>
+          <>
             {messages.map((msg: any, index: number) => {
             const isMe = msg.senderId === user?.id;
             const showDate = index === 0 || 
@@ -5261,10 +5261,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   </div>
                 </div>
               );
-          })}
-          
-          {/* 업로드 중인 파일들을 로딩 메시지로 표시 */}
-          {uploadingFiles.map((uploadingFile) => (
+            })}
+            
+            {/* 업로드 중인 파일들을 로딩 메시지로 표시 */}
+            {uploadingFiles.map((uploadingFile) => (
             <div key={uploadingFile.id} className="flex items-start space-x-3 flex-row-reverse space-x-reverse mb-4">
               <InstantAvatar 
                 src={user?.profilePicture}
@@ -5291,7 +5291,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               </div>
             </div>
           ))}
-          </div>
+          </>
         )}
         
         {/* Typing Indicator */}
