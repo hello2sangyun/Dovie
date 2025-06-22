@@ -27,7 +27,6 @@ interface MessageReactionButtonProps {
 }
 
 const defaultEmojis = [
-  { emoji: "❤️", name: "heart", icon: Heart },
   { emoji: "😊", name: "smile", icon: Smile },
   { emoji: "👍", name: "thumbs_up", icon: ThumbsUp },
   { emoji: "😂", name: "laugh", icon: Laugh },

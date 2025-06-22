@@ -1,8 +1,23 @@
 import { useState, useRef, useEffect } from "react";
-import { Play, Pause, Volume2, VolumeX, Download, ExternalLink, Image as ImageIcon, Video, FileText, Eye, File } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Download, ExternalLink, Image as ImageIcon, Video, FileText, File } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ImageViewerModal } from "./ImageViewerModal";
+
+// 파일명을 8글자로 제한하는 함수
+const truncateFileName = (fileName: string, maxLength: number = 8): string => {
+  if (fileName.length <= maxLength) return fileName;
+  
+  const extension = fileName.split('.').pop() || '';
+  const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
+  
+  if (extension && nameWithoutExt.length > maxLength - 3) {
+    const truncatedName = nameWithoutExt.substring(0, maxLength - 3);
+    return `${truncatedName}...${extension}`;
+  }
+  
+  return fileName.substring(0, maxLength) + '...';
+};
 
 interface MediaPreviewProps {
   fileUrl: string;
@@ -236,14 +251,13 @@ const FilePreview = ({ fileUrl, fileName, fileSize, isMe, summary }: { fileUrl: 
           {getFileIcon()}
         </div>
         <div className="flex-1 min-w-0">
-          <div className={cn("text-sm font-medium truncate", isMe ? "text-white" : "text-gray-900")}>
-            {summary || fileName.split('.').slice(0, -1).join('.')}
+          <div className={cn("text-sm font-medium", isMe ? "text-white" : "text-gray-900")} title={fileName}>
+            {summary || truncateFileName(fileName)}
           </div>
           <div className={cn("text-xs", isMe ? "text-blue-100" : "text-gray-500")}>
             {formatFileSize(fileSize)}
           </div>
         </div>
-        <Eye className={cn("h-3 w-3 flex-shrink-0", isMe ? "text-blue-100" : "text-gray-400")} />
       </div>
 
       {/* 파일 미리보기 모달 */}
@@ -301,7 +315,7 @@ const ImagePreview = ({ src, fileName, isMe }: { src: string; fileName: string; 
   return (
     <>
       <div className={cn(
-        "relative rounded-lg overflow-hidden w-full max-w-[280px] sm:max-w-[400px] cursor-pointer",
+        "relative rounded-lg overflow-hidden w-full cursor-pointer",
         isMe ? "ml-auto" : "mr-auto"
       )} onClick={() => setIsViewerOpen(true)}>
         {isLoading && (
@@ -339,7 +353,7 @@ const ImagePreview = ({ src, fileName, isMe }: { src: string; fileName: string; 
         {!hasError && !isLoading && (
           <>
             <div className="absolute top-1 left-1 sm:top-2 sm:left-2 bg-black/50 rounded px-1.5 py-0.5 sm:px-2 sm:py-1">
-              <span className="text-white text-xs truncate max-w-[120px] sm:max-w-[200px] block">{fileName}</span>
+              <span className="text-white text-xs block" title={fileName}>{truncateFileName(fileName)}</span>
             </div>
             <div className="absolute top-1 right-1 sm:top-2 sm:right-2">
               <Button
