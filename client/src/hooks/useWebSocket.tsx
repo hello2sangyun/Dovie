@@ -107,7 +107,9 @@ export function useWebSocket(userId?: number) {
 
     const connect = () => {
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const wsUrl = `${protocol}//${window.location.host}/ws`;
+      // In development, use localhost:5000 for WebSocket connection
+      const host = import.meta.env.DEV ? 'localhost:5000' : window.location.host;
+      const wsUrl = `${protocol}//${host}/ws`;
       
       setConnectionState(prev => ({
         ...prev,
