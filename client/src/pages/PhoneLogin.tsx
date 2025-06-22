@@ -135,7 +135,11 @@ export default function PhoneLogin() {
       
       // 인증 상태 업데이트 후 페이지 이동
       setTimeout(() => {
-        if (!data.user.isProfileComplete) {
+        // 프로필이 미완성이거나 임시 이메일을 사용하는 경우 프로필 설정으로 이동
+        const hasTemporaryEmail = data.user.email && data.user.email.includes('@phone.local');
+        const needsProfileSetup = !data.user.isProfileComplete || hasTemporaryEmail;
+        
+        if (needsProfileSetup) {
           window.location.href = "/profile-setup";
         } else {
           window.location.href = "/app";
