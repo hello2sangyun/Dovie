@@ -5465,13 +5465,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         )}
 
         <div className={cn(
-          "px-4 py-3 chat-input-area flex items-center",
+          "px-4 py-2 chat-input-area flex items-center justify-center",
           // 주변챗용 특별한 디자인
           isLocationChatRoom 
             ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-t-2 border-blue-200" 
             : "bg-white border-t border-gray-200"
         )}>
-          <div className="flex items-center gap-3 w-full">
+          <div className="flex items-center gap-3 w-full max-w-4xl mx-auto">
           {/* Enhanced left buttons group */}
           <div className="flex items-center gap-1">
             <InteractiveButton
@@ -5704,8 +5704,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   handleSendMessage();
                 }
               }}
-              className="resize-none min-h-[28px] max-h-[56px] py-1 px-2 text-base"
-              style={{ fontSize: '16px' }}
+              className="resize-none min-h-[32px] max-h-[32px] py-1.5 px-3 text-base"
+              style={{ fontSize: '16px', lineHeight: '1.3' }}
             />
             
             {/* # 태그 추천 */}
