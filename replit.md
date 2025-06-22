@@ -581,6 +581,13 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Fixed profile picture field name from profileImageUrl to profilePicture to match schema
   - Profile pictures in chat messages now load instantly without delays or flickering
   - Mobile users can now properly access search functionality across all tabs without header obstruction
+- June 22, 2025: Fixed Footer tab visibility in chat rooms and profile picture upload reflection:
+  - Modified mobile Footer navigation to remain visible during chat conversations (removed conditional hiding)
+  - Enhanced ProfilePhotoUpload component with comprehensive cache invalidation and refetching
+  - Replaced regular Avatar with InstantAvatar in settings page for immediate profile picture updates
+  - Added automatic query invalidation for contacts, chat rooms, and auth data after profile upload
+  - Profile picture changes now reflect immediately across all interface components
+  - Footer tabs (연락처, 채팅방, 자료실, 설정) now persistently available for seamless navigation during chat sessions
 
 ## User Preferences
 
