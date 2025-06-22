@@ -4563,10 +4563,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         ) : (
           <>
             {messages.map((msg: any, index: number) => {
-            const isMe = msg.senderId === user?.id;
-            const showDate = index === 0 || 
-              new Date(messages[index - 1].createdAt).toDateString() !== new Date(msg.createdAt).toDateString();
-            const isFirstUnread = firstUnreadMessageId === msg.id;
+              const isMe = msg.senderId === user?.id;
+              const showDate = index === 0 || 
+                new Date(messages[index - 1].createdAt).toDateString() !== new Date(msg.createdAt).toDateString();
+              const isFirstUnread = firstUnreadMessageId === msg.id;
 
             return (
               <div key={msg.id}>
@@ -5283,34 +5283,36 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               );
             })}
           
-          {/* 업로드 중인 파일들을 로딩 메시지로 표시 */}
-          {uploadingFiles.map((uploadingFile) => (
-            <div key={uploadingFile.id} className="flex items-start space-x-3 flex-row-reverse space-x-reverse mb-4">
-              <InstantAvatar 
-                src={user?.profilePicture}
-                alt={user?.displayName || "Me"}
-                fallbackText={user?.displayName || "Me"}
-                size="md" 
-                className="purple-gradient"
-              />
-              
-              <div className="flex flex-col items-end max-w-xs lg:max-w-md">
-                <div className="bg-purple-600 text-white p-3 rounded-lg shadow-sm">
-                  <div className="flex items-center space-x-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    <span className="text-sm">📎 {uploadingFile.fileName} 업로드 중...</span>
+            {/* 업로드 중인 파일들을 로딩 메시지로 표시 */}
+            {uploadingFiles.map((uploadingFile) => (
+              <div key={uploadingFile.id} className="flex items-start space-x-3 flex-row-reverse space-x-reverse mb-4">
+                <InstantAvatar 
+                  src={user?.profilePicture}
+                  alt={user?.displayName || "Me"}
+                  fallbackText={user?.displayName || "Me"}
+                  size="md" 
+                  className="purple-gradient"
+                />
+                
+                <div className="flex flex-col items-end max-w-xs lg:max-w-md">
+                  <div className="bg-purple-600 text-white p-3 rounded-lg shadow-sm">
+                    <div className="flex items-center space-x-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span className="text-sm">📎 {uploadingFile.fileName} 업로드 중...</span>
+                    </div>
                   </div>
+                  <span className="text-xs text-gray-500 mt-1">
+                    {new Date().toLocaleTimeString('ko-KR', { 
+                      hour: '2-digit', 
+                      minute: '2-digit',
+                      hour12: false
+                    })}
+                  </span>
                 </div>
-                <span className="text-xs text-gray-500 mt-1">
-                  {new Date().toLocaleTimeString('ko-KR', { 
-                    hour: '2-digit', 
-                    minute: '2-digit',
-                    hour12: false
-                  })}
-                </span>
               </div>
-            </div>
-          ))}
+            ))}
+          </>
+        )}
         
         <div ref={messagesEndRef} />
       </div>
@@ -6326,11 +6328,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         onClose={() => setShowVoicePreview(false)}
         onSend={handleSendVoiceMessage}
         audioBlob={voicePreviewData.audioBlob}
-        transcribedText={voicePreviewData.transcribedText}
-        duration={voicePreviewData.duration}
-        isProcessing={isProcessingVoice}
-      />
-
     </div>
   );
 }
