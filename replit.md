@@ -574,6 +574,13 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Cleaned up all related conditional rendering sections and business content handlers
   - Streamlined settings interface to focus on essential core features only
   - PC version now has cleaner, more focused settings menu without business clutter
+- June 22, 2025: Fixed critical mobile header visibility and profile picture display issues:
+  - Reduced mobile content top padding from pt-20 to pt-16 to prevent header clipping
+  - Enhanced ConnectionStatusIndicator to avoid showing brief disconnection notices (only shows after 2+ reconnect attempts)
+  - Replaced all UserAvatar instances in ChatArea with InstantAvatar for immediate profile picture loading
+  - Fixed profile picture field name from profileImageUrl to profilePicture to match schema
+  - Profile pictures in chat messages now load instantly without delays or flickering
+  - Mobile users can now properly access search functionality across all tabs without header obstruction
 
 ## User Preferences
 

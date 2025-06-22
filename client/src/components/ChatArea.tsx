@@ -4540,7 +4540,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       // 일반 채팅에서는 원래 프로필 표시 - 컴팩트하게
                       <div className="w-8 h-8 rounded-full shadow-lg ring-2 ring-white/50 group-hover:scale-105 transition-transform duration-200 overflow-hidden">
                         <InstantAvatar 
-                          src={isMe ? user?.profileImageUrl : msg.sender?.profileImageUrl}
+                          src={isMe ? user?.profilePicture : msg.sender?.profilePicture}
                           alt={isMe ? (user?.displayName || "Me") : msg.sender.displayName}
                           fallbackText={isMe ? (user?.displayName || "Me") : msg.sender.displayName}
                           size="sm" 
@@ -5191,7 +5191,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           {uploadingFiles.map((uploadingFile) => (
             <div key={uploadingFile.id} className="flex items-start space-x-3 flex-row-reverse space-x-reverse mb-4">
               <InstantAvatar 
-                src={user?.profileImageUrl}
+                src={user?.profilePicture}
                 alt={user?.displayName || "Me"}
                 fallbackText={user?.displayName || "Me"}
                 size="md" 
