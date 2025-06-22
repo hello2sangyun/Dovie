@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
 import ZeroDelayAvatar from "@/components/ZeroDelayAvatar";
+import InstantAvatar from "@/components/InstantAvatar";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -1143,20 +1144,22 @@ function ChatRoomItem({
                     zIndex: 3 - index
                   }}
                 >
-                  <UserAvatar 
-                    user={participant} 
+                  <InstantAvatar 
+                    src={participant?.profileImageUrl}
+                    fallbackText={participant?.displayName || participant?.username}
                     size="sm" 
-                    fallbackClassName="purple-gradient"
+                    className="purple-gradient"
                   />
                 </div>
               );
             })}
           </div>
         ) : (
-          <UserAvatar 
-            user={getOtherParticipant(chatRoom)} 
+          <InstantAvatar 
+            src={getOtherParticipant(chatRoom)?.profileImageUrl}
+            fallbackText={displayName}
             size="lg" 
-            fallbackClassName={`bg-gradient-to-br ${getAvatarColor(displayName)}`}
+            className={`bg-gradient-to-br ${getAvatarColor(displayName)}`}
           />
         )}
         <div className="flex-1 min-w-0">
