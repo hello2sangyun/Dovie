@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,67 @@ export default function PhoneLogin() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [fullPhoneNumber, setFullPhoneNumber] = useState("");
+  const [isDetectingLocation, setIsDetectingLocation] = useState(true);
+
+  // 사용자 위치 기반 국가 자동 선택
+  useEffect(() => {
+    const detectUserCountry = async () => {
+      try {
+        // IP 기반 위치 감지 (빠른 방법)
+        const ipResponse = await fetch('https://ipapi.co/json/');
+        if (ipResponse.ok) {
+          const ipData = await ipResponse.json();
+          const detectedCountry = countries.find(c => c.code === ipData.country_code);
+          if (detectedCountry) {
+            setSelectedCountry(detectedCountry);
+            setIsDetectingLocation(false);
+            return;
+          }
+        }
+      } catch (error) {
+        console.log("IP 기반 위치 감지 실패:", error);
+      }
+
+      try {
+        // GPS 기반 위치 감지 (대안)
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              try {
+                const { latitude, longitude } = position.coords;
+                const geoResponse = await fetch(
+                  `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+                );
+                if (geoResponse.ok) {
+                  const geoData = await geoResponse.json();
+                  const detectedCountry = countries.find(c => c.code === geoData.countryCode);
+                  if (detectedCountry) {
+                    setSelectedCountry(detectedCountry);
+                  }
+                }
+              } catch (error) {
+                console.log("GPS 기반 위치 감지 실패:", error);
+              } finally {
+                setIsDetectingLocation(false);
+              }
+            },
+            () => {
+              // GPS 권한 거부 또는 실패시 기본값 유지
+              setIsDetectingLocation(false);
+            },
+            { timeout: 5000, enableHighAccuracy: false }
+          );
+        } else {
+          setIsDetectingLocation(false);
+        }
+      } catch (error) {
+        console.log("GPS 감지 실패:", error);
+        setIsDetectingLocation(false);
+      }
+    };
+
+    detectUserCountry();
+  }, []);
 
   // SMS 전송 요청
   const sendSMSMutation = useMutation({
@@ -138,16 +199,30 @@ export default function PhoneLogin() {
           {step === "phone" ? (
             <form onSubmit={handleSendSMS} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="country">국가 선택</Label>
+                <Label htmlFor="country">
+                  국가 선택
+                  {isDetectingLocation && (
+                    <span className="ml-2 text-xs text-purple-600 animate-pulse">
+                      위치 감지 중...
+                    </span>
+                  )}
+                </Label>
                 <Select
                   value={selectedCountry.code}
                   onValueChange={(value) => {
                     const country = countries.find(c => c.code === value);
                     if (country) setSelectedCountry(country);
                   }}
+                  disabled={isDetectingLocation}
                 >
-                  <SelectTrigger>
-                    <SelectValue />
+                  <SelectTrigger className={isDetectingLocation ? "opacity-50" : ""}>
+                    <SelectValue>
+                      <div className="flex items-center space-x-2">
+                        <span>{selectedCountry.flag}</span>
+                        <span>{selectedCountry.name}</span>
+                        <span className="text-gray-500">{selectedCountry.dialCode}</span>
+                      </div>
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="max-h-60">
                     {countries.map((country) => (

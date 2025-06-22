@@ -545,6 +545,14 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Implemented automatic redirect to profile setup page (/profile-setup) for new users
   - Added localStorage userId storage and proper navigation flow after SMS verification
   - Users now properly navigate through: SMS verification → profile setup → main application
+- June 22, 2025: Implemented automatic location-based country selection for phone login:
+  - Added IP-based location detection using ipapi.co service for fast country identification
+  - Implemented GPS fallback option using browser geolocation and reverse geocoding
+  - Enhanced phone login UI with location detection status indicator
+  - Country selection automatically defaults to user's detected location
+  - Added loading states and graceful fallback to default country (Korea) if detection fails
+  - Users see "위치 감지 중..." animation while location is being determined
+  - Improved user experience by eliminating manual country selection for most users
 
 ## User Preferences
 
