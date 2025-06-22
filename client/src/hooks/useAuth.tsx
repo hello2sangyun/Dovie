@@ -21,17 +21,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 
   // Try to get user from localStorage on app start
-  const [storedUserId, setStoredUserId] = useState<string | null>(null);
-  
-  // Initialize stored user ID on component mount
-  useEffect(() => {
-    const userId = localStorage.getItem("userId");
-    setStoredUserId(userId);
-  }, []);
+  const storedUserId = localStorage.getItem("userId");
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["/api/auth/me", storedUserId],
-    enabled: !!storedUserId, // Only query if we have stored ID
+    queryKey: ["/api/auth/me"],
+    enabled: !!storedUserId, // Always query if we have stored ID
     refetchInterval: 30000, // 30초마다 자동 새로고침
     staleTime: 1000, // 1초 동안만 캐시 유지
     queryFn: async () => {
@@ -48,7 +42,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!response.ok) {
         // If auth fails, clear stored user ID
         localStorage.removeItem("userId");
-        setStoredUserId(null);
         throw new Error("Authentication failed");
       }
       
@@ -164,12 +157,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Clear user data if authentication fails
       console.log("❌ Authentication failed, clearing user data");
       setUser(null);
-      setStoredUserId(null);
       localStorage.removeItem("userId");
       setInitialized(true);
       setProfileImagesLoaded(false);
       setIsPreloadingImages(false);
-    } else if (storedUserId === null || !storedUserId) {
+    } else if (!storedUserId) {
       // No stored user ID, mark as initialized
       setInitialized(true);
       setProfileImagesLoaded(false);
@@ -182,10 +174,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(newUser);
     if (!newUser) {
       localStorage.removeItem("userId");
-      setStoredUserId(null);
-    } else {
-      localStorage.setItem("userId", newUser.id.toString());
-      setStoredUserId(newUser.id.toString());
     }
   };
 

@@ -110,9 +110,6 @@ export interface IStorage {
   removeMessageReaction(messageId: number, userId: number, emoji: string): Promise<void>;
   getMessageReactions(messageId: number): Promise<Array<{ emoji: string; emojiName: string; count: number; userReacted: boolean; userId?: number }>>;
   getMessageReactionSuggestions(messageId: number): Promise<Array<{ emoji: string; name: string; confidence: number }>>;
-
-  // Hashtag operations
-  getRelatedHashtags(userId: number, hashtag: string): Promise<string[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -864,94 +861,6 @@ export class DatabaseStorage implements IStorage {
     );
 
     return result.suggestions;
-  }
-
-  async searchCommandsByMultipleHashtags(hashtags: string[]): Promise<Command[]> {
-    if (!hashtags || hashtags.length === 0) {
-      return [];
-    }
-
-    // 모든 해시태그가 포함된 메시지를 찾기 위해 각 해시태그별로 검색
-    const commandSets = await Promise.all(
-      hashtags.map(async (hashtag) => {
-        const results = await db
-          .select()
-          .from(commands)
-          .where(eq(commands.commandName, `#${hashtag.toLowerCase()}`));
-        
-        return new Set(results.map(cmd => cmd.messageId).filter(Boolean));
-      })
-    );
-
-    // 모든 해시태그를 가진 메시지 ID 찾기 (교집합)
-    if (commandSets.length === 0) return [];
-    
-    let intersectionIds = commandSets[0];
-    for (let i = 1; i < commandSets.length; i++) {
-      intersectionIds = new Set([...intersectionIds].filter(id => commandSets[i].has(id)));
-    }
-
-    if (intersectionIds.size === 0) return [];
-
-    // 해당 메시지들의 모든 커맨드 가져오기
-    const results = await db
-      .select()
-      .from(commands)
-      .where(inArray(commands.messageId, Array.from(intersectionIds)))
-      .orderBy(desc(commands.createdAt));
-
-    return results;
-  }
-
-  // Get hashtags that have been used together with the specified hashtag
-  async getRelatedHashtags(userId: number, hashtag: string): Promise<string[]> {
-    try {
-      // Find all commands containing the specified hashtag
-      const commandsWithHashtag = await db
-        .select({ messageId: commands.messageId })
-        .from(commands)
-        .where(
-          and(
-            eq(commands.userId, userId),
-            eq(commands.commandName, hashtag)
-          )
-        );
-
-      if (commandsWithHashtag.length === 0) {
-        return [];
-      }
-
-      // Get message IDs that contain the specified hashtag
-      const messageIds = commandsWithHashtag
-        .map(cmd => cmd.messageId)
-        .filter((id): id is number => id !== null);
-
-      if (messageIds.length === 0) {
-        return [];
-      }
-
-      // Find all other hashtags used in the same messages
-      const relatedCommands = await db
-        .select({ commandName: commands.commandName })
-        .from(commands)
-        .where(
-          and(
-            eq(commands.userId, userId),
-            inArray(commands.messageId, messageIds),
-            ne(commands.commandName, hashtag) // Exclude the original hashtag
-          )
-        );
-
-      // Extract unique hashtags and return them
-      const uniqueHashtags = Array.from(
-        new Set(relatedCommands.map(cmd => cmd.commandName))
-      );
-
-      return uniqueHashtags;
-    } catch (error) {
-      console.error('Error getting related hashtags:', error);
-      return [];
-    }
   }
 }
 

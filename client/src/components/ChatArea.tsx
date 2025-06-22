@@ -41,7 +41,6 @@ interface SmartSuggestion {
   category: string;
   keyword?: string;
   confidence?: number;
-  fileData?: any;
   action?: () => void;
 }
 
@@ -299,56 +298,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [reminderText, setReminderText] = useState("");
   const [showYoutubeModal, setShowYoutubeModal] = useState(false);
   const [youtubeSearchQuery, setYoutubeSearchQuery] = useState("");
-
-  // 해시태그 추천 상태
-  const [showHashSuggestions, setShowHashSuggestions] = useState(false);
-  const [hashSuggestions, setHashSuggestions] = useState<string[]>([]);
-  const [selectedHashIndex, setSelectedHashIndex] = useState(0);
-  
-  // 해시태그 관련 추천 쿼리
-  const fetchRelatedHashtags = async (hashtag: string) => {
-    try {
-      const response = await fetch(`/api/hashtags/complete?hashtag=${encodeURIComponent(hashtag)}`, {
-        headers: {
-          'x-user-id': String(user?.id || 0)
-        }
-      });
-      if (!response.ok) throw new Error('Failed to fetch related hashtags');
-      const data = await response.json();
-      return data.hashtags || [];
-    } catch (error) {
-      console.error('Error fetching related hashtags:', error);
-      return [];
-    }
-  };
-  
-  // 해시태그 자동완성 감지 및 처리
-  const handleHashtagAutoComplete = async (text: string) => {
-    // #cb 뒤에 공백이 있는 패턴 감지
-    const hashtagPattern = /#cb\s$/;
-    const match = text.match(hashtagPattern);
-    
-    if (match) {
-      console.log('Detected #cb pattern, fetching related hashtags...');
-      try {
-        const relatedTags = await fetchRelatedHashtags('cb');
-        console.log('Fetched related hashtags:', relatedTags);
-        
-        if (relatedTags.length > 0) {
-          setHashSuggestions(relatedTags);
-          setShowHashSuggestions(true);
-          setSelectedHashIndex(0);
-        }
-      } catch (error) {
-        console.error('Failed to fetch related hashtags:', error);
-      }
-    } else {
-      // 패턴이 일치하지 않으면 추천 숨김
-      setShowHashSuggestions(false);
-      setHashSuggestions([]);
-      setSelectedHashIndex(0);
-    }
-  };
 
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
   
@@ -2369,6 +2318,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     title: '',
     content: ''
   });
+  const [showHashSuggestions, setShowHashSuggestions] = useState(false);
+  const [hashSuggestions, setHashSuggestions] = useState<string[]>([]);
+  const [selectedHashIndex, setSelectedHashIndex] = useState(0);
   // 음성 메시지 임시 저장 상태 (스마트 추천 선택 대기)
   const [pendingVoiceMessage, setPendingVoiceMessage] = useState<any>(null);
   // 채팅방별 저장된 명령어들을 태그로 사용
@@ -3294,83 +3246,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     return analyzeTextForSmartSuggestions(text);
   };
 
-  // 다중 해시태그 파일 검색 함수
-  const analyzeHashtagsForFileSearch = async (hashtags: string[]): Promise<SmartSuggestion[]> => {
-    try {
-      const cleanHashtags = hashtags.map(tag => tag.replace('#', '').toLowerCase());
-      const response = await fetch(`/api/commands/search-hashtags`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ hashtags: cleanHashtags })
-      });
-      
-      if (!response.ok) return [];
-      
-      const data = await response.json();
-      const files = data.files || [];
-      
-      if (files.length === 0) return [];
-      
-      // 파일 결과를 SmartSuggestion 형태로 변환
-      return files.map((file: any, index: number) => ({
-        type: 'file_search',
-        text: `${file.originalFileName || '파일'}`,
-        result: `${file.hashtags?.join(' ')} - ${Math.round((file.fileSize || 0) / 1024)}KB`,
-        icon: '📁',
-        category: 'file',
-        confidence: 0.9,
-        fileData: file, // 파일 데이터 저장
-        action: () => handleFileRedownload(file)
-      }));
-    } catch (error) {
-      console.error('해시태그 파일 검색 실패:', error);
-      return [];
-    }
-  };
-
-  // 파일 재다운로드 함수
-  const handleFileRedownload = async (fileData: any) => {
-    try {
-      // 파일 다시 다운로드
-      const response = await fetch(`/api/encrypted-files/${fileData.fileName}`);
-      if (!response.ok) throw new Error('파일 다운로드 실패');
-      
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileData.originalFileName || fileData.fileName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-      
-      // 성공 메시지 표시
-      toast({
-        title: "파일 다운로드 완료",
-        description: `${fileData.originalFileName || '파일'}을 다운로드했습니다.`,
-      });
-      
-    } catch (error) {
-      console.error('파일 재다운로드 실패:', error);
-      toast({
-        variant: "destructive",
-        title: "다운로드 실패",
-        description: "파일을 다운로드할 수 없습니다.",
-      });
-    }
-  };
-
   const handleMessageChange = async (value: string) => {
     setMessage(value);
     
     // 입력할 때마다 자동으로 임시 저장
     saveDraftMessage(chatRoomId, value);
     
-    // 다중 해시태그 검색 및 추천 (모든 언어 지원)
-    const allHashtags = value.match(/#[^\s#]+/g) || [];
+    // # 태그 감지 및 추천 (모든 언어 지원)
     const hashMatch = value.match(/#([^#\s]*)$/);
-    
     if (hashMatch) {
       const currentTag = hashMatch[1].toLowerCase();
       const filteredTags = storedTags.filter((tag: string) => 
@@ -3378,36 +3261,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       );
       setHashSuggestions(filteredTags);
       setShowHashSuggestions(filteredTags.length > 0);
-      setSelectedHashIndex(0);
-      
-      // 다중 해시태그가 있는 경우 스마트 추천으로 파일 검색 결과 표시
-      if (allHashtags.length > 1) {
-        const hashtagSearchSuggestions = await analyzeHashtagsForFileSearch(allHashtags);
-        if (hashtagSearchSuggestions.length > 0) {
-          setSmartSuggestions(hashtagSearchSuggestions);
-          setShowSmartSuggestions(true);
-          setSelectedSuggestionIndex(0);
-        }
-      } else {
-        setShowSmartSuggestions(false);
-        setSmartSuggestions([]);
-      }
-      return;
+      setSelectedHashIndex(0); // 선택 인덱스 초기화
+      // 태그 추천 활성화 시 스마트 추천 비활성화
+      setShowSmartSuggestions(false);
+      setSmartSuggestions([]);
+      return; // 태그 모드일 때는 스마트 추천 로직 실행하지 않음
     } else {
       setShowHashSuggestions(false);
       setHashSuggestions([]);
       setSelectedHashIndex(0);
-      
-      // 완성된 다중 해시태그가 있는 경우에만 파일 검색
-      if (allHashtags.length >= 2) {
-        const hashtagSearchSuggestions = await analyzeHashtagsForFileSearch(allHashtags);
-        if (hashtagSearchSuggestions.length > 0) {
-          setSmartSuggestions(hashtagSearchSuggestions);
-          setShowSmartSuggestions(true);
-          setSelectedSuggestionIndex(0);
-          return;
-        }
-      }
     }
     
     if (value.trim().length < 2) {
@@ -3711,59 +3573,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
     setUiAdaptations(adaptations);
     generateAdaptiveActions(mode, urgency);
-  };
-
-  // Hashtag auto-completion function
-  const fetchHashtagSuggestions = async (hashtag: string) => {
-    try {
-      const response = await fetch(`/api/hashtags/complete?hashtag=${encodeURIComponent(hashtag)}`, {
-        headers: {
-          'x-user-id': user!.id.toString(),
-        },
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        return data.hashtags || [];
-      }
-    } catch (error) {
-      console.log('Failed to fetch hashtag suggestions:', error);
-    }
-    return [];
-  };
-
-  // Detect hashtag patterns and show suggestions
-  const checkForHashtagCompletion = async (text: string) => {
-    // Look for hashtag followed by space pattern (e.g., "#cb ")
-    const hashtagMatch = text.match(/#(\w+)\s+$/);
-    
-    if (hashtagMatch) {
-      const hashtag = hashtagMatch[1];
-      setHashtagTrigger(hashtag);
-      
-      const suggestions = await fetchHashtagSuggestions(hashtag);
-      if (suggestions.length > 0) {
-        setHashtagSuggestions(suggestions);
-        setShowHashtagSuggestions(true);
-      } else {
-        setShowHashtagSuggestions(false);
-      }
-    } else {
-      setShowHashtagSuggestions(false);
-      setHashtagSuggestions([]);
-      setHashtagTrigger("");
-    }
-  };
-
-  // Handle hashtag suggestion selection
-  const handleHashtagSelect = (hashtag: string) => {
-    const currentText = message;
-    // Replace the last hashtag pattern with the selected one
-    const newText = currentText.replace(/#\w+\s+$/, `#${hashtagTrigger} #${hashtag} `);
-    setMessage(newText);
-    setShowHashtagSuggestions(false);
-    setHashtagSuggestions([]);
-    setHashtagTrigger("");
   };
 
   const generateAdaptiveActions = (mode: string, urgency: string) => {
@@ -5663,7 +5472,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               ref={messageInputRef}
               placeholder={isLocationChatRoom ? "📍 주변챗에 메시지를 입력하세요..." : "메시지를 입력하세요..."}
               value={message}
-              onChange={async (e) => {
+              onChange={(e) => {
                 const newValue = e.target.value;
                 setMessage(newValue);
                 handleMessageChange(newValue);
@@ -5671,9 +5480,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                 // 멘션 감지 및 자동완성
                 const cursorPosition = e.target.selectionStart || 0;
                 handleMentionSearch(newValue, cursorPosition);
-                
-                // 해시태그 자동완성 감지 및 처리
-                await handleHashtagAutoComplete(newValue);
                 
                 // 일반 텍스트 입력 시 키보드 네비게이션 상태 해제
                 setIsNavigatingWithKeyboard(false);
@@ -5832,8 +5638,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           : 'hover:bg-gray-50 text-gray-700'
                       }`}
                       onClick={() => {
-                        // Replace #cb with #cb #selectedTag
-                        const currentMessage = message.replace(/#cb\s$/, `#cb #${tag} `);
+                        const currentMessage = message.replace(/#[^#\s]*$/, `#${tag}`);
                         setMessage(currentMessage);
                         setShowHashSuggestions(false);
                         setHashSuggestions([]);
