@@ -5656,45 +5656,75 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               </div>
             )}
 
-            {/* 음성 메시지 스마트 추천 팝업 */}
+            {/* 음성 메시지 스마트 추천 팝업 - 새로운 UX/UI 디자인 */}
             {pendingVoiceMessage && showSmartSuggestions && smartSuggestions.length > 0 && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-96 overflow-hidden">
-                  <div className="p-4 border-b border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900">음성 메시지 스마트 추천</h3>
-                    <p className="text-sm text-gray-600 mt-1">
-                      "{pendingVoiceMessage.content}"
-                    </p>
-                    <p className="text-xs text-gray-500 mt-2">
-                      추천 중 하나를 선택하거나 원본 메시지를 전송하세요 (10초 후 자동 전송)
-                    </p>
+              <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden border border-gray-100">
+                  {/* 헤더 섹션 */}
+                  <div className="bg-gradient-to-r from-purple-500 to-indigo-600 p-4 text-white">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-sm">알림 설정 추천</h3>
+                        <p className="text-xs text-white/80">스마트 알림을 설정하시겠습니까?</p>
+                      </div>
+                    </div>
                   </div>
                   
-                  <div className="max-h-64 overflow-y-auto">
+                  {/* 메시지 내용 */}
+                  <div className="p-4 bg-gray-50">
+                    <div className="flex items-start space-x-3">
+                      <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg className="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 leading-relaxed">
+                          "{pendingVoiceMessage.content}"
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* 추천 섹션 */}
+                  <div className="p-4 space-y-3">
                     {smartSuggestions.slice(0, 1).map((suggestion, index) => (
                       <div
                         key={index}
-                        className="p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors"
+                        className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-4 cursor-pointer hover:from-purple-100 hover:to-indigo-100 transition-all duration-200 hover:shadow-md"
                         onClick={() => handleSmartSuggestionSelect(suggestion)}
                       >
-                        <div className="flex items-start space-x-3">
-                          <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-sm">
-                            <div className="w-4 h-4 bg-white rounded-sm"></div>
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-sm">
+                            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                            </svg>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-gray-900 text-sm">
-                              {suggestion.text}
+                          <div className="flex-1">
+                            <p className="font-semibold text-purple-800 text-sm">
+                              나중에 알림 설정
                             </p>
-                            <p className="text-xs text-gray-600 mt-1 truncate">
-                              {suggestion.reminderText || suggestion.result}
+                            <p className="text-xs text-purple-600 mt-1">
+                              30분 후 자동으로 알림을 보내드립니다
                             </p>
+                          </div>
+                          <div className="text-purple-500">
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                            </svg>
                           </div>
                         </div>
                       </div>
                     ))}
                   </div>
                   
-                  <div className="p-4 border-t border-gray-200 flex space-x-3">
+                  {/* 버튼 섹션 */}
+                  <div className="p-4 bg-gray-50 border-t border-gray-100 space-y-2">
                     <button
                       onClick={() => {
                         // 원본 음성 메시지 전송
@@ -5707,9 +5737,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                         setShowSmartSuggestions(false);
                         setSmartSuggestions([]);
                       }}
-                      className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                      className="w-full px-4 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors text-sm font-medium shadow-sm"
                     >
-                      알림설정 하지 않고 메시지 보내기
+                      알림 없이 바로 전송
                     </button>
                     <button
                       onClick={() => {
@@ -5722,7 +5752,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                         setShowSmartSuggestions(false);
                         setSmartSuggestions([]);
                       }}
-                      className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+                      className="w-full px-4 py-2 text-gray-500 hover:text-gray-700 transition-colors text-sm"
                     >
                       취소
                     </button>
