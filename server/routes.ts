@@ -148,15 +148,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.markPhoneVerificationAsUsed(verification.id);
 
       // 사용자 찾기 또는 생성
-      let user = await storage.getUserByUsername(phoneNumber.replace(/[^\d]/g, ''));
+      let user = await storage.getUserByPhoneNumber(fullPhoneNumber);
       
       if (!user) {
         const hashedPassword = await bcrypt.hash("phone_auth_temp", 10);
+        const cleanPhoneNumber = phoneNumber.replace(/[^\d]/g, '');
+        const timestamp = Date.now();
         const userData = insertUserSchema.parse({
-          username: `user_${phoneNumber.replace(/[^\d]/g, '').slice(-8)}`,
+          username: `user_${cleanPhoneNumber}_${timestamp}`,
           displayName: `사용자 ${phoneNumber.slice(-4)}`,
-          phoneNumber: phoneNumber,
-          email: `${phoneNumber.replace(/[^\d]/g, '')}@phone.local`,
+          phoneNumber: fullPhoneNumber,
+          email: `${cleanPhoneNumber}@phone.local`,
           password: hashedPassword,
           isEmailVerified: true,
           isProfileComplete: true,
@@ -165,7 +167,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // 사용자 온라인 상태 업데이트
-      await storage.updateUser(user.id, { isOnline: true, phoneNumber });
+      await storage.updateUser(user.id, { isOnline: true, phoneNumber: fullPhoneNumber });
 
       res.json({ user });
     } catch (error) {
