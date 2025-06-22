@@ -4597,18 +4597,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     )}
                   </div>
                   
-                  <GestureQuickReply
-                    messageId={msg.id}
-                    onQuickReply={handleQuickReply}
-                    onSwipeReply={handleSwipeReply}
-                    className={cn(
-                      "flex flex-col",
-                      msg.replyToMessageId ? "max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl" : "max-w-xs sm:max-w-sm md:max-w-md lg:max-w-xl",
-                      isMe ? "items-end" : "items-start",
-                      "min-w-0 break-words"
-                    )}
-                  >
-                    <div>
+                  <div className={cn(
+                    "flex flex-col",
+                    msg.replyToMessageId ? "max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl" : "max-w-xs sm:max-w-sm md:max-w-md lg:max-w-xl",
+                    isMe ? "items-end" : "items-start",
+                    "min-w-0 break-words"
+                  )}>
                     {!isMe && (
                       <div className="flex items-center space-x-2 mb-1">
                         <span className="text-xs font-semibold text-gray-700">
@@ -5234,7 +5228,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                         </div>
                       )}
                     </div>
-                  </GestureQuickReply>
+                  </div>
                 </div>
               </div>
             );
