@@ -164,12 +164,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // 사용자 온라인 상태 업데이트
-      await storage.updateUser(user.id, { isOnline: true, phoneNumber: fullPhoneNumber });
+      const updatedUser = await storage.updateUser(user.id, { isOnline: true, phoneNumber: fullPhoneNumber });
 
       // 성공적으로 로그인 완료된 후에만 인증 코드를 사용됨으로 표시
       await storage.markPhoneVerificationAsUsed(verification.id);
 
-      res.json({ user });
+      // 업데이트된 사용자 정보가 있으면 사용하고, 없으면 원본 사용자 정보 사용
+      res.json({ user: updatedUser || user });
     } catch (error) {
       console.error("SMS verify error:", error);
       res.status(500).json({ message: "인증에 실패했습니다." });
