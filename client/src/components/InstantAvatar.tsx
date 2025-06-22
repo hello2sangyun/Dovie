@@ -48,6 +48,7 @@ export const InstantAvatar = memo(function InstantAvatar({
   isOnline = false
 }: InstantAvatarProps) {
   const [displaySrc, setDisplaySrc] = useState<string | null>(null);
+  const [forceUpdate, setForceUpdate] = useState(0);
   const [showFallback, setShowFallback] = useState(false);
   const { getInstantImage } = useInstantImageCache();
 
@@ -88,7 +89,24 @@ export const InstantAvatar = memo(function InstantAvatar({
     // 캐시에 없으면 원본 URL 사용
     setDisplaySrc(optimizedSrc);
     setShowFallback(false);
-  }, [src, getInstantImage]);
+  }, [src, getInstantImage, forceUpdate]);
+
+  // 프로필 이미지 업데이트 이벤트 리스너
+  useEffect(() => {
+    const handleProfileImageUpdate = (event: CustomEvent) => {
+      const { newUrl } = event.detail;
+      // 현재 src와 새 URL이 관련된 경우 강제로 다시 렌더링
+      if (src && (src.includes('profile_') || newUrl.includes('profile_'))) {
+        setForceUpdate(prev => prev + 1);
+      }
+    };
+
+    window.addEventListener('profileImageUpdated', handleProfileImageUpdate as EventListener);
+    
+    return () => {
+      window.removeEventListener('profileImageUpdated', handleProfileImageUpdate as EventListener);
+    };
+  }, [src]);
 
   return (
     <div className="relative">
