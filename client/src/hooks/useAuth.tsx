@@ -21,7 +21,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 
   // Try to get user from localStorage on app start
-  const storedUserId = localStorage.getItem("userId");
+  const [storedUserId, setStoredUserId] = useState<string | null>(null);
+  
+  // Initialize stored user ID on component mount
+  useEffect(() => {
+    const userId = localStorage.getItem("userId");
+    setStoredUserId(userId);
+  }, []);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["/api/auth/me"],
@@ -157,11 +163,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Clear user data if authentication fails
       console.log("❌ Authentication failed, clearing user data");
       setUser(null);
+      setStoredUserId(null);
       localStorage.removeItem("userId");
       setInitialized(true);
       setProfileImagesLoaded(false);
       setIsPreloadingImages(false);
-    } else if (!storedUserId) {
+    } else if (storedUserId === null || !storedUserId) {
       // No stored user ID, mark as initialized
       setInitialized(true);
       setProfileImagesLoaded(false);
@@ -174,6 +181,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(newUser);
     if (!newUser) {
       localStorage.removeItem("userId");
+      setStoredUserId(null);
+    } else {
+      localStorage.setItem("userId", newUser.id.toString());
+      setStoredUserId(newUser.id.toString());
     }
   };
 
