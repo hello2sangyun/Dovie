@@ -110,6 +110,9 @@ export interface IStorage {
   removeMessageReaction(messageId: number, userId: number, emoji: string): Promise<void>;
   getMessageReactions(messageId: number): Promise<Array<{ emoji: string; emojiName: string; count: number; userReacted: boolean; userId?: number }>>;
   getMessageReactionSuggestions(messageId: number): Promise<Array<{ emoji: string; name: string; confidence: number }>>;
+
+  // Hashtag operations
+  getRelatedHashtags(userId: number, hashtag: string): Promise<string[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -898,6 +901,57 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(commands.createdAt));
 
     return results;
+  }
+
+  // Get hashtags that have been used together with the specified hashtag
+  async getRelatedHashtags(userId: number, hashtag: string): Promise<string[]> {
+    try {
+      // Find all commands containing the specified hashtag
+      const commandsWithHashtag = await db
+        .select({ messageId: commands.messageId })
+        .from(commands)
+        .where(
+          and(
+            eq(commands.userId, userId),
+            eq(commands.commandName, hashtag)
+          )
+        );
+
+      if (commandsWithHashtag.length === 0) {
+        return [];
+      }
+
+      // Get message IDs that contain the specified hashtag
+      const messageIds = commandsWithHashtag
+        .map(cmd => cmd.messageId)
+        .filter((id): id is number => id !== null);
+
+      if (messageIds.length === 0) {
+        return [];
+      }
+
+      // Find all other hashtags used in the same messages
+      const relatedCommands = await db
+        .select({ commandName: commands.commandName })
+        .from(commands)
+        .where(
+          and(
+            eq(commands.userId, userId),
+            inArray(commands.messageId, messageIds),
+            ne(commands.commandName, hashtag) // Exclude the original hashtag
+          )
+        );
+
+      // Extract unique hashtags and return them
+      const uniqueHashtags = Array.from(
+        new Set(relatedCommands.map(cmd => cmd.commandName))
+      );
+
+      return uniqueHashtags;
+    } catch (error) {
+      console.error('Error getting related hashtags:', error);
+      return [];
+    }
   }
 }
 

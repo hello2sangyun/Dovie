@@ -4651,5 +4651,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Hashtag completion API - finds hashtags that were used together with the specified hashtag
+  app.get("/api/hashtags/complete", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { hashtag } = req.query;
+      
+      if (!hashtag || typeof hashtag !== 'string') {
+        return res.status(400).json({ message: "Hashtag parameter is required" });
+      }
+
+      // Remove # prefix if present
+      const cleanHashtag = hashtag.replace(/^#/, '');
+      
+      // Find commands that contain this hashtag and extract other hashtags from the same messages
+      const relatedHashtags = await storage.getRelatedHashtags(Number(userId), cleanHashtag);
+      
+      res.json({ hashtags: relatedHashtags });
+    } catch (error) {
+      console.error("Hashtag completion error:", error);
+      res.status(500).json({ message: "Failed to get hashtag suggestions" });
+    }
+  });
+
   return httpServer;
 }

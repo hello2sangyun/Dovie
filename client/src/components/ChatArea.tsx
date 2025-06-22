@@ -300,6 +300,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [showYoutubeModal, setShowYoutubeModal] = useState(false);
   const [youtubeSearchQuery, setYoutubeSearchQuery] = useState("");
 
+  // Hashtag auto-completion state
+  const [showHashtagSuggestions, setShowHashtagSuggestions] = useState(false);
+  const [hashtagSuggestions, setHashtagSuggestions] = useState<string[]>([]);
+  const [hashtagTrigger, setHashtagTrigger] = useState<string>("");
+
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
   
   // Voice message preview modal state
@@ -3664,6 +3669,59 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
     setUiAdaptations(adaptations);
     generateAdaptiveActions(mode, urgency);
+  };
+
+  // Hashtag auto-completion function
+  const fetchHashtagSuggestions = async (hashtag: string) => {
+    try {
+      const response = await fetch(`/api/hashtags/complete?hashtag=${encodeURIComponent(hashtag)}`, {
+        headers: {
+          'x-user-id': user!.id.toString(),
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        return data.hashtags || [];
+      }
+    } catch (error) {
+      console.log('Failed to fetch hashtag suggestions:', error);
+    }
+    return [];
+  };
+
+  // Detect hashtag patterns and show suggestions
+  const checkForHashtagCompletion = async (text: string) => {
+    // Look for hashtag followed by space pattern (e.g., "#cb ")
+    const hashtagMatch = text.match(/#(\w+)\s+$/);
+    
+    if (hashtagMatch) {
+      const hashtag = hashtagMatch[1];
+      setHashtagTrigger(hashtag);
+      
+      const suggestions = await fetchHashtagSuggestions(hashtag);
+      if (suggestions.length > 0) {
+        setHashtagSuggestions(suggestions);
+        setShowHashtagSuggestions(true);
+      } else {
+        setShowHashtagSuggestions(false);
+      }
+    } else {
+      setShowHashtagSuggestions(false);
+      setHashtagSuggestions([]);
+      setHashtagTrigger("");
+    }
+  };
+
+  // Handle hashtag suggestion selection
+  const handleHashtagSelect = (hashtag: string) => {
+    const currentText = message;
+    // Replace the last hashtag pattern with the selected one
+    const newText = currentText.replace(/#\w+\s+$/, `#${hashtagTrigger} #${hashtag} `);
+    setMessage(newText);
+    setShowHashtagSuggestions(false);
+    setHashtagSuggestions([]);
+    setHashtagTrigger("");
   };
 
   const generateAdaptiveActions = (mode: string, urgency: string) => {
