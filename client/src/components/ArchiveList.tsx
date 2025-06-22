@@ -17,9 +17,20 @@ function SearchResults({ searchTerm, filterType, sortBy, onCommandClick }: {
 }) {
   const { user } = useAuth();
   
-  const { data: commandsData, isLoading } = useQuery({
+  // 다중 해시태그 검색 감지
+  const detectMultipleHashtags = (searchText: string) => {
+    const hashtagPattern = /#[\w가-힣]+/g;
+    const matches = searchText.match(hashtagPattern);
+    return matches ? matches.map(tag => tag.substring(1)) : [];
+  };
+
+  const hashtags = detectMultipleHashtags(searchTerm);
+  const isMultiHashtagSearch = hashtags.length > 1;
+
+  // 일반 검색 쿼리
+  const { data: commandsData, isLoading: isLoadingCommands } = useQuery({
     queryKey: ["/api/commands", { search: searchTerm }],
-    enabled: !!user,
+    enabled: !!user && !isMultiHashtagSearch,
     queryFn: async () => {
       const params = new URLSearchParams();
       if (searchTerm) params.append("search", searchTerm);
@@ -34,7 +45,47 @@ function SearchResults({ searchTerm, filterType, sortBy, onCommandClick }: {
     refetchOnWindowFocus: false,
   });
 
-  const commands = commandsData?.commands || [];
+  // 다중 해시태그 검색 쿼리
+  const { data: multiHashtagData, isLoading: isLoadingMultiHashtag } = useQuery({
+    queryKey: ["/api/commands/search-hashtags", { hashtags }],
+    enabled: !!user && isMultiHashtagSearch,
+    queryFn: async () => {
+      const response = await fetch(`/api/commands/search-hashtags`, {
+        method: 'POST',
+        headers: { 
+          "Content-Type": "application/json",
+          "x-user-id": user!.id.toString() 
+        },
+        body: JSON.stringify({ hashtags })
+      });
+      if (!response.ok) throw new Error("Failed to search hashtags");
+      return response.json();
+    },
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const isLoading = isLoadingCommands || isLoadingMultiHashtag;
+
+  // 검색 결과 통합 처리
+  const commands = useMemo(() => {
+    if (isMultiHashtagSearch) {
+      // 다중 해시태그 검색 결과를 명령 형태로 변환
+      const files = multiHashtagData?.files || [];
+      return files.map((file: any) => ({
+        id: `file_${file.messageId}`,
+        commandName: `다중 해시태그 파일: ${file.originalFileName}`,
+        fileName: file.originalFileName,
+        savedText: `파일명: ${file.originalFileName}\n크기: ${file.fileSize} bytes\n해시태그: ${file.hashtags.join(' ')}`,
+        createdAt: new Date().toISOString(),
+        messageId: file.messageId,
+        isMultiHashtagResult: true,
+        hashtags: file.hashtags,
+        fileData: file
+      }));
+    }
+    return commandsData?.commands || [];
+  }, [commandsData, multiHashtagData, isMultiHashtagSearch]);
   
   // 필터링 및 정렬 로직
   const filteredAndSortedCommands = useMemo(() => {
@@ -138,19 +189,41 @@ function SearchResults({ searchTerm, filterType, sortBy, onCommandClick }: {
                     <h4 className="font-medium text-gray-900 truncate">
                       {command.commandName || command.fileName || "제목 없음"}
                     </h4>
-                    <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
-                      {formatDate(command.createdAt)}
-                    </span>
+                    <div className="flex items-center space-x-2">
+                      {command.isMultiHashtagResult && (
+                        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+                          다운로드 가능
+                        </span>
+                      )}
+                      <span className="text-xs text-gray-500 flex-shrink-0">
+                        {formatDate(command.createdAt)}
+                      </span>
+                    </div>
                   </div>
-                  {command.fileName && command.commandName && (
+                  {command.fileName && command.commandName && !command.isMultiHashtagResult && (
                     <p className="text-sm text-gray-600 mt-1">
                       파일: {command.fileName}
                     </p>
                   )}
-                  {command.savedText && (
+                  {command.hashtags && command.isMultiHashtagResult && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {command.hashtags.map((hashtag: string, index: number) => (
+                        <span key={index} className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
+                          {hashtag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {command.savedText && !command.isMultiHashtagResult && (
                     <p className="text-sm text-gray-600 mt-1 line-clamp-2">
                       {command.savedText.substring(0, 100)}...
                     </p>
+                  )}
+                  {command.isMultiHashtagResult && (
+                    <div className="flex items-center mt-2 text-sm text-purple-600">
+                      <Download className="h-4 w-4 mr-1" />
+                      클릭하여 파일 다운로드
+                    </div>
                   )}
                 </div>
               </div>
@@ -184,10 +257,39 @@ export default function ArchiveList() {
     debouncedSetSearch(searchInput);
   }, [searchInput, debouncedSetSearch]);
 
-  const handleCommandClick = useCallback((command: any) => {
-    setSelectedCommand(command);
-    setShowPreview(true);
-  }, []);
+  const handleCommandClick = useCallback(async (command: any) => {
+    if (command.isMultiHashtagResult) {
+      // 다중 해시태그 검색 결과의 파일 다운로드
+      try {
+        const response = await fetch(`/api/messages/${command.messageId}/download`, {
+          headers: { "x-user-id": user!.id.toString() },
+        });
+        
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = command.fileName;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+          
+          // 다운로드 성공 알림
+          console.log(`📁 파일 다운로드 완료: ${command.fileName}`);
+        } else {
+          console.error('파일 다운로드 실패');
+        }
+      } catch (error) {
+        console.error('파일 다운로드 오류:', error);
+      }
+    } else {
+      // 일반 명령 미리보기
+      setSelectedCommand(command);
+      setShowPreview(true);
+    }
+  }, [user]);
 
   // 기본 데이터 조회 (한 번만)
   const { data: allCommandsData } = useQuery({

@@ -487,6 +487,18 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Strengthened silent recording detection with minimum 5-character threshold
   - Empty or meaningless voice messages now automatically cancel without user notification
   - Eliminated false transcriptions from OpenAI Whisper's Korean language model hallucinations
+- June 22, 2025: Redesigned notification settings popup with modern UX/UI:
+  - Replaced childish design with professional gradient headers and clean content sections
+  - Enhanced user experience with intuitive button text and modern visual hierarchy
+  - Implemented backdrop blur and rounded corners for contemporary aesthetic
+  - Clear separation between header, content, and action sections for better usability
+- June 22, 2025: Implemented advanced multi-hashtag search system with file retrieval:
+  - Enhanced hashtag detection to support multiple hashtags in single search query (#cb #statement)
+  - Created intelligent intersection search that finds files containing ALL specified hashtags
+  - Added smart recommendation system that displays matching files with download capability
+  - Implemented automatic file re-download functionality for retrieved search results
+  - Enhanced search performance with server-side hashtag grouping and file metadata extraction
+  - Users can now search complex hashtag combinations and instantly access matching files
 
 ## User Preferences
 
