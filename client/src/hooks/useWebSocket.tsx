@@ -263,11 +263,11 @@ export function useWebSocket(userId?: number) {
           
           console.log(`WebSocket disconnected. Reconnecting in ${reconnectDelay}ms (attempt ${currentAttempts})`);
           
-          // Show connection lost notification for first disconnect
-          if (currentAttempts === 1) {
+          // Only show connection lost notification after multiple failed attempts
+          if (currentAttempts >= 3) {
             showNotification({
-              title: "연결 끊김",
-              description: "채팅 서버와의 연결이 끊어졌습니다. 재연결 중...",
+              title: "연결 불안정",
+              description: "네트워크 연결을 확인해주세요.",
               variant: "destructive",
               duration: 4000
             });

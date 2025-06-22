@@ -77,7 +77,12 @@ export function ConnectionStatusIndicator({
   }
   
   // Don't show brief disconnection notices - only show after significant reconnection attempts
-  if (!connectionState.isConnected && !connectionState.isReconnecting && connectionState.reconnectAttempts < 5) {
+  if (!connectionState.isConnected && connectionState.reconnectAttempts < 3) {
+    return null;
+  }
+  
+  // Don't show if reconnecting with few attempts
+  if (connectionState.isReconnecting && connectionState.reconnectAttempts < 2) {
     return null;
   }
 
