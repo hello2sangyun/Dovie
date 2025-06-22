@@ -298,6 +298,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   // 리마인더 모달 상태
   const [showReminderModal, setShowReminderModal] = useState(false);
   const [reminderText, setReminderText] = useState("");
+
+
   const [showYoutubeModal, setShowYoutubeModal] = useState(false);
   const [youtubeSearchQuery, setYoutubeSearchQuery] = useState("");
 
@@ -4625,26 +4627,31 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       </div>
                     )}
 
-                    <div 
-                      className={cn(
-                        "rounded-2xl px-3 py-2 w-fit max-w-[280px] sm:max-w-[400px] break-words cursor-pointer select-none relative overflow-hidden",
-                        // Enhanced shadows and modern design
-                        // 시스템 메시지 (리마인더)는 해시태그 회상과 같은 스타일 적용
-                        msg.isSystemMessage
-                          ? "bg-gradient-to-br from-teal-50 to-cyan-50 text-teal-900 shadow-md border border-teal-200/50 backdrop-blur-sm"
-                          : msg.isCommandRecall && msg.isLocalOnly
-                            ? isMe 
-                              ? "bg-gradient-to-br from-teal-500 to-teal-600 text-white shadow-lg shadow-teal-500/25 border border-teal-400/30 rounded-tr-md backdrop-blur-sm" 
-                              : "bg-gradient-to-br from-teal-50 to-cyan-50 text-teal-900 shadow-md border border-teal-200/50 rounded-tl-md backdrop-blur-sm"
-                            : isMe 
-                              ? "bg-gradient-to-br from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/25 rounded-tr-md backdrop-blur-sm hover:shadow-xl hover:shadow-purple-500/30 transition-all duration-300" 
-                              : "bg-gradient-to-br from-white to-gray-50 text-gray-900 shadow-md shadow-gray-200/50 border border-gray-200/80 rounded-tl-md backdrop-blur-sm hover:shadow-lg hover:shadow-gray-300/40 transition-all duration-300"
-                      )}
-                      style={{ 
-                        userSelect: 'none',
-                        WebkitUserSelect: 'none',
-                        MozUserSelect: 'none',
-                        msUserSelect: 'none',
+                    <GestureQuickReply
+                      messageId={msg.id}
+                      onQuickReply={handleQuickReply}
+                      onSwipeReply={handleSwipeReply}
+                    >
+                      <div 
+                        className={cn(
+                          "rounded-2xl px-3 py-2 w-fit max-w-[280px] sm:max-w-[400px] break-words cursor-pointer select-none relative overflow-hidden",
+                          // Enhanced shadows and modern design
+                          // 시스템 메시지 (리마인더)는 해시태그 회상과 같은 스타일 적용
+                          msg.isSystemMessage
+                            ? "bg-gradient-to-br from-teal-50 to-cyan-50 text-teal-900 shadow-md border border-teal-200/50 backdrop-blur-sm"
+                            : msg.isCommandRecall && msg.isLocalOnly
+                              ? isMe 
+                                ? "bg-gradient-to-br from-teal-500 to-teal-600 text-white shadow-lg shadow-teal-500/25 border border-teal-400/30 rounded-tr-md backdrop-blur-sm" 
+                                : "bg-gradient-to-br from-teal-50 to-cyan-50 text-teal-900 shadow-md border border-teal-200/50 rounded-tl-md backdrop-blur-sm"
+                              : isMe 
+                                ? "bg-gradient-to-br from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/25 rounded-tr-md backdrop-blur-sm hover:shadow-xl hover:shadow-purple-500/30 transition-all duration-300" 
+                                : "bg-gradient-to-br from-white to-gray-50 text-gray-900 shadow-md shadow-gray-200/50 border border-gray-200/80 rounded-tl-md backdrop-blur-sm hover:shadow-lg hover:shadow-gray-300/40 transition-all duration-300"
+                        )}
+                        style={{ 
+                          userSelect: 'none',
+                          WebkitUserSelect: 'none',
+                          MozUserSelect: 'none',
+                          msUserSelect: 'none',
                         WebkitTouchCallout: 'none'
                       }}
                       onContextMenu={(e) => handleMessageRightClick(e, msg)}
@@ -5228,6 +5235,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                         </div>
                       )}
                     </div>
+                    </GestureQuickReply>
                   </div>
                 </div>
               </div>
