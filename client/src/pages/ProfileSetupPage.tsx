@@ -104,8 +104,8 @@ export default function ProfileSetupPage() {
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-50 flex items-center justify-center">
-      <div className="w-full max-w-md p-8 animate-slide-up">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8 px-4 overflow-y-auto">
+      <div className="w-full max-w-md animate-slide-up">
         <div className="text-center mb-8">
           <VaultLogo size="lg" className="mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">프로필 설정</h2>
