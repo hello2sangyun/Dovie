@@ -19,7 +19,7 @@ function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: numbe
     makeAspectCrop(
       {
         unit: '%',
-        width: 90,
+        width: 50, // 더 작은 초기 크롭 영역으로 전체 이미지를 더 잘 보이게 함
       },
       aspect,
       mediaWidth,
@@ -57,37 +57,42 @@ export default function ProfilePhotoUpload({ isOpen, onClose }: ProfilePhotoUplo
       });
       
       if (!response.ok) {
-        throw new Error("업로드 실패");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "업로드 실패");
       }
       
       return response.json();
     },
     onSuccess: async (data) => {
-      // Update user context immediately
-      setUser(prev => prev ? { ...prev, profilePicture: data.profilePicture } : prev);
+      console.log("Profile photo uploaded successfully:", data);
       
-      // Invalidate all related queries
+      // 모든 관련 쿼리 무효화 및 재로드
       await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       await queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
       await queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
       
-      // Refetch user data to ensure consistency
+      // 사용자 데이터 다시 가져오기
       await queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
+      
+      // 전역 이미지 캐시 무효화 (InstantAvatar 컴포넌트용)
+      if ((window as any).globalImageCache && data.profilePicture) {
+        (window as any).globalImageCache.delete(data.profilePicture);
+      }
       
       toast({
         title: "프로필 사진 업데이트 완료",
-        description: "프로필 사진이 성공적으로 변경되었습니다.",
+        description: "프로필 사진이 성공적으로 변경되었습니다. 다른 사용자들에게도 표시됩니다.",
       });
       onClose();
       setImgSrc("");
       setCrop(undefined);
       setCompletedCrop(undefined);
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
         variant: "destructive",
         title: "업로드 실패",
-        description: "프로필 사진 업로드 중 오류가 발생했습니다.",
+        description: error.message || "프로필 사진 업로드 중 오류가 발생했습니다.",
       });
     },
     onSettled: () => {
@@ -179,7 +184,7 @@ export default function ProfilePhotoUpload({ isOpen, onClose }: ProfilePhotoUplo
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg max-w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Camera className="w-5 h-5" />
@@ -211,25 +216,34 @@ export default function ProfilePhotoUpload({ isOpen, onClose }: ProfilePhotoUplo
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="max-h-96 overflow-hidden rounded-lg border">
+              <div className="max-h-96 overflow-auto rounded-lg border bg-gray-50">
                 <ReactCrop
                   crop={crop}
                   onChange={(_, percentCrop) => setCrop(percentCrop)}
                   onComplete={(c) => setCompletedCrop(c)}
                   aspect={1}
-                  minWidth={100}
-                  minHeight={100}
+                  minWidth={50}
+                  minHeight={50}
                   circularCrop
+                  className="flex justify-center items-center"
                 >
                   <img
                     ref={imgRef}
                     alt="크롭할 이미지"
                     src={imgSrc}
                     onLoad={onImageLoad}
-                    className="max-w-full h-auto"
+                    className="w-full h-auto object-contain"
+                    style={{ 
+                      maxWidth: 'none', 
+                      maxHeight: 'none',
+                      display: 'block'
+                    }}
                   />
                 </ReactCrop>
               </div>
+              <p className="text-sm text-gray-600 text-center">
+                원본 이미지 전체가 표시됩니다. 드래그하여 프로필 사진으로 사용할 부분을 선택하세요.
+              </p>
 
               <div className="flex space-x-2">
                 <Button
