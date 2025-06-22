@@ -568,6 +568,12 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Created responsive search inputs with purple focus states and proper padding
   - Added settings tab header with clean title display for navigation consistency
   - Mobile users now have full access to search functionality across all interface sections
+- June 22, 2025: Removed business-related menu items from PC version settings:
+  - Eliminated '디지털명함' (Digital Business Card) menu item from business section
+  - Removed 'Business Space' menu item and associated functionality
+  - Cleaned up all related conditional rendering sections and business content handlers
+  - Streamlined settings interface to focus on essential core features only
+  - PC version now has cleaner, more focused settings menu without business clutter
 
 ## User Preferences
 
