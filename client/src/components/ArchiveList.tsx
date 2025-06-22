@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -6,22 +6,36 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter, Download, FileText, Code, Quote, FileImage, FileSpreadsheet, File, Video } from "lucide-react";
 import PreviewModal from "./PreviewModal";
+import { debounce } from "@/lib/utils";
 
 export default function ArchiveList() {
   const { user } = useAuth();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
   const [selectedCommand, setSelectedCommand] = useState<any>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
+  // Debounced search implementation
+  const debouncedSetSearch = useMemo(
+    () => debounce((searchTerm: string) => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500),
+    []
+  );
+
+  useEffect(() => {
+    debouncedSetSearch(searchInput);
+  }, [searchInput, debouncedSetSearch]);
+
   const { data: commandsData, isLoading } = useQuery({
-    queryKey: ["/api/commands", { search: searchTerm }],
+    queryKey: ["/api/commands", { search: debouncedSearchTerm }],
     enabled: !!user,
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (searchTerm) params.append("search", searchTerm);
+      if (debouncedSearchTerm) params.append("search", debouncedSearchTerm);
       
       const response = await fetch(`/api/commands?${params}`, {
         headers: { "x-user-id": user!.id.toString() },
@@ -29,6 +43,8 @@ export default function ArchiveList() {
       if (!response.ok) throw new Error("Failed to fetch commands");
       return response.json();
     },
+    staleTime: 30 * 1000, // Cache for 30 seconds
+    refetchOnWindowFocus: false, // Prevent refetch on focus
   });
 
   const commands = commandsData?.commands || [];
@@ -163,10 +179,10 @@ export default function ArchiveList() {
     
     const hashtagArray = Array.from(allHashtags);
     
-    // Filter based on current search term
-    if (searchTerm) {
+    // Filter based on current search input
+    if (searchInput) {
       const filtered = hashtagArray.filter(tag => 
-        tag.toLowerCase().includes(searchTerm.toLowerCase())
+        tag.toLowerCase().includes(searchInput.toLowerCase())
       );
       return filtered.slice(0, 6); // Show top 6 suggestions
     }
@@ -198,10 +214,10 @@ export default function ArchiveList() {
     
     const suggestionsArray = Array.from(suggestions);
     
-    if (searchTerm) {
+    if (searchInput) {
       const filtered = suggestionsArray.filter(suggestion => 
-        suggestion.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        suggestion.toLowerCase() !== searchTerm.toLowerCase()
+        suggestion.toLowerCase().includes(searchInput.toLowerCase()) &&
+        suggestion.toLowerCase() !== searchInput.toLowerCase()
       );
       return filtered.slice(0, 4);
     }
@@ -241,8 +257,8 @@ export default function ArchiveList() {
           <Input
             type="text"
             placeholder="다중 해시태그 검색... (예: #회의 #문서, #중요 #업무)"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
             onFocus={() => setShowSuggestions(true)}
             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
             className="pl-10"
@@ -260,7 +276,7 @@ export default function ArchiveList() {
                       <button
                         key={index}
                         onClick={() => {
-                          setSearchTerm(hashtag);
+                          setSearchInput(hashtag);
                           setShowSuggestions(false);
                         }}
                         className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full hover:bg-blue-100 transition-colors"
@@ -281,7 +297,7 @@ export default function ArchiveList() {
                       <button
                         key={index}
                         onClick={() => {
-                          setSearchTerm(suggestion);
+                          setSearchInput(suggestion);
                           setShowSuggestions(false);
                         }}
                         className="block w-full text-left px-2 py-1 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
@@ -302,13 +318,13 @@ export default function ArchiveList() {
             </div>
           )}
           
-          {searchTerm && (
+          {searchInput && (
             <div className="text-xs text-gray-500 mt-1">
-              {searchTerm.includes(' ') || searchTerm.includes(',') ? 
-                `다중 해시태그 검색: "${searchTerm}" (모든 태그가 포함된 자료 검색)` :
-                searchTerm.startsWith('#') ? 
-                  `해시태그 "${searchTerm}" 검색 중...` : 
-                  `"${searchTerm}" 검색 중... (해시태그 검색: #${searchTerm})`
+              {searchInput.includes(' ') || searchInput.includes(',') ? 
+                `다중 해시태그 검색: "${searchInput}" (모든 태그가 포함된 자료 검색)` :
+                searchInput.startsWith('#') ? 
+                  `해시태그 "${searchInput}" 검색 중...` : 
+                  `"${searchInput}" 검색 중... (해시태그 검색: #${searchInput})`
               }
             </div>
           )}
