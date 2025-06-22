@@ -216,34 +216,41 @@ export default function ProfilePhotoUpload({ isOpen, onClose }: ProfilePhotoUplo
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="max-h-96 overflow-auto rounded-lg border bg-gray-50">
-                <ReactCrop
-                  crop={crop}
-                  onChange={(_, percentCrop) => setCrop(percentCrop)}
-                  onComplete={(c) => setCompletedCrop(c)}
-                  aspect={1}
-                  minWidth={50}
-                  minHeight={50}
-                  circularCrop
-                  className="flex justify-center items-center"
-                >
-                  <img
-                    ref={imgRef}
-                    alt="크롭할 이미지"
-                    src={imgSrc}
-                    onLoad={onImageLoad}
-                    className="w-full h-auto object-contain"
-                    style={{ 
-                      maxWidth: 'none', 
-                      maxHeight: 'none',
-                      display: 'block'
-                    }}
-                  />
-                </ReactCrop>
+              <div className="w-full max-h-[50vh] overflow-auto rounded-lg border bg-gray-100 p-2">
+                <div className="flex justify-center items-center min-h-[200px]">
+                  <ReactCrop
+                    crop={crop}
+                    onChange={(_, percentCrop) => setCrop(percentCrop)}
+                    onComplete={(c) => setCompletedCrop(c)}
+                    aspect={1}
+                    minWidth={30}
+                    minHeight={30}
+                    circularCrop
+                  >
+                    <img
+                      ref={imgRef}
+                      alt="크롭할 이미지"
+                      src={imgSrc}
+                      onLoad={onImageLoad}
+                      className="max-w-full max-h-full object-contain"
+                      style={{ 
+                        minWidth: '200px',
+                        minHeight: '200px',
+                        maxWidth: '100%',
+                        maxHeight: '400px'
+                      }}
+                    />
+                  </ReactCrop>
+                </div>
               </div>
-              <p className="text-sm text-gray-600 text-center">
-                원본 이미지 전체가 표시됩니다. 드래그하여 프로필 사진으로 사용할 부분을 선택하세요.
-              </p>
+              <div className="text-center space-y-2">
+                <p className="text-sm text-gray-600">
+                  원본 이미지 전체가 표시됩니다. 원하는 부분을 선택하여 프로필 사진을 만드세요.
+                </p>
+                <p className="text-xs text-gray-500">
+                  선택 영역을 드래그하여 크기를 조절하고 위치를 변경할 수 있습니다.
+                </p>
+              </div>
 
               <div className="flex space-x-2">
                 <Button

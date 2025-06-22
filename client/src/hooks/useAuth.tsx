@@ -58,84 +58,102 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       console.log("🚀 Starting profile image preloading...");
       
-      // 연락처 데이터 가져오기
-      const contactsResponse = await fetch("/api/contacts", {
-        headers: { "x-user-id": userId },
+      // 프리로딩 타임아웃 설정 (최대 10초)
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error("Preloading timeout")), 10000);
       });
       
-      // 채팅룸 데이터 가져오기
-      const chatRoomsResponse = await fetch("/api/chat-rooms", {
-        headers: { "x-user-id": userId },
-      });
-      
-      const profileImageUrls = new Set<string>();
-      
-      if (contactsResponse.ok) {
-        const contactsData = await contactsResponse.json();
-        contactsData.contacts?.forEach((contact: any) => {
-          if (contact.contactUser?.profilePicture) {
-            profileImageUrls.add(contact.contactUser.profilePicture);
-          }
+      const preloadingPromise = async () => {
+        // 연락처 데이터 가져오기
+        const contactsResponse = await fetch("/api/contacts", {
+          headers: { "x-user-id": userId },
         });
-      }
-      
-      if (chatRoomsResponse.ok) {
-        const chatRoomsData = await chatRoomsResponse.json();
-        chatRoomsData.chatRooms?.forEach((chatRoom: any) => {
-          if (chatRoom.profilePicture) {
-            profileImageUrls.add(chatRoom.profilePicture);
-          }
-          // 채팅방 참가자 프로필 이미지들도 포함
-          if (chatRoom.participants) {
-            chatRoom.participants.forEach((participant: any) => {
-              if (participant.profilePicture) {
-                profileImageUrls.add(participant.profilePicture);
-              }
-            });
-          }
+        
+        // 채팅룸 데이터 가져오기
+        const chatRoomsResponse = await fetch("/api/chat-rooms", {
+          headers: { "x-user-id": userId },
         });
-      }
-      
-      // 현재 사용자 프로필 이미지도 포함
-      if (data?.user?.profilePicture) {
-        profileImageUrls.add(data.user.profilePicture);
-      }
-      
-      console.log(`📥 Found ${profileImageUrls.size} profile images to preload`);
-      
-      // 모든 프로필 이미지를 병렬로 다운로드
-      const imagePromises = Array.from(profileImageUrls).map(async (imageUrl) => {
-        try {
-          const response = await fetch(imageUrl);
-          if (response.ok) {
-            const blob = await response.blob();
-            const objectUrl = URL.createObjectURL(blob);
-            
-            // 전역 캐시 초기화 (없으면 생성)
-            if (!(window as any).globalImageCache) {
-              (window as any).globalImageCache = new Map();
+        
+        const profileImageUrls = new Set<string>();
+        
+        if (contactsResponse.ok) {
+          const contactsData = await contactsResponse.json();
+          contactsData.contacts?.forEach((contact: any) => {
+            if (contact.contactUser?.profilePicture) {
+              profileImageUrls.add(contact.contactUser.profilePicture);
             }
-            
-            // 이미지 캐시에 저장
-            (window as any).globalImageCache.set(imageUrl, {
-              blob,
-              objectUrl,
-              timestamp: Date.now(),
-              preloaded: true
-            });
-            
-            console.log("✅ Preloaded profile image:", imageUrl);
-          }
-        } catch (error) {
-          console.error("❌ Failed to preload image:", imageUrl, error);
+          });
         }
-      });
+        
+        if (chatRoomsResponse.ok) {
+          const chatRoomsData = await chatRoomsResponse.json();
+          chatRoomsData.chatRooms?.forEach((chatRoom: any) => {
+            if (chatRoom.profilePicture) {
+              profileImageUrls.add(chatRoom.profilePicture);
+            }
+            // 채팅방 참가자 프로필 이미지들도 포함
+            if (chatRoom.participants) {
+              chatRoom.participants.forEach((participant: any) => {
+                if (participant.profilePicture) {
+                  profileImageUrls.add(participant.profilePicture);
+                }
+              });
+            }
+          });
+        }
+        
+        // 현재 사용자 프로필 이미지도 포함
+        if (data?.user?.profilePicture) {
+          profileImageUrls.add(data.user.profilePicture);
+        }
+        
+        console.log(`📥 Found ${profileImageUrls.size} profile images to preload`);
+        
+        // 최대 20개 이미지만 프리로드 (성능 고려)
+        const imagesToPreload = Array.from(profileImageUrls).slice(0, 20);
+        
+        // 모든 프로필 이미지를 병렬로 다운로드 (각각 3초 타임아웃)
+        const imagePromises = imagesToPreload.map(async (imageUrl) => {
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
+            
+            const response = await fetch(imageUrl, { signal: controller.signal });
+            clearTimeout(timeoutId);
+            
+            if (response.ok) {
+              const blob = await response.blob();
+              const objectUrl = URL.createObjectURL(blob);
+              
+              // 전역 캐시 초기화 (없으면 생성)
+              if (!(window as any).globalImageCache) {
+                (window as any).globalImageCache = new Map();
+              }
+              
+              // 이미지 캐시에 저장
+              (window as any).globalImageCache.set(imageUrl, {
+                blob,
+                objectUrl,
+                timestamp: Date.now(),
+                preloaded: true
+              });
+              
+              console.log("✅ Preloaded profile image:", imageUrl);
+            }
+          } catch (error) {
+            console.log("⚠️ Skipped image:", imageUrl);
+          }
+        });
+        
+        await Promise.allSettled(imagePromises);
+        console.log("🎉 Profile image preloading completed!");
+      };
       
-      await Promise.all(imagePromises);
-      console.log("🎉 Profile image preloading completed! Total:", profileImageUrls.size, "images");
+      // 타임아웃과 함께 프리로딩 실행
+      await Promise.race([preloadingPromise(), timeoutPromise]);
       setProfileImagesLoaded(true);
     } catch (error) {
-      console.error("❌ Profile image preloading failed:", error);
+      console.log("⚠️ Profile image preloading timed out or failed, proceeding anyway");
       setProfileImagesLoaded(true); // 실패해도 로그인은 진행
     } finally {
       setIsPreloadingImages(false);
