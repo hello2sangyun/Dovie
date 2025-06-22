@@ -134,6 +134,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // 전화번호 정규화 (저장된 형식과 동일하게)
       const fullPhoneNumber = countryCode.startsWith('+') ? `${countryCode}${phoneNumber}` : `+${countryCode}${phoneNumber}`;
+      
+      console.log(`SMS 인증 확인 시도: ${fullPhoneNumber}, 코드: ${verificationCode}`);
 
       // 인증 코드 확인
       const verification = await storage.getPhoneVerification(fullPhoneNumber, verificationCode);

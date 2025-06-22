@@ -87,8 +87,8 @@ export default function PhoneLogin() {
     }
 
     sendSMSMutation.mutate({
-      phoneNumber: `${selectedCountry.dialCode}${phoneNumber}`,
-      countryCode: selectedCountry.code,
+      phoneNumber: phoneNumber,
+      countryCode: selectedCountry.dialCode,
     });
   };
 
