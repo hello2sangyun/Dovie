@@ -79,7 +79,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
       try {
-        // 실제 SMS 전송
+        // 실제 SMS 전송 시도
         const message = await client.messages.create({
           body: `Dovie Messenger 인증 코드: ${verificationCode}`,
           from: process.env.TWILIO_PHONE_NUMBER,
@@ -93,13 +93,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: "인증 코드를 전송했습니다.",
           messageSid: message.sid
         });
-      } catch (smsError) {
+      } catch (smsError: any) {
         console.error("Twilio SMS 전송 오류:", smsError);
-        // SMS 전송 실패 시에도 인증 코드는 콘솔에 표시 (개발용)
+        
+        // Trial 계정 제한이나 기타 SMS 전송 실패 시 개발 모드에서는 성공으로 처리
         if (process.env.NODE_ENV === 'development') {
-          console.log(`개발용 인증 코드: ${verificationCode} (${phoneNumber})`);
+          console.log(`🔧 개발 모드: SMS 전송 실패하였지만 테스트를 위해 성공으로 처리`);
+          console.log(`📱 인증 코드: ${verificationCode} (${phoneNumber})`);
+          console.log(`💡 실제 운영환경에서는 Twilio 계정을 업그레이드하거나 번호를 검증해주세요.`);
+          
+          res.json({ 
+            success: true, 
+            message: "개발 모드: 인증 코드가 콘솔에 표시되었습니다.",
+            developmentMode: true,
+            verificationCode: verificationCode // 개발용으로만 포함
+          });
+        } else {
+          // 운영 환경에서는 실제 오류 반환
+          throw new Error("SMS 전송에 실패했습니다. Twilio 계정을 확인해주세요.");
         }
-        throw new Error("SMS 전송에 실패했습니다.");
       }
     } catch (error) {
       console.error("SMS send error:", error);

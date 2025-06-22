@@ -30,10 +30,19 @@ export default function PhoneLogin() {
     onSuccess: (data) => {
       setFullPhoneNumber(`${selectedCountry.dialCode}${phoneNumber}`);
       setStep("verification");
-      toast({
-        title: "인증 코드 전송",
-        description: `${selectedCountry.dialCode}${phoneNumber}로 인증 코드를 전송했습니다.`,
-      });
+      
+      if (data.developmentMode && data.verificationCode) {
+        toast({
+          title: "개발 모드 - 인증 코드",
+          description: `콘솔에 표시된 인증 코드: ${data.verificationCode}`,
+          duration: 10000, // 10초간 표시
+        });
+      } else {
+        toast({
+          title: "인증 코드 전송",
+          description: `${selectedCountry.dialCode}${phoneNumber}로 인증 코드를 전송했습니다.`,
+        });
+      }
     },
     onError: (error: any) => {
       toast({
