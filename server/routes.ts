@@ -307,6 +307,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 프로필 업데이트 API
+  app.patch("/api/users/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const requestUserId = req.headers["x-user-id"];
+      
+      if (!requestUserId || requestUserId !== userId) {
+        return res.status(401).json({ message: "권한이 없습니다." });
+      }
+
+      const { username, displayName, email, phoneNumber, birthday, profilePicture, isProfileComplete } = req.body;
+      
+      // 사용자명 중복 확인 (기존 사용자가 아닌 경우)
+      if (username) {
+        const existingUser = await storage.getUserByUsername(username);
+        if (existingUser && existingUser.id !== Number(userId)) {
+          return res.status(400).json({ message: "이미 사용 중인 사용자명입니다." });
+        }
+      }
+
+      const updateData: any = {};
+      if (username) updateData.username = username;
+      if (displayName) updateData.displayName = displayName;
+      if (email) updateData.email = email;
+      if (phoneNumber) updateData.phoneNumber = phoneNumber;
+      if (birthday) updateData.birthday = birthday;
+      if (profilePicture) updateData.profilePicture = profilePicture;
+      if (typeof isProfileComplete === 'boolean') updateData.isProfileComplete = isProfileComplete;
+
+      const updatedUser = await storage.updateUser(Number(userId), updateData);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+      }
+
+      res.json({ user: updatedUser });
+    } catch (error) {
+      console.error("Profile update error:", error);
+      res.status(500).json({ message: "프로필 업데이트에 실패했습니다." });
+    }
+  });
+
   // 사용자명 중복 체크 API
   app.get("/api/users/check-username/:username", async (req, res) => {
     try {

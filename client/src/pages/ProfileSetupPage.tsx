@@ -18,7 +18,10 @@ export default function ProfileSetupPage() {
   const { toast } = useToast();
   
   const [formData, setFormData] = useState({
+    username: user?.username || "",
     displayName: user?.displayName || "",
+    email: user?.email || "",
+    phoneNumber: user?.phoneNumber || "",
     birthday: "",
     profilePicture: "",
   });
@@ -141,21 +144,71 @@ export default function ProfileSetupPage() {
                 </p>
               </div>
 
-              {/* 닉네임 */}
+              {/* 사용자명 */}
               <div className="space-y-2">
-                <Label htmlFor="displayName">닉네임</Label>
+                <Label htmlFor="username">사용자명 (아이디)</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    id="username"
+                    type="text"
+                    placeholder="고유한 사용자명을 입력해주세요"
+                    value={formData.username}
+                    onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* 표시 이름 */}
+              <div className="space-y-2">
+                <Label htmlFor="displayName">표시 이름</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
                     id="displayName"
                     type="text"
-                    placeholder="표시될 이름을 입력해주세요"
+                    placeholder="다른 사용자에게 표시될 이름"
                     value={formData.displayName}
                     onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
                     className="pl-10"
                     required
                   />
                 </div>
+              </div>
+
+              {/* 이메일 */}
+              <div className="space-y-2">
+                <Label htmlFor="email">이메일</Label>
+                <div className="relative">
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="이메일 주소를 입력해주세요"
+                    value={formData.email}
+                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* 전화번호 */}
+              <div className="space-y-2">
+                <Label htmlFor="phoneNumber">전화번호</Label>
+                <div className="relative">
+                  <Input
+                    id="phoneNumber"
+                    type="tel"
+                    placeholder="전화번호"
+                    value={formData.phoneNumber}
+                    onChange={(e) => setFormData(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                    required
+                    disabled
+                    className="bg-gray-100"
+                  />
+                </div>
+                <p className="text-xs text-gray-500">인증된 전화번호입니다</p>
               </div>
 
               {/* 생년월일 */}

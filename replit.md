@@ -553,6 +553,14 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Added loading states and graceful fallback to default country (Korea) if detection fails
   - Users see "위치 감지 중..." animation while location is being determined
   - Improved user experience by eliminating manual country selection for most users
+- June 22, 2025: Enhanced onboarding flow with comprehensive profile setup:
+  - Fixed JSON response parsing issue in SMS authentication (added .json() calls)
+  - Created comprehensive ProfileSetupPage with all requested fields: username, display name, email, phone number, birthday, and profile picture
+  - Added backend API endpoint for profile updates with validation
+  - New SMS-authenticated users redirect to profile setup before accessing main app
+  - Phone number field is pre-filled and disabled as it's already verified
+  - Profile picture upload with preview functionality maintained
+  - Enhanced user experience with proper form validation and error handling
 
 ## User Preferences
 
