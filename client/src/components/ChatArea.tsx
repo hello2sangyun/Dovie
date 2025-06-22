@@ -5561,6 +5561,31 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                 setMessage(newValue);
                 handleMessageChange(newValue);
                 
+                // 텍스트 높이에 따른 자동 크기 조절
+                const textarea = e.target;
+                const maxHeight = Math.min(window.innerHeight * 0.5, 200); // 화면 높이의 50% 또는 200px 중 작은 값
+                
+                // 높이 초기화 후 스크롤 높이 측정
+                textarea.style.height = '32px';
+                const scrollHeight = textarea.scrollHeight;
+                
+                if (scrollHeight > 32) {
+                  // 텍스트가 한 줄을 넘을 때만 높이 조절
+                  if (scrollHeight <= maxHeight) {
+                    // 최대 높이 이하일 때는 높이 자동 조절
+                    textarea.style.height = scrollHeight + 'px';
+                    textarea.style.overflow = 'hidden';
+                  } else {
+                    // 최대 높이 초과 시 고정 높이와 스크롤
+                    textarea.style.height = maxHeight + 'px';
+                    textarea.style.overflow = 'auto';
+                  }
+                } else {
+                  // 한 줄일 때는 기본 높이와 스크롤 숨김
+                  textarea.style.height = '32px';
+                  textarea.style.overflow = 'hidden';
+                }
+                
                 // 멘션 감지 및 자동완성
                 const cursorPosition = e.target.selectionStart || 0;
                 handleMentionSearch(newValue, cursorPosition);
@@ -5704,8 +5729,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   handleSendMessage();
                 }
               }}
-              className="resize-none min-h-[32px] max-h-[32px] py-1.5 px-3 text-base"
-              style={{ fontSize: '16px', lineHeight: '1.3' }}
+              className="resize-none min-h-[32px] py-1.5 px-3 text-base"
+              style={{ 
+                fontSize: '16px', 
+                lineHeight: '1.3',
+                height: '32px',
+                overflow: 'hidden'
+              }}
             />
             
             {/* # 태그 추천 */}

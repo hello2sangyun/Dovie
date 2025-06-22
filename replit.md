@@ -608,6 +608,13 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Adjusted text padding from py-2 to py-1.5 for tighter vertical spacing
   - Enhanced line-height to 1.3 for optimal text readability in compact design
   - Chat textbox now has more elegant, space-efficient layout with better proportions
+- June 22, 2025: Implemented intelligent textarea auto-resize with scroll management:
+  - Added dynamic height adjustment based on text content to prevent unnecessary scrolling
+  - Textarea automatically expands from 32px baseline up to 50% of screen height (max 200px)
+  - Removed max-height constraint to allow proper content-based sizing
+  - Implemented overflow:hidden for single-line content, overflow:auto only when needed
+  - Text input now grows vertically with content and scrolls only when exceeding maximum height
+  - Enhanced user experience by eliminating empty-state scrolling while maintaining responsive design
 
 ## User Preferences
 
