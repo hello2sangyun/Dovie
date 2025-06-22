@@ -4561,7 +4561,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             {messagesData ? "대화를 시작해보세요!" : "메시지를 불러오는 중..."}
           </div>
         ) : (
-          <>
+          <div>
             {messages.map((msg: any, index: number) => {
             const isMe = msg.senderId === user?.id;
             const showDate = index === 0 || 
@@ -5291,7 +5291,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               </div>
             </div>
           ))}
-        </>
+          </div>
+        )}
         
         {/* Typing Indicator */}
         <TypingIndicator
