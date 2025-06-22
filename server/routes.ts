@@ -1094,6 +1094,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 제스처 기반 퀵 리액션 API 엔드포인트
+  app.post("/api/messages/:messageId/quick-reply", async (req, res) => {
+    const userId = req.session.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const messageId = parseInt(req.params.messageId);
+      const { content, type } = req.body;
+
+      if (type === 'reaction') {
+        // 리액션 처리 - 기존 좋아요 토글 사용
+        const result = await storage.toggleMessageLike(messageId, userId);
+        res.json(result);
+      } else if (type === 'text') {
+        // 텍스트 답장 처리
+        const message = await storage.getMessage(messageId);
+        if (!message) {
+          return res.status(404).json({ message: 'Message not found' });
+        }
+
+        const newMessage = await storage.createMessage({
+          chatRoomId: message.chatRoomId,
+          senderId: userId,
+          content,
+          messageType: 'text' as const,
+          replyToMessageId: messageId
+        });
+
+        // WebSocket으로 실시간 전송
+        broadcastToRoom(message.chatRoomId, {
+          type: 'new_message',
+          message: newMessage
+        });
+
+        res.json(newMessage);
+      } else {
+        res.status(400).json({ message: 'Invalid reply type' });
+      }
+    } catch (error) {
+      console.error('Error handling quick reply:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
   app.post("/api/chat-rooms/:chatRoomId/messages", async (req, res) => {
     const userId = req.headers["x-user-id"];
     if (!userId) {
