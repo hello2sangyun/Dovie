@@ -588,6 +588,12 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Added automatic query invalidation for contacts, chat rooms, and auth data after profile upload
   - Profile picture changes now reflect immediately across all interface components
   - Footer tabs (연락처, 채팅방, 자료실, 설정) now persistently available for seamless navigation during chat sessions
+- June 22, 2025: Implemented immersive mobile chat interface with clean UI:
+  - Removed bottom tab navigation when in chat mode for distraction-free messaging experience
+  - Hidden top Dovie Messenger header during chat conversations to maximize screen real estate
+  - Applied conditional padding removal (pt-0 pb-0) in chat mode for full-screen chat utilization
+  - Chat interface now provides complete focus on conversation content without UI clutter
+  - Tab navigation and header automatically return when exiting chat rooms
 
 ## User Preferences
 
