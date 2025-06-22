@@ -171,7 +171,7 @@ export default function ArchiveList() {
   const [filterType, setFilterType] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
   const [selectedCommand, setSelectedCommand] = useState<any>(null);
-  const [showPreview, setShowPreview] = useState(false);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   // Debounced search implementation
@@ -188,7 +188,7 @@ export default function ArchiveList() {
 
   const handleCommandClick = useCallback((command: any) => {
     setSelectedCommand(command);
-    setShowPreview(true);
+    setIsPreviewModalOpen(true);
   }, []);
 
   // 기본 데이터 조회 (한 번만)
@@ -413,36 +413,6 @@ export default function ArchiveList() {
             setIsPreviewModalOpen(false);
             setSelectedCommand(null);
           }}
-          command={selectedCommand}
-        />
-      )}
-    </div>
-  );
-}
-              <SelectValue placeholder="정렬" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">최신순</SelectItem>
-              <SelectItem value="oldest">오래된순</SelectItem>
-              <SelectItem value="name">이름순</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* 검색 결과 컨테이너 - 이 부분만 업데이트됨 */}
-      <SearchResults
-        searchTerm={debouncedSearchTerm}
-        filterType={filterType}
-        sortBy={sortBy}
-        onCommandClick={handleCommandClick}
-      />
-
-      {/* Preview Modal */}
-      {showPreview && selectedCommand && (
-        <PreviewModal
-          open={showPreview}
-          onClose={() => setShowPreview(false)}
           command={selectedCommand}
         />
       )}
