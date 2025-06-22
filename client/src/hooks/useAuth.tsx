@@ -30,8 +30,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["/api/auth/me"],
-    enabled: !!storedUserId, // Always query if we have stored ID
+    queryKey: ["/api/auth/me", storedUserId],
+    enabled: !!storedUserId, // Only query if we have stored ID
     refetchInterval: 30000, // 30초마다 자동 새로고침
     staleTime: 1000, // 1초 동안만 캐시 유지
     queryFn: async () => {
@@ -48,6 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!response.ok) {
         // If auth fails, clear stored user ID
         localStorage.removeItem("userId");
+        setStoredUserId(null);
         throw new Error("Authentication failed");
       }
       
