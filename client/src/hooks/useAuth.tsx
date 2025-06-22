@@ -27,9 +27,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["/api/auth/me"],
-    enabled: !!storedUserId, // Always query if we have stored ID
-    refetchInterval: 30000, // 30초마다 자동 새로고침
-    staleTime: 1000, // 1초 동안만 캐시 유지
+    enabled: !!storedUserId || !initialized, // 저장된 ID가 있거나 초기화되지 않은 경우 실행
+    refetchInterval: false, // 자동 새로고침 비활성화 (불필요한 요청 방지)
+    staleTime: 5 * 60 * 1000, // 5분 동안 캐시 유지
+    gcTime: 10 * 60 * 1000, // 10분 동안 메모리에 보관 (v5에서 cacheTime -> gcTime)
     queryFn: async () => {
       if (!storedUserId) {
         throw new Error("No stored user ID");
@@ -42,8 +43,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       
       if (!response.ok) {
-        // If auth fails, clear stored user ID
+        // 인증 실패 시 저장된 사용자 ID 제거
         localStorage.removeItem("userId");
+        localStorage.removeItem("rememberLogin"); // 자동 로그인 해제
         throw new Error("Authentication failed");
       }
       
@@ -214,7 +216,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     const data = await response.json();
     setUser(data.user);
+    
+    // 자동 로그인 정보 저장
     localStorage.setItem("userId", data.user.id.toString());
+    localStorage.setItem("rememberLogin", "true");
+    localStorage.setItem("lastLoginTime", Date.now().toString());
+    
+    console.log("✅ 자동 로그인이 설정되었습니다");
     return data;
   };
 
@@ -235,7 +243,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     const data = await response.json();
     setUser(data.user);
+    
+    // 자동 로그인 정보 저장
     localStorage.setItem("userId", data.user.id.toString());
+    localStorage.setItem("rememberLogin", "true");
+    localStorage.setItem("lastLoginTime", Date.now().toString());
+    
+    console.log("✅ 자동 로그인이 설정되었습니다");
     return data;
   };
 
@@ -250,9 +264,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("Logout API call failed:", error);
     } finally {
-      // Clear local storage and user state regardless of API call result
+      // Clear all auto-login related storage
       localStorage.removeItem("userId");
+      localStorage.removeItem("rememberLogin");
+      localStorage.removeItem("lastLoginTime");
       setUser(null);
+      setInitialized(false);
+      setProfileImagesLoaded(false);
+      setIsPreloadingImages(false);
+
+      // Clear image cache
+      if ((window as any).globalImageCache) {
+        (window as any).globalImageCache.clear();
+      }
+
+      console.log("로그아웃 완료 - 자동 로그인 설정 해제됨");
       
       // 강제 리디렉션을 원하는 경우에만 로그인 페이지로 이동
       if (forceRedirect) {

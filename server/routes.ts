@@ -317,7 +317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 현재 사용자 정보 조회 API
+  // 현재 사용자 정보 조회 API (자동 로그인 지원)
   app.get("/api/auth/me", async (req, res) => {
     try {
       const userId = req.headers["x-user-id"];
@@ -331,6 +331,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
       }
 
+      // 자동 로그인 성공 시 사용자 온라인 상태 업데이트
+      await storage.updateUser(user.id, { 
+        isOnline: true,
+        lastSeen: new Date()
+      });
+
+      console.log(`✅ 자동 로그인 성공: 사용자 ${user.id} (${user.username})`);
+      
       res.json({ user });
     } catch (error) {
       console.error("Get current user error:", error);
@@ -506,22 +514,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/auth/me", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
 
-    try {
-      const user = await storage.getUser(Number(userId));
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      res.json({ user });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to get user" });
-    }
-  });
 
   // User routes
   app.put("/api/users/:id", async (req, res) => {
