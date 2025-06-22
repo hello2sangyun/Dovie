@@ -5311,6 +5311,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               </div>
             </div>
           ))}
+        </>
+        )}
         
         <div ref={messagesEndRef} />
       </div>
