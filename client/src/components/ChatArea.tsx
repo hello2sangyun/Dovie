@@ -4096,15 +4096,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                         )}
                         style={{ zIndex: totalAvatars - index }}
                       >
-                        {participant.profilePicture ? (
-                          <img 
-                            src={participant.profilePicture} 
-                            alt={participant.displayName}
-                            className="w-full h-full rounded-full object-cover"
-                          />
-                        ) : (
-                          participant.displayName?.charAt(0)?.toUpperCase() || 'U'
-                        )}
+                        <InstantAvatar 
+                          src={participant.profilePicture}
+                          alt={participant.displayName}
+                          fallbackText={participant.displayName}
+                          size="sm"
+                          className="w-full h-full"
+                        />
                       </div>
                     );
                   } else {
