@@ -2,17 +2,92 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes" />
     <title>Dovie Messenger - 스마트 메신저</title>
-    <meta name="description" content="AI 기반 스마트 기능과 위치 기반 채팅을 제공하는 차세대 메신저 서비스" />
-    <meta name="keywords" content="메신저, 채팅, AI, 스마트채팅, 위치기반채팅, Dovie" />
+    <meta name="description" content="스마트 파일 관리와 실시간 채팅이 가능한 메신저 앱" />
+    <meta name="keywords" content="메신저, 채팅, 파일공유, 해시태그, 스마트채팅, Dovie" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#7c3aed" />
+    <meta name="background-color" content="#7c3aed" />
+    <meta name="application-name" content="Dovie Messenger" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Dovie" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="msapplication-TileColor" content="#7c3aed" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-96x96.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-72x72.png" />
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-192x192.png" />
+    <link rel="mask-icon" href="/icons/icon-192x192.png" color="#7c3aed" />
+    
+    <!-- Open Graph -->
     <meta property="og:title" content="Dovie Messenger - 스마트 메신저" />
-    <meta property="og:description" content="AI 기반 스마트 기능과 위치 기반 채팅을 제공하는 차세대 메신저 서비스" />
+    <meta property="og:description" content="스마트 파일 관리와 실시간 채팅이 가능한 메신저 앱" />
     <meta property="og:type" content="website" />
+    <meta property="og:image" content="/icons/icon-512x512.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Dovie Messenger" />
+    <meta name="twitter:description" content="스마트 파일 관리와 실시간 채팅이 가능한 메신저 앱" />
+    <meta name="twitter:image" content="/icons/icon-512x512.png" />
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/src/main.tsx" as="script" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js')
+            .then(function(registration) {
+              console.log('[PWA] Service Worker registered successfully:', registration.scope);
+              
+              // Check for updates
+              registration.addEventListener('updatefound', function() {
+                console.log('[PWA] New service worker available');
+              });
+            })
+            .catch(function(error) {
+              console.log('[PWA] Service Worker registration failed:', error);
+            });
+        });
+        
+        // Handle PWA install prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', function(e) {
+          console.log('[PWA] Install prompt triggered');
+          e.preventDefault();
+          deferredPrompt = e;
+          
+          // Show custom install button (will be handled in React app)
+          window.dispatchEvent(new CustomEvent('pwa-install-available'));
+        });
+        
+        // Track successful app installation
+        window.addEventListener('appinstalled', function(e) {
+          console.log('[PWA] App successfully installed');
+          deferredPrompt = null;
+        });
+      }
+    </script>
+    
     <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
     <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
   </body>
