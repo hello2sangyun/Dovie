@@ -99,7 +99,7 @@ export const LinkPreview: React.FC<LinkPreviewProps> = ({ url, className = '' })
             <img 
               src={previewData.image} 
               alt={previewData.title}
-              className="w-full h-32 object-cover"
+              className="w-full h-24 object-cover"
               onError={(e) => {
                 e.currentTarget.src = `https://img.youtube.com/vi/${previewData.youtubeId}/hqdefault.jpg`;
               }}
@@ -107,9 +107,9 @@ export const LinkPreview: React.FC<LinkPreviewProps> = ({ url, className = '' })
             <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
               <button
                 onClick={handleYouTubePlay}
-                className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 transition-all duration-200 transform hover:scale-110"
+                className="bg-red-600 hover:bg-red-700 text-white rounded-full p-1.5 transition-all duration-200 transform hover:scale-110"
               >
-                <Play className="h-4 w-4 ml-0.5" />
+                <Play className="h-3 w-3 ml-0.5" />
               </button>
             </div>
           </div>
@@ -124,12 +124,12 @@ export const LinkPreview: React.FC<LinkPreviewProps> = ({ url, className = '' })
             />
           </div>
         )}
-        <div className="p-3">
-          <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1">
+        <div className="p-2">
+          <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1 text-sm">
             {previewData.title}
           </h4>
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Globe className="h-4 w-4" />
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <Globe className="h-3 w-3" />
             <span>{previewData.siteName}</span>
           </div>
         </div>

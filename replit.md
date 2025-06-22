@@ -588,6 +588,12 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Added automatic query invalidation for contacts, chat rooms, and auth data after profile upload
   - Profile picture changes now reflect immediately across all interface components
   - Footer tabs (연락처, 채팅방, 자료실, 설정) now persistently available for seamless navigation during chat sessions
+- June 22, 2025: Fixed chat room list profile image display and optimized YouTube thumbnail size:
+  - Corrected profile image field references from profileImageUrl to profilePicture in ChatsList component
+  - Fixed both group chat participant avatars and individual chat room profile pictures
+  - Profile images in chat room list now display correctly using saved user photos
+  - Reduced YouTube video thumbnail height from 128px to 96px for more compact message bubbles
+  - Minimized YouTube play button and video information text for cleaner appearance
 
 ## User Preferences
 
