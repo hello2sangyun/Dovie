@@ -2,9 +2,8 @@ import React, { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { X, Upload, File, Image, Video, Music, FileText, Hash, Info } from 'lucide-react';
+import { HashtagInput } from './HashtagInput';
+import { X, Upload, File, Image, Video, Music, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { queryClient } from '@/lib/queryClient';
 
@@ -241,16 +240,13 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
 
 
 
-          {/* 해시태그 입력 */}
+          {/* 단일 해시태그 입력 */}
           <div className="space-y-3">
-            <Label className="text-sm font-medium text-gray-700 flex items-center space-x-2">
-              <Hash className="h-4 w-4 text-purple-500" />
-              <span>해시태그 입력</span>
-            </Label>
-            <div className="space-y-3">
+            <label className="text-sm font-medium text-gray-700">해시태그 입력</label>
+            <div className="space-y-2">
               <div className="relative">
                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-500 font-medium">#</span>
-                <Input
+                <input
                   type="text"
                   value={hashtag}
                   onChange={(e) => setHashtag(e.target.value.replace(/[^a-zA-Z0-9가-힣_]/g, ''))}

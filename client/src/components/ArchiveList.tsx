@@ -4,10 +4,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Filter, Download, FileText, Code, Quote, FileImage, FileSpreadsheet, File, Video, Hash } from "lucide-react";
+import { Search, Filter, Download, FileText, Code, Quote, FileImage, FileSpreadsheet, File, Video } from "lucide-react";
 import PreviewModal from "./PreviewModal";
-import HashtagSearch from "./HashtagSearch";
 import { debounce } from "@/lib/utils";
 
 // 검색 결과만 렌더링하는 별도 컴포넌트
@@ -171,7 +169,7 @@ export default function ArchiveList() {
   const [filterType, setFilterType] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
   const [selectedCommand, setSelectedCommand] = useState<any>(null);
-  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   // Debounced search implementation
@@ -188,7 +186,7 @@ export default function ArchiveList() {
 
   const handleCommandClick = useCallback((command: any) => {
     setSelectedCommand(command);
-    setIsPreviewModalOpen(true);
+    setShowPreview(true);
   }, []);
 
   // 기본 데이터 조회 (한 번만)
@@ -276,143 +274,117 @@ export default function ArchiveList() {
       {/* Header - 고정 영역 */}
       <div className="p-4 border-b border-gray-200 bg-white">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-gray-900">자료실</h3>
+          <h3 className="font-semibold text-gray-900">저장소</h3>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-purple-600 hover:text-purple-700"
+          >
+            <Filter className="h-5 w-5" />
+          </Button>
         </div>
         
-        {/* 탭 인터페이스 */}
-        <Tabs defaultValue="hashtag" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="hashtag" className="flex items-center space-x-2">
-              <Hash className="h-4 w-4" />
-              <span>해시태그 검색</span>
-            </TabsTrigger>
-            <TabsTrigger value="filename" className="flex items-center space-x-2">
-              <Search className="h-4 w-4" />
-              <span>파일명 검색</span>
-            </TabsTrigger>
-          </TabsList>
+        <div className="relative mb-2">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            type="text"
+            placeholder="단일 해시태그 검색... (예: #soeun_passport, #회의록_2025)"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+            className="pl-10"
+          />
           
-          <TabsContent value="hashtag" className="space-y-4 mt-4">
-            <HashtagSearch
-              onFileSelect={(file) => {
-                setSelectedCommand({
-                  ...file,
-                  commandName: file.originalName,
-                  savedText: file.originalName,
-                  fileUrl: `/uploads/${file.fileName}`,
-                  createdAt: file.uploadedAt
-                });
-                setIsPreviewModalOpen(true);
-              }}
-              placeholder="해시태그로 파일 검색 (예: #디자인 #회의)"
-            />
-          </TabsContent>
+          {/* Search suggestions dropdown */}
+          {showSuggestions && (
+            <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-md shadow-lg z-10 mt-1 max-h-64 overflow-y-auto">
+              {/* Hashtag suggestions */}
+              {getHashtagSuggestions().length > 0 && (
+                <div className="p-2">
+                  <div className="text-xs font-medium text-gray-500 mb-2">해시태그</div>
+                  <div className="flex flex-wrap gap-1">
+                    {getHashtagSuggestions().map((hashtag, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          setSearchInput(hashtag);
+                          setShowSuggestions(false);
+                        }}
+                        className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full hover:bg-blue-100 transition-colors"
+                      >
+                        {hashtag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Search term suggestions */}
+              {getSearchSuggestions().length > 0 && (
+                <div className="p-2 border-t border-gray-100">
+                  <div className="text-xs font-medium text-gray-500 mb-2">추천 검색어</div>
+                  <div className="space-y-1">
+                    {getSearchSuggestions().map((suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          setSearchInput(suggestion);
+                          setShowSuggestions(false);
+                        }}
+                        className="block w-full text-left px-2 py-1 text-sm text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        
+        <div className="flex space-x-2">
+          <Select value={filterType} onValueChange={setFilterType}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="필터" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">전체</SelectItem>
+              <SelectItem value="text">텍스트</SelectItem>
+              <SelectItem value="image">이미지</SelectItem>
+              <SelectItem value="document">문서</SelectItem>
+              <SelectItem value="code">코드</SelectItem>
+              <SelectItem value="video">비디오</SelectItem>
+            </SelectContent>
+          </Select>
           
-          <TabsContent value="filename" className="space-y-4 mt-4">
-            {/* 검색 입력 */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                type="text"
-                placeholder="파일명 또는 해시태그로 검색..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="pl-10 focus:ring-2 focus:ring-purple-500"
-              />
-            </div>
-
-            {/* 필터 및 정렬 */}
-            <div className="flex space-x-2">
-              <Select value={filterType} onValueChange={setFilterType}>
-                <SelectTrigger className="w-32">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">전체</SelectItem>
-                  <SelectItem value="image">이미지</SelectItem>
-                  <SelectItem value="document">문서</SelectItem>
-                  <SelectItem value="video">비디오</SelectItem>
-                  <SelectItem value="other">기타</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="recent">최신순</SelectItem>
-                  <SelectItem value="name">이름순</SelectItem>
-                  <SelectItem value="size">크기순</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* 검색 결과 */}
-            <div className="flex-1 overflow-hidden">
-              <SearchResults
-                searchTerm={debouncedSearchTerm}
-                filterType={filterType}
-                sortBy={sortBy}
-                onCommandClick={handleCommandClick}
-              />
-            </div>
-
-            {/* 해시태그 및 검색 제안 */}
-            {searchInput && (
-              <div className="space-y-2">
-                {getHashtagSuggestions().length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium text-gray-700 mb-2">해시태그 제안</p>
-                    <div className="flex flex-wrap gap-1">
-                      {getHashtagSuggestions().map((hashtag: string, index: number) => (
-                        <Button
-                          key={index}
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSearchInput(hashtag)}
-                          className="text-xs"
-                        >
-                          {hashtag}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {getSearchSuggestions().length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium text-gray-700 mb-2">검색 제안</p>
-                    <div className="flex flex-wrap gap-1">
-                      {getSearchSuggestions().map((suggestion: string, index: number) => (
-                        <Button
-                          key={index}
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSearchInput(suggestion)}
-                          className="text-xs"
-                        >
-                          {suggestion}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="정렬" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">최신순</SelectItem>
+              <SelectItem value="oldest">오래된순</SelectItem>
+              <SelectItem value="name">이름순</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
-      
+
+      {/* 검색 결과 컨테이너 - 이 부분만 업데이트됨 */}
+      <SearchResults
+        searchTerm={debouncedSearchTerm}
+        filterType={filterType}
+        sortBy={sortBy}
+        onCommandClick={handleCommandClick}
+      />
+
       {/* Preview Modal */}
-      {selectedCommand && (
+      {showPreview && selectedCommand && (
         <PreviewModal
-          open={isPreviewModalOpen}
-          onClose={() => {
-            setIsPreviewModalOpen(false);
-            setSelectedCommand(null);
-          }}
+          open={showPreview}
+          onClose={() => setShowPreview(false)}
           command={selectedCommand}
         />
       )}

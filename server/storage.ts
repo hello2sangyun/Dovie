@@ -1,7 +1,7 @@
 import { 
   users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications,
   fileUploads, fileDownloads, businessProfiles, userPosts, locationShareRequests, locationShares, reminders,
-  messageReactions, messageLikes, hashtags, fileHashtags, userHashtagIndex,
+  messageReactions, messageLikes,
   type User, type InsertUser, type Contact, type InsertContact,
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
   type Command, type InsertCommand, type MessageRead, type InsertMessageRead,
@@ -12,9 +12,7 @@ import {
   type LocationShareRequest, type InsertLocationShareRequest,
   type LocationShare, type InsertLocationShare,
   type Reminder, type InsertReminder,
-  type MessageReaction, type InsertMessageReaction,
-  type Hashtag, type InsertHashtag, type FileHashtag, type InsertFileHashtag,
-  type UserHashtagIndex, type InsertUserHashtagIndex
+  type MessageReaction, type InsertMessageReaction
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, or, count, gt, lt, sql, inArray } from "drizzle-orm";
@@ -113,15 +111,6 @@ export interface IStorage {
   removeMessageReaction(messageId: number, userId: number, emoji: string): Promise<void>;
   getMessageReactions(messageId: number): Promise<Array<{ emoji: string; emojiName: string; count: number; userReacted: boolean; userId?: number }>>;
   getMessageReactionSuggestions(messageId: number): Promise<Array<{ emoji: string; name: string; confidence: number }>>;
-
-  // Hashtag operations
-  createOrUpdateHashtag(tag: string, userId: number): Promise<Hashtag>;
-  searchUserHashtags(userId: number, query: string): Promise<Hashtag[]>;
-  getUserHashtagSuggestions(userId: number, prefix: string): Promise<Hashtag[]>;
-  addFileHashtag(fileUploadId: number, hashtagId: number, userId: number): Promise<void>;
-  searchFilesByHashtags(userId: number, hashtags: string[]): Promise<(FileUpload & { hashtags: string[] })[]>;
-  updateUserHashtagIndex(userId: number, hashtagId: number): Promise<void>;
-  getUserHashtagIndex(userId: number): Promise<UserHashtagIndex[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -878,192 +867,6 @@ export class DatabaseStorage implements IStorage {
     );
 
     return result.suggestions;
-  }
-
-  // Hashtag operations implementation
-  async createOrUpdateHashtag(tag: string, userId: number): Promise<Hashtag> {
-    const normalizedTag = tag.toLowerCase().trim();
-    
-    // Check if hashtag already exists
-    const [existingHashtag] = await db.select().from(hashtags).where(eq(hashtags.normalizedTag, normalizedTag));
-    
-    if (existingHashtag) {
-      // Update usage count
-      const [updatedHashtag] = await db
-        .update(hashtags)
-        .set({ 
-          usageCount: sql`${hashtags.usageCount} + 1`,
-          updatedAt: new Date()
-        })
-        .where(eq(hashtags.id, existingHashtag.id))
-        .returning();
-      return updatedHashtag;
-    } else {
-      // Create new hashtag
-      const [newHashtag] = await db
-        .insert(hashtags)
-        .values({
-          tag: tag.trim(),
-          normalizedTag: normalizedTag,
-          usageCount: 1
-        })
-        .returning();
-      return newHashtag;
-    }
-  }
-
-  async searchUserHashtags(userId: number, query: string): Promise<Hashtag[]> {
-    const normalizedQuery = query.toLowerCase().trim();
-    
-    // Get hashtags used by this user that match the query
-    const userHashtags = await db
-      .select({
-        id: hashtags.id,
-        tag: hashtags.tag,
-        normalizedTag: hashtags.normalizedTag,
-        usageCount: hashtags.usageCount,
-        createdAt: hashtags.createdAt,
-        updatedAt: hashtags.updatedAt
-      })
-      .from(hashtags)
-      .innerJoin(userHashtagIndex, eq(hashtags.id, userHashtagIndex.hashtagId))
-      .where(
-        and(
-          eq(userHashtagIndex.userId, userId),
-          like(hashtags.normalizedTag, `%${normalizedQuery}%`)
-        )
-      )
-      .orderBy(desc(userHashtagIndex.lastUsedAt), desc(userHashtagIndex.fileCount));
-
-    return userHashtags;
-  }
-
-  async getUserHashtagSuggestions(userId: number, prefix: string): Promise<Hashtag[]> {
-    const normalizedPrefix = prefix.toLowerCase().trim();
-    
-    // Get hashtag suggestions based on prefix for autocomplete
-    const suggestions = await db
-      .select({
-        id: hashtags.id,
-        tag: hashtags.tag,
-        normalizedTag: hashtags.normalizedTag,
-        usageCount: hashtags.usageCount,
-        createdAt: hashtags.createdAt,
-        updatedAt: hashtags.updatedAt
-      })
-      .from(hashtags)
-      .innerJoin(userHashtagIndex, eq(hashtags.id, userHashtagIndex.hashtagId))
-      .where(
-        and(
-          eq(userHashtagIndex.userId, userId),
-          like(hashtags.normalizedTag, `${normalizedPrefix}%`)
-        )
-      )
-      .orderBy(desc(userHashtagIndex.fileCount), desc(userHashtagIndex.lastUsedAt))
-      .limit(10);
-
-    return suggestions;
-  }
-
-  async addFileHashtag(fileUploadId: number, hashtagId: number, userId: number): Promise<void> {
-    await db
-      .insert(fileHashtags)
-      .values({
-        fileUploadId,
-        hashtagId,
-        userId
-      })
-      .onConflictDoNothing();
-  }
-
-  async searchFilesByHashtags(userId: number, hashtags: string[]): Promise<(FileUpload & { hashtags: string[] })[]> {
-    const normalizedHashtags = hashtags.map(tag => tag.toLowerCase().trim());
-    
-    // Get hashtag IDs  
-    const hashtagRecords = await db
-      .select({ id: hashtags.id })
-      .from(hashtags)
-      .where(inArray(hashtags.normalizedTag, normalizedHashtags));
-
-    if (hashtagRecords.length === 0) {
-      return [];
-    }
-
-    const hashtagIds = hashtagRecords.map(h => h.id);
-
-    // Find files that have ALL specified hashtags
-    const files = await db
-      .select({
-        id: fileUploads.id,
-        userId: fileUploads.userId,
-        chatRoomId: fileUploads.chatRoomId,
-        fileName: fileUploads.fileName,
-        originalName: fileUploads.originalName,
-        fileSize: fileUploads.fileSize,
-        fileType: fileUploads.fileType,
-        filePath: fileUploads.filePath,
-        hashtags: fileUploads.hashtags,
-        uploadedAt: fileUploads.uploadedAt,
-        isDeleted: fileUploads.isDeleted
-      })
-      .from(fileUploads)
-      .innerJoin(fileHashtags, eq(fileUploads.id, fileHashtags.fileUploadId))
-      .where(
-        and(
-          eq(fileUploads.userId, userId),
-          eq(fileUploads.isDeleted, false),
-          inArray(fileHashtags.hashtagId, hashtagIds)
-        )
-      )
-      .groupBy(fileUploads.id)
-      .having(sql`COUNT(DISTINCT ${fileHashtags.hashtagId}) = ${hashtagRecords.length}`)
-      .orderBy(desc(fileUploads.uploadedAt));
-
-    // Add hashtag names to each file
-    const filesWithHashtags = await Promise.all(
-      files.map(async (file) => {
-        const fileHashtagNames = await db
-          .select({ tag: hashtags.tag })
-          .from(hashtags)
-          .innerJoin(fileHashtags, eq(hashtags.id, fileHashtags.hashtagId))
-          .where(eq(fileHashtags.fileUploadId, file.id));
-        
-        return {
-          ...file,
-          hashtags: fileHashtagNames.map(h => h.tag)
-        };
-      })
-    );
-
-    return filesWithHashtags;
-  }
-
-  async updateUserHashtagIndex(userId: number, hashtagId: number): Promise<void> {
-    await db
-      .insert(userHashtagIndex)
-      .values({
-        userId,
-        hashtagId,
-        fileCount: 1,
-        lastUsedAt: new Date()
-      })
-      .onConflictDoUpdate({
-        target: [userHashtagIndex.userId, userHashtagIndex.hashtagId],
-        set: {
-          fileCount: sql`${userHashtagIndex.fileCount} + 1`,
-          lastUsedAt: new Date()
-        }
-      });
-  }
-
-  async getUserHashtagIndex(userId: number): Promise<UserHashtagIndex[]> {
-    const index = await db
-      .select()
-      .from(userHashtagIndex)
-      .where(eq(userHashtagIndex.userId, userId))
-      .orderBy(desc(userHashtagIndex.lastUsedAt));
-
-    return index;
   }
 }
 
