@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import LandingPage from "@/pages/LandingPage";
 import LoginPage from "@/pages/LoginPage";
 import SignupPage from "@/pages/SignupPage";
@@ -105,6 +106,7 @@ function App() {
       <TooltipProvider>
         <AuthProvider>
           <Toaster />
+          <PWAInstallPrompt />
           <Router />
         </AuthProvider>
       </TooltipProvider>
