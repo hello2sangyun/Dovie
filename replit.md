@@ -510,6 +510,12 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Improved MediaPreview component with adaptive button sizes and truncated filename display
   - Mobile images now properly constrain to screen width and display with optimized aspect ratios
   - Applied responsive design patterns throughout chat interface for better mobile usability
+- June 22, 2025: Fixed critical image loading issues in chat rooms:
+  - Enhanced file serving endpoint to properly handle encrypted image files with automatic decryption
+  - Added comprehensive error handling and logging to MediaPreview component for debugging
+  - Implemented fallback mechanism for both encrypted and unencrypted file formats
+  - Fixed server-side Content-Type detection for various image formats (JPEG, PNG, GIF, WebP)
+  - Images uploaded to chat rooms now display correctly with proper decryption and content serving
 
 ## User Preferences
 

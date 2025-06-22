@@ -315,6 +315,7 @@ const ImagePreview = ({ src, fileName, isMe }: { src: string; fileName: string; 
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-gray-900 truncate">{fileName}</p>
               <p className="text-xs text-gray-500">이미지를 불러올 수 없습니다</p>
+              <p className="text-xs text-gray-400 mt-1">{src}</p>
             </div>
           </div>
         ) : (
@@ -322,8 +323,12 @@ const ImagePreview = ({ src, fileName, isMe }: { src: string; fileName: string; 
             src={src}
             alt={fileName}
             className="w-full h-auto max-h-40 sm:max-h-48 object-cover"
-            onLoad={() => setIsLoading(false)}
-            onError={() => {
+            onLoad={() => {
+              console.log(`Image loaded successfully: ${src}`);
+              setIsLoading(false);
+            }}
+            onError={(e) => {
+              console.error(`Image load error for ${src}:`, e);
               setIsLoading(false);
               setHasError(true);
             }}

@@ -1683,8 +1683,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // 프로필 이미지는 최적화된 엔드포인트로 리다이렉트
         return res.redirect(`/api/profile-images/${filename}`);
       } else {
-        // 프로필 이미지가 아닌 경우 기존 로직 사용
-        const fileBuffer = fs.readFileSync(filePath);
+        // 일반 파일 처리 (암호화된 파일 포함)
+        let fileBuffer: Buffer;
+        
+        try {
+          // 먼저 암호화된 텍스트로 읽기 시도
+          const encryptedData = fs.readFileSync(filePath, 'utf8');
+          fileBuffer = decryptFileData(encryptedData);
+          console.log(`Successfully decrypted file: ${filename}`);
+        } catch (decryptError) {
+          // 복호화 실패시 바이너리로 읽기 (암호화되지 않은 파일)
+          fileBuffer = fs.readFileSync(filePath);
+          console.log(`File not encrypted, serving directly: ${filename}`);
+        }
         
         // 이미지 확장자에 따른 Content-Type 설정
         const ext = path.extname(filename).toLowerCase();
@@ -1696,6 +1707,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         else if (ext === '.webp') contentType = 'image/webp';
         else if (ext === '.bmp') contentType = 'image/bmp';
         else if (ext === '.svg') contentType = 'image/svg+xml';
+        else if (ext === '.mp4') contentType = 'video/mp4';
+        else if (ext === '.webm') contentType = 'video/webm';
+        else if (ext === '.mov') contentType = 'video/quicktime';
+        else if (ext === '.avi') contentType = 'video/x-msvideo';
+        else if (ext === '.pdf') contentType = 'application/pdf';
         
         res.set({
           'Content-Type': contentType,
