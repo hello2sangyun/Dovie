@@ -1530,6 +1530,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Profile image serving endpoint (optimized for instant loading)
+  app.get("/api/profile-images/:filename", async (req: Request, res: Response) => {
+    try {
+      const { filename } = req.params;
+      
+      // 보안 검증: profile_ 접두사가 있는 파일만 허용
+      if (!filename.startsWith('profile_')) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const filePath = path.join(uploadDir, filename);
+      
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ message: "Profile image not found" });
+      }
+      
+      // 파일 정보 확인
+      const stats = fs.statSync(filePath);
+      const fileExtension = path.extname(filename).toLowerCase();
+      
+      // MIME 타입 설정
+      let contentType = 'image/jpeg';
+      switch (fileExtension) {
+        case '.png': contentType = 'image/png'; break;
+        case '.gif': contentType = 'image/gif'; break;
+        case '.webp': contentType = 'image/webp'; break;
+        case '.jpg':
+        case '.jpeg': 
+        default: contentType = 'image/jpeg'; break;
+      }
+      
+      // 캐시 헤더 설정 (1일)
+      res.set({
+        'Content-Type': contentType,
+        'Content-Length': stats.size.toString(),
+        'Cache-Control': 'public, max-age=86400',
+        'ETag': `"${stats.mtime.getTime()}-${stats.size}"`,
+        'Last-Modified': stats.mtime.toUTCString()
+      });
+      
+      // ETag 기반 조건부 요청 처리
+      const ifNoneMatch = req.headers['if-none-match'];
+      const etag = `"${stats.mtime.getTime()}-${stats.size}"`;
+      
+      if (ifNoneMatch === etag) {
+        return res.status(304).end();
+      }
+      
+      // 파일 스트림으로 전송
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.pipe(res);
+      
+    } catch (error) {
+      console.error("Profile image serving error:", error);
+      res.status(500).json({ message: "Failed to serve profile image" });
+    }
+  });
+
   // File upload route with encryption (for non-voice files)
   app.post("/api/upload", upload.single("file"), async (req, res) => {
     try {

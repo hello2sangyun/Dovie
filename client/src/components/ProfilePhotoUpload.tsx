@@ -64,54 +64,70 @@ export default function ProfilePhotoUpload({ isOpen, onClose }: ProfilePhotoUplo
       return response.json();
     },
     onSuccess: async (data) => {
-      console.log("Profile photo uploaded successfully:", data);
+      console.log("✅ Profile photo uploaded successfully:", data);
       
-      // 전역 이미지 캐시 무효화 (InstantAvatar 컴포넌트용)
-      if ((window as any).globalImageCache) {
-        // 모든 프로필 이미지 관련 캐시 삭제
-        const cache = (window as any).globalImageCache;
-        const keysToDelete = [];
-        for (const [key] of cache) {
-          if (key.includes('profile_') || key.includes('/uploads/')) {
-            keysToDelete.push(key);
+      try {
+        // 1단계: 전역 이미지 캐시 완전 무효화
+        if ((window as any).globalImageCache) {
+          const cache = (window as any).globalImageCache;
+          cache.clear(); // 모든 이미지 캐시 삭제
+          console.log("🗑️ All image cache cleared");
+        }
+        
+        // 2단계: 새 프로필 이미지를 즉시 다운로드하여 캐시에 저장
+        if (data.profilePicture) {
+          const imageResponse = await fetch(data.profilePicture + '?t=' + Date.now()); // 캐시 버스팅
+          if (imageResponse.ok) {
+            const blob = await imageResponse.blob();
+            if ((window as any).globalImageCache) {
+              (window as any).globalImageCache.set(data.profilePicture, blob);
+              console.log("📸 New profile image cached immediately");
+            }
           }
         }
-        keysToDelete.forEach(key => cache.delete(key));
-        console.log("Profile image cache cleared for immediate update");
-      }
-      
-      // 새 프로필 이미지 URL을 즉시 캐시에 추가
-      if (data.profilePicture && (window as any).globalImageCache) {
-        try {
-          const response = await fetch(data.profilePicture);
-          const blob = await response.blob();
-          (window as any).globalImageCache.set(data.profilePicture, blob);
-        } catch (error) {
-          console.log("Failed to cache new profile image:", error);
+        
+        // 3단계: 사용자 상태를 즉시 업데이트 (낙관적 업데이트)
+        if (user) {
+          const updatedUser = { ...user, profilePicture: data.profilePicture };
+          setUser(updatedUser);
+          console.log("👤 User state updated immediately");
         }
+        
+        // 4단계: React Query 캐시 무효화 및 재로드
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] }),
+          queryClient.invalidateQueries({ queryKey: ["/api/contacts"] }),
+          queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] })
+        ]);
+        
+        // 5단계: 강제 데이터 새로고침
+        await queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
+        
+        // 6단계: 모든 InstantAvatar 컴포넌트 강제 업데이트
+        window.dispatchEvent(new CustomEvent('profileImageUpdated', { 
+          detail: { newUrl: data.profilePicture } 
+        }));
+        
+        console.log("🔄 Profile photo update process completed successfully");
+        
+        toast({
+          title: "프로필 사진 업데이트 완료",
+          description: "프로필 사진이 성공적으로 변경되었습니다.",
+        });
+        
+        onClose();
+        setImgSrc("");
+        setCrop(undefined);
+        setCompletedCrop(undefined);
+        
+      } catch (error) {
+        console.error("❌ Profile photo update process failed:", error);
+        toast({
+          variant: "destructive",
+          title: "업데이트 처리 실패",
+          description: "프로필 사진 업데이트 후 처리 중 오류가 발생했습니다.",
+        });
       }
-      
-      // 모든 관련 쿼리 무효화 및 재로드
-      await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      await queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
-      await queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
-      
-      // 사용자 데이터 다시 가져오기
-      await queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
-      
-      // 즉시 모든 InstantAvatar 컴포넌트를 강제로 리렌더링
-      window.dispatchEvent(new CustomEvent('profileImageUpdated', { 
-        detail: { newUrl: data.profilePicture } 
-      }));
-      
-      toast({
-        title: "프로필 사진 업데이트 완료",
-        description: "프로필 사진이 성공적으로 변경되었습니다.",
-      });
-      onClose();
-      setImgSrc("");
-      setCrop(undefined);
-      setCompletedCrop(undefined);
     },
     onError: (error: Error) => {
       toast({

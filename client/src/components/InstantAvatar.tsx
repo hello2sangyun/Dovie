@@ -48,6 +48,7 @@ export const InstantAvatar = memo(function InstantAvatar({
   isOnline = false
 }: InstantAvatarProps) {
   const [displaySrc, setDisplaySrc] = useState<string | null>(null);
+  const [forceRefresh, setForceRefresh] = useState(0);
   const [forceUpdate, setForceUpdate] = useState(0);
   const [showFallback, setShowFallback] = useState(false);
   const { getInstantImage } = useInstantImageCache();
