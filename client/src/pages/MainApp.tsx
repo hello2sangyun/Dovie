@@ -5,6 +5,7 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useImagePreloader, preloadGlobalImage } from "@/hooks/useImagePreloader";
+import { motion, AnimatePresence } from "framer-motion";
 
 import VaultLogo from "@/components/VaultLogo";
 import ContactsList from "@/components/ContactsList";
@@ -314,39 +315,78 @@ export default function MainApp() {
               </TabsTrigger>
             </TabsList>
 
-            <div className="flex-1 overflow-hidden">
-              <TabsContent value="contacts" className="h-full m-0">
-                <ContactsList 
-                  onAddContact={() => openModal("addContact")}
-                  onSelectContact={(contactUserId) => {
-                    // Find the contact user data
-                    const contact = (contactsData as any)?.contacts?.find((c: any) => c.contactUserId === contactUserId);
-                    if (contact) {
-                      createOrFindChatRoom(contactUserId, contact.contactUser);
-                    }
-                  }}
-                />
-              </TabsContent>
-              
-              <TabsContent value="chats" className="h-full m-0">
-                <ChatsList 
-                  onSelectChat={setSelectedChatRoom}
-                  selectedChatId={selectedChatRoom}
-                  onCreateGroup={() => setModals({ ...modals, createGroup: true })}
-                  contactFilter={contactFilter || undefined}
-                  onClearFilter={() => setContactFilter(null)}
-                />
-              </TabsContent>
-              
+            <div className="flex-1 overflow-hidden relative">
+              <AnimatePresence mode="wait">
+                {activeTab === "contacts" && (
+                  <motion.div
+                    key="desktop-contacts"
+                    initial={{ opacity: 0, x: -15 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -15 }}
+                    transition={{ duration: 0.25, ease: "easeInOut" }}
+                    className="absolute inset-0"
+                  >
+                    <TabsContent value="contacts" className="h-full m-0">
+                      <ContactsList 
+                        onAddContact={() => openModal("addContact")}
+                        onSelectContact={(contactUserId) => {
+                          // Find the contact user data
+                          const contact = (contactsData as any)?.contacts?.find((c: any) => c.contactUserId === contactUserId);
+                          if (contact) {
+                            createOrFindChatRoom(contactUserId, contact.contactUser);
+                          }
+                        }}
+                      />
+                    </TabsContent>
+                  </motion.div>
+                )}
+                
+                {activeTab === "chats" && (
+                  <motion.div
+                    key="desktop-chats"
+                    initial={{ opacity: 0, x: 15 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 15 }}
+                    transition={{ duration: 0.25, ease: "easeInOut" }}
+                    className="absolute inset-0"
+                  >
+                    <TabsContent value="chats" className="h-full m-0">
+                      <ChatsList 
+                        onSelectChat={setSelectedChatRoom}
+                        selectedChatId={selectedChatRoom}
+                        onCreateGroup={() => setModals({ ...modals, createGroup: true })}
+                        contactFilter={contactFilter || undefined}
+                        onClearFilter={() => setContactFilter(null)}
+                      />
+                    </TabsContent>
+                  </motion.div>
+                )}
 
-              
-
-              
-              <TabsContent value="archive" className="h-full m-0">
-                <ArchiveList />
-              </TabsContent>
-              
-              <TabsContent value="settings" className="h-full m-0">
+                {activeTab === "archive" && (
+                  <motion.div
+                    key="desktop-archive"
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.98 }}
+                    transition={{ duration: 0.25, ease: "easeInOut" }}
+                    className="absolute inset-0"
+                  >
+                    <TabsContent value="archive" className="h-full m-0">
+                      <ArchiveList />
+                    </TabsContent>
+                  </motion.div>
+                )}
+                
+                {activeTab === "settings" && (
+                  <motion.div
+                    key="desktop-settings"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    transition={{ duration: 0.25, ease: "easeInOut" }}
+                    className="absolute inset-0"
+                  >
+                    <TabsContent value="settings" className="h-full m-0">
                 <div className="h-full overflow-y-auto">
                   <div className="p-4">
                     {/* 프로필 섹션 */}
@@ -494,7 +534,10 @@ export default function MainApp() {
                   </div>
                 </div>
               </TabsContent>
-            </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
           </Tabs>
         </div>
 
@@ -890,63 +933,109 @@ export default function MainApp() {
         </div>
 
         {/* Mobile Content with padding for fixed header and footer */}
-        <div className="flex-1 overflow-hidden pt-20 pb-14">
-          {activeMobileTab === "contacts" && (
-            <ContactsList 
-              onAddContact={() => openModal("addContact")}
-              onSelectContact={(contactUserId) => {
-                // 해당 친구와의 채팅방 찾기 또는 생성 (모바일)
-                const contact = (contactsData as any)?.contacts?.find((c: any) => c.contactUserId === contactUserId);
-                if (contact) {
-                  createOrFindChatRoom(contactUserId, contact.contactUser);
-                  setActiveMobileTab("chats");
-                }
-              }}
-            />
-          )}
-          {activeMobileTab === "chats" && !showMobileChat && (
-            <ChatsList 
-              onSelectChat={(chatId) => {
-                setSelectedChatRoom(chatId);
-                setShowMobileChat(true);
-              }}
-              selectedChatId={selectedChatRoom}
-              onCreateGroup={() => setModals({ ...modals, createGroup: true })}
-              contactFilter={contactFilter || undefined}
-              onClearFilter={() => setContactFilter(null)}
-              friendFilter={friendFilter}
-              onClearFriendFilter={() => setFriendFilter(null)}
-            />
-          )}
-
-          {showMobileChat && selectedChatRoom && (
-            <div className="h-full flex flex-col overflow-hidden">
-              {/* Mobile Connection Status Indicator */}
-              <div className="flex-shrink-0 p-2">
-                <ConnectionStatusIndicator 
-                  connectionState={connectionState}
-                  pendingMessageCount={pendingMessageCount}
-                  className="mx-auto max-w-xs"
-                />
-              </div>
-              
-              <div className="flex-1 min-h-0">
-                <ChatArea 
-                  chatRoomId={selectedChatRoom}
-                  onCreateCommand={handleCreateCommand}
-                  showMobileHeader={true}
-                  onBackClick={() => {
-                    setShowMobileChat(false);
-                    setSelectedChatRoom(null);
+        <div className="flex-1 overflow-hidden pt-20 pb-14 relative">
+          <AnimatePresence mode="wait">
+            {activeMobileTab === "contacts" && (
+              <motion.div
+                key="contacts"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="absolute inset-0"
+              >
+                <ContactsList 
+                  onAddContact={() => openModal("addContact")}
+                  onSelectContact={(contactUserId) => {
+                    // 해당 친구와의 채팅방 찾기 또는 생성 (모바일)
+                    const contact = (contactsData as any)?.contacts?.find((c: any) => c.contactUserId === contactUserId);
+                    if (contact) {
+                      createOrFindChatRoom(contactUserId, contact.contactUser);
+                      setActiveMobileTab("chats");
+                    }
                   }}
                 />
-              </div>
-            </div>
-          )}
-          {activeMobileTab === "archive" && <ArchiveList />}
-          {activeMobileTab === "settings" && (
-            <ModernSettingsPage isMobile={true} />
-          )}
+              </motion.div>
+            )}
+            {activeMobileTab === "chats" && !showMobileChat && (
+              <motion.div
+                key="chats"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="absolute inset-0"
+              >
+                <ChatsList 
+                  onSelectChat={(chatId) => {
+                    setSelectedChatRoom(chatId);
+                    setShowMobileChat(true);
+                  }}
+                  selectedChatId={selectedChatRoom}
+                  onCreateGroup={() => setModals({ ...modals, createGroup: true })}
+                  contactFilter={contactFilter || undefined}
+                  onClearFilter={() => setContactFilter(null)}
+                  friendFilter={friendFilter}
+                  onClearFriendFilter={() => setFriendFilter(null)}
+                />
+              </motion.div>
+            )}
+
+            {showMobileChat && selectedChatRoom && (
+              <motion.div
+                key="chat-area"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="absolute inset-0 h-full flex flex-col overflow-hidden"
+              >
+                {/* Mobile Connection Status Indicator */}
+                <div className="flex-shrink-0 p-2">
+                  <ConnectionStatusIndicator 
+                    connectionState={connectionState}
+                    pendingMessageCount={pendingMessageCount}
+                    className="mx-auto max-w-xs"
+                  />
+                </div>
+                
+                <div className="flex-1 min-h-0">
+                  <ChatArea 
+                    chatRoomId={selectedChatRoom}
+                    onCreateCommand={handleCreateCommand}
+                    showMobileHeader={true}
+                    onBackClick={() => {
+                      setShowMobileChat(false);
+                      setSelectedChatRoom(null);
+                    }}
+                  />
+                </div>
+              </motion.div>
+            )}
+            {activeMobileTab === "archive" && (
+              <motion.div
+                key="archive"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="absolute inset-0"
+              >
+                <ArchiveList />
+              </motion.div>
+            )}
+            {activeMobileTab === "settings" && (
+              <motion.div
+                key="settings"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 30 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="absolute inset-0"
+              >
+                <ModernSettingsPage isMobile={true} />
+              </motion.div>
+            )}
         </div>
 
         {/* Fixed Mobile Bottom Navigation - Hide when in chat */}
