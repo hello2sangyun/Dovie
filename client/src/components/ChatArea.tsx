@@ -304,6 +304,59 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [youtubeSearchQuery, setYoutubeSearchQuery] = useState("");
 
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
+
+  // Gesture-based quick reply handlers
+  const handleQuickReply = async (messageId: number, content: string, type: 'reaction' | 'text') => {
+    try {
+      const response = await apiRequest(`/api/messages/${messageId}/quick-reply`, "POST", {
+        content,
+        type
+      });
+      
+      if (response.ok) {
+        // Invalidate messages to refresh the UI
+        const queryKey = isLocationChatRoom ? "/api/location/chat-rooms" : "/api/chat-rooms";
+        queryClient.invalidateQueries({ queryKey: [queryKey, chatRoomId, "messages"] });
+        
+        if (type === 'reaction') {
+          toast({
+            title: "반응이 추가되었습니다",
+            duration: 2000,
+          });
+        } else {
+          toast({
+            title: "답장이 전송되었습니다",
+            duration: 2000,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Quick reply error:', error);
+      toast({
+        title: "오류 발생",
+        description: "답장 전송에 실패했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSwipeReply = (messageId: number) => {
+    // Find the message to reply to
+    const messages = messagesData?.messages || [];
+    const messageToReply = messages.find(m => m.id === messageId);
+    
+    if (messageToReply) {
+      // Set the reply-to message and focus input
+      setReplyToMessage(messageToReply);
+      // Auto-scroll to input area
+      setTimeout(() => {
+        const inputElement = document.querySelector('textarea[placeholder*="메시지를 입력하세요"]');
+        if (inputElement) {
+          (inputElement as HTMLElement).focus();
+        }
+      }, 100);
+    }
+  };
   
   // Voice message preview modal state
   const [showVoicePreview, setShowVoicePreview] = useState(false);
@@ -1198,25 +1251,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     },
   });
 
-  // Handle quick reply
-  const handleQuickReply = (messageId: number, content: string, type: 'reaction' | 'text') => {
-    quickReplyMutation.mutate({ messageId, content, type });
-  };
 
-  // Handle swipe reply
-  const handleSwipeReply = (messageId: number) => {
-    const targetMessage = messages?.data?.messages?.find(m => m.id === messageId);
-    if (targetMessage) {
-      setReplyToMessage(targetMessage);
-      // Focus on input field
-      setTimeout(() => {
-        const inputElement = document.querySelector('input[placeholder*="메시지"]') as HTMLInputElement;
-        if (inputElement) {
-          inputElement.focus();
-        }
-      }, 100);
-    }
-  };
 
   // File upload mutation
   const uploadFileMutation = useMutation({
