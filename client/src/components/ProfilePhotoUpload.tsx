@@ -62,9 +62,18 @@ export default function ProfilePhotoUpload({ isOpen, onClose }: ProfilePhotoUplo
       
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      // Update user context immediately
       setUser(prev => prev ? { ...prev, profilePicture: data.profilePicture } : prev);
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      
+      // Invalidate all related queries
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      
+      // Refetch user data to ensure consistency
+      await queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
+      
       toast({
         title: "프로필 사진 업데이트 완료",
         description: "프로필 사진이 성공적으로 변경되었습니다.",

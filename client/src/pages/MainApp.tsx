@@ -17,6 +17,7 @@ import CommandModal from "@/components/CommandModal";
 import CreateGroupChatModal from "@/components/CreateGroupChatModal";
 import ProfilePhotoModal from "@/components/ProfilePhotoModal";
 import ZeroDelayAvatar from "@/components/ZeroDelayAvatar";
+import InstantAvatar from "@/components/InstantAvatar";
 import { BannerNotificationContainer } from "@/components/MobileBannerNotification";
 import LoadingScreen from "@/components/LoadingScreen";
 import { ConnectionStatusIndicator } from "@/components/ConnectionStatusIndicator";
@@ -396,18 +397,20 @@ export default function MainApp() {
                     >
                       <div className="flex items-center space-x-3">
                         <div className="relative">
-                          <Avatar 
+                          <div 
                             className="w-12 h-12 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all"
-                            onClick={(e) => {
+                            onClick={(e: any) => {
                               e.stopPropagation();
                               setModals({ ...modals, profilePhoto: true });
                             }}
                           >
-                            <AvatarImage src={user?.profilePicture || undefined} />
-                            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-semibold">
-                              {user?.displayName?.charAt(0) || user?.username?.charAt(0) || "U"}
-                            </AvatarFallback>
-                          </Avatar>
+                            <InstantAvatar 
+                              src={user?.profilePicture}
+                              fallbackText={user?.displayName?.charAt(0) || user?.username?.charAt(0) || "U"}
+                              size="lg"
+                              className="w-full h-full"
+                            />
+                          </div>
                           <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-purple-600 rounded-full flex items-center justify-center">
                             <Camera className="w-2.5 h-2.5 text-white" />
                           </div>
@@ -911,8 +914,8 @@ export default function MainApp() {
           </AnimatePresence>
         </div>
 
-        {/* Fixed Mobile Bottom Navigation - Hide when in chat */}
-        {!showMobileChat && (
+        {/* Fixed Mobile Bottom Navigation - Always visible */}
+        {(
           <div className="bg-white border-t border-gray-200 pb-0 pt-1 px-2 fixed bottom-0 left-0 right-0 z-40 lg:hidden">
             <div className="flex justify-around">
               <Button
