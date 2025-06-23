@@ -1740,20 +1740,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // VAPID public key endpoint
+  app.get('/api/vapid-public-key', (req, res) => {
+    try {
+      const publicKey = getVapidPublicKey();
+      res.json({ publicKey });
+    } catch (error) {
+      console.error("VAPID key error:", error);
+      res.status(500).json({ message: "Failed to get VAPID public key" });
+    }
+  });
+
   // Push notification subscription management
   app.post('/api/push-subscription', async (req, res) => {
     try {
-      const { user } = req as any;
-      if (!user) {
-        return res.status(401).json({ message: "Unauthorized" });
+      const userId = req.headers["x-user-id"];
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
       }
 
-      const { endpoint, keys } = req.body;
-      const { p256dh, auth } = keys;
+      const { endpoint, p256dh, auth } = req.body;
       const userAgent = req.headers['user-agent'] || '';
 
       // 기존 구독이 있다면 업데이트, 없다면 새로 생성
-      await storage.upsertPushSubscription(user.id, {
+      await storage.upsertPushSubscription(Number(userId), {
         endpoint,
         p256dh,
         auth,
@@ -1769,13 +1779,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/push-subscription', async (req, res) => {
     try {
-      const { user } = req as any;
-      if (!user) {
-        return res.status(401).json({ message: "Unauthorized" });
+      const userId = req.headers["x-user-id"];
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
       }
 
       const { endpoint } = req.body;
-      await storage.deletePushSubscription(user.id, endpoint);
+      await storage.deletePushSubscription(Number(userId), endpoint);
 
       res.json({ success: true, message: "푸시 알림 구독이 해제되었습니다." });
     } catch (error) {
