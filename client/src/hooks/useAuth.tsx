@@ -22,9 +22,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isPreloadingImages, setIsPreloadingImages] = useState(false);
 
 
-  // Try to get user from localStorage on app start
-  const storedUserId = localStorage.getItem("userId");
-  const rememberLogin = localStorage.getItem("rememberLogin");
+  // Try to get user from localStorage on app start (with safety check)
+  const [storedUserId, setStoredUserId] = useState<string | null>(null);
+  const [rememberLogin, setRememberLogin] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setStoredUserId(localStorage.getItem("userId"));
+      setRememberLogin(localStorage.getItem("rememberLogin"));
+    }
+  }, []);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["/api/auth/me"],
@@ -51,67 +58,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     retry: false,
   });
 
-  // 연락처와 채팅룸 데이터에서 프로필 이미지 URL 추출 및 프리로딩
+  // 프로필 이미지 프리로딩 비활성화 (로딩 문제 해결)
   const preloadProfileImages = async (userId: string) => {
     setIsPreloadingImages(true);
     try {
-      console.log("🚀 Starting profile image preloading...");
+      console.log("⚡ Skipping profile image preloading for faster loading");
       
-      // 프리로딩 타임아웃 설정 (최대 10초)
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error("Preloading timeout")), 10000);
-      });
+      // 즉시 완료 처리
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       const preloadingPromise = async () => {
-        // 연락처 데이터 가져오기
-        const contactsResponse = await fetch("/api/contacts", {
-          headers: { "x-user-id": userId },
-        });
-        
-        // 채팅룸 데이터 가져오기
-        const chatRoomsResponse = await fetch("/api/chat-rooms", {
-          headers: { "x-user-id": userId },
-        });
-        
-        const profileImageUrls = new Set<string>();
-        
-        if (contactsResponse.ok) {
-          const contactsData = await contactsResponse.json();
-          contactsData.contacts?.forEach((contact: any) => {
-            if (contact.contactUser?.profilePicture) {
-              profileImageUrls.add(contact.contactUser.profilePicture);
-            }
-          });
-        }
-        
-        if (chatRoomsResponse.ok) {
-          const chatRoomsData = await chatRoomsResponse.json();
-          chatRoomsData.chatRooms?.forEach((chatRoom: any) => {
-            if (chatRoom.profilePicture) {
-              profileImageUrls.add(chatRoom.profilePicture);
-            }
-            // 채팅방 참가자 프로필 이미지들도 포함
-            if (chatRoom.participants) {
-              chatRoom.participants.forEach((participant: any) => {
-                if (participant.profilePicture) {
-                  profileImageUrls.add(participant.profilePicture);
-                }
-              });
-            }
-          });
-        }
-        
-        // 현재 사용자 프로필 이미지도 포함
-        if (data?.user?.profilePicture) {
-          profileImageUrls.add(data.user.profilePicture);
-        }
-        
-        console.log(`📥 Found ${profileImageUrls.size} profile images to preload`);
-        
-        // 최대 20개 이미지만 프리로드 (성능 고려)
-        const imagesToPreload = Array.from(profileImageUrls).slice(0, 20);
-        
-        // 모든 프로필 이미지를 병렬로 다운로드 (각각 3초 타임아웃)
+        // 프리로딩 기능 완전 비활성화 - 즉시 완료
+        console.log("⚡ Profile image preloading disabled for faster loading");
         const imagePromises = imagesToPreload.map(async (imageUrl) => {
           try {
             const controller = new AbortController();
