@@ -46,10 +46,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       let permission = currentPermission;
       
-      // 권한이 없거나 거부된 경우 요청
+      // 아이폰 PWA는 사용자 상호작용이 필요함
       if (permission === 'default') {
         console.log('🔔 아이폰/안드로이드 PWA 알림 권한 요청 중...');
-        permission = await Notification.requestPermission();
+        // 아이폰 PWA에서는 사용자 제스처 내에서 권한 요청해야 함
+        const userGesture = new Promise((resolve) => {
+          const button = document.createElement('button');
+          button.style.position = 'fixed';
+          button.style.top = '50%';
+          button.style.left = '50%';
+          button.style.transform = 'translate(-50%, -50%)';
+          button.style.zIndex = '10000';
+          button.style.backgroundColor = '#8B5CF6';
+          button.style.color = 'white';
+          button.style.border = 'none';
+          button.style.borderRadius = '8px';
+          button.style.padding = '12px 24px';
+          button.style.fontSize = '16px';
+          button.style.fontWeight = 'bold';
+          button.textContent = '푸시 알림 허용';
+          
+          button.onclick = async () => {
+            document.body.removeChild(button);
+            const perm = await Notification.requestPermission();
+            resolve(perm);
+          };
+          
+          document.body.appendChild(button);
+        });
+        
+        permission = await userGesture as NotificationPermission;
       }
 
       if (permission === 'granted') {

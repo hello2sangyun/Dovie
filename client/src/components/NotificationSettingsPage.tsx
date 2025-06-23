@@ -89,8 +89,12 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
         <h1 className="text-lg font-semibold text-gray-900">알림 설정</h1>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-6" style={{ maxHeight: 'calc(100vh - 120px)' }}>
+      {/* Content - 모바일 스크롤 문제 해결 */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-20" style={{ 
+        maxHeight: 'calc(100vh - 120px)', 
+        overflowY: 'scroll',
+        WebkitOverflowScrolling: 'touch'
+      }}>
         {/* General Notifications */}
         <Card>
           <CardHeader>

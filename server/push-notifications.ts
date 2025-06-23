@@ -83,7 +83,11 @@ export async function sendPushNotification(
           TTL: 60 * 60 * 24, // 24 hours
           urgency: 'high' as const, // High priority for iPhone PWA
           headers: {
-            'Topic': 'dovie-messenger'
+            'Topic': 'dovie-messenger',
+            // iOS PWA 특화 헤더
+            'apns-priority': '10', // 최고 우선순위
+            'apns-push-type': 'alert',
+            'apns-topic': 'com.dovie.messenger'
           }
         };
 

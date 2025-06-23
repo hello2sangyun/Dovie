@@ -1227,9 +1227,9 @@ export default function MainApp() {
             )}
         </div>
 
-        {/* Fixed Mobile Bottom Navigation - Always visible */}
+        {/* Fixed Mobile Bottom Navigation - Always visible with safe area */}
         {!showMobileChat && (
-          <div className="bg-white border-t border-gray-200 pb-0 pt-1 px-2 fixed bottom-0 left-0 right-0 z-40 lg:hidden">
+          <div className="bg-white border-t border-gray-200 pb-safe pt-2 px-2 fixed bottom-0 left-0 right-0 z-40 lg:hidden" style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}>
             <div className="flex justify-around">
               <Button
                 variant="ghost"
