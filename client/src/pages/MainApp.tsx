@@ -395,12 +395,8 @@ export default function MainApp() {
             <div className="flex-1 overflow-hidden relative">
               <AnimatePresence mode="wait">
                 {activeTab === "contacts" && (
-                  <motion.div
+                  <div
                     key="desktop-contacts"
-                    initial={{ opacity: 0, x: -15 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -15 }}
-                    transition={{ duration: 0.25, ease: "easeInOut" }}
                     className="absolute inset-0"
                   >
                     <TabsContent value="contacts" className="h-full m-0">
@@ -415,16 +411,12 @@ export default function MainApp() {
                         }}
                       />
                     </TabsContent>
-                  </motion.div>
+                  </div>
                 )}
                 
                 {activeTab === "chats" && (
-                  <motion.div
+                  <div
                     key="desktop-chats"
-                    initial={{ opacity: 0, x: 15 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 15 }}
-                    transition={{ duration: 0.25, ease: "easeInOut" }}
                     className="absolute inset-0"
                   >
                     <TabsContent value="chats" className="h-full m-0">
@@ -436,31 +428,23 @@ export default function MainApp() {
                         onClearFilter={() => setContactFilter(null)}
                       />
                     </TabsContent>
-                  </motion.div>
+                  </div>
                 )}
 
                 {activeTab === "archive" && (
-                  <motion.div
+                  <div
                     key="desktop-archive"
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.98 }}
-                    transition={{ duration: 0.25, ease: "easeInOut" }}
                     className="absolute inset-0"
                   >
                     <TabsContent value="archive" className="h-full m-0">
                       <ArchiveList />
                     </TabsContent>
-                  </motion.div>
+                  </div>
                 )}
                 
                 {activeTab === "settings" && (
-                  <motion.div
+                  <div
                     key="desktop-settings"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 20 }}
-                    transition={{ duration: 0.25, ease: "easeInOut" }}
                     className="absolute inset-0"
                   >
                     <TabsContent value="settings" className="h-full m-0">
@@ -576,7 +560,7 @@ export default function MainApp() {
                   </div>
                 </div>
               </TabsContent>
-                    </motion.div>
+                    </div>
                   )}
                 </AnimatePresence>
               </div>
@@ -843,12 +827,8 @@ export default function MainApp() {
         )}>
           <AnimatePresence mode="wait">
             {activeMobileTab === "contacts" && (
-              <motion.div
+              <div
                 key="contacts"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
                 className="absolute inset-0 flex flex-col"
               >
                 {/* Search Header for Contacts */}
