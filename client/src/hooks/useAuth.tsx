@@ -27,18 +27,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["/api/auth/me"],
-    enabled: !!storedUserId || !initialized, // 저장된 ID가 있거나 초기화되지 않은 경우 실행
+    enabled: !!storedUserId, // 저장된 ID가 있는 경우에만 실행
     refetchInterval: false, // 자동 새로고침 비활성화 (불필요한 요청 방지)
     staleTime: 5 * 60 * 1000, // 5분 동안 캐시 유지
     gcTime: 10 * 60 * 1000, // 10분 동안 메모리에 보관 (v5에서 cacheTime -> gcTime)
     queryFn: async () => {
-      if (!storedUserId) {
-        throw new Error("No stored user ID");
-      }
-      
       const response = await fetch("/api/auth/me", {
         headers: {
-          "x-user-id": storedUserId,
+          "x-user-id": storedUserId!,
         },
       });
       
@@ -175,21 +171,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // 이미지가 이미 로드된 경우 바로 초기화 완료
       setUser(data.user);
       setInitialized(true);
-    } else if (error) {
-      // Clear user data if authentication fails
+    } else if (error && storedUserId) {
+      // Clear user data if authentication fails for stored user
       console.log("❌ Authentication failed, clearing user data");
       setUser(null);
       localStorage.removeItem("userId");
+      localStorage.removeItem("rememberLogin");
       setInitialized(true);
       setProfileImagesLoaded(false);
       setIsPreloadingImages(false);
-    } else if (!storedUserId) {
-      // No stored user ID, mark as initialized
+    } else if (!storedUserId && !initialized) {
+      // No stored user ID, mark as initialized immediately
+      console.log("📱 No stored user, initializing as logged out");
+      setUser(null);
       setInitialized(true);
       setProfileImagesLoaded(false);
       setIsPreloadingImages(false);
     }
-  }, [data, error, storedUserId, profileImagesLoaded]);
+  }, [data, error, storedUserId, profileImagesLoaded, initialized]);
 
   // Clear user data when logging out
   const handleSetUser = (newUser: User | null) => {
@@ -292,7 +291,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user, 
       setUser: handleSetUser, 
       logout,
-      isLoading: (isLoading && !!storedUserId) || !initialized || !profileImagesLoaded,
+      isLoading: (isLoading && !!storedUserId) || !initialized || (!!user && !profileImagesLoaded),
       isPreloadingImages,
       loginWithUsername,
       loginWithEmail

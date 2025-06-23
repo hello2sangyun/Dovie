@@ -126,7 +126,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   
   // Typing indicator and accessibility
   const { typingUsers, addTypingUser, removeTypingUser, clearAllTyping } = useTypingIndicator();
-  const { settings: accessibilitySettings } = useAccessibilitySettings();
+  const accessibilitySettings = { reducedMotion: false }; // Default accessibility settings
   
   // Typing indicator functionality for real users only
 
@@ -5513,7 +5513,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               aria-label="파일 첨부"
             >
               {uploadFileMutation.isPending ? (
-                <AccessibleSpinner size="sm" accessibilityMode={accessibilitySettings.reducedMotion} />
+                <div className="animate-spin h-4 w-4 border-2 border-purple-600 border-t-transparent rounded-full" />
               ) : (
                 <Paperclip className="h-4 w-4" />
               )}
