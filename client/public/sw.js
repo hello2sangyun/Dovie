@@ -1,6 +1,6 @@
-const CACHE_NAME = 'dovie-messenger-v1';
-const STATIC_CACHE_NAME = 'dovie-static-v1';
-const DYNAMIC_CACHE_NAME = 'dovie-dynamic-v1';
+const CACHE_NAME = 'dovie-messenger-v2';
+const STATIC_CACHE_NAME = 'dovie-static-v2';
+const DYNAMIC_CACHE_NAME = 'dovie-dynamic-v2';
 
 // Static assets to cache
 const STATIC_ASSETS = [
@@ -137,6 +137,40 @@ async function handleMediaRequest(request) {
     return networkResponse;
   } catch (error) {
     console.log('[SW] Failed to load media:', request.url);
+    throw error;
+  }
+}
+
+// Handle media requests - network first for fresh content
+async function handleMediaRequest(request) {
+  try {
+    // Always try network first for media files to get latest content
+    const networkResponse = await fetch(request.clone());
+    
+    if (networkResponse.ok) {
+      // Cache successful responses
+      const cache = await caches.open(DYNAMIC_CACHE_NAME);
+      cache.put(request, networkResponse.clone());
+      return networkResponse;
+    }
+    
+    // If network fails, try cache
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    
+    throw new Error('Media not found in cache or network');
+  } catch (error) {
+    console.log('[SW] Media request failed, trying cache:', request.url);
+    
+    // Network failed, try cache as fallback
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    
+    // Return a placeholder or throw error
     throw error;
   }
 }
@@ -341,8 +375,5 @@ self.addEventListener('focus', () => {
 self.addEventListener('sync', (event) => {
   if (event.tag === 'background-sync') {
     event.waitUntil(syncOfflineMessages());
-  }
-});ata.url || '/')
-    );
   }
 });

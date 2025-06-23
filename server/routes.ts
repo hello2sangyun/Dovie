@@ -1671,13 +1671,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         default: contentType = 'image/jpeg'; break;
       }
       
-      // 캐시 헤더 설정 (1일)
+      // 배포 환경을 위한 향상된 헤더 설정
       res.set({
         'Content-Type': contentType,
         'Content-Length': stats.size.toString(),
-        'Cache-Control': 'public, max-age=86400',
+        'Cache-Control': 'public, max-age=3600, must-revalidate', // 1시간 캐시, 재검증 필수
         'ETag': `"${stats.mtime.getTime()}-${stats.size}"`,
-        'Last-Modified': stats.mtime.toUTCString()
+        'Last-Modified': stats.mtime.toUTCString(),
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, x-user-id',
+        'Cross-Origin-Resource-Policy': 'cross-origin',
+        'Vary': 'Accept-Encoding'
       });
       
       // ETag 기반 조건부 요청 처리

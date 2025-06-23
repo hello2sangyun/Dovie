@@ -51,6 +51,7 @@ export const InstantAvatar = memo(function InstantAvatar({
   const [forceRefresh, setForceRefresh] = useState(0);
   const [forceUpdate, setForceUpdate] = useState(0);
   const [showFallback, setShowFallback] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const { getInstantImage } = useInstantImageCache();
 
   // 이니셜 생성
@@ -114,10 +115,21 @@ export const InstantAvatar = memo(function InstantAvatar({
       <Avatar className={cn(sizeClasses[size], className)}>
         {displaySrc && !showFallback ? (
           <AvatarImage 
-            src={displaySrc} 
+            src={displaySrc + (retryCount > 0 ? `?retry=${retryCount}` : '')} 
             alt={alt}
             className="object-cover"
-            onError={() => setShowFallback(true)}
+            onError={() => {
+              console.log(`Profile image failed to load: ${displaySrc}, retry: ${retryCount}`);
+              if (retryCount < 2) {
+                // 재시도 (최대 2회)
+                setTimeout(() => {
+                  setRetryCount(prev => prev + 1);
+                }, 1000 * (retryCount + 1)); // 점진적 지연
+              } else {
+                // 최종 실패 시 fallback 표시
+                setShowFallback(true);
+              }
+            }}
           />
         ) : (
           <AvatarFallback className={cn(
