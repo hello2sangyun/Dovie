@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import fs from "fs";
+import path from "path";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ 
@@ -279,19 +280,38 @@ export async function transcribeAudio(filePath: string): Promise<{
     console.log("Starting audio transcription with language detection...");
     console.log("Audio file path:", filePath);
     
-    // Read file as buffer and create FormData with proper filename
+    // Read file as buffer and detect proper audio format
     const audioBuffer = fs.readFileSync(filePath);
     console.log("Audio buffer read successfully, size:", audioBuffer.length, "bytes");
     
-    // Create a Blob with proper MIME type and filename
-    const audioBlob = new Blob([audioBuffer], { type: "audio/webm" });
-    console.log("Audio blob created with type audio/webm");
+    // Detect file format and set appropriate MIME type
+    let mimeType = "audio/webm";
+    let fileName = "audio.webm";
     
-    // Create FormData for OpenAI API with proper filename
+    // Check file extension for proper format detection
+    const fileExtension = path.extname(filePath).toLowerCase();
+    if (fileExtension === '.mp4' || fileExtension === '.m4a') {
+      mimeType = "audio/mp4";
+      fileName = "audio.mp4";
+    } else if (fileExtension === '.wav') {
+      mimeType = "audio/wav";
+      fileName = "audio.wav";
+    } else if (fileExtension === '.ogg') {
+      mimeType = "audio/ogg";
+      fileName = "audio.ogg";
+    }
+    
+    console.log(`Using audio format: ${mimeType} for file: ${fileName}`);
+    
+    // Create a Blob with proper MIME type
+    const audioBlob = new Blob([audioBuffer], { type: mimeType });
+    
+    // Create FormData for OpenAI API with proper filename and format
     const formData = new FormData();
-    formData.append("file", audioBlob, "audio.webm");
+    formData.append("file", audioBlob, fileName);
     formData.append("model", "whisper-1");
     formData.append("response_format", "verbose_json");
+    formData.append("language", "ko"); // Set default language to Korean for better iPhone PWA performance
     
     console.log("FormData prepared for OpenAI API");
     

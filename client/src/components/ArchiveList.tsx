@@ -575,10 +575,20 @@ export default function ArchiveList() {
     const commands = commandsData?.commands || [];
     const chatRooms = chatRoomsData?.chatRooms || [];
     
-    // Create a map of chat room ID to chat room name
+    // Create a map of chat room ID to chat room data (name and participants)
     const chatRoomMap = new Map();
     chatRooms.forEach((room: any) => {
-      chatRoomMap.set(room.id, room.name);
+      // For individual chats, show display name with ID
+      let displayName = room.name;
+      if (room.isGroup === false && room.participants && room.participants.length === 2) {
+        // Find the other participant (not current user)
+        const otherParticipant = room.participants.find((p: any) => p.userId !== user?.id);
+        if (otherParticipant) {
+          displayName = `${otherParticipant.displayName || otherParticipant.username} (${otherParticipant.username})`;
+        }
+      }
+      
+      chatRoomMap.set(room.id, displayName);
     });
     
     // Group commands by chat room
@@ -604,7 +614,7 @@ export default function ArchiveList() {
     });
     
     return Array.from(folderMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [commandsData, chatRoomsData]);
+  }, [commandsData, chatRoomsData, user?.id]);
 
   // Get all files when searching
   const allFiles = useMemo(() => {

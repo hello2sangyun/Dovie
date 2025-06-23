@@ -289,10 +289,7 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
           </Button>
         </div>
 
-        {/* Push Notification Testing Interface */}
-        <div className="pt-8">
-          <PushNotificationTester />
-        </div>
+
       </div>
     </div>
   );

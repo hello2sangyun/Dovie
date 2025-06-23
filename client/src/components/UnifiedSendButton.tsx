@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Send, Mic, Square } from 'lucide-react';
 import { InteractiveButton, PulseNotification } from './MicroInteractions';
+import { useMicrophonePermission } from '../hooks/useMicrophonePermission';
 
 interface UnifiedSendButtonProps {
   onSendMessage: () => void;
@@ -29,21 +30,39 @@ export function UnifiedSendButton({
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const longPressTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isLongPressRef = useRef(false);
+  
+  const { hasPermission, requestPermission, getStream } = useMicrophonePermission();
 
   // 녹음 시작
   const startRecording = useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-          sampleRate: 44100
-        } 
-      });
+      // Check permission first, request if needed
+      if (!hasPermission) {
+        const granted = await requestPermission();
+        if (!granted) {
+          console.error('Microphone permission denied');
+          return;
+        }
+      }
+
+      // Get stream using global permission system
+      const stream = await getStream();
+      if (!stream) {
+        console.error('Failed to get microphone stream');
+        return;
+      }
+      
+      // Use iPhone-compatible MediaRecorder settings
+      let mimeType = 'audio/webm;codecs=opus';
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = 'audio/mp4';
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+          mimeType = 'audio/wav';
+        }
+      }
       
       const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
+        mimeType: mimeType
       });
       
       const audioChunks: Blob[] = [];
@@ -55,12 +74,9 @@ export function UnifiedSendButton({
       };
       
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        const audioBlob = new Blob(audioChunks, { type: mimeType });
         const duration = Date.now() - recordingStartTimeRef.current;
         onVoiceRecordingComplete(audioBlob, Math.floor(duration / 1000));
-        
-        // 스트림 정리
-        stream.getTracks().forEach(track => track.stop());
       };
       
       mediaRecorderRef.current = mediaRecorder;
@@ -78,7 +94,7 @@ export function UnifiedSendButton({
     } catch (error) {
       console.error('Failed to start recording:', error);
     }
-  }, [onVoiceRecordingComplete]);
+  }, [hasPermission, requestPermission, getStream, onVoiceRecordingComplete]);
 
   // 녹음 중지
   const stopRecording = useCallback(() => {
