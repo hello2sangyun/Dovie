@@ -1074,12 +1074,7 @@ export default function MainApp() {
         onPermissionResult={handleMicrophonePermissionResult}
       />
 
-      {/* Loading screen overlay for profile image preloading */}
-      {isLoading && (
-        <div className="fixed inset-0 z-50 bg-white">
-          <LoadingScreen message="앱을 초기화하는 중..." />
-        </div>
-      )}
+
 
     </div>
   );
