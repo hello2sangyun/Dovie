@@ -40,7 +40,7 @@ export default function MainApp() {
   const { user, isLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { preloadImage, isLoading: imagePreloading } = useImagePreloader();
+
   const [location, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("chats");
   const [activeMobileTab, setActiveMobileTab] = useState("chats");

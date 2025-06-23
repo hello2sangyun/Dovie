@@ -8,7 +8,7 @@ interface AuthContextType {
   setUser: (user: User | null) => void;
   logout: () => void;
   isLoading: boolean;
-  isPreloadingImages: boolean;
+
   loginWithUsername: (username: string, password: string) => Promise<any>;
   loginWithEmail: (email: string, password: string) => Promise<any>;
 }
@@ -18,8 +18,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [initialized, setInitialized] = useState(false);
-  const [profileImagesLoaded, setProfileImagesLoaded] = useState(false);
-  const [isPreloadingImages, setIsPreloadingImages] = useState(false);
+
 
 
   // Try to get user from localStorage on app start (with safety check)
@@ -60,17 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // 프로필 이미지 프리로딩 완전 비활성화 (로딩 문제 해결)
   const preloadProfileImages = async (userId: string) => {
-    setIsPreloadingImages(true);
-    try {
-      console.log("⚡ Profile image preloading disabled for faster loading");
-      // 즉시 완료 처리
-      setProfileImagesLoaded(true);
-    } catch (error) {
-      console.log("Profile image preloading skipped");
-      setProfileImagesLoaded(true);
-    } finally {
-      setIsPreloadingImages(false);
-    }
+    console.log("⚡ Profile image preloading disabled for faster loading");
   };
 
   useEffect(() => {
@@ -78,8 +67,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log("🔄 Auth context updating user:", data.user.id, "profilePicture:", data.user.profilePicture);
       setUser(data.user);
       setInitialized(true);
-      setProfileImagesLoaded(true);
-      setIsPreloadingImages(false);
     } else if (error && storedUserId) {
       // Clear user data if authentication fails for stored user
       console.log("❌ Authentication failed, clearing user data");
@@ -87,22 +74,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem("userId");
       localStorage.removeItem("rememberLogin");
       setInitialized(true);
-      setProfileImagesLoaded(false);
-      setIsPreloadingImages(false);
     } else if ((!storedUserId || rememberLogin !== "true") && !initialized) {
       // No stored user ID or auto-login disabled, mark as initialized immediately
       console.log("📱 No stored user or auto-login disabled, initializing as logged out");
       setUser(null);
       setInitialized(true);
-      setProfileImagesLoaded(false);
-      setIsPreloadingImages(false);
       // Clear any invalid stored data
       if (storedUserId && rememberLogin !== "true") {
         localStorage.removeItem("userId");
         localStorage.removeItem("rememberLogin");
       }
     }
-  }, [data, error, storedUserId, profileImagesLoaded, initialized]);
+  }, [data, error, storedUserId, initialized]);
 
   // Clear user data when logging out
   const handleSetUser = (newUser: User | null) => {
@@ -183,8 +166,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem("lastLoginTime");
       setUser(null);
       setInitialized(false);
-      setProfileImagesLoaded(false);
-      setIsPreloadingImages(false);
 
       // Clear image cache
       if ((window as any).globalImageCache) {
@@ -205,8 +186,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user, 
       setUser: handleSetUser, 
       logout,
-      isLoading: (isLoading && !!storedUserId) || !initialized || (!!user && !profileImagesLoaded),
-      isPreloadingImages,
+      isLoading: (isLoading && !!storedUserId) || !initialized,
       loginWithUsername,
       loginWithEmail
     }}>
