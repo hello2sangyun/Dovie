@@ -45,7 +45,7 @@ export async function sendPushNotification(
 
     // Prepare notification payload optimized for iPhone PWA
     const notificationPayload = JSON.stringify({
-      title: payload.title || "Dovie Messenger",
+      title: payload.title || "새 메시지",
       body: payload.body || "새 메시지가 도착했습니다",
       icon: payload.icon || '/icons/icon-192x192.png',
       badge: payload.badge || '/icons/icon-72x72.png',
@@ -127,7 +127,14 @@ export async function sendMessageNotification(
     // Customize notification body based on message type
     switch (messageType) {
       case 'voice':
-        notificationBody = '음성 메시지를 보냈습니다';
+        // For voice messages, use the transcribed content if available
+        if (messageContent && messageContent.trim() !== '') {
+          notificationBody = messageContent.length > 50 
+            ? messageContent.substring(0, 47) + '...'
+            : messageContent;
+        } else {
+          notificationBody = '음성 메시지를 보냈습니다';
+        }
         break;
       case 'file':
         notificationBody = '파일을 보냈습니다';

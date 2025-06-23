@@ -746,6 +746,12 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - **Push notifications now default to enabled** instead of requiring manual activation in settings
   - **Improved user experience** by eliminating extra steps for notification setup
   - **Streamlined permission flow** with automatic subscription registration on first login
+- June 23, 2025: **Enhanced voice message push notifications with transcribed text content**:
+  - **Modified push notification system** to display transcribed text content for voice messages instead of generic "음성 메시지를 보냈습니다"
+  - **Enhanced sendMessageNotification function** to use actual voice transcription when available
+  - **Removed "from Dovie" branding** from push notification titles for cleaner appearance
+  - **Improved voice message UX** by showing actual spoken content in notifications for better context
+  - **Maintained fallback handling** for cases where transcription is not available or empty
 
 ## User Preferences
 
