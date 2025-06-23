@@ -208,4 +208,23 @@ export function LoadingSpinner({
   );
 }
 
+// Pulse Notification Component (simplified without motion effects)
+export function PulseNotification({ 
+  children, 
+  active = false,
+  accessibilityMode = false,
+  intensity = 'moderate'
+}: {
+  children: React.ReactNode;
+  active?: boolean;
+  accessibilityMode?: boolean;
+  intensity?: 'subtle' | 'moderate' | 'strong';
+}) {
+  return (
+    <div className={`relative ${active && !accessibilityMode ? 'animate-pulse' : ''}`}>
+      {children}
+    </div>
+  );
+}
+
 export default InteractiveButton;

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Send, Mic, Square } from 'lucide-react';
-import { InteractiveButton, PulseNotification, AccessibleSpinner } from './MicroInteractions';
+import { InteractiveButton, PulseNotification } from './MicroInteractions';
 
 interface UnifiedSendButtonProps {
   onSendMessage: () => void;
@@ -193,7 +193,7 @@ export function UnifiedSendButton({
           }
         >
           {isPending ? (
-            <AccessibleSpinner size="sm" accessibilityMode={accessibilitySettings.reducedMotion} />
+            <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
           ) : showSendIcon ? (
             <Send className="h-4 w-4" />
           ) : showStopIcon ? (

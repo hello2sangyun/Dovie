@@ -126,7 +126,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   
   // Typing indicator and accessibility
   const { typingUsers, addTypingUser, removeTypingUser, clearAllTyping } = useTypingIndicator();
-  const accessibilitySettings = { reducedMotion: false }; // Default accessibility settings
+  const accessibilitySettings = { reducedMotion: false, hapticEnabled: true }; // Default accessibility settings
   
   // Typing indicator functionality for real users only
 
@@ -137,7 +137,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       await queryClient.prefetchQuery({
         queryKey: ["/api/unread-counts"],
         queryFn: async () => {
-          const response = await apiRequest("/api/unread-counts");
+          const response = await apiRequest("/api/unread-counts", "GET");
           return response.json();
         },
         staleTime: 30 * 1000,
@@ -147,7 +147,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       await queryClient.prefetchQuery({
         queryKey: ["/api/chat-rooms"],
         queryFn: async () => {
-          const response = await apiRequest("/api/chat-rooms");
+          const response = await apiRequest("/api/chat-rooms", "GET");
           return response.json();
         },
         staleTime: 30 * 1000,
