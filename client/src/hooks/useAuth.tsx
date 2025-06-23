@@ -1,14 +1,12 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { User } from "@shared/schema";
-import { useInstantImageCache } from "./useInstantImageCache";
 
 interface AuthContextType {
   user: User | null;
   setUser: (user: User | null) => void;
   logout: () => void;
   isLoading: boolean;
-
   loginWithUsername: (username: string, password: string) => Promise<any>;
   loginWithEmail: (email: string, password: string) => Promise<any>;
 }
@@ -19,48 +17,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [initialized, setInitialized] = useState(false);
 
-
-
   // Try to get user from localStorage on app start (with safety check)
   const [storedUserId, setStoredUserId] = useState<string | null>(null);
   const [rememberLogin, setRememberLogin] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setStoredUserId(localStorage.getItem("userId"));
-      setRememberLogin(localStorage.getItem("rememberLogin"));
+      const userId = localStorage.getItem("userId");
+      const remember = localStorage.getItem("rememberLogin");
+      setStoredUserId(userId);
+      setRememberLogin(remember);
+      console.log("📱 Checking auto-login:", { userId, remember });
     }
   }, []);
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["/api/auth/me"],
-    enabled: !!storedUserId && rememberLogin === "true", // 저장된 ID와 자동로그인 설정 모두 확인
-    refetchInterval: false, // 자동 새로고침 비활성화 (불필요한 요청 방지)
-    staleTime: 5 * 60 * 1000, // 5분 동안 캐시 유지
-    gcTime: 10 * 60 * 1000, // 10분 동안 메모리에 보관 (v5에서 cacheTime -> gcTime)
-    queryFn: async () => {
-      const response = await fetch("/api/auth/me", {
-        headers: {
-          "x-user-id": storedUserId!,
-        },
-      });
-      
-      if (!response.ok) {
-        // 인증 실패 시 저장된 사용자 ID 제거
-        localStorage.removeItem("userId");
-        localStorage.removeItem("rememberLogin"); // 자동 로그인 해제
-        throw new Error("Authentication failed");
-      }
-      
-      return response.json();
-    },
+  // Only try to authenticate if we have a stored user ID and auto-login is enabled
+  const { data, error, isLoading } = useQuery({
+    queryKey: ['/api/auth/me'],
+    enabled: !!(storedUserId && rememberLogin === "true"),
+    gcTime: 60 * 1000, // 1 minute
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
     retry: false,
   });
-
-  // 프로필 이미지 프리로딩 완전 비활성화 (로딩 문제 해결)
-  const preloadProfileImages = async (userId: string) => {
-    console.log("⚡ Profile image preloading disabled for faster loading");
-  };
 
   useEffect(() => {
     if (data?.user) {
@@ -92,12 +71,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(newUser);
     if (!newUser) {
       localStorage.removeItem("userId");
+      localStorage.removeItem("rememberLogin");
+      localStorage.removeItem("lastLoginTime");
     }
   };
 
   // Username login function
   const loginWithUsername = async (username: string, password: string) => {
-    const response = await fetch("/api/auth/username-login", {
+    const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -113,12 +94,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const data = await response.json();
     setUser(data.user);
     
-    // 자동 로그인 정보 저장
+    // Save auto-login information
     localStorage.setItem("userId", data.user.id.toString());
     localStorage.setItem("rememberLogin", "true");
     localStorage.setItem("lastLoginTime", Date.now().toString());
     
-    console.log("✅ 자동 로그인이 설정되었습니다");
+    console.log("✅ Auto-login has been set up");
     return data;
   };
 
@@ -140,12 +121,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const data = await response.json();
     setUser(data.user);
     
-    // 자동 로그인 정보 저장
+    // Save auto-login information
     localStorage.setItem("userId", data.user.id.toString());
     localStorage.setItem("rememberLogin", "true");
     localStorage.setItem("lastLoginTime", Date.now().toString());
     
-    console.log("✅ 자동 로그인이 설정되었습니다");
+    console.log("✅ Auto-login has been set up");
     return data;
   };
 
@@ -172,9 +153,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         (window as any).globalImageCache.clear();
       }
 
-      console.log("로그아웃 완료 - 자동 로그인 설정 해제됨");
+      console.log("Logout complete - auto-login disabled");
       
-      // 강제 리디렉션을 원하는 경우에만 로그인 페이지로 이동
+      // Force redirect to login page only if requested
       if (forceRedirect) {
         window.location.href = "/login";
       }
