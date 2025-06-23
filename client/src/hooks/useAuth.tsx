@@ -58,60 +58,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     retry: false,
   });
 
-  // 프로필 이미지 프리로딩 비활성화 (로딩 문제 해결)
+  // 프로필 이미지 프리로딩 완전 비활성화 (로딩 문제 해결)
   const preloadProfileImages = async (userId: string) => {
     setIsPreloadingImages(true);
     try {
-      console.log("⚡ Skipping profile image preloading for faster loading");
-      
+      console.log("⚡ Profile image preloading disabled for faster loading");
       // 즉시 완료 처리
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      const preloadingPromise = async () => {
-        // 프리로딩 기능 완전 비활성화 - 즉시 완료
-        console.log("⚡ Profile image preloading disabled for faster loading");
-        const imagePromises = imagesToPreload.map(async (imageUrl) => {
-          try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 3000);
-            
-            const response = await fetch(imageUrl, { signal: controller.signal });
-            clearTimeout(timeoutId);
-            
-            if (response.ok) {
-              const blob = await response.blob();
-              const objectUrl = URL.createObjectURL(blob);
-              
-              // 전역 캐시 초기화 (없으면 생성)
-              if (!(window as any).globalImageCache) {
-                (window as any).globalImageCache = new Map();
-              }
-              
-              // 이미지 캐시에 저장
-              (window as any).globalImageCache.set(imageUrl, {
-                blob,
-                objectUrl,
-                timestamp: Date.now(),
-                preloaded: true
-              });
-              
-              console.log("✅ Preloaded profile image:", imageUrl);
-            }
-          } catch (error) {
-            console.log("⚠️ Skipped image:", imageUrl);
-          }
-        });
-        
-        await Promise.allSettled(imagePromises);
-        console.log("🎉 Profile image preloading completed!");
-      };
-      
-      // 타임아웃과 함께 프리로딩 실행
-      await Promise.race([preloadingPromise(), timeoutPromise]);
       setProfileImagesLoaded(true);
     } catch (error) {
-      console.log("⚠️ Profile image preloading timed out or failed, proceeding anyway");
-      setProfileImagesLoaded(true); // 실패해도 로그인은 진행
+      console.log("Profile image preloading skipped");
+      setProfileImagesLoaded(true);
     } finally {
       setIsPreloadingImages(false);
     }
