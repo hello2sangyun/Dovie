@@ -758,6 +758,12 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - **Added real-time status monitoring** with 2-second interval checks for permission changes
   - **Improved UI consistency** between auto-enabled push notifications and settings display
   - **Fixed user experience** where first-time users see push notifications as ON by default in settings
+- June 23, 2025: **Implemented automatic push subscription registration for existing users**:
+  - **Added ensurePushSubscription function** to automatically create missing push subscriptions for users with granted permissions
+  - **Enhanced MainApp login flow** to check and register push subscriptions for all users, not just first-time users
+  - **Fixed "구독 안됨" status issue** by ensuring existing users with notification permissions get proper push subscriptions
+  - **Added automatic subscription creation** when notification permission is granted but subscription is missing
+  - **Improved system reliability** by guaranteeing push subscription exists for all users with granted permissions
 
 ## User Preferences
 

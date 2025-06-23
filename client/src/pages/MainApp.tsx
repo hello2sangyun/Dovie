@@ -214,8 +214,15 @@ export default function MainApp() {
       }, 1500);
     } else if (notificationGranted === 'true') {
       // If notifications are already granted, ensure push subscription is registered
-      registerPushNotification();
+      setTimeout(() => {
+        registerPushNotification();
+      }, 1000);
     }
+    
+    // Always try to register push subscription for existing users
+    setTimeout(() => {
+      ensurePushSubscription();
+    }, 2000);
     
     // Only show permission modal if microphone permission hasn't been handled yet
     if (!microphoneGranted && notificationGranted !== 'false') {
@@ -297,6 +304,31 @@ export default function MainApp() {
       }
     } catch (error) {
       console.error('Push notification registration failed:', error);
+    }
+  };
+
+  // Function to ensure push subscription exists for all users
+  const ensurePushSubscription = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      console.log('Push notifications not supported');
+      return;
+    }
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      if (!registration.pushManager) return;
+
+      // Check if already subscribed
+      const existingSubscription = await registration.pushManager.getSubscription();
+      
+      // If notification permission is granted but no subscription exists, create one
+      if (Notification.permission === 'granted' && !existingSubscription) {
+        console.log('Creating missing push subscription for existing user');
+        await registerPushNotification();
+        localStorage.setItem('notificationPermissionGranted', 'true');
+      }
+    } catch (error) {
+      console.error('Failed to ensure push subscription:', error);
     }
   };
 
