@@ -226,48 +226,61 @@ async function removePendingMessage(messageId) {
 
 // Handle push notifications
 self.addEventListener('push', (event) => {
-  console.log('[SW] Push notification received');
+  console.log('[SW] Push notification received:', event);
   
   let notificationData = {};
   if (event.data) {
     try {
       notificationData = event.data.json();
+      console.log('[SW] Notification data parsed:', notificationData);
     } catch (e) {
-      notificationData = { body: event.data.text() };
+      console.error('[SW] Failed to parse notification data:', e);
+      notificationData = { 
+        title: 'Dovie Messenger',
+        body: event.data.text() || '새 메시지가 도착했습니다.'
+      };
     }
+  } else {
+    console.log('[SW] No notification data provided');
+    notificationData = {
+      title: 'Dovie Messenger',
+      body: '새 메시지가 도착했습니다.'
+    };
   }
   
   // iPhone PWA optimized notification options
   const options = {
     body: notificationData.body || '새 메시지가 도착했습니다.',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-72x72.png',
+    icon: notificationData.icon || '/icons/icon-192x192.png',
+    badge: notificationData.badge || '/icons/icon-72x72.png',
     tag: notificationData.tag || 'dovie-message',
     data: {
-      url: '/',
-      chatRoomId: notificationData.data?.chatRoomId,
-      messageId: notificationData.data?.messageId,
+      url: notificationData.data?.url || '/',
+      type: notificationData.data?.type || 'message',
       timestamp: Date.now(),
       ...notificationData.data
     },
-    // iPhone PWA specific optimizations for sound and interaction
+    // iPhone PWA specific optimizations
     requireInteraction: false,
-    silent: false, // Ensure sound plays
-    vibrate: [200, 100, 200, 100, 200], // Enhanced vibration pattern
+    silent: false,
+    vibrate: [200, 100, 200, 100, 200],
     timestamp: Date.now(),
-    // Enhanced for iPhone PWA sound support
-    sound: '/notification-sound.mp3', // Custom sound (if available)
-    renotify: true, // Allow multiple notifications with same tag
-    actions: [] // Remove actions for iPhone PWA compatibility
+    renotify: true
   };
+  
+  console.log('[SW] Showing notification with options:', options);
   
   event.waitUntil(
     Promise.all([
-      // Show notification
+      // Show notification - this is the critical part for iPhone PWA
       self.registration.showNotification(
         notificationData.title || 'Dovie Messenger', 
         options
-      ),
+      ).then(() => {
+        console.log('[SW] Notification shown successfully');
+      }).catch((error) => {
+        console.error('[SW] Failed to show notification:', error);
+      }),
       // Update app badge with unread count
       updateAppBadge(notificationData.unreadCount)
     ])

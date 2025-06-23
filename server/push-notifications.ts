@@ -45,23 +45,22 @@ export async function sendPushNotification(
 
     // Prepare notification payload optimized for iPhone PWA
     const notificationPayload = JSON.stringify({
-      title: payload.title,
-      body: payload.body,
+      title: payload.title || "Dovie Messenger",
+      body: payload.body || "새 메시지가 도착했습니다",
       icon: payload.icon || '/icons/icon-192x192.png',
       badge: payload.badge || '/icons/icon-72x72.png',
       data: {
         url: '/',
         timestamp: Date.now(),
+        type: 'message',
         ...payload.data
       },
       tag: payload.tag || 'dovie-message',
-      requireInteraction: false, // iPhone PWA optimization
-      silent: false, // Ensure sound plays
-      sound: '/notification-sound.mp3',
+      requireInteraction: false,
+      silent: false,
       vibrate: [200, 100, 200, 100, 200],
-      renotify: true, // Allow multiple notifications
-      unreadCount: totalUnreadCount + 1, // Include unread count for app badge
-      actions: [] // Remove actions for iPhone PWA compatibility
+      renotify: true,
+      unreadCount: totalUnreadCount + 1
     });
 
     // Send notifications to all user devices
@@ -77,12 +76,19 @@ export async function sendPushNotification(
 
         const options = {
           TTL: 60 * 60 * 24, // 24 hours
-          urgency: 'normal' as const,
-          headers: {}
+          urgency: 'high' as const, // High priority for iPhone PWA
+          headers: {
+            'Topic': 'dovie-messenger'
+          }
         };
 
-        await webpush.sendNotification(pushSubscription, notificationPayload, options);
-        console.log(`Push notification sent successfully to user ${userId} device`);
+        console.log(`Sending push notification to user ${userId}:`, {
+          endpoint: subscription.endpoint,
+          payload: JSON.parse(notificationPayload)
+        });
+
+        const result = await webpush.sendNotification(pushSubscription, notificationPayload, options);
+        console.log(`Push notification sent successfully to user ${userId}:`, result);
       } catch (error) {
         console.error(`Failed to send push notification to user ${userId}:`, error);
         
