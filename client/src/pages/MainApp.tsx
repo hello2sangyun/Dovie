@@ -5,7 +5,7 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useImagePreloader, preloadGlobalImage } from "@/hooks/useImagePreloader";
-import { motion, AnimatePresence } from "framer-motion";
+
 import { useLocation } from "wouter";
 
 import VaultLogo from "@/components/VaultLogo";
@@ -393,7 +393,6 @@ export default function MainApp() {
             </TabsList>
 
             <div className="flex-1 overflow-hidden relative">
-              <AnimatePresence mode="wait">
                 {activeTab === "contacts" && (
                   <div
                     key="desktop-contacts"
@@ -562,7 +561,6 @@ export default function MainApp() {
               </TabsContent>
                     </div>
                   )}
-                </AnimatePresence>
               </div>
           </Tabs>
         </div>
@@ -825,7 +823,6 @@ export default function MainApp() {
           "flex-1 overflow-hidden relative",
           showMobileChat ? "pt-0 pb-0" : "pt-20 pb-14"
         )}>
-          <AnimatePresence mode="wait">
             {activeMobileTab === "contacts" && (
               <div
                 key="contacts"
@@ -856,15 +853,11 @@ export default function MainApp() {
                     }}
                   />
                 </div>
-              </motion.div>
+              </div>
             )}
             {activeMobileTab === "chats" && !showMobileChat && (
-              <motion.div
+              <div
                 key="chats"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
                 className="absolute inset-0 flex flex-col"
               >
                 {/* Search Header for Chats */}
@@ -893,16 +886,12 @@ export default function MainApp() {
                     onClearFriendFilter={() => setFriendFilter(null)}
                   />
                 </div>
-              </motion.div>
+              </div>
             )}
 
             {showMobileChat && selectedChatRoom && (
-              <motion.div
+              <div
                 key="chat-area"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
                 className="absolute inset-0 h-full flex flex-col overflow-hidden"
               >
                 {/* Mobile Connection Status Indicator */}
@@ -925,15 +914,11 @@ export default function MainApp() {
                     }}
                   />
                 </div>
-              </motion.div>
+              </div>
             )}
             {activeMobileTab === "archive" && (
-              <motion.div
+              <div
                 key="archive"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
                 className="absolute inset-0 flex flex-col"
               >
                 {/* Search Header for Archive */}
@@ -951,15 +936,11 @@ export default function MainApp() {
                 <div className="flex-1 overflow-hidden">
                   <ArchiveList />
                 </div>
-              </motion.div>
+              </div>
             )}
             {activeMobileTab === "settings" && (
-              <motion.div
+              <div
                 key="settings"
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 30 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
                 className="absolute inset-0 flex flex-col"
               >
                 {/* Header for Settings */}
@@ -970,9 +951,8 @@ export default function MainApp() {
                 <div className="flex-1 overflow-hidden">
                   <ModernSettingsPage isMobile={true} />
                 </div>
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
         </div>
 
         {/* Fixed Mobile Bottom Navigation - Always visible */}
