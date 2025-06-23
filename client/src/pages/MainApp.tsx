@@ -1068,6 +1068,12 @@ export default function MainApp() {
       {/* Mobile Banner Notifications - replaces bottom popup notifications */}
       <BannerNotificationContainer />
 
+      {/* Microphone Permission Modal */}
+      <MicrophonePermissionModal 
+        isOpen={showMicrophoneModal}
+        onPermissionResult={handleMicrophonePermissionResult}
+      />
+
       {/* Loading screen overlay for profile image preloading */}
       {(isLoading || isPreloadingImages) && (
         <div className="fixed inset-0 z-50 bg-white">

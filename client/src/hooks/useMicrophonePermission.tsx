@@ -43,7 +43,7 @@ export function useMicrophonePermission() {
           audio: true,
           video: false 
         });
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach((track: MediaStreamTrack) => track.stop());
         setHasPermission(true);
       } catch (error) {
         setHasPermission(false);
@@ -69,7 +69,7 @@ export function useMicrophonePermission() {
       });
       
       // 스트림을 즉시 중지
-      stream.getTracks().forEach(track => track.stop());
+      stream.getTracks().forEach((track: MediaStreamTrack) => track.stop());
       
       setHasPermission(true);
       setHasRequestedPermission(true);
