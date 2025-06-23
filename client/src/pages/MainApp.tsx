@@ -277,7 +277,7 @@ export default function MainApp() {
   const handleCreateCommand = (fileData?: any, messageData?: any) => {
     setCommandModalData(fileData);
     setMessageDataForCommand(messageData);
-    setModals({ ...modals, command: true });
+    setModals({ ...modals, command: true, permissions: false });
   };
 
   const handleChatRoomSelect = (chatRoomId: number) => {
@@ -1054,6 +1054,12 @@ export default function MainApp() {
       <ProfilePhotoModal 
         isOpen={modals.profilePhoto}
         onClose={closeModals}
+      />
+      
+      {/* Permission Request Modal for PWA functionality */}
+      <PermissionRequestModal
+        isOpen={modals.permissions}
+        onComplete={handlePermissionsComplete}
       />
 
       {/* Mobile Banner Notifications - replaces bottom popup notifications */}
