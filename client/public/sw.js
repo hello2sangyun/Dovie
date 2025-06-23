@@ -224,41 +224,48 @@ async function removePendingMessage(messageId) {
   console.log('[SW] Would remove pending message:', messageId);
 }
 
-// Handle push notifications - iPhone PWA optimized
+// Handle push notifications - iPhone & Android PWA optimized
 self.addEventListener('push', (event) => {
-  console.log('[SW] 📱 iPhone PWA Push notification received:', event);
-  console.log('[SW] 📱 User Agent:', navigator.userAgent);
-  console.log('[SW] 📱 Service Worker registration:', self.registration);
+  console.log('[SW] 🔔 PWA Push notification received:', event);
+  console.log('[SW] 🔔 User Agent:', navigator.userAgent);
+  console.log('[SW] 🔔 Service Worker registration:', self.registration);
+  
+  // Detect device type for PWA optimization
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+               (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isAndroid = /Android/.test(navigator.userAgent);
+  
+  console.log('[SW] 🔔 Device detection - iOS:', isIOS, 'Android:', isAndroid);
   
   let notificationData = {};
   if (event.data) {
     try {
       notificationData = event.data.json();
-      console.log('[SW] 📱 Notification data parsed:', notificationData);
+      console.log('[SW] 🔔 Notification data parsed:', notificationData);
     } catch (e) {
-      console.error('[SW] 📱 Failed to parse notification data:', e);
-      // Fallback for iPhone PWA
+      console.error('[SW] 🔔 Failed to parse notification data:', e);
+      // Fallback for PWA
       const textData = event.data.text();
-      console.log('[SW] 📱 Raw notification text:', textData);
+      console.log('[SW] 🔔 Raw notification text:', textData);
       notificationData = { 
         title: 'Dovie Messenger',
         body: textData || '새 메시지가 도착했습니다.'
       };
     }
   } else {
-    console.log('[SW] 📱 No notification data provided - using default');
+    console.log('[SW] 🔔 No notification data provided - using default');
     notificationData = {
       title: 'Dovie Messenger',
       body: '새 메시지가 도착했습니다.'
     };
   }
   
-  // iPhone PWA critical notification options - enhanced for iOS Safari
+  // PWA critical notification options - optimized for iOS Safari & Android Chrome
   const options = {
     body: notificationData.body || '새 메시지가 도착했습니다.',
     icon: '/icons/icon-192x192.png',
     badge: '/icons/icon-72x72.png', 
-    tag: 'dovie-message-' + Date.now(), // Unique tag for iPhone PWA
+    tag: 'dovie-message-' + Date.now(), // Unique tag for PWA
     data: {
       url: notificationData.data?.url || '/',
       type: notificationData.data?.type || 'message',
@@ -267,45 +274,59 @@ self.addEventListener('push', (event) => {
       messageId: notificationData.data?.messageId,
       ...notificationData.data
     },
-    // iPhone PWA optimized settings - critical for iOS
+    // PWA optimized settings - critical for iOS & Android
     requireInteraction: false, // Allow auto-dismiss
     silent: false, // Enable sound
-    vibrate: [200, 100, 200], // Simplified vibration for iPhone
+    vibrate: isIOS ? [200, 100, 200] : [200, 100, 200, 100, 200], // iOS vs Android vibration
     timestamp: Date.now(),
     renotify: true, // Force new notification
-    // iPhone specific
+    // Device specific
     dir: 'auto',
-    lang: 'ko-KR'
+    lang: 'ko-KR',
+    // Android specific optimization
+    ...(isAndroid && {
+      priority: 'high',
+      urgency: 'high'
+    }),
+    // iOS specific optimization  
+    ...(isIOS && {
+      actions: [] // iOS PWA needs empty actions array
+    })
   };
   
-  console.log('[SW] 📱 iPhone PWA showing notification with options:', options);
-  console.log('[SW] 📱 Notification title:', notificationData.title || 'Dovie Messenger');
+  console.log('[SW] 🔔 PWA showing notification with options:', options);
+  console.log('[SW] 🔔 Notification title:', notificationData.title || 'Dovie Messenger');
   
   event.waitUntil(
     Promise.all([
-      // Critical: Show notification with enhanced error handling for iPhone PWA
+      // Critical: Show notification with enhanced error handling for PWA
       self.registration.showNotification(
         notificationData.title || 'Dovie Messenger', 
         options
       ).then(() => {
-        console.log('[SW] ✅ iPhone PWA notification shown successfully');
+        console.log('[SW] ✅ PWA notification shown successfully');
         // Force badge update immediately after showing notification
         return updateAppBadge(notificationData.unreadCount || 1);
       }).catch((error) => {
-        console.error('[SW] ❌ iPhone PWA notification failed:', error);
+        console.error('[SW] ❌ PWA notification failed:', error);
         console.error('[SW] ❌ Error details:', error.message, error.stack);
         // Try simple notification as fallback
         return self.registration.showNotification('새 메시지', {
           body: '메시지를 확인하세요',
-          icon: '/icons/icon-192x192.png'
+          icon: '/icons/icon-192x192.png',
+          silent: false
+        }).catch((fallbackError) => {
+          console.error('[SW] ❌ Fallback notification also failed:', fallbackError);
+          // Last resort - minimal notification
+          return self.registration.showNotification('Dovie');
         });
       }),
-      // Update app badge with enhanced iPhone PWA support
+      // Update app badge with enhanced PWA support
       updateAppBadge(notificationData.unreadCount || 1)
     ]).then(() => {
-      console.log('[SW] 📱 iPhone PWA notification process completed');
+      console.log('[SW] 🔔 PWA notification process completed');
     }).catch((error) => {
-      console.error('[SW] 📱 iPhone PWA notification process failed:', error);
+      console.error('[SW] 🔔 PWA notification process failed:', error);
     })
   );
 });

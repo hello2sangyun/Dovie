@@ -85,8 +85,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               subscription: {
                 endpoint: subscription.endpoint,
                 keys: {
-                  p256dh: subscription.getKey ? btoa(String.fromCharCode(...new Uint8Array(subscription.getKey('p256dh')!))) : '',
-                  auth: subscription.getKey ? btoa(String.fromCharCode(...new Uint8Array(subscription.getKey('auth')!))) : ''
+                  p256dh: subscription.getKey ? btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(subscription.getKey('p256dh')!)))) : '',
+                  auth: subscription.getKey ? btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(subscription.getKey('auth')!)))) : ''
                 }
               }
             })
@@ -328,6 +328,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("lastLoginTime", Date.now().toString());
     
     console.log("✅ 자동 로그인이 설정되었습니다");
+    
+    // 로그인 후 즉시 푸시 알림 자동 활성화 (2초 후)
+    setTimeout(() => autoEnablePushNotifications(data.user.id), 2000);
+    
     return data;
   };
 
@@ -355,6 +359,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("lastLoginTime", Date.now().toString());
     
     console.log("✅ 자동 로그인이 설정되었습니다");
+    
+    // 로그인 후 즉시 푸시 알림 자동 활성화 (2초 후)
+    setTimeout(() => autoEnablePushNotifications(data.user.id), 2000);
+    
     return data;
   };
 
