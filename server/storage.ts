@@ -939,6 +939,38 @@ export class DatabaseStorage implements IStorage {
       .from(pushSubscriptions)
       .where(eq(pushSubscriptions.userId, userId));
   }
+
+  async getUserPushSubscriptions(userId: number): Promise<{ endpoint: string, p256dh: string, auth: string }[]> {
+    return await db
+      .select({
+        endpoint: pushSubscriptions.endpoint,
+        p256dh: pushSubscriptions.p256dh,
+        auth: pushSubscriptions.auth
+      })
+      .from(pushSubscriptions)
+      .where(eq(pushSubscriptions.userId, userId));
+  }
+
+  async getUnreadMessageCount(userId: number): Promise<number> {
+    const result = await db
+      .select({ 
+        count: sql<number>`count(*)` 
+      })
+      .from(messages)
+      .innerJoin(chatParticipants, eq(messages.chatRoomId, chatParticipants.chatRoomId))
+      .leftJoin(messageReads, and(
+        eq(messageReads.userId, userId),
+        eq(messageReads.chatRoomId, messages.chatRoomId)
+      ))
+      .where(
+        and(
+          eq(chatParticipants.userId, userId),
+          sql`${messages.createdAt} > COALESCE(${messageReads.lastReadAt}, '1970-01-01')`
+        )
+      );
+      
+    return result[0]?.count || 0;
+  }
 }
 
 export const storage = new DatabaseStorage();

@@ -15,6 +15,7 @@ import { processCommand } from "./openai";
 import { db } from "./db";
 import { eq, and, inArray, desc, gte, isNull } from "drizzle-orm";
 import { initializeNotificationScheduler } from "./notification-scheduler";
+import { sendMessageNotification, getVapidPublicKey } from "./push-notifications";
 import twilio from "twilio";
 
 // Configure multer for file uploads
