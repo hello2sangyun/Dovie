@@ -219,6 +219,47 @@ export default function MainApp() {
     setModals(prev => ({ ...prev, permissions: false }));
   };
 
+  // Clear app badge when app becomes active (iPhone PWA)
+  useEffect(() => {
+    const clearAppBadge = () => {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(registration => {
+          if (registration.active) {
+            registration.active.postMessage({
+              type: 'CLEAR_BADGE'
+            });
+          }
+        });
+      }
+    };
+
+    // Clear badge when app loads
+    if (user) {
+      clearAppBadge();
+    }
+
+    // Clear badge when app becomes visible
+    const handleVisibilityChange = () => {
+      if (!document.hidden && user) {
+        clearAppBadge();
+      }
+    };
+
+    const handleFocus = () => {
+      if (user) {
+        clearAppBadge();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [user]);
+
   // 친구와의 채팅방 찾기 또는 생성
   const createOrFindChatRoom = (contactUserId: number, contactUser: any) => {
     // 해당 친구와의 기존 채팅방이 있는지 확인

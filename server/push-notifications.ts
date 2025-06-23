@@ -39,7 +39,11 @@ export async function sendPushNotification(
       return;
     }
 
-    // Prepare notification payload
+    // Get current unread count for app badge
+    const unreadCounts = await storage.getUnreadCounts(userId);
+    const totalUnreadCount = unreadCounts.reduce((total, count) => total + count.unreadCount, 0);
+
+    // Prepare notification payload optimized for iPhone PWA
     const notificationPayload = JSON.stringify({
       title: payload.title,
       body: payload.body,
@@ -50,20 +54,14 @@ export async function sendPushNotification(
         timestamp: Date.now(),
         ...payload.data
       },
-      tag: payload.tag || 'message',
-      requireInteraction: payload.requireInteraction || false,
-      silent: payload.silent || false,
-      sound: payload.sound || '/sounds/notification.mp3',
-      actions: [
-        {
-          action: 'open',
-          title: '열기'
-        },
-        {
-          action: 'reply',
-          title: '답장'
-        }
-      ]
+      tag: payload.tag || 'dovie-message',
+      requireInteraction: false, // iPhone PWA optimization
+      silent: false, // Ensure sound plays
+      sound: '/notification-sound.mp3',
+      vibrate: [200, 100, 200, 100, 200],
+      renotify: true, // Allow multiple notifications
+      unreadCount: totalUnreadCount + 1, // Include unread count for app badge
+      actions: [] // Remove actions for iPhone PWA compatibility
     });
 
     // Send notifications to all user devices
@@ -113,46 +111,58 @@ export async function sendMessageNotification(
   chatRoomId: number,
   messageType: string = 'text'
 ): Promise<void> {
-  // Get unread count for badge
-  const unreadCount = await storage.getUnreadMessageCount(recipientUserId);
-  
-  let notificationBody = messageContent;
-  
-  // Customize notification body based on message type
-  switch (messageType) {
-    case 'voice':
-      notificationBody = '음성 메시지를 보냈습니다';
-      break;
-    case 'file':
-      notificationBody = '파일을 보냈습니다';
-      break;
-    case 'image':
-      notificationBody = '사진을 보냈습니다';
-      break;
-    case 'video':
-      notificationBody = '동영상을 보냈습니다';
-      break;
-    default:
-      // Limit text message length for notification
-      if (messageContent.length > 50) {
-        notificationBody = messageContent.substring(0, 47) + '...';
-      }
-      break;
-  }
+  try {
+    // Get total unread count across all chat rooms for app badge
+    const unreadCounts = await storage.getUnreadCounts(recipientUserId);
+    const totalUnreadCount = unreadCounts.reduce((total, count) => total + count.unreadCount, 0) + 1;
+    
+    let notificationBody = messageContent;
+    
+    // Customize notification body based on message type
+    switch (messageType) {
+      case 'voice':
+        notificationBody = '음성 메시지를 보냈습니다';
+        break;
+      case 'file':
+        notificationBody = '파일을 보냈습니다';
+        break;
+      case 'image':
+        notificationBody = '사진을 보냈습니다';
+        break;
+      case 'video':
+        notificationBody = '동영상을 보냈습니다';
+        break;
+      case 'youtube':
+        notificationBody = 'YouTube 동영상을 공유했습니다';
+        break;
+      default:
+        // Limit text message length for notification
+        if (messageContent && messageContent.length > 50) {
+          notificationBody = messageContent.substring(0, 47) + '...';
+        }
+        break;
+    }
 
-  await sendPushNotification(recipientUserId, {
-    title: senderName,
-    body: notificationBody,
-    data: {
-      chatRoomId,
-      messageType,
-      senderId: recipientUserId
-    },
-    tag: `chat-${chatRoomId}`,
-    requireInteraction: false,
-    sound: '/sounds/notification.mp3',
-    unreadCount: unreadCount
-  });
+    console.log(`Sending push notification to user ${recipientUserId}: ${senderName} - ${notificationBody}`);
+
+    await sendPushNotification(recipientUserId, {
+      title: senderName,
+      body: notificationBody,
+      data: {
+        chatRoomId,
+        messageType,
+        senderId: recipientUserId,
+        url: `/?chat=${chatRoomId}`
+      },
+      tag: `dovie-chat-${chatRoomId}`,
+      requireInteraction: false,
+      silent: false,
+      sound: '/notification-sound.mp3',
+      unreadCount: totalUnreadCount
+    });
+  } catch (error) {
+    console.error(`Failed to send message notification to user ${recipientUserId}:`, error);
+  }
 }
 
 export function getVapidPublicKey(): string {

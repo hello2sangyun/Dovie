@@ -180,6 +180,8 @@ self.addEventListener('sync', (event) => {
   
   if (event.tag === 'background-sync-messages') {
     event.waitUntil(syncOfflineMessages());
+  } else if (event.tag === 'background-sync') {
+    event.waitUntil(syncOfflineMessages());
   }
 });
 
@@ -248,13 +250,15 @@ self.addEventListener('push', (event) => {
       timestamp: Date.now(),
       ...notificationData.data
     },
-    // iPhone PWA specific optimizations
-    requireInteraction: false, // Better for iPhone PWA
-    silent: false,
-    vibrate: [200, 100, 200],
+    // iPhone PWA specific optimizations for sound and interaction
+    requireInteraction: false,
+    silent: false, // Ensure sound plays
+    vibrate: [200, 100, 200, 100, 200], // Enhanced vibration pattern
     timestamp: Date.now(),
-    // Remove actions for better iPhone PWA compatibility
-    actions: []
+    // Enhanced for iPhone PWA sound support
+    sound: '/notification-sound.mp3', // Custom sound (if available)
+    renotify: true, // Allow multiple notifications with same tag
+    actions: [] // Remove actions for iPhone PWA compatibility
   };
   
   event.waitUntil(
@@ -328,20 +332,4 @@ self.addEventListener('notificationclose', (event) => {
 // Handle app visibility change to update badge
 self.addEventListener('focus', () => {
   updateAppBadge(0);
-});
-
-// Background sync for offline notifications
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'background-sync') {
-    event.waitUntil(syncOfflineMessages());
-  }
-});
-
-// Handle notification click
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-  
-  event.waitUntil(
-    clients.openWindow(event.notification.data?.url || '/')
-  );
 });
