@@ -1260,6 +1260,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Send push notifications to recipients
+      try {
+        const chatRoom = await storage.getChatRoomById(Number(req.params.chatRoomId));
+        if (chatRoom?.participants) {
+          const sender = await storage.getUser(Number(userId));
+          const recipients = chatRoom.participants.filter((p: any) => p.id !== Number(userId));
+          
+          // Send push notification to each recipient
+          for (const recipient of recipients) {
+            await sendMessageNotification(
+              recipient.id,
+              sender?.displayName || sender?.username || '사용자',
+              messageData.content || '새 메시지',
+              Number(req.params.chatRoomId),
+              messageData.messageType || 'text'
+            );
+          }
+        }
+      } catch (pushError) {
+        console.error("Failed to send push notifications:", pushError);
+        // Don't fail the message send if push notifications fail
+      }
+
       // Broadcast to WebSocket connections
       broadcastToRoom(Number(req.params.chatRoomId), {
         type: "new_message",
@@ -4765,6 +4788,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Get location shares error:", error);
       res.status(500).json({ message: "Failed to get location shares" });
+    }
+  });
+
+  // Push notification routes
+  app.get("/api/vapid-public-key", (req, res) => {
+    res.json({ publicKey: getVapidPublicKey() });
+  });
+
+  app.post("/api/push-subscription", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const subscription = req.body;
+      await storage.upsertPushSubscription(Number(userId), {
+        endpoint: subscription.endpoint,
+        p256dh: subscription.keys.p256dh,
+        auth: subscription.keys.auth,
+        userAgent: req.headers['user-agent'] || ''
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Push subscription error:", error);
+      res.status(500).json({ message: "Failed to save push subscription" });
+    }
+  });
+
+  app.delete("/api/push-subscription", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { endpoint } = req.body;
+      await storage.deletePushSubscription(Number(userId), endpoint);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Push unsubscription error:", error);
+      res.status(500).json({ message: "Failed to remove push subscription" });
     }
   });
 

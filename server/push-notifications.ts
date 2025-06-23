@@ -1,10 +1,10 @@
 import webpush from 'web-push';
 import { storage } from './storage';
 
-// VAPID keys for web push (these should be environment variables in production)
-const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || 'BM8UjB_8gXGqDT6D_hJnm-kKz8S3g5j5bvBq0sZJdF9wQ_wHKYJJSGHJKLJHSDGJHSDGJHSDGJHSDGJHSDGJHSDGJH';
-const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || 'your-private-key-here';
-const VAPID_EMAIL = process.env.VAPID_EMAIL || 'mailto:admin@example.com';
+// VAPID keys for web push
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || 'BEJz0sc4kl1Mc2a34ZXfkT3zTCkgJtWE58fpZgpo7Z9tAl3cmbwGP4JCZSrbMdCzvILww-1eMC7ONC-JCo_dFRc';
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || 'Dq1anJf0nXWXhNT27dI0SEXIsfImRbRnrFeB5WJZvQU';
+const VAPID_EMAIL = process.env.VAPID_EMAIL || 'mailto:admin@dovie.com';
 
 // Configure web-push
 webpush.setVapidDetails(
