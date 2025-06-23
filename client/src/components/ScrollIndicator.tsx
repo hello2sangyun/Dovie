@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 
 interface ScrollIndicatorProps {
   showTopBar?: boolean;
@@ -28,70 +27,43 @@ export default function ScrollIndicator({
 
   return (
     <div className={className}>
-      {/* Top Scroll Progress Bar */}
+      {/* Top progress bar - simplified without motion effects */}
       {showTopBar && (
-        <motion.div
-          className="fixed top-0 left-0 h-1 bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 z-50 shadow-sm"
-          initial={{ width: 0 }}
-          animate={{ width: `${scrollProgress}%` }}
-          transition={{ duration: 0.1, ease: "easeOut" }}
-        />
+        <div className="fixed top-0 left-0 right-0 h-1 bg-gray-200 z-50">
+          <div 
+            className="h-full bg-purple-600 transition-all duration-150 ease-out"
+            style={{ width: `${scrollProgress}%` }}
+          />
+        </div>
       )}
 
-      {/* Circular Scroll Indicator */}
-      {showCircular && (
-        <motion.div
-          className="fixed bottom-6 right-6 z-40"
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ 
-            opacity: scrollProgress > 5 ? 1 : 0,
-            scale: scrollProgress > 5 ? 1 : 0
-          }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-        >
-          <div className="relative w-12 h-12">
-            {/* Background Circle */}
-            <div className="absolute inset-0 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 shadow-lg" />
-            
-            {/* Progress Circle */}
-            <svg className="absolute inset-0 w-12 h-12 -rotate-90" viewBox="0 0 48 48">
+      {/* Circular progress indicator - simplified */}
+      {showCircular && scrollProgress > 5 && (
+        <div className="fixed bottom-4 right-4 w-12 h-12 bg-white rounded-full shadow-lg border-2 border-gray-200 flex items-center justify-center z-40">
+          <div className="w-8 h-8 relative">
+            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 24 24">
               <circle
-                cx="24"
-                cy="24"
-                r="20"
-                fill="none"
-                stroke="rgba(255,255,255,0.2)"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
                 strokeWidth="2"
-              />
-              <motion.circle
-                cx="24"
-                cy="24"
-                r="20"
                 fill="none"
-                stroke="url(#gradient-indicator)"
-                strokeWidth="2"
-                strokeLinecap="round"
-                initial={{ strokeDasharray: "0 125.66" }}
-                animate={{ strokeDasharray: `${(scrollProgress / 100) * 125.66} 125.66` }}
-                transition={{ duration: 0.1, ease: "easeOut" }}
+                className="text-gray-200"
               />
-              <defs>
-                <linearGradient id="gradient-indicator" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#8b5cf6" />
-                  <stop offset="50%" stopColor="#3b82f6" />
-                  <stop offset="100%" stopColor="#06b6d4" />
-                </linearGradient>
-              </defs>
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="2"
+                fill="none"
+                strokeDasharray={`${scrollProgress * 0.628} 62.8`}
+                className="text-purple-600 transition-all duration-150 ease-out"
+              />
             </svg>
-            
-            {/* Center Text */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-xs font-medium text-white">
-                {Math.round(scrollProgress)}%
-              </span>
-            </div>
           </div>
-        </motion.div>
+        </div>
       )}
     </div>
   );

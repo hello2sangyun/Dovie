@@ -87,11 +87,8 @@ const analyzeTextForSmartSuggestions = (text: string): SmartSuggestion[] => {
 
 import TypingIndicator, { useTypingIndicator } from "./TypingIndicator";
 import { 
-  InteractiveButton, 
-  AnimatedMessageBubble, 
-  AccessibleSpinner,
-  PulseNotification,
-  useAccessibilitySettings 
+  InteractiveButton,
+  LoadingSpinner
 } from "./MicroInteractions";
 
 interface ChatAreaProps {
