@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Bell, Volume2, Smartphone, MessageSquare } from "lucide-react";
 import { PushNotificationManager } from "./PushNotificationManager";
+import { PushNotificationTester } from "./PushNotificationTester";
 
 interface NotificationSettingsPageProps {
   onBack: () => void;
@@ -286,6 +287,11 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
           >
             {updateNotificationsMutation.isPending ? "저장 중..." : "설정 저장"}
           </Button>
+        </div>
+
+        {/* Push Notification Testing Interface */}
+        <div className="pt-8">
+          <PushNotificationTester />
         </div>
       </div>
     </div>
