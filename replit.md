@@ -697,6 +697,14 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Added comprehensive notification event handling (click, close, reply actions) in service worker
   - Users can now enable/disable push notifications directly from settings with real-time status indicators
   - PWA supports full mobile app experience with home screen installation and native-like notifications
+- June 23, 2025: Fixed mobile chat room scrolling and keyboard auto-hide functionality:
+  - Increased chat messages bottom padding from pb-16 to pb-32 for better message visibility on mobile
+  - Messages now scroll to the bottom properly without being cut off by mobile interface elements
+  - Implemented automatic mobile keyboard hiding after sending messages in chat rooms
+  - Created hideMobileKeyboard utility function for consistent keyboard management across message types
+  - Added mobile device detection and automatic focus management to prevent keyboard persistence
+  - Enhanced both text message and voice message sending functions with keyboard auto-hide
+  - Mobile users now experience smooth keyboard behavior that automatically dismisses after message transmission
 
 ## User Preferences
 

@@ -120,6 +120,23 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     showMobileHeader
   });
 
+  // 모바일 키보드 숨기기 유틸리티 함수
+  const hideMobileKeyboard = () => {
+    if (typeof window !== 'undefined' && window.navigator.userAgent.match(/Mobi|Android/i)) {
+      const activeElement = document.activeElement as HTMLElement;
+      if (activeElement && activeElement.blur) {
+        activeElement.blur();
+      }
+      // 추가적으로 포커스를 다른 곳으로 이동
+      setTimeout(() => {
+        const chatArea = document.getElementById('chat-messages-area');
+        if (chatArea) {
+          chatArea.focus();
+        }
+      }, 100);
+    }
+  };
+
 
   const queryClient = useQueryClient();
   const [message, setMessage] = useState("");
@@ -1372,6 +1389,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
       sendMessageMutation.mutate(messageData);
       
+      // 모바일 키보드 숨기기
+      hideMobileKeyboard();
+      
       toast({
         title: "음성 메시지 전송 완료!",
         description: "수정된 텍스트로 전송되었습니다.",
@@ -2032,6 +2052,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     
     // 메시지 전송 후 텍스트박스 크기 초기화
     resetTextareaSize();
+    
+    // 모바일 키보드 숨기기
+    hideMobileKeyboard();
     
     // 메시지 전송 후 임시 저장된 내용 삭제
     clearDraftMessage(chatRoomId);
@@ -4535,10 +4558,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
       {/* Chat Messages */}
       <div 
+        id="chat-messages-area"
         ref={chatScrollRef}
-        className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-2 space-y-0.5 min-h-0 overscroll-behavior-y-contain overscroll-behavior-x-none pb-16 scrollbar-thin scrollbar-thumb-purple-300 scrollbar-track-gray-100 relative w-full"
+        className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-2 space-y-0.5 min-h-0 overscroll-behavior-y-contain overscroll-behavior-x-none pb-32 scrollbar-thin scrollbar-thumb-purple-300 scrollbar-track-gray-100 relative w-full"
         style={{ wordBreak: 'break-word' }}
         onScroll={handleScroll}
+        tabIndex={0}
       >
         {/* Security Notice - WhatsApp Style */}
         <div className="flex justify-center mb-2 px-2">
