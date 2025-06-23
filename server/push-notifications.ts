@@ -43,24 +43,29 @@ export async function sendPushNotification(
     const unreadCounts = await storage.getUnreadCounts(userId);
     const totalUnreadCount = unreadCounts.reduce((total, count) => total + count.unreadCount, 0);
 
-    // Prepare notification payload optimized for iPhone PWA
+    // iPhone PWA critical notification payload - enhanced for iOS Safari
     const notificationPayload = JSON.stringify({
       title: payload.title || "새 메시지",
       body: payload.body || "새 메시지가 도착했습니다",
-      icon: payload.icon || '/icons/icon-192x192.png',
-      badge: payload.badge || '/icons/icon-72x72.png',
+      icon: '/icons/icon-192x192.png',
+      badge: '/icons/icon-72x72.png',
       data: {
         url: '/',
         timestamp: Date.now(),
         type: 'message',
+        chatRoomId: payload.data?.chatRoomId,
+        messageId: payload.data?.messageId,
         ...payload.data
       },
-      tag: payload.tag || 'dovie-message',
-      requireInteraction: false,
-      silent: false,
-      vibrate: [200, 100, 200, 100, 200],
-      renotify: true,
-      unreadCount: totalUnreadCount + 1
+      tag: 'dovie-message-' + Date.now(), // Unique tag for iPhone PWA
+      requireInteraction: false, // Critical for iPhone PWA auto-dismiss
+      silent: false, // Enable sound on iPhone PWA
+      vibrate: [200, 100, 200], // Simplified vibration for iPhone
+      renotify: true, // Force new notification on iPhone
+      unreadCount: totalUnreadCount + 1,
+      // iPhone PWA specific optimizations
+      dir: 'auto',
+      lang: 'ko-KR'
     });
 
     // Send notifications to all user devices

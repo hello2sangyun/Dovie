@@ -224,66 +224,89 @@ async function removePendingMessage(messageId) {
   console.log('[SW] Would remove pending message:', messageId);
 }
 
-// Handle push notifications
+// Handle push notifications - iPhone PWA optimized
 self.addEventListener('push', (event) => {
-  console.log('[SW] Push notification received:', event);
+  console.log('[SW] 📱 iPhone PWA Push notification received:', event);
+  console.log('[SW] 📱 User Agent:', navigator.userAgent);
+  console.log('[SW] 📱 Service Worker registration:', self.registration);
   
   let notificationData = {};
   if (event.data) {
     try {
       notificationData = event.data.json();
-      console.log('[SW] Notification data parsed:', notificationData);
+      console.log('[SW] 📱 Notification data parsed:', notificationData);
     } catch (e) {
-      console.error('[SW] Failed to parse notification data:', e);
+      console.error('[SW] 📱 Failed to parse notification data:', e);
+      // Fallback for iPhone PWA
+      const textData = event.data.text();
+      console.log('[SW] 📱 Raw notification text:', textData);
       notificationData = { 
         title: 'Dovie Messenger',
-        body: event.data.text() || '새 메시지가 도착했습니다.'
+        body: textData || '새 메시지가 도착했습니다.'
       };
     }
   } else {
-    console.log('[SW] No notification data provided');
+    console.log('[SW] 📱 No notification data provided - using default');
     notificationData = {
       title: 'Dovie Messenger',
       body: '새 메시지가 도착했습니다.'
     };
   }
   
-  // iPhone PWA optimized notification options
+  // iPhone PWA critical notification options - enhanced for iOS Safari
   const options = {
     body: notificationData.body || '새 메시지가 도착했습니다.',
-    icon: notificationData.icon || '/icons/icon-192x192.png',
-    badge: notificationData.badge || '/icons/icon-72x72.png',
-    tag: notificationData.tag || 'dovie-message',
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/icon-72x72.png', 
+    tag: 'dovie-message-' + Date.now(), // Unique tag for iPhone PWA
     data: {
       url: notificationData.data?.url || '/',
       type: notificationData.data?.type || 'message',
       timestamp: Date.now(),
+      chatRoomId: notificationData.data?.chatRoomId,
+      messageId: notificationData.data?.messageId,
       ...notificationData.data
     },
-    // iPhone PWA specific optimizations
-    requireInteraction: false,
-    silent: false,
-    vibrate: [200, 100, 200, 100, 200],
+    // iPhone PWA optimized settings - critical for iOS
+    requireInteraction: false, // Allow auto-dismiss
+    silent: false, // Enable sound
+    vibrate: [200, 100, 200], // Simplified vibration for iPhone
     timestamp: Date.now(),
-    renotify: true
+    renotify: true, // Force new notification
+    // iPhone specific
+    dir: 'auto',
+    lang: 'ko-KR'
   };
   
-  console.log('[SW] Showing notification with options:', options);
+  console.log('[SW] 📱 iPhone PWA showing notification with options:', options);
+  console.log('[SW] 📱 Notification title:', notificationData.title || 'Dovie Messenger');
   
   event.waitUntil(
     Promise.all([
-      // Show notification - this is the critical part for iPhone PWA
+      // Critical: Show notification with enhanced error handling for iPhone PWA
       self.registration.showNotification(
         notificationData.title || 'Dovie Messenger', 
         options
       ).then(() => {
-        console.log('[SW] Notification shown successfully');
+        console.log('[SW] ✅ iPhone PWA notification shown successfully');
+        // Force badge update immediately after showing notification
+        return updateAppBadge(notificationData.unreadCount || 1);
       }).catch((error) => {
-        console.error('[SW] Failed to show notification:', error);
+        console.error('[SW] ❌ iPhone PWA notification failed:', error);
+        console.error('[SW] ❌ Error details:', error.message, error.stack);
+        // Try simple notification as fallback
+        return self.registration.showNotification('새 메시지', {
+          body: '메시지를 확인하세요',
+          icon: '/icons/icon-192x192.png'
+        });
       }),
-      // Update app badge with unread count
-      updateAppBadge(notificationData.unreadCount)
-    ])
+      // Update app badge with enhanced iPhone PWA support
+      updateAppBadge(notificationData.unreadCount || 1)
+    ]).then(() => {
+      console.log('[SW] 📱 iPhone PWA notification process completed');
+    }).catch((error) => {
+      console.error('[SW] 📱 iPhone PWA notification process failed:', error);
+    })
   );
 });
 
@@ -314,27 +337,49 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Handle notification clicks
+// Handle notification clicks - iPhone PWA optimized
 self.addEventListener('notificationclick', (event) => {
-  console.log('[SW] Notification clicked:', event.action);
+  console.log('[SW] 📱 iPhone PWA notification clicked:', event.action);
+  console.log('[SW] 📱 Notification data:', event.notification.data);
   
   event.notification.close();
   
-  // Clear app badge when notification is clicked
+  // Clear app badge when notification is clicked (iPhone PWA critical)
   updateAppBadge(0);
   
-  if (event.action === 'open' || !event.action) {
-    event.waitUntil(
-      self.clients.openWindow(event.notification.data?.url || '/')
-    );
-  } else if (event.action === 'reply') {
-    // Handle reply action - open app to specific chat room
-    const chatRoomId = event.notification.data?.chatRoomId;
-    const url = chatRoomId ? `/?chat=${chatRoomId}` : '/';
-    event.waitUntil(
-      self.clients.openWindow(url)
-    );
-  }
+  // iPhone PWA optimized window handling
+  const urlToOpen = event.notification.data?.url || '/';
+  const chatRoomId = event.notification.data?.chatRoomId;
+  const finalUrl = chatRoomId ? `/?chat=${chatRoomId}` : urlToOpen;
+  
+  console.log('[SW] 📱 Opening URL:', finalUrl);
+  
+  event.waitUntil(
+    self.clients.matchAll({
+      type: 'window',
+      includeUncontrolled: true
+    }).then((clientList) => {
+      // iPhone PWA: Try to focus existing window first
+      for (const client of clientList) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          console.log('[SW] 📱 Focusing existing window');
+          client.postMessage({
+            type: 'NOTIFICATION_CLICKED',
+            url: finalUrl,
+            chatRoomId: chatRoomId
+          });
+          return client.focus();
+        }
+      }
+      // If no existing window, open new one
+      console.log('[SW] 📱 Opening new window');
+      return self.clients.openWindow(finalUrl);
+    }).catch((error) => {
+      console.error('[SW] 📱 Failed to handle notification click:', error);
+      // Fallback: just try to open window
+      return self.clients.openWindow(finalUrl);
+    })
+  );
 });
 
 // Handle notification close

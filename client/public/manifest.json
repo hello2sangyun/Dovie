@@ -68,6 +68,7 @@
   ],
   "categories": ["social", "productivity"],
   "prefer_related_applications": false,
+  "gcm_sender_id": "103953800507",
   "shortcuts": [
     {
       "name": "채팅방",

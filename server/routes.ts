@@ -15,7 +15,7 @@ import { processCommand } from "./openai";
 import { db } from "./db";
 import { eq, and, inArray, desc, gte, isNull } from "drizzle-orm";
 import { initializeNotificationScheduler } from "./notification-scheduler";
-import { sendMessageNotification, getVapidPublicKey } from "./push-notifications";
+import { sendMessageNotification, getVapidPublicKey, sendPushNotification } from "./push-notifications";
 import twilio from "twilio";
 
 // Configure multer for file uploads
@@ -5001,6 +5001,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Update reminder error:", error);
       res.status(500).json({ message: "Failed to update reminder" });
+    }
+  });
+
+  // Test push notification endpoint for iPhone PWA
+  app.post('/api/test-push', async (req, res) => {
+    const userId = Number(req.headers['x-user-id']);
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      console.log('📱 iPhone PWA test push notification requested for user:', userId);
+      
+      // Get user's push subscriptions
+      const subscriptions = await storage.getUserPushSubscriptions(userId);
+      console.log('📱 Found subscriptions:', subscriptions.length);
+      
+      if (subscriptions.length === 0) {
+        return res.status(400).json({ 
+          message: "No push subscriptions found. Please enable notifications first.",
+          subscriptionCount: 0
+        });
+      }
+
+      // Send test notification
+      await sendPushNotification(userId, {
+        title: "📱 iPhone PWA 테스트",
+        body: "푸시 알림이 정상적으로 작동합니다!",
+        data: {
+          type: 'test',
+          url: '/',
+          timestamp: Date.now()
+        },
+        tag: 'test-notification'
+      });
+
+      console.log('📱 iPhone PWA test push notification sent successfully');
+      
+      res.json({ 
+        success: true, 
+        message: "Test push notification sent successfully",
+        subscriptionCount: subscriptions.length
+      });
+    } catch (error) {
+      console.error("📱 iPhone PWA test push notification failed:", error);
+      res.status(500).json({ 
+        message: "Failed to send test notification",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
