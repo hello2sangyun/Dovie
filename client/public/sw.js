@@ -342,7 +342,13 @@ self.addEventListener('sync', (event) => {
   if (event.tag === 'background-sync') {
     event.waitUntil(syncOfflineMessages());
   }
-});ata.url || '/')
-    );
-  }
+});
+
+// Handle notification click
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  
+  event.waitUntil(
+    clients.openWindow(event.notification.data?.url || '/')
+  );
 });

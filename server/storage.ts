@@ -460,14 +460,16 @@ export class DatabaseStorage implements IStorage {
     return message;
   }
 
-  async getCommands(userId: number, chatRoomId?: number): Promise<(Command & { originalSender?: User })[]> {
+  async getCommands(userId: number, chatRoomId?: number): Promise<(Command & { originalSender?: User, chatRoomName?: string, chatRoomParticipants?: string })[]> {
     let query = db
       .select({
         commands: commands,
-        users: users
+        users: users,
+        chatRoom: chatRooms,
       })
       .from(commands)
       .leftJoin(users, eq(commands.originalSenderId, users.id))
+      .leftJoin(chatRooms, eq(commands.chatRoomId, chatRooms.id))
       .where(eq(commands.userId, userId));
 
     if (chatRoomId) {
@@ -476,10 +478,38 @@ export class DatabaseStorage implements IStorage {
 
     const results = await query.orderBy(desc(commands.createdAt));
 
-    return results.map(row => ({
-      ...row.commands,
-      originalSender: row.users || undefined
+    // Get participants for each chat room
+    const enrichedResults = await Promise.all(results.map(async (row) => {
+      let chatRoomParticipants = '';
+      
+      if (row.commands.chatRoomId) {
+        // Get participants for this chat room
+        const participants = await db
+          .select({
+            id: users.id,
+            username: users.username,
+            displayName: users.displayName
+          })
+          .from(chatParticipants)
+          .innerJoin(users, eq(chatParticipants.userId, users.id))
+          .where(eq(chatParticipants.chatRoomId, row.commands.chatRoomId));
+        
+        // Format participants as "displayName (username)"
+        chatRoomParticipants = participants
+          .filter(p => p.id !== userId) // Exclude current user
+          .map(p => `${p.displayName} (${p.username})`)
+          .join(', ');
+      }
+      
+      return {
+        ...row.commands,
+        originalSender: row.users || undefined,
+        chatRoomName: row.chatRoom?.name || `채팅방 ${row.commands.chatRoomId}`,
+        chatRoomParticipants
+      };
     }));
+
+    return enrichedResults;
   }
 
   async createCommand(command: InsertCommand): Promise<Command> {

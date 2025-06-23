@@ -261,7 +261,7 @@ function SearchResultsView({
                 }
               </div>
               <div className="text-xs text-gray-500 truncate mt-0.5">
-                📁 {file.chatRoomName}
+                📁 {file.chatRoomName}{file.chatRoomParticipants ? ` (${file.chatRoomParticipants})` : ''}
               </div>
               {file.savedText && !file.fileName && (
                 <div className="text-xs text-gray-500 truncate mt-0.5">
