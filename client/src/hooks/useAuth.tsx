@@ -24,10 +24,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Try to get user from localStorage on app start
   const storedUserId = localStorage.getItem("userId");
+  const rememberLogin = localStorage.getItem("rememberLogin");
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["/api/auth/me"],
-    enabled: !!storedUserId, // 저장된 ID가 있는 경우에만 실행
+    enabled: !!storedUserId && rememberLogin === "true", // 저장된 ID와 자동로그인 설정 모두 확인
     refetchInterval: false, // 자동 새로고침 비활성화 (불필요한 요청 방지)
     staleTime: 5 * 60 * 1000, // 5분 동안 캐시 유지
     gcTime: 10 * 60 * 1000, // 10분 동안 메모리에 보관 (v5에서 cacheTime -> gcTime)
@@ -180,13 +181,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setInitialized(true);
       setProfileImagesLoaded(false);
       setIsPreloadingImages(false);
-    } else if (!storedUserId && !initialized) {
-      // No stored user ID, mark as initialized immediately
-      console.log("📱 No stored user, initializing as logged out");
+    } else if ((!storedUserId || rememberLogin !== "true") && !initialized) {
+      // No stored user ID or auto-login disabled, mark as initialized immediately
+      console.log("📱 No stored user or auto-login disabled, initializing as logged out");
       setUser(null);
       setInitialized(true);
       setProfileImagesLoaded(false);
       setIsPreloadingImages(false);
+      // Clear any invalid stored data
+      if (storedUserId && rememberLogin !== "true") {
+        localStorage.removeItem("userId");
+        localStorage.removeItem("rememberLogin");
+      }
     }
   }, [data, error, storedUserId, profileImagesLoaded, initialized]);
 
