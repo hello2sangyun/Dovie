@@ -118,7 +118,7 @@ export function PermissionRequestModal({ isOpen, onComplete }: PermissionRequest
   const handleRequestPermissions = async () => {
     setIsRequesting(true);
     
-    await Promise.all([
+    const [micResult, notificationResult] = await Promise.all([
       requestMicrophonePermission(),
       requestNotificationPermission()
     ]);

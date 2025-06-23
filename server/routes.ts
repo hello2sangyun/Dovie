@@ -5025,5 +5025,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // VAPID public key endpoint for push notifications
+  app.get("/api/vapid-public-key", (req, res) => {
+    const publicKey = process.env.VAPID_PUBLIC_KEY || 'BMqZ8XNhzWqDYHWOWOL3PnQj2pF4ej1dvxE6uKODu2mN5qeECeV6qF4ej1dvxE6uKODu2mN5q';
+    res.json({ publicKey });
+  });
+
   return httpServer;
 }

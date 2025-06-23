@@ -197,7 +197,7 @@ export default function MainApp() {
     refetchInterval: 5000,
   });
 
-  // Request permissions for PWA functionality after login
+  // Request permissions and register push notifications after login
   useEffect(() => {
     if (!user) return;
     
@@ -212,8 +212,86 @@ export default function MainApp() {
       setTimeout(() => {
         setModals(prev => ({ ...prev, permissions: true }));
       }, 1000); // Delay to ensure UI is loaded
+    } else if (notificationGranted === 'true') {
+      // If notifications are already granted, ensure push subscription is registered
+      registerPushNotification();
     }
   }, [user]);
+
+  // Function to register push notifications
+  const registerPushNotification = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      console.log('Push notifications not supported');
+      return;
+    }
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      if (!registration.pushManager) return;
+
+      // Check if already subscribed
+      const existingSubscription = await registration.pushManager.getSubscription();
+      if (existingSubscription) {
+        console.log('Push subscription already exists');
+        return;
+      }
+
+      // VAPID key conversion helper
+      const urlBase64ToUint8Array = (base64String: string) => {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding)
+          .replace(/-/g, '+')
+          .replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+          outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+      };
+
+      const arrayBufferToBase64 = (buffer: ArrayBuffer | null) => {
+        if (!buffer) return '';
+        const bytes = new Uint8Array(buffer);
+        let binary = '';
+        for (let i = 0; i < bytes.byteLength; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        return window.btoa(binary);
+      };
+
+      // Subscribe to push notifications
+      const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY || 'BMqZ8XNhzWqDYHWOWOL3PnQj2pF4ej1dvxE6uKODu2mN5qeECeV6qF4ej1dvxE6uKODu2mN5q';
+      
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+      });
+
+      // Send subscription to server
+      const response = await fetch('/api/push-subscription', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-ID': user.id.toString()
+        },
+        body: JSON.stringify({
+          endpoint: subscription.endpoint,
+          p256dh: arrayBufferToBase64(subscription.getKey('p256dh')),
+          auth: arrayBufferToBase64(subscription.getKey('auth')),
+          userAgent: navigator.userAgent
+        })
+      });
+
+      if (response.ok) {
+        console.log('✅ Push subscription registered successfully');
+      } else {
+        console.error('❌ Failed to register push subscription');
+      }
+    } catch (error) {
+      console.error('Push notification registration failed:', error);
+    }
+  };
 
   const handlePermissionsComplete = () => {
     setModals(prev => ({ ...prev, permissions: false }));
