@@ -713,6 +713,15 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - **Application successfully loads** with proper authentication flow and real-time messaging capabilities
   - **Mobile optimization complete**: responsive design, keyboard handling, touch interactions all functional
   - **Ready for production deployment** with full Progressive Web App capabilities and native mobile experience
+- June 23, 2025: Enhanced iPhone PWA push notification system with comprehensive sound and app badge support:
+  - **Fixed service worker** by removing duplicate event listeners and optimizing iPhone PWA notification handling
+  - **Enhanced push notification payload** with iPhone-specific optimizations: silent: false, enhanced vibration patterns, renotify: true
+  - **Improved backend notification system** to include total unread count for proper app badge display on iPhone home screen
+  - **Added automatic app badge clearing** when app becomes active or visible through MainApp visibility change handlers
+  - **Enhanced PermissionRequestModal** with proper VAPID key conversion and push subscription registration for iPhone PWA
+  - **Optimized notification delivery** with comprehensive error handling and subscription validation
+  - **iPhone PWA now supports**: sound notifications, app badge with unread count, automatic badge clearing, proper permission flow
+  - **Complete iPhone PWA workflow**: permission request → push subscription → message notifications → sound + badge → badge clearing
 
 ## User Preferences
 

@@ -50,10 +50,57 @@ export function PermissionRequestModal({ isOpen, onComplete }: PermissionRequest
         try {
           const registration = await navigator.serviceWorker.ready;
           if (registration.pushManager) {
-            await registration.pushManager.subscribe({
+            // Convert VAPID key from base64 to Uint8Array
+            const urlBase64ToUint8Array = (base64String: string) => {
+              const padding = '='.repeat((4 - base64String.length % 4) % 4);
+              const base64 = (base64String + padding)
+                .replace(/-/g, '+')
+                .replace(/_/g, '/');
+              const rawData = window.atob(base64);
+              const outputArray = new Uint8Array(rawData.length);
+              for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+              }
+              return outputArray;
+            };
+
+            const arrayBufferToBase64 = (buffer: ArrayBuffer | null) => {
+              if (!buffer) return '';
+              const bytes = new Uint8Array(buffer);
+              let binary = '';
+              for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+              }
+              return window.btoa(binary);
+            };
+
+            const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY || 'BMqZ8XNhzWqDYHWOWOL3PnQj2pF4ej1dvxE6uKODu2mN5qeECeV6qF4ej1dvxE6uKODu2mN5q';
+            
+            const subscription = await registration.pushManager.subscribe({
               userVisibleOnly: true,
-              applicationServerKey: process.env.VITE_VAPID_PUBLIC_KEY || 'BNWgP2Q4W_Ac-iVjG5mF8D1hF9oJ0pQa2I_RnZ1Y3PYq7fghjkl'
+              applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
             });
+
+            // Send subscription to server with proper format
+            const response = await fetch('/api/push-subscription', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-User-ID': localStorage.getItem('userId') || ''
+              },
+              body: JSON.stringify({
+                endpoint: subscription.endpoint,
+                p256dh: arrayBufferToBase64(subscription.getKey('p256dh')),
+                auth: arrayBufferToBase64(subscription.getKey('auth')),
+                userAgent: navigator.userAgent
+              })
+            });
+
+            if (response.ok) {
+              console.log('Push subscription registered successfully');
+            } else {
+              console.error('Failed to register push subscription');
+            }
           }
         } catch (error) {
           console.error('Push subscription failed:', error);
