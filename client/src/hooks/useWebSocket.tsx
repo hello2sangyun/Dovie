@@ -103,7 +103,7 @@ export function useWebSocket(userId?: number) {
   };
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || !user) return; // Ensure both userId and user are available
 
     const connect = () => {
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
