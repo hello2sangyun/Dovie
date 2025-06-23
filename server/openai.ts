@@ -284,24 +284,48 @@ export async function transcribeAudio(filePath: string): Promise<{
     const audioBuffer = fs.readFileSync(filePath);
     console.log("Audio buffer read successfully, size:", audioBuffer.length, "bytes");
     
-    // Detect file format and set appropriate MIME type
+    // iPhone PWA enhanced audio format detection
     let mimeType = "audio/webm";
     let fileName = "audio.webm";
     
     // Check file extension for proper format detection
     const fileExtension = path.extname(filePath).toLowerCase();
+    
+    // iPhone PWA audio format priority handling
     if (fileExtension === '.mp4' || fileExtension === '.m4a') {
       mimeType = "audio/mp4";
       fileName = "audio.mp4";
+      console.log("🎤 iPhone PWA audio format detected: MP4");
     } else if (fileExtension === '.wav') {
       mimeType = "audio/wav";
       fileName = "audio.wav";
+      console.log("🎤 WAV audio format detected");
     } else if (fileExtension === '.ogg') {
       mimeType = "audio/ogg";
       fileName = "audio.ogg";
+      console.log("🎤 OGG audio format detected");
+    } else {
+      // For iPhone PWA, prefer MP4 as fallback
+      console.log("🎤 Unknown format, using iPhone PWA compatible MP4 fallback");
+      mimeType = "audio/mp4";
+      fileName = "audio.mp4";
     }
     
-    console.log(`Using audio format: ${mimeType} for file: ${fileName}`);
+    // Additional validation for iPhone PWA audio
+    if (audioBuffer.length < 1024) {
+      console.log("⚠️ Audio buffer very small, likely silent recording");
+      return {
+        success: false,
+        transcription: "",
+        detectedLanguage: "ko",
+        duration: 0,
+        confidence: 0,
+        error: "SILENT_RECORDING",
+        smartSuggestions: []
+      };
+    }
+    
+    console.log(`Using audio format: ${mimeType} for file: ${fileName} (${audioBuffer.length} bytes)`);
     
     // Create a Blob with proper MIME type
     const audioBlob = new Blob([audioBuffer], { type: mimeType });

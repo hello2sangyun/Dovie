@@ -52,18 +52,37 @@ export function UnifiedSendButton({
         return;
       }
       
-      // Use iPhone-compatible MediaRecorder settings
-      let mimeType = 'audio/webm;codecs=opus';
-      if (!MediaRecorder.isTypeSupported(mimeType)) {
+      // iPhone PWA optimized MediaRecorder settings
+      const isIPhonePWA = (window.navigator as any).standalone === true || 
+                         window.matchMedia('(display-mode: standalone)').matches;
+      
+      let mimeType;
+      let options: MediaRecorderOptions = {};
+      
+      if (isIPhonePWA) {
+        // iPhone PWA prefers mp4 format with specific settings
         mimeType = 'audio/mp4';
         if (!MediaRecorder.isTypeSupported(mimeType)) {
           mimeType = 'audio/wav';
         }
+        options = {
+          mimeType: mimeType,
+          audioBitsPerSecond: 16000 // Lower bitrate for iPhone PWA
+        };
+      } else {
+        // Standard web browser settings
+        mimeType = 'audio/webm;codecs=opus';
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+          mimeType = 'audio/mp4';
+          if (!MediaRecorder.isTypeSupported(mimeType)) {
+            mimeType = 'audio/wav';
+          }
+        }
+        options = { mimeType: mimeType };
       }
       
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: mimeType
-      });
+      console.log('🎤 Creating MediaRecorder with:', { mimeType, isIPhonePWA, options });
+      const mediaRecorder = new MediaRecorder(stream, options);
       
       const audioChunks: Blob[] = [];
       

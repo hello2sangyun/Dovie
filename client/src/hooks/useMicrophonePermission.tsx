@@ -100,34 +100,40 @@ export function useMicrophonePermission() {
     }
   }, [state.hasPermission, state.stream]);
 
-  // Get fresh stream for recording
+  // Get fresh stream for recording - iPhone PWA optimized
   const getStream = useCallback(async (): Promise<MediaStream | null> => {
-    if (state.stream && state.stream.active) {
+    // Always create fresh stream for iPhone PWA to avoid permission issues
+    const isIPhonePWA = (window.navigator as any).standalone === true || 
+                       window.matchMedia('(display-mode: standalone)').matches;
+    
+    if (!isIPhonePWA && state.stream && state.stream.active) {
       return state.stream;
     }
 
-    // If we have permission but no active stream, create new one
-    if (state.hasPermission || localStorage.getItem('microphonePermissionGranted') === 'true') {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
-            sampleRate: 44100
-          } 
-        });
-        setState(prev => ({ ...prev, stream }));
-        return stream;
-      } catch (error) {
-        console.error('Failed to get fresh stream:', error);
-        setState(prev => ({ ...prev, hasPermission: false, stream: null }));
-        localStorage.removeItem('microphonePermissionGranted');
-        return null;
-      }
-    }
+    // Create new stream with iPhone PWA compatible settings
+    try {
+      const audioConstraints = {
+        echoCancellation: false, // Disable for iPhone PWA compatibility
+        noiseSuppression: false, // Disable for iPhone PWA compatibility
+        autoGainControl: false,  // Disable for iPhone PWA compatibility
+        channelCount: 1,         // Mono for better iPhone PWA support
+        sampleRate: 16000        // Lower sample rate for iPhone PWA
+      };
 
-    return null;
+      console.log('🎤 Creating new stream with iPhone PWA settings:', audioConstraints);
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints });
+      
+      setState(prev => ({ ...prev, stream, hasPermission: true }));
+      localStorage.setItem('microphonePermissionGranted', 'true');
+      
+      console.log('✅ Fresh stream created successfully for iPhone PWA');
+      return stream;
+    } catch (error) {
+      console.error('❌ Failed to get fresh stream:', error);
+      setState(prev => ({ ...prev, hasPermission: false, stream: null }));
+      localStorage.removeItem('microphonePermissionGranted');
+      return null;
+    }
   }, [state.hasPermission, state.stream]);
 
   // Clean up stream

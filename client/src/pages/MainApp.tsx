@@ -354,31 +354,76 @@ export default function MainApp() {
     }
   };
 
-  // Function to automatically enable push notifications on first login
+  // Function to automatically enable push notifications on first login - iPhone PWA optimized
   const autoEnablePushNotifications = async () => {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
       console.log('Push notifications not supported');
       return;
     }
 
+    // iPhone PWA detection
+    const isIPhonePWA = (window.navigator as any).standalone === true || 
+                       window.matchMedia('(display-mode: standalone)').matches;
+    
+    if (isIPhonePWA) {
+      console.log('📱 iPhone PWA detected - using enhanced notification setup');
+    }
+
     try {
-      // Request notification permission
-      const permission = await Notification.requestPermission();
+      // Check current permission state first
+      console.log('Current notification permission:', Notification.permission);
       
-      if (permission === 'granted') {
-        console.log('Auto-enabling push notifications on first login');
+      // For iPhone PWA, we need to be more aggressive about permission requests
+      if (Notification.permission === 'default') {
+        console.log('🔔 Requesting notification permission for first-time user...');
+        const permission = await Notification.requestPermission();
+        
+        if (permission === 'granted') {
+          console.log('✅ Auto-enabling push notifications on first login');
+          localStorage.setItem('notificationPermissionGranted', 'true');
+          
+          // Force multiple registration attempts for iPhone PWA reliability
+          let success = false;
+          let attempts = 0;
+          const maxAttempts = isIPhonePWA ? 3 : 1;
+          
+          while (!success && attempts < maxAttempts) {
+            attempts++;
+            console.log(`🔄 Push subscription attempt ${attempts}/${maxAttempts}`);
+            
+            try {
+              success = await registerPushNotification();
+              if (success) {
+                console.log(`✅ Push subscription successful on attempt ${attempts}`);
+                break;
+              }
+            } catch (error) {
+              console.log(`⚠️ Attempt ${attempts} failed:`, error);
+            }
+            
+            // Wait before retry
+            if (attempts < maxAttempts) {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+          }
+          
+          if (!success) {
+            console.error('❌ All push subscription attempts failed');
+          }
+          
+          console.log('🎉 Push notifications automatically enabled');
+        } else {
+          localStorage.setItem('notificationPermissionGranted', 'false');
+          console.log('❌ Push notification permission denied');
+        }
+      } else if (Notification.permission === 'granted') {
+        // Permission already granted, just ensure subscription
+        console.log('🔔 Permission already granted, ensuring subscription...');
         localStorage.setItem('notificationPermissionGranted', 'true');
-        
-        // Register push subscription
         await registerPushNotification();
-        
-        console.log('Push notifications automatically enabled');
-      } else {
-        localStorage.setItem('notificationPermissionGranted', 'false');
-        console.log('Push notification permission denied');
       }
     } catch (error) {
-      console.error('Auto push notification setup failed:', error);
+      console.error('❌ Auto push notification setup failed:', error);
       localStorage.setItem('notificationPermissionGranted', 'false');
     }
   };
