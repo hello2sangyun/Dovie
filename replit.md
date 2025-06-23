@@ -610,6 +610,15 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Auto-login successfully maintains user session across page refreshes and browser restarts
   - Login functions automatically set auto-login preferences for seamless user experience
   - System logs successful auto-login attempts with user identification for debugging
+- June 23, 2025: Completed comprehensive PWA push notification system implementation:
+  - Created push_subscriptions database table for managing notification subscriptions across devices
+  - Implemented complete backend API endpoints (/api/push-subscription) with subscription, unsubscription, and status management
+  - Added PushNotificationManager component with Korean interface for user-friendly notification control
+  - Integrated push notification manager into NotificationSettingsPage under "푸시 알림 관리" section
+  - Enhanced service worker with push notification event handling and message display capabilities
+  - Updated PWA manifest with proper notification permissions and Korean language support
+  - Complete notification workflow: permission request → subscription → backend storage → push delivery
+  - Users can now enable/disable push notifications directly from settings page for mobile app experience
 - June 22, 2025: Optimized chat textbox UI with thinner, center-aligned design:
   - Reduced chat input area padding from py-3 to py-2 for more compact appearance
   - Centered entire input container with max-width constraint and auto margins
