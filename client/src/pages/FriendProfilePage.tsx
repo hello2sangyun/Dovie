@@ -170,18 +170,9 @@ export default function FriendProfilePage() {
       </div>
 
       {/* Profile Header */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-        className="px-4 py-5 bg-white"
-      >
+      <div className="px-4 py-5 bg-white">
         <div className="text-center">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.4, delay: 0.3 }}
-          >
+          <div>
             <Avatar className="w-20 h-20 mx-auto mb-3 shadow-md">
               <AvatarImage src={(userProfile as any)?.profilePicture || (businessCard as any)?.cardImageUrl} />
               <AvatarFallback className="bg-blue-100 text-blue-600 text-xl font-bold">
@@ -241,12 +232,7 @@ export default function FriendProfilePage() {
       </motion.div>
 
       {/* Content Tabs */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.6 }}
-        className="px-4"
-      >
+      <div className="px-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-4 h-9">
             <TabsTrigger value="posts" className="text-xs py-1.5">게시물</TabsTrigger>
@@ -564,7 +550,7 @@ export default function FriendProfilePage() {
                   </CardContent>
                 </Card>
               )}
-            </motion.div>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
