@@ -12,6 +12,7 @@ interface AuthContextType {
   isPreloadingImages: boolean;
   loginWithUsername: (username: string, password: string) => Promise<any>;
   loginWithEmail: (email: string, password: string) => Promise<any>;
+  requestPermissions: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -284,6 +285,75 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Request permissions for PWA functionality
+  const requestPermissions = async () => {
+    try {
+      console.log('📱 PWA 권한 요청 시작');
+      
+      // Request microphone permission
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ 
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true
+            }
+          });
+          stream.getTracks().forEach(track => track.stop());
+          localStorage.setItem('microphonePermissionGranted', 'true');
+          console.log('🎤 마이크 권한 허용됨');
+        } catch (error) {
+          console.log('🎤 마이크 권한 거부됨');
+          localStorage.setItem('microphonePermissionGranted', 'false');
+        }
+      }
+
+      // Request notification permission for iPhone PWA
+      if ('Notification' in window && 'serviceWorker' in navigator) {
+        try {
+          const permission = await Notification.requestPermission();
+          if (permission === 'granted') {
+            console.log('🔔 알림 권한 허용됨');
+            localStorage.setItem('notificationPermissionGranted', 'true');
+            
+            // Register for push notifications if service worker is ready
+            const registration = await navigator.serviceWorker.ready;
+            if (registration.pushManager) {
+              try {
+                const subscription = await registration.pushManager.subscribe({
+                  userVisibleOnly: true,
+                  applicationServerKey: 'BNWgP2Q4W_Ac-iVjG5mF8D1hF9oJ0pQa2I_RnZ1Y3PYq7fghjkl'
+                });
+                
+                // Send subscription to server
+                await fetch('/api/push-subscription', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'x-user-id': user?.id.toString() || ''
+                  },
+                  body: JSON.stringify({ subscription })
+                });
+                
+                console.log('📱 푸시 알림 구독 완료');
+              } catch (error) {
+                console.error('푸시 알림 구독 실패:', error);
+              }
+            }
+          } else {
+            console.log('🔔 알림 권한 거부됨');
+            localStorage.setItem('notificationPermissionGranted', 'false');
+          }
+        } catch (error) {
+          console.error('알림 권한 요청 실패:', error);
+        }
+      }
+    } catch (error) {
+      console.error('권한 요청 중 오류:', error);
+    }
+  };
+
   return (
     <AuthContext.Provider value={{ 
       user, 
@@ -292,7 +362,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading: (isLoading && !!storedUserId) || !initialized,
       isPreloadingImages,
       loginWithUsername,
-      loginWithEmail
+      loginWithEmail,
+      requestPermissions
     }}>
       {children}
     </AuthContext.Provider>

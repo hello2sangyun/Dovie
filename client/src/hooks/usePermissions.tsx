@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 
-interface PermissionState {
-  microphone: PermissionState | null;
-  notifications: PermissionState | null;
+interface AppPermissionState {
+  microphone: string | null;
+  notifications: string | null;
 }
 
 export function usePermissions() {
-  const [permissions, setPermissions] = useState<PermissionState>({
+  const [permissions, setPermissions] = useState<AppPermissionState>({
     microphone: null,
     notifications: null
   });
