@@ -109,7 +109,12 @@ export function PushNotificationManager({ className }: PushNotificationManagerPr
         return window.btoa(binary);
       };
 
-      const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY || 'BMqZ8XNhzWqDYHWOWOL3PnQj2pF4ej1dvxE6uKODu2mN5qeECeV6qF4ej1dvxE6uKODu2mN5q';
+      // Get VAPID public key from server
+      const vapidResponse = await fetch('/api/vapid-public-key');
+      if (!vapidResponse.ok) {
+        throw new Error('Failed to get VAPID public key');
+      }
+      const { publicKey: vapidPublicKey } = await vapidResponse.json();
 
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
@@ -117,11 +122,21 @@ export function PushNotificationManager({ className }: PushNotificationManagerPr
       });
 
       // Send subscription to server
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        throw new Error('사용자 로그인이 필요합니다');
+      }
+
+      console.log('Sending push subscription to server:', {
+        endpoint: subscription.endpoint,
+        userId: userId
+      });
+
       const response = await fetch('/api/push-subscription', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-User-ID': localStorage.getItem('userId') || ''
+          'X-User-ID': userId
         },
         body: JSON.stringify({
           endpoint: subscription.endpoint,
@@ -138,6 +153,10 @@ export function PushNotificationManager({ className }: PushNotificationManagerPr
       }
     } catch (error) {
       console.error('Push subscription failed:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
       throw error;
     }
   };
