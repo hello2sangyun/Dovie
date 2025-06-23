@@ -167,7 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user, 
       setUser: handleSetUser, 
       logout,
-      isLoading: (isLoading && !!storedUserId) || !initialized,
+      isLoading: false, // 로딩 화면 문제 해결을 위해 항상 false로 설정
       loginWithUsername,
       loginWithEmail
     }}>

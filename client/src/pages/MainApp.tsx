@@ -20,7 +20,7 @@ import ProfilePhotoModal from "@/components/ProfilePhotoModal";
 import ZeroDelayAvatar from "@/components/ZeroDelayAvatar";
 import InstantAvatar from "@/components/InstantAvatar";
 import { BannerNotificationContainer } from "@/components/MobileBannerNotification";
-import LoadingScreen from "@/components/LoadingScreen";
+
 import { ConnectionStatusIndicator } from "@/components/ConnectionStatusIndicator";
 import { MicrophonePermissionModal } from "@/components/MicrophonePermissionModal";
 import { useMicrophonePermission } from "@/hooks/useMicrophonePermission";
