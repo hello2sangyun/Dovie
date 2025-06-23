@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Bell, Volume2, Smartphone, MessageSquare } from "lucide-react";
-import PushNotificationManager from "./PushNotificationManager";
+import { PushNotificationManager } from "./PushNotificationManager";
 
 interface NotificationSettingsPageProps {
   onBack: () => void;

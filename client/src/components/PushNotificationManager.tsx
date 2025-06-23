@@ -1,40 +1,51 @@
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Bell, BellOff, Smartphone, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-export default function PushNotificationManager() {
-  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
+interface PushNotificationManagerProps {
+  className?: string;
+}
+
+export function PushNotificationManager({ className }: PushNotificationManagerProps) {
+  const [isSupported, setIsSupported] = useState(false);
+  const [permission, setPermission] = useState<NotificationPermission>('default');
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    // 알림 권한 상태 확인
-    if ('Notification' in window) {
-      setNotificationPermission(Notification.permission);
-    }
-
-    // 기존 구독 상태 확인
+    checkPushSupport();
     checkSubscriptionStatus();
   }, []);
 
-  const checkSubscriptionStatus = async () => {
+  const checkPushSupport = () => {
     if ('serviceWorker' in navigator && 'PushManager' in window) {
-      try {
-        const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.getSubscription();
-        setIsSubscribed(!!subscription);
-      } catch (error) {
-        console.error('구독 상태 확인 실패:', error);
-      }
+      setIsSupported(true);
+      setPermission(Notification.permission);
     }
   };
 
-  const requestNotificationPermission = async () => {
-    if (!('Notification' in window)) {
+  const checkSubscriptionStatus = async () => {
+    if (!('serviceWorker' in navigator)) return;
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      setIsSubscribed(!!subscription);
+    } catch (error) {
+      console.error('Failed to check subscription status:', error);
+    }
+  };
+
+  const requestPermission = async () => {
+    if (!isSupported) {
       toast({
-        title: "알림 지원 안됨",
-        description: "이 브라우저에서는 푸시 알림을 지원하지 않습니다.",
+        title: "지원되지 않음",
+        description: "이 브라우저는 푸시 알림을 지원하지 않습니다.",
         variant: "destructive"
       });
       return;
@@ -44,27 +55,26 @@ export default function PushNotificationManager() {
 
     try {
       const permission = await Notification.requestPermission();
-      setNotificationPermission(permission);
+      setPermission(permission);
 
       if (permission === 'granted') {
         await subscribeToPushNotifications();
         toast({
-          title: "알림 권한 허용",
-          description: "새로운 메시지 알림을 받으실 수 있습니다.",
-          variant: "default"
+          title: "알림 허용됨",
+          description: "푸시 알림이 성공적으로 설정되었습니다.",
         });
       } else {
         toast({
-          title: "알림 권한 거부",
-          description: "설정에서 알림 권한을 변경할 수 있습니다.",
+          title: "알림 거부됨",
+          description: "알림을 받으려면 브라우저 설정에서 허용해주세요.",
           variant: "destructive"
         });
       }
     } catch (error) {
-      console.error('알림 권한 요청 실패:', error);
+      console.error('Permission request failed:', error);
       toast({
-        title: "오류 발생",
-        description: "알림 권한 요청 중 오류가 발생했습니다.",
+        title: "설정 실패",
+        description: "알림 설정 중 오류가 발생했습니다.",
         variant: "destructive"
       });
     } finally {
@@ -73,81 +83,78 @@ export default function PushNotificationManager() {
   };
 
   const subscribeToPushNotifications = async () => {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      return;
-    }
-
     try {
       const registration = await navigator.serviceWorker.ready;
       
-      // VAPID 공개 키 (실제 서비스에서는 환경변수로 관리)
-      const vapidPublicKey = 'BMqZ8Q8b5V5N1VqD8rGmQQNGN5H7bV8rCXqW9mFpX4zNb5rT6jU3lKs8wYvP2xR4nQ1mJ7bW9qT3lR6jF2kN8vQ';
-      
+      // Get VAPID public key from server
+      const vapidResponse = await fetch('/api/vapid-public-key');
+      const { publicKey } = await vapidResponse.json();
+
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+        applicationServerKey: urlBase64ToUint8Array(publicKey)
       });
 
-      // 구독 정보를 서버에 전송
-      await fetch('/api/push-subscription', {
+      // Send subscription to server
+      const response = await fetch('/api/push-subscription', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-User-ID': localStorage.getItem('userId') || ''
         },
         body: JSON.stringify(subscription)
       });
 
-      setIsSubscribed(true);
-      console.log('푸시 알림 구독 완료:', subscription);
+      if (response.ok) {
+        setIsSubscribed(true);
+      } else {
+        throw new Error('Failed to save subscription');
+      }
     } catch (error) {
-      console.error('푸시 알림 구독 실패:', error);
-      toast({
-        title: "구독 실패",
-        description: "푸시 알림 구독 중 오류가 발생했습니다.",
-        variant: "destructive"
-      });
+      console.error('Push subscription failed:', error);
+      throw error;
     }
   };
 
   const unsubscribeFromPushNotifications = async () => {
-    if (!('serviceWorker' in navigator)) {
-      return;
-    }
+    setIsLoading(true);
 
     try {
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
-      
+
       if (subscription) {
+        // Unsubscribe from browser
         await subscription.unsubscribe();
-        
-        // 서버에서 구독 정보 제거
+
+        // Remove from server
         await fetch('/api/push-subscription', {
           method: 'DELETE',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-User-ID': localStorage.getItem('userId') || ''
           },
           body: JSON.stringify({ endpoint: subscription.endpoint })
         });
-
-        setIsSubscribed(false);
-        toast({
-          title: "구독 해제",
-          description: "푸시 알림 구독이 해제되었습니다.",
-          variant: "default"
-        });
       }
-    } catch (error) {
-      console.error('푸시 알림 구독 해제 실패:', error);
+
+      setIsSubscribed(false);
       toast({
-        title: "구독 해제 실패",
-        description: "구독 해제 중 오류가 발생했습니다.",
+        title: "알림 해제됨",
+        description: "푸시 알림이 비활성화되었습니다.",
+      });
+    } catch (error) {
+      console.error('Unsubscribe failed:', error);
+      toast({
+        title: "해제 실패",
+        description: "알림 해제 중 오류가 발생했습니다.",
         variant: "destructive"
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // VAPID 키를 Uint8Array로 변환하는 헬퍼 함수
   const urlBase64ToUint8Array = (base64String: string) => {
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
     const base64 = (base64String + padding)
@@ -163,52 +170,118 @@ export default function PushNotificationManager() {
     return outputArray;
   };
 
-  if (notificationPermission === 'denied') {
-    return (
-      <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-        <p className="text-sm text-orange-800">
-          알림이 차단되었습니다. 브라우저 설정에서 알림을 허용해주세요.
-        </p>
-      </div>
-    );
-  }
+  const getStatusInfo = () => {
+    if (!isSupported) {
+      return {
+        icon: AlertCircle,
+        title: "지원되지 않음",
+        description: "이 브라우저는 푸시 알림을 지원하지 않습니다.",
+        color: "text-gray-500"
+      };
+    }
 
-  if (notificationPermission === 'granted' && isSubscribed) {
-    return (
-      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-green-800">
-            푸시 알림이 활성화되었습니다.
-          </p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={unsubscribeFromPushNotifications}
-          >
-            해제
-          </Button>
-        </div>
-      </div>
-    );
-  }
+    if (permission === 'denied') {
+      return {
+        icon: BellOff,
+        title: "알림 차단됨",
+        description: "브라우저 설정에서 알림을 허용해주세요.",
+        color: "text-red-500"
+      };
+    }
+
+    if (isSubscribed) {
+      return {
+        icon: Bell,
+        title: "알림 활성화됨",
+        description: "새 메시지 알림을 받고 있습니다.",
+        color: "text-green-500"
+      };
+    }
+
+    return {
+      icon: BellOff,
+      title: "알림 비활성화됨",
+      description: "푸시 알림을 설정하여 메시지를 놓치지 마세요.",
+      color: "text-orange-500"
+    };
+  };
+
+  const statusInfo = getStatusInfo();
+  const StatusIcon = statusInfo.icon;
 
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-sm font-medium text-blue-900">푸시 알림</h3>
-          <p className="text-sm text-blue-700">
-            새로운 메시지 알림을 받으시겠습니까?
-          </p>
+    <Card className={className}>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Smartphone className="h-5 w-5" />
+          푸시 알림 관리
+        </CardTitle>
+        <CardDescription>
+          모바일에서 새 메시지 알림을 받으세요
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div className="flex items-center gap-3">
+            <StatusIcon className={`h-5 w-5 ${statusInfo.color}`} />
+            <div>
+              <p className="font-medium">{statusInfo.title}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {statusInfo.description}
+              </p>
+            </div>
+          </div>
         </div>
-        <Button
-          onClick={requestNotificationPermission}
-          disabled={isLoading}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          {isLoading ? '처리 중...' : '허용'}
-        </Button>
-      </div>
-    </div>
+
+        {isSupported && permission !== 'denied' && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="push-notifications" className="text-sm font-medium">
+                푸시 알림 받기
+              </Label>
+              <Switch
+                id="push-notifications"
+                checked={isSubscribed}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    requestPermission();
+                  } else {
+                    unsubscribeFromPushNotifications();
+                  }
+                }}
+                disabled={isLoading}
+              />
+            </div>
+
+            {isSubscribed && (
+              <div className="text-xs text-gray-600 dark:text-gray-400 p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
+                ✓ 앱이 백그라운드에 있을 때도 새 메시지 알림을 받습니다
+                <br />
+                ✓ 알림 소리와 진동으로 즉시 확인할 수 있습니다
+                <br />
+                ✓ 앱 아이콘에 읽지 않은 메시지 수가 표시됩니다
+              </div>
+            )}
+          </div>
+        )}
+
+        {permission === 'denied' && (
+          <div className="text-sm text-gray-600 dark:text-gray-400 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+            <p className="font-medium mb-1">알림을 활성화하려면:</p>
+            <ol className="list-decimal list-inside space-y-1 text-xs">
+              <li>브라우저 주소창 옆의 자물쇠 아이콘을 클릭</li>
+              <li>"알림" 설정을 "허용"으로 변경</li>
+              <li>페이지를 새로고침</li>
+            </ol>
+          </div>
+        )}
+
+        {!isSupported && (
+          <div className="text-sm text-gray-600 dark:text-gray-400 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            최신 브라우저(Chrome, Firefox, Safari)에서 푸시 알림을 사용할 수 있습니다.
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

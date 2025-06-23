@@ -226,29 +226,82 @@ async function removePendingMessage(messageId) {
 self.addEventListener('push', (event) => {
   console.log('[SW] Push notification received');
   
+  let notificationData = {};
+  if (event.data) {
+    try {
+      notificationData = event.data.json();
+    } catch (e) {
+      notificationData = { body: event.data.text() };
+    }
+  }
+  
   const options = {
-    body: event.data ? event.data.text() : '새 메시지가 도착했습니다.',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-72x72.png',
-    vibrate: [200, 100, 200],
+    body: notificationData.body || '새 메시지가 도착했습니다.',
+    icon: notificationData.icon || '/icons/icon-192x192.png',
+    badge: notificationData.badge || '/icons/icon-72x72.png',
+    vibrate: notificationData.vibrate || [200, 100, 200],
+    sound: notificationData.sound || '/sounds/notification.mp3',
+    requireInteraction: notificationData.requireInteraction || false,
+    silent: notificationData.silent || false,
+    tag: notificationData.tag || 'message',
     data: {
-      url: '/'
+      url: '/',
+      chatRoomId: notificationData.data?.chatRoomId,
+      timestamp: Date.now(),
+      ...notificationData.data
     },
-    actions: [
+    actions: notificationData.actions || [
       {
         action: 'open',
-        title: '열기'
+        title: '열기',
+        icon: '/icons/icon-72x72.png'
       },
       {
-        action: 'close',
-        title: '닫기'
+        action: 'reply',
+        title: '답장',
+        icon: '/icons/icon-72x72.png'
       }
     ]
   };
   
   event.waitUntil(
-    self.registration.showNotification('Dovie Messenger', options)
+    Promise.all([
+      // Show notification
+      self.registration.showNotification(
+        notificationData.title || 'Dovie Messenger', 
+        options
+      ),
+      // Update app badge with unread count
+      updateAppBadge(notificationData.unreadCount)
+    ])
   );
+});
+
+// App badge functionality
+async function updateAppBadge(unreadCount) {
+  if ('setAppBadge' in navigator) {
+    try {
+      if (unreadCount && unreadCount > 0) {
+        await navigator.setAppBadge(unreadCount);
+        console.log('[SW] App badge updated:', unreadCount);
+      } else {
+        await navigator.clearAppBadge();
+        console.log('[SW] App badge cleared');
+      }
+    } catch (error) {
+      console.error('[SW] Failed to update app badge:', error);
+    }
+  }
+}
+
+// Clear app badge when app becomes visible
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'CLEAR_BADGE') {
+    updateAppBadge(0);
+  }
+  if (event.data && event.data.type === 'UPDATE_BADGE') {
+    updateAppBadge(event.data.count);
+  }
 });
 
 // Handle notification clicks
@@ -257,9 +310,39 @@ self.addEventListener('notificationclick', (event) => {
   
   event.notification.close();
   
+  // Clear app badge when notification is clicked
+  updateAppBadge(0);
+  
   if (event.action === 'open' || !event.action) {
     event.waitUntil(
-      self.clients.openWindow(event.notification.data.url || '/')
+      self.clients.openWindow(event.notification.data?.url || '/')
+    );
+  } else if (event.action === 'reply') {
+    // Handle reply action - open app to specific chat room
+    const chatRoomId = event.notification.data?.chatRoomId;
+    const url = chatRoomId ? `/?chat=${chatRoomId}` : '/';
+    event.waitUntil(
+      self.clients.openWindow(url)
+    );
+  }
+});
+
+// Handle notification close
+self.addEventListener('notificationclose', (event) => {
+  console.log('[SW] Notification closed:', event.notification.tag);
+});
+
+// Handle app visibility change to update badge
+self.addEventListener('focus', () => {
+  updateAppBadge(0);
+});
+
+// Background sync for offline notifications
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'background-sync') {
+    event.waitUntil(syncOfflineMessages());
+  }
+});ata.url || '/')
     );
   }
 });
