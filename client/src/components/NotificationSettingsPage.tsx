@@ -278,6 +278,9 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
           </CardContent>
         </Card>
 
+        {/* iPhone PWA Push Notification Diagnostics */}
+        <PushNotificationTester />
+
         {/* Save Button */}
         <div className="pt-4">
           <Button 

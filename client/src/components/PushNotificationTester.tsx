@@ -1,188 +1,124 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Smartphone, CheckCircle, XCircle, AlertCircle, Zap } from 'lucide-react';
+import { Smartphone, Bell, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-export function PushNotificationTester() {
-  const [testResults, setTestResults] = useState<{
-    serviceWorkerSupport: boolean;
-    pushManagerSupport: boolean;
-    notificationPermission: NotificationPermission;
-    subscriptionStatus: boolean;
-    vapidKeyValid: boolean;
-    subscriptionEndpoint: string | null;
-  }>({
-    serviceWorkerSupport: false,
-    pushManagerSupport: false,
-    notificationPermission: 'default',
-    subscriptionStatus: false,
-    vapidKeyValid: false,
-    subscriptionEndpoint: null
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+interface PushNotificationTesterProps {
+  className?: string;
+}
 
-  useEffect(() => {
-    runDiagnostics();
-  }, []);
+export function PushNotificationTester({ className }: PushNotificationTesterProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [diagnostics, setDiagnostics] = useState<any>(null);
+  const { toast } = useToast();
 
   const runDiagnostics = async () => {
     setIsLoading(true);
-    
-    const results = {
-      serviceWorkerSupport: 'serviceWorker' in navigator,
-      pushManagerSupport: 'PushManager' in window,
-      notificationPermission: Notification.permission,
-      subscriptionStatus: false,
-      vapidKeyValid: false,
-      subscriptionEndpoint: null
-    };
+    const results: any = {};
 
-    // Check current subscription status
-    if (results.serviceWorkerSupport && results.pushManagerSupport) {
-      try {
-        const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.getSubscription();
-        results.subscriptionStatus = !!subscription;
-        results.subscriptionEndpoint = subscription?.endpoint || null;
-      } catch (error) {
-        console.error('Failed to check subscription:', error);
-      }
-    }
-
-    // Test VAPID key validity
     try {
-      const vapidResponse = await fetch('/api/vapid-public-key');
-      results.vapidKeyValid = vapidResponse.ok;
-    } catch (error) {
-      console.error('VAPID key test failed:', error);
-    }
-
-    setTestResults(results);
-    setIsLoading(false);
-  };
-
-  const requestPermissionAndSubscribe = async () => {
-    setIsLoading(true);
-    try {
-      // Request notification permission
-      const permission = await Notification.requestPermission();
+      // Check PWA detection
+      results.isPWA = (window.navigator as any).standalone === true || 
+                     window.matchMedia('(display-mode: standalone)').matches;
       
-      if (permission === 'granted') {
-        await subscribeToNotifications();
-        toast({
-          title: "권한 승인됨",
-          description: "알림 권한이 승인되고 구독이 등록되었습니다.",
-          variant: "default"
-        });
-      } else {
-        toast({
-          title: "권한 거부됨",
-          description: "알림 권한이 거부되었습니다.",
-          variant: "destructive"
-        });
+      // Check service worker
+      results.hasServiceWorker = 'serviceWorker' in navigator;
+      
+      // Check push manager
+      results.hasPushManager = 'PushManager' in window;
+      
+      // Check notification permission
+      results.notificationPermission = Notification.permission;
+      
+      // Check for active service worker
+      if (results.hasServiceWorker) {
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          results.serviceWorkerActive = !!registration.active;
+          
+          // Check for push subscription
+          const subscription = await registration.pushManager.getSubscription();
+          results.hasPushSubscription = !!subscription;
+          results.subscriptionEndpoint = subscription?.endpoint?.substring(0, 50) + '...' || null;
+        } catch (error) {
+          results.serviceWorkerError = error instanceof Error ? error.message : 'Unknown error';
+        }
       }
       
-      await runDiagnostics();
+      // Check server subscription status
+      const userId = localStorage.getItem('userId');
+      if (userId) {
+        try {
+          const response = await fetch('/api/push-subscription/status', {
+            headers: {
+              'X-User-ID': userId
+            }
+          });
+          const data = await response.json();
+          results.serverSubscriptionStatus = data;
+        } catch (error) {
+          results.serverError = error instanceof Error ? error.message : 'Server check failed';
+        }
+      }
+
+      setDiagnostics(results);
+      console.log('📱 iPhone PWA Push Notification Diagnostics:', results);
     } catch (error) {
-      console.error('Permission request failed:', error);
+      console.error('Diagnostics failed:', error);
       toast({
-        title: "오류 발생",
-        description: "권한 요청 중 오류가 발생했습니다.",
+        title: "진단 실패",
+        description: "진단 중 오류가 발생했습니다.",
         variant: "destructive"
       });
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const subscribeToNotifications = async () => {
-    const registration = await navigator.serviceWorker.ready;
-    
-    const urlBase64ToUint8Array = (base64String: string) => {
-      const padding = '='.repeat((4 - base64String.length % 4) % 4);
-      const base64 = (base64String + padding)
-        .replace(/-/g, '+')
-        .replace(/_/g, '/');
-      const rawData = window.atob(base64);
-      const outputArray = new Uint8Array(rawData.length);
-      for (let i = 0; i < rawData.length; ++i) {
-        outputArray[i] = rawData.charCodeAt(i);
-      }
-      return outputArray;
-    };
-
-    const arrayBufferToBase64 = (buffer: ArrayBuffer | null) => {
-      if (!buffer) return '';
-      const bytes = new Uint8Array(buffer);
-      let binary = '';
-      for (let i = 0; i < bytes.byteLength; i++) {
-        binary += String.fromCharCode(bytes[i]);
-      }
-      return window.btoa(binary);
-    };
-
-    const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY || 'BMqZ8XNhzWqDYHWOWOL3PnQj2pF4ej1dvxE6uKODu2mN5qeECeV6qF4ej1dvxE6uKODu2mN5q';
-    
-    const subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
-    });
-
-    // Send subscription to server
-    const userId = localStorage.getItem('userId');
-    const response = await fetch('/api/push-subscription', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-User-ID': userId || ''
-      },
-      body: JSON.stringify({
-        endpoint: subscription.endpoint,
-        p256dh: arrayBufferToBase64(subscription.getKey('p256dh')),
-        auth: arrayBufferToBase64(subscription.getKey('auth')),
-        userAgent: navigator.userAgent
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to save subscription to server');
     }
   };
 
   const sendTestNotification = async () => {
     setIsLoading(true);
+    const userId = localStorage.getItem('userId');
+    
+    if (!userId) {
+      toast({
+        title: "로그인 필요",
+        description: "테스트 알림을 보내려면 로그인이 필요합니다.",
+        variant: "destructive"
+      });
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const userId = localStorage.getItem('userId');
       const response = await fetch('/api/test-push', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-User-ID': userId || ''
-        },
-        body: JSON.stringify({
-          title: 'Dovie 테스트 알림',
-          message: 'iPhone PWA 푸시 알림 테스트입니다. 소리와 앱 배지가 표시되어야 합니다.',
-          unreadCount: 1
-        })
+          'X-User-ID': userId
+        }
       });
 
-      if (response.ok) {
+      const data = await response.json();
+      
+      if (data.success) {
         toast({
           title: "테스트 알림 전송됨",
-          description: "푸시 알림이 전송되었습니다. iPhone에서 확인해보세요.",
-          variant: "default"
+          description: "iPhone PWA 푸시 알림이 전송되었습니다.",
         });
       } else {
-        throw new Error('Failed to send test notification');
+        toast({
+          title: "전송 실패",
+          description: data.message || "테스트 알림 전송에 실패했습니다.",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Test notification failed:', error);
       toast({
-        title: "테스트 실패",
-        description: "테스트 알림 전송에 실패했습니다.",
+        title: "전송 오류",
+        description: "테스트 알림 전송 중 오류가 발생했습니다.",
         variant: "destructive"
       });
     } finally {
@@ -190,150 +126,131 @@ export function PushNotificationTester() {
     }
   };
 
-  const getStatusIcon = (status: boolean) => {
-    return status ? (
-      <CheckCircle className="h-4 w-4 text-green-600" />
-    ) : (
-      <XCircle className="h-4 w-4 text-red-600" />
-    );
+  const getStatusIcon = (status: boolean | undefined) => {
+    if (status === undefined) return <AlertCircle className="h-4 w-4 text-gray-400" />;
+    return status ? 
+      <CheckCircle className="h-4 w-4 text-green-500" /> : 
+      <AlertCircle className="h-4 w-4 text-red-500" />;
   };
 
-  const getStatusBadge = (status: boolean, trueText: string, falseText: string) => {
-    return (
-      <Badge variant={status ? "default" : "destructive"}>
-        {status ? trueText : falseText}
-      </Badge>
-    );
+  const getStatusBadge = (status: boolean | undefined, trueText: string, falseText: string) => {
+    if (status === undefined) return <Badge variant="secondary">확인 중</Badge>;
+    return status ? 
+      <Badge variant="default" className="bg-green-500">{trueText}</Badge> : 
+      <Badge variant="destructive">{falseText}</Badge>;
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className={className}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Bell className="h-5 w-5" />
-          푸시 알림 시스템 테스터
+          <Smartphone className="h-5 w-5" />
+          iPhone PWA 푸시 알림 진단
         </CardTitle>
         <CardDescription>
-          iPhone PWA 푸시 알림 시스템의 상태를 확인하고 테스트합니다.
+          iPhone PWA에서 푸시 알림이 정상적으로 작동하는지 확인합니다.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {/* System Status */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">시스템 상태</h3>
-          
-          <div className="grid grid-cols-1 gap-3">
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div className="flex items-center gap-2">
-                {getStatusIcon(testResults.serviceWorkerSupport)}
-                <span>Service Worker 지원</span>
-              </div>
-              {getStatusBadge(testResults.serviceWorkerSupport, "지원됨", "지원 안됨")}
-            </div>
+      <CardContent className="space-y-4">
+        <div className="flex gap-2">
+          <Button 
+            onClick={runDiagnostics} 
+            disabled={isLoading}
+            variant="outline"
+          >
+            {isLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+            진단 실행
+          </Button>
+          <Button 
+            onClick={sendTestNotification} 
+            disabled={isLoading}
+          >
+            {isLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Bell className="h-4 w-4 mr-2" />}
+            테스트 알림 전송
+          </Button>
+        </div>
 
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div className="flex items-center gap-2">
-                {getStatusIcon(testResults.pushManagerSupport)}
-                <span>Push Manager 지원</span>
+        {diagnostics && (
+          <div className="space-y-3 mt-4">
+            <h4 className="font-semibold text-sm">진단 결과</h4>
+            
+            <div className="grid grid-cols-1 gap-2 text-sm">
+              <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                <div className="flex items-center gap-2">
+                  {getStatusIcon(diagnostics.isPWA)}
+                  PWA 모드
+                </div>
+                {getStatusBadge(diagnostics.isPWA, "PWA", "브라우저")}
               </div>
-              {getStatusBadge(testResults.pushManagerSupport, "지원됨", "지원 안됨")}
-            </div>
 
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div className="flex items-center gap-2">
-                {getStatusIcon(testResults.notificationPermission === 'granted')}
-                <span>알림 권한</span>
+              <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                <div className="flex items-center gap-2">
+                  {getStatusIcon(diagnostics.hasServiceWorker)}
+                  Service Worker 지원
+                </div>
+                {getStatusBadge(diagnostics.hasServiceWorker, "지원됨", "지원 안됨")}
               </div>
-              <Badge variant={
-                testResults.notificationPermission === 'granted' ? "default" :
-                testResults.notificationPermission === 'denied' ? "destructive" : "secondary"
-              }>
-                {testResults.notificationPermission === 'granted' ? '승인됨' :
-                 testResults.notificationPermission === 'denied' ? '거부됨' : '대기중'}
-              </Badge>
-            </div>
 
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div className="flex items-center gap-2">
-                {getStatusIcon(testResults.subscriptionStatus)}
-                <span>푸시 구독 상태</span>
+              <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                <div className="flex items-center gap-2">
+                  {getStatusIcon(diagnostics.hasPushManager)}
+                  Push Manager 지원
+                </div>
+                {getStatusBadge(diagnostics.hasPushManager, "지원됨", "지원 안됨")}
               </div>
-              {getStatusBadge(testResults.subscriptionStatus, "구독됨", "구독 안됨")}
-            </div>
 
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div className="flex items-center gap-2">
-                {getStatusIcon(testResults.vapidKeyValid)}
-                <span>VAPID 키 유효성</span>
+              <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                <div className="flex items-center gap-2">
+                  {getStatusIcon(diagnostics.notificationPermission === 'granted')}
+                  알림 권한
+                </div>
+                <Badge variant={diagnostics.notificationPermission === 'granted' ? 'default' : 'destructive'}>
+                  {diagnostics.notificationPermission || '확인 중'}
+                </Badge>
               </div>
-              {getStatusBadge(testResults.vapidKeyValid, "유효함", "무효함")}
+
+              <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                <div className="flex items-center gap-2">
+                  {getStatusIcon(diagnostics.serviceWorkerActive)}
+                  Service Worker 활성화
+                </div>
+                {getStatusBadge(diagnostics.serviceWorkerActive, "활성", "비활성")}
+              </div>
+
+              <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                <div className="flex items-center gap-2">
+                  {getStatusIcon(diagnostics.hasPushSubscription)}
+                  Push 구독
+                </div>
+                {getStatusBadge(diagnostics.hasPushSubscription, "구독됨", "구독 안됨")}
+              </div>
+
+              {diagnostics.serverSubscriptionStatus && (
+                <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                  <div className="flex items-center gap-2">
+                    {getStatusIcon(diagnostics.serverSubscriptionStatus.isSubscribed)}
+                    서버 구독 상태
+                  </div>
+                  {getStatusBadge(diagnostics.serverSubscriptionStatus.isSubscribed, "등록됨", "등록 안됨")}
+                </div>
+              )}
+
+              {diagnostics.subscriptionEndpoint && (
+                <div className="p-2 bg-blue-50 rounded">
+                  <div className="text-xs text-gray-600">구독 엔드포인트:</div>
+                  <div className="text-xs font-mono break-all">{diagnostics.subscriptionEndpoint}</div>
+                </div>
+              )}
+
+              {(diagnostics.serviceWorkerError || diagnostics.serverError) && (
+                <div className="p-2 bg-red-50 rounded">
+                  <div className="text-xs text-red-600">오류:</div>
+                  <div className="text-xs">{diagnostics.serviceWorkerError || diagnostics.serverError}</div>
+                </div>
+              )}
             </div>
           </div>
-
-          {testResults.subscriptionEndpoint && (
-            <div className="p-3 border rounded-lg bg-muted">
-              <p className="text-sm font-medium mb-1">구독 엔드포인트:</p>
-              <p className="text-xs break-all text-muted-foreground">
-                {testResults.subscriptionEndpoint}
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Action Buttons */}
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold">테스트 액션</h3>
-          
-          <div className="grid grid-cols-1 gap-3">
-            <Button 
-              onClick={runDiagnostics} 
-              disabled={isLoading}
-              variant="outline"
-            >
-              <AlertCircle className="h-4 w-4 mr-2" />
-              시스템 상태 재검사
-            </Button>
-
-            {testResults.notificationPermission !== 'granted' && (
-              <Button 
-                onClick={requestPermissionAndSubscribe} 
-                disabled={isLoading}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <Bell className="h-4 w-4 mr-2" />
-                알림 권한 요청 및 구독
-              </Button>
-            )}
-
-            {testResults.subscriptionStatus && (
-              <Button 
-                onClick={sendTestNotification} 
-                disabled={isLoading}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <Zap className="h-4 w-4 mr-2" />
-                테스트 푸시 알림 전송
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Instructions */}
-        <div className="p-4 border rounded-lg bg-blue-50 dark:bg-blue-950">
-          <h4 className="font-semibold mb-2 flex items-center gap-2">
-            <Smartphone className="h-4 w-4" />
-            iPhone PWA 테스트 방법
-          </h4>
-          <ol className="text-sm space-y-1 list-decimal list-inside">
-            <li>Safari에서 이 페이지를 열어주세요</li>
-            <li>공유 버튼 → "홈 화면에 추가"를 선택하세요</li>
-            <li>홈 화면의 Dovie 앱 아이콘을 터치해서 PWA 모드로 실행하세요</li>
-            <li>"알림 권한 요청 및 구독" 버튼을 클릭하세요</li>
-            <li>알림 권한을 허용하세요</li>
-            <li>"테스트 푸시 알림 전송" 버튼을 클릭하세요</li>
-            <li>iPhone에서 소리와 함께 알림이 표시되고 앱 배지가 나타나는지 확인하세요</li>
-          </ol>
-        </div>
+        )}
       </CardContent>
     </Card>
   );
