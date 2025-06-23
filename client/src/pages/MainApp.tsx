@@ -236,50 +236,52 @@ export default function MainApp() {
   const registerPushNotification = async () => {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
       console.log('Push notifications not supported');
-      return;
+      return false;
     }
 
     try {
       const registration = await navigator.serviceWorker.ready;
-      if (!registration.pushManager) return;
+      if (!registration.pushManager) return false;
 
       // Check if already subscribed
       const existingSubscription = await registration.pushManager.getSubscription();
+      
+      console.log('🔍 Push subscription check:', {
+        hasExistingSubscription: !!existingSubscription,
+        userId: user?.id,
+        notificationPermission: Notification.permission
+      });
+
       if (existingSubscription) {
-        console.log('Push subscription already exists');
-        return;
+        console.log('🔄 Verifying existing subscription with server...');
+        
+        // Verify existing subscription with server
+        const verifyResponse = await fetch('/api/push-subscription', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-User-ID': user?.id?.toString() || ''
+          },
+          body: JSON.stringify(existingSubscription)
+        });
+        
+        if (verifyResponse.ok) {
+          console.log('✅ Existing subscription verified with server');
+          return true;
+        } else {
+          console.log('⚠️ Existing subscription verification failed, creating new one...');
+        }
       }
 
-      // VAPID key conversion helper
-      const urlBase64ToUint8Array = (base64String: string) => {
-        const padding = '='.repeat((4 - base64String.length % 4) % 4);
-        const base64 = (base64String + padding)
-          .replace(/-/g, '+')
-          .replace(/_/g, '/');
-        const rawData = window.atob(base64);
-        const outputArray = new Uint8Array(rawData.length);
-        for (let i = 0; i < rawData.length; ++i) {
-          outputArray[i] = rawData.charCodeAt(i);
-        }
-        return outputArray;
-      };
-
-      const arrayBufferToBase64 = (buffer: ArrayBuffer | null) => {
-        if (!buffer) return '';
-        const bytes = new Uint8Array(buffer);
-        let binary = '';
-        for (let i = 0; i < bytes.byteLength; i++) {
-          binary += String.fromCharCode(bytes[i]);
-        }
-        return window.btoa(binary);
-      };
-
-      // Subscribe to push notifications
-      const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY || 'BMqZ8XNhzWqDYHWOWOL3PnQj2pF4ej1dvxE6uKODu2mN5qeECeV6qF4ej1dvxE6uKODu2mN5q';
+      console.log('🔔 Creating new push subscription...');
+      
+      // Get VAPID public key from server
+      const vapidResponse = await fetch('/api/vapid-public-key');
+      const { publicKey } = await vapidResponse.json();
       
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+        applicationServerKey: publicKey
       });
 
       // Send subscription to server

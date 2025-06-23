@@ -45,25 +45,31 @@ export function PushNotificationManager({ className }: PushNotificationManagerPr
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
       
-      // Check if notification permission was granted and user is logged in
-      const notificationGranted = localStorage.getItem('notificationPermissionGranted');
-      const hasUserId = localStorage.getItem('userId');
+      console.log('🔍 Checking subscription status:', {
+        hasSubscription: !!subscription,
+        notificationPermission: Notification.permission,
+        subscriptionEndpoint: subscription?.endpoint?.substring(0, 50) + '...'
+      });
       
-      // If notifications are granted or auto-enabled, show as subscribed
-      if (notificationGranted === 'true' && hasUserId) {
-        setIsSubscribed(true);
+      // Check server-side subscription status
+      const hasUserId = localStorage.getItem('userId');
+      if (hasUserId && subscription) {
+        try {
+          const response = await fetch('/api/push-subscription/status');
+          const data = await response.json();
+          console.log('📊 Server subscription status:', data);
+          setIsSubscribed(data.isSubscribed);
+        } catch (error) {
+          console.error('Failed to check server subscription:', error);
+          // Fallback to client-side check
+          setIsSubscribed(!!subscription);
+        }
       } else {
-        setIsSubscribed(!!subscription);
+        setIsSubscribed(false);
       }
     } catch (error) {
       console.error('Failed to check subscription status:', error);
-      
-      // Fallback: check localStorage for granted permission
-      const notificationGranted = localStorage.getItem('notificationPermissionGranted');
-      const hasUserId = localStorage.getItem('userId');
-      if (notificationGranted === 'true' && hasUserId) {
-        setIsSubscribed(true);
-      }
+      setIsSubscribed(false);
     }
   };
 

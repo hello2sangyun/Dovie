@@ -4836,6 +4836,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ publicKey: getVapidPublicKey() });
   });
 
+  app.get("/api/push-subscription/status", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const subscriptions = await storage.getPushSubscriptions(Number(userId));
+      console.log(`📊 Push subscription status for user ${userId}:`, {
+        subscriptionCount: subscriptions.length,
+        isSubscribed: subscriptions.length > 0
+      });
+      
+      res.json({ 
+        isSubscribed: subscriptions.length > 0,
+        subscriptionCount: subscriptions.length,
+        subscriptions: subscriptions.map(sub => ({
+          endpoint: sub.endpoint.substring(0, 50) + '...',
+          userAgent: sub.userAgent
+        }))
+      });
+    } catch (error) {
+      console.error("Check push subscription status error:", error);
+      res.status(500).json({ message: "Failed to check push subscription status" });
+    }
+  });
+
   app.post("/api/push-subscription", async (req, res) => {
     const userId = req.session?.userId || req.headers["x-user-id"];
     if (!userId) {
@@ -4844,6 +4871,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const subscription = req.body;
+      console.log(`🔔 Registering push subscription for user ${userId}:`, {
+        endpoint: subscription.endpoint?.substring(0, 50) + '...',
+        hasKeys: !!subscription.keys,
+        userAgent: req.headers['user-agent']?.substring(0, 50) + '...'
+      });
+      
       await storage.upsertPushSubscription(Number(userId), {
         endpoint: subscription.endpoint,
         p256dh: subscription.keys.p256dh,
