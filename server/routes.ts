@@ -4797,7 +4797,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/push-subscription", async (req, res) => {
-    const userId = req.headers["x-user-id"];
+    const userId = req.session?.userId || req.headers["x-user-id"];
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
@@ -4819,7 +4819,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.delete("/api/push-subscription", async (req, res) => {
-    const userId = req.headers["x-user-id"];
+    const userId = req.session?.userId || req.headers["x-user-id"];
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
