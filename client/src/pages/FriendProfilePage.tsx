@@ -179,28 +179,19 @@ export default function FriendProfilePage() {
                 {friendName[0]}
               </AvatarFallback>
             </Avatar>
-          </motion.div>
+          </div>
           
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.4 }}
-          >
+          <div>
             <h2 className="text-xl font-bold text-gray-900 mb-1">{friendName}</h2>
             <p className="text-sm text-gray-600 mb-4">
               {businessCard?.jobTitle && businessCard?.companyName 
                 ? `${businessCard.jobTitle} • ${businessCard.companyName}`
                 : businessCard?.jobTitle || businessCard?.companyName || "프로필 정보"}
             </p>
-          </motion.div>
+          </div>
           
           {/* Action Buttons - Mobile Optimized */}
-          <motion.div 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.5 }}
-            className="grid grid-cols-5 gap-1.5 px-2 mb-5"
-          >
+          <div className="grid grid-cols-5 gap-1.5 px-2 mb-5">
             <Button variant="outline" size="sm" className="flex flex-col items-center py-2.5 px-1 h-auto border-gray-200 hover:bg-gray-50">
               <Phone className="w-4 h-4 mb-1" />
               <span className="text-xs">통화</span>
@@ -227,9 +218,9 @@ export default function FriendProfilePage() {
               <Search className="w-4 h-4 mb-1" />
               <span className="text-xs">검색</span>
             </Button>
-          </motion.div>
+          </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Content Tabs */}
       <div className="px-4">
@@ -358,10 +349,10 @@ export default function FriendProfilePage() {
                         </div>
                       </CardContent>
                     </Card>
-                  </motion.div>
+                  </div>
                 ))
               )}
-            </motion.div>
+            </div>
           </TabsContent>
 
           {/* Business Card Tab */}

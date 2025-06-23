@@ -658,6 +658,14 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Integrated service worker registration with automatic updates and install prompt handling
   - App now functions as installable mobile application with offline capabilities
   - Users can install Dovie Messenger directly to smartphone home screen for native app experience
+- June 23, 2025: Updated app icons and optimized page transitions for better performance:
+  - Replaced all PWA app icons with existing Dovie logo (purple bird with message) on white background
+  - Updated favicons and apple-touch-icon to match consistent Dovie branding across all sizes
+  - Removed all page transition effects except left-to-right slide animation when entering chat rooms
+  - Applied selective animation only to ChatArea component for essential navigation feedback
+  - Cleaned up transition effects from SignupPage, LandingPage, and FriendProfilePage components
+  - Enhanced chat room entry experience with smooth left-to-right slide animation
+  - Improved application performance by eliminating unnecessary motion effects throughout the interface
 
 ## User Preferences
 
