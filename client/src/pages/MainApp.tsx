@@ -22,6 +22,7 @@ import InstantAvatar from "@/components/InstantAvatar";
 import { BannerNotificationContainer } from "@/components/MobileBannerNotification";
 import LoadingScreen from "@/components/LoadingScreen";
 import { ConnectionStatusIndicator } from "@/components/ConnectionStatusIndicator";
+import { PermissionRequestModal } from "@/components/PermissionRequestModal";
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
 
@@ -51,6 +52,7 @@ export default function MainApp() {
     command: false,
     createGroup: false,
     profilePhoto: false,
+    permissions: false,
   });
   const [commandModalData, setCommandModalData] = useState<any>(null);
   const [messageDataForCommand, setMessageDataForCommand] = useState<any>(null);
@@ -78,12 +80,13 @@ export default function MainApp() {
       }
       
       // 모달이 열려있는 경우 모달 닫기
-      if (modals.addContact || modals.command || modals.createGroup || modals.profilePhoto) {
+      if (modals.addContact || modals.command || modals.createGroup || modals.profilePhoto || modals.permissions) {
         setModals({
           addContact: false,
           command: false,
           createGroup: false,
           profilePhoto: false,
+          permissions: false,
         });
         return;
       }
@@ -194,12 +197,27 @@ export default function MainApp() {
     refetchInterval: 5000,
   });
 
-  // Background image preloading will be implemented after fixing rendering issues
+  // Request permissions for PWA functionality after login
   useEffect(() => {
     if (!user) return;
     
     console.log('MainApp rendering with user:', user.id);
+    
+    // Check if permissions have been requested before
+    const microphoneGranted = localStorage.getItem('microphonePermissionGranted');
+    const notificationGranted = localStorage.getItem('notificationPermissionGranted');
+    
+    // Only show permission modal if permissions haven't been handled yet
+    if (!microphoneGranted || !notificationGranted) {
+      setTimeout(() => {
+        setModals(prev => ({ ...prev, permissions: true }));
+      }, 1000); // Delay to ensure UI is loaded
+    }
   }, [user]);
+
+  const handlePermissionsComplete = () => {
+    setModals(prev => ({ ...prev, permissions: false }));
+  };
 
   // 친구와의 채팅방 찾기 또는 생성
   const createOrFindChatRoom = (contactUserId: number, contactUser: any) => {
@@ -268,7 +286,7 @@ export default function MainApp() {
   };
 
   const closeModals = () => {
-    setModals({ addContact: false, command: false, createGroup: false, profilePhoto: false });
+    setModals({ addContact: false, command: false, createGroup: false, profilePhoto: false, permissions: false });
     setCommandModalData(null);
     setMessageDataForCommand(null);
   };
