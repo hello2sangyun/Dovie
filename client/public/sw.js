@@ -1,6 +1,6 @@
-const CACHE_NAME = 'dovie-messenger-v2';
-const STATIC_CACHE_NAME = 'dovie-static-v2';
-const DYNAMIC_CACHE_NAME = 'dovie-dynamic-v2';
+const CACHE_NAME = 'dovie-messenger-v3';
+const STATIC_CACHE_NAME = 'dovie-static-v3';
+const DYNAMIC_CACHE_NAME = 'dovie-dynamic-v3';
 
 // Static assets to cache
 const STATIC_ASSETS = [
@@ -71,12 +71,15 @@ self.addEventListener('fetch', (event) => {
 
   // Handle different types of requests
   if (request.method === 'GET') {
-    if (url.pathname.startsWith('/api/')) {
+    if (url.pathname.startsWith('/api/profile-images/') ||
+        url.pathname.startsWith('/api/encrypted-files/') ||
+        url.pathname.startsWith('/uploads/') || 
+        url.pathname.startsWith('/icons/')) {
+      // Media files - network first for fresh content
+      event.respondWith(handleMediaRequest(request));
+    } else if (url.pathname.startsWith('/api/')) {
       // API requests - network first with cache fallback
       event.respondWith(handleApiRequest(request));
-    } else if (url.pathname.startsWith('/uploads/') || url.pathname.startsWith('/icons/')) {
-      // Media files - cache first
-      event.respondWith(handleMediaRequest(request));
     } else {
       // Static assets - cache first with network fallback
       event.respondWith(handleStaticRequest(request));

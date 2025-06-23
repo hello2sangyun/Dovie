@@ -75,9 +75,14 @@ export const InstantAvatar = memo(function InstantAvatar({
     let optimizedSrc = src;
     if (src.startsWith('/uploads/')) {
       const filename = src.split('/').pop();
-      if (filename) {
+      if (filename && filename.startsWith('profile_')) {
         optimizedSrc = `/api/profile-images/${filename}`;
       }
+    }
+    
+    // 배포 환경에서 cache busting을 위한 타임스탬프 추가
+    if (optimizedSrc.includes('/api/profile-images/') && !optimizedSrc.includes('?')) {
+      optimizedSrc += `?t=${Date.now()}`;
     }
 
     // 즉시 캐시된 이미지 확인
@@ -88,9 +93,22 @@ export const InstantAvatar = memo(function InstantAvatar({
       return;
     }
 
-    // 캐시에 없으면 원본 URL 사용
-    setDisplaySrc(optimizedSrc);
-    setShowFallback(false);
+    // 배포 환경에서 직접 로딩 시도
+    const testImage = new Image();
+    testImage.onload = () => {
+      setDisplaySrc(optimizedSrc);
+      setShowFallback(false);
+    };
+    testImage.onerror = () => {
+      // 프로필 이미지 로딩 실패 시 원본 URL 시도
+      if (optimizedSrc !== src) {
+        setDisplaySrc(src);
+        setShowFallback(false);
+      } else {
+        setShowFallback(true);
+      }
+    };
+    testImage.src = optimizedSrc;
   }, [src, getInstantImage, forceUpdate]);
 
   // 프로필 이미지 업데이트 이벤트 리스너
@@ -118,8 +136,13 @@ export const InstantAvatar = memo(function InstantAvatar({
             src={displaySrc + (retryCount > 0 ? `?retry=${retryCount}` : '')} 
             alt={alt}
             className="object-cover"
-            onError={() => {
-              console.log(`Profile image failed to load: ${displaySrc}, retry: ${retryCount}`);
+            onError={(error) => {
+              console.error(`프로필 이미지 로딩 실패: ${displaySrc}`, {
+                retryCount,
+                originalSrc: src,
+                error: error,
+                timestamp: new Date().toISOString()
+              });
               if (retryCount < 2) {
                 // 재시도 (최대 2회)
                 setTimeout(() => {
@@ -127,6 +150,7 @@ export const InstantAvatar = memo(function InstantAvatar({
                 }, 1000 * (retryCount + 1)); // 점진적 지연
               } else {
                 // 최종 실패 시 fallback 표시
+                console.error(`프로필 이미지 최종 실패 - fallback 표시: ${src}`);
                 setShowFallback(true);
               }
             }}
