@@ -22,6 +22,15 @@ export function PushNotificationManager({ className }: PushNotificationManagerPr
     checkSubscriptionStatus();
   }, []);
 
+  // Listen for changes in notification permission or user login status
+  useEffect(() => {
+    const interval = setInterval(() => {
+      checkSubscriptionStatus();
+    }, 2000); // Check every 2 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
   const checkPushSupport = () => {
     if ('serviceWorker' in navigator && 'PushManager' in window) {
       setIsSupported(true);
@@ -35,9 +44,26 @@ export function PushNotificationManager({ className }: PushNotificationManagerPr
     try {
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
-      setIsSubscribed(!!subscription);
+      
+      // Check if notification permission was granted and user is logged in
+      const notificationGranted = localStorage.getItem('notificationPermissionGranted');
+      const hasUserId = localStorage.getItem('userId');
+      
+      // If notifications are granted or auto-enabled, show as subscribed
+      if (notificationGranted === 'true' && hasUserId) {
+        setIsSubscribed(true);
+      } else {
+        setIsSubscribed(!!subscription);
+      }
     } catch (error) {
       console.error('Failed to check subscription status:', error);
+      
+      // Fallback: check localStorage for granted permission
+      const notificationGranted = localStorage.getItem('notificationPermissionGranted');
+      const hasUserId = localStorage.getItem('userId');
+      if (notificationGranted === 'true' && hasUserId) {
+        setIsSubscribed(true);
+      }
     }
   };
 

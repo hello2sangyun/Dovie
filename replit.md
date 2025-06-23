@@ -752,6 +752,12 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - **Removed "from Dovie" branding** from push notification titles for cleaner appearance
   - **Improved voice message UX** by showing actual spoken content in notifications for better context
   - **Maintained fallback handling** for cases where transcription is not available or empty
+- June 23, 2025: **Fixed push notification default state to show ON for first-time users**:
+  - **Enhanced PushNotificationManager component** to check localStorage for notification permission status
+  - **Modified checkSubscriptionStatus function** to show toggle as ON when notificationPermissionGranted is 'true'
+  - **Added real-time status monitoring** with 2-second interval checks for permission changes
+  - **Improved UI consistency** between auto-enabled push notifications and settings display
+  - **Fixed user experience** where first-time users see push notifications as ON by default in settings
 
 ## User Preferences
 
