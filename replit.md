@@ -764,6 +764,14 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - **Fixed "구독 안됨" status issue** by ensuring existing users with notification permissions get proper push subscriptions
   - **Added automatic subscription creation** when notification permission is granted but subscription is missing
   - **Improved system reliability** by guaranteeing push subscription exists for all users with granted permissions
+- June 23, 2025: **Completed comprehensive iPhone PWA push notification and voice transcription optimization**:
+  - **Enhanced auto-login push notification system** with iPhone PWA detection and multi-retry mechanism for reliable subscription registration
+  - **Fixed iPhone PWA voice transcription failures** by adding comprehensive audio format detection and enhanced noise pattern filtering
+  - **Resolved "MBC 뉴스 이덕영입니다" hallucination errors** with specific iPhone PWA Whisper pattern detection including news anchor and formal greeting filters
+  - **Optimized PushNotificationManager** to prioritize localStorage permission state for iPhone PWA consistent toggle display
+  - **Enhanced MediaRecorder settings** with iPhone PWA specific audio format handling (MP4 fallback, enhanced MIME type detection)
+  - **Improved voice transcription reliability** with enhanced silence detection, minimum audio buffer validation, and Korean language optimization
+  - **iPhone PWA push notifications now consistently show "ON" state** when permissions are granted and work reliably with sound and app badge functionality
 - June 23, 2025: **Completed comprehensive iPhone PWA microphone permission and voice transcription optimization**:
   - **Created global microphone permission system** (useMicrophonePermission.tsx) to prevent repeated permission requests during chat room navigation
   - **Enhanced UnifiedSendButton** with persistent microphone permissions and iPhone-compatible MediaRecorder settings

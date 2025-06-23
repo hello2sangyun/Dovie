@@ -45,28 +45,64 @@ export function PushNotificationManager({ className }: PushNotificationManagerPr
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
       
+      // iPhone PWA detection
+      const isIPhonePWA = (window.navigator as any).standalone === true || 
+                         window.matchMedia('(display-mode: standalone)').matches;
+      
       console.log('🔍 Checking subscription status:', {
         hasSubscription: !!subscription,
         notificationPermission: Notification.permission,
+        isIPhonePWA: isIPhonePWA,
         subscriptionEndpoint: subscription?.endpoint?.substring(0, 50) + '...'
       });
+      
+      // Check localStorage for notification permission state
+      const notificationGranted = localStorage.getItem('notificationPermissionGranted');
+      
+      // For iPhone PWA, prioritize localStorage state over server check
+      if (notificationGranted === 'true' && Notification.permission === 'granted') {
+        console.log('📱 iPhone PWA: Using localStorage permission state (ON)');
+        setIsSubscribed(true);
+        setPermission('granted');
+        return;
+      }
       
       // Check server-side subscription status
       const hasUserId = localStorage.getItem('userId');
       if (hasUserId && subscription) {
         try {
-          const response = await fetch('/api/push-subscription/status');
+          const response = await fetch('/api/push-subscription/status', {
+            headers: {
+              'X-User-ID': hasUserId
+            }
+          });
           const data = await response.json();
           console.log('📊 Server subscription status:', data);
           setIsSubscribed(data.isSubscribed);
+          
+          // Update localStorage if server confirms subscription
+          if (data.isSubscribed) {
+            localStorage.setItem('notificationPermissionGranted', 'true');
+          }
         } catch (error) {
           console.error('Failed to check server subscription:', error);
-          // Fallback to client-side check
-          setIsSubscribed(!!subscription);
+          // Fallback to client-side check for iPhone PWA
+          if (isIPhonePWA && notificationGranted === 'true') {
+            setIsSubscribed(true);
+          } else {
+            setIsSubscribed(!!subscription);
+          }
         }
       } else {
-        setIsSubscribed(false);
+        // No user ID or subscription
+        if (notificationGranted === 'true' && Notification.permission === 'granted') {
+          setIsSubscribed(true);
+        } else {
+          setIsSubscribed(false);
+        }
       }
+      
+      setPermission(Notification.permission);
     } catch (error) {
       console.error('Failed to check subscription status:', error);
       setIsSubscribed(false);

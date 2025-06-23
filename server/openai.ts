@@ -400,16 +400,26 @@ export async function transcribeAudio(filePath: string): Promise<{
     const isEmptyOrNoise = (text: string): boolean => {
       if (!text || text.trim().length === 0) return true;
       
-      // Common noise patterns and meaningless transcriptions
+      // Enhanced iPhone PWA noise patterns - comprehensive hallucination detection
       const noisePatterns = [
         /^[\s.,!?]*$/,  // Only punctuation and whitespace
         /^(um|uh|ah|eh|hmm|mm|아|어|음|으|아우|어우|음\.\.\.|\.\.\.)+[\s.,!?]*$/i,  // Filler sounds
         /^[\uD83C-\uDBFF\uDC00-\uDFFF]+[\s.,!?]*$/,  // Only emojis
         /^[📢🎵🎤🔊🔇📻]+[\s.,!?]*$/,  // Audio/sound emojis
         /thank you|감사합니다|고마워|sorry|죄송|미안/i,  // Common polite expressions that might be background audio
-        /MBC 뉴스.*입니다|KBS 뉴스|SBS 뉴스|뉴스데스크|뉴스룸/i,  // News anchor patterns (Whisper hallucination)
+        // Enhanced news anchor patterns (iPhone PWA Whisper hallucination)
+        /MBC.*뉴스.*입니다|KBS.*뉴스|SBS.*뉴스|뉴스데스크|뉴스룸/i,
+        /이덕영입니다|이덕영.*뉴스|뉴스.*이덕영/i,  // Specific iPhone PWA hallucination pattern
+        /앵커.*입니다|기자.*입니다|아나운서.*입니다|캐스터.*입니다/i,  // News presenter patterns
+        /오늘.*뉴스|지금.*뉴스|다음.*뉴스|이어서.*뉴스/i,  // News timing patterns
         /안녕하세요.*입니다|여러분.*입니다|시청해.*주셔서/i,  // Generic formal greeting patterns
-        /^(네|예|아|어|음|그|저|뭐|잠깐|잠시|어서|이제|그럼|그래서)[\s.,!?]*$/i  // Single Korean filler words
+        /방송.*시작|프로그램.*시작|뉴스.*시작|방송.*드리겠습니다/i,  // Broadcasting start patterns
+        /^(네|예|아|어|음|그|저|뭐|잠깐|잠시|어서|이제|그럼|그래서)[\s.,!?]*$/i,  // Single Korean filler words
+        // iPhone PWA specific detection patterns
+        /^(테스트|test|시작|start|음성|voice|녹음|record|hello|hi)[\s.,!?]*$/i,  // Test/start words
+        /잠깐만요|죄송합니다|실례합니다|실례하겠습니다/i,  // Polite interruptions
+        /^.{1,4}[\s.,!?]*$/i,  // Very short meaningless utterances (1-4 characters)
+        /반갑습니다|만나서.*반갑습니다|처음.*뵙겠습니다/i  // Generic greetings
       ];
       
       // Check text length (very short transcriptions are likely noise)
