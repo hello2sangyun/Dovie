@@ -207,14 +207,21 @@ export default function MainApp() {
     const microphoneGranted = localStorage.getItem('microphonePermissionGranted');
     const notificationGranted = localStorage.getItem('notificationPermissionGranted');
     
-    // Only show permission modal if permissions haven't been handled yet
-    if (!microphoneGranted || !notificationGranted) {
-      setTimeout(() => {
-        setModals(prev => ({ ...prev, permissions: true }));
-      }, 1000); // Delay to ensure UI is loaded
+    // 첫 로그인 시 자동으로 푸시 알림 권한 요청 및 등록 (기본값 ON)
+    if (!notificationGranted) {
+      setTimeout(async () => {
+        await autoEnablePushNotifications();
+      }, 1500);
     } else if (notificationGranted === 'true') {
       // If notifications are already granted, ensure push subscription is registered
       registerPushNotification();
+    }
+    
+    // Only show permission modal if microphone permission hasn't been handled yet
+    if (!microphoneGranted && notificationGranted !== 'false') {
+      setTimeout(() => {
+        setModals(prev => ({ ...prev, permissions: true }));
+      }, 3000); // Delay after push notification setup
     }
   }, [user]);
 
@@ -290,6 +297,35 @@ export default function MainApp() {
       }
     } catch (error) {
       console.error('Push notification registration failed:', error);
+    }
+  };
+
+  // Function to automatically enable push notifications on first login
+  const autoEnablePushNotifications = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      console.log('Push notifications not supported');
+      return;
+    }
+
+    try {
+      // Request notification permission
+      const permission = await Notification.requestPermission();
+      
+      if (permission === 'granted') {
+        console.log('Auto-enabling push notifications on first login');
+        localStorage.setItem('notificationPermissionGranted', 'true');
+        
+        // Register push subscription
+        await registerPushNotification();
+        
+        console.log('Push notifications automatically enabled');
+      } else {
+        localStorage.setItem('notificationPermissionGranted', 'false');
+        console.log('Push notification permission denied');
+      }
+    } catch (error) {
+      console.error('Auto push notification setup failed:', error);
+      localStorage.setItem('notificationPermissionGranted', 'false');
     }
   };
 

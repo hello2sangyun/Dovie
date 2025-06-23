@@ -740,6 +740,12 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - **VERIFIED SUCCESSFUL**: iPhone PWA push notifications fully functional with Apple Push Service statusCode 201 response
   - **Complete iPhone PWA workflow confirmed**: Users grant permissions → automatic push subscription → receive notifications with sound and app badge on iPhone home screen
   - **Apple Push Service integration successful**: APNS-ID received, notifications delivered to iPhone PWA with sound and proper app badge functionality
+- June 23, 2025: **Set push notification default to ON for new users**:
+  - **Modified auto-login flow** to automatically request push notification permissions for first-time users
+  - **Enhanced MainApp.tsx** with autoEnablePushNotifications function for seamless onboarding
+  - **Push notifications now default to enabled** instead of requiring manual activation in settings
+  - **Improved user experience** by eliminating extra steps for notification setup
+  - **Streamlined permission flow** with automatic subscription registration on first login
 
 ## User Preferences
 
