@@ -1,6 +1,6 @@
-const CACHE_NAME = 'dovie-messenger-v4';
-const STATIC_CACHE_NAME = 'dovie-static-v4';
-const DYNAMIC_CACHE_NAME = 'dovie-dynamic-v4';
+const CACHE_NAME = 'dovie-messenger-v1';
+const STATIC_CACHE_NAME = 'dovie-static-v1';
+const DYNAMIC_CACHE_NAME = 'dovie-dynamic-v1';
 
 // Static assets to cache
 const STATIC_ASSETS = [
@@ -71,15 +71,12 @@ self.addEventListener('fetch', (event) => {
 
   // Handle different types of requests
   if (request.method === 'GET') {
-    if (url.pathname.startsWith('/api/profile-images/') ||
-        url.pathname.startsWith('/api/encrypted-files/') ||
-        url.pathname.startsWith('/uploads/') || 
-        url.pathname.startsWith('/icons/')) {
-      // Media files - network first for fresh content
-      event.respondWith(handleMediaRequest(request));
-    } else if (url.pathname.startsWith('/api/')) {
+    if (url.pathname.startsWith('/api/')) {
       // API requests - network first with cache fallback
       event.respondWith(handleApiRequest(request));
+    } else if (url.pathname.startsWith('/uploads/') || url.pathname.startsWith('/icons/')) {
+      // Media files - cache first
+      event.respondWith(handleMediaRequest(request));
     } else {
       // Static assets - cache first with network fallback
       event.respondWith(handleStaticRequest(request));
@@ -140,40 +137,6 @@ async function handleMediaRequest(request) {
     return networkResponse;
   } catch (error) {
     console.log('[SW] Failed to load media:', request.url);
-    throw error;
-  }
-}
-
-// Handle media requests - network first for fresh content
-async function handleMediaRequest(request) {
-  try {
-    // Always try network first for media files to get latest content
-    const networkResponse = await fetch(request.clone());
-    
-    if (networkResponse.ok) {
-      // Cache successful responses
-      const cache = await caches.open(DYNAMIC_CACHE_NAME);
-      cache.put(request, networkResponse.clone());
-      return networkResponse;
-    }
-    
-    // If network fails, try cache
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-    
-    throw new Error('Media not found in cache or network');
-  } catch (error) {
-    console.log('[SW] Media request failed, trying cache:', request.url);
-    
-    // Network failed, try cache as fallback
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-    
-    // Return a placeholder or throw error
     throw error;
   }
 }
@@ -378,5 +341,8 @@ self.addEventListener('focus', () => {
 self.addEventListener('sync', (event) => {
   if (event.tag === 'background-sync') {
     event.waitUntil(syncOfflineMessages());
+  }
+});ata.url || '/')
+    );
   }
 });

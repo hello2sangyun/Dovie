@@ -258,86 +258,17 @@
   }
 
   /* Chat room entry animation - slide from left to right */
-  @-webkit-keyframes slideInFromLeft {
-    0% { 
-      -webkit-transform: translateX(-100%); 
-      transform: translateX(-100%); 
-      opacity: 0.8;
-    }
-    100% { 
-      -webkit-transform: translateX(0); 
-      transform: translateX(0); 
-      opacity: 1;
-    }
-  }
-
-  @-moz-keyframes slideInFromLeft {
-    0% { 
-      -moz-transform: translateX(-100%); 
-      transform: translateX(-100%); 
-      opacity: 0.8;
-    }
-    100% { 
-      -moz-transform: translateX(0); 
-      transform: translateX(0); 
-      opacity: 1;
-    }
-  }
-
-  @-o-keyframes slideInFromLeft {
-    0% { 
-      -o-transform: translateX(-100%); 
-      transform: translateX(-100%); 
-      opacity: 0.8;
-    }
-    100% { 
-      -o-transform: translateX(0); 
-      transform: translateX(0); 
-      opacity: 1;
-    }
-  }
-
   @keyframes slideInFromLeft {
-    0% { 
-      -webkit-transform: translateX(-100%); 
-      -moz-transform: translateX(-100%); 
-      -o-transform: translateX(-100%); 
+    from { 
       transform: translateX(-100%); 
-      opacity: 0.8;
     }
-    100% { 
-      -webkit-transform: translateX(0); 
-      -moz-transform: translateX(0); 
-      -o-transform: translateX(0); 
+    to { 
       transform: translateX(0); 
-      opacity: 1;
     }
   }
 
   .animate-slide-in-left {
-    -webkit-animation: slideInFromLeft 0.3s ease-out forwards;
-    -moz-animation: slideInFromLeft 0.3s ease-out forwards;
-    -o-animation: slideInFromLeft 0.3s ease-out forwards;
-    animation: slideInFromLeft 0.3s ease-out forwards;
-    -webkit-animation-fill-mode: both;
-    -moz-animation-fill-mode: both;
-    -o-animation-fill-mode: both;
-    animation-fill-mode: both;
-    will-change: transform, opacity;
-    -webkit-backface-visibility: hidden;
-    -moz-backface-visibility: hidden;
-    backface-visibility: hidden;
-    -webkit-transform: translateZ(0);
-    -moz-transform: translateZ(0);
-    -ms-transform: translateZ(0);
-    -o-transform: translateZ(0);
-    transform: translateZ(0);
-    -webkit-perspective: 1000px;
-    -moz-perspective: 1000px;
-    perspective: 1000px;
-    -webkit-transform-style: preserve-3d;
-    -moz-transform-style: preserve-3d;
-    transform-style: preserve-3d;
+    animation: slideInFromLeft 0.3s ease-out;
   }
 
   @keyframes pulsePurple {

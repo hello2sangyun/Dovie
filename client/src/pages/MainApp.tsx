@@ -4,7 +4,7 @@ import { useWebSocket } from "@/hooks/useWebSocket";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-
+import { useImagePreloader, preloadGlobalImage } from "@/hooks/useImagePreloader";
 
 import { useLocation } from "wouter";
 
@@ -20,10 +20,8 @@ import ProfilePhotoModal from "@/components/ProfilePhotoModal";
 import ZeroDelayAvatar from "@/components/ZeroDelayAvatar";
 import InstantAvatar from "@/components/InstantAvatar";
 import { BannerNotificationContainer } from "@/components/MobileBannerNotification";
-
+import LoadingScreen from "@/components/LoadingScreen";
 import { ConnectionStatusIndicator } from "@/components/ConnectionStatusIndicator";
-import { MicrophonePermissionModal } from "@/components/MicrophonePermissionModal";
-import { useMicrophonePermission } from "@/hooks/useMicrophonePermission";
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
 
@@ -37,10 +35,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 export default function MainApp() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isPreloadingImages } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
+  const { preloadImage, isLoading: imagePreloading } = useImagePreloader();
   const [location, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("chats");
   const [activeMobileTab, setActiveMobileTab] = useState("chats");
@@ -58,10 +56,8 @@ export default function MainApp() {
   const [messageDataForCommand, setMessageDataForCommand] = useState<any>(null);
   const [contactFilter, setContactFilter] = useState<number | null>(null);
   const [friendFilter, setFriendFilter] = useState<number | null>(null);
-  const [showMicrophoneModal, setShowMicrophoneModal] = useState(false);
 
   const { sendMessage, connectionState, pendingMessageCount } = useWebSocket(user?.id);
-  const { shouldRequestPermission, requestPermission } = useMicrophonePermission();
 
   // 브라우저 뒤로가기 버튼 처리 - 앱 내 네비게이션 관리
   useEffect(() => {
@@ -205,18 +201,6 @@ export default function MainApp() {
     console.log('MainApp rendering with user:', user.id);
   }, [user]);
 
-  // 마이크 권한 요청 (최초 로그인 시에만)
-  useEffect(() => {
-    if (user && shouldRequestPermission()) {
-      // 프로필 이미지 로딩이 완료된 후 1초 후에 마이크 권한 요청
-      const timer = setTimeout(() => {
-        setShowMicrophoneModal(true);
-      }, 1000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [user, shouldRequestPermission]);
-
   // 친구와의 채팅방 찾기 또는 생성
   const createOrFindChatRoom = (contactUserId: number, contactUser: any) => {
     // 해당 친구와의 기존 채팅방이 있는지 확인
@@ -294,17 +278,6 @@ export default function MainApp() {
     setActiveTab("chats");
   };
 
-  const handleMicrophonePermissionResult = (granted: boolean) => {
-    setShowMicrophoneModal(false);
-    if (granted) {
-      console.log("마이크 권한이 허용되었습니다.");
-    } else {
-      console.log("마이크 권한이 거부되었습니다. 음성 메시지 기능을 사용할 수 없습니다.");
-    }
-    // localStorage에 권한 요청 기록 저장
-    localStorage.setItem('microphonePermissionRequested', 'true');
-  };
-
   // Calculate unread counts for tabs
   const calculateUnreadCounts = () => {
     const unreadCounts = (unreadCountsData as any)?.unreadCounts || [];
@@ -320,8 +293,22 @@ export default function MainApp() {
 
   const { totalChatUnread } = calculateUnreadCounts();
 
-  // 사용자가 없으면 로그인 페이지로 리다이렉트 (로딩 화면 제거)
+  // 사용자가 있으면 바로 메인 앱을 렌더링
   if (!user) {
+    // 저장된 사용자 ID가 있으면 로딩 표시
+    const storedUserId = localStorage.getItem("userId");
+    if (storedUserId) {
+      return (
+        <div className="fixed inset-0 bg-white dark:bg-gray-900 flex items-center justify-center">
+          <div className="text-center">
+            <VaultLogo size="lg" className="mx-auto mb-4 animate-pulse" />
+            <p className="text-gray-600 dark:text-gray-400">사용자 정보 불러오는 중...</p>
+          </div>
+        </div>
+      );
+    }
+    
+    // 저장된 사용자 ID가 없으면 로그인 페이지로 리다이렉트
     window.location.href = "/login";
     return null;
   }
@@ -1054,13 +1041,12 @@ export default function MainApp() {
       {/* Mobile Banner Notifications - replaces bottom popup notifications */}
       <BannerNotificationContainer />
 
-      {/* Microphone Permission Modal */}
-      <MicrophonePermissionModal 
-        isOpen={showMicrophoneModal}
-        onPermissionResult={handleMicrophonePermissionResult}
-      />
-
-
+      {/* Loading screen overlay for profile image preloading */}
+      {(isLoading || isPreloadingImages) && (
+        <div className="fixed inset-0 z-50 bg-white">
+          <LoadingScreen message="프로필 이미지를 다운로드하는 중..." />
+        </div>
+      )}
 
     </div>
   );

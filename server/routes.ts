@@ -24,24 +24,8 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Multer configuration for different upload types
-const diskStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const timestamp = Date.now();
-    const randomString = Math.random().toString(36).substring(2, 15);
-    const ext = path.extname(file.originalname);
-    cb(null, `temp_${timestamp}_${randomString}${ext}`);
-  }
-});
-
-const memoryStorage = multer.memoryStorage();
-
-// Disk storage for general files
 const upload = multer({
-  storage: diskStorage,
+  dest: uploadDir,
   limits: { fileSize: 500 * 1024 * 1024 }, // 500MB limit for videos
   fileFilter: (req, file, cb) => {
     // UTF-8 파일명 인코딩 지원
@@ -52,29 +36,6 @@ const upload = multer({
         file.originalname = buffer.toString('utf8');
       } catch (error) {
         // 인코딩 변환 실패 시 원본 유지
-        console.log('Filename encoding conversion failed, using original:', file.originalname);
-      }
-    }
-    cb(null, true);
-  }
-});
-
-// Memory storage for profile pictures (better for deployment)
-const uploadMemory = multer({
-  storage: memoryStorage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit for profile pictures
-  fileFilter: (req, file, cb) => {
-    // Only allow images for profile pictures
-    if (!file.mimetype.startsWith('image/')) {
-      return cb(null, false);
-    }
-    
-    // UTF-8 파일명 인코딩 지원
-    if (file.originalname) {
-      try {
-        const buffer = Buffer.from(file.originalname, 'latin1');
-        file.originalname = buffer.toString('utf8');
-      } catch (error) {
         console.log('Filename encoding conversion failed, using original:', file.originalname);
       }
     }
@@ -1556,7 +1517,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Profile picture upload endpoint for new component
-  app.post("/api/upload/profile-picture", uploadMemory.single("file"), async (req, res) => {
+  app.post("/api/upload/profile-picture", upload.single("file"), async (req, res) => {
     try {
       const userId = req.headers["x-user-id"];
       if (!userId) {
@@ -1577,14 +1538,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "File size must be less than 5MB" });
       }
 
-      console.log(`Profile picture upload for user ${userId}:`, {
-        originalname: req.file.originalname,
-        mimetype: req.file.mimetype,
-        size: req.file.size,
-        hasBuffer: !!req.file.buffer,
-        hasPath: !!req.file.path
-      });
-
       // 프로필 이미지는 암호화하지 않고 원본 저장 (빠른 로딩을 위해)
       const timestamp = Date.now();
       const randomString = Math.random().toString(36).substring(2, 15);
@@ -1592,16 +1545,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const profileFileName = `profile_${timestamp}_${randomString}${fileExtension}`;
       const finalPath = path.join(uploadDir, profileFileName);
       
-      console.log(`Saving profile image to: ${finalPath}`);
-
-      // 배포 환경에서는 memory storage 사용 (buffer만 존재)
-      if (!req.file.buffer) {
-        throw new Error("File buffer not available - memory storage expected");
-      }
-
-      // Memory buffer에서 파일 저장
-      fs.writeFileSync(finalPath, req.file.buffer);
-      console.log(`Profile image saved using buffer: ${req.file.buffer.length} bytes`);
+      // 파일을 최종 위치로 이동 (암호화 없음)
+      fs.renameSync(req.file.path, finalPath);
 
       // 기존 프로필 사진 파일 삭제 (있는 경우)
       const existingUser = await storage.getUser(Number(userId));
@@ -1612,7 +1557,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const existingFilePath = path.join(uploadDir, existingFileName);
             if (fs.existsSync(existingFilePath)) {
               fs.unlinkSync(existingFilePath);
-              console.log("Deleted existing profile image:", existingFileName);
             }
           }
         } catch (deleteError) {
@@ -1624,7 +1568,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // 사용자 프로필 업데이트
       await storage.updateUserProfilePicture(Number(userId), fileUrl);
-      console.log(`Profile picture updated in database: ${fileUrl}`);
 
       res.json({
         success: true,
@@ -1632,11 +1575,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Profile picture upload error:", error);
-      res.status(500).json({ 
-        message: "Profile picture upload failed", 
-        error: error.message,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-      });
+      res.status(500).json({ message: "Profile picture upload failed" });
     }
   });
 
@@ -1671,18 +1610,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         default: contentType = 'image/jpeg'; break;
       }
       
-      // 배포 환경을 위한 향상된 헤더 설정
+      // 캐시 헤더 설정 (1일)
       res.set({
         'Content-Type': contentType,
         'Content-Length': stats.size.toString(),
-        'Cache-Control': 'public, max-age=3600, must-revalidate', // 1시간 캐시, 재검증 필수
+        'Cache-Control': 'public, max-age=86400',
         'ETag': `"${stats.mtime.getTime()}-${stats.size}"`,
-        'Last-Modified': stats.mtime.toUTCString(),
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, x-user-id',
-        'Cross-Origin-Resource-Policy': 'cross-origin',
-        'Vary': 'Accept-Encoding'
+        'Last-Modified': stats.mtime.toUTCString()
       });
       
       // ETag 기반 조건부 요청 처리
