@@ -235,33 +235,26 @@ self.addEventListener('push', (event) => {
     }
   }
   
+  // iPhone PWA optimized notification options
   const options = {
     body: notificationData.body || '새 메시지가 도착했습니다.',
-    icon: notificationData.icon || '/icons/icon-192x192.png',
-    badge: notificationData.badge || '/icons/icon-72x72.png',
-    vibrate: notificationData.vibrate || [200, 100, 200],
-    sound: notificationData.sound || '/sounds/notification.mp3',
-    requireInteraction: notificationData.requireInteraction || false,
-    silent: notificationData.silent || false,
-    tag: notificationData.tag || 'message',
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/icon-72x72.png',
+    tag: notificationData.tag || 'dovie-message',
     data: {
       url: '/',
       chatRoomId: notificationData.data?.chatRoomId,
+      messageId: notificationData.data?.messageId,
       timestamp: Date.now(),
       ...notificationData.data
     },
-    actions: notificationData.actions || [
-      {
-        action: 'open',
-        title: '열기',
-        icon: '/icons/icon-72x72.png'
-      },
-      {
-        action: 'reply',
-        title: '답장',
-        icon: '/icons/icon-72x72.png'
-      }
-    ]
+    // iPhone PWA specific optimizations
+    requireInteraction: false, // Better for iPhone PWA
+    silent: false,
+    vibrate: [200, 100, 200],
+    timestamp: Date.now(),
+    // Remove actions for better iPhone PWA compatibility
+    actions: []
   };
   
   event.waitUntil(

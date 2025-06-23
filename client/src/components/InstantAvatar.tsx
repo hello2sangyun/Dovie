@@ -70,13 +70,19 @@ export const InstantAvatar = memo(function InstantAvatar({
       return;
     }
 
-    // 기존 /uploads/ URL을 최적화된 /api/profile-images/ URL로 변환
+    // URL 형태에 따라 최적화된 경로로 변환
     let optimizedSrc = src;
     if (src.startsWith('/uploads/')) {
       const filename = src.split('/').pop();
       if (filename) {
         optimizedSrc = `/api/profile-images/${filename}`;
       }
+    } else if (src.startsWith('profile_')) {
+      // 파일명만 있는 경우 API 경로 추가
+      optimizedSrc = `/api/profile-images/${src}`;
+    } else if (!src.startsWith('http') && !src.startsWith('/api/')) {
+      // 상대 경로인 경우 API 경로로 변환
+      optimizedSrc = `/api/profile-images/${src}`;
     }
 
     // 즉시 캐시된 이미지 확인

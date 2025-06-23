@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { useQuery } from "@tanstack/react-query";
 import type { User } from "@shared/schema";
 import { useInstantImageCache } from "./useInstantImageCache";
+import { usePermissions } from "./usePermissions";
 
 interface AuthContextType {
   user: User | null;
