@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { motion } from "framer-motion";
+
 import ScrollIndicator from "@/components/ScrollIndicator";
 
 interface BusinessPost {
@@ -233,12 +233,7 @@ export default function FriendProfilePage() {
 
           {/* Business Posts Tab */}
           <TabsContent value="posts" className="space-y-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
-              className="space-y-4"
-            >
+            <div className="space-y-4">
               {postsLoading ? (
                 <div className="space-y-4">
                   {[...Array(3)].map((_, i) => (
@@ -271,12 +266,7 @@ export default function FriendProfilePage() {
                 </Card>
               ) : (
                 businessPosts.map((post: BusinessPost, index: number) => (
-                  <motion.div
-                    key={post.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: index * 0.1 }}
-                  >
+                  <div key={post.id}>
                     <Card className="hover:shadow-md transition-shadow">
                       <CardContent className="p-4">
                         <div className="flex items-start space-x-3">
@@ -357,11 +347,7 @@ export default function FriendProfilePage() {
 
           {/* Business Card Tab */}
           <TabsContent value="card" className="space-y-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
-            >
+            <div>
               {cardLoading ? (
                 <Card>
                   <CardContent className="p-6">
@@ -433,16 +419,12 @@ export default function FriendProfilePage() {
                   </CardContent>
                 </Card>
               )}
-            </motion.div>
+            </div>
           </TabsContent>
 
           {/* Business Profile Tab */}
           <TabsContent value="profile" className="space-y-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
-            >
+            <div>
               {profileLoading ? (
                 <Card>
                   <CardContent className="p-6">
