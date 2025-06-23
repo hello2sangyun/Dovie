@@ -705,6 +705,13 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Added mobile device detection and automatic focus management to prevent keyboard persistence
   - Enhanced both text message and voice message sending functions with keyboard auto-hide
   - Mobile users now experience smooth keyboard behavior that automatically dismisses after message transmission
+- June 23, 2025: Enhanced profile image upload for deployment environment compatibility:
+  - Fixed profile image upload failures in deployment by implementing dual multer storage systems
+  - Created separate disk storage for general files and memory storage for profile pictures
+  - Enhanced /api/upload/profile-picture endpoint with memory-based file handling for better deployment compatibility
+  - Added comprehensive error handling and logging for profile upload debugging
+  - Improved file validation with proper image type checking and size limits (10MB for profile pictures)
+  - Memory storage approach eliminates temporary file path issues common in deployment environments
 
 ## User Preferences
 
