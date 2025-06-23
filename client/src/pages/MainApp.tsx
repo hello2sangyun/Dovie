@@ -22,6 +22,8 @@ import InstantAvatar from "@/components/InstantAvatar";
 import { BannerNotificationContainer } from "@/components/MobileBannerNotification";
 import LoadingScreen from "@/components/LoadingScreen";
 import { ConnectionStatusIndicator } from "@/components/ConnectionStatusIndicator";
+import { MicrophonePermissionModal } from "@/components/MicrophonePermissionModal";
+import { useMicrophonePermission } from "@/hooks/useMicrophonePermission";
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
 
@@ -56,8 +58,10 @@ export default function MainApp() {
   const [messageDataForCommand, setMessageDataForCommand] = useState<any>(null);
   const [contactFilter, setContactFilter] = useState<number | null>(null);
   const [friendFilter, setFriendFilter] = useState<number | null>(null);
+  const [showMicrophoneModal, setShowMicrophoneModal] = useState(false);
 
   const { sendMessage, connectionState, pendingMessageCount } = useWebSocket(user?.id);
+  const { shouldRequestPermission, requestPermission } = useMicrophonePermission();
 
   // 브라우저 뒤로가기 버튼 처리 - 앱 내 네비게이션 관리
   useEffect(() => {
@@ -201,6 +205,18 @@ export default function MainApp() {
     console.log('MainApp rendering with user:', user.id);
   }, [user]);
 
+  // 마이크 권한 요청 (최초 로그인 시에만)
+  useEffect(() => {
+    if (user && shouldRequestPermission() && !isPreloadingImages) {
+      // 프로필 이미지 로딩이 완료된 후 1초 후에 마이크 권한 요청
+      const timer = setTimeout(() => {
+        setShowMicrophoneModal(true);
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [user, shouldRequestPermission, isPreloadingImages]);
+
   // 친구와의 채팅방 찾기 또는 생성
   const createOrFindChatRoom = (contactUserId: number, contactUser: any) => {
     // 해당 친구와의 기존 채팅방이 있는지 확인
@@ -276,6 +292,17 @@ export default function MainApp() {
   const handleGroupChatSuccess = (chatRoomId: number) => {
     setSelectedChatRoom(chatRoomId);
     setActiveTab("chats");
+  };
+
+  const handleMicrophonePermissionResult = (granted: boolean) => {
+    setShowMicrophoneModal(false);
+    if (granted) {
+      console.log("마이크 권한이 허용되었습니다.");
+    } else {
+      console.log("마이크 권한이 거부되었습니다. 음성 메시지 기능을 사용할 수 없습니다.");
+    }
+    // localStorage에 권한 요청 기록 저장
+    localStorage.setItem('microphonePermissionRequested', 'true');
   };
 
   // Calculate unread counts for tabs
