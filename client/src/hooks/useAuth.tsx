@@ -23,6 +23,112 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profileImagesLoaded, setProfileImagesLoaded] = useState(false);
   const [isPreloadingImages, setIsPreloadingImages] = useState(false);
 
+  // 아이폰/안드로이드 PWA 푸시 알림 자동 활성화 함수
+  const autoEnablePushNotifications = async (userId: number) => {
+    try {
+      console.log('🔔 아이폰/안드로이드 PWA 푸시 알림 자동 활성화 시작');
+      
+      // Service Worker 등록 확인
+      if (!('serviceWorker' in navigator)) {
+        console.warn('Service Worker not supported');
+        return;
+      }
+
+      const registration = await navigator.serviceWorker.ready;
+      if (!registration) {
+        console.warn('Service Worker registration not ready');
+        return;
+      }
+
+      // 현재 권한 상태 확인
+      const currentPermission = Notification.permission;
+      console.log('현재 알림 권한 상태:', currentPermission);
+
+      let permission = currentPermission;
+      
+      // 권한이 없거나 거부된 경우 요청
+      if (permission === 'default') {
+        console.log('🔔 아이폰/안드로이드 PWA 알림 권한 요청 중...');
+        permission = await Notification.requestPermission();
+      }
+
+      if (permission === 'granted') {
+        console.log('✅ 알림 권한 승인됨 - 푸시 구독 등록 시작');
+        
+        // VAPID 공개 키 가져오기
+        const vapidResponse = await fetch('/api/vapid-public-key');
+        const { publicKey } = await vapidResponse.json();
+        
+        // 기존 구독 확인
+        let subscription = await registration.pushManager.getSubscription();
+        
+        if (!subscription) {
+          console.log('새 푸시 구독 생성 중...');
+          // 새 구독 생성
+          subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: publicKey
+          });
+        }
+
+        if (subscription) {
+          console.log('📱 푸시 구독 생성 완료:', subscription.endpoint);
+          
+          // 서버에 구독 정보 저장
+          const subscribeResponse = await fetch('/api/push-subscription', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-user-id': userId.toString()
+            },
+            body: JSON.stringify({
+              subscription: {
+                endpoint: subscription.endpoint,
+                keys: {
+                  p256dh: subscription.getKey ? btoa(String.fromCharCode(...new Uint8Array(subscription.getKey('p256dh')!))) : '',
+                  auth: subscription.getKey ? btoa(String.fromCharCode(...new Uint8Array(subscription.getKey('auth')!))) : ''
+                }
+              }
+            })
+          });
+
+          if (subscribeResponse.ok) {
+            console.log('✅ 아이폰/안드로이드 PWA 푸시 알림 자동 활성화 완료');
+            // localStorage에 상태 저장
+            localStorage.setItem('notificationPermissionGranted', 'true');
+            localStorage.setItem('pushNotificationsEnabled', 'true');
+            
+            // 테스트 알림 전송 (3초 후)
+            setTimeout(async () => {
+              try {
+                const testResponse = await fetch('/api/test-push', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'x-user-id': userId.toString()
+                  }
+                });
+                
+                if (testResponse.ok) {
+                  console.log('🎉 테스트 푸시 알림 전송 완료');
+                }
+              } catch (error) {
+                console.log('테스트 알림 전송 실패:', error);
+              }
+            }, 3000);
+            
+          } else {
+            console.error('푸시 구독 저장 실패:', subscribeResponse.status);
+          }
+        }
+      } else {
+        console.log('알림 권한이 거부되었습니다:', permission);
+        localStorage.setItem('notificationPermissionGranted', 'false');
+      }
+    } catch (error) {
+      console.error('푸시 알림 자동 활성화 실패:', error);
+    }
+  };
 
   // Try to get user from localStorage on app start
   const storedUserId = localStorage.getItem("userId");
