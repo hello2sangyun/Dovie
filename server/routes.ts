@@ -5180,5 +5180,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Initialize notification scheduler
+  initializeNotificationScheduler();
+  
   return httpServer;
 }
