@@ -719,6 +719,12 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Strengthened animation properties with backface-visibility and transform-style settings
   - Page transitions now work consistently between test and deployment environments
   - ChatArea slide-in-left animation performs reliably across all browser engines and deployment platforms
+- June 23, 2025: Fixed microphone permission request repetition for improved user experience:
+  - Enhanced useMicrophonePermission hook to prevent repeated permission prompts on page refresh
+  - Added localStorage tracking for both permission request status and permission state (granted/denied)
+  - Modified permission status checking to use saved state instead of triggering new getUserMedia requests
+  - Implemented intelligent permission detection that only shows popup on first visit
+  - Users now experience one-time permission request that persists across browser sessions
 
 ## User Preferences
 

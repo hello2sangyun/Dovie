@@ -24,29 +24,35 @@ export function useMicrophonePermission() {
         return;
       }
 
-      // 권한 상태 확인 (Chrome/Edge용)
-      if ('permissions' in navigator) {
-        const permission = await navigator.permissions.query({ name: 'microphone' as PermissionName });
-        if (permission.state === 'granted') {
-          setHasPermission(true);
-        } else if (permission.state === 'denied') {
-          setHasPermission(false);
-        } else {
-          setHasPermission(null);
-        }
+      // 이미 권한 요청을 한 적이 있다면 localStorage에서 상태 확인
+      const savedPermissionState = localStorage.getItem('microphonePermissionState');
+      if (hasRequestedPermission && savedPermissionState) {
+        setHasPermission(savedPermissionState === 'granted');
         return;
       }
 
-      // 다른 브라우저의 경우 실제 스트림 요청으로 확인
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          audio: true,
-          video: false 
-        });
-        stream.getTracks().forEach((track: MediaStreamTrack) => track.stop());
-        setHasPermission(true);
-      } catch (error) {
-        setHasPermission(false);
+      // 권한 상태 확인 (Chrome/Edge용) - 팝업 없이 상태만 확인
+      if ('permissions' in navigator) {
+        try {
+          const permission = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+          if (permission.state === 'granted') {
+            setHasPermission(true);
+            localStorage.setItem('microphonePermissionState', 'granted');
+          } else if (permission.state === 'denied') {
+            setHasPermission(false);
+            localStorage.setItem('microphonePermissionState', 'denied');
+          } else {
+            setHasPermission(null);
+          }
+          return;
+        } catch (error) {
+          console.log('권한 API 사용 불가:', error);
+        }
+      }
+
+      // 다른 브라우저의 경우 이미 요청한 적이 없을 때만 null 상태로 설정
+      if (!hasRequestedPermission) {
+        setHasPermission(null);
       }
     } catch (error) {
       console.log('권한 상태 확인 중 오류:', error);
@@ -74,6 +80,7 @@ export function useMicrophonePermission() {
       setHasPermission(true);
       setHasRequestedPermission(true);
       localStorage.setItem('microphonePermissionRequested', 'true');
+      localStorage.setItem('microphonePermissionState', 'granted');
       
       console.log('마이크 권한이 허용되었습니다.');
       return true;
@@ -82,6 +89,7 @@ export function useMicrophonePermission() {
       setHasPermission(false);
       setHasRequestedPermission(true);
       localStorage.setItem('microphonePermissionRequested', 'true');
+      localStorage.setItem('microphonePermissionState', 'denied');
       return false;
     } finally {
       setIsRequestingPermission(false);
