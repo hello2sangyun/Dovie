@@ -146,18 +146,9 @@ export default function FriendProfilePage() {
     <div className="bg-gradient-to-br from-gray-50 to-white">
       <ScrollIndicator />
       
-      <motion.div 
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: -20 }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
-        className="w-full pb-8"
-      >
+      <div className="w-full pb-8">
       {/* Header */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.1 }}
+      <div
         className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-3 py-2.5"
       >
         <div className="flex items-center justify-between">
@@ -176,7 +167,7 @@ export default function FriendProfilePage() {
             <MoreHorizontal className="w-4 h-4" />
           </Button>
         </div>
-      </motion.div>
+      </div>
 
       {/* Profile Header */}
       <motion.div 
@@ -576,11 +567,11 @@ export default function FriendProfilePage() {
             </motion.div>
           </TabsContent>
         </Tabs>
-      </motion.div>
+      </div>
       
       {/* Bottom spacing for mobile scrolling */}
       <div className="h-6"></div>
-      </motion.div>
+      </div>
     </div>
   );
 }
