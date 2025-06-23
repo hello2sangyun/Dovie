@@ -95,7 +95,7 @@ export default function SignupPage() {
 
   return (
     <div className="fixed inset-0 bg-gray-50 flex items-center justify-center">
-      <div className="w-full max-w-md p-8 animate-slide-up">
+      <div className="w-full max-w-md p-8">
         <div className="text-center mb-8">
           <VaultLogo size="lg" className="mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Dovie 계정 만들기</h2>

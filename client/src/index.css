@@ -257,20 +257,18 @@
     animation: pulsePurple 2s ease-in-out infinite;
   }
 
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes slideUp {
+  /* Chat room entry animation - slide from left to right */
+  @keyframes slideInFromLeft {
     from { 
-      transform: translateY(20px); 
-      opacity: 0; 
+      transform: translateX(-100%); 
     }
     to { 
-      transform: translateY(0); 
-      opacity: 1; 
+      transform: translateX(0); 
     }
+  }
+
+  .animate-slide-in-left {
+    animation: slideInFromLeft 0.3s ease-out;
   }
 
   @keyframes pulsePurple {

@@ -24,7 +24,7 @@ export default function LandingPage() {
 
   return (
     <div className="fixed inset-0 bg-white flex items-center justify-center z-50">
-      <div className="text-center animate-fade-in">
+      <div className="text-center">
         <div className="relative mb-8">
           <VaultLogo size="xl" className="mx-auto" animated />
           {/* 새 날개 애니메이션 */}
