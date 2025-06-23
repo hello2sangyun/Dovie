@@ -1584,8 +1584,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { filename } = req.params;
       
-      // 보안 검증: profile_ 접두사가 있는 파일만 허용
-      if (!filename.startsWith('profile_')) {
+      // 보안 검증: profile_ 접두사가 있거나 암호화된 해시 파일명 허용
+      const isProfileFile = filename.startsWith('profile_');
+      const isEncryptedFile = /^[a-f0-9]+\.(jpg|jpeg|png|gif|webp)$/i.test(filename);
+      
+      if (!isProfileFile && !isEncryptedFile) {
+        console.log('Access denied for file:', filename, 'isProfile:', isProfileFile, 'isEncrypted:', isEncryptedFile);
         return res.status(403).json({ message: "Access denied" });
       }
       
@@ -1627,9 +1631,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(304).end();
       }
       
-      // 파일 스트림으로 전송
-      const fileStream = fs.createReadStream(filePath);
-      fileStream.pipe(res);
+      // 암호화된 파일인지 확인하고 복호화
+      try {
+        // 암호화된 해시 파일명인 경우 복호화 필요
+        if (/^[a-f0-9]{64}\.(jpg|jpeg|png|gif|webp)$/i.test(filename)) {
+          console.log('Decrypting profile image:', filename);
+          const encryptedData = fs.readFileSync(filePath, 'utf8');
+          const decryptedBuffer = decryptFileData(encryptedData);
+          
+          // 복호화된 데이터를 직접 전송
+          res.writeHead(200, {
+            'Content-Type': contentType,
+            'Content-Length': decryptedBuffer.length.toString(),
+            'Cache-Control': 'public, max-age=86400',
+            'ETag': etag,
+            'Last-Modified': stats.mtime.toUTCString()
+          });
+          res.end(decryptedBuffer);
+          console.log('Successfully decrypted file:', filename);
+        } else {
+          // 일반 파일 스트림으로 전송
+          const fileStream = fs.createReadStream(filePath);
+          fileStream.pipe(res);
+        }
+      } catch (decryptError) {
+        console.error('Decryption failed for file:', filename, decryptError);
+        // 복호화 실패 시 원본 파일 스트림으로 전송 시도
+        const fileStream = fs.createReadStream(filePath);
+        fileStream.pipe(res);
+      }
       
     } catch (error) {
       console.error("Profile image serving error:", error);
