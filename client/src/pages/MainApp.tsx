@@ -4,7 +4,7 @@ import { useWebSocket } from "@/hooks/useWebSocket";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useImagePreloader, preloadGlobalImage } from "@/hooks/useImagePreloader";
+
 
 import { useLocation } from "wouter";
 
@@ -37,7 +37,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 export default function MainApp() {
-  const { user, isLoading, isPreloadingImages } = useAuth();
+  const { user, isLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { preloadImage, isLoading: imagePreloading } = useImagePreloader();
@@ -207,7 +207,7 @@ export default function MainApp() {
 
   // 마이크 권한 요청 (최초 로그인 시에만)
   useEffect(() => {
-    if (user && shouldRequestPermission() && !isPreloadingImages) {
+    if (user && shouldRequestPermission()) {
       // 프로필 이미지 로딩이 완료된 후 1초 후에 마이크 권한 요청
       const timer = setTimeout(() => {
         setShowMicrophoneModal(true);
@@ -215,7 +215,7 @@ export default function MainApp() {
 
       return () => clearTimeout(timer);
     }
-  }, [user, shouldRequestPermission, isPreloadingImages]);
+  }, [user, shouldRequestPermission]);
 
   // 친구와의 채팅방 찾기 또는 생성
   const createOrFindChatRoom = (contactUserId: number, contactUser: any) => {
@@ -1075,9 +1075,9 @@ export default function MainApp() {
       />
 
       {/* Loading screen overlay for profile image preloading */}
-      {(isLoading || isPreloadingImages) && (
+      {isLoading && (
         <div className="fixed inset-0 z-50 bg-white">
-          <LoadingScreen message="프로필 이미지를 다운로드하는 중..." />
+          <LoadingScreen message="앱을 초기화하는 중..." />
         </div>
       )}
 
