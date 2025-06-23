@@ -289,48 +289,68 @@ export default function MainApp() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-User-ID': user.id.toString()
+          'X-User-ID': user?.id?.toString() || ''
         },
-        body: JSON.stringify({
-          endpoint: subscription.endpoint,
-          p256dh: arrayBufferToBase64(subscription.getKey('p256dh')),
-          auth: arrayBufferToBase64(subscription.getKey('auth')),
-          userAgent: navigator.userAgent
-        })
+        body: JSON.stringify(subscription)
       });
 
       if (response.ok) {
         console.log('✅ Push subscription registered successfully');
+        localStorage.setItem('notificationPermissionGranted', 'true');
+        return true;
       } else {
         console.error('❌ Failed to register push subscription');
+        return false;
       }
     } catch (error) {
       console.error('Push notification registration failed:', error);
+      return false;
     }
   };
 
-  // Function to ensure push subscription exists for all users
+  // Function to ensure push subscription exists for all users  
   const ensurePushSubscription = async () => {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      console.log('Push notifications not supported');
+    if (!user?.id) {
+      console.log('⚠️ No user ID available for push subscription check');
       return;
     }
 
+    console.log('🔍 Checking push subscription status for user:', user.id);
+    
+    // Check server-side subscription status
     try {
-      const registration = await navigator.serviceWorker.ready;
-      if (!registration.pushManager) return;
-
-      // Check if already subscribed
-      const existingSubscription = await registration.pushManager.getSubscription();
+      const statusResponse = await fetch('/api/push-subscription/status', {
+        headers: {
+          'X-User-ID': user.id.toString()
+        }
+      });
       
-      // If notification permission is granted but no subscription exists, create one
-      if (Notification.permission === 'granted' && !existingSubscription) {
-        console.log('Creating missing push subscription for existing user');
-        await registerPushNotification();
-        localStorage.setItem('notificationPermissionGranted', 'true');
+      if (statusResponse.ok) {
+        const { isSubscribed, subscriptionCount } = await statusResponse.json();
+        console.log(`📊 Server subscription status:`, { isSubscribed, subscriptionCount });
+        
+        if (isSubscribed) {
+          console.log('✅ User already has active push subscription');
+          localStorage.setItem('notificationPermissionGranted', 'true');
+          return;
+        }
       }
     } catch (error) {
-      console.error('Failed to ensure push subscription:', error);
+      console.error('Failed to check server subscription status:', error);
+    }
+
+    // If notification permission is granted but no server subscription, register one
+    if (Notification.permission === 'granted') {
+      console.log('🔔 Permission granted but no subscription found, registering...');
+      const success = await registerPushNotification();
+      
+      if (success) {
+        console.log('✅ Push subscription successfully ensured');
+      } else {
+        console.log('❌ Failed to ensure push subscription');
+      }
+    } else {
+      console.log('⚠️ Notification permission not granted:', Notification.permission);
     }
   };
 
