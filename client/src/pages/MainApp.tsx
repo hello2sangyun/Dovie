@@ -212,13 +212,7 @@ export default function MainApp() {
     const microphoneGranted = localStorage.getItem('microphonePermissionGranted');
     const notificationGranted = localStorage.getItem('notificationPermissionGranted');
     
-    // 첫 로그인 시 자동으로 푸시 알림 권한 요청 및 등록 (기본값 ON)
-    // Only register push notifications once if not already done
-    if (!notificationGranted) {
-      setTimeout(async () => {
-        await autoEnablePushNotifications();
-      }, 1500);
-    }
+    // Push notifications are now handled by SimplePushManager component
     
     // Only show permission modal if microphone permission hasn't been handled yet
     if (!microphoneGranted && notificationGranted !== 'false') {
@@ -228,127 +222,9 @@ export default function MainApp() {
     }
   }, [user]);
 
-  // Function to register push notifications
-  const registerPushNotification = async () => {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      console.log('Push notifications not supported');
-      return false;
-    }
 
-    try {
-      const registration = await navigator.serviceWorker.ready;
-      if (!registration.pushManager) return false;
 
-      // Check if already subscribed
-      const existingSubscription = await registration.pushManager.getSubscription();
-      
-      console.log('🔍 Push subscription check:', {
-        hasExistingSubscription: !!existingSubscription,
-        userId: user?.id,
-        notificationPermission: Notification.permission
-      });
 
-      if (existingSubscription) {
-        console.log('🔄 Verifying existing subscription with server...');
-        
-        // Verify existing subscription with server
-        const verifyResponse = await fetch('/api/push-subscription', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-User-ID': user?.id?.toString() || ''
-          },
-          body: JSON.stringify(existingSubscription)
-        });
-        
-        if (verifyResponse.ok) {
-          console.log('✅ Existing subscription verified with server');
-          return true;
-        } else {
-          console.log('⚠️ Existing subscription verification failed, creating new one...');
-        }
-      }
-
-      console.log('🔔 Creating new push subscription...');
-      
-      // Get VAPID public key from server
-      const vapidResponse = await fetch('/api/vapid-public-key');
-      const { publicKey } = await vapidResponse.json();
-      
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: publicKey
-      });
-
-      // Send subscription to server
-      const response = await fetch('/api/push-subscription', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-ID': user?.id?.toString() || ''
-        },
-        body: JSON.stringify(subscription)
-      });
-
-      if (response.ok) {
-        console.log('✅ Push subscription registered successfully');
-        localStorage.setItem('notificationPermissionGranted', 'true');
-        return true;
-      } else {
-        console.error('❌ Failed to register push subscription');
-        return false;
-      }
-    } catch (error) {
-      console.error('Push notification registration failed:', error);
-      return false;
-    }
-  };
-
-  // Function to ensure push subscription exists for all users  
-  const ensurePushSubscription = async () => {
-    if (!user?.id) {
-      console.log('⚠️ No user ID available for push subscription check');
-      return;
-    }
-
-    console.log('🔍 Checking push subscription status for user:', user.id);
-    
-    // Check server-side subscription status
-    try {
-      const statusResponse = await fetch('/api/push-subscription/status', {
-        headers: {
-          'X-User-ID': user.id.toString()
-        }
-      });
-      
-      if (statusResponse.ok) {
-        const { isSubscribed, subscriptionCount } = await statusResponse.json();
-        console.log(`📊 Server subscription status:`, { isSubscribed, subscriptionCount });
-        
-        if (isSubscribed) {
-          console.log('✅ User already has active push subscription');
-          localStorage.setItem('notificationPermissionGranted', 'true');
-          return;
-        }
-      }
-    } catch (error) {
-      console.error('Failed to check server subscription status:', error);
-    }
-
-    // If notification permission is granted but no server subscription, register one
-    if (Notification.permission === 'granted') {
-      console.log('🔔 Permission granted but no subscription found, registering...');
-      const success = await registerPushNotification();
-      
-      if (success) {
-        console.log('✅ Push subscription successfully ensured');
-      } else {
-        console.log('❌ Failed to ensure push subscription');
-      }
-    } else {
-      console.log('⚠️ Notification permission not granted:', Notification.permission);
-    }
-  };
 
   // Function to automatically enable push notifications on first login - iPhone PWA optimized
   const autoEnablePushNotifications = async () => {
