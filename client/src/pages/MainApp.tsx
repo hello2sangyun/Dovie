@@ -43,7 +43,8 @@ export default function MainApp() {
   const { user, isLoading, isPreloadingImages } = useAuth();
   const { updateBadge, clearBadge } = usePWABadge();
   
-  pwaDebugger.log('MAIN APP: Render state', {
+  // PWA 디버깅 로그
+  console.log('🔍 MAIN APP: Render state', {
     hasUser: !!user,
     userId: user?.id,
     isLoading,

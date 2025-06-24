@@ -144,6 +144,9 @@ export async function sendMessageNotification(
   chatRoomId: number,
   messageType: string = 'text'
 ): Promise<void> {
+  console.log('🚫 sendMessageNotification 일시적 비활성화됨');
+  return; // 즉시 종료
+  
   try {
     // Get total unread count across all chat rooms for app badge
     const unreadCounts = await storage.getUnreadCounts(recipientUserId);
