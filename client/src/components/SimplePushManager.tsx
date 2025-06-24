@@ -77,7 +77,7 @@ export function SimplePushManager() {
         });
 
         // Send to server
-        await fetch('/api/push-subscription', {
+        const response = await fetch('/api/push-subscription', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -92,8 +92,12 @@ export function SimplePushManager() {
           })
         });
 
-        localStorage.setItem('pushNotificationInitialized', 'true');
-        console.log('✅ Push notifications fully initialized');
+        if (response.ok) {
+          console.log('✅ Push subscription saved to server for user:', user.id);
+          localStorage.setItem('pushNotificationInitialized', 'true');
+        } else {
+          console.log('❌ Failed to save push subscription to server:', response.status);
+        }
       } catch (error) {
         console.error('❌ Push notification setup failed:', error);
       }
