@@ -1794,16 +1794,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Not authenticated" });
       }
 
-      const { endpoint, p256dh, auth } = req.body;
-      const userAgent = req.headers['user-agent'] || '';
+      const userAgent = req.headers['user-agent'] || 'Unknown';
 
-      // 기존 구독이 있다면 업데이트, 없다면 새로 생성
-      await storage.upsertPushSubscription(Number(userId), {
-        endpoint,
-        p256dh,
-        auth,
-        userAgent
-      });
+      // Pass the entire request body to storage layer for proper key extraction
+      await storage.upsertPushSubscription(Number(userId), req.body, userAgent);
 
       res.json({ success: true, message: "푸시 알림 구독이 완료되었습니다." });
     } catch (error) {
