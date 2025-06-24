@@ -121,30 +121,35 @@ export default function PhoneLogin() {
       return response.json();
     },
     onSuccess: async (data) => {
-      console.log("SMS verification successful, user data:", data.user);
-      setUser(data.user);
-      localStorage.setItem("userId", data.user.id.toString());
+      console.log("SMS 인증 성공:", data.user.id, data.user.username);
       
-      // React Query 캐시 무효화로 인증 상태 즉시 업데이트
-      await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      // 즉시 사용자 상태 설정
+      setUser(data.user);
+      
+      // 로그인 상태 저장
+      localStorage.setItem("userId", data.user.id.toString());
+      localStorage.setItem("rememberLogin", "true");
+      localStorage.setItem("lastLoginTime", Date.now().toString());
+      
+      // React Query 캐시 업데이트
+      queryClient.setQueryData(["/api/auth/me"], { user: data.user });
       
       toast({
         title: "로그인 성공",
         description: "Dovie Messenger에 오신 것을 환영합니다!",
       });
       
-      // 인증 상태 업데이트 후 페이지 이동
+      // PWA 강제 새로고침으로 상태 동기화
       setTimeout(() => {
-        // 프로필이 미완성이거나 임시 이메일을 사용하는 경우 프로필 설정으로 이동
         const hasTemporaryEmail = data.user.email && data.user.email.includes('@phone.local');
         const needsProfileSetup = !data.user.isProfileComplete || hasTemporaryEmail;
         
         if (needsProfileSetup) {
-          window.location.href = "/profile-setup";
+          window.location.replace("/profile-setup");
         } else {
-          window.location.href = "/app";
+          window.location.replace("/app");
         }
-      }, 500);
+      }, 100);
     },
     onError: (error: any) => {
       toast({

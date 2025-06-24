@@ -946,8 +946,8 @@ export class DatabaseStorage implements IStorage {
       await db
         .update(pushSubscriptions)
         .set({
-          p256dh: subscription.p256dh || null,
-          auth: subscription.auth || null,
+          p256dh: subscription.p256dh,
+          auth: subscription.auth,
           userAgent: subscription.userAgent
         })
         .where(eq(pushSubscriptions.id, existingSubscription.id));
@@ -955,8 +955,8 @@ export class DatabaseStorage implements IStorage {
       await db.insert(pushSubscriptions).values({
         userId,
         endpoint: subscription.endpoint,
-        p256dh: subscription.p256dh || null, // iOS Safari compatibility
-        auth: subscription.auth || null, // iOS Safari compatibility
+        p256dh: subscription.p256dh,
+        auth: subscription.auth,
         userAgent: subscription.userAgent
       });
     }
