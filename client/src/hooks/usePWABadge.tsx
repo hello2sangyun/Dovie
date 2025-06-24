@@ -53,7 +53,7 @@ export function usePWABadge() {
 
   // 읽지 않은 메시지 수 변경 시 배지 업데이트
   useEffect(() => {
-    if (unreadCounts) {
+    if (unreadCounts && Array.isArray(unreadCounts)) {
       const totalUnread = unreadCounts.reduce((total: number, room: any) => 
         total + (room.unreadCount || 0), 0
       );

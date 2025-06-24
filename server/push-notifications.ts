@@ -41,7 +41,8 @@ export async function sendPushNotification(
 
     // Get current unread count for app badge
     const unreadCounts = await storage.getUnreadCounts(userId);
-    const totalUnreadCount = unreadCounts.reduce((total, count) => total + count.unreadCount, 0);
+    const totalUnreadCount = Array.isArray(unreadCounts) ? 
+      unreadCounts.reduce((total, count) => total + count.unreadCount, 0) : 0;
 
     // iOS 16+ PWA 최적화 알림 페이로드
     const notificationPayload = JSON.stringify({
