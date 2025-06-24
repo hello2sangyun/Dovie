@@ -35,44 +35,27 @@ export default function LoginPage() {
       return response.json();
     },
     onSuccess: async (data) => {
-      console.log('로그인 성공, 사용자 설정 중:', data.user);
+      console.log('로그인 성공:', data.user.id, data.user.username);
+      
+      // 즉시 사용자 상태 설정
+      setUser(data.user);
       
       // 로그인 상태 저장
       localStorage.setItem("userId", data.user.id.toString());
       localStorage.setItem("rememberLogin", "true");
       localStorage.setItem("lastLoginTime", Date.now().toString());
       
-      // React Query 캐시 강제 업데이트 (PWA 세션 동기화)
-      await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      // React Query 캐시 업데이트
       queryClient.setQueryData(["/api/auth/me"], { user: data.user });
       
-      // 사용자 상태 업데이트
-      setUser(data.user);
-      
-      // PWA 환경 감지 및 네비게이션
-      const isPWA = (window.navigator as any).standalone === true || 
-                   window.matchMedia('(display-mode: standalone)').matches;
-      
-      console.log('PWA 환경:', isPWA);
-      
+      // PWA 강제 새로고침으로 상태 동기화
       setTimeout(() => {
-        const targetPath = !data.user.isProfileComplete ? "/profile-setup" : "/app";
-        console.log(`${targetPath}으로 이동 중... (PWA: ${isPWA})`);
-        
-        if (isPWA) {
-          // PWA 환경에서 안전한 네비게이션
-          setLocation(targetPath);
-          window.history.replaceState({ loggedIn: true }, '', targetPath);
-          
-          // 강제 리렌더링 트리거
-          setTimeout(() => {
-            window.dispatchEvent(new PopStateEvent('popstate', { state: { loggedIn: true } }));
-          }, 100);
+        if (!data.user.isProfileComplete) {
+          window.location.replace("/profile-setup");
         } else {
-          // 일반 브라우저
-          window.location.href = targetPath;
+          window.location.replace("/app");
         }
-      }, 200);
+      }, 100);
     },
     onError: (error: any) => {
       toast({

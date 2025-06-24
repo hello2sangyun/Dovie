@@ -121,45 +121,35 @@ export default function PhoneLogin() {
       return response.json();
     },
     onSuccess: async (data) => {
-      console.log("SMS verification successful, user data:", data.user);
+      console.log("SMS 인증 성공:", data.user.id, data.user.username);
+      
+      // 즉시 사용자 상태 설정
+      setUser(data.user);
       
       // 로그인 상태 저장
       localStorage.setItem("userId", data.user.id.toString());
       localStorage.setItem("rememberLogin", "true");
       localStorage.setItem("lastLoginTime", Date.now().toString());
       
-      // React Query 캐시 강제 업데이트
-      await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      // React Query 캐시 업데이트
       queryClient.setQueryData(["/api/auth/me"], { user: data.user });
-      
-      setUser(data.user);
       
       toast({
         title: "로그인 성공",
         description: "Dovie Messenger에 오신 것을 환영합니다!",
       });
       
-      // PWA 환경 감지
-      const isPWA = (window.navigator as any).standalone === true || 
-                   window.matchMedia('(display-mode: standalone)').matches;
-      
+      // PWA 강제 새로고침으로 상태 동기화
       setTimeout(() => {
         const hasTemporaryEmail = data.user.email && data.user.email.includes('@phone.local');
         const needsProfileSetup = !data.user.isProfileComplete || hasTemporaryEmail;
-        const targetPath = needsProfileSetup ? "/profile-setup" : "/app";
         
-        console.log(`${targetPath}으로 이동 중... (PWA: ${isPWA})`);
-        
-        if (isPWA) {
-          setLocation(targetPath);
-          window.history.replaceState({ loggedIn: true }, '', targetPath);
-          setTimeout(() => {
-            window.dispatchEvent(new PopStateEvent('popstate', { state: { loggedIn: true } }));
-          }, 100);
+        if (needsProfileSetup) {
+          window.location.replace("/profile-setup");
         } else {
-          window.location.href = targetPath;
+          window.location.replace("/app");
         }
-      }, 300);
+      }, 100);
     },
     onError: (error: any) => {
       toast({
