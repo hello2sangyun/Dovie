@@ -844,9 +844,10 @@ export default function MainApp() {
                           <MessageCircle className="w-5 h-5 text-gray-400" />
                         </div>
                       </div>
-                    </TabsContent>
-                  </div>
-                )}
+                    </div>
+                  </TabsContent>
+                </div>
+              )}
           </Tabs>
         </div>
 
