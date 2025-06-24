@@ -1,57 +1,21 @@
-import { useEffect, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
-// Badge system works independently
+import { useCallback } from 'react';
 
 export function usePWABadge() {
-
-  // 읽지 않은 메시지 수 조회
-  const { data: unreadCounts } = useQuery({
-    queryKey: ['/api/unread-counts'],
-    enabled: !!user,
-    refetchInterval: 30000, // 30초마다 갱신
-    staleTime: 10000 // 10초간 fresh
-  });
-
-  // 배지 업데이트 함수 (iOS 16+ PWA 최적화)
   const updateBadge = useCallback(async (count: number) => {
-    console.log('🎯 배지 업데이트 시작:', count);
+    console.log('Setting badge to:', count);
     
     try {
-      // 방법 1: Navigator API 직접 사용
       if ('setAppBadge' in navigator) {
         if (count > 0) {
           await (navigator as any).setAppBadge(count);
-          console.log('✅ navigator.setAppBadge 성공:', count);
+          console.log('Badge set successfully:', count);
         } else {
           await (navigator as any).clearAppBadge();
-          console.log('✅ navigator.clearAppBadge 성공');
+          console.log('Badge cleared successfully');
         }
       }
     } catch (error) {
-      console.log('navigator.setAppBadge 실패:', error);
-    }
-
-    try {
-      // 방법 2: Service Worker를 통한 배지 설정
-      if ('serviceWorker' in navigator) {
-        // 배지 전용 SW 등록
-        const registration = await navigator.serviceWorker.register('/sw-badge.js', {
-          scope: '/',
-          updateViaCache: 'none'
-        });
-        
-        await navigator.serviceWorker.ready;
-        
-        // SW에 배지 설정 요청
-        if (registration.active) {
-          registration.active.postMessage({
-            type: 'SET_BADGE',
-            count: count
-          });
-        }
-      }
-    } catch (error) {
-      console.log('Service Worker 배지 설정 실패:', error);
+      console.log('Badge setting failed:', error);
     }
   }, []);
 

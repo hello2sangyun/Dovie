@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { usePWABadge } from "@/hooks/usePWABadge";
+import { useSimpleBadge } from "@/hooks/useSimpleBadge";
 
 export default function PWATest() {
   const [user] = useState({ id: 115, displayName: "딸기" });
-  const { updateBadge } = usePWABadge();
+  const { updateBadge, clearBadge } = useSimpleBadge();
   const [badgeCount, setBadgeCount] = useState(11);
 
   useEffect(() => {
@@ -20,7 +20,7 @@ export default function PWATest() {
 
   const handleClearBadge = () => {
     setBadgeCount(0);
-    updateBadge(0);
+    clearBadge();
   };
 
   return (
