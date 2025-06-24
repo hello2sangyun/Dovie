@@ -204,6 +204,13 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Service worker handles notifications with sound, vibration, and badge API integration
   - Users can enable notifications via Settings → Notification Settings interface
   - Complete workflow: message sent → push notification → badge update → notification display
+- June 25, 2025: Fixed critical login display and push notification key validation issues:
+  - Resolved authentication loading logic preventing app from rendering after successful login
+  - Fixed push subscription key extraction from request body for proper web-push library compatibility
+  - Enhanced database schema to handle push notification keys with proper validation
+  - Corrected SimplePushManager component to pass subscription data in correct format
+  - Authentication now works seamlessly with immediate app display after login
+  - Push notifications ready for proper key-based subscription and message delivery
 - June 16, 2025: Completed comprehensive removal of nearby chat (주변챗) functionality including:
   - Removed location-based database tables (locationChatRooms, locationChatParticipants, locationChatMessages, userLocations)
   - Deleted all location-based API endpoints (/api/location/*)

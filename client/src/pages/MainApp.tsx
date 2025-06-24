@@ -365,24 +365,14 @@ export default function MainApp() {
 
   const { totalChatUnread } = calculateUnreadCounts();
 
-  // 사용자가 있으면 바로 메인 앱을 렌더링
+  // Show loading only during authentication
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  // Redirect to login if not authenticated
   if (!user) {
-    // 저장된 사용자 ID가 있으면 로딩 표시
-    const storedUserId = localStorage.getItem("userId");
-    if (storedUserId) {
-      return (
-        <div className="fixed inset-0 bg-white dark:bg-gray-900 flex items-center justify-center">
-          <div className="text-center">
-            <VaultLogo size="lg" className="mx-auto mb-4 animate-pulse" />
-            <p className="text-gray-600 dark:text-gray-400">사용자 정보 불러오는 중...</p>
-          </div>
-        </div>
-      );
-    }
-    
-    // 저장된 사용자 ID가 없으면 로그인 페이지로 리다이렉트
-    window.location.href = "/login";
-    return null;
+    return <LoadingScreen />;
   }
 
   return (
