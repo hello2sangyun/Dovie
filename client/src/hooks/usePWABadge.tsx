@@ -13,54 +13,36 @@ export function usePWABadge() {
     staleTime: 10000 // 10초간 fresh
   });
 
-  // Chrome PWA 배지 업데이트 함수
+  // iOS 16 PWA 배지 업데이트 (안전한 방식)
   const updateBadge = useCallback(async (count: number) => {
-    console.log('🎯 Chrome PWA 배지 업데이트 시작:', count);
+    if (typeof count !== 'number' || count < 0) return;
     
     try {
-      // Chrome PWA Navigator Badge API (최우선)
+      // iOS 16+ PWA에서 가장 안정적인 방법
       if ('setAppBadge' in navigator) {
         if (count > 0) {
           await (navigator as any).setAppBadge(count);
-          console.log('✅ Chrome PWA navigator.setAppBadge 성공:', count);
+          console.log('배지 설정:', count);
         } else {
           await (navigator as any).clearAppBadge();
-          console.log('✅ Chrome PWA navigator.clearAppBadge 성공');
+          console.log('배지 클리어');
         }
-        return; // Chrome PWA에서 성공하면 바로 반환
+        return; // 성공하면 SW 메소드는 건너뛰기
       }
     } catch (error) {
-      console.log('Chrome PWA navigator.setAppBadge 실패:', error);
+      console.log('배지 API 실패:', error);
     }
 
     try {
-      // Chrome PWA Service Worker를 통한 배지 설정
-      if ('serviceWorker' in navigator) {
-        const registration = await navigator.serviceWorker.ready;
-        
-        // Service Worker Registration Badge API
-        if (registration && 'setAppBadge' in registration) {
-          if (count > 0) {
-            await (registration as any).setAppBadge(count);
-            console.log('✅ Chrome PWA registration.setAppBadge 성공:', count);
-          } else {
-            await (registration as any).clearAppBadge();
-            console.log('✅ Chrome PWA registration.clearAppBadge 성공');
-          }
-          return;
-        }
-        
-        // Service Worker 메시지를 통한 배지 설정
-        if (registration.active) {
-          registration.active.postMessage({
-            type: 'BADGE_UPDATE',
-            count: count
-          });
-          console.log('📤 Chrome PWA Service Worker 배지 메시지 전송:', count);
-        }
+      // Service Worker 백업 방법 (충돌 방지)
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+          type: 'SET_BADGE',
+          count: count
+        });
       }
     } catch (error) {
-      console.log('Chrome PWA Service Worker 배지 설정 실패:', error);
+      console.log('SW 배지 실패:', error);
     }
   }, []);
 

@@ -10,13 +10,17 @@
   "scope": "/",
   "lang": "ko",
   "display_override": ["standalone", "minimal-ui"],
-  "permissions": ["notifications", "badges"],
 
   "edge_side_panel": {
     "preferred_width": 480
   },
   "launch_handler": {
     "client_mode": "focus-existing"
+  },
+  "ios": {
+    "supports_push": true,
+    "supports_badge": true,
+    "supports_notification": true
   },
   "icons": [
     {

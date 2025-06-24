@@ -26,7 +26,6 @@ import { BannerNotificationContainer } from "@/components/MobileBannerNotificati
 import LoadingScreen from "@/components/LoadingScreen";
 import { ConnectionStatusIndicator } from "@/components/ConnectionStatusIndicator";
 import { PermissionRequestModal } from "@/components/PermissionRequestModal";
-import { ChromePWAManager } from "@/components/ChromePWAManager";
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
 
@@ -203,19 +202,38 @@ export default function MainApp() {
     refetchInterval: 5000,
   });
 
-  // Chrome PWA 초기화 - 기존 푸시 알림 로직 제거하고 ChromePWAManager에 위임
+  // Request permissions and register push notifications after login
   useEffect(() => {
     if (!user) return;
     
-    console.log('Chrome PWA MainApp rendering with user:', user.id);
+    console.log('MainApp rendering with user:', user.id);
     
-    // Chrome PWA에서는 마이크 권한만 별도로 처리
+    // Check if permissions have been requested before
     const microphoneGranted = localStorage.getItem('microphonePermissionGranted');
+    const notificationGranted = localStorage.getItem('notificationPermissionGranted');
     
-    if (!microphoneGranted) {
+    // 첫 로그인 시 자동으로 푸시 알림 권한 요청 및 등록 (기본값 ON)
+    if (!notificationGranted) {
+      setTimeout(async () => {
+        await autoEnablePushNotifications();
+      }, 1500);
+    } else if (notificationGranted === 'true') {
+      // If notifications are already granted, ensure push subscription is registered
+      setTimeout(() => {
+        registerPushNotification();
+      }, 1000);
+    }
+    
+    // Always try to register push subscription for existing users
+    setTimeout(() => {
+      ensurePushSubscription();
+    }, 2000);
+    
+    // Only show permission modal if microphone permission hasn't been handled yet
+    if (!microphoneGranted && notificationGranted !== 'false') {
       setTimeout(() => {
         setModals(prev => ({ ...prev, permissions: true }));
-      }, 2000);
+      }, 3000); // Delay after push notification setup
     }
   }, [user]);
 
@@ -419,36 +437,38 @@ export default function MainApp() {
     setModals(prev => ({ ...prev, permissions: false }));
   };
 
-  // PWA 배지 테스트 시스템
+  // PWA 배지 안전 초기화 (앱 충돌 방지)
   useEffect(() => {
-    if (!user) return;
+    if (!user?.id) return;
     
-    const testBadgeSystem = async () => {
-      console.log('🧪 배지 시스템 테스트 시작');
-      
-      // 현재 안읽은 메시지 수 조회
+    const initializeBadgeSystem = async () => {
       try {
         const response = await fetch('/api/unread-counts', {
           headers: { 'X-User-ID': user.id.toString() }
         });
-        const data = await response.json();
-        const totalUnread = data.unreadCounts?.reduce((total: number, room: any) => 
-          total + (room.unreadCount || 0), 0) || 0;
         
-        console.log('현재 안읽은 메시지:', totalUnread);
-        
-        // 배지 업데이트 시도
-        if (updateBadge) {
-          await updateBadge(totalUnread);
+        if (response.ok) {
+          const data = await response.json();
+          const unreadCounts = data?.unreadCounts || [];
+          const totalUnread = Array.isArray(unreadCounts) ? 
+            unreadCounts.reduce((total: number, room: any) => 
+              total + (room?.unreadCount || 0), 0) : 0;
+          
+          console.log('배지 카운트:', totalUnread);
+          
+          if (updateBadge && typeof totalUnread === 'number') {
+            updateBadge(totalUnread);
+          }
         }
       } catch (error) {
-        console.error('배지 테스트 실패:', error);
+        console.log('배지 초기화 실패:', error);
       }
     };
     
-    // 3초 후 테스트 실행
-    setTimeout(testBadgeSystem, 3000);
-  }, [user, updateBadge]);
+    // 앱 안정화 후 배지 초기화 (PWA 충돌 방지)
+    const timeoutId = setTimeout(initializeBadgeSystem, 3000);
+    return () => clearTimeout(timeoutId);
+  }, [user?.id, updateBadge]);
 
   // Clear app badge when app becomes active (iPhone PWA)
   useEffect(() => {

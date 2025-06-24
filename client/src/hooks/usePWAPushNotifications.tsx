@@ -27,41 +27,41 @@ export function usePWAPushNotifications() {
   }, [user]);
 
   const initializePWAPushSystem = async () => {
-    console.log('🚀 Chrome PWA 푸시 알림 시스템 초기화 시작');
+    console.log('🚀 PWA 푸시 알림 시스템 초기화 시작');
     
     try {
-      // 1. Chrome PWA 지원 확인
+      // 1. Service Worker 지원 확인
       if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-        console.log('❌ Chrome PWA 푸시 알림 미지원 브라우저');
+        console.log('❌ PWA 푸시 알림 미지원 브라우저');
         setState(prev => ({ ...prev, isSupported: false }));
         return;
       }
 
       setState(prev => ({ ...prev, isSupported: true, isLoading: true }));
 
-      // 2. Chrome PWA Service Worker 등록
+      // 2. Service Worker 등록 (강제)
       const registration = await registerServiceWorker();
       if (!registration) {
-        throw new Error('Chrome PWA Service Worker 등록 실패');
+        throw new Error('Service Worker 등록 실패');
       }
 
-      // 3. Chrome 알림 권한 요청
+      // 3. 알림 권한 즉시 요청 (iOS PWA 호환)
       const permission = await requestNotificationPermission();
       setState(prev => ({ ...prev, permission }));
 
       if (permission !== 'granted') {
-        console.log('❌ Chrome 알림 권한 거부됨:', permission);
+        console.log('❌ 알림 권한 거부됨:', permission);
         setState(prev => ({ ...prev, isLoading: false }));
         return;
       }
 
-      // 4. Chrome PWA 푸시 구독 생성
+      // 4. 푸시 구독 생성 (강제)
       const subscription = await createPushSubscription(registration);
       if (!subscription) {
-        throw new Error('Chrome PWA 푸시 구독 생성 실패');
+        throw new Error('푸시 구독 생성 실패');
       }
 
-      // 5. 서버에 Chrome PWA 구독 정보 전송
+      // 5. 서버에 구독 정보 전송
       await sendSubscriptionToServer(subscription);
 
       setState(prev => ({ 
@@ -71,17 +71,17 @@ export function usePWAPushNotifications() {
         isLoading: false 
       }));
 
-      console.log('✅ Chrome PWA 푸시 알림 시스템 활성화 완료');
+      console.log('✅ PWA 푸시 알림 시스템 활성화 완료');
 
     } catch (error) {
-      console.error('❌ Chrome PWA 푸시 알림 초기화 실패:', error);
+      console.error('❌ PWA 푸시 알림 초기화 실패:', error);
       setState(prev => ({ ...prev, isLoading: false }));
     }
   };
 
   const registerServiceWorker = async (): Promise<ServiceWorkerRegistration | null> => {
     try {
-      console.log('📋 Chrome PWA Service Worker 등록 중...');
+      console.log('📋 Service Worker 등록 중...');
       
       // 기존 등록 해제
       const registrations = await navigator.serviceWorker.getRegistrations();
@@ -89,64 +89,60 @@ export function usePWAPushNotifications() {
         await registration.unregister();
       }
 
-      // Chrome PWA 최적화된 Service Worker 등록
+      // 새로 등록
       const registration = await navigator.serviceWorker.register('/sw.js', {
         scope: '/',
         updateViaCache: 'none'
       });
 
       await navigator.serviceWorker.ready;
-      console.log('✅ Chrome PWA Service Worker 등록 완료');
+      console.log('✅ Service Worker 등록 완료');
       return registration;
     } catch (error) {
-      console.error('❌ Chrome PWA Service Worker 등록 실패:', error);
+      console.error('❌ Service Worker 등록 실패:', error);
       return null;
     }
   };
 
   const requestNotificationPermission = async (): Promise<NotificationPermission> => {
-    console.log('🔔 Chrome PWA 알림 권한 요청 중...');
+    console.log('🔔 알림 권한 요청 중...');
     
+    // iOS PWA용 사용자 제스처 기반 권한 요청
     return new Promise((resolve) => {
       if (Notification.permission === 'granted') {
-        console.log('✅ Chrome PWA 알림 권한 이미 허용됨');
         resolve('granted');
         return;
       }
 
-      // Chrome PWA 알림 권한 요청
-      Notification.requestPermission().then((permission) => {
-        console.log('📋 Chrome PWA 알림 권한 결과:', permission);
-        resolve(permission);
-      });
+      // 즉시 권한 요청 시도
+      Notification.requestPermission().then(resolve);
     });
   };
 
   const createPushSubscription = async (registration: ServiceWorkerRegistration): Promise<PushSubscription | null> => {
     try {
-      console.log('📱 Chrome PWA 푸시 구독 생성 중...');
+      console.log('📱 푸시 구독 생성 중...');
 
       // 기존 구독 해제
       const existingSubscription = await registration.pushManager.getSubscription();
       if (existingSubscription) {
         await existingSubscription.unsubscribe();
-        console.log('🔄 Chrome PWA 기존 구독 해제됨');
       }
 
       // VAPID 공개키 가져오기
       const vapidResponse = await fetch('/api/push-vapid-key');
       const { publicKey } = await vapidResponse.json();
 
-      // Chrome PWA 새 구독 생성
+      // 새 구독 생성
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(publicKey)
       });
 
-      console.log('✅ Chrome PWA 푸시 구독 생성 완료:', subscription.endpoint);
+      console.log('✅ 푸시 구독 생성 완료:', subscription.endpoint);
       return subscription;
     } catch (error) {
-      console.error('❌ Chrome PWA 푸시 구독 생성 실패:', error);
+      console.error('❌ 푸시 구독 생성 실패:', error);
       return null;
     }
   };

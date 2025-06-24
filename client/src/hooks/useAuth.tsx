@@ -35,9 +35,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { data, isLoading, error } = useQuery({
     queryKey: ["/api/auth/me"],
     enabled: !!storedUserId, // 저장된 ID가 있는 경우에만 실행
-    refetchInterval: false,
-    staleTime: 1 * 60 * 1000, // 1분으로 단축
-    gcTime: 2 * 60 * 1000, // 2분으로 단축
+    refetchInterval: false, // 자동 새로고침 비활성화 (불필요한 요청 방지)
+    staleTime: 5 * 60 * 1000, // 5분 동안 캐시 유지
+    gcTime: 10 * 60 * 1000, // 10분 동안 메모리에 보관 (v5에서 cacheTime -> gcTime)
     queryFn: async () => {
       const response = await fetch("/api/auth/me", {
         headers: {
@@ -166,54 +166,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // 저장된 사용자 ID가 없으면 즉시 초기화
-    if (!storedUserId && !initialized) {
-      console.log("📱 로그아웃 상태로 초기화");
-      setUser(null);
-      setInitialized(true);
-      setProfileImagesLoaded(true);
-      setIsPreloadingImages(false);
-      return;
-    }
-    
-    // 인증 성공 처리
     if (data?.user && !initialized) {
-      console.log("✅ 인증 성공:", data.user.id, data.user.username);
+      console.log("🔄 Auth context updating user:", data.user.id, "profilePicture:", data.user.profilePicture);
       setUser(data.user);
       setInitialized(true);
-      setProfileImagesLoaded(true);
-      setIsPreloadingImages(false);
+      setProfileImagesLoaded(true); // Skip image preloading to prevent loading issues
       
-      // 이미지 프리로딩을 백그라운드에서 실행
+      // 프로필 이미지 프리로딩을 백그라운드에서 실행 (앱 로딩을 차단하지 않음)
       preloadProfileImages(data.user.id.toString()).catch(() => {
-        console.log("이미지 프리로딩 실패");
+        console.log("Profile image preloading failed, continuing normally");
       });
-    } 
-    
-    // 인증 실패 처리 
-    else if (error && storedUserId && !initialized) {
-      console.log("❌ 인증 실패, 세션 클리어");
+    } else if (error && storedUserId) {
+      // Clear user data if authentication fails for stored user
+      console.log("❌ Authentication failed, clearing user data");
       setUser(null);
       localStorage.removeItem("userId");
       localStorage.removeItem("rememberLogin");
-      localStorage.removeItem("lastLoginTime");
+      setInitialized(true);
+      setProfileImagesLoaded(true);
+      setIsPreloadingImages(false);
+    } else if (!storedUserId && !initialized) {
+      // No stored user ID, mark as initialized immediately
+      console.log("📱 No stored user, initializing as logged out");
+      setUser(null);
       setInitialized(true);
       setProfileImagesLoaded(true);
       setIsPreloadingImages(false);
     }
-    
-    // 로딩 타임아웃 설정 (3초 후 강제 초기화)
-    const timeoutId = setTimeout(() => {
-      if (!initialized) {
-        console.log("⏰ 로딩 타임아웃, 강제 초기화");
-        setUser(null);
-        setInitialized(true);
-        setProfileImagesLoaded(true);
-        setIsPreloadingImages(false);
-      }
-    }, 3000);
-    
-    return () => clearTimeout(timeoutId);
   }, [data, error, storedUserId, initialized]);
 
   // Clear user data when logging out

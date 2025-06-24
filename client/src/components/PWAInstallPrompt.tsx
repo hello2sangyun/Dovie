@@ -1,52 +1,34 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { X, Download } from 'lucide-react';
+import { Download, X } from 'lucide-react';
 
 interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[];
+  readonly userChoice: Promise<{
+    outcome: 'accepted' | 'dismissed';
+    platform: string;
+  }>;
   prompt(): Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
 }
 
 export function PWAInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(false);
+  const [showPrompt, setShowPrompt] = useState(false);
 
   useEffect(() => {
-    // Chrome PWA 설치 프롬프트 감지
     const handleBeforeInstallPrompt = (e: Event) => {
-      console.log('[Chrome PWA] 설치 프롬프트 감지됨');
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setShowInstallPrompt(true);
+      setShowPrompt(true);
     };
 
-    // Chrome PWA 설치 완료 감지
     const handleAppInstalled = () => {
-      console.log('[Chrome PWA] 앱 설치 완료');
-      setIsInstalled(true);
-      setShowInstallPrompt(false);
       setDeferredPrompt(null);
+      setShowPrompt(false);
     };
 
-    // Chrome PWA 모드 감지
-    const checkIfInstalled = () => {
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-      const isInWebApk = (window.navigator as any).standalone === true;
-      
-      if (isStandalone || isInWebApk) {
-        console.log('[Chrome PWA] 이미 설치된 상태');
-        setIsInstalled(true);
-        setShowInstallPrompt(false);
-      }
-    };
-
-    // 이벤트 리스너 등록
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
-    
-    // 초기 설치 상태 확인
-    checkIfInstalled();
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -57,81 +39,69 @@ export function PWAInstallPrompt() {
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
 
-    try {
-      console.log('[Chrome PWA] 설치 프롬프트 표시');
-      await deferredPrompt.prompt();
-      
-      const { outcome } = await deferredPrompt.userChoice;
-      console.log('[Chrome PWA] 사용자 선택:', outcome);
-      
-      if (outcome === 'accepted') {
-        console.log('[Chrome PWA] 설치 승인됨');
-      } else {
-        console.log('[Chrome PWA] 설치 거부됨');
-      }
-      
-      setDeferredPrompt(null);
-      setShowInstallPrompt(false);
-    } catch (error) {
-      console.error('[Chrome PWA] 설치 프롬프트 오류:', error);
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+      console.log('[PWA] User accepted the install prompt');
+    } else {
+      console.log('[PWA] User dismissed the install prompt');
     }
+    
+    setDeferredPrompt(null);
+    setShowPrompt(false);
   };
 
   const handleDismiss = () => {
-    setShowInstallPrompt(false);
-    localStorage.setItem('pwa-install-dismissed', 'true');
+    setShowPrompt(false);
   };
 
-  // 이미 설치되었거나 프롬프트가 없으면 표시하지 않음
-  if (isInstalled || !showInstallPrompt || !deferredPrompt) {
-    return null;
-  }
-
-  // 이전에 거부한 경우 표시하지 않음
-  if (localStorage.getItem('pwa-install-dismissed') === 'true') {
+  if (!showPrompt || !deferredPrompt) {
     return null;
   }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-sm">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-4">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex-1">
-            <h3 className="font-semibold text-gray-900 dark:text-white text-sm">
-              Dovie Messenger 설치
-            </h3>
-            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-              홈 화면에 추가하여 더 빠르게 접속하세요
-            </p>
+    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-sm bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50">
+      <div className="flex items-start gap-3">
+        <div className="flex-shrink-0">
+          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+            <Download className="w-5 h-5 text-purple-600" />
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleDismiss}
-            className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600"
-          >
-            <X className="h-4 w-4" />
-          </Button>
         </div>
         
-        <div className="flex gap-2">
-          <Button
-            onClick={handleInstallClick}
-            size="sm"
-            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
-          >
-            <Download className="h-4 w-4 mr-1" />
-            설치
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleDismiss}
-            className="flex-1"
-          >
-            나중에
-          </Button>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-gray-900 text-sm">
+            앱 설치하기
+          </h3>
+          <p className="text-xs text-gray-600 mt-1">
+            홈 화면에 Dovie Messenger를 설치하여 더 빠르게 접근하세요
+          </p>
+          
+          <div className="flex gap-2 mt-3">
+            <Button
+              onClick={handleInstallClick}
+              size="sm"
+              className="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-xs"
+            >
+              설치
+            </Button>
+            <Button
+              onClick={handleDismiss}
+              variant="outline"
+              size="sm"
+              className="text-xs"
+            >
+              나중에
+            </Button>
+          </div>
         </div>
+        
+        <button
+          onClick={handleDismiss}
+          className="flex-shrink-0 text-gray-400 hover:text-gray-600"
+        >
+          <X className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );

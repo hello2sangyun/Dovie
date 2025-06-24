@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
 import VaultLogo from "@/components/VaultLogo";
 import { User, Lock, Phone } from "lucide-react";
@@ -34,28 +33,15 @@ export default function LoginPage() {
       const response = await apiRequest("/api/auth/username-login", "POST", data);
       return response.json();
     },
-    onSuccess: async (data) => {
-      console.log('로그인 성공:', data.user.id, data.user.username);
-      
-      // 즉시 사용자 상태 설정
+    onSuccess: (data) => {
       setUser(data.user);
-      
-      // 로그인 상태 저장
       localStorage.setItem("userId", data.user.id.toString());
-      localStorage.setItem("rememberLogin", "true");
-      localStorage.setItem("lastLoginTime", Date.now().toString());
       
-      // React Query 캐시 업데이트
-      queryClient.setQueryData(["/api/auth/me"], { user: data.user });
-      
-      // PWA 강제 새로고침으로 상태 동기화
-      setTimeout(() => {
-        if (!data.user.isProfileComplete) {
-          window.location.replace("/profile-setup");
-        } else {
-          window.location.replace("/app");
-        }
-      }, 100);
+      if (!data.user.isProfileComplete) {
+        setLocation("/profile-setup");
+      } else {
+        setLocation("/app");
+      }
     },
     onError: (error: any) => {
       toast({
