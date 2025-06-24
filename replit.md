@@ -211,6 +211,13 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Corrected SimplePushManager component to pass subscription data in correct format
   - Authentication now works seamlessly with immediate app display after login
   - Push notifications ready for proper key-based subscription and message delivery
+- June 25, 2025: Completed mobile PWA login and push notification system fixes:
+  - Fixed authentication methods with immediate user state updates and credentials inclusion
+  - Corrected push notification key format validation for web-push library compatibility
+  - Enhanced SimplePushManager for reliable PWA environment initialization
+  - Implemented proper error handling and logging for mobile debugging
+  - Push notifications now successfully deliver with correct p256dh/auth key formats
+  - Mobile PWA login works with automatic profile image preloading in background
 - June 16, 2025: Completed comprehensive removal of nearby chat (주변챗) functionality including:
   - Removed location-based database tables (locationChatRooms, locationChatParticipants, locationChatMessages, userLocations)
   - Deleted all location-based API endpoints (/api/location/*)
