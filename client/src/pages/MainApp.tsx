@@ -437,38 +437,36 @@ export default function MainApp() {
     setModals(prev => ({ ...prev, permissions: false }));
   };
 
-  // PWA 배지 안전 초기화 (앱 충돌 방지)
+  // PWA 배지 테스트 시스템
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user) return;
     
-    const initializeBadgeSystem = async () => {
+    const testBadgeSystem = async () => {
+      console.log('🧪 배지 시스템 테스트 시작');
+      
+      // 현재 안읽은 메시지 수 조회
       try {
         const response = await fetch('/api/unread-counts', {
           headers: { 'X-User-ID': user.id.toString() }
         });
+        const data = await response.json();
+        const totalUnread = data.unreadCounts?.reduce((total: number, room: any) => 
+          total + (room.unreadCount || 0), 0) || 0;
         
-        if (response.ok) {
-          const data = await response.json();
-          const unreadCounts = data?.unreadCounts || [];
-          const totalUnread = Array.isArray(unreadCounts) ? 
-            unreadCounts.reduce((total: number, room: any) => 
-              total + (room?.unreadCount || 0), 0) : 0;
-          
-          console.log('배지 카운트:', totalUnread);
-          
-          if (updateBadge && typeof totalUnread === 'number') {
-            updateBadge(totalUnread);
-          }
+        console.log('현재 안읽은 메시지:', totalUnread);
+        
+        // 배지 업데이트 시도
+        if (updateBadge) {
+          await updateBadge(totalUnread);
         }
       } catch (error) {
-        console.log('배지 초기화 실패:', error);
+        console.error('배지 테스트 실패:', error);
       }
     };
     
-    // 앱 안정화 후 배지 초기화 (PWA 충돌 방지)
-    const timeoutId = setTimeout(initializeBadgeSystem, 3000);
-    return () => clearTimeout(timeoutId);
-  }, [user?.id, updateBadge]);
+    // 3초 후 테스트 실행
+    setTimeout(testBadgeSystem, 3000);
+  }, [user, updateBadge]);
 
   // Clear app badge when app becomes active (iPhone PWA)
   useEffect(() => {
