@@ -26,9 +26,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // PWA 환경 디버깅
   useEffect(() => {
-    pwaDebugger.detectEnvironment();
-    pwaDebugger.checkLocalStorage();
-    pwaDebugger.checkServiceWorker();
+    try {
+      pwaDebugger.detectEnvironment();
+      pwaDebugger.checkStorageState();
+      pwaDebugger.checkServiceWorkerState();
+    } catch (error) {
+      console.error('PWA debugger error:', error);
+    }
   }, []);
 
   // PWA 환경 감지 및 안전한 초기화
@@ -46,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Try to get user from localStorage on app start
   const storedUserId = localStorage.getItem("userId");
-  pwaDebugger.log('AUTH: Stored userId from localStorage', storedUserId);
+  console.log('AUTH: Stored userId from localStorage', storedUserId);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["/api/auth/me"],
