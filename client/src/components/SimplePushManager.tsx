@@ -7,11 +7,15 @@ export function SimplePushManager() {
   const { updateBadge } = usePWABadge();
 
   useEffect(() => {
-    if (!user) return;
+    console.log('🔍 SimplePushManager - 사용자 상태:', user ? `${user.id} (${user.displayName})` : 'null');
+    
+    if (!user) {
+      console.log('⏸️ SimplePushManager - 사용자 없음, 푸시 알림 초기화 중단');
+      return;
+    }
 
     const initializePushNotifications = async () => {
-      // 매번 초기화를 시도하여 PWA 환경에서 작동 보장
-      console.log('🔔 PWA 푸시 알림 초기화 시작 (사용자:', user.id, ')');
+      console.log('🔔 PWA 푸시 알림 초기화 시작 (사용자:', user.id, user.displayName, ')');
 
       // Check if notifications are supported
       if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {

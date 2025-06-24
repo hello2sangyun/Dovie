@@ -365,15 +365,28 @@ export default function MainApp() {
 
   const { totalChatUnread } = calculateUnreadCounts();
 
+  console.log('🔍 MainApp 렌더링 상태:', {
+    isLoading,
+    hasUser: !!user,
+    userId: user?.id,
+    displayName: user?.displayName,
+    isInitialized: initialized
+  });
+
   // Show loading only during authentication
   if (isLoading) {
+    console.log('⏳ MainApp - 로딩 화면 표시 (인증 중)');
     return <LoadingScreen />;
   }
 
   // Redirect to login if not authenticated
   if (!user) {
+    console.log('🚫 MainApp - 사용자 없음, 로그인 페이지로 리다이렉트');
+    window.location.href = "/login";
     return <LoadingScreen />;
   }
+
+  console.log('✅ MainApp - 사용자 인증됨, 메인 앱 렌더링:', user.displayName);
 
   return (
     <div className="fixed inset-0 bg-white dark:bg-gray-900">

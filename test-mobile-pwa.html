@@ -57,6 +57,14 @@
     <h1>🔔 Dovie PWA 테스트</h1>
     
     <div class="test-card">
+        <h3>0. localStorage 디버깅</h3>
+        <button onclick="checkLocalStorage()">localStorage 상태 확인</button>
+        <button onclick="setTestUserId()">테스트 사용자 ID 설정</button>
+        <button onclick="clearLocalStorage()">localStorage 초기화</button>
+        <div id="storageStatus" class="status info">localStorage 대기 중</div>
+    </div>
+
+    <div class="test-card">
         <h3>1. 로그인 테스트</h3>
         <input type="text" id="username" placeholder="사용자명" value="naya2sangyun">
         <input type="password" id="password" placeholder="비밀번호" value="sangyun">
@@ -86,6 +94,41 @@
 
     <script>
         let currentUser = null;
+
+        function checkLocalStorage() {
+            const status = document.getElementById('storageStatus');
+            const userId = localStorage.getItem('userId');
+            const rememberLogin = localStorage.getItem('rememberLogin');
+            const lastLoginTime = localStorage.getItem('lastLoginTime');
+            
+            status.innerHTML = `
+                ✅ localStorage 상태:<br>
+                - userId: ${userId || 'null'}<br>
+                - rememberLogin: ${rememberLogin || 'null'}<br>
+                - lastLoginTime: ${lastLoginTime || 'null'}
+            `;
+            status.className = 'status success';
+        }
+
+        function setTestUserId() {
+            localStorage.setItem('userId', '112');
+            localStorage.setItem('rememberLogin', 'true');
+            localStorage.setItem('lastLoginTime', Date.now().toString());
+            
+            const status = document.getElementById('storageStatus');
+            status.textContent = '✅ 테스트 사용자 ID (112) 설정 완료';
+            status.className = 'status success';
+        }
+
+        function clearLocalStorage() {
+            localStorage.removeItem('userId');
+            localStorage.removeItem('rememberLogin');
+            localStorage.removeItem('lastLoginTime');
+            
+            const status = document.getElementById('storageStatus');
+            status.textContent = '✅ localStorage 초기화 완료';
+            status.className = 'status success';
+        }
 
         async function testLogin() {
             const username = document.getElementById('username').value;
