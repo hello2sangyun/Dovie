@@ -1,6 +1,6 @@
 {
-  "name": "PWA Badge Test",
-  "short_name": "PWA Test",
+  "name": "Dovie Messenger",
+  "short_name": "Dovie",
   "description": "스마트 파일 관리와 실시간 채팅이 가능한 메신저 앱",
   "start_url": "/",
   "display": "standalone",
