@@ -726,15 +726,13 @@ export default function MainApp() {
                       <div className="h-full flex flex-col bg-white">
                         <div className="flex justify-between items-center p-4 border-b">
                           <h2 className="text-lg font-semibold text-gray-900">설정</h2>
-                          <div className="flex items-center space-x-3">
-                            <button
-                              onClick={() => setModals(prev => ({ ...prev, qrCode: true }))}
-                              className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                            >
-                              <QrCode className="h-5 w-5" />
-                            </button>
-                            <div className="text-purple-600 font-bold text-lg">Dovie</div>
-                          </div>
+                          <button
+                            onClick={() => setModals(prev => ({ ...prev, qrCode: true }))}
+                            className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                            title="QR 코드 생성"
+                          >
+                            <QrCode className="h-6 w-6" />
+                          </button>
                         </div>
                         <div className="h-full overflow-y-auto">
                           <div className="p-4">
