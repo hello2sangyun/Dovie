@@ -5,6 +5,7 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useImagePreloader, preloadGlobalImage } from "@/hooks/useImagePreloader";
+import { pwaDebugger } from "../utils/pwaDebugger";
 
 import { useLocation } from "wouter";
 
@@ -42,7 +43,12 @@ export default function MainApp() {
   const { user, isLoading, isPreloadingImages } = useAuth();
   const { updateBadge, clearBadge } = usePWABadge();
   
-  console.log('🔍 [MAIN APP DEBUG] Render state - user:', !!user, 'isLoading:', isLoading, 'isPreloadingImages:', isPreloadingImages);
+  pwaDebugger.log('MAIN APP: Render state', {
+    hasUser: !!user,
+    userId: user?.id,
+    isLoading,
+    isPreloadingImages
+  });
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { preloadImage, isLoading: imagePreloading } = useImagePreloader();

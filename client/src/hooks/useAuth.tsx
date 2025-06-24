@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { User } from "@shared/schema";
 import { useInstantImageCache } from "./useInstantImageCache";
 import { usePermissions } from "./usePermissions";
+import { pwaDebugger } from "../utils/pwaDebugger";
 
 interface AuthContextType {
   user: User | null;
@@ -23,6 +24,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profileImagesLoaded, setProfileImagesLoaded] = useState(false);
   const [isPreloadingImages, setIsPreloadingImages] = useState(false);
 
+  // PWA 환경 디버깅
+  useEffect(() => {
+    pwaDebugger.detectEnvironment();
+    pwaDebugger.checkLocalStorage();
+    pwaDebugger.checkServiceWorker();
+  }, []);
+
   // PWA 환경 감지 및 안전한 초기화
   const autoEnablePushNotifications = async (userId?: number) => {
     const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
@@ -38,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Try to get user from localStorage on app start
   const storedUserId = localStorage.getItem("userId");
-  console.log('🔍 [AUTH DEBUG] Stored userId from localStorage:', storedUserId);
+  pwaDebugger.log('AUTH: Stored userId from localStorage', storedUserId);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["/api/auth/me"],
@@ -65,10 +73,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error("Authentication failed");
       }
       
-      return response.json();
+      const userData = await response.json();
+      console.log('✅ [AUTH DEBUG] Auth successful, user data:', userData);
+      return userData;
     },
     retry: false,
   });
+  
+  console.log('🔍 [AUTH DEBUG] Query state - isLoading:', isLoading, 'error:', error, 'data:', !!data);
 
   // 연락처와 채팅룸 데이터에서 프로필 이미지 URL 추출 및 프리로딩
   const preloadProfileImages = async (userId: string) => {
