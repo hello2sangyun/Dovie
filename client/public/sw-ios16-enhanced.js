@@ -29,6 +29,7 @@ self.addEventListener('activate', (event) => {
 // iOS 16 PWA 푸시 알림 처리 (강화된 배지 지원)
 self.addEventListener('push', (event) => {
   console.log('[iOS16 Enhanced SW] 푸시 알림 수신:', event);
+  console.log('[iOS16 Enhanced SW] Push data:', event.data ? event.data.text() : 'No data');
 
   let notificationData = {};
   if (event.data) {
@@ -50,6 +51,39 @@ self.addEventListener('push', (event) => {
       unreadCount: 1
     };
   }
+
+  // iOS 16 PWA 최적화 알림 옵션
+  const notificationOptions = {
+    body: notificationData.body,
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/icon-72x72.png',
+    tag: 'dovie-message',
+    renotify: true,
+    requireInteraction: false,
+    silent: false,
+    vibrate: [200, 100, 200],
+    data: notificationData.data || {},
+    actions: [
+      {
+        action: 'view',
+        title: '보기',
+        icon: '/icons/icon-72x72.png'
+      }
+    ]
+  };
+
+  event.waitUntil(
+    Promise.all([
+      // 알림 표시
+      self.registration.showNotification(notificationData.title, notificationOptions),
+      // 배지 업데이트
+      updateBadge(notificationData.unreadCount || 1)
+    ]).then(() => {
+      console.log('[iOS16 Enhanced SW] 푸시 알림 표시 완료');
+    }).catch(error => {
+      console.error('[iOS16 Enhanced SW] 푸시 알림 표시 실패:', error);
+    })
+  );
 
   // iOS 16 PWA 최적화 알림 옵션
   const options = {

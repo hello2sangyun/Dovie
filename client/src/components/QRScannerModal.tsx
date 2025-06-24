@@ -24,10 +24,20 @@ export default function QRScannerModal({ isOpen, onClose, onSuccess }: QRScanner
   const [isProcessing, setIsProcessing] = useState(false);
 
   const startScanning = async () => {
-    if (!videoRef.current) return;
+    if (!videoRef.current) {
+      console.log('Video element not ready');
+      return;
+    }
 
     try {
       setIsScanning(true);
+      
+      // 카메라 권한 요청
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: 'environment' // 후면 카메라 우선
+        } 
+      });
       
       // QR 스캐너 초기화
       qrScannerRef.current = new QrScanner(
@@ -39,15 +49,17 @@ export default function QRScannerModal({ isOpen, onClose, onSuccess }: QRScanner
           highlightScanRegion: true,
           highlightCodeOutline: true,
           maxScansPerSecond: 2,
+          preferredCamera: 'environment'
         }
       );
 
       await qrScannerRef.current.start();
+      console.log('QR 스캐너 시작됨');
     } catch (error) {
       console.error('카메라 시작 오류:', error);
       toast({
         title: "카메라 오류",
-        description: "카메라에 접근할 수 없습니다. 수동 입력을 사용해주세요.",
+        description: "카메라에 접근할 수 없습니다. 브라우저 설정에서 카메라 권한을 허용해주세요.",
         variant: "destructive"
       });
       setScanMode('manual');
@@ -142,7 +154,10 @@ export default function QRScannerModal({ isOpen, onClose, onSuccess }: QRScanner
 
   useEffect(() => {
     if (isOpen && scanMode === 'camera') {
-      startScanning();
+      // 모달이 완전히 렌더링된 후 카메라 시작
+      setTimeout(() => {
+        startScanning();
+      }, 100);
     }
 
     return () => {
