@@ -11,6 +11,7 @@ export function SimplePushManager() {
       // Check if already initialized to prevent duplicates
       const alreadyInitialized = localStorage.getItem('pushNotificationInitialized');
       if (alreadyInitialized === 'true') {
+        console.log('Push notifications already initialized, skipping');
         return;
       }
 

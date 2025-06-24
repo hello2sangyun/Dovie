@@ -189,6 +189,12 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Enhanced upsertPushSubscription method to prevent duplicate subscriptions by endpoint
   - Push notifications now sent only once per message to each user device
   - System logs confirm single delivery per message instead of hundreds of duplicates
+- June 25, 2025: Eliminated repetitive push notification requests on app load:
+  - Removed duplicate PWAPushManager and usePWAPushNotifications components causing conflicts
+  - Created streamlined SimplePushManager component for efficient one-time initialization
+  - Eliminated redundant VAPID key requests and push subscription registrations
+  - Removed all test push notification endpoints and repetitive initialization code
+  - App now loads cleanly without hundreds of unnecessary push notification API calls
 - June 16, 2025: Completed comprehensive removal of nearby chat (주변챗) functionality including:
   - Removed location-based database tables (locationChatRooms, locationChatParticipants, locationChatMessages, userLocations)
   - Deleted all location-based API endpoints (/api/location/*)
