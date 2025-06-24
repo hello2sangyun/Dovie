@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/useSimpleAuth";
+import { useAuth } from "@/hooks/useMinimalAuth";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -40,7 +40,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 export default function MainApp() {
-  const { user, isLoading, isPreloadingImages } = useAuth();
+  const { user, isLoading } = useAuth();
   const { updateBadge, clearBadge } = usePWABadge();
   
   // PWA 디버깅 로그
