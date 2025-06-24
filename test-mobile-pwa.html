@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dovie PWA 모바일 테스트</title>
+    <link rel="manifest" href="/manifest.json">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 10px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #7c3aed;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            margin: 8px 0;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #6d28d9;
+        }
+        .status {
+            padding: 8px;
+            border-radius: 4px;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+        .success { background: #d1fae5; color: #065f46; }
+        .error { background: #fee2e2; color: #991b1b; }
+        .info { background: #dbeafe; color: #1e40af; }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin: 4px 0;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔔 Dovie PWA 테스트</h1>
+    
+    <div class="test-card">
+        <h3>1. 로그인 테스트</h3>
+        <input type="text" id="username" placeholder="사용자명" value="naya2sangyun">
+        <input type="password" id="password" placeholder="비밀번호" value="sangyun">
+        <button onclick="testLogin()">로그인 테스트</button>
+        <div id="loginStatus" class="status info">로그인 대기 중</div>
+    </div>
+
+    <div class="test-card">
+        <h3>2. 푸시 알림 테스트</h3>
+        <button onclick="testPushPermission()">알림 권한 요청</button>
+        <button onclick="testPushSubscription()">푸시 구독 테스트</button>
+        <div id="pushStatus" class="status info">푸시 알림 대기 중</div>
+    </div>
+
+    <div class="test-card">
+        <h3>3. 뱃지 테스트</h3>
+        <button onclick="testBadge()">앱 뱃지 테스트</button>
+        <button onclick="clearBadge()">뱃지 지우기</button>
+        <div id="badgeStatus" class="status info">뱃지 대기 중</div>
+    </div>
+
+    <div class="test-card">
+        <h3>4. 안읽은 메시지</h3>
+        <button onclick="checkUnreadMessages()">안읽은 메시지 확인</button>
+        <div id="unreadStatus" class="status info">안읽은 메시지 대기 중</div>
+    </div>
+
+    <script>
+        let currentUser = null;
+
+        async function testLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const status = document.getElementById('loginStatus');
+            
+            try {
+                status.textContent = '로그인 중...';
+                status.className = 'status info';
+                
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = data.user;
+                    localStorage.setItem('userId', data.user.id.toString());
+                    status.textContent = `✅ 로그인 성공: ${data.user.displayName} (ID: ${data.user.id})`;
+                    status.className = 'status success';
+                } else {
+                    const error = await response.json();
+                    status.textContent = `❌ 로그인 실패: ${error.message}`;
+                    status.className = 'status error';
+                }
+            } catch (error) {
+                status.textContent = `❌ 네트워크 오류: ${error.message}`;
+                status.className = 'status error';
+            }
+        }
+
+        async function testPushPermission() {
+            const status = document.getElementById('pushStatus');
+            
+            try {
+                if (!('Notification' in window)) {
+                    status.textContent = '❌ 이 브라우저는 알림을 지원하지 않습니다';
+                    status.className = 'status error';
+                    return;
+                }
+
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    status.textContent = '✅ 알림 권한 허용됨';
+                    status.className = 'status success';
+                } else {
+                    status.textContent = '❌ 알림 권한 거부됨';
+                    status.className = 'status error';
+                }
+            } catch (error) {
+                status.textContent = `❌ 권한 요청 실패: ${error.message}`;
+                status.className = 'status error';
+            }
+        }
+
+        async function testPushSubscription() {
+            const status = document.getElementById('pushStatus');
+            
+            if (!currentUser) {
+                status.textContent = '❌ 먼저 로그인해주세요';
+                status.className = 'status error';
+                return;
+            }
+
+            try {
+                if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+                    status.textContent = '❌ 푸시 알림이 지원되지 않습니다';
+                    status.className = 'status error';
+                    return;
+                }
+
+                status.textContent = '푸시 구독 설정 중...';
+                status.className = 'status info';
+
+                // Get VAPID key
+                const vapidResponse = await fetch('/api/vapid-public-key');
+                const { publicKey } = await vapidResponse.json();
+
+                // Register service worker
+                const registration = await navigator.serviceWorker.register('/sw-ios16-enhanced.js');
+                await navigator.serviceWorker.ready;
+
+                // Subscribe to push
+                const subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(publicKey)
+                });
+
+                // Send subscription to server
+                const response = await fetch('/api/push-subscription', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-ID': currentUser.id.toString()
+                    },
+                    body: JSON.stringify({
+                        endpoint: subscription.endpoint,
+                        keys: {
+                            p256dh: arrayBufferToBase64(subscription.getKey('p256dh')),
+                            auth: arrayBufferToBase64(subscription.getKey('auth'))
+                        }
+                    })
+                });
+
+                if (response.ok) {
+                    status.textContent = '✅ 푸시 구독 완료!';
+                    status.className = 'status success';
+                } else {
+                    const error = await response.json();
+                    status.textContent = `❌ 구독 실패: ${error.message}`;
+                    status.className = 'status error';
+                }
+            } catch (error) {
+                status.textContent = `❌ 푸시 구독 오류: ${error.message}`;
+                status.className = 'status error';
+            }
+        }
+
+        async function testBadge() {
+            const status = document.getElementById('badgeStatus');
+            
+            try {
+                if ('setAppBadge' in navigator) {
+                    await navigator.setAppBadge(5);
+                    status.textContent = '✅ 앱 뱃지 설정됨 (5)';
+                    status.className = 'status success';
+                } else {
+                    status.textContent = '❌ 이 브라우저는 앱 뱃지를 지원하지 않습니다';
+                    status.className = 'status error';
+                }
+            } catch (error) {
+                status.textContent = `❌ 뱃지 설정 실패: ${error.message}`;
+                status.className = 'status error';
+            }
+        }
+
+        async function clearBadge() {
+            const status = document.getElementById('badgeStatus');
+            
+            try {
+                if ('clearAppBadge' in navigator) {
+                    await navigator.clearAppBadge();
+                    status.textContent = '✅ 앱 뱃지 제거됨';
+                    status.className = 'status success';
+                } else {
+                    status.textContent = '❌ 이 브라우저는 앱 뱃지를 지원하지 않습니다';
+                    status.className = 'status error';
+                }
+            } catch (error) {
+                status.textContent = `❌ 뱃지 제거 실패: ${error.message}`;
+                status.className = 'status error';
+            }
+        }
+
+        async function checkUnreadMessages() {
+            const status = document.getElementById('unreadStatus');
+            
+            if (!currentUser) {
+                status.textContent = '❌ 먼저 로그인해주세요';
+                status.className = 'status error';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/unread-counts', {
+                    headers: {
+                        'X-User-ID': currentUser.id.toString()
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const totalUnread = data.unreadCounts.reduce((sum, item) => sum + item.unreadCount, 0);
+                    status.textContent = `✅ 총 안읽은 메시지: ${totalUnread}개`;
+                    status.className = 'status success';
+                    
+                    // Update badge with unread count
+                    if ('setAppBadge' in navigator && totalUnread > 0) {
+                        await navigator.setAppBadge(totalUnread);
+                    }
+                } else {
+                    status.textContent = '❌ 안읽은 메시지 조회 실패';
+                    status.className = 'status error';
+                }
+            } catch (error) {
+                status.textContent = `❌ 조회 오류: ${error.message}`;
+                status.className = 'status error';
+            }
+        }
+
+        // Helper functions
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding)
+                .replace(/-/g, '+')
+                .replace(/_/g, '/');
+
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+
+        function arrayBufferToBase64(buffer) {
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            const len = bytes.byteLength;
+            for (let i = 0; i < len; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return window.btoa(binary);
+        }
+    </script>
+</body>
+</html>

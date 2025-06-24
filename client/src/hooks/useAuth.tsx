@@ -203,66 +203,86 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Username login function
+  // Username login function  
   const loginWithUsername = async (username: string, password: string) => {
-    const response = await fetch("/api/auth/username-login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ username, password }),
-    });
-    
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message);
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message);
+      }
+      
+      const data = await response.json();
+      
+      // 자동 로그인 정보 저장
+      localStorage.setItem("userId", data.user.id.toString());
+      localStorage.setItem("rememberLogin", "true");
+      localStorage.setItem("lastLoginTime", Date.now().toString());
+      
+      // 즉시 사용자 상태 업데이트
+      setUser(data.user);
+      
+      // 프로필 이미지 프리로딩을 백그라운드에서 실행
+      preloadProfileImages(data.user.id.toString()).catch(console.error);
+      
+      console.log("✅ 로그인 성공 - 자동 로그인 설정됨");
+      
+      return data;
+    } catch (error: any) {
+      throw new Error(error.message || "로그인 중 오류가 발생했습니다.");
+    } finally {
+      setIsLoading(false);
     }
-    
-    const data = await response.json();
-    setUser(data.user);
-    
-    // 자동 로그인 정보 저장
-    localStorage.setItem("userId", data.user.id.toString());
-    localStorage.setItem("rememberLogin", "true");
-    localStorage.setItem("lastLoginTime", Date.now().toString());
-    
-    console.log("✅ 자동 로그인이 설정되었습니다");
-    
-    // 로그인 후 즉시 푸시 알림 자동 활성화 (2초 후)
-    setTimeout(() => autoEnablePushNotifications(data.user.id), 2000);
-    
-    return data;
   };
 
   // Email login function
   const loginWithEmail = async (email: string, password: string) => {
-    const response = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    });
-    
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message);
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message);
+      }
+      
+      const data = await response.json();
+      
+      // 자동 로그인 정보 저장
+      localStorage.setItem("userId", data.user.id.toString());
+      localStorage.setItem("rememberLogin", "true");
+      localStorage.setItem("lastLoginTime", Date.now().toString());
+      
+      // 즉시 사용자 상태 업데이트
+      setUser(data.user);
+      
+      // 프로필 이미지 프리로딩을 백그라운드에서 실행
+      preloadProfileImages(data.user.id.toString()).catch(console.error);
+      
+      console.log("✅ 로그인 성공 - 자동 로그인 설정됨");
+      
+      return data;
+    } catch (error: any) {
+      throw new Error(error.message || "로그인 중 오류가 발생했습니다.");
+    } finally {
+      setIsLoading(false);
     }
-    
-    const data = await response.json();
-    setUser(data.user);
-    
-    // 자동 로그인 정보 저장
-    localStorage.setItem("userId", data.user.id.toString());
-    localStorage.setItem("rememberLogin", "true");
-    localStorage.setItem("lastLoginTime", Date.now().toString());
-    
-    console.log("✅ 자동 로그인이 설정되었습니다");
-    
-    // 로그인 후 즉시 푸시 알림 자동 활성화 (2초 후)
-    setTimeout(() => autoEnablePushNotifications(data.user.id), 2000);
-    
-    return data;
   };
 
   // Logout function
