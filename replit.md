@@ -761,14 +761,14 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Added mobile device detection and automatic focus management to prevent keyboard persistence
   - Enhanced both text message and voice message sending functions with keyboard auto-hide
   - Mobile users now experience smooth keyboard behavior that automatically dismisses after message transmission
-- June 24, 2025: **Fixed critical PWA authentication issues preventing login**:
-  - **Resolved Service Worker caching conflicts** that were blocking authentication API calls in PWA mode
-  - **Added NO_CACHE_PATTERNS** to exclude all authentication endpoints (/api/auth/, /api/login/, /api/signup/, etc.) from Service Worker caching
-  - **Enhanced cache-busting headers** for authentication requests with no-cache directives to prevent stale data
-  - **Implemented comprehensive cache clearing** during Service Worker registration to prevent authentication conflicts
-  - **Optimized profile image preloading** to be completely non-blocking with 5-second delay after successful authentication 
-  - **Fixed PWA login flow** by ensuring fresh authentication requests bypass all caching mechanisms
-  - **PWA now successfully authenticates** users without infinite loading or authentication loop issues
+- June 24, 2025: **Fixed PWA Service Worker conflicts and restored push notification badge system**:
+  - **Resolved Service Worker badge conflicts** by eliminating separate sw-badge.js registration that was causing authentication issues
+  - **Unified badge management** to use single main Service Worker (sw.js) with message-based communication
+  - **Enhanced Service Worker debugging** with comprehensive logging for authentication and badge operations
+  - **Added NO_CACHE_PATTERNS** to exclude authentication and real-time endpoints (/api/auth/, /api/unread-counts/, etc.) from caching
+  - **Implemented PWA authentication debugging** with detailed localStorage and Service Worker state logging
+  - **Restored push notification badge functionality** while maintaining authentication flow integrity
+  - **Expert recommendation applied**: Single Service Worker per domain to prevent registration conflicts
 - June 23, 2025: Enhanced iPhone PWA push notification system with comprehensive sound and app badge support:
   - **Fixed service worker** by removing duplicate event listeners and optimizing iPhone PWA notification handling
   - **Enhanced push notification payload** with iPhone-specific optimizations: silent: false, enhanced vibration patterns, renotify: true

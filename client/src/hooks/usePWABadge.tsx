@@ -33,23 +33,13 @@ export function usePWABadge() {
     }
 
     try {
-      // 방법 2: Service Worker를 통한 배지 설정
-      if ('serviceWorker' in navigator) {
-        // 배지 전용 SW 등록
-        const registration = await navigator.serviceWorker.register('/sw-badge.js', {
-          scope: '/',
-          updateViaCache: 'none'
+      // 방법 2: 기존 Service Worker를 통한 배지 설정 (별도 SW 등록하지 않음)
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+          type: 'UPDATE_BADGE',
+          count: count
         });
-        
-        await navigator.serviceWorker.ready;
-        
-        // SW에 배지 설정 요청
-        if (registration.active) {
-          registration.active.postMessage({
-            type: 'SET_BADGE',
-            count: count
-          });
-        }
+        console.log('✅ Service Worker 배지 업데이트 요청 전송:', count);
       }
     } catch (error) {
       console.log('Service Worker 배지 설정 실패:', error);

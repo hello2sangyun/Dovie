@@ -37,26 +37,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryKey: ["/api/auth/me"],
     enabled: !!storedUserId,
     refetchInterval: false,
-    staleTime: 0, // Always fetch fresh data for PWA compatibility
-    gcTime: 0, // Don't cache authentication data
+    staleTime: 0,
+    gcTime: 0,
     queryFn: async () => {
+      console.log("📱 PWA 인증 체크 시작:", storedUserId);
+      
       const response = await fetch("/api/auth/me", {
         method: "GET",
         headers: {
           "x-user-id": storedUserId!,
-          "Cache-Control": "no-cache, no-store, must-revalidate", // Force fresh request
+          "Cache-Control": "no-cache, no-store, must-revalidate",
           "Pragma": "no-cache",
           "Expires": "0"
         },
       });
       
+      console.log("📱 PWA 인증 응답:", response.status, response.ok);
+      
       if (!response.ok) {
+        console.log("📱 PWA 인증 실패 - localStorage 정리");
         localStorage.removeItem("userId");
         localStorage.removeItem("rememberLogin");
         throw new Error("Authentication failed");
       }
       
-      return response.json();
+      const userData = await response.json();
+      console.log("📱 PWA 인증 성공:", userData.user?.id);
+      return userData;
     },
     retry: false,
   });
@@ -188,6 +195,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsPreloadingImages(false);
     } else if (!storedUserId && !initialized) {
       console.log("📱 로그아웃 상태로 초기화");
+      console.log("📱 PWA 디버깅 - localStorage 상태:", {
+        userId: localStorage.getItem("userId"),
+        rememberLogin: localStorage.getItem("rememberLogin"),
+        lastLoginTime: localStorage.getItem("lastLoginTime")
+      });
       setUser(null);
       setInitialized(true);
       setProfileImagesLoaded(true);

@@ -437,11 +437,24 @@ export default function MainApp() {
     setModals(prev => ({ ...prev, permissions: false }));
   };
 
-  // PWA 배지 시스템 (푸시 알림 기능과 연동)
+  // PWA 배지 시스템과 로그인 디버깅
   useEffect(() => {
-    if (!user) return;
-    console.log('MainApp rendering with user:', user.id);
-  }, [user]);
+    if (!user) {
+      console.log('📱 MainApp: 사용자 없음 - 로그인 필요');
+      return;
+    }
+    
+    console.log('📱 MainApp: 사용자 로그인됨:', user.id, user.username);
+    console.log('📱 PWA 모드 확인:', {
+      standalone: window.navigator.standalone,
+      displayMode: window.matchMedia('(display-mode: standalone)').matches
+    });
+    
+    // 배지 시스템 초기화
+    setTimeout(() => {
+      updateBadge(0); // 초기 배지 클리어
+    }, 1000);
+  }, [user, updateBadge]);
 
   // Clear app badge when app becomes active (iPhone PWA)
   useEffect(() => {

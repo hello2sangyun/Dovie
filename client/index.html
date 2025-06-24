@@ -111,6 +111,17 @@
             await navigator.serviceWorker.ready;
             console.log('✅ PWA Service Worker 준비 완료');
             
+            // PWA 디버깅 정보 로그
+            console.log('🔍 PWA 디버깅 상태:', {
+              standalone: window.navigator.standalone,
+              displayMode: window.matchMedia('(display-mode: standalone)').matches,
+              serviceWorkerReady: true,
+              localStorage: {
+                userId: localStorage.getItem('userId'),
+                rememberLogin: localStorage.getItem('rememberLogin')
+              }
+            });
+            
             // 즉시 알림 권한 확인
             if ('Notification' in window) {
               console.log('🔔 현재 알림 권한:', Notification.permission);

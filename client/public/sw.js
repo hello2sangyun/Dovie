@@ -24,7 +24,8 @@ const NO_CACHE_PATTERNS = [
   /\/api\/signup/,
   /\/api\/logout/,
   /\/api\/push-subscription/,
-  /\/api\/sms/
+  /\/api\/sms/,
+  /\/api\/unread-counts/ // 뱃지 기능을 위해 실시간 데이터 필요
 ];
 
 // Install event - cache static assets
@@ -378,12 +379,17 @@ async function updateAppBadge(unreadCount) {
   }
 }
 
-// Clear app badge when app becomes visible
+// Handle client messages for badge management
 self.addEventListener('message', (event) => {
+  console.log('[SW] 📨 Message received:', event.data);
+  
   if (event.data && event.data.type === 'CLEAR_BADGE') {
     updateAppBadge(0);
   }
   if (event.data && event.data.type === 'UPDATE_BADGE') {
+    updateAppBadge(event.data.count);
+  }
+  if (event.data && event.data.type === 'SET_BADGE') {
     updateAppBadge(event.data.count);
   }
 });
