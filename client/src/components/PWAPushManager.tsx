@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/hooks/useMinimalAuth';
+import { useAuth } from '@/hooks/useCleanAuth';
 
 interface PWAPushManagerProps {
   onNotificationEnabled?: () => void;

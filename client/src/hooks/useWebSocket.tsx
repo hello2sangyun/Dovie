@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMobileNotification } from "./useMobileNotification";
-import { useAuth } from "./useMinimalAuth";
+import { useAuth } from "./useCleanAuth";
 
 interface PendingMessage {
   id: string;

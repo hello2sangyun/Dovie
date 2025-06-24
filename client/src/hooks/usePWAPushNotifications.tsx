@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from './useMinimalAuth';
+import { useAuth } from './useCleanAuth';
 
 interface PushNotificationState {
   isSupported: boolean;

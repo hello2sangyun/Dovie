@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useAuth } from "@/hooks/useMinimalAuth";
+import { useAuth } from "@/hooks/useCleanAuth";
 import VaultLogo from "@/components/VaultLogo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
