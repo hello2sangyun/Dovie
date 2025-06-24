@@ -761,14 +761,14 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Added mobile device detection and automatic focus management to prevent keyboard persistence
   - Enhanced both text message and voice message sending functions with keyboard auto-hide
   - Mobile users now experience smooth keyboard behavior that automatically dismisses after message transmission
-- June 23, 2025: **COMPLETED PWA DEPLOYMENT with comprehensive mobile app features:**
-  - **Fixed infinite loading issue** by removing profile image preloading dependency from authentication flow
-  - **Resolved WebSocket connection problems** by configuring proper development port routing (localhost:5000)
-  - **Enhanced storage display** to show chat room participant IDs in format "채팅방명 (아이디)" for better identification
-  - **Verified PWA functionality**: push notifications, home screen installation, offline caching all working correctly
-  - **Application successfully loads** with proper authentication flow and real-time messaging capabilities
-  - **Mobile optimization complete**: responsive design, keyboard handling, touch interactions all functional
-  - **Ready for production deployment** with full Progressive Web App capabilities and native mobile experience
+- June 24, 2025: **Fixed critical PWA authentication issues preventing login**:
+  - **Resolved Service Worker caching conflicts** that were blocking authentication API calls in PWA mode
+  - **Added NO_CACHE_PATTERNS** to exclude all authentication endpoints (/api/auth/, /api/login/, /api/signup/, etc.) from Service Worker caching
+  - **Enhanced cache-busting headers** for authentication requests with no-cache directives to prevent stale data
+  - **Implemented comprehensive cache clearing** during Service Worker registration to prevent authentication conflicts
+  - **Optimized profile image preloading** to be completely non-blocking with 5-second delay after successful authentication 
+  - **Fixed PWA login flow** by ensuring fresh authentication requests bypass all caching mechanisms
+  - **PWA now successfully authenticates** users without infinite loading or authentication loop issues
 - June 23, 2025: Enhanced iPhone PWA push notification system with comprehensive sound and app badge support:
   - **Fixed service worker** by removing duplicate event listeners and optimizing iPhone PWA notification handling
   - **Enhanced push notification payload** with iPhone-specific optimizations: silent: false, enhanced vibration patterns, renotify: true

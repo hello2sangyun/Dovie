@@ -58,11 +58,18 @@
           try {
             console.log('🚀 PWA Service Worker 강제 등록 시작...');
             
-            // 기존 등록 모두 해제
+            // Clear all existing registrations to prevent conflicts
             const registrations = await navigator.serviceWorker.getRegistrations();
             for (const registration of registrations) {
               await registration.unregister();
-              console.log('🔄 기존 Service Worker 해제됨');
+              console.log('🔄 Clearing existing Service Worker');
+            }
+            
+            // Clear all caches to prevent authentication issues
+            const cacheNames = await caches.keys();
+            for (const cacheName of cacheNames) {
+              await caches.delete(cacheName);
+              console.log('🗑️ Cleared cache:', cacheName);
             }
             
             // iOS 16+ 감지 및 최적 Service Worker 선택
