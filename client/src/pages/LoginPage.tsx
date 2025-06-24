@@ -34,14 +34,26 @@ export default function LoginPage() {
       return response.json();
     },
     onSuccess: (data) => {
-      setUser(data.user);
-      localStorage.setItem("userId", data.user.id.toString());
+      console.log('로그인 성공, 사용자 설정 중:', data.user);
       
-      if (!data.user.isProfileComplete) {
-        setLocation("/profile-setup");
-      } else {
-        setLocation("/app");
-      }
+      // 로그인 상태 저장
+      localStorage.setItem("userId", data.user.id.toString());
+      localStorage.setItem("rememberLogin", "true");
+      localStorage.setItem("lastLoginTime", Date.now().toString());
+      
+      // 사용자 상태 업데이트
+      setUser(data.user);
+      
+      // 강제 페이지 전환을 위한 window.location 사용
+      setTimeout(() => {
+        if (!data.user.isProfileComplete) {
+          console.log('프로필 설정 페이지로 이동');
+          window.location.href = "/profile-setup";
+        } else {
+          console.log('메인 앱으로 강제 이동');
+          window.location.href = "/app";
+        }
+      }, 200);
     },
     onError: (error: any) => {
       toast({
