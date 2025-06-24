@@ -167,7 +167,9 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Added QR token system with 24-hour expiry for enhanced security (qrToken, qrTokenExpiry fields)
   - Created QRCodeModal component for generating user-specific QR codes with visual design
   - Implemented QRScannerModal with camera scanning, manual input, and image upload capabilities
-  - Added QR code button to settings page header (replacing Dovie logo position)
+  - Added QR code button to both desktop and mobile settings page headers
+  - Desktop: Settings tab header with QR icon next to "설정" title
+  - Mobile: ModernSettingsPage header with QR icon left of "Dovie" badge
   - Integrated QR scanner into friend addition modal with automatic contact list refresh
   - Backend APIs: /api/qr/generate, /api/qr/scan, /api/qr/user/:token for complete workflow
   - Security features: prevents self-addition, duplicate contacts, validates token expiry

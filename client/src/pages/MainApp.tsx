@@ -1244,7 +1244,10 @@ export default function MainApp() {
                 </div>
                 
                 <div className="flex-1 overflow-hidden">
-                  <ModernSettingsPage isMobile={true} />
+                  <ModernSettingsPage 
+                    isMobile={true} 
+                    onQRCodeClick={() => setModals(prev => ({ ...prev, qrCode: true }))}
+                  />
                 </div>
               </div>
             )}

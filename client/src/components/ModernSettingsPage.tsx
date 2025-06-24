@@ -16,7 +16,8 @@ import {
   ChevronRight,
   Edit3,
   Sparkles,
-  UserX
+  UserX,
+  QrCode
 } from "lucide-react";
 import { getInitials, getAvatarColor } from "@/lib/utils";
 import BlockedContactsPage from "./BlockedContactsPage";
@@ -27,9 +28,10 @@ import ProfilePhotoUpload from "./ProfilePhotoUpload";
 
 interface ModernSettingsPageProps {
   isMobile?: boolean;
+  onQRCodeClick?: () => void;
 }
 
-export default function ModernSettingsPage({ isMobile = false }: ModernSettingsPageProps) {
+export default function ModernSettingsPage({ isMobile = false, onQRCodeClick }: ModernSettingsPageProps) {
   const { user, logout } = useAuth();
   const [activeView, setActiveView] = useState<'main' | 'blocked-contacts' | 'profile' | 'notifications' | 'security'>('main');
   const [showProfilePhotoUpload, setShowProfilePhotoUpload] = useState(false);
@@ -85,10 +87,19 @@ export default function ModernSettingsPage({ isMobile = false }: ModernSettingsP
                 <p className="text-sm text-gray-500">계정 및 프로필 관리</p>
               </div>
             </div>
-            <Badge variant="secondary" className="bg-white/80 backdrop-blur-sm">
-              <Sparkles className="w-3 h-3 mr-1" />
-              Dovie
-            </Badge>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={onQRCodeClick}
+                className="p-2 text-gray-500 hover:text-purple-600 hover:bg-white/50 rounded-lg transition-colors"
+                title="QR 코드 생성"
+              >
+                <QrCode className="h-5 w-5" />
+              </button>
+              <Badge variant="secondary" className="bg-white/80 backdrop-blur-sm">
+                <Sparkles className="w-3 h-3 mr-1" />
+                Dovie
+              </Badge>
+            </div>
           </div>
 
           {/* 프로필 카드 */}
