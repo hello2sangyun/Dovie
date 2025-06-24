@@ -18,11 +18,12 @@ import CommandModal from "@/components/CommandModal";
 import CreateGroupChatModal from "@/components/CreateGroupChatModal";
 import ProfilePhotoModal from "@/components/ProfilePhotoModal";
 import ZeroDelayAvatar from "@/components/ZeroDelayAvatar";
-import { PWAPushManager } from "@/components/PWAPushManager";
+
 import { usePWABadge } from "@/hooks/usePWABadge";
 import QRCodeModal from "@/components/QRCodeModal";
 import InstantAvatar from "@/components/InstantAvatar";
 import { BannerNotificationContainer } from "@/components/MobileBannerNotification";
+import { SimplePushManager } from "@/components/SimplePushManager";
 import LoadingScreen from "@/components/LoadingScreen";
 import { ConnectionStatusIndicator } from "@/components/ConnectionStatusIndicator";
 import { PermissionRequestModal } from "@/components/PermissionRequestModal";
@@ -212,21 +213,12 @@ export default function MainApp() {
     const notificationGranted = localStorage.getItem('notificationPermissionGranted');
     
     // 첫 로그인 시 자동으로 푸시 알림 권한 요청 및 등록 (기본값 ON)
+    // Only register push notifications once if not already done
     if (!notificationGranted) {
       setTimeout(async () => {
         await autoEnablePushNotifications();
       }, 1500);
-    } else if (notificationGranted === 'true') {
-      // If notifications are already granted, ensure push subscription is registered
-      setTimeout(() => {
-        registerPushNotification();
-      }, 1000);
     }
-    
-    // Always try to register push subscription for existing users
-    setTimeout(() => {
-      ensurePushSubscription();
-    }, 2000);
     
     // Only show permission modal if microphone permission hasn't been handled yet
     if (!microphoneGranted && notificationGranted !== 'false') {
@@ -1357,7 +1349,7 @@ export default function MainApp() {
         </div>
       )}
 
-      <PWAPushManager />
+      <SimplePushManager />
     </div>
   );
 }

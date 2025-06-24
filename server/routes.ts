@@ -5138,20 +5138,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // VAPID public key endpoint for push notifications (통합)
+  // VAPID public key endpoint for push notifications
   app.get("/api/vapid-public-key", (req, res) => {
-    console.log('📤 VAPID 공개키 요청됨');
     const publicKey = process.env.VAPID_PUBLIC_KEY || 'BMqZ8XNhzWqDYHWOWOL3PnQj2pF4ej1dvxE6uKODu2mN5qeECeV6qF4ej1dvxE6uKODu2mN5q';
-    console.log('📤 VAPID 공개키 응답:', publicKey.substring(0, 20) + '...');
     res.json({ publicKey });
   });
 
-  app.get("/api/push-vapid-key", (req, res) => {
-    console.log('📤 VAPID 공개키 요청됨 (신규 엔드포인트)');
-    const publicKey = process.env.VAPID_PUBLIC_KEY || 'BMqZ8XNhzWqDYHWOWOL3PnQj2pF4ej1dvxE6uKODu2mN5qeECeV6qF4ej1dvxE6uKODu2mN5q';
-    console.log('📤 VAPID 공개키 응답:', publicKey.substring(0, 20) + '...');
-    res.json({ publicKey });
-  });
+
 
 
 
