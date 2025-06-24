@@ -1789,21 +1789,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Not authenticated" });
       }
 
-      const { endpoint, p256dh, auth } = req.body;
+      const { endpoint, p256dh, auth, keys } = req.body;
       const userAgent = req.headers['user-agent'] || '';
 
-      // 기존 구독이 있다면 업데이트, 없다면 새로 생성
-      await storage.upsertPushSubscription(Number(userId), {
-        endpoint,
-        p256dh,
-        auth,
-        userAgent
+      console.log('Registering push subscription for user', userId, {
+        endpoint: endpoint?.substring(0, 50) + '...',
+        hasP256dh: !!p256dh,
+        hasAuth: !!auth,
+        hasKeys: !!keys
       });
 
-      res.json({ success: true, message: "푸시 알림 구독이 완료되었습니다." });
+      // Handle both formats: direct p256dh/auth or nested keys object
+      const subscriptionData = {
+        endpoint,
+        p256dh: p256dh || keys?.p256dh,
+        auth: auth || keys?.auth,
+        userAgent
+      };
+
+      await storage.upsertPushSubscription(Number(userId), subscriptionData);
+
+      res.json({ success: true, message: "Push notification subscription completed" });
     } catch (error) {
       console.error("Push subscription error:", error);
-      res.status(500).json({ message: "푸시 알림 구독 중 오류가 발생했습니다." });
+      res.status(500).json({ message: "Failed to save push subscription" });
     }
   });
 
@@ -4831,11 +4840,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Push notification routes
-  app.get("/api/vapid-public-key", (req, res) => {
-    res.json({ publicKey: getVapidPublicKey() });
-  });
-
+  // Push notification routes (removing duplicate)
   app.get("/api/push-subscription/status", async (req, res) => {
     const userId = req.headers["x-user-id"];
     if (!userId) {
@@ -4843,8 +4848,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const subscriptions = await storage.getPushSubscriptions(Number(userId));
-      console.log(`📊 Push subscription status for user ${userId}:`, {
+      const subscriptions = await storage.getUserPushSubscriptions(Number(userId));
+      console.log(`Push subscription status for user ${userId}:`, {
         subscriptionCount: subscriptions.length,
         isSubscribed: subscriptions.length > 0
       });
@@ -4860,50 +4865,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Check push subscription status error:", error);
       res.status(500).json({ message: "Failed to check push subscription status" });
-    }
-  });
-
-  app.post("/api/push-subscription", async (req, res) => {
-    const userId = req.session?.userId || req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      const subscription = req.body;
-      console.log(`🔔 Registering push subscription for user ${userId}:`, {
-        endpoint: subscription.endpoint?.substring(0, 50) + '...',
-        hasKeys: !!subscription.keys,
-        userAgent: req.headers['user-agent']?.substring(0, 50) + '...'
-      });
-      
-      await storage.upsertPushSubscription(Number(userId), {
-        endpoint: subscription.endpoint,
-        p256dh: subscription.keys.p256dh,
-        auth: subscription.keys.auth,
-        userAgent: req.headers['user-agent'] || ''
-      });
-
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Push subscription error:", error);
-      res.status(500).json({ message: "Failed to save push subscription" });
-    }
-  });
-
-  app.delete("/api/push-subscription", async (req, res) => {
-    const userId = req.session?.userId || req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      const { endpoint } = req.body;
-      await storage.deletePushSubscription(Number(userId), endpoint);
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Push unsubscription error:", error);
-      res.status(500).json({ message: "Failed to remove push subscription" });
     }
   });
 
@@ -5138,11 +5099,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // VAPID public key endpoint for push notifications
-  app.get("/api/vapid-public-key", (req, res) => {
-    const publicKey = process.env.VAPID_PUBLIC_KEY || 'BMqZ8XNhzWqDYHWOWOL3PnQj2pF4ej1dvxE6uKODu2mN5qeECeV6qF4ej1dvxE6uKODu2mN5q';
-    res.json({ publicKey });
-  });
+  // Remove duplicate VAPID endpoint
 
 
 

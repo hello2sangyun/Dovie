@@ -39,7 +39,7 @@ export function SimplePushManager() {
         // Check if already subscribed
         const existingSubscription = await registration.pushManager.getSubscription();
         if (existingSubscription) {
-          // Verify with server
+          // Verify with server - fixed format
           await fetch('/api/push-subscription', {
             method: 'POST',
             headers: {
@@ -48,10 +48,9 @@ export function SimplePushManager() {
             },
             body: JSON.stringify({
               endpoint: existingSubscription.endpoint,
-              keys: {
-                p256dh: arrayBufferToBase64(existingSubscription.getKey('p256dh')),
-                auth: arrayBufferToBase64(existingSubscription.getKey('auth'))
-              }
+              p256dh: arrayBufferToBase64(existingSubscription.getKey('p256dh')),
+              auth: arrayBufferToBase64(existingSubscription.getKey('auth')),
+              userAgent: navigator.userAgent
             })
           });
           

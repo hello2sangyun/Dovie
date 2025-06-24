@@ -117,7 +117,7 @@ export interface IStorage {
   // Push notification operations
   upsertPushSubscription(userId: number, subscription: { endpoint: string; p256dh: string; auth: string; userAgent: string }): Promise<void>;
   deletePushSubscription(userId: number, endpoint: string): Promise<void>;
-  getPushSubscriptions(userId: number): Promise<any[]>;
+  getUserPushSubscriptions(userId: number): Promise<{ endpoint: string, p256dh: string, auth: string, userAgent: string }[]>;
 
   // QR Code System
   generateQRToken(userId: number): Promise<string>;
@@ -960,19 +960,13 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(pushSubscriptions.userId, userId), eq(pushSubscriptions.endpoint, endpoint)));
   }
 
-  async getPushSubscriptions(userId: number): Promise<any[]> {
-    return await db
-      .select()
-      .from(pushSubscriptions)
-      .where(eq(pushSubscriptions.userId, userId));
-  }
-
-  async getUserPushSubscriptions(userId: number): Promise<{ endpoint: string, p256dh: string, auth: string }[]> {
+  async getUserPushSubscriptions(userId: number): Promise<{ endpoint: string, p256dh: string, auth: string, userAgent: string }[]> {
     return await db
       .select({
         endpoint: pushSubscriptions.endpoint,
         p256dh: pushSubscriptions.p256dh,
-        auth: pushSubscriptions.auth
+        auth: pushSubscriptions.auth,
+        userAgent: pushSubscriptions.userAgent
       })
       .from(pushSubscriptions)
       .where(eq(pushSubscriptions.userId, userId));
