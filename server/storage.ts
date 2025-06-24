@@ -937,29 +937,21 @@ export class DatabaseStorage implements IStorage {
 
   // Push notification operations
   async upsertPushSubscription(userId: number, subscription: { endpoint: string; p256dh: string; auth: string; userAgent: string }): Promise<void> {
-    const [existingSubscription] = await db
-      .select()
-      .from(pushSubscriptions)
+    // First delete any existing subscriptions for this endpoint to prevent duplicates
+    await db
+      .delete(pushSubscriptions)
       .where(and(eq(pushSubscriptions.userId, userId), eq(pushSubscriptions.endpoint, subscription.endpoint)));
 
-    if (existingSubscription) {
-      await db
-        .update(pushSubscriptions)
-        .set({
-          p256dh: subscription.p256dh,
-          auth: subscription.auth,
-          userAgent: subscription.userAgent
-        })
-        .where(eq(pushSubscriptions.id, existingSubscription.id));
-    } else {
-      await db.insert(pushSubscriptions).values({
-        userId,
-        endpoint: subscription.endpoint,
-        p256dh: subscription.p256dh,
-        auth: subscription.auth,
-        userAgent: subscription.userAgent
-      });
-    }
+    // Then insert the new subscription
+    await db.insert(pushSubscriptions).values({
+      userId,
+      endpoint: subscription.endpoint,
+      p256dh: subscription.p256dh,
+      auth: subscription.auth,
+      userAgent: subscription.userAgent
+    });
+
+    console.log(`Push subscription upserted for user ${userId}, endpoint: ${subscription.endpoint.substring(0, 50)}...`);
   }
 
   async deletePushSubscription(userId: number, endpoint: string): Promise<void> {

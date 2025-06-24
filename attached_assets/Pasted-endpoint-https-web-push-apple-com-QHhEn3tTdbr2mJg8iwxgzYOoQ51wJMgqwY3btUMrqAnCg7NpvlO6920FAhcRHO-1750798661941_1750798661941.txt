@@ -1,0 +1,916 @@
+endpoint: 'https://web.push.apple.com/QHhEn3tTdbr2mJg8iwxgzYOoQ51wJMgqwY3btUMrqAnCg7NpvlO6920FAhcRHO-Bva-Jbtl3Sy47pIPFxBVYv73D5BHC8Ke_X2rLPTTAaw0W2OklrpiZOVa4nBdE-wztKNntd1X8JKE6p1aRWYHtqPixmnO035juYFkQIgmtIFU',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QLZFulhkZ0KbaDKJBfN6gDtJfYNqbZWlpNuphZ59DTStbbWXbIZdxF8_AGfjH0t7VSIZkSDudD2GbEtXm0cE-227lTuSi-3X_yetNOaLDxPldGXcqRiu4pMfuM6mxZmzGz_Ldc9wh5oHudDYDQBspm77dVoGnlSxm9EnKBTKyuc',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QFEGtkba6wftXAq5Yh3CgDdcim2yUXdm0TE2osTgf-O0tS0AFxCnWuSobw2tPaLj539Qj6HXvAqmlfRFjbtycbIABxQXAFeB9qHQ2VjjOgY786BhT1JsSrmK6AbsCyrJDPjq3IqKcj4KKa1WVDRvSoar_Mjk7_qMtCld1nfWnvg',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QP_09wudXsEz3CoMy04FsA0qFLB5P9roileMvLNZOKATK8Gtm-8f9bhzPTfZsbVrqoCfyf-aXc5HkzhHWaTGvwD3ibaDmdZfyXKEhiiuimanosJAZkO_lrsVv2nvYC4sC6-yT12grF5QqhhZ57o_3Kh3r1edViHbeSQxJnXUAs4',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QHiGqMnFl1R5vvHdFlqguENW2lquQVKAEnKBq8IhVEiDQMcDV46ekTHYj2_nbDbsaPAMVEfefftTd2OHn6CcWmxY7oDwwHi2HQg0KW6DTD616PFt_3nsWTLXIfmG06jdrpHu8HnwRXowd-yvdLT3t5_BFoNVZq7kwxGwsiUo7Nc',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QIeoVv5jWeHSU9ejH5CSESE1pAi0qUu1KmAL-VFuRfeeFn6pzQ2MnBTb5ewogPRToCmvOCtR_aL1W7V8KEAT-aH1AK9Odv0ivRBa_4gOhMxkWtEurRQsQ9X0IAfV4njB9za1nkrgTCEs8OK47Q6atIsloEu5JLVsZCwI0uAtle8',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QJoVtaiU7kWnUlSY1x06htGjFt-ewtpVyzar6kzVebmGT-bBkrqxbbFKeI9B9SNOmUIqyUYRo9Xyv5o9STFT4_oCYlJHn_z4yNCWtyOlOnI2fMaKsUpDzc7ewFyYskStmXZoyS6QLBO5tcuKxrvA_uqWATZI2PJxqOL2JIGOYnw',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QHAhfvlJ1PK57NFrzlAWGlsKfOHNQ1aDBA6zgaNpmF8z8OU9IoTiKQhzhGcEriv7Vs5a91xs2zJYpdYlYK5GWbY4eQGU5-2b1ErEpYFhOe5zLAFPgL5BrS3iRP2GhqWdFEv9mtiSxwJSyTKFEARd7Oh0Z59aZ8968_e1xIzYHok',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QIBlb-kjcFmCGJievbndDk4vbeGSFRafv8KYma-XbF5dilZiiohBGkv8PmwCPz17PcJg0dAmmKGDgdQ0Vlf78DL5UXW7EsJ85hMjYcEUetBZxZjdFOUxa21oftYVC0BJOKgQI3OEJ6VpFWYylAslCNeCc06vOi1zPJfzl0UGdvw',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QKHIAhFgO_gcci1Ek8P8LNCOuRBYYVRoa5RFkf3zXdktKbSK5JfeHt3DdPycmUOIQCi9qLq8a8I6vak3jIFJs_9WynwL3QiPGncMS1Wout_Ri9cyfTeLP0hCaqhHduTn1Uo2ZSUTbrkGTa4e9HLVd69JRdRaJ_G94XMFMrvvxyE',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QF6SKajjoFt3aUyRua6w6lPfOul0qryOBmLpxC9trLVN_fgNE_Dq45ENKODqOeseT3jzWMpnPXCMhe2nrMvEAfdfcMee2Zul0_NAUhnHqPYFCLm4TYkYIB6RmSryWRl1tTvCamkENAcZ-jisvy56bRRMXMa9ar5VoFNJ110-lF4',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QCaRFXZvKU0jp1QRoDHX4JbGVzONStOBSqvCV2fkw_ETbThV59lC0CrYGdbyEalidhmZnhKV3JPShbOLcEdRubqvoWVGAc_l11xIbSmuAViSAq5bVaVgsvUR-CjbY7u8uI4iQuzhMVfP1wCFUN1J3X3g6S1OGfPu-er5_TRQC9E',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QFiST3pI4IvuH3Z4T-rr03oExV6QRw_zr6IfhYWRLHXxKNTZOna_ISrkyyUvEpF812Ni8HS09EWdLFT7N2ksnOi6HlaqSD9IHvJOmH9BWRi-nCLUNlPvMxuzpy1k42hQWSaTxK5ELulqbPXN0VA1QDYYSLygMdxIO23UmEMvsqE',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QKr8UgOw1n2MzRGToncExSlZpI9tivvQZICFhIPrNC2CaKedb-NYYVxbx8JntRNepl7m0LbH6iwBi3tBtFp-bCtgqnd26v_AngKS-MUEtwssyAQYD8ipzNPVipqrzuZuSPIRZovZZ7q-KLK62cfDtc3UqOPAavEUZgYy0b5deAY',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QOJjvefGJMtbK17jmVPVpGuZewnCtPI_NvJYzQXeqArG7l8bkod0glndnj6M2GJwLZeofqGjdypHIihyYc5Gt-SoSWT1uXMhaAvtOkTICFHNcTG4bKoJljx2WWWLb6PpbR-UM9hI5D9npy7-AQKJhnLTYcup8SZ784aLnzyn-eg',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QL6T7c5bTVfOOZhCwNceHK1ChAPldFKuKa14CQqK5dh6y7pCqmiTgP1eDZ0c6y_hzy1MdQRYQgISdwHzEV02FklPVPody6e4QyB-T4XI9cmkn1MzVGp_OxfWOMSZ3Tbo4riBGsHg9pBYq6L6GwgT9_N5-3NTLtHmQjkch8mzZKk',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QPoZyrhEBOQF06GVAhCTe2hGswW8PDcjKTcZ7ERPF0gbJl1_WTEeG1nNQft2HrGfcM03oDGb3wHMXBfFVwMXMrD4XqTgvF0Ax_DfF1ifz1LW741zMC1g1tf0Eegak642v_-5QcVRZqG4xcKPgHKonFTqCSDkSePYcUj3ZxZPzMQ',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QJBKabwA5TDQgMwiU7_oW2GgKy6VewQAy3Oa-Z_7ldBWC_rpWG6U0307maxYputRS-pE7-gSd3QPlYuWg40e7ZfXe_jK3iETOghWdQG6SEjuYIgqvY9cvIVnVQj_wfjRQ408j7eqXuxjmBFP1Chh_5EB13g01nQOhUUNhSVcRV0',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QH4lCAGtIidej4_XXqvvXa8-yGQmb-k4z4EbaJ3una7PGIO1enQTb817IiQK5naLzTsTaKYir3UNVhWx0LM3PWI5B-2WRLjdFX2a_I6Fs04JHpcdsVSExHlI-GeuXzsXvc67esDiD5rKQPlSvbYZxzNmbdpvCODRSGBo1rNhrFU',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QGTa6BhVk5xzSGRNZm4x3srpz2gGhBxWMXSPAW8z6ybED-c57vV4joraoJc57TfOKQVaGyO48sDVRtu4M9IrEzmw0A2NiwSnA11FseDFQeOr75jRISQ0CpVr-u4n9USWHYevAP2x8BM5wIG4tGPBhiZvyu6s-L9eDPOz5P9GMK0',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QA35Ns4wJJN7AjQHtKe8WfrszHWs0xVZ9MADfVFUQY4r4CTVLbzhdShQWqs8ImbnABclmBqVN8aDpAaS8NDXK7b9cpetRq0oeud_BA2lR2w2LTo5E1PxibfFiCQmk373HvNggoYQ_59MNjzdgz8TytpTqMS8UFrTMMpIgT6JiTY',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QIjbds9l5Nzf-jJC7vNSuFLCoyo4eMy8N_iEv1yCmC67gT-lphsuPRAVKyhLsb02kWO-09o1TOllMBH_aoEuTMMmCe7ysfnUWHrzDNX81B7pZxDHtgIvWMXcFYFZ_Ehez7JBiVYTHiw_ciVBuuFvuYOM8RQnjRGLSUNT2ZdmsT8',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QFAHOyhArzgJQTYzuSUmV9YE9U44ciDnT16PwWvgvMDPamdo5Ac-4ekaqT_iDaiSinNZCzEUdoE3E5CA-EMOc65FmHcu0JsaMRBg1pu3gNPXx2gn4Q0jLp4UqabPT-WNSwDQBNMcveXRoifOJ5Eer1n91epFbG5LKK2oItgfn-0',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QK9Yu9sqY0j_k3xmdtplsY3aWsrQL5B2-xeawYe32ince6XlTSnHJXYBbs-f0GOyFP9fhmDddSNMDgJvuOCm2329bNTNIp5g3wA4V1xdokmlxApat0g82ARpPyfIqzhP7ALBnJoYou3g0NKHQ0atyzHDI9k18qr04p3Lchz1t2w',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QDFq3705rkGojqYiKjcA9dfWF66PnrkLQkwlNOA9HqhEgCfcjrkomAq4o8d-gNbXR0pkg5vXfTwv0ps4y-8DjDC0rTbZ7aqGWeXCZjU9lf0cag_sW9htAK9ADVO_Uavn-pKu6o-qPKzupxW6xxu5iGBKK7JiUtDAA3R3n_p6uxs',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QI5RJP_43DHwX6X6TJNSdndpuKXKuqav2b-e7x8_nplyatNxc1qMcfcUD4DNQrUW6YuJCn8X04cJO2eQ44yEB_YGlqVYOhK0UsnUQCJ13vm3676YTA6Ngrg43ViuAr6fuju7FLmDE1xP0HVYKXfqRzH07G9RPuE7sZ3wSGd5zEc',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QCdyQyWcO6bZv_o1eRiLw5vKfIOl45pZuBbpwCERY7xM5GhejfzWdmK5h7LGZapMWwcZ-X_PPvVxTc1ROS77GOVZSlgUFxv_AKXbqP8mxcdFAI0Iq8xArXctVq4dP5otvgVQd5LCyfPV3Who8mIDIwqW_rtpaVjX4Vmqbe3BdY8',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QLFFLT8_s1yy-NenQ3Se57QgzmYkBlHQxAiRVNTV-O_AEnP9kaAwkSzV3cjYBDa_15Aey9bz0Xu1U4Cr652Z5niAcs9zZVKYsrZHhq6e1cEm5ync4m0p9aL-Do_BvZczRZ4PzSgdV00sFYJ9RW4dHJh-KV1p48AcoYRiC_swK3s',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QFVVUvD_hwNvzqCAV4D5i_R3PjARzN9EJZyB_38FOhoXsfZ3zxPgbVxQd_8EOoSeiZG1ksx0DD9qPWLL1MLbFQ0KFVkR0sDo0QVZ_ClIj8WvkHigGgEbDq9OQOa11dPwdvMG6DDf2piMKrEs5MLOlbryAuYR1jPrraYpD2XEK5I',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QDJnDVLh1vlLbip1q0kG4KZr4W6oBgE0BREzA3FID2j8h-0s2MNzladMHIO6tiEjz1JJ_MxP95obHiGmeu-rnz31-Hyfn3le7VY7HwR5TWqPISDMtVVSSLDt2HTiiC7ZmRflWVyZdRAObzTZOOhJTWCPhSinF29oJF3hyTZd8ek',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QG4yRmS5m_kbjP5C1GXjWUZbM8AZ3pt84KnCA1gDTYxuQFcqciy8KV9XCzrlJ-R7BFKmCnppwKcbH-WiefBqLO2vlraBebkz8VHxR7W3HcOtdkwxNnsLVkUSjwcmQI0dGvV2p4PXnh9hk6VdsXapxmNj68B0reDejzEAgDCn58w',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QL6yobdq6YJ0Y6SN9iFY-j8mqcYHF11Ku2gtDCvTKFGRa5mHwsHYm2s4tdU5loY26EZtSzmvdP-EU61qBv0YAGPn-z75evquRIR2XWq78HwQnU4NGFRm2UCpGiH62TWOBuaLSkRnCmN-y7CO90T_KVw6xA-K_A44VtA7zZmOjLw',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QBfXeeVvoUZ3uCin7OrJsylF4uQxD0z12yKSpXt0zX2wWnwANHQj9NHVq__h406NJvNcKTHQfg9tqqQcFlabw-IL1lxwSjwmp6pqXgU_3QqdKM0zIMvufvnBhEyijfhAV_t7pjslTq8IoHIojNX3l2YX8wHYToD2Eg8nYxpbuAQ',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QOjwO9ibPiNOHYCO8dkKJY9AlLWgPp6pD7YW0gpFsBRDEOgFgRugBn1q4V1hcbAsZ2Z17j6TpO5lV1efMGh5dpHzjARm1VkTfCNsDAN9t-6C-1Zv2dXgfoXSgTIq3lB13OdieChH9OQF9gJZqu9JyHb_kUosePQ33B0C2pVUIs4',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QLKcJb6BCLi50iqXfCnAgSIWKHErMJM8YgRgl_pR61g-HhLBEbktWQUGPjkwLH7nzg8LpE5J73u0OLI8H8O9eWo8fmORkIVi_WXvL7aMUGagzL3gfcKRqSkyVPM-88Cs9e3Va4CkCFSVhoFq35e_iCyoDlIkhuqXQIsrE_60Vug',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QFCTiLBzMkVhpRBPl2C4H4nw5NMWWDEJZcJX29yVHzOfkKc5OGpkCAsh_bAOlGcuK8DN76JqMi8zNFWauf98AtZdTexy1a_Pkp5jWman0_vofFDtefaz-lDrwgDiXIL-aQxlgbD-Zw5DnsiBOM1_VBhJ2lFMuLzNlekXNsGmg8k',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QGbvBEAfP83x-h0AadRKF6w5VjiviUM74Sdik1rwZ1QVGeQ0KWbfp_z4l3gGiZBS1YpbQRLF3HWtcihJbgNh7bmXSfkTZ5MfByEmMsXKLVkCCFDSKD6jIVjkRe0Y50WMx-ZgJTTU3wA6yOoXZDAZQmQkGNX5NQNJ_HmHmm0rD_w',
+  payload: {
+    title: '딸기',
+    body: '반복 테스트 푸시 알림 완전 제거 완료',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 9,
+    badge: '/icons/icon-72x72.png',
+    data: {
+      url: '/?chat=90',
+      timestamp: 1750798408420,
+      type: 'message',
+      chatRoomId: 90,
+      messageType: 'text',
+      senderId: 112
+    },
+    tag: 'dovie-message-1750798408420',
