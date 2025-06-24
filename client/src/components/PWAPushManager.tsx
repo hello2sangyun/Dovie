@@ -48,8 +48,7 @@ export function PWAPushManager({ onNotificationEnabled }: PWAPushManagerProps) {
       // 5. 서버에 구독 정보 전송
       await sendSubscriptionToServer(subscription);
 
-      // 6. 테스트 푸시 발송
-      await sendTestPushNotification();
+
 
       console.log('✅ PWA 푸시 시스템 활성화 완료');
       onNotificationEnabled?.();
