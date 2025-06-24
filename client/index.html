@@ -65,27 +65,15 @@
               console.log('🔄 기존 Service Worker 해제됨');
             }
             
-            // iOS 16+ 감지 및 최적 Service Worker 선택
-            const isIOSDevice = /iPhone|iPad|iPod/.test(navigator.userAgent);
-            const isIOS16Plus = isIOSDevice && (
-              /OS 1[6-9]/.test(navigator.userAgent) || 
-              /OS [2-9][0-9]/.test(navigator.userAgent) ||
-              /Version\/1[6-9]/.test(navigator.userAgent) ||
-              /Version\/[2-9][0-9]/.test(navigator.userAgent)
-            );
+            // Chrome PWA 최적화 - 단일 Service Worker 사용
+            const isChrome = /Chrome/.test(navigator.userAgent) && !/Edge/.test(navigator.userAgent);
             const isPWAMode = window.navigator.standalone === true || 
                             window.matchMedia('(display-mode: standalone)').matches;
             
-            let swFile = '/sw.js'; // 기본
-            if (isIOSDevice && isIOS16Plus && isPWAMode) {
-              swFile = '/sw-ios16-enhanced.js'; // iOS 16+ PWA 강화
-            } else if (isIOSDevice) {
-              swFile = '/sw-ios16.js'; // iOS 기본
-            }
+            let swFile = '/sw.js'; // Chrome PWA 최적화된 단일 SW
             
-            console.log('🔍 디바이스 정보:', {
-              isIOSDevice,
-              isIOS16Plus,
+            console.log('🔍 Chrome PWA 정보:', {
+              isChrome,
               isPWAMode,
               swFile,
               userAgent: navigator.userAgent

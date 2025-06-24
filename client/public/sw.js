@@ -1,16 +1,18 @@
-const CACHE_NAME = 'dovie-messenger-v1';
-const STATIC_CACHE_NAME = 'dovie-static-v1';
-const DYNAMIC_CACHE_NAME = 'dovie-dynamic-v1';
+const CACHE_NAME = 'dovie-chrome-pwa-v2';
+const STATIC_CACHE_NAME = 'dovie-static-chrome-v2';
+const DYNAMIC_CACHE_NAME = 'dovie-dynamic-chrome-v2';
 
-// Static assets to cache
+// Chrome PWA에 최적화된 정적 자산
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
   '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png'
+  '/icons/icon-512x512.png',
+  '/icons/icon-72x72.png',
+  '/icons/icon-96x96.png'
 ];
 
-// Runtime caching for API responses
+// API 캐싱 패턴 - Chrome PWA 최적화
 const API_CACHE_PATTERNS = [
   /\/api\/auth\/me/,
   /\/api\/contacts/,
@@ -18,33 +20,34 @@ const API_CACHE_PATTERNS = [
   /\/api\/profile-images\//
 ];
 
-// Install event - cache static assets
+// Chrome PWA Install 이벤트
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker...');
+  console.log('[Chrome SW] 🚀 Chrome PWA Service Worker 설치 중...');
   
   event.waitUntil(
     caches.open(STATIC_CACHE_NAME)
       .then((cache) => {
-        console.log('[SW] Caching static assets');
+        console.log('[Chrome SW] 📦 Chrome PWA 정적 자산 캐싱');
         return cache.addAll(STATIC_ASSETS);
       })
       .then(() => {
-        console.log('[SW] Static assets cached successfully');
+        console.log('[Chrome SW] ✅ Chrome PWA 정적 자산 캐시 완료');
         return self.skipWaiting();
       })
       .catch((error) => {
-        console.error('[SW] Failed to cache static assets:', error);
+        console.error('[Chrome SW] ❌ Chrome PWA 캐시 실패:', error);
       })
   );
 });
 
-// Activate event - clean up old caches
+// Chrome PWA Activate 이벤트
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker...');
+  console.log('[Chrome SW] 🔄 Chrome PWA Service Worker 활성화');
   
   event.waitUntil(
-    caches.keys()
-      .then((cacheNames) => {
+    Promise.all([
+      // 이전 캐시 정리
+      caches.keys().then((cacheNames) => {
         return Promise.all(
           cacheNames
             .filter((cacheName) => {
