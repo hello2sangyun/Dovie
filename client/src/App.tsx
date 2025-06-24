@@ -18,37 +18,14 @@ import NotFound from "@/pages/not-found";
 import { useEffect } from "react";
 
 function Router() {
-  const { user, initialized } = useAuth();
-  
-  // PWA 세션 복원 처리
-  if (!initialized) {
-    return <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
-        <p className="text-gray-600">앱을 시작하는 중...</p>
-      </div>
-    </div>;
-  }
-  
-  // PWA에서 자동 리다이렉트 로직
-  if (user && window.location.pathname === '/') {
-    window.history.replaceState(null, '', '/app');
-    return <MainApp />;
-  }
-  
-  if (user && (window.location.pathname === '/login' || window.location.pathname === '/phone-login')) {
-    window.history.replaceState(null, '', '/app');
-    return <MainApp />;
-  }
-  
   return (
     <Switch>
-      <Route path="/" component={user ? MainApp : LandingPage} />
-      <Route path="/login" component={user ? MainApp : LoginPage} />
-      <Route path="/signup" component={user ? MainApp : SignupPage} />
+      <Route path="/" component={LandingPage} />
+      <Route path="/login" component={LoginPage} />
+      <Route path="/signup" component={SignupPage} />
       <Route path="/profile-setup" component={ProfileSetupPage} />
-      <Route path="/phone-login" component={user ? MainApp : PhoneLogin} />
-      <Route path="/app" component={user ? MainApp : LandingPage} />
+      <Route path="/phone-login" component={PhoneLogin} />
+      <Route path="/app" component={MainApp} />
       <Route path="/admin" component={AdminPage} />
       <Route path="/friend/:userId" component={FriendProfilePage} />
       <Route component={NotFound} />
