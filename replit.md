@@ -208,6 +208,20 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - **Added automatic badge testing** in MainApp with 3-second delay for proper initialization
   - **Implemented registration.setAppBadge priority** with registration.badge.set fallback in dedicated SW
   - **System now uses clean, focused approach** without interference from push notification Service Workers
+- June 25, 2025: **⭐️ WORKING BADGE SYSTEM VERSION - REMEMBER THIS**:
+  - **sw-badge.js 배지 전용 Service Worker 작동 확인됨**
+  - **usePWABadge hook이 MainApp에 성공적으로 연결됨**
+  - **푸시 알림에 badge: 11 payload 포함되어 전송됨**
+  - **자동 배지 테스트 시스템이 3초 후 실행됨**
+  - **현재 11개 안읽은 메시지로 테스트 가능한 상태**
+  - **이 버전이 최종 성공 버전이므로 절대 변경하지 말 것**
+- June 25, 2025: **인증 없는 PWA 디버그 시스템 구현**:
+  - **전략 변경**: 모든 인증/쿼리 의존성 제거하여 PWA 기능만 독립 테스트
+  - **디버그 콘솔**: 실시간 로그 출력으로 PWA API 호출 결과 추적 가능
+  - **테스트 범위**: Badge API, Push API, Notification API, Service Worker 등록 상태
+  - **오류 추적**: 각 PWA 기능별 성공/실패 상태와 에러 메시지 상세 로깅
+  - **브라우저 호환성**: iOS 16+ Safari, Android Chrome PWA 환경 지원 확인
+  - **디버깅 접근**: 루트 페이지(/)에서 PWA Debug Test Console 즉시 사용**
 - June 16, 2025: Completed comprehensive removal of nearby chat (주변챗) functionality including:
   - Removed location-based database tables (locationChatRooms, locationChatParticipants, locationChatMessages, userLocations)
   - Deleted all location-based API endpoints (/api/location/*)

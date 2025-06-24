@@ -1,48 +1,21 @@
-import { useEffect, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useAuth } from './useAuth';
+import { useCallback } from 'react';
 
 export function usePWABadge() {
-  const { user } = useAuth();
-
-  // 읽지 않은 메시지 수 조회
-  const { data: unreadCounts } = useQuery({
-    queryKey: ['/api/unread-counts'],
-    enabled: !!user,
-    refetchInterval: 30000, // 30초마다 갱신
-    staleTime: 10000 // 10초간 fresh
-  });
-
-  // iOS 16 PWA 배지 업데이트 (안전한 방식)
   const updateBadge = useCallback(async (count: number) => {
-    if (typeof count !== 'number' || count < 0) return;
+    console.log('Setting badge to:', count);
     
     try {
-      // iOS 16+ PWA에서 가장 안정적인 방법
       if ('setAppBadge' in navigator) {
         if (count > 0) {
           await (navigator as any).setAppBadge(count);
-          console.log('배지 설정:', count);
+          console.log('Badge set successfully:', count);
         } else {
           await (navigator as any).clearAppBadge();
-          console.log('배지 클리어');
+          console.log('Badge cleared successfully');
         }
-        return; // 성공하면 SW 메소드는 건너뛰기
       }
     } catch (error) {
-      console.log('배지 API 실패:', error);
-    }
-
-    try {
-      // Service Worker 백업 방법 (충돌 방지)
-      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({
-          type: 'SET_BADGE',
-          count: count
-        });
-      }
-    } catch (error) {
-      console.log('SW 배지 실패:', error);
+      console.log('Badge setting failed:', error);
     }
   }, []);
 
@@ -53,7 +26,7 @@ export function usePWABadge() {
 
   // 읽지 않은 메시지 수 변경 시 배지 업데이트
   useEffect(() => {
-    if (unreadCounts && Array.isArray(unreadCounts)) {
+    if (unreadCounts) {
       const totalUnread = unreadCounts.reduce((total: number, room: any) => 
         total + (room.unreadCount || 0), 0
       );

@@ -1260,28 +1260,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Send push notifications to recipients
-      try {
-        const chatRoom = await storage.getChatRoomById(Number(req.params.chatRoomId));
-        if (chatRoom?.participants) {
-          const sender = await storage.getUser(Number(userId));
-          const recipients = chatRoom.participants.filter((p: any) => p.id !== Number(userId));
-          
-          // Send push notification to each recipient
-          for (const recipient of recipients) {
-            await sendMessageNotification(
-              recipient.id,
-              sender?.displayName || sender?.username || '사용자',
-              messageData.content || '새 메시지',
-              Number(req.params.chatRoomId),
-              messageData.messageType || 'text'
-            );
-          }
-        }
-      } catch (pushError) {
-        console.error("Failed to send push notifications:", pushError);
-        // Don't fail the message send if push notifications fail
-      }
+      // Send push notifications to recipients (일시적 비활성화)
+      console.log('🚫 메시지 푸시 알림 일시적 비활성화 (중복 문제 해결 중)');
+      // try {
+      //   const chatRoom = await storage.getChatRoomById(Number(req.params.chatRoomId));
+      //   if (chatRoom?.participants) {
+      //     const sender = await storage.getUser(Number(userId));
+      //     const recipients = chatRoom.participants.filter((p: any) => p.id !== Number(userId));
+      //     
+      //     for (const recipient of recipients) {
+      //       await sendMessageNotification(
+      //         recipient.id,
+      //         sender?.displayName || sender?.username || '사용자',
+      //         messageData.content || '새 메시지',
+      //         Number(req.params.chatRoomId),
+      //         messageData.messageType || 'text'
+      //       );
+      //     }
+      //   }
+      // } catch (pushError) {
+      //   console.error("Failed to send push notifications:", pushError);
+      // }
 
       // Broadcast to WebSocket connections
       broadcastToRoom(Number(req.params.chatRoomId), {

@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useDirectAuth";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useImagePreloader, preloadGlobalImage } from "@/hooks/useImagePreloader";
+import { pwaDebugger } from "../utils/pwaDebugger";
 
 import { useLocation } from "wouter";
 
@@ -39,8 +40,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 export default function MainApp() {
-  const { user, isLoading, isPreloadingImages } = useAuth();
+  const { user, isLoading } = useAuth();
   const { updateBadge, clearBadge } = usePWABadge();
+  
+  // PWA 디버깅 로그
+  console.log('🔍 MAIN APP: Render state', {
+    hasUser: !!user,
+    userId: user?.id,
+    isLoading,
+    isPreloadingImages
+  });
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { preloadImage, isLoading: imagePreloading } = useImagePreloader();
@@ -437,38 +446,52 @@ export default function MainApp() {
     setModals(prev => ({ ...prev, permissions: false }));
   };
 
-  // PWA 배지 안전 초기화 (앱 충돌 방지)
+  // PWA 배지 테스트 시스템
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user) return;
     
-    const initializeBadgeSystem = async () => {
+    const testBadgeSystem = async () => {
+      console.log('🧪 배지 시스템 테스트 시작');
+      
+      // 현재 안읽은 메시지 수 조회
       try {
         const response = await fetch('/api/unread-counts', {
           headers: { 'X-User-ID': user.id.toString() }
         });
-        
-        if (response.ok) {
-          const data = await response.json();
-          const unreadCounts = data?.unreadCounts || [];
-          const totalUnread = Array.isArray(unreadCounts) ? 
-            unreadCounts.reduce((total: number, room: any) => 
-              total + (room?.unreadCount || 0), 0) : 0;
-          
-          console.log('배지 카운트:', totalUnread);
-          
-          if (updateBadge && typeof totalUnread === 'number') {
-            updateBadge(totalUnread);
+        const data = await response.json();
+        let totalUnread = 0;
+        try {
+          if (data.unreadCounts && Array.isArray(data.unreadCounts)) {
+            totalUnread = data.unreadCounts.reduce((total: number, room: any) => 
+              total + (room.unreadCount || 0), 0) || 0;
           }
+        } catch (error) {
+          console.log('배지 계산 중 오류, 기본값 사용:', error);
+          totalUnread = 0;
+        }
+        
+        console.log('현재 안읽은 메시지:', totalUnread);
+        
+        // 배지 업데이트 시도
+        if (updateBadge) {
+          await updateBadge(totalUnread);
         }
       } catch (error) {
-        console.log('배지 초기화 실패:', error);
+        console.error('배지 테스트 실패:', error);
       }
     };
     
-    // 앱 안정화 후 배지 초기화 (PWA 충돌 방지)
-    const timeoutId = setTimeout(initializeBadgeSystem, 3000);
-    return () => clearTimeout(timeoutId);
-  }, [user?.id, updateBadge]);
+    // PWA에서만 배지 테스트 실행
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
+                  (window.navigator as any).standalone === true;
+    
+    if (isPWA) {
+      console.log('🎯 PWA 모드 - 배지 테스트 실행');
+      setTimeout(testBadgeSystem, 5000); // 5초로 지연 증가
+    } else {
+      console.log('🌐 브라우저 모드 - 배지 테스트 스킵');
+    }
+  }, [user, updateBadge]);
 
   // Clear app badge when app becomes active (iPhone PWA)
   useEffect(() => {

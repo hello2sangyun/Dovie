@@ -2,138 +2,26 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes" />
-    <title>Dovie Messenger - 스마트 메신저</title>
-    <meta name="description" content="스마트 파일 관리와 실시간 채팅이 가능한 메신저 앱" />
-    <meta name="keywords" content="메신저, 채팅, 파일공유, 해시태그, 스마트채팅, Dovie" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#667eea" />
     
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#7c3aed" />
-    <meta name="background-color" content="#7c3aed" />
-    <meta name="application-name" content="Dovie Messenger" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="Dovie" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="msapplication-TileColor" content="#7c3aed" />
-    <meta name="msapplication-tap-highlight" content="no" />
-    
-    <!-- Manifest -->
+    <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
     
+    <!-- iOS PWA Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="PWA Badge Test" />
+    
     <!-- Icons -->
-    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-96x96.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-72x72.png" />
-    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png" />
-    <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-192x192.png" />
-    <link rel="mask-icon" href="/icons/icon-192x192.png" color="#7c3aed" />
+    <link rel="apple-touch-icon" href="/icon-192x192.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png" />
     
-    <!-- Open Graph -->
-    <meta property="og:title" content="Dovie Messenger - 스마트 메신저" />
-    <meta property="og:description" content="스마트 파일 관리와 실시간 채팅이 가능한 메신저 앱" />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="/icons/icon-512x512.png" />
-    <meta property="og:image:width" content="512" />
-    <meta property="og:image:height" content="512" />
-    
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Dovie Messenger" />
-    <meta name="twitter:description" content="스마트 파일 관리와 실시간 채팅이 가능한 메신저 앱" />
-    <meta name="twitter:image" content="/icons/icon-512x512.png" />
-    
-    <!-- Preload critical resources -->
-    <link rel="preload" href="/src/main.tsx" as="script" />
+    <title>PWA Badge Test - iOS 16 Compatible</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    
-    <!-- PWA Service Worker 강제 등록 시스템 -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', async function() {
-          try {
-            console.log('🚀 PWA Service Worker 강제 등록 시작...');
-            
-            // 기존 등록 모두 해제
-            const registrations = await navigator.serviceWorker.getRegistrations();
-            for (const registration of registrations) {
-              await registration.unregister();
-              console.log('🔄 기존 Service Worker 해제됨');
-            }
-            
-            // iOS 16+ 감지 및 최적 Service Worker 선택
-            const isIOSDevice = /iPhone|iPad|iPod/.test(navigator.userAgent);
-            const isIOS16Plus = isIOSDevice && (
-              /OS 1[6-9]/.test(navigator.userAgent) || 
-              /OS [2-9][0-9]/.test(navigator.userAgent) ||
-              /Version\/1[6-9]/.test(navigator.userAgent) ||
-              /Version\/[2-9][0-9]/.test(navigator.userAgent)
-            );
-            const isPWAMode = window.navigator.standalone === true || 
-                            window.matchMedia('(display-mode: standalone)').matches;
-            
-            let swFile = '/sw.js'; // 기본
-            if (isIOSDevice && isIOS16Plus && isPWAMode) {
-              swFile = '/sw-ios16-enhanced.js'; // iOS 16+ PWA 강화
-            } else if (isIOSDevice) {
-              swFile = '/sw-ios16.js'; // iOS 기본
-            }
-            
-            console.log('🔍 디바이스 정보:', {
-              isIOSDevice,
-              isIOS16Plus,
-              isPWAMode,
-              swFile,
-              userAgent: navigator.userAgent
-            });
-            
-            // 새로운 Service Worker 등록
-            const registration = await navigator.serviceWorker.register(swFile, {
-              scope: '/',
-              updateViaCache: 'none',
-              type: 'classic'
-            });
-            
-            console.log('✅ PWA Service Worker 등록 성공:', registration.scope);
-            
-            // Service Worker 준비 대기
-            await navigator.serviceWorker.ready;
-            console.log('✅ PWA Service Worker 준비 완료');
-            
-            // 즉시 알림 권한 확인
-            if ('Notification' in window) {
-              console.log('🔔 현재 알림 권한:', Notification.permission);
-            }
-            
-          } catch (err) {
-            console.error('❌ PWA Service Worker 등록 실패:', err);
-          }
-        });
-        
-        // Handle PWA install prompt
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', function(e) {
-          console.log('[PWA] Install prompt triggered');
-          e.preventDefault();
-          deferredPrompt = e;
-          
-          // Show custom install button (will be handled in React app)
-          window.dispatchEvent(new CustomEvent('pwa-install-available'));
-        });
-        
-        // Track successful app installation
-        window.addEventListener('appinstalled', function(e) {
-          console.log('[PWA] App successfully installed');
-          deferredPrompt = null;
-        });
-      }
-    </script>
-    
-    <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
-    <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
   </body>
 </html>
