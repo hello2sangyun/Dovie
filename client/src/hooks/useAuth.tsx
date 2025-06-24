@@ -23,8 +23,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profileImagesLoaded, setProfileImagesLoaded] = useState(false);
   const [isPreloadingImages, setIsPreloadingImages] = useState(false);
 
-  // 아이폰/안드로이드 PWA 푸시 알림 자동 활성화 함수
-  const autoEnablePushNotifications = async (userId: number) => {
+  // 간소화된 푸시 알림 함수 (PWAPushManager가 대체)
+  const autoEnablePushNotifications = async (userId?: number) => {
     try {
       console.log('🔔 아이폰/안드로이드 PWA 푸시 알림 자동 활성화 시작');
       
@@ -154,42 +154,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch (error) {
           console.error('❌ 푸시 구독 과정 오류:', error);
         }
-
-          if (subscribeResponse.ok) {
-            console.log('✅ 아이폰/안드로이드 PWA 푸시 알림 자동 활성화 완료');
-            // localStorage에 상태 저장
-            localStorage.setItem('notificationPermissionGranted', 'true');
-            localStorage.setItem('pushNotificationsEnabled', 'true');
-            
-            // 테스트 알림 전송 (3초 후)
-            setTimeout(async () => {
-              try {
-                const testResponse = await fetch('/api/test-push', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'x-user-id': userId.toString()
-                  }
-                });
-                
-                if (testResponse.ok) {
-                  console.log('🎉 테스트 푸시 알림 전송 완료');
-                }
-              } catch (error) {
-                console.log('테스트 알림 전송 실패:', error);
-              }
-            }, 3000);
-            
-          } else {
-            console.error('푸시 구독 저장 실패:', subscribeResponse.status);
-          }
-        }
       } else {
-        console.log('알림 권한이 거부되었습니다:', permission);
-        localStorage.setItem('notificationPermissionGranted', 'false');
+        console.log('❌ 알림 권한 거부됨:', permission);
       }
     } catch (error) {
-      console.error('푸시 알림 자동 활성화 실패:', error);
+      console.error('❌ 푸시 알림 자동 활성화 실패:', error);
     }
   };
 

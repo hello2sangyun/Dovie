@@ -5138,10 +5138,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // VAPID public key endpoint for push notifications
+  // VAPID public key endpoint for push notifications (통합)
   app.get("/api/vapid-public-key", (req, res) => {
+    console.log('📤 VAPID 공개키 요청됨');
     const publicKey = process.env.VAPID_PUBLIC_KEY || 'BMqZ8XNhzWqDYHWOWOL3PnQj2pF4ej1dvxE6uKODu2mN5qeECeV6qF4ej1dvxE6uKODu2mN5q';
+    console.log('📤 VAPID 공개키 응답:', publicKey.substring(0, 20) + '...');
     res.json({ publicKey });
+  });
+
+  app.get("/api/push-vapid-key", (req, res) => {
+    console.log('📤 VAPID 공개키 요청됨 (신규 엔드포인트)');
+    const publicKey = process.env.VAPID_PUBLIC_KEY || 'BMqZ8XNhzWqDYHWOWOL3PnQj2pF4ej1dvxE6uKODu2mN5qeECeV6qF4ej1dvxE6uKODu2mN5q';
+    console.log('📤 VAPID 공개키 응답:', publicKey.substring(0, 20) + '...');
+    res.json({ publicKey });
+  });
+
+  // Test push notification endpoint
+  app.post('/api/push-notification/test', async (req, res) => {
+    try {
+      const userId = parseInt(req.headers['x-user-id'] as string);
+      const { title, body } = req.body;
+      
+      console.log('🧪 테스트 푸시 알림 요청:', { userId, title, body });
+      
+      const { sendPushNotification } = await import('./push-notifications');
+      await sendPushNotification(userId, {
+        title: title || 'Dovie Messenger 테스트',
+        body: body || '푸시 알림 테스트입니다.',
+        data: {
+          type: 'test',
+          timestamp: Date.now()
+        }
+      });
+      
+      console.log('✅ 테스트 푸시 알림 발송 완료');
+      res.json({ success: true, message: '테스트 푸시 알림이 발송되었습니다.' });
+    } catch (error) {
+      console.error('❌ 테스트 푸시 알림 발송 실패:', error);
+      res.status(500).json({ error: '테스트 푸시 알림 발송에 실패했습니다.' });
+    }
   });
 
   // Test push notification endpoint

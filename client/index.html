@@ -65,10 +65,18 @@
               console.log('🔄 기존 Service Worker 해제됨');
             }
             
+            // iOS 16 감지 및 적절한 Service Worker 등록
+            const isIOS16 = /iPhone/.test(navigator.userAgent) && 
+                          (/OS 16/.test(navigator.userAgent) || /Version\/16/.test(navigator.userAgent));
+            
+            const swFile = isIOS16 ? '/sw-ios16.js' : '/sw.js';
+            console.log('🔍 iOS 16 감지:', isIOS16, '- SW 파일:', swFile);
+            
             // 새로운 Service Worker 등록
-            const registration = await navigator.serviceWorker.register('/sw.js', {
+            const registration = await navigator.serviceWorker.register(swFile, {
               scope: '/',
-              updateViaCache: 'none'
+              updateViaCache: 'none',
+              type: 'classic'
             });
             
             console.log('✅ PWA Service Worker 등록 성공:', registration.scope);
