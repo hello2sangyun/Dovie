@@ -737,119 +737,119 @@ export default function MainApp() {
                           </div>
                         </div>
                         <div className="h-full overflow-y-auto">
-                  <div className="p-4">
-                    {/* 프로필 섹션 */}
-                    <div 
-                      className="mb-6 bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
-                      onClick={() => setRightPanelContent("profile")}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="relative">
-                          <div 
-                            className="w-12 h-12 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all"
-                            onClick={(e: any) => {
-                              e.stopPropagation();
-                              setModals({ ...modals, profilePhoto: true });
-                            }}
-                          >
-                            <InstantAvatar 
-                              src={user?.profilePicture}
-                              fallbackText={user?.displayName?.charAt(0) || user?.username?.charAt(0) || "U"}
-                              size="lg"
-                              className="w-full h-full"
-                            />
-                          </div>
-                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-purple-600 rounded-full flex items-center justify-center">
-                            <Camera className="w-2.5 h-2.5 text-white" />
+                          <div className="p-4">
+                            {/* 프로필 섹션 */}
+                            <div 
+                              className="mb-6 bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
+                              onClick={() => setRightPanelContent("profile")}
+                            >
+                              <div className="flex items-center space-x-3">
+                                <div className="relative">
+                                  <div 
+                                    className="w-12 h-12 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all"
+                                    onClick={(e: any) => {
+                                      e.stopPropagation();
+                                      setModals({ ...modals, profilePhoto: true });
+                                    }}
+                                  >
+                                    <InstantAvatar 
+                                      src={user?.profilePicture}
+                                      fallbackText={user?.displayName?.charAt(0) || user?.username?.charAt(0) || "U"}
+                                      size="lg"
+                                      className="w-full h-full"
+                                    />
+                                  </div>
+                                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-purple-600 rounded-full flex items-center justify-center">
+                                    <Camera className="w-2.5 h-2.5 text-white" />
+                                  </div>
+                                </div>
+                                <div className="flex-1">
+                                  <h3 className="font-semibold text-gray-900">{user?.displayName}</h3>
+                                  <p className="text-sm text-gray-500">@{user?.username}</p>
+                                  <div className="flex items-center space-x-1 mt-1">
+                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    <span className="text-xs text-gray-500">온라인</span>
+                                  </div>
+                                </div>
+                                <MessageCircle className="w-5 h-5 text-gray-400" />
+                              </div>
+                            </div>
+
+                            {/* 개정 설정 섹션 */}
+                            <div className="mb-6">
+                              <h4 className="text-sm font-medium text-gray-600 mb-3">개정 설정</h4>
+                              
+                              <div 
+                                className="mb-3 bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
+                                onClick={() => setRightPanelContent("privacy")}
+                              >
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+                                    <Users className="w-6 h-6 text-white" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <h3 className="font-semibold text-gray-900">개인정보</h3>
+                                    <p className="text-sm text-gray-500">프로필 및 계정 정보 수정</p>
+                                  </div>
+                                  <MessageCircle className="w-5 h-5 text-gray-400" />
+                                </div>
+                              </div>
+
+                              <div 
+                                className="mb-3 bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
+                                onClick={() => setRightPanelContent("notifications")}
+                              >
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center">
+                                    <MessageSquare className="w-6 h-6 text-white" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <h3 className="font-semibold text-gray-900">알림 설정</h3>
+                                    <p className="text-sm text-gray-500">메시지 및 앱 알림 관리</p>
+                                  </div>
+                                  <MessageCircle className="w-5 h-5 text-gray-400" />
+                                </div>
+                              </div>
+
+                              <div 
+                                className="mb-3 bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
+                                onClick={() => setRightPanelContent("security")}
+                              >
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-12 h-12 bg-gradient-to-br from-gray-600 to-gray-800 rounded-xl flex items-center justify-center">
+                                    <Shield className="w-6 h-6 text-white" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <h3 className="font-semibold text-gray-900">보안 및 개인정보</h3>
+                                    <p className="text-sm text-gray-500">비밀번호 및 보안 설정</p>
+                                  </div>
+                                  <MessageCircle className="w-5 h-5 text-gray-400" />
+                                </div>
+                              </div>
+
+                              <div 
+                                className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
+                                onClick={() => setRightPanelContent("account")}
+                              >
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center">
+                                    <UserX className="w-6 h-6 text-white" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <h3 className="font-semibold text-gray-900">차단된 연락처</h3>
+                                    <p className="text-sm text-gray-500">차단된 사용자 관리</p>
+                                  </div>
+                                  <MessageCircle className="w-5 h-5 text-gray-400" />
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900">{user?.displayName}</h3>
-                          <p className="text-sm text-gray-500">@{user?.username}</p>
-                          <div className="flex items-center space-x-1 mt-1">
-                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span className="text-xs text-gray-500">온라인</span>
-                          </div>
-                        </div>
-                        <MessageCircle className="w-5 h-5 text-gray-400" />
                       </div>
-                    </div>
-
-
-
-                    {/* 개정 설정 섹션 */}
-                    <div className="mb-6">
-                      <h4 className="text-sm font-medium text-gray-600 mb-3">개정 설정</h4>
-                      
-                      <div 
-                        className="mb-3 bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
-                        onClick={() => setRightPanelContent("privacy")}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-                            <Users className="w-6 h-6 text-white" />
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-gray-900">개인정보</h3>
-                            <p className="text-sm text-gray-500">프로필 및 계정 정보 수정</p>
-                          </div>
-                          <MessageCircle className="w-5 h-5 text-gray-400" />
-                        </div>
-                      </div>
-
-                      <div 
-                        className="mb-3 bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
-                        onClick={() => setRightPanelContent("notifications")}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center">
-                            <MessageSquare className="w-6 h-6 text-white" />
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-gray-900">알림 설정</h3>
-                            <p className="text-sm text-gray-500">메시지 및 앱 알림 관리</p>
-                          </div>
-                          <MessageCircle className="w-5 h-5 text-gray-400" />
-                        </div>
-                      </div>
-
-                      <div 
-                        className="mb-3 bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
-                        onClick={() => setRightPanelContent("security")}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-gray-600 to-gray-800 rounded-xl flex items-center justify-center">
-                            <Shield className="w-6 h-6 text-white" />
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-gray-900">보안 및 개인정보</h3>
-                            <p className="text-sm text-gray-500">비밀번호 및 보안 설정</p>
-                          </div>
-                          <MessageCircle className="w-5 h-5 text-gray-400" />
-                        </div>
-                      </div>
-
-                      <div 
-                        className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
-                        onClick={() => setRightPanelContent("account")}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center">
-                            <UserX className="w-6 h-6 text-white" />
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-gray-900">차단된 연락처</h3>
-                            <p className="text-sm text-gray-500">차단된 사용자 관리</p>
-                          </div>
-                          <MessageCircle className="w-5 h-5 text-gray-400" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                        </div>
                     </TabsContent>
                   </div>
                 )}
+              </div>
           </Tabs>
         </div>
 
