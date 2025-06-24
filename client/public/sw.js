@@ -331,20 +331,40 @@ self.addEventListener('push', (event) => {
   );
 });
 
-// App badge functionality
+// iOS 16+ PWA 배지 기능 (단순화된 방식)
 async function updateAppBadge(unreadCount) {
-  if ('setAppBadge' in navigator) {
-    try {
+  console.log('[SW] 배지 업데이트 요청:', unreadCount);
+  
+  try {
+    // 방법 1: Service Worker registration setAppBadge
+    if ('setAppBadge' in self.registration) {
+      if (unreadCount && unreadCount > 0) {
+        await self.registration.setAppBadge(unreadCount);
+        console.log('[SW] registration.setAppBadge 성공:', unreadCount);
+        return;
+      } else {
+        await self.registration.clearAppBadge();
+        console.log('[SW] registration.clearAppBadge 성공');
+        return;
+      }
+    }
+  } catch (error) {
+    console.log('[SW] registration.setAppBadge 실패:', error);
+  }
+
+  try {
+    // 방법 2: navigator setAppBadge (fallback)
+    if ('setAppBadge' in navigator) {
       if (unreadCount && unreadCount > 0) {
         await navigator.setAppBadge(unreadCount);
-        console.log('[SW] App badge updated:', unreadCount);
+        console.log('[SW] navigator.setAppBadge 성공:', unreadCount);
       } else {
         await navigator.clearAppBadge();
-        console.log('[SW] App badge cleared');
+        console.log('[SW] navigator.clearAppBadge 성공');
       }
-    } catch (error) {
-      console.error('[SW] Failed to update app badge:', error);
     }
+  } catch (error) {
+    console.log('[SW] navigator.setAppBadge 실패:', error);
   }
 }
 

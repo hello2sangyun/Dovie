@@ -436,51 +436,9 @@ export default function MainApp() {
     setModals(prev => ({ ...prev, permissions: false }));
   };
 
-  // PWA 배지 강제 업데이트 시스템 (성공했던 이전 방식 복원)
+  // PWA 배지 시스템 (usePWABadge hook 사용)
   useEffect(() => {
-    const forceBadgeUpdate = async () => {
-      if (!user) return;
-      
-      try {
-        console.log('배지 강제 업데이트 시작...');
-        
-        // 현재 안읽은 메시지 수 조회
-        const response = await fetch('/api/unread-counts', {
-          headers: { 'X-User-ID': user.id.toString() }
-        });
-        const data = await response.json();
-        const totalUnread = data.unreadCounts?.reduce((total: number, room: any) => 
-          total + (room.unreadCount || 0), 0) || 0;
-        
-        console.log('현재 안읽은 메시지 수:', totalUnread);
-        
-        // iOS 16 PWA 배지 API로 즉시 설정
-        if ('setAppBadge' in navigator) {
-          try {
-            await (navigator as any).setAppBadge(totalUnread);
-            console.log('배지 설정 성공:', totalUnread);
-          } catch (error) {
-            console.log('배지 설정 실패:', error);
-          }
-        }
-        
-        // Service Worker에도 배지 업데이트 요청
-        if (navigator.serviceWorker?.controller) {
-          navigator.serviceWorker.controller.postMessage({
-            type: 'UPDATE_BADGE',
-            count: totalUnread
-          });
-        }
-        
-      } catch (error) {
-        console.error('배지 강제 업데이트 실패:', error);
-      }
-    };
-    
-    // 사용자 로그인 시 즉시 배지 업데이트 실행
-    if (user) {
-      forceBadgeUpdate();
-    }
+    console.log('PWA 배지 시스템이 usePWABadge hook으로 자동 관리됩니다');
   }, [user]);
 
   // Clear app badge when app becomes active (iPhone PWA)

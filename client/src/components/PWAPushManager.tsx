@@ -80,15 +80,9 @@ export function PWAPushManager({ onNotificationEnabled }: PWAPushManagerProps) {
         await reg.unregister();
       }
 
-      // 최적 SW 파일 선택
-      let swFile = '/sw.js';
-      if (isIOSDevice && isIOS16Plus && isPWAMode) {
-        swFile = '/sw-ios16-enhanced.js';
-        console.log('🎯 iOS 16+ PWA 강화 모드 사용');
-      } else if (isIOSDevice) {
-        swFile = '/sw-ios16.js';
-        console.log('🎯 iOS 호환 모드 사용');
-      }
+      // 통합된 SW 파일 사용 (단순화)
+      const swFile = '/sw.js';
+      console.log('🎯 통합 Service Worker 사용:', swFile);
 
       // Service Worker 등록
       const registration = await navigator.serviceWorker.register(swFile, {
