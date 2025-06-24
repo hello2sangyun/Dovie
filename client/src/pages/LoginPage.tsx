@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
 import VaultLogo from "@/components/VaultLogo";
 import { User, Lock, Phone } from "lucide-react";
@@ -33,7 +34,7 @@ export default function LoginPage() {
       const response = await apiRequest("/api/auth/username-login", "POST", data);
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       console.log('로그인 성공, 사용자 설정 중:', data.user);
       
       // 로그인 상태 저장
@@ -41,17 +42,35 @@ export default function LoginPage() {
       localStorage.setItem("rememberLogin", "true");
       localStorage.setItem("lastLoginTime", Date.now().toString());
       
+      // React Query 캐시 강제 업데이트 (PWA 세션 동기화)
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      queryClient.setQueryData(["/api/auth/me"], { user: data.user });
+      
       // 사용자 상태 업데이트
       setUser(data.user);
       
-      // 강제 페이지 전환을 위한 window.location 사용
+      // PWA 환경 감지 및 네비게이션
+      const isPWA = (window.navigator as any).standalone === true || 
+                   window.matchMedia('(display-mode: standalone)').matches;
+      
+      console.log('PWA 환경:', isPWA);
+      
       setTimeout(() => {
-        if (!data.user.isProfileComplete) {
-          console.log('프로필 설정 페이지로 이동');
-          window.location.href = "/profile-setup";
+        const targetPath = !data.user.isProfileComplete ? "/profile-setup" : "/app";
+        console.log(`${targetPath}으로 이동 중... (PWA: ${isPWA})`);
+        
+        if (isPWA) {
+          // PWA 환경에서 안전한 네비게이션
+          setLocation(targetPath);
+          window.history.replaceState({ loggedIn: true }, '', targetPath);
+          
+          // 강제 리렌더링 트리거
+          setTimeout(() => {
+            window.dispatchEvent(new PopStateEvent('popstate', { state: { loggedIn: true } }));
+          }, 100);
         } else {
-          console.log('메인 앱으로 강제 이동');
-          window.location.href = "/app";
+          // 일반 브라우저
+          window.location.href = targetPath;
         }
       }, 200);
     },
