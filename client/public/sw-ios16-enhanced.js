@@ -86,65 +86,6 @@ self.addEventListener('push', (event) => {
       console.error('[iOS16 Enhanced SW] 푸시 알림 표시 실패:', error);
     })
   );
-
-  // iOS 16 PWA 최적화 알림 옵션
-  const options = {
-    body: notificationData.body || '새 메시지가 도착했습니다.',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-72x72.png',
-    tag: 'dovie-ios16-enhanced-' + Date.now(),
-    data: {
-      url: notificationData.data?.url || '/',
-      chatRoomId: notificationData.data?.chatRoomId,
-      messageId: notificationData.data?.messageId,
-      unreadCount: notificationData.unreadCount || 1,
-      timestamp: Date.now(),
-      ...notificationData.data
-    },
-    // iOS 16 PWA 강화 옵션
-    requireInteraction: false,
-    silent: false,
-    vibrate: [200, 100, 200],
-    timestamp: Date.now(),
-    renotify: true,
-    dir: 'auto',
-    lang: 'ko-KR',
-    // iOS 16 배지 관련
-    badge: notificationData.unreadCount || 1,
-    // iOS 16 액션 버튼 (선택적)
-    actions: [
-      {
-        action: 'reply',
-        title: '답장',
-        icon: '/icons/icon-72x72.png'
-      },
-      {
-        action: 'view',
-        title: '보기',
-        icon: '/icons/icon-72x72.png'
-      }
-    ]
-  };
-
-  console.log('[iOS16 Enhanced SW] 알림 표시 중:', options);
-
-  event.waitUntil(
-    Promise.all([
-      // 1. 알림 표시
-      self.registration.showNotification(
-        notificationData.title || 'Dovie Messenger', 
-        options
-      ),
-      // 2. iOS 16 배지 업데이트
-      updateBadge(notificationData.unreadCount || 1),
-      // 3. 클라이언트에 배지 업데이트 알림
-      notifyClientsOfBadgeUpdate(notificationData.unreadCount || 1)
-    ]).then(() => {
-      console.log('[iOS16 Enhanced SW] 푸시 알림 처리 완료');
-    }).catch((error) => {
-      console.error('[iOS16 Enhanced SW] 푸시 알림 처리 실패:', error);
-    })
-  );
 });
 
 // iOS 16 강화 배지 업데이트 함수

@@ -174,6 +174,12 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Backend APIs: /api/qr/generate, /api/qr/scan, /api/qr/user/:token for complete workflow
   - Security features: prevents self-addition, duplicate contacts, validates token expiry
   - Complete workflow: generate QR → share → scan → automatic friend addition with notifications
+- June 25, 2025: Fixed QR scanner camera and push notification delivery issues:
+  - Enhanced QRScannerModal with proper camera permission requests and rear camera preference
+  - Added modal rendering delay to ensure video element availability before camera initialization
+  - Fixed push notification display by removing duplicate service worker code and optimizing notification options
+  - Verified server-side push delivery success with APNS confirmation (statusCode: 201)
+  - Push notifications now properly display with sound, vibration, and app badge updates on iOS/Android devices
 - June 16, 2025: Completed comprehensive removal of nearby chat (주변챗) functionality including:
   - Removed location-based database tables (locationChatRooms, locationChatParticipants, locationChatMessages, userLocations)
   - Deleted all location-based API endpoints (/api/location/*)
