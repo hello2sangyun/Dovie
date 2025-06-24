@@ -845,8 +845,6 @@ export default function MainApp() {
                         </div>
                       </div>
                     </div>
-                      </div>
-                    </div>
                   </TabsContent>
                 </div>
               )}
