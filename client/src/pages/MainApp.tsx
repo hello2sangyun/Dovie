@@ -1141,6 +1141,10 @@ export default function MainApp() {
         onClose={() => setModals(prev => ({ ...prev, qrCode: false }))}
       />
 
+      {/* PWA Push Notifications and Badge Management */}
+      <SimplePushManager />
+      <PWABadgeManager />
+      
       {/* Mobile Banner Notifications - replaces bottom popup notifications */}
       <BannerNotificationContainer />
 
