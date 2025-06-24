@@ -170,14 +170,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log("🔄 Auth context updating user:", data.user.id, "profilePicture:", data.user.profilePicture);
       setUser(data.user);
       setInitialized(true);
-      setProfileImagesLoaded(true); // Skip image preloading to prevent loading issues
+      setProfileImagesLoaded(true); // 즉시 완료로 설정
+      setIsPreloadingImages(false); // 프리로딩 비활성화
       
-      // 프로필 이미지 프리로딩을 백그라운드에서 실행 (앱 로딩을 차단하지 않음)
-      preloadProfileImages(data.user.id.toString()).catch(() => {
-        console.log("Profile image preloading failed, continuing normally");
-      });
+      // 백그라운드에서 프로필 이미지 로드 (앱 진입을 절대 차단하지 않음)
+      setTimeout(() => {
+        preloadProfileImages(data.user.id.toString()).catch(() => {
+          console.log("Background profile image loading failed");
+        });
+      }, 2000);
     } else if (error && storedUserId) {
-      // Clear user data if authentication fails for stored user
       console.log("❌ Authentication failed, clearing user data");
       setUser(null);
       localStorage.removeItem("userId");
@@ -186,7 +188,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfileImagesLoaded(true);
       setIsPreloadingImages(false);
     } else if (!storedUserId && !initialized) {
-      // No stored user ID, mark as initialized immediately
       console.log("📱 No stored user, initializing as logged out");
       setUser(null);
       setInitialized(true);

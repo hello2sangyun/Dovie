@@ -121,16 +121,12 @@ export default function PhoneLogin() {
       return response.json();
     },
     onSuccess: async (data) => {
-      console.log("SMS verification successful, user data:", data.user);
+      console.log("SMS 인증 성공, 즉시 리다이렉트:", data.user);
       
       // 로그인 상태 저장
       localStorage.setItem("userId", data.user.id.toString());
       localStorage.setItem("rememberLogin", "true");
       localStorage.setItem("lastLoginTime", Date.now().toString());
-      
-      // React Query 캐시 강제 업데이트
-      await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      queryClient.setQueryData(["/api/auth/me"], { user: data.user });
       
       setUser(data.user);
       
@@ -139,27 +135,13 @@ export default function PhoneLogin() {
         description: "Dovie Messenger에 오신 것을 환영합니다!",
       });
       
-      // PWA 환경 감지
-      const isPWA = (window.navigator as any).standalone === true || 
-                   window.matchMedia('(display-mode: standalone)').matches;
+      // 즉시 리다이렉트
+      const hasTemporaryEmail = data.user.email && data.user.email.includes('@phone.local');
+      const needsProfileSetup = !data.user.isProfileComplete || hasTemporaryEmail;
+      const targetPath = needsProfileSetup ? "/profile-setup" : "/app";
       
-      setTimeout(() => {
-        const hasTemporaryEmail = data.user.email && data.user.email.includes('@phone.local');
-        const needsProfileSetup = !data.user.isProfileComplete || hasTemporaryEmail;
-        const targetPath = needsProfileSetup ? "/profile-setup" : "/app";
-        
-        console.log(`${targetPath}으로 이동 중... (PWA: ${isPWA})`);
-        
-        if (isPWA) {
-          setLocation(targetPath);
-          window.history.replaceState({ loggedIn: true }, '', targetPath);
-          setTimeout(() => {
-            window.dispatchEvent(new PopStateEvent('popstate', { state: { loggedIn: true } }));
-          }, 100);
-        } else {
-          window.location.href = targetPath;
-        }
-      }, 300);
+      console.log(`즉시 ${targetPath}으로 이동`);
+      window.location.href = targetPath;
     },
     onError: (error: any) => {
       toast({
