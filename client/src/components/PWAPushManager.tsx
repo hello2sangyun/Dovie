@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/hooks/useCleanAuth';
+import { useAuth } from '@/hooks/useAuth';
 
 interface PWAPushManagerProps {
   onNotificationEnabled?: () => void;
@@ -11,26 +11,12 @@ export function PWAPushManager({ onNotificationEnabled }: PWAPushManagerProps) {
 
   useEffect(() => {
     if (user && !isInitializing) {
-      // PWA 환경에서만 푸시 시스템 초기화 (일시적으로 비활성화)
-      const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
-                    (window.navigator as any).standalone === true;
-      
-      console.log('🚫 PWA 푸시 시스템 일시적으로 비활성화 (중복 알림 문제로 인해)');
-      // 임시로 푸시 시스템 비활성화
-      // if (isPWA) {
-      //   console.log('🎯 PWA 모드 감지됨 - 푸시 시스템 초기화');
-      //   setTimeout(() => {
-      //     initializePWAPushSystem();
-      //   }, 3000);
-      // } else {
-      //   console.log('🌐 브라우저 모드 - 푸시 시스템 스킵');
-      // }
+      initializePWAPushSystem();
     }
   }, [user, isInitializing]);
 
   const initializePWAPushSystem = async () => {
     setIsInitializing(true);
-    console.log('🔍 [PWA DEBUG] 푸시 시스템 초기화 시작');
     console.log('🚀 iOS 16 호환 PWA 푸시 시스템 초기화');
 
     try {
