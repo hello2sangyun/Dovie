@@ -51,22 +51,40 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     
-    <!-- PWA Service Worker Registration -->
+    <!-- PWA Service Worker 강제 등록 시스템 -->
     <script>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register('/sw.js')
-            .then(function(registration) {
-              console.log('[PWA] Service Worker registered successfully:', registration.scope);
-              
-              // Check for updates
-              registration.addEventListener('updatefound', function() {
-                console.log('[PWA] New service worker available');
-              });
-            })
-            .catch(function(error) {
-              console.log('[PWA] Service Worker registration failed:', error);
+        window.addEventListener('load', async function() {
+          try {
+            console.log('🚀 PWA Service Worker 강제 등록 시작...');
+            
+            // 기존 등록 모두 해제
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (const registration of registrations) {
+              await registration.unregister();
+              console.log('🔄 기존 Service Worker 해제됨');
+            }
+            
+            // 새로운 Service Worker 등록
+            const registration = await navigator.serviceWorker.register('/sw.js', {
+              scope: '/',
+              updateViaCache: 'none'
             });
+            
+            console.log('✅ PWA Service Worker 등록 성공:', registration.scope);
+            
+            // Service Worker 준비 대기
+            await navigator.serviceWorker.ready;
+            console.log('✅ PWA Service Worker 준비 완료');
+            
+            // 즉시 알림 권한 확인
+            if ('Notification' in window) {
+              console.log('🔔 현재 알림 권한:', Notification.permission);
+            }
+            
+          } catch (err) {
+            console.error('❌ PWA Service Worker 등록 실패:', err);
+          }
         });
         
         // Handle PWA install prompt

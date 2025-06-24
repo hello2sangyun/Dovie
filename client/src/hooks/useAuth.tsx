@@ -79,44 +79,81 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (permission === 'granted') {
-        console.log('✅ 알림 권한 승인됨 - 푸시 구독 등록 시작');
+        console.log('✅ 알림 권한 승인됨 - 강제 푸시 구독 시작');
         
-        // VAPID 공개 키 가져오기
-        const vapidResponse = await fetch('/api/vapid-public-key');
-        const { publicKey } = await vapidResponse.json();
-        
-        // 기존 구독 확인
-        let subscription = await registration.pushManager.getSubscription();
-        
-        if (!subscription) {
-          console.log('새 푸시 구독 생성 중...');
-          // 새 구독 생성
-          subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: publicKey
+        try {
+          // Service Worker 강제 재등록
+          await navigator.serviceWorker.register('/sw.js', {
+            scope: '/',
+            updateViaCache: 'none'
           });
-        }
-
-        if (subscription) {
-          console.log('📱 푸시 구독 생성 완료:', subscription.endpoint);
           
-          // 서버에 구독 정보 저장
-          const subscribeResponse = await fetch('/api/push-subscription', {
+          const registration = await navigator.serviceWorker.ready;
+          console.log('✅ Service Worker 준비 완료');
+          
+          // 기존 구독 강제 해제
+          const existingSubscription = await registration.pushManager.getSubscription();
+          if (existingSubscription) {
+            await existingSubscription.unsubscribe();
+            console.log('🔄 기존 구독 해제됨');
+          }
+          
+          // VAPID 공개키 가져오기
+          const vapidResponse = await fetch('/api/push-vapid-key');
+          if (!vapidResponse.ok) {
+            throw new Error('VAPID 키 가져오기 실패');
+          }
+          const { publicKey } = await vapidResponse.json();
+          console.log('✅ VAPID 공개키 획득');
+          
+          // 새 구독 강제 생성
+          const subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(publicKey)
+          });
+          console.log('✅ 새 푸시 구독 생성:', subscription.endpoint.substring(0, 50) + '...');
+          
+          // 서버에 구독 정보 전송
+          const response = await fetch('/api/push-subscription', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'x-user-id': userId.toString()
+              'X-User-ID': userId
             },
             body: JSON.stringify({
-              subscription: {
-                endpoint: subscription.endpoint,
-                keys: {
-                  p256dh: subscription.getKey ? btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(subscription.getKey('p256dh')!)))) : '',
-                  auth: subscription.getKey ? btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(subscription.getKey('auth')!)))) : ''
-                }
-              }
+              endpoint: subscription.endpoint,
+              p256dh: arrayBufferToBase64(subscription.getKey('p256dh')),
+              auth: arrayBufferToBase64(subscription.getKey('auth')),
+              userAgent: navigator.userAgent
             })
           });
+
+          if (response.ok) {
+            console.log('✅ 서버 푸시 구독 저장 성공');
+            
+            // 즉시 테스트 푸시 발송
+            try {
+              await fetch('/api/push-notification/test', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-User-ID': userId
+                },
+                body: JSON.stringify({
+                  title: 'Dovie Messenger',
+                  body: '푸시 알림이 성공적으로 활성화되었습니다!'
+                })
+              });
+              console.log('✅ 테스트 푸시 알림 발송됨');
+            } catch (testError) {
+              console.error('⚠️ 테스트 푸시 발송 실패:', testError);
+            }
+          } else {
+            throw new Error('서버 구독 저장 실패');
+          }
+        } catch (error) {
+          console.error('❌ 푸시 구독 과정 오류:', error);
+        }
 
           if (subscribeResponse.ok) {
             console.log('✅ 아이폰/안드로이드 PWA 푸시 알림 자동 활성화 완료');
