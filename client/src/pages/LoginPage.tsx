@@ -71,7 +71,9 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <VaultLogo size="lg" className="mx-auto mb-4" />
+          <div className="w-16 h-16 bg-purple-600 rounded-full mx-auto mb-4 flex items-center justify-center">
+            <span className="text-white text-2xl font-bold">D</span>
+          </div>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Dovie 메신저</h2>
           <p className="text-gray-600">안전하고 스마트한 메신저</p>
         </div>

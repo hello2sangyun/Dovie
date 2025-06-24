@@ -15,7 +15,7 @@ export default function PhoneLogin() {
   const { setUser } = useAuth();
   const { toast } = useToast();
   const [step, setStep] = useState<"phone" | "verification">("phone");
-  const [selectedCountry, setSelectedCountry] = useState(countries.find(c => c.code === "KR") || countries[0]);
+  const [selectedCountry, setSelectedCountry] = useState({ name: "South Korea", code: "KR", dialCode: "+82", flag: "🇰🇷" });
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [fullPhoneNumber, setFullPhoneNumber] = useState("");
@@ -25,8 +25,8 @@ export default function PhoneLogin() {
   useEffect(() => {
     const detectUserCountry = async () => {
       try {
-        // IP 기반 위치 감지 (빠른 방법)
-        const ipResponse = await fetch('https://ipapi.co/json/');
+        // IP 기반 위치 감지 (빠른 방법) - 임시로 한국으로 설정
+        setIsDetectingLocation(false);
         if (ipResponse.ok) {
           const ipData = await ipResponse.json();
           const detectedCountry = countries.find(c => c.code === ipData.country_code);
@@ -194,7 +194,9 @@ export default function PhoneLogin() {
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <VaultLogo size="lg" animated />
+            <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center">
+              <span className="text-white text-2xl font-bold">D</span>
+            </div>
           </div>
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
             Dovie Messenger
@@ -219,12 +221,17 @@ export default function PhoneLogin() {
                 <Select
                   value={selectedCountry.code}
                   onValueChange={(value) => {
-                    const country = countries.find(c => c.code === value);
-                    if (country) setSelectedCountry(country);
+                    const countryMap: Record<string, typeof selectedCountry> = {
+                      KR: { name: "South Korea", code: "KR", dialCode: "+82", flag: "🇰🇷" },
+                      US: { name: "United States", code: "US", dialCode: "+1", flag: "🇺🇸" },
+                      HU: { name: "Hungary", code: "HU", dialCode: "+36", flag: "🇭🇺" },
+                      JP: { name: "Japan", code: "JP", dialCode: "+81", flag: "🇯🇵" },
+                      CN: { name: "China", code: "CN", dialCode: "+86", flag: "🇨🇳" }
+                    };
+                    if (countryMap[value]) setSelectedCountry(countryMap[value]);
                   }}
-                  disabled={isDetectingLocation}
                 >
-                  <SelectTrigger className={isDetectingLocation ? "opacity-50" : ""}>
+                  <SelectTrigger>
                     <SelectValue>
                       <div className="flex items-center space-x-2">
                         <span>{selectedCountry.flag}</span>
@@ -233,16 +240,12 @@ export default function PhoneLogin() {
                       </div>
                     </SelectValue>
                   </SelectTrigger>
-                  <SelectContent className="max-h-60">
-                    {countries.map((country) => (
-                      <SelectItem key={country.code} value={country.code}>
-                        <div className="flex items-center space-x-2">
-                          <span>{country.flag}</span>
-                          <span>{country.name}</span>
-                          <span className="text-gray-500">{country.dialCode}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
+                  <SelectContent>
+                    <SelectItem value="KR">🇰🇷 South Korea (+82)</SelectItem>
+                    <SelectItem value="US">🇺🇸 United States (+1)</SelectItem>
+                    <SelectItem value="HU">🇭🇺 Hungary (+36)</SelectItem>
+                    <SelectItem value="JP">🇯🇵 Japan (+81)</SelectItem>
+                    <SelectItem value="CN">🇨🇳 China (+86)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
