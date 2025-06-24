@@ -180,6 +180,10 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Fixed push notification display by removing duplicate service worker code and optimizing notification options
   - Verified server-side push delivery success with APNS confirmation (statusCode: 201)
   - Push notifications now properly display with sound, vibration, and app badge updates on iOS/Android devices
+- June 25, 2025: Removed repetitive test push notifications:
+  - Eliminated automatic "iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!" test messages
+  - Removed test push notification endpoints and client-side test functions
+  - Push notification system now only sends actual message notifications without spam
 - June 16, 2025: Completed comprehensive removal of nearby chat (주변챗) functionality including:
   - Removed location-based database tables (locationChatRooms, locationChatParticipants, locationChatMessages, userLocations)
   - Deleted all location-based API endpoints (/api/location/*)

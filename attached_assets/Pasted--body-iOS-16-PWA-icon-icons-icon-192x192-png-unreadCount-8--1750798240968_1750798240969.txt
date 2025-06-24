@@ -1,0 +1,901 @@
+ body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QJguI1u-lmY9_J-hV43of3DGihvTRuSEh-qf611HqwCUsQDQrhvr3idg-pApOtRoY1IQ9GVVFcyTlWD-ro1dmQoihdGv3_wyxRi7nLJhHKEOJ0BARqcNZp_3tIxOenvEmxc3G57zTRmEcWL5TLYOh7j14QGz2xvw3OYSgxMRysk',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QO-n3zPFVYTtWtHMY5PrjLPFJWTY6aaBqYeHDPW9sId_lxUC17Pc5VuYAXB7Cdk_psw7hAOJWysMaR72Com4BxEi1rOIDX7guC7WLJWTffrGtdwpo2U27TTRXafICm-rsApcgQuIJIZIS2OrJRBhBzzPkU_KTzD9sJQV5S2eNXY',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QIzDzb4iIzxqO0HqDJm2IRg7xhHCSx90B5_ji2OdpIEQrRJabUD64StF9zqBFIq8bgZM_t67A9TXHJYxjPpuQYzzxe2KjdH4fcD5H29V8Ck7csXHj54mVR1BDKu9CdIaWMoDl_nyMpAwZFyuY6hj-w5QtQVKg6UvCwZenV3tVAs',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QEyX5MGoIk_TfXsFMFumXLJRg9-LUGJAxRBsQ1ZmxkmDNI8Yk7h0jVEt-NJsLqbvdPiU4vEpt09qXj2WSvZwUlABGiZgJB77Jf9GMLA01sr1zkhBgxbpTaJO2Cgir-2J5RmvO77rI60koWE9_DFHB44E_Z8Bp3oonbvabpw4k6w',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QET5vBEv8MNCm0Vg3XmqRXkdohQ2TSpTJ7Tf7vaeL3zT_f4vQLhYmoU8AzmhUMbHElFDxilPCwcn2fvxsiIKg4rO-2VyJmGEnXW3m6I77bG8inLEOhulpjRz9SJhZmHXBfd_UNrWJ_dYmpGAR0XOMpVn7OD-xf52E_dEi04sn4w',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QHgc816SLv9ZG0VwN-oh9uQdqDRpbpH0yL8KPnfTOnMIzwxAggtqgCXUlhMftAfe0qOPucjgKkkRi-bT2KwSFm_Xvu7-eFHuF-euLbfTqUDH3qwrkiV-zDXUVKY6RbrQrGcT54Pi_YuF_ClXE8SDfxVjnbYNUkS8H31bdhRcmdw',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QMAViNeeJBtGwLidi0H84XIQSsf0UvBFWgkGwOghnHpWAkyqCHNo4Bn-1Dh2w66vqTc9wMYKFiw1nJR8sbaDx3QiK69lfbYGovz9hD91AaYy2EAX7B2WbfcCobWlj9C_ShZ9gTWxsOVvc43yKNDdGv-7JDMcLeaHFXiNceBaw9g',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QApI1in-1SWYntiIB4ZQy8zEEF1_DtVzWWt5fF7aiL31M0PE5GSwD8vDbjmEoEQ-SpGVitIo0qfZOGCc2zeKcj0lvV8I7XeIa7T9ViMoeBDrD4KGnWLJ6ojYaFYgmfQ7F93JrtMyEXxBWtoVQd274If9qRDZo0WhRTocdWHQNqY',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QB8nAxAPnYawaNWiH4U0eSL1V1O-Gv05wLaHmN98qPW7No9tB1hvCjLE_IVO9JyFOWWrxtzdLQ3IzdvJIUdTVJJp7uhTFmlS9t9_tfUoKXvdNm3JtYUQ4RR__gVq6UywBesVusAs9GqZYN3njBE4fRkuzBmTqdmfrMgzH_Y0S-c',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QNNLjOwa4TowB-07m_Jo5IGWSL00DfcuVcbT6yHOqa3wRfnSBbpssXf0tKHtD0RKzw9kO6f4yrPL7oXn9y-BlsDbYBTrvqu1wKA2fQ0LyrUtidVvZLg5bjE4AdqDUASvDtaWf2OlRBrkD4HZcm-J29SunwtSrArx91H9dFMmRFk',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QE6ohfb8GLOWINfgw89BNVo5gd6d2s0IBCkQcgH4dpwwiJ2goYoS1ZPWF3xVGAkDj9e_ctUQjwRGXZ632jzGbq43D3mb4uBMFbbE9CdsVa0-6z01SieZcEuf46k7ongR5rJJi9_Tb-colCn1pi55mo-JBg7GxWydiQuH2BtUWto',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QM_TJcRYurGhBMuWryspEg9ZPOY3PM85NZSqbK7uBTWA6iCp_8RZhJYw0BsXG4K99LakzICMT0nEiJnxUWM8GbmnkVjW2Rz71JLUO6eBWbeQ9DuCssHz1A0wvVSbdfUOpsf4zxj1gpof6g4vCLJGcqEz8EET46VptySF0HLhOwQ',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QKhyC6-N3moz-JZIFlQLTi9xYlPHUr4GpTdmDa3_H7frFsszuAY3oqkyVKR7afNCQQKP9VnDJktp_R1kYuMiKBIkpAb_NjUhRRQNXn6bo0rQ3mda4z6EXODSOt6g_6TkLcxKvL7VQYIUwOww4BCC0n0MdSbvityN5nc4dSbbSp4',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QAuEO42yf4FcWT4c_1KdLqDr3DUbe8855OyNjAjMmpLF3PBrTJt4TwWsKq15kdaUbSpw3HrNCNURT5VwHQdVQzyvWVWHnXgHaYLZOb_ej32FfFqiab03QOju-qOOXUEgLgdq4gLzPLxeHkaLpCNMOxPifLPrv-K-VP8EFfwq3cg',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QKNx0PUB6qlXSVxkEJJ2hKR6EQOqnF59fsjQEA5yOrwzyKYxwAdvDzj4MTh3FHyZ6In9AZbhzUvx_ado910uj9pwIxvJ3VwEhOFT6KkXbRGaHPvgVq11wV0Pq8NPjaTI_Pk-UVlAfAQrRu7xvxnlyPN6QK6zZBIVZ2viDHtikq0',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QPx9-aIJXlKdiY5-hTyZOppsOqCUDA7bSYZxXFyLiADHR8_WwFngV_gz6pSj8z46KfiJ8F9f3tDgzguAgy4eaSpzodpJWYJBN7sGjHv0o1vofyNH1OAc7enBoiiPGQPxtKvgNaZ2G4Ry94qxdlbQ5aCwL6vsVq60ulpfvwgxp5s',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QN5JuBUZt892VdGyiBbG_MjD-p7anDGROCDij-88RAMQuw-RNR9nrXAJAc4psGB0qtvLD54PLpe_nh6Dtn00KCLMKY0nBU2-51bp8dGqfLN9XWmG-CGmtcrwgmM9qjV4C8OAsDDAHXf--Ex7rAIph3sN2Q8gJf2SPP9OlQwebY8',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QH-_Usn_R-Uiux6yLeduCGZIN702q-ldUsraz30qn2ATGLWE6MijnB5NeKGM-UBn9nSn_9-q9FdJm7Io1c9ojRUGsytpIqQm7nkATtXONybHYVUtAR4Rq2esKUQjQY5CwsxzsreCrRELnp9GROSUugwn6YP_bHab9eILWgqUfKY',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QNZL1Kyt3O54blLReIu4zl1SAqtLb5ePvYvlW5cdHWSabLplv3K8WQ2gNFk_cisM-_iW2bNpv_IF5v40V3PDC70fjR_hUuP4-ZgiVP2eeEARvj7ssvbwvfkQ1sxTNtmXY0V9-WHD-j2fbZ-u2f7jL4O62Wpg0QLpx2FDKzLZCck',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QFBruNxk6lC3EZ1RqskYRXwXc_iDUSOZUXsYO17X0B-mUPLaqrz6r6EFBFoFa7Oq87TmK8B4WFv12iCOr-LRBwq1ZnpLs8WgGxj-cwdApqAeCzB0jywFNa3Ii8guvTmzUe4WlvOuKYzAXMvZq7L2FWhdLiPxoSr8FEqHtRuvcAw',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QIMUVHY60iNRu25ITKW-ryJJqQGTvfexQdCYLj89lbN3WqEFinKiD5XWWiWiPX5AXlZJBv62MfwSWL5s1abWssNvh8py3mEZ9QML8TkEi6KadF42-dqHztnKBPc6muYFJ4rNqWlYRRktd02AnW5mMbuU96dTgVBlG-4oT2NsCh4',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QI9fcjMJQK6gEeLIhvVVckTTyh74SZPN8B0dN7qJ3RIuSTDCrrrVV9eDNuoC8roS24cwg67uAfsTno1FEQcvKDVg6d3HI4tyXGIz3IsYdELSC-VYww594rdW_0TjmtZ3gWN4MmYPdz28N7ySlfPNWrz2OEYDdYbnU8zKQAfq6QQ',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QI9bbId7Tw2oTmiDSFq2z_7Y2MmpUQGDD8ni_YeajlUUUG1MqmHuCJVE6u7TahR7ZG308sKADRTcnsQ0QRvCQ8XjeYat98AqodkBuIbj13yHp_G8QO5EphIJbh-5HFNlX2lmIpBA0sWskgwsiF1Pu5nULihu1JLGADVqv0rKSAE',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QBdF0ax64yFPin2pBxxf45fEqXLJZVvg8wDvU5J3AAYn6xZjakjj4zOVNEYcZsw0No_keaAkmLev7PPQfTeIgGlK2aZZU5Ty2ilAOgiS8obMjzZ636z_6Q63ay6sVTf_W2D92PRWfh1gz-1gunQ6ZGSNjUOaGbekmwOrfq3JR4A',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QEoV8MjA1wV4a3m2N2uwEse4BPHurokelIA283oUKWM1B21Ch9yOGj9hpYPHWL9V68GcEiPcnunPMtxCYNB1onAWi47ei5w-ff-GUML3Ck1Kf3qnFfXM27C1gd5qBSFISN20-k5NnHEv46oiTwqkUyZsNKzQTcX_LzACBfuEPeI',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QA6x8G1lHh10RhOHbUbktCEbKdY3B6gBfm8ICn3cZPIBCP1Sz9WG-FJzKTooJWYbHQ5wuReSah6bnbwxP7MGTIJIM5SVJnm_yvVd5zJeVzwiGa_6sVj9QieLbeF0yGKRN1SHDdaN8Lx9V6EuO-Ez9eTGjARhZQEOde_pJFcE8HQ',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QIkYj9jWzxL8OrLwNLGo-y9jDhhEhFporY451hQkuanZmhCvRhHAcAAErLv3Cj7qv9u_MJ2iEAl4jk54IK9HZrxGFNntx-DvPAK1fh9pFVZXNZ5UlZ-ZEcpF3oiwKeSDQLlUuy62_KNCc8LxUbklmdk3wx0anUpEjum-VLYIVEQ',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QLrwG71qG3H-_Zt1JiKKOSxd2_BnC0sbXVX1WYgFl13j-7-PHIW6i2uSbDOKSptDf5KTryD2fzWA5rlPQW5oFv5vW1jCWE4NAHo_jSHRoqLGYAwFO2iexgrqW4BhlQL0EcaXi_R8gHjTFGuPlaB7IecUc2KIPaKfUmYa-ta6kQw',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QBsg8uX4gZjC8vnVwHQgoD0X8Mt03JvCU-tK9EH0jsTDsp7GR29jrBxU0c_VdSXiO9-Z54YAvvB7wZ8qwzw0XpN_BJHuR9gMejUAv6d1lS6-nnp9GCCKmbq9NdYlGQWntC4d98BHV3IBRwfaut0I-qITvMzGnyN0tRNHWghexu4',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QD1hHrwRM4irlbQNfak1d6IgmkWIJs6NDBHi6ccMJxzHMAoTlMXcK4_7yThaYPbcNBTXZnY7aOeiOWwDzhlKeKTnsuTNxfo8CGRl9YNx7X02-L1uV5w67Y9Zt8l2-WjvmA6QFb8Qlcjj13iwMQD0yWAxWgLw1E5YTKJ_Fid5gaE',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QOUJ_zyBakanKWt-ee7ZXSiCXB1PZKi5V6cQcImYTF3VrRCwy8_XZSj9KnRSBNOy1Ti-6xauXhaAU7wigV33nsbhS_svUbP3YOChWjM2QFH3C5jFzXliCW5yI1GNe8ARrcIt7WCIl2lfbondUoxGxo8nL2-51mZQeUz-mZz2fow',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QLbvF1mZsVPl2eGzTjQKiwOE3IRDfpNOPudJn8QQ3sqjR02Pw7qllZPWjEBDakceMR9LkYPnQQRWF4iUME4-4o4kUH-RsqLkjDVNkncojnyyB2QhJrMYCefHCpqzWTBXFLEDTqN0u94tmpgSSYHa8Kn8UOE4P6edL9SlZEfO_2o',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QJpokJrByaAsiYDVrqk9pCJkHpzCU2cHrdyfbkA3ggDTf-mMGWnnN_hw9RbXvbApzRtA5-_OQ0DsQvm4K3SyHywcXsmT72tpKOB98JlJbwP492QElQMyVWn7Ya3uaGXh4kKLoATzddP52UPCYh9eqoL-sq2C24TAm2ad4n-9-mk',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QM6O1EqUy0FQPDWpOwTZqRdwUtUKCHxVW_RYS5rLmiY3d22iEmCpyXEBsBNIHDbBp5UqbqspJgcPodYTIpjAQ8RNCUz37-AIwbL8G8AxaFfE7bRKvEJXqKuDf4GqPNkYUdScsNUG9JwU2r8nXNmSuGx1C4bRJpyn6NWvVvLTwUo',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QJNBiNFfCT4pv_lgopvehxW5G_w5s1SekwyA4c4DfRJgVKQ5fFY9L9_R_myMVcfn8NdtsGqcDDZOCv5JedFTa1Yj1jytld99MT-Qonuf2BdcrtnKaQhcuMjmub1j_2pcCntOm1rYoF24qZl4Wr7vQkrh41oWqgkDNK5SphS54do',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QLSDN9sUQyto4TX387WImLFKQVMB761qDtP50MVJ7JigjLQQqLBzvAZIZoMe25qMcJ_-K9ZuRFYdgFfWJn3rgnOczPljDnbHG35sxrbZ98Ibl8GI4xPlbFN0bM9X6JFe-Z6aBdWz8FSHejY_wgBoMLniRFGZD12_ldAQ1IUcDc8',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QEk1pUAcCDfMRSXNWwpfaD-GaSgI9q9TA_y6sqQWZRuCIu7imnpZfhpO5sLA3pYQ10AwZtgH6R8kKaJlImiIkPipnX4VpyVS_KUMKYZrCVPomQtM8h2UKuU3WDRVkC2mT4OBB37aDg_jzS7rwcfZUdPsMCmdLnujpcy7vSYA4ns',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QLLWVmbRvWTRkH8QE1GLXdTG90D3XvWPeuqQS9uleRmi1ZpodXzWCEbehAE2oxFgkdyDXwDPNFw1PrwlrB4iApVknidxMCI_wyiywRWo5RKKIfLdhmT_oysmGRCdAhISwVPVBgDPSW6ZbsMEErGHnQUCLt6-FzpjwY7-ZtHZUUM',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QEqft0BG1zRhmH7CEFn-jVgUPHfkP1evkGo6YIv7FlF761v98dIcce_zDW9jvtiZxPWF9VcFEtujQWuNUQXLSnTsa5hzta2m-dNJCXCDJcPEpHvXc310sJwe14ZnXS03xO-skOlCMcmFi_oaNZEhLxiEHxCplAPyKPn2liY1OQk',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QFjb2jNFH6YOjPmiOlvFRzApf0eeRbH9h6JhtCljM1CR3Nv2L3jACIq6VlvGWO2pacn7UpBRL3ZIjcyW4DRpwjXVDHLTWKkuDwTtB0E9MCBHNIQJVgBmhGygh9zmwp8274Ds4pKnw2tUfXOUoPqRs9YG80S-n1lCOdKn9MNiJWk',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QI2KRz9T-2he4aayUT5rYZ3Iu6gwfPHKITDpbfhBMdtKZe-eXlfhdOO4eLgQtCLm8aaKREXznqIidTe27oDI0JLuHfVl05FobEr3UtYbh09tDTYOoVqNTjNLa8wP415_tsWdHejDlbrV80s37FhGJztaB6B3A_b9Q_5v9Mgufgk',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QLFrwF2MigRlM2mTFK0U_uTB0H1bSvR8Djr5p6W43dfcTOqWXu_xdcplOuls65Q5zLwpOpUGDZylxDrQ_jQl88Qr86pp2ZH54BNLNvJ4ZAJTjtmTzR6YGnIgbJ61pc6PMuRk3ixf1in2gNgej72UM4hTSKPlaby-6UdkY2Mh8LI',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QCpd8ziGqbJ2x7Pntv3IaOfvCVdGpJE9jfFmIbsP5FfVlyrkvApYb7trqJlcE40Ba9UMZmfHCz1vlN-07ctBDd3odXVQYcnaBlaHoin8UulGp4wGfyFwADuNViKhbf92kqUzUENrPzA8D5tAplqzdQtFSVkpPV1b7v3yfyW_-vQ',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QNzGwAJLek5TjID1slp9v-95W02gg0K3fIXbsWpVsqA5dCewtElMgTlKXfjvNM_4LPOji64nAqHOFtR562YMGz2PSsk_8UnkTkb7kQI_MKBNXn05yH_zKt82i3YSGj6BCuP8G33-Ql0ztzeV9xR01V8BDrhaPaGMS9qEwl-yWmQ',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QOgmoLsbFhSk6R11YyZtxk7E9rNpQp4LsSi3rXjs7UFGRpY2KW-7tGUZCII5_VnT96Y-izH7lCgZl04lNudoE0guVE9FGJCIkyWiOFzsqQd9OvVXAyRO70dQbDGfNcZFj4zCKgNuk-hqwwnIxB_rEt33HDW3Oi5D8sufiU0Hlus',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QBte11YwGZ-6HzdKwUvDn67eD8iyoqJwwSZaDiERTxZaMXT6orLs5I-_8dJaStH8O9V8SGeos_PN15vtMykxu1pe7FiWqIRYYONVvmrGbtOlUGn4tVQf4X-XCiNk_IffUMUPqoP0Xu6GuaMjum5x5xfdab3BgIco3lQYRq8cwLk',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QFuGnkPmM20Nl-r4VJhSFGHQk3ZHA4OSFwPI-RM5dhDDopwHXdfFFNnD7Acf0H07uiJWvd9cuhquiOw-JI_h9XtkkvfKLeMaRf3xWKReO1b5PV1W2KSwrxh9JM-lLBjtPHLacbj385Qkc9828CW_JxGS20st3BhCRebCrmNh3Ec',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QCdrz-kluIom1Megpgy7SNcRc217H5CC924SYSefg8prGxkctwERzIWRZ95p4okC_-S3wOq_7UQvuVPlepiX4itLhQvfS-UNhaujVYe0lChhEQnIShBr4FxQ-60xDQA2TjYictzxFswhOZiSA8f314MFeI-b5AYnmtZs2vsHwLQ',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QPpa-wqQZUs5vNAkwyhqbyZgX0kDdKgbw1kFd3M2uTAJ2RrAPPI19V-alGuqUGuCfoW9yl6alK-10eLREyzxfl1sw1jxRvAH7fGvxEM8hGeuNDbMEvGeHIHmE56xa7FuVxWQ4SkAat432VtpYSwbNZdgywm7cMntQZnGXmwGXgY',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',
+    icon: '/icons/icon-192x192.png',
+    unreadCount: 8,
+    badge: '/icons/icon-72x72.png',
+    data: { url: '/', timestamp: 1750798222862, type: 'test' },
+    tag: 'dovie-message-1750798223270',
+    requireInteraction: false,
+    silent: false,
+    vibrate: [ 200, 100, 200 ],
+    renotify: true,
+    dir: 'auto',
+    lang: 'ko-KR'
+  }
+}
+Sending push notification to user 112: {
+  endpoint: 'https://web.push.apple.com/QMZcoSg_mXGFWHVO9gDZc_xdNcGQqrhvaT0iYlAKWz3R00zsTgTyat58DbkS3u_QCtwzvBQDzi0LY7odjQ-0duCBDgWijdqLCSt7RhsKq2B4Pc1NOVldWDNoqlE5R0O3TAeNMPHaVODdvbve2BovVrhVy-zxtNqYAbh7PEpDZpI',
+  payload: {
+    title: 'Dovie Messenger',
+    body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!',

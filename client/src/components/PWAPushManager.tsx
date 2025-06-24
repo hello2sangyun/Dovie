@@ -195,29 +195,7 @@ export function PWAPushManager({ onNotificationEnabled }: PWAPushManagerProps) {
     }
   };
 
-  const sendTestPushNotification = async () => {
-    try {
-      console.log('🧪 테스트 푸시 알림 발송');
 
-      const response = await fetch('/api/push-notification/test', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-ID': user?.id.toString() || ''
-        },
-        body: JSON.stringify({
-          title: 'Dovie Messenger',
-          body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!'
-        })
-      });
-
-      if (response.ok) {
-        console.log('✅ 테스트 푸시 알림 발송 완료');
-      }
-    } catch (error) {
-      console.error('⚠️ 테스트 푸시 발송 실패:', error);
-    }
-  };
 
   // 유틸리티 함수들
   const urlBase64ToUint8Array = (base64String: string): Uint8Array => {
