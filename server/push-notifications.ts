@@ -125,7 +125,8 @@ export async function sendMessageNotification(
   senderName: string,
   messageContent: string,
   chatRoomId: number,
-  messageType: string = 'text'
+  messageType: string = 'text',
+  unreadCount: number = 1
 ): Promise<void> {
   try {
     // Get total unread count across all chat rooms for app badge

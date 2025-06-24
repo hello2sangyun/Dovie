@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { usePWABadge } from '@/hooks/usePWABadge';
 
 export function SimplePushManager() {
   const { user } = useAuth();
+  const { updateBadge } = usePWABadge();
 
   useEffect(() => {
     if (!user) return;
@@ -20,8 +22,17 @@ export function SimplePushManager() {
         return;
       }
 
-      // Only proceed if notification permission is already granted
-      if (Notification.permission !== 'granted') {
+      // Request notification permission if not granted
+      if (Notification.permission === 'default') {
+        console.log('🔔 Requesting notification permission...');
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          console.log('❌ Notification permission denied');
+          return;
+        }
+        localStorage.setItem('notificationPermissionGranted', 'true');
+        console.log('✅ Notification permission granted');
+      } else if (Notification.permission !== 'granted') {
         return;
       }
 
@@ -82,14 +93,22 @@ export function SimplePushManager() {
         });
 
         localStorage.setItem('pushNotificationInitialized', 'true');
+        console.log('✅ Push notifications fully initialized');
       } catch (error) {
-        console.error('Push notification setup failed:', error);
+        console.error('❌ Push notification setup failed:', error);
       }
     };
 
     // Only initialize once per session
     initializePushNotifications();
   }, [user]);
+
+  // Update badge based on unread counts
+  useEffect(() => {
+    if (user) {
+      updateBadge();
+    }
+  }, [user, updateBadge]);
 
   // Helper functions
   const urlBase64ToUint8Array = (base64String: string) => {
