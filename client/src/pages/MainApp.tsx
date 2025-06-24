@@ -5,6 +5,7 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useImagePreloader, preloadGlobalImage } from "@/hooks/useImagePreloader";
+import { usePWABadge } from "@/hooks/usePWABadge";
 
 import { useLocation } from "wouter";
 
@@ -436,10 +437,36 @@ export default function MainApp() {
     setModals(prev => ({ ...prev, permissions: false }));
   };
 
-  // PWA 배지 시스템 (usePWABadge hook 사용)
+  // PWA 배지 테스트 시스템
   useEffect(() => {
-    console.log('PWA 배지 시스템이 usePWABadge hook으로 자동 관리됩니다');
-  }, [user]);
+    if (!user) return;
+    
+    const testBadgeSystem = async () => {
+      console.log('🧪 배지 시스템 테스트 시작');
+      
+      // 현재 안읽은 메시지 수 조회
+      try {
+        const response = await fetch('/api/unread-counts', {
+          headers: { 'X-User-ID': user.id.toString() }
+        });
+        const data = await response.json();
+        const totalUnread = data.unreadCounts?.reduce((total: number, room: any) => 
+          total + (room.unreadCount || 0), 0) || 0;
+        
+        console.log('현재 안읽은 메시지:', totalUnread);
+        
+        // 배지 업데이트 시도
+        if (updateBadge) {
+          await updateBadge(totalUnread);
+        }
+      } catch (error) {
+        console.error('배지 테스트 실패:', error);
+      }
+    };
+    
+    // 3초 후 테스트 실행
+    setTimeout(testBadgeSystem, 3000);
+  }, [user, updateBadge]);
 
   // Clear app badge when app becomes active (iPhone PWA)
   useEffect(() => {

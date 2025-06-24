@@ -201,6 +201,13 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - **Added bidirectional client-SW messaging** for badge updates when direct APIs fail
   - **Implemented push notification permission verification** as prerequisite for badge functionality
   - **System now follows Apple's official PWA badge implementation guidelines** with proper error handling and fallbacks
+- June 25, 2025: **FINAL iOS 16 PWA BADGE SOLUTION** - Created dedicated badge-only Service Worker:
+  - **Created sw-badge.js** as standalone Service Worker focused exclusively on badge functionality
+  - **Enhanced usePWABadge hook** with dual-approach: navigator.setAppBadge + dedicated SW registration
+  - **Removed complex multi-SW conflicts** by simplifying to badge-specific worker registration
+  - **Added automatic badge testing** in MainApp with 3-second delay for proper initialization
+  - **Implemented registration.setAppBadge priority** with registration.badge.set fallback in dedicated SW
+  - **System now uses clean, focused approach** without interference from push notification Service Workers
 - June 16, 2025: Completed comprehensive removal of nearby chat (주변챗) functionality including:
   - Removed location-based database tables (locationChatRooms, locationChatParticipants, locationChatMessages, userLocations)
   - Deleted all location-based API endpoints (/api/location/*)

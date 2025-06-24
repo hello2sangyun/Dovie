@@ -13,29 +13,46 @@ export function usePWABadge() {
     staleTime: 10000 // 10초간 fresh
   });
 
-  // 배지 업데이트 함수
+  // 배지 업데이트 함수 (iOS 16+ PWA 최적화)
   const updateBadge = useCallback(async (count: number) => {
+    console.log('🎯 배지 업데이트 시작:', count);
+    
     try {
-      // iOS 16+ PWA 배지 API 사용
+      // 방법 1: Navigator API 직접 사용
       if ('setAppBadge' in navigator) {
         if (count > 0) {
-          await navigator.setAppBadge(count);
-          console.log('🎯 PWA 배지 업데이트:', count);
+          await (navigator as any).setAppBadge(count);
+          console.log('✅ navigator.setAppBadge 성공:', count);
         } else {
-          await navigator.clearAppBadge();
-          console.log('🎯 PWA 배지 클리어');
+          await (navigator as any).clearAppBadge();
+          console.log('✅ navigator.clearAppBadge 성공');
         }
       }
+    } catch (error) {
+      console.log('navigator.setAppBadge 실패:', error);
+    }
 
-      // Service Worker에도 알림
-      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({
-          type: 'UPDATE_BADGE',
-          count: count
+    try {
+      // 방법 2: Service Worker를 통한 배지 설정
+      if ('serviceWorker' in navigator) {
+        // 배지 전용 SW 등록
+        const registration = await navigator.serviceWorker.register('/sw-badge.js', {
+          scope: '/',
+          updateViaCache: 'none'
         });
+        
+        await navigator.serviceWorker.ready;
+        
+        // SW에 배지 설정 요청
+        if (registration.active) {
+          registration.active.postMessage({
+            type: 'SET_BADGE',
+            count: count
+          });
+        }
       }
     } catch (error) {
-      console.error('❌ 배지 업데이트 실패:', error);
+      console.log('Service Worker 배지 설정 실패:', error);
     }
   }, []);
 
