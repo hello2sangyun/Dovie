@@ -350,15 +350,18 @@ export default function MainApp() {
     setActiveTab("chats");
   };
 
-  // Calculate unread counts for tabs
+  // Calculate unread counts for tabs - fix for reduce error
   const calculateUnreadCounts = () => {
     const unreadCounts = (unreadCountsData as any)?.unreadCounts || [];
     
     let totalChatUnread = 0;
     
-    unreadCounts.forEach((unread: any) => {
-      totalChatUnread += unread.unreadCount;
-    });
+    // Ensure unreadCounts is an array before processing
+    if (Array.isArray(unreadCounts)) {
+      unreadCounts.forEach((unread: any) => {
+        totalChatUnread += unread.unreadCount || 0;
+      });
+    }
     
     return { totalChatUnread };
   };

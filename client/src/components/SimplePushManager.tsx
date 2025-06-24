@@ -65,7 +65,7 @@ export function SimplePushManager() {
           applicationServerKey: urlBase64ToUint8Array(publicKey)
         });
 
-        // Send to server
+        // Send to server - fix format
         await fetch('/api/push-subscription', {
           method: 'POST',
           headers: {
@@ -74,10 +74,9 @@ export function SimplePushManager() {
           },
           body: JSON.stringify({
             endpoint: subscription.endpoint,
-            keys: {
-              p256dh: arrayBufferToBase64(subscription.getKey('p256dh')),
-              auth: arrayBufferToBase64(subscription.getKey('auth'))
-            }
+            p256dh: arrayBufferToBase64(subscription.getKey('p256dh')),
+            auth: arrayBufferToBase64(subscription.getKey('auth')),
+            userAgent: navigator.userAgent
           })
         });
 
