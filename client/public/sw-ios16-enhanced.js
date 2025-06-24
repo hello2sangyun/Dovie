@@ -72,10 +72,12 @@ self.addEventListener('push', (event) => {
     ]
   };
 
+  console.log('[iOS16 Enhanced SW] 알림 표시 중:', notificationOptions);
+
   event.waitUntil(
     Promise.all([
       // 알림 표시
-      self.registration.showNotification(notificationData.title, notificationOptions),
+      self.registration.showNotification(notificationData.title || 'Dovie Messenger', notificationOptions),
       // 배지 업데이트
       updateBadge(notificationData.unreadCount || 1)
     ]).then(() => {
