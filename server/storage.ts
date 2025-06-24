@@ -942,14 +942,21 @@ export class DatabaseStorage implements IStorage {
       .delete(pushSubscriptions)
       .where(and(eq(pushSubscriptions.userId, userId), eq(pushSubscriptions.endpoint, subscription.endpoint)));
 
-    // Then insert the new subscription
-    await db.insert(pushSubscriptions).values({
+    // Then insert the new subscription with proper key validation
+    const subscriptionData = {
       userId,
       endpoint: subscription.endpoint,
-      p256dh: subscription.p256dh,
-      auth: subscription.auth,
-      userAgent: subscription.userAgent
-    });
+      p256dh: subscription.keys?.p256dh || subscription.p256dh,
+      auth: subscription.keys?.auth || subscription.auth,
+      userAgent: subscription.userAgent || 'Unknown'
+    };
+
+    // Validate required keys for web-push
+    if (!subscriptionData.p256dh || !subscriptionData.auth) {
+      throw new Error('Missing required p256dh or auth keys for push subscription');
+    }
+
+    await db.insert(pushSubscriptions).values(subscriptionData);
 
     console.log(`Push subscription upserted for user ${userId}, endpoint: ${subscription.endpoint.substring(0, 50)}...`);
   }
