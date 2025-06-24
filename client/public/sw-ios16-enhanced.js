@@ -90,25 +90,41 @@ self.addEventListener('push', (event) => {
 
 // iOS 16 강화 배지 업데이트 함수
 async function updateBadge(count) {
-  console.log('[iOS16 Enhanced SW] 배지 업데이트:', count);
+  console.log('[iOS16 Enhanced SW] 배지 업데이트 시작:', count);
   
-  try {
-    // iOS 16 PWA 배지 API 사용
-    if ('setAppBadge' in navigator) {
-      if (count && count > 0) {
-        await navigator.setAppBadge(count);
-        console.log('[iOS16 Enhanced SW] 배지 설정 완료:', count);
-      } else {
-        await navigator.clearAppBadge();
-        console.log('[iOS16 Enhanced SW] 배지 클리어 완료');
-      }
-    } else {
-      console.log('[iOS16 Enhanced SW] 배지 API 미지원');
+  // iOS 16+ 앱 배지 API 사용
+  if ('setAppBadge' in navigator) {
+    try {
+      await navigator.setAppBadge(count > 0 ? count : 0);
+      console.log('[iOS16 Enhanced SW] navigator.setAppBadge 성공:', count);
+    } catch (error) {
+      console.error('[iOS16 Enhanced SW] navigator.setAppBadge 실패:', error);
     }
-  } catch (error) {
-    console.error('[iOS16 Enhanced SW] 배지 업데이트 실패:', error);
   }
+  
+  // Service Worker 레벨 배지 설정 (fallback)
+  if ('badge' in self.registration) {
+    try {
+      await self.registration.badge.set(count > 0 ? count : 0);
+      console.log('[iOS16 Enhanced SW] registration.badge.set 성공:', count);
+    } catch (error) {
+      console.error('[iOS16 Enhanced SW] registration.badge.set 실패:', error);
+    }
+  }
+  
+  console.log('[iOS16 Enhanced SW] 배지 업데이트 완료:', count);
 }
+
+// 클라이언트에서 배지 업데이트 메시지 처리
+self.addEventListener('message', (event) => {
+  console.log('[iOS16 Enhanced SW] 메시지 수신:', event.data);
+  
+  if (event.data && event.data.type === 'UPDATE_BADGE') {
+    const count = event.data.count || 0;
+    console.log('[iOS16 Enhanced SW] 클라이언트 요청 배지 업데이트:', count);
+    updateBadge(count);
+  }
+});
 
 // 클라이언트에 배지 업데이트 알림
 async function notifyClientsOfBadgeUpdate(count) {
