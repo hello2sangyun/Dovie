@@ -331,7 +331,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser: handleSetUser,
       logout,
       isLoading: isLoading || !initialized,
-      isPreloadingImages: false, // 프리로딩을 차단하지 않도록 false로 설정
+      isPreloadingImages: isPreloadingImages,
       loginWithUsername,
       loginWithEmail,
       requestPermissions,
