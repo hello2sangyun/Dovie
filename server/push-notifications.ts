@@ -181,8 +181,8 @@ export async function sendMessageNotification(
       tag: `dovie-chat-${chatRoomId}`,
       requireInteraction: false,
       silent: false,
-      sound: '/notification-sound.mp3',
-      unreadCount: totalUnreadCount
+      badge: unreadCount,
+      unreadCount: unreadCount
     });
   } catch (error) {
     console.error(`Failed to send message notification to user ${recipientUserId}:`, error);

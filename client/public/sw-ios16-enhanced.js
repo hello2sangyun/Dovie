@@ -78,7 +78,7 @@ self.addEventListener('push', (event) => {
       // 알림 표시
       self.registration.showNotification(notificationData.title || 'Dovie Messenger', notificationOptions),
       // 배지 업데이트
-      updateBadge(notificationData.unreadCount || 1)
+      updateBadge(notificationData.unreadCount || notificationData.badge || 1)
     ]).then(() => {
       console.log('[iOS16 Enhanced SW] 푸시 알림 표시 완료');
     }).catch(error => {

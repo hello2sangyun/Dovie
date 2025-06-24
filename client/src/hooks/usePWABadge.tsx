@@ -9,18 +9,21 @@ export function usePWABadge() {
   const { data: unreadCounts } = useQuery({
     queryKey: ['/api/unread-counts'],
     enabled: !!user,
-    refetchInterval: 30000, // 30초마다 갱신
-    staleTime: 10000 // 10초간 fresh
+    refetchInterval: 5000, // 5초마다 갱신 (실시간 반응 위해)
+    staleTime: 1000 // 1초간 fresh
   });
 
   // 배지 업데이트 함수
-  const updateBadge = useCallback(async (count: number) => {
+  const updateBadge = useCallback(async (overrideCount?: number) => {
     try {
+      // 총 읽지 않은 메시지 수 계산
+      const totalCount = overrideCount ?? (unreadCounts?.unreadCounts?.reduce((total: number, count: any) => total + count.unreadCount, 0) || 0);
+      
       // iOS 16+ PWA 배지 API 사용
       if ('setAppBadge' in navigator) {
-        if (count > 0) {
-          await navigator.setAppBadge(count);
-          console.log('🎯 PWA 배지 업데이트:', count);
+        if (totalCount > 0) {
+          await navigator.setAppBadge(totalCount);
+          console.log('🎯 PWA 배지 업데이트:', totalCount);
         } else {
           await navigator.clearAppBadge();
           console.log('🎯 PWA 배지 클리어');

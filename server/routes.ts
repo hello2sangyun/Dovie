@@ -1267,14 +1267,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const sender = await storage.getUser(Number(userId));
           const recipients = chatRoom.participants.filter((p: any) => p.id !== Number(userId));
           
-          // Send push notification to each recipient
+          // Send push notification to each recipient with unread count
           for (const recipient of recipients) {
+            // Get current unread count for this recipient
+            const unreadCounts = await storage.getUnreadCounts(recipient.id);
+            const totalUnreadCount = unreadCounts.reduce((total, count) => total + count.unreadCount, 0) + 1;
+            
             await sendMessageNotification(
               recipient.id,
               sender?.displayName || sender?.username || '사용자',
               messageData.content || '새 메시지',
               Number(req.params.chatRoomId),
-              messageData.messageType || 'text'
+              messageData.messageType || 'text',
+              totalUnreadCount
             );
           }
         }
