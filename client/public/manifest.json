@@ -10,7 +10,7 @@
   "scope": "/",
   "lang": "ko",
   "display_override": ["standalone", "minimal-ui"],
-  "permissions": ["badge", "notifications"],
+
   "edge_side_panel": {
     "preferred_width": 480
   },
