@@ -16,13 +16,14 @@ import AdminPage from "@/pages/AdminPage";
 import FriendProfilePage from "@/pages/FriendProfilePage";
 import PWATest from "@/pages/PWATest";
 import MinimalTest from "@/pages/MinimalTest";
+import StandalonePWA from "@/pages/StandalonePWA";
 import NotFound from "@/pages/not-found";
 import { useEffect } from "react";
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={MinimalTest} />
+      <Route path="/" component={StandalonePWA} />
       <Route path="/test" component={PWATest} />
       <Route path="/minimal" component={MinimalTest} />
       <Route path="/landing" component={LandingPage} />
