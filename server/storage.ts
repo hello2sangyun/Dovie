@@ -1006,6 +1006,87 @@ export class DatabaseStorage implements IStorage {
       
     return result[0]?.count || 0;
   }
+
+  // QR Code System Implementation
+  async generateQRToken(userId: number): Promise<string> {
+    // 보안 토큰 생성 (24시간 유효)
+    const crypto = await import('crypto');
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24시간 후 만료
+    
+    await db.update(users)
+      .set({ 
+        qrToken: token,
+        qrTokenExpiry: expiry
+      })
+      .where(eq(users.id, userId));
+    
+    return token;
+  }
+
+  async getUserByQRToken(token: string): Promise<any> {
+    const user = await db.query.users.findFirst({
+      where: and(
+        eq(users.qrToken, token),
+        gt(users.qrTokenExpiry, new Date()) // 만료되지 않은 토큰만
+      ),
+      columns: {
+        id: true,
+        username: true,
+        displayName: true,
+        profilePicture: true,
+        email: true,
+        phoneNumber: true
+      }
+    });
+    
+    return user || null;
+  }
+
+  async addContactByQRToken(userId: number, token: string): Promise<{ success: boolean; contact?: any; message: string }> {
+    try {
+      // 토큰으로 사용자 찾기
+      const targetUser = await this.getUserByQRToken(token);
+      if (!targetUser) {
+        return { success: false, message: "유효하지 않거나 만료된 QR 코드입니다." };
+      }
+
+      // 본인 추가 방지
+      if (targetUser.id === userId) {
+        return { success: false, message: "본인을 연락처에 추가할 수 없습니다." };
+      }
+
+      // 이미 연락처에 있는지 확인
+      const existingContact = await db.query.contacts.findFirst({
+        where: and(
+          eq(contacts.userId, userId),
+          eq(contacts.contactUserId, targetUser.id)
+        )
+      });
+
+      if (existingContact) {
+        return { success: false, message: "이미 연락처에 등록된 사용자입니다." };
+      }
+
+      // 연락처 추가
+      await db.insert(contacts).values({
+        userId: userId,
+        contactUserId: targetUser.id,
+        isPinned: false,
+        isBlocked: false,
+        createdAt: new Date()
+      });
+
+      return { 
+        success: true, 
+        contact: targetUser,
+        message: `${targetUser.displayName}님이 연락처에 추가되었습니다.`
+      };
+    } catch (error) {
+      console.error('QR 연락처 추가 오류:', error);
+      return { success: false, message: "연락처 추가 중 오류가 발생했습니다." };
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();

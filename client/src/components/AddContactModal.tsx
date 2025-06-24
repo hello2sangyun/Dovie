@@ -337,12 +337,15 @@ export default function AddContactModal({ open, onClose }: AddContactModalProps)
       </DialogContent>
     </Dialog>
 
-    {/* QR Scanner Modal */}
-    <QRScannerModal
-      open={showQRScanner}
-      onClose={() => setShowQRScanner(false)}
-      onScanResult={handleQRScanResult}
-    />
+      <QRScannerModal
+        isOpen={showQRScanner}
+        onClose={() => setShowQRScanner(false)}
+        onSuccess={(contact) => {
+          queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
+          setShowQRScanner(false);
+          handleClose();
+        }}
+      />
     </>
   );
 }

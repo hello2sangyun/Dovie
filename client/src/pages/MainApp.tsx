@@ -723,7 +723,20 @@ export default function MainApp() {
                     className="absolute inset-0"
                   >
                     <TabsContent value="settings" className="h-full m-0">
-                <div className="h-full overflow-y-auto">
+                      <div className="h-full flex flex-col bg-white">
+                        <div className="flex justify-between items-center p-4 border-b">
+                          <h2 className="text-lg font-semibold text-gray-900">설정</h2>
+                          <div className="flex items-center space-x-3">
+                            <button
+                              onClick={() => setModals(prev => ({ ...prev, qrCode: true }))}
+                              className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                            >
+                              <QrCode className="h-5 w-5" />
+                            </button>
+                            <div className="text-purple-600 font-bold text-lg">Dovie</div>
+                          </div>
+                        </div>
+                        <div className="h-full overflow-y-auto">
                   <div className="p-4">
                     {/* 프로필 섹션 */}
                     <div 
@@ -832,12 +845,11 @@ export default function MainApp() {
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              </TabsContent>
+                      </div>
                     </div>
-                  )}
-              </div>
+                  </TabsContent>
+                </div>
+              )}
           </Tabs>
         </div>
 
