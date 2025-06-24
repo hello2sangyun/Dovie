@@ -1231,7 +1231,16 @@ export default function MainApp() {
               >
                 {/* Header for Settings */}
                 <div className="flex-shrink-0 p-4 bg-gray-50 border-b border-gray-200">
-                  <h2 className="text-lg font-semibold text-gray-900">설정</h2>
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-lg font-semibold text-gray-900">설정</h2>
+                    <button
+                      onClick={() => setModals(prev => ({ ...prev, qrCode: true }))}
+                      className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                      title="QR 코드 생성"
+                    >
+                      <QrCode className="h-6 w-6" />
+                    </button>
+                  </div>
                 </div>
                 
                 <div className="flex-1 overflow-hidden">
