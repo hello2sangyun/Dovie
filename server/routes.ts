@@ -5215,5 +5215,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // QR Code System APIs
+  app.post("/api/qr/generate", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"];
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const token = await storage.generateQRToken(Number(userId));
+      res.json({ token });
+    } catch (error) {
+      console.error("QR 토큰 생성 오류:", error);
+      res.status(500).json({ error: "QR 코드 생성 실패" });
+    }
+  });
+
+  app.post("/api/qr/scan", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"];
+      const { token } = req.body;
+
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      if (!token) {
+        return res.status(400).json({ error: "QR 토큰이 필요합니다." });
+      }
+
+      const result = await storage.addContactByQRToken(Number(userId), token);
+      
+      if (result.success) {
+        res.json({ 
+          success: true, 
+          contact: result.contact,
+          message: result.message 
+        });
+      } else {
+        res.status(400).json({ 
+          success: false, 
+          message: result.message 
+        });
+      }
+    } catch (error) {
+      console.error("QR 스캔 오류:", error);
+      res.status(500).json({ error: "QR 스캔 처리 실패" });
+    }
+  });
+
+  app.get("/api/qr/user/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+      const user = await storage.getUserByQRToken(token);
+      
+      if (user) {
+        res.json({ user });
+      } else {
+        res.status(404).json({ error: "유효하지 않은 QR 코드입니다." });
+      }
+    } catch (error) {
+      console.error("QR 사용자 조회 오류:", error);
+      res.status(500).json({ error: "사용자 정보 조회 실패" });
+    }
+  });
+
   return httpServer;
 }
