@@ -3,7 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 // import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/hooks/useAuth";
+import { AuthProvider } from "@/hooks/useSimpleAuth";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import LandingPage from "@/pages/LandingPage";
@@ -36,14 +36,17 @@ function Router() {
 function App() {
   // Dark mode initialization
   useEffect(() => {
-    const savedDarkMode = localStorage.getItem('darkMode');
-    // 새로운 사용자는 라이트 모드로 시작, 명시적으로 다크모드를 설정한 경우에만 적용
-    const shouldUseDarkMode = savedDarkMode === 'true';
-    
-    if (shouldUseDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+    try {
+      const savedDarkMode = localStorage.getItem('darkMode');
+      const shouldUseDarkMode = savedDarkMode === 'true';
+      
+      if (shouldUseDarkMode) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    } catch (error) {
+      console.error('Dark mode initialization error:', error);
     }
   }, []);
 
@@ -103,13 +106,17 @@ function App() {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Toaster />
-        <PWAInstallPrompt />
-        <Router />
-      </AuthProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <div className="min-h-screen bg-background text-foreground">
+            <Router />
+            <PWAInstallPrompt />
+            <Toaster />
+          </div>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
