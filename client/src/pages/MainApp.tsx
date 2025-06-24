@@ -474,7 +474,15 @@ export default function MainApp() {
             }
           }
         } else {
-          console.log('setAppBadge API 미지원');
+          console.log('setAppBadge API 미지원 - Service Worker로 배지 설정 시도');
+          
+          // Service Worker에서 강제 배지 설정 시도
+          if (navigator.serviceWorker?.controller) {
+            navigator.serviceWorker.controller.postMessage({
+              type: 'FORCE_BADGE_UPDATE',
+              count: totalUnread
+            });
+          }
         }
         
         // Service Worker에도 배지 업데이트 요청

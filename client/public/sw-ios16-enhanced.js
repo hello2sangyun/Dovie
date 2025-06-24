@@ -119,7 +119,7 @@ async function updateBadge(count) {
 self.addEventListener('message', (event) => {
   console.log('[iOS16 Enhanced SW] 메시지 수신:', event.data);
   
-  if (event.data && event.data.type === 'UPDATE_BADGE') {
+  if (event.data && (event.data.type === 'UPDATE_BADGE' || event.data.type === 'FORCE_BADGE_UPDATE')) {
     const count = event.data.count || 0;
     console.log('[iOS16 Enhanced SW] 클라이언트 요청 배지 업데이트:', count);
     updateBadge(count);

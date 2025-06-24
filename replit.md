@@ -186,6 +186,12 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Improved badge API integration with navigator.setAppBadge() for instant iOS 16+ PWA badge display
   - Added comprehensive badge update workflow: app start → unread count fetch → immediate badge setting → continuous updates
   - System now displays real-time unread message count (currently 9+ messages) on iOS 16 PWA app icon
+- June 25, 2025: Fixed critical push notification and badge issues:
+  - **Removed automatic activation push notifications** that were repeatedly sent to users ("iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!")
+  - **Enhanced badge system with 4-tier fallback approach**: registration.setAppBadge → navigator.setAppBadge → registration.badge.set → client-side messaging
+  - **Strengthened Service Worker badge handling** with multiple API attempts and forced update messaging
+  - **Users now receive only actual message notifications** instead of system activation alerts
+  - **Badge display optimized** for iOS 16+ PWA with comprehensive API compatibility testing
 - June 16, 2025: Completed comprehensive removal of nearby chat (주변챗) functionality including:
   - Removed location-based database tables (locationChatRooms, locationChatParticipants, locationChatMessages, userLocations)
   - Deleted all location-based API endpoints (/api/location/*)
