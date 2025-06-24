@@ -118,6 +118,11 @@ export interface IStorage {
   upsertPushSubscription(userId: number, subscription: { endpoint: string; p256dh: string; auth: string; userAgent: string }): Promise<void>;
   deletePushSubscription(userId: number, endpoint: string): Promise<void>;
   getPushSubscriptions(userId: number): Promise<any[]>;
+
+  // QR Code System
+  generateQRToken(userId: number): Promise<string>;
+  getUserByQRToken(token: string): Promise<any>;
+  addContactByQRToken(userId: number, token: string): Promise<{ success: boolean; contact?: any; message: string }>;
 }
 
 export class DatabaseStorage implements IStorage {
