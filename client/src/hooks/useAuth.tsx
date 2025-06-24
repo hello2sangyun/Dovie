@@ -311,44 +311,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      // Request notification permission for iPhone PWA
-      if ('Notification' in window && 'serviceWorker' in navigator) {
+      // 간소화된 알림 권한 요청
+      if ('Notification' in window) {
         try {
           const permission = await Notification.requestPermission();
-          if (permission === 'granted') {
-            console.log('🔔 알림 권한 허용됨');
-            localStorage.setItem('notificationPermissionGranted', 'true');
-            
-            // Register for push notifications if service worker is ready
-            const registration = await navigator.serviceWorker.ready;
-            if (registration.pushManager) {
-              try {
-                const subscription = await registration.pushManager.subscribe({
-                  userVisibleOnly: true,
-                  applicationServerKey: 'BNWgP2Q4W_Ac-iVjG5mF8D1hF9oJ0pQa2I_RnZ1Y3PYq7fghjkl'
-                });
-                
-                // Send subscription to server
-                await fetch('/api/push-subscription', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'x-user-id': user?.id.toString() || ''
-                  },
-                  body: JSON.stringify({ subscription })
-                });
-                
-                console.log('📱 푸시 알림 구독 완료');
-              } catch (error) {
-                console.error('푸시 알림 구독 실패:', error);
-              }
-            }
-          } else {
-            console.log('🔔 알림 권한 거부됨');
-            localStorage.setItem('notificationPermissionGranted', 'false');
-          }
+          localStorage.setItem('notificationPermissionGranted', permission === 'granted' ? 'true' : 'false');
         } catch (error) {
-          console.error('알림 권한 요청 실패:', error);
+          localStorage.setItem('notificationPermissionGranted', 'false');
         }
       }
     } catch (error) {
@@ -357,15 +326,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      setUser: handleSetUser, 
+    <AuthContext.Provider value={{
+      user,
+      setUser: handleSetUser,
       logout,
-      isLoading: (isLoading && !!storedUserId) || !initialized,
-      isPreloadingImages,
+      isLoading: isLoading || !initialized,
+      isPreloadingImages: false, // 프리로딩을 차단하지 않도록 false로 설정
       loginWithUsername,
       loginWithEmail,
-      requestPermissions
+      requestPermissions,
     }}>
       {children}
     </AuthContext.Provider>

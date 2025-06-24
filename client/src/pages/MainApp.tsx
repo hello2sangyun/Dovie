@@ -261,12 +261,9 @@ export default function MainApp() {
 
 
 
-  // Function to automatically enable push notifications on first login - iPhone PWA optimized
+  // 간소화된 자동 푸시 알림 활성화
   const autoEnablePushNotifications = async () => {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      console.log('Push notifications not supported');
-      return;
-    }
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
 
     // iPhone PWA detection
     const isIPhonePWA = (window.navigator as any).standalone === true || 
