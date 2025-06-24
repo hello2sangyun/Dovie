@@ -436,15 +436,39 @@ export default function MainApp() {
     setModals(prev => ({ ...prev, permissions: false }));
   };
 
-  // PWA 배지 강제 업데이트 시스템
+  // iOS 16+ PWA 배지 시스템 (전문가 권장 방식)
   useEffect(() => {
-    const forceBadgeUpdate = async () => {
+    const initializePWABadgeSystem = async () => {
       if (!user) return;
       
       try {
-        console.log('배지 강제 업데이트 시작...');
+        console.log('🎯 iOS 16+ PWA 배지 시스템 초기화...');
         
-        // 현재 안읽은 메시지 수 조회
+        // 1. PWA 설치 상태 확인 (필수)
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                           (window.navigator as any).standalone === true;
+        
+        if (!isStandalone) {
+          console.log('⚠️ PWA 미설치 상태 - 홈화면에 설치 필요');
+          return;
+        }
+        
+        // 2. iOS 버전 확인
+        const iosVersion = navigator.userAgent.match(/OS (\d+)_(\d+)/);
+        const majorVersion = iosVersion ? parseInt(iosVersion[1]) : 0;
+        const minorVersion = iosVersion ? parseInt(iosVersion[2]) : 0;
+        console.log('iOS 버전:', majorVersion, minorVersion);
+        
+        // 3. 푸시 알림 권한 확인 (필수)
+        if (Notification.permission !== 'granted') {
+          console.log('⚠️ 푸시 알림 권한 필요 - 배지 기능 제한됨');
+        }
+        
+        // 4. Service Worker 완전 준비 대기 (핵심)
+        const registration = await navigator.serviceWorker.ready;
+        console.log('✅ Service Worker 준비 완료');
+        
+        // 5. 안읽은 메시지 수 조회
         const response = await fetch('/api/unread-counts', {
           headers: { 'X-User-ID': user.id.toString() }
         });
@@ -454,64 +478,95 @@ export default function MainApp() {
         
         console.log('현재 안읽은 메시지 수:', totalUnread);
         
-        // iOS 16 PWA 배지 API로 즉시 설정 (다양한 방법 시도)
-        if ('setAppBadge' in navigator) {
+        // 6. iOS 16.4+ 배지 설정 (우선순위 1)
+        if (majorVersion >= 16 && minorVersion >= 4 && 'setAppBadge' in navigator) {
           try {
-            // 방법 1: navigator.setAppBadge 직접 호출
-            await (navigator as any).setAppBadge(totalUnread);
-            console.log('방법 1: navigator.setAppBadge 성공:', totalUnread);
-          } catch (error) {
-            console.log('방법 1 실패:', error);
-            
-            // 방법 2: 0으로 초기화 후 다시 설정
-            try {
-              await (navigator as any).clearAppBadge();
-              await new Promise(resolve => setTimeout(resolve, 100));
+            if (totalUnread > 0) {
               await (navigator as any).setAppBadge(totalUnread);
-              console.log('방법 2: 초기화 후 설정 성공:', totalUnread);
-            } catch (error2) {
-              console.log('방법 2도 실패:', error2);
+            } else {
+              await (navigator as any).clearAppBadge();
             }
-          }
-        } else {
-          console.log('setAppBadge API 미지원 - Service Worker로 배지 설정 시도');
-          
-          // Service Worker에서 강제 배지 설정 시도
-          if (navigator.serviceWorker?.controller) {
-            navigator.serviceWorker.controller.postMessage({
-              type: 'FORCE_BADGE_UPDATE',
-              count: totalUnread
-            });
+            console.log('✅ iOS 16.4+ navigator.setAppBadge 성공:', totalUnread);
+            return;
+          } catch (error) {
+            console.log('❌ navigator.setAppBadge 실패:', error);
           }
         }
         
-        // Service Worker에도 배지 업데이트 요청
-        if (navigator.serviceWorker?.controller) {
-          navigator.serviceWorker.controller.postMessage({
-            type: 'UPDATE_BADGE',
+        // 7. Service Worker 배지 설정 (우선순위 2)
+        if (registration && 'setAppBadge' in registration) {
+          try {
+            if (totalUnread > 0) {
+              await registration.setAppBadge(totalUnread);
+            } else {
+              await registration.clearAppBadge();
+            }
+            console.log('✅ Service Worker registration.setAppBadge 성공:', totalUnread);
+            return;
+          } catch (error) {
+            console.log('❌ registration.setAppBadge 실패:', error);
+          }
+        }
+        
+        // 8. Service Worker 메시지 전송 (백업)
+        if (registration.active) {
+          registration.active.postMessage({
+            type: 'SET_BADGE_FORCE',
             count: totalUnread
           });
+          console.log('📤 Service Worker로 배지 설정 요청 전송:', totalUnread);
         }
         
-        // Service Worker 메시지 리스너 추가 (클라이언트 측 배지 설정)
-        navigator.serviceWorker.addEventListener('message', (event) => {
-          if (event.data?.type === 'SET_BADGE_CLIENT') {
-            const badgeCount = event.data.count;
-            if ('setAppBadge' in navigator) {
-              (navigator as any).setAppBadge(badgeCount).catch(console.error);
-            }
-          }
-        });
-        
       } catch (error) {
-        console.error('배지 강제 업데이트 실패:', error);
+        console.error('❌ PWA 배지 시스템 초기화 실패:', error);
       }
     };
     
-    // 사용자 로그인 시 즉시 배지 업데이트 실행
-    if (user) {
-      forceBadgeUpdate();
+    // Service Worker 클라이언트 메시지 리스너 (iOS 16+ 배지)
+    const handleSWMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'CLIENT_SET_BADGE') {
+        const badgeCount = event.data.count;
+        console.log('📨 SW에서 클라이언트 배지 설정 요청:', badgeCount);
+        
+        if ('setAppBadge' in navigator) {
+          const setAppBadge = (navigator as any).setAppBadge;
+          const clearAppBadge = (navigator as any).clearAppBadge;
+          
+          if (badgeCount > 0) {
+            setAppBadge(badgeCount).then(() => {
+              console.log('✅ 클라이언트 배지 설정 성공:', badgeCount);
+            }).catch((error: any) => {
+              console.log('❌ 클라이언트 배지 설정 실패:', error);
+            });
+          } else {
+            clearAppBadge().then(() => {
+              console.log('✅ 클라이언트 배지 클리어 성공');
+            }).catch((error: any) => {
+              console.log('❌ 클라이언트 배지 클리어 실패:', error);
+            });
+          }
+        }
+      }
+    };
+    
+    // Service Worker 메시지 리스너 등록
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', handleSWMessage);
     }
+    
+    // 사용자 로그인 후 2초 대기 (SW 안정화)
+    if (user) {
+      setTimeout(() => {
+        initializePWABadgeSystem();
+      }, 2000);
+    }
+    
+    // 클린업
+    return () => {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.removeEventListener('message', handleSWMessage);
+      }
+    };
   }, [user]);
 
   // Clear app badge when app becomes active (iPhone PWA)
