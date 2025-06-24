@@ -41,6 +41,8 @@ import { cn } from "@/lib/utils";
 export default function MainApp() {
   const { user, isLoading, isPreloadingImages } = useAuth();
   const { updateBadge, clearBadge } = usePWABadge();
+  
+  console.log('🔍 [MAIN APP DEBUG] Render state - user:', !!user, 'isLoading:', isLoading, 'isPreloadingImages:', isPreloadingImages);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { preloadImage, isLoading: imagePreloading } = useImagePreloader();

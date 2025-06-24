@@ -38,6 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Try to get user from localStorage on app start
   const storedUserId = localStorage.getItem("userId");
+  console.log('🔍 [AUTH DEBUG] Stored userId from localStorage:', storedUserId);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["/api/auth/me"],
@@ -46,13 +47,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     staleTime: 5 * 60 * 1000, // 5분 동안 캐시 유지
     gcTime: 10 * 60 * 1000, // 10분 동안 메모리에 보관 (v5에서 cacheTime -> gcTime)
     queryFn: async () => {
+      console.log('🔍 [AUTH DEBUG] Making auth request with userId:', storedUserId);
+      
       const response = await fetch("/api/auth/me", {
         headers: {
           "x-user-id": storedUserId!,
         },
       });
       
+      console.log('🔍 [AUTH DEBUG] Auth response status:', response.status);
+      
       if (!response.ok) {
+        console.log('❌ [AUTH DEBUG] Auth failed, removing userId from localStorage');
         // 인증 실패 시 저장된 사용자 ID 제거
         localStorage.removeItem("userId");
         localStorage.removeItem("rememberLogin"); // 자동 로그인 해제

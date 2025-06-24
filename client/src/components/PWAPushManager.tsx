@@ -29,6 +29,7 @@ export function PWAPushManager({ onNotificationEnabled }: PWAPushManagerProps) {
 
   const initializePWAPushSystem = async () => {
     setIsInitializing(true);
+    console.log('🔍 [PWA DEBUG] 푸시 시스템 초기화 시작');
     console.log('🚀 iOS 16 호환 PWA 푸시 시스템 초기화');
 
     try {
