@@ -6,20 +6,12 @@ export default function LandingPage() {
   const [, setLocation] = useLocation();
 
   useEffect(() => {
-    // Check if user is already stored
-    const storedUserId = localStorage.getItem("userId");
-    
-    if (storedUserId) {
-      // User exists, go to app
-      setLocation("/app");
-    } else {
-      // Redirect to login page after brief landing display
-      const timer = setTimeout(() => {
-        setLocation("/login");
-      }, 2000);
+    // Always redirect to login for simplicity
+    const timer = setTimeout(() => {
+      setLocation("/login");
+    }, 1000);
 
-      return () => clearTimeout(timer);
-    }
+    return () => clearTimeout(timer);
   }, [setLocation]);
 
   return (

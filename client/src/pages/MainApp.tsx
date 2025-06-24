@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/useCleanAuth";
+import { useAuth } from "@/hooks/useDirectAuth";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";

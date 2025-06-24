@@ -1,9 +1,8 @@
 import { useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useAuth } from './useAuth';
+// Badge system works independently
 
 export function usePWABadge() {
-  const { user } = useAuth();
 
   // 읽지 않은 메시지 수 조회
   const { data: unreadCounts } = useQuery({

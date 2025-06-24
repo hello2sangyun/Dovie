@@ -3,7 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 // import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/hooks/useCleanAuth";
+import { AuthProvider } from "@/hooks/useDirectAuth";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import LandingPage from "@/pages/LandingPage";
@@ -14,13 +14,16 @@ import PhoneLogin from "@/pages/PhoneLogin";
 import MainApp from "@/pages/MainApp";
 import AdminPage from "@/pages/AdminPage";
 import FriendProfilePage from "@/pages/FriendProfilePage";
+import PWATest from "@/pages/PWATest";
 import NotFound from "@/pages/not-found";
 import { useEffect } from "react";
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={LandingPage} />
+      <Route path="/" component={PWATest} />
+      <Route path="/test" component={PWATest} />
+      <Route path="/landing" component={LandingPage} />
       <Route path="/login" component={LoginPage} />
       <Route path="/signup" component={SignupPage} />
       <Route path="/profile-setup" component={ProfileSetupPage} />
@@ -108,13 +111,11 @@ function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <div className="min-h-screen bg-background text-foreground">
-            <Router />
-            <PWAInstallPrompt />
-            <Toaster />
-          </div>
-        </AuthProvider>
+        <div className="min-h-screen bg-background text-foreground">
+          <Router />
+          <PWAInstallPrompt />
+          <Toaster />
+        </div>
       </QueryClientProvider>
     </ErrorBoundary>
   );

@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useCleanAuth";
+import { useAuth } from "@/hooks/useDirectAuth";
 import { apiRequest } from "@/lib/queryClient";
 import VaultLogo from "@/components/VaultLogo";
+import { QuickLogin } from "@/components/QuickLogin";
 import { User, Lock, Phone } from "lucide-react";
 
 export default function LoginPage() {
