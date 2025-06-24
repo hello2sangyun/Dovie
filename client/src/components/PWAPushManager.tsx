@@ -63,7 +63,18 @@ export function PWAPushManager({ onNotificationEnabled }: PWAPushManagerProps) {
 
   const registerServiceWorkerForIOS = async (): Promise<ServiceWorkerRegistration | null> => {
     try {
-      console.log('📋 iOS 16 호환 Service Worker 등록');
+      console.log('📋 iOS 16+ PWA Service Worker 등록');
+
+      // iOS 16+ 감지
+      const isIOSDevice = /iPhone|iPad|iPod/.test(navigator.userAgent);
+      const isIOS16Plus = isIOSDevice && (
+        /OS 1[6-9]/.test(navigator.userAgent) || 
+        /OS [2-9][0-9]/.test(navigator.userAgent) ||
+        /Version\/1[6-9]/.test(navigator.userAgent) ||
+        /Version\/[2-9][0-9]/.test(navigator.userAgent)
+      );
+      const isPWAMode = (window.navigator as any).standalone === true || 
+                      window.matchMedia('(display-mode: standalone)').matches;
 
       // 기존 등록 해제
       const registrations = await navigator.serviceWorker.getRegistrations();
@@ -71,8 +82,18 @@ export function PWAPushManager({ onNotificationEnabled }: PWAPushManagerProps) {
         await reg.unregister();
       }
 
-      // iOS 16 호환 등록
-      const registration = await navigator.serviceWorker.register('/sw.js', {
+      // 최적 SW 파일 선택
+      let swFile = '/sw.js';
+      if (isIOSDevice && isIOS16Plus && isPWAMode) {
+        swFile = '/sw-ios16-enhanced.js';
+        console.log('🎯 iOS 16+ PWA 강화 모드 사용');
+      } else if (isIOSDevice) {
+        swFile = '/sw-ios16.js';
+        console.log('🎯 iOS 호환 모드 사용');
+      }
+
+      // Service Worker 등록
+      const registration = await navigator.serviceWorker.register(swFile, {
         scope: '/',
         updateViaCache: 'none',
         type: 'classic'
@@ -80,7 +101,7 @@ export function PWAPushManager({ onNotificationEnabled }: PWAPushManagerProps) {
 
       // iOS 16에서 중요한 ready 대기
       await navigator.serviceWorker.ready;
-      console.log('✅ iOS 16 Service Worker 등록 완료');
+      console.log('✅ iOS 16+ Service Worker 등록 완료:', swFile);
       
       return registration;
     } catch (error) {
@@ -158,6 +179,16 @@ export function PWAPushManager({ onNotificationEnabled }: PWAPushManagerProps) {
       }
 
       console.log('✅ 서버 구독 정보 저장 완료');
+      
+      // iOS 16+ PWA 배지 초기화
+      if ('setAppBadge' in navigator) {
+        try {
+          await navigator.clearAppBadge();
+          console.log('✅ iOS 16+ 배지 초기화 완료');
+        } catch (error) {
+          console.log('⚠️ 배지 초기화 실패:', error);
+        }
+      }
     } catch (error) {
       console.error('❌ 서버 구독 정보 전송 실패:', error);
       throw error;

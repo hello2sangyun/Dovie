@@ -16,6 +16,11 @@
   "launch_handler": {
     "client_mode": "focus-existing"
   },
+  "ios": {
+    "supports_push": true,
+    "supports_badge": true,
+    "supports_notification": true
+  },
   "icons": [
     {
       "src": "/icons/icon-72x72.png",

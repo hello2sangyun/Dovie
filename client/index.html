@@ -65,12 +65,31 @@
               console.log('🔄 기존 Service Worker 해제됨');
             }
             
-            // iOS 16 감지 및 적절한 Service Worker 등록
-            const isIOS16 = /iPhone/.test(navigator.userAgent) && 
-                          (/OS 16/.test(navigator.userAgent) || /Version\/16/.test(navigator.userAgent));
+            // iOS 16+ 감지 및 최적 Service Worker 선택
+            const isIOSDevice = /iPhone|iPad|iPod/.test(navigator.userAgent);
+            const isIOS16Plus = isIOSDevice && (
+              /OS 1[6-9]/.test(navigator.userAgent) || 
+              /OS [2-9][0-9]/.test(navigator.userAgent) ||
+              /Version\/1[6-9]/.test(navigator.userAgent) ||
+              /Version\/[2-9][0-9]/.test(navigator.userAgent)
+            );
+            const isPWAMode = window.navigator.standalone === true || 
+                            window.matchMedia('(display-mode: standalone)').matches;
             
-            const swFile = isIOS16 ? '/sw-ios16.js' : '/sw.js';
-            console.log('🔍 iOS 16 감지:', isIOS16, '- SW 파일:', swFile);
+            let swFile = '/sw.js'; // 기본
+            if (isIOSDevice && isIOS16Plus && isPWAMode) {
+              swFile = '/sw-ios16-enhanced.js'; // iOS 16+ PWA 강화
+            } else if (isIOSDevice) {
+              swFile = '/sw-ios16.js'; // iOS 기본
+            }
+            
+            console.log('🔍 디바이스 정보:', {
+              isIOSDevice,
+              isIOS16Plus,
+              isPWAMode,
+              swFile,
+              userAgent: navigator.userAgent
+            });
             
             // 새로운 Service Worker 등록
             const registration = await navigator.serviceWorker.register(swFile, {

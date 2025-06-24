@@ -19,6 +19,7 @@ import CreateGroupChatModal from "@/components/CreateGroupChatModal";
 import ProfilePhotoModal from "@/components/ProfilePhotoModal";
 import ZeroDelayAvatar from "@/components/ZeroDelayAvatar";
 import { PWAPushManager } from "@/components/PWAPushManager";
+import { usePWABadge } from "@/hooks/usePWABadge";
 import InstantAvatar from "@/components/InstantAvatar";
 import { BannerNotificationContainer } from "@/components/MobileBannerNotification";
 import LoadingScreen from "@/components/LoadingScreen";
