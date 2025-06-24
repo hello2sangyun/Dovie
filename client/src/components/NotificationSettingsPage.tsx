@@ -89,11 +89,12 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
         <h1 className="text-lg font-semibold text-gray-900">알림 설정</h1>
       </div>
 
-      {/* Content - 모바일 스크롤 문제 해결 */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-20" style={{ 
-        maxHeight: 'calc(100vh - 120px)', 
-        overflowY: 'scroll',
-        WebkitOverflowScrolling: 'touch'
+      {/* Content - 모바일 Footer 하단 여백 확보 */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-6" style={{ 
+        paddingBottom: '150px',
+        overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        maxHeight: '100%'
       }}>
         {/* General Notifications */}
         <Card>
@@ -285,8 +286,8 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
         {/* iPhone PWA Push Notification Diagnostics */}
         <PushNotificationTester />
 
-        {/* Save Button */}
-        <div className="pt-4">
+        {/* Save Button with extra bottom padding for mobile Footer */}
+        <div className="pt-4 pb-24 mb-8">
           <Button 
             onClick={handleSave}
             className="w-full"
@@ -295,7 +296,6 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
             {updateNotificationsMutation.isPending ? "저장 중..." : "설정 저장"}
           </Button>
         </div>
-
 
       </div>
     </div>

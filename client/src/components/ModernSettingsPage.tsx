@@ -56,7 +56,7 @@ export default function ModernSettingsPage({ isMobile = false }: ModernSettingsP
 
   if (activeView === 'notifications') {
     return (
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-y-auto">
         <NotificationSettingsPage onBack={() => setActiveView('main')} />
       </div>
     );
