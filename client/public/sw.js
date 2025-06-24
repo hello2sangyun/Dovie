@@ -331,7 +331,7 @@ self.addEventListener('push', (event) => {
   );
 });
 
-// App badge functionality
+// App badge functionality with enhanced PWA support
 async function updateAppBadge(unreadCount) {
   if ('setAppBadge' in navigator) {
     try {
@@ -345,8 +345,28 @@ async function updateAppBadge(unreadCount) {
     } catch (error) {
       console.error('[SW] Failed to update app badge:', error);
     }
+  } else {
+    // Fallback for browsers that don't support setAppBadge
+    console.log('[SW] setAppBadge not supported, badge count:', unreadCount);
   }
 }
+
+// Handle messages from main thread
+self.addEventListener('message', (event) => {
+  console.log('[SW] Message received:', event.data);
+  
+  switch (event.data.type) {
+    case 'UPDATE_BADGE':
+      updateAppBadge(event.data.count || 0);
+      break;
+    case 'CLEAR_BADGE':
+      updateAppBadge(0);
+      break;
+    case 'APP_FOCUS':
+      updateAppBadge(0);
+      break;
+  }
+});
 
 // Clear app badge when app becomes visible
 self.addEventListener('message', (event) => {

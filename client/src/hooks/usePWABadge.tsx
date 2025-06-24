@@ -46,8 +46,8 @@ export function usePWABadge() {
 
   // 읽지 않은 메시지 수 변경 시 배지 업데이트
   useEffect(() => {
-    if (unreadCounts) {
-      const totalUnread = unreadCounts.reduce((total: number, room: any) => 
+    if (unreadCounts?.unreadCounts && Array.isArray(unreadCounts.unreadCounts)) {
+      const totalUnread = unreadCounts.unreadCounts.reduce((total: number, room: any) => 
         total + (room.unreadCount || 0), 0
       );
       updateBadge(totalUnread);
@@ -106,7 +106,7 @@ export function usePWABadge() {
   return {
     updateBadge,
     clearBadge,
-    unreadCount: unreadCounts?.reduce((total: number, room: any) => 
+    unreadCount: unreadCounts?.unreadCounts?.reduce((total: number, room: any) => 
       total + (room.unreadCount || 0), 0) || 0
   };
 }

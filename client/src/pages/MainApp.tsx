@@ -27,6 +27,7 @@ import { SimplePushManager } from "@/components/SimplePushManager";
 import LoadingScreen from "@/components/LoadingScreen";
 import { ConnectionStatusIndicator } from "@/components/ConnectionStatusIndicator";
 import { PermissionRequestModal } from "@/components/PermissionRequestModal";
+import PWABadgeManager from "@/components/PWABadgeManager";
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
 
@@ -65,6 +66,9 @@ export default function MainApp() {
   const [friendFilter, setFriendFilter] = useState<number | null>(null);
 
   const { sendMessage, connectionState, pendingMessageCount } = useWebSocket(user?.id);
+  
+  // PWA badge functionality for unread message counts
+  const { updateBadge, clearBadge, unreadCount } = usePWABadge();
 
   // 브라우저 뒤로가기 버튼 처리 - 앱 내 네비게이션 관리
   useEffect(() => {
@@ -232,35 +236,23 @@ export default function MainApp() {
     setModals(prev => ({ ...prev, permissions: false }));
   };
 
-  // Clear app badge when app becomes active (iPhone PWA)
+  // Clear app badge when app becomes active (iPhone PWA) - enhanced with PWA badge hook
   useEffect(() => {
-    const clearAppBadge = () => {
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then(registration => {
-          if (registration.active) {
-            registration.active.postMessage({
-              type: 'CLEAR_BADGE'
-            });
-          }
-        });
-      }
-    };
-
     // Clear badge when app loads
     if (user) {
-      clearAppBadge();
+      clearBadge();
     }
 
     // Clear badge when app becomes visible
     const handleVisibilityChange = () => {
       if (!document.hidden && user) {
-        clearAppBadge();
+        clearBadge();
       }
     };
 
     const handleFocus = () => {
       if (user) {
-        clearAppBadge();
+        clearBadge();
       }
     };
 
@@ -271,7 +263,7 @@ export default function MainApp() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleFocus);
     };
-  }, [user]);
+  }, [user, clearBadge]);
 
   // 친구와의 채팅방 찾기 또는 생성
   const createOrFindChatRoom = (contactUserId: number, contactUser: any) => {
@@ -337,6 +329,9 @@ export default function MainApp() {
   const handleChatRoomSelect = (chatRoomId: number) => {
     setSelectedChatRoom(chatRoomId);
     setActiveTab("chats");
+    
+    // Clear PWA badge when entering a chat room
+    clearBadge();
   };
 
   const closeModals = () => {
