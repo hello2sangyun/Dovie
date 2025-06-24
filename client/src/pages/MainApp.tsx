@@ -454,10 +454,27 @@ export default function MainApp() {
         
         console.log('현재 안읽은 메시지 수:', totalUnread);
         
-        // iOS 16 PWA 배지 API로 즉시 설정
+        // iOS 16 PWA 배지 API로 즉시 설정 (다양한 방법 시도)
         if ('setAppBadge' in navigator) {
-          await (navigator as any).setAppBadge(totalUnread);
-          console.log('앱 배지 강제 설정 완료:', totalUnread);
+          try {
+            // 방법 1: navigator.setAppBadge 직접 호출
+            await (navigator as any).setAppBadge(totalUnread);
+            console.log('방법 1: navigator.setAppBadge 성공:', totalUnread);
+          } catch (error) {
+            console.log('방법 1 실패:', error);
+            
+            // 방법 2: 0으로 초기화 후 다시 설정
+            try {
+              await (navigator as any).clearAppBadge();
+              await new Promise(resolve => setTimeout(resolve, 100));
+              await (navigator as any).setAppBadge(totalUnread);
+              console.log('방법 2: 초기화 후 설정 성공:', totalUnread);
+            } catch (error2) {
+              console.log('방법 2도 실패:', error2);
+            }
+          }
+        } else {
+          console.log('setAppBadge API 미지원');
         }
         
         // Service Worker에도 배지 업데이트 요청
@@ -467,6 +484,16 @@ export default function MainApp() {
             count: totalUnread
           });
         }
+        
+        // Service Worker 메시지 리스너 추가 (클라이언트 측 배지 설정)
+        navigator.serviceWorker.addEventListener('message', (event) => {
+          if (event.data?.type === 'SET_BADGE_CLIENT') {
+            const badgeCount = event.data.count;
+            if ('setAppBadge' in navigator) {
+              (navigator as any).setAppBadge(badgeCount).catch(console.error);
+            }
+          }
+        });
         
       } catch (error) {
         console.error('배지 강제 업데이트 실패:', error);

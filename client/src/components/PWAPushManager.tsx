@@ -48,10 +48,8 @@ export function PWAPushManager({ onNotificationEnabled }: PWAPushManagerProps) {
       // 5. 서버에 구독 정보 전송
       await sendSubscriptionToServer(subscription);
 
-      // 6. 테스트 푸시 발송
-      await sendTestPushNotification();
-
-      console.log('✅ PWA 푸시 시스템 활성화 완료');
+      // 테스트 푸시 발송 제거 - 실제 메시지만 알림으로 받도록 변경
+      console.log('✅ PWA 푸시 시스템 활성화 완료 (테스트 알림 없이)');
       onNotificationEnabled?.();
 
     } catch (error) {
@@ -195,29 +193,7 @@ export function PWAPushManager({ onNotificationEnabled }: PWAPushManagerProps) {
     }
   };
 
-  const sendTestPushNotification = async () => {
-    try {
-      console.log('🧪 테스트 푸시 알림 발송');
-
-      const response = await fetch('/api/push-notification/test', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-ID': user?.id.toString() || ''
-        },
-        body: JSON.stringify({
-          title: 'Dovie Messenger',
-          body: 'iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!'
-        })
-      });
-
-      if (response.ok) {
-        console.log('✅ 테스트 푸시 알림 발송 완료');
-      }
-    } catch (error) {
-      console.error('⚠️ 테스트 푸시 발송 실패:', error);
-    }
-  };
+  // 테스트 푸시 알림 기능 제거 - 반복 알림 방지
 
   // 유틸리티 함수들
   const urlBase64ToUint8Array = (base64String: string): Uint8Array => {
