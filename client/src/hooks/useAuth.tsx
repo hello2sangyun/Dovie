@@ -4,6 +4,7 @@ import type { User } from "@shared/schema";
 import { useInstantImageCache } from "./useInstantImageCache";
 import { usePermissions } from "./usePermissions";
 import { clearServiceWorkerCaches, performPWAAuthCheck } from "../utils/serviceWorkerHelper";
+import { diagnosePWALogin, testPWAAuth } from "../utils/pwaLoginHelper";
 
 interface AuthContextType {
   user: User | null;
@@ -176,7 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log("🔄 Auth context updating user:", data.user.id, "profilePicture:", data.user.profilePicture);
       setUser(data.user);
       setInitialized(true);
-      setProfileImagesLoaded(true); // Skip preloading completely for PWA
+      setProfileImagesLoaded(true);
       setIsPreloadingImages(false);
       
       // Background image loading for performance (non-blocking)
@@ -184,9 +185,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         preloadProfileImages(data.user.id.toString()).catch(() => {
           console.log("Background profile image loading failed");
         });
-      }, 5000); // Increased delay to ensure app loads first
+      }, 5000);
     } else if (error && storedUserId) {
       console.log("❌ Authentication failed, clearing user data");
+      console.log("❌ Error details:", error);
+      
+      // PWA 진단 실행
+      diagnosePWALogin().then(() => {
+        console.log("📋 PWA 진단 완료");
+      });
+      
       setUser(null);
       localStorage.removeItem("userId");
       localStorage.removeItem("rememberLogin");
@@ -195,11 +203,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsPreloadingImages(false);
     } else if (!storedUserId && !initialized) {
       console.log("📱 로그아웃 상태로 초기화");
-      console.log("📱 PWA 디버깅 - localStorage 상태:", {
-        userId: localStorage.getItem("userId"),
-        rememberLogin: localStorage.getItem("rememberLogin"),
-        lastLoginTime: localStorage.getItem("lastLoginTime")
+      
+      // PWA 진단 실행
+      diagnosePWALogin().then(() => {
+        console.log("📋 PWA 초기 진단 완료");
       });
+      
       setUser(null);
       setInitialized(true);
       setProfileImagesLoaded(true);
