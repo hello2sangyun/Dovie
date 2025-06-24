@@ -24,67 +24,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profileImagesLoaded, setProfileImagesLoaded] = useState(false);
   const [isPreloadingImages, setIsPreloadingImages] = useState(false);
 
-  // PWA 환경 디버깅
+  // PWA 환경 디버깅 (불필요한 로그 제거)
   useEffect(() => {
-    try {
-      pwaDebugger.detectEnvironment();
-      pwaDebugger.checkStorageState();
-      pwaDebugger.checkServiceWorkerState();
-    } catch (error) {
-      console.error('PWA debugger error:', error);
+    // 최소한의 PWA 환경 감지만 수행
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches;
+    if (isPWA) {
+      console.log('PWA 모드 감지됨');
     }
   }, []);
 
-  // PWA 환경 감지 및 안전한 초기화
+  // 자동 푸시 알림 활성화 (불필요한 로그 제거)
   const autoEnablePushNotifications = async (userId?: number) => {
     const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
                   (window.navigator as any).standalone === true;
     
     if (isPWA) {
-      console.log('🎯 PWA 환경 - PWAPushManager가 처리합니다');
-    } else {
-      console.log('🌐 브라우저 환경 - 푸시 알림 스킵');
+      // PWAPushManager가 처리
+      return;
     }
-    return;
   };
 
-  // Try to get user from localStorage on app start
+  // 자동 로그인 처리 (간소화된 버전)
   const storedUserId = localStorage.getItem("userId");
-  console.log('AUTH: Stored userId from localStorage', storedUserId);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["/api/auth/me"],
-    enabled: !!storedUserId, // 저장된 ID가 있는 경우에만 실행
-    refetchInterval: false, // 자동 새로고침 비활성화 (불필요한 요청 방지)
-    staleTime: 5 * 60 * 1000, // 5분 동안 캐시 유지
-    gcTime: 10 * 60 * 1000, // 10분 동안 메모리에 보관 (v5에서 cacheTime -> gcTime)
+    enabled: !!storedUserId,
+    refetchInterval: false,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     queryFn: async () => {
-      console.log('🔍 [AUTH DEBUG] Making auth request with userId:', storedUserId);
-      
       const response = await fetch("/api/auth/me", {
         headers: {
           "x-user-id": storedUserId!,
         },
       });
       
-      console.log('🔍 [AUTH DEBUG] Auth response status:', response.status);
-      
       if (!response.ok) {
-        console.log('❌ [AUTH DEBUG] Auth failed, removing userId from localStorage');
-        // 인증 실패 시 저장된 사용자 ID 제거
         localStorage.removeItem("userId");
-        localStorage.removeItem("rememberLogin"); // 자동 로그인 해제
+        localStorage.removeItem("rememberLogin");
         throw new Error("Authentication failed");
       }
       
       const userData = await response.json();
-      console.log('✅ [AUTH DEBUG] Auth successful, user data:', userData);
       return userData;
     },
     retry: false,
   });
-  
-  console.log('🔍 [AUTH DEBUG] Query state - isLoading:', isLoading, 'error:', error, 'data:', !!data);
 
   // 연락처와 채팅룸 데이터에서 프로필 이미지 URL 추출 및 프리로딩
   const preloadProfileImages = async (userId: string) => {
@@ -196,18 +182,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (data?.user && !initialized) {
-      console.log("🔄 Auth context updating user:", data.user.id, "profilePicture:", data.user.profilePicture);
       setUser(data.user);
       setInitialized(true);
-      setProfileImagesLoaded(true); // Skip image preloading to prevent loading issues
+      setProfileImagesLoaded(true);
       
-      // 프로필 이미지 프리로딩을 백그라운드에서 실행 (앱 로딩을 차단하지 않음)
+      // 백그라운드에서 프로필 이미지 프리로딩 실행
       preloadProfileImages(data.user.id.toString()).catch(() => {
-        console.log("Profile image preloading failed, continuing normally");
+        // 프리로딩 실패 시 무시
       });
     } else if (error && storedUserId) {
-      // Clear user data if authentication fails for stored user
-      console.log("❌ Authentication failed, clearing user data");
       setUser(null);
       localStorage.removeItem("userId");
       localStorage.removeItem("rememberLogin");
@@ -215,8 +198,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfileImagesLoaded(true);
       setIsPreloadingImages(false);
     } else if (!storedUserId && !initialized) {
-      // No stored user ID, mark as initialized immediately
-      console.log("📱 No stored user, initializing as logged out");
       setUser(null);
       setInitialized(true);
       setProfileImagesLoaded(true);
@@ -319,7 +300,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         (window as any).globalImageCache.clear();
       }
 
-      console.log("로그아웃 완료 - 자동 로그인 설정 해제됨");
+      // 자동 로그인 설정 해제됨
       
       // 강제 리디렉션을 원하는 경우에만 로그인 페이지로 이동
       if (forceRedirect) {
@@ -328,12 +309,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Request permissions for PWA functionality
+  // PWA 권한 요청
   const requestPermissions = async () => {
     try {
-      console.log('📱 PWA 권한 요청 시작');
-      
-      // Request microphone permission
+      // 마이크 권한 요청
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -345,9 +324,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           });
           stream.getTracks().forEach(track => track.stop());
           localStorage.setItem('microphonePermissionGranted', 'true');
-          console.log('🎤 마이크 권한 허용됨');
         } catch (error) {
-          console.log('🎤 마이크 권한 거부됨');
+          // 마이크 권한 거부됨
           localStorage.setItem('microphonePermissionGranted', 'false');
         }
       }
