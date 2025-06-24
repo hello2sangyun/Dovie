@@ -40,7 +40,6 @@ import { cn } from "@/lib/utils";
 
 export default function MainApp() {
   const { user, isLoading, isPreloadingImages } = useAuth();
-  const { updateBadge, clearBadge } = usePWABadge();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { preloadImage, isLoading: imagePreloading } = useImagePreloader();
@@ -437,37 +436,6 @@ export default function MainApp() {
     setModals(prev => ({ ...prev, permissions: false }));
   };
 
-  // PWA 배지 테스트 시스템
-  useEffect(() => {
-    if (!user) return;
-    
-    const testBadgeSystem = async () => {
-      console.log('🧪 배지 시스템 테스트 시작');
-      
-      // 현재 안읽은 메시지 수 조회
-      try {
-        const response = await fetch('/api/unread-counts', {
-          headers: { 'X-User-ID': user.id.toString() }
-        });
-        const data = await response.json();
-        const totalUnread = data.unreadCounts?.reduce((total: number, room: any) => 
-          total + (room.unreadCount || 0), 0) || 0;
-        
-        console.log('현재 안읽은 메시지:', totalUnread);
-        
-        // 배지 업데이트 시도
-        if (updateBadge) {
-          await updateBadge(totalUnread);
-        }
-      } catch (error) {
-        console.error('배지 테스트 실패:', error);
-      }
-    };
-    
-    // 3초 후 테스트 실행
-    setTimeout(testBadgeSystem, 3000);
-  }, [user, updateBadge]);
-
   // Clear app badge when app becomes active (iPhone PWA)
   useEffect(() => {
     const clearAppBadge = () => {
@@ -481,6 +449,11 @@ export default function MainApp() {
         });
       }
     };
+
+    // Clear badge when app loads
+    if (user) {
+      clearAppBadge();
+    }
 
     // Clear badge when app becomes visible
     const handleVisibilityChange = () => {

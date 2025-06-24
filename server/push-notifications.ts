@@ -48,15 +48,14 @@ export async function sendPushNotification(
       title: payload.title || "새 메시지",
       body: payload.body || "새 메시지가 도착했습니다",
       icon: '/icons/icon-192x192.png',
-      badge: totalUnreadCount + 1, // iOS 16+ 배지 카운트 (숫자)
-      unreadCount: totalUnreadCount + 1, // 추가 필드
+      unreadCount: totalUnreadCount, // iOS 16+ 배지 카운트
+      badge: '/icons/icon-72x72.png',
       data: {
         url: '/',
         timestamp: Date.now(),
         type: 'message',
         chatRoomId: payload.data?.chatRoomId,
         messageId: payload.data?.messageId,
-        badge: totalUnreadCount + 1, // 데이터에도 배지 정보 포함
         ...payload.data
       },
       tag: 'dovie-message-' + Date.now(), // Unique tag for iPhone PWA
