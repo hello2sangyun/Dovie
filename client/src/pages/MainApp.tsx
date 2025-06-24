@@ -26,6 +26,7 @@ import { BannerNotificationContainer } from "@/components/MobileBannerNotificati
 import LoadingScreen from "@/components/LoadingScreen";
 import { ConnectionStatusIndicator } from "@/components/ConnectionStatusIndicator";
 import { PermissionRequestModal } from "@/components/PermissionRequestModal";
+import { ChromePWAManager } from "@/components/ChromePWAManager";
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
 
