@@ -26,11 +26,27 @@ interface PushNotificationPayload {
   unreadCount?: number;
 }
 
+// 중복 알림 방지 캐시
+const notificationCache = new Map<string, number>();
+const NOTIFICATION_COOLDOWN = 10000; // 10초 쿨다운
+
 export async function sendPushNotification(
   userId: number, 
   payload: PushNotificationPayload
 ): Promise<void> {
   try {
+    // 중복 알림 체크 (긴급 차단)
+    const cacheKey = `${userId}-${payload.title}-${payload.body}`;
+    const now = Date.now();
+    const lastSent = notificationCache.get(cacheKey);
+    
+    if (lastSent && (now - lastSent) < NOTIFICATION_COOLDOWN) {
+      console.log(`🚫 Push notification blocked (cooldown): ${cacheKey}`);
+      return;
+    }
+    
+    notificationCache.set(cacheKey, now);
+    
     // Get user's push subscriptions
     const subscriptions = await storage.getUserPushSubscriptions(userId);
     
