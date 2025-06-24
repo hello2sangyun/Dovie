@@ -13,46 +13,54 @@ export function usePWABadge() {
     staleTime: 10000 // 10초간 fresh
   });
 
-  // 배지 업데이트 함수 (iOS 16+ PWA 최적화)
+  // Chrome PWA 배지 업데이트 함수
   const updateBadge = useCallback(async (count: number) => {
-    console.log('🎯 배지 업데이트 시작:', count);
+    console.log('🎯 Chrome PWA 배지 업데이트 시작:', count);
     
     try {
-      // 방법 1: Navigator API 직접 사용
+      // Chrome PWA Navigator Badge API (최우선)
       if ('setAppBadge' in navigator) {
         if (count > 0) {
           await (navigator as any).setAppBadge(count);
-          console.log('✅ navigator.setAppBadge 성공:', count);
+          console.log('✅ Chrome PWA navigator.setAppBadge 성공:', count);
         } else {
           await (navigator as any).clearAppBadge();
-          console.log('✅ navigator.clearAppBadge 성공');
+          console.log('✅ Chrome PWA navigator.clearAppBadge 성공');
         }
+        return; // Chrome PWA에서 성공하면 바로 반환
       }
     } catch (error) {
-      console.log('navigator.setAppBadge 실패:', error);
+      console.log('Chrome PWA navigator.setAppBadge 실패:', error);
     }
 
     try {
-      // 방법 2: Service Worker를 통한 배지 설정
+      // Chrome PWA Service Worker를 통한 배지 설정
       if ('serviceWorker' in navigator) {
-        // 배지 전용 SW 등록
-        const registration = await navigator.serviceWorker.register('/sw-badge.js', {
-          scope: '/',
-          updateViaCache: 'none'
-        });
+        const registration = await navigator.serviceWorker.ready;
         
-        await navigator.serviceWorker.ready;
+        // Service Worker Registration Badge API
+        if (registration && 'setAppBadge' in registration) {
+          if (count > 0) {
+            await (registration as any).setAppBadge(count);
+            console.log('✅ Chrome PWA registration.setAppBadge 성공:', count);
+          } else {
+            await (registration as any).clearAppBadge();
+            console.log('✅ Chrome PWA registration.clearAppBadge 성공');
+          }
+          return;
+        }
         
-        // SW에 배지 설정 요청
+        // Service Worker 메시지를 통한 배지 설정
         if (registration.active) {
           registration.active.postMessage({
-            type: 'SET_BADGE',
+            type: 'BADGE_UPDATE',
             count: count
           });
+          console.log('📤 Chrome PWA Service Worker 배지 메시지 전송:', count);
         }
       }
     } catch (error) {
-      console.log('Service Worker 배지 설정 실패:', error);
+      console.log('Chrome PWA Service Worker 배지 설정 실패:', error);
     }
   }, []);
 

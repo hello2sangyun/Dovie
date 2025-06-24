@@ -1,6 +1,7 @@
-const CACHE_NAME = 'dovie-chrome-pwa-v2';
-const STATIC_CACHE_NAME = 'dovie-static-chrome-v2';
-const DYNAMIC_CACHE_NAME = 'dovie-dynamic-chrome-v2';
+// Chrome PWA 최적화 Service Worker
+const CACHE_NAME = 'dovie-chrome-pwa-v3';
+const STATIC_CACHE_NAME = 'dovie-static-chrome-v3';
+const DYNAMIC_CACHE_NAME = 'dovie-dynamic-chrome-v3';
 
 // Chrome PWA에 최적화된 정적 자산
 const STATIC_ASSETS = [
@@ -52,223 +53,109 @@ self.addEventListener('activate', (event) => {
           cacheNames
             .filter((cacheName) => {
               return cacheName !== STATIC_CACHE_NAME && 
-                     cacheName !== DYNAMIC_CACHE_NAME;
+                     cacheName !== DYNAMIC_CACHE_NAME &&
+                     cacheName.startsWith('dovie-');
             })
             .map((cacheName) => {
-              console.log('[SW] Deleting old cache:', cacheName);
+              console.log('[Chrome SW] 🗑️ 이전 캐시 삭제:', cacheName);
               return caches.delete(cacheName);
             })
         );
-      })
-      .then(() => {
-        console.log('[SW] Service worker activated');
-        return self.clients.claim();
-      })
+      }),
+      // 모든 클라이언트 제어 시작
+      self.clients.claim()
+    ]).then(() => {
+      console.log('[Chrome SW] ✅ Chrome PWA Service Worker 활성화 완료');
+    })
   );
 });
 
-// Fetch event - serve from cache or network
+// Chrome PWA Fetch 이벤트 - 네트워크 우선 전략
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Handle different types of requests
-  if (request.method === 'GET') {
-    if (url.pathname.startsWith('/api/')) {
-      // API requests - network first with cache fallback
-      event.respondWith(handleApiRequest(request));
-    } else if (url.pathname.startsWith('/uploads/') || url.pathname.startsWith('/icons/')) {
-      // Media files - cache first
-      event.respondWith(handleMediaRequest(request));
-    } else {
-      // Static assets - cache first with network fallback
-      event.respondWith(handleStaticRequest(request));
-    }
+  // API 요청 처리 - Chrome PWA 최적화
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          // 성공적인 응답만 캐시
+          if (response.ok && API_CACHE_PATTERNS.some(pattern => pattern.test(url.pathname))) {
+            const responseClone = response.clone();
+            caches.open(DYNAMIC_CACHE_NAME).then((cache) => {
+              cache.put(request, responseClone);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          // 네트워크 실패 시 캐시에서 응답
+          return caches.match(request);
+        })
+    );
+    return;
+  }
+
+  // 정적 자산 처리 - Chrome PWA 최적화
+  if (request.destination === 'document' || 
+      request.destination === 'script' || 
+      request.destination === 'style' ||
+      request.destination === 'image') {
+    
+    event.respondWith(
+      caches.match(request)
+        .then((cachedResponse) => {
+          return cachedResponse || fetch(request)
+            .then((response) => {
+              if (response.ok) {
+                const responseClone = response.clone();
+                caches.open(STATIC_CACHE_NAME).then((cache) => {
+                  cache.put(request, responseClone);
+                });
+              }
+              return response;
+            });
+        })
+        .catch(() => {
+          // 오프라인 폴백
+          if (request.destination === 'document') {
+            return caches.match('/');
+          }
+        })
+    );
   }
 });
 
-// Handle API requests - network first strategy
-async function handleApiRequest(request) {
-  const url = new URL(request.url);
-  
-  try {
-    // Try network first
-    const networkResponse = await fetch(request.clone());
-    
-    // Cache successful responses for offline access
-    if (networkResponse.ok && shouldCacheApiResponse(url.pathname)) {
-      const cache = await caches.open(DYNAMIC_CACHE_NAME);
-      cache.put(request, networkResponse.clone());
-    }
-    
-    return networkResponse;
-  } catch (error) {
-    console.log('[SW] Network failed for API request, trying cache:', url.pathname);
-    
-    // Network failed, try cache
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-    
-    // Return offline response for critical APIs
-    if (url.pathname === '/api/auth/me') {
-      return new Response(JSON.stringify({ error: 'offline' }), {
-        status: 503,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-    
-    throw error;
-  }
-}
-
-// Handle media requests - cache first strategy
-async function handleMediaRequest(request) {
-  try {
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-    
-    const networkResponse = await fetch(request);
-    if (networkResponse.ok) {
-      const cache = await caches.open(DYNAMIC_CACHE_NAME);
-      cache.put(request, networkResponse.clone());
-    }
-    
-    return networkResponse;
-  } catch (error) {
-    console.log('[SW] Failed to load media:', request.url);
-    throw error;
-  }
-}
-
-// Handle static requests - cache first with network fallback
-async function handleStaticRequest(request) {
-  try {
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-    
-    const networkResponse = await fetch(request);
-    if (networkResponse.ok) {
-      const cache = await caches.open(STATIC_CACHE_NAME);
-      cache.put(request, networkResponse.clone());
-    }
-    
-    return networkResponse;
-  } catch (error) {
-    // For navigation requests, return cached index.html
-    if (request.destination === 'document') {
-      const cachedIndex = await caches.match('/');
-      if (cachedIndex) {
-        return cachedIndex;
-      }
-    }
-    
-    throw error;
-  }
-}
-
-// Determine which API responses should be cached
-function shouldCacheApiResponse(pathname) {
-  return API_CACHE_PATTERNS.some(pattern => pattern.test(pathname));
-}
-
-// Handle background sync for offline messages
-self.addEventListener('sync', (event) => {
-  console.log('[SW] Background sync triggered:', event.tag);
-  
-  if (event.tag === 'background-sync-messages') {
-    event.waitUntil(syncOfflineMessages());
-  } else if (event.tag === 'background-sync') {
-    event.waitUntil(syncOfflineMessages());
-  }
-});
-
-// Sync offline messages when connection is restored
-async function syncOfflineMessages() {
-  try {
-    // Get pending messages from IndexedDB or localStorage
-    const pendingMessages = await getPendingMessages();
-    
-    for (const message of pendingMessages) {
-      try {
-        await fetch('/api/messages', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(message)
-        });
-        
-        // Remove from pending queue on success
-        await removePendingMessage(message.id);
-      } catch (error) {
-        console.error('[SW] Failed to sync message:', error);
-      }
-    }
-  } catch (error) {
-    console.error('[SW] Background sync failed:', error);
-  }
-}
-
-// Helper functions for offline message queue
-async function getPendingMessages() {
-  // This would typically use IndexedDB
-  // For now, return empty array
-  return [];
-}
-
-async function removePendingMessage(messageId) {
-  // This would typically remove from IndexedDB
-  console.log('[SW] Would remove pending message:', messageId);
-}
-
-// Handle push notifications - iPhone & Android PWA optimized
+// Chrome PWA 푸시 알림 이벤트 - 최적화
 self.addEventListener('push', (event) => {
-  console.log('[SW] 🔔 PWA Push notification received:', event);
-  console.log('[SW] 🔔 User Agent:', navigator.userAgent);
-  console.log('[SW] 🔔 Service Worker registration:', self.registration);
-  
-  // Detect device type for PWA optimization
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-               (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  const isAndroid = /Android/.test(navigator.userAgent);
-  
-  console.log('[SW] 🔔 Device detection - iOS:', isIOS, 'Android:', isAndroid);
+  console.log('[Chrome SW] 🔔 Chrome PWA 푸시 알림 수신:', event);
   
   let notificationData = {};
   if (event.data) {
     try {
       notificationData = event.data.json();
-      console.log('[SW] 🔔 Notification data parsed:', notificationData);
+      console.log('[Chrome SW] 📋 알림 데이터 파싱 완료:', notificationData);
     } catch (e) {
-      console.error('[SW] 🔔 Failed to parse notification data:', e);
-      // Fallback for PWA
-      const textData = event.data.text();
-      console.log('[SW] 🔔 Raw notification text:', textData);
+      console.error('[Chrome SW] ❌ 알림 데이터 파싱 실패:', e);
       notificationData = { 
         title: 'Dovie Messenger',
-        body: textData || '새 메시지가 도착했습니다.'
+        body: event.data ? event.data.text() : '새 메시지가 도착했습니다.'
       };
     }
   } else {
-    console.log('[SW] 🔔 No notification data provided - using default');
     notificationData = {
       title: 'Dovie Messenger',
       body: '새 메시지가 도착했습니다.'
     };
   }
   
-  // PWA critical notification options - optimized for iOS Safari & Android Chrome
+  // Chrome PWA 최적화된 알림 옵션
   const options = {
     body: notificationData.body || '새 메시지가 도착했습니다.',
     icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-72x72.png', 
-    tag: 'dovie-message-' + Date.now(), // Unique tag for PWA
+    badge: '/icons/icon-72x72.png',
+    tag: 'dovie-chrome-message-' + Date.now(),
     data: {
       url: notificationData.data?.url || '/',
       type: notificationData.data?.type || 'message',
@@ -277,161 +164,159 @@ self.addEventListener('push', (event) => {
       messageId: notificationData.data?.messageId,
       ...notificationData.data
     },
-    // PWA optimized settings - critical for iOS & Android
-    requireInteraction: false, // Allow auto-dismiss
-    silent: false, // Enable sound
-    vibrate: isIOS ? [200, 100, 200] : [200, 100, 200, 100, 200], // iOS vs Android vibration
+    // Chrome PWA 특화 설정
+    requireInteraction: false,
+    silent: false,
+    vibrate: [200, 100, 200],
     timestamp: Date.now(),
-    renotify: true, // Force new notification
-    // Device specific
+    renotify: true,
     dir: 'auto',
     lang: 'ko-KR',
-    // Android specific optimization
-    ...(isAndroid && {
-      priority: 'high',
-      urgency: 'high'
-    }),
-    // iOS specific optimization  
-    ...(isIOS && {
-      actions: [] // iOS PWA needs empty actions array
-    })
+    // Chrome 특화 액션 버튼
+    actions: [
+      {
+        action: 'reply',
+        title: '답장',
+        icon: '/icons/icon-72x72.png'
+      },
+      {
+        action: 'view',
+        title: '보기',
+        icon: '/icons/icon-72x72.png'
+      }
+    ]
   };
   
-  console.log('[SW] 🔔 PWA showing notification with options:', options);
-  console.log('[SW] 🔔 Notification title:', notificationData.title || 'Dovie Messenger');
+  console.log('[Chrome SW] 🔔 Chrome PWA 알림 표시:', options);
   
   event.waitUntil(
     Promise.all([
-      // Critical: Show notification with enhanced error handling for PWA
+      // 알림 표시
       self.registration.showNotification(
         notificationData.title || 'Dovie Messenger', 
         options
       ).then(() => {
-        console.log('[SW] ✅ PWA notification shown successfully');
-        // Force badge update immediately after showing notification
-        return updateAppBadge(notificationData.unreadCount || 1);
+        console.log('[Chrome SW] ✅ Chrome PWA 알림 표시 성공');
+        return updateChromeBadge(notificationData.unreadCount || 1);
       }).catch((error) => {
-        console.error('[SW] ❌ PWA notification failed:', error);
-        console.error('[SW] ❌ Error details:', error.message, error.stack);
-        // Try simple notification as fallback
+        console.error('[Chrome SW] ❌ Chrome PWA 알림 실패:', error);
+        // Chrome 폴백 알림
         return self.registration.showNotification('새 메시지', {
           body: '메시지를 확인하세요',
           icon: '/icons/icon-192x192.png',
           silent: false
-        }).catch((fallbackError) => {
-          console.error('[SW] ❌ Fallback notification also failed:', fallbackError);
-          // Last resort - minimal notification
-          return self.registration.showNotification('Dovie');
         });
       }),
-      // Update app badge with enhanced PWA support
-      updateAppBadge(notificationData.unreadCount || 1)
+      // Chrome 뱃지 업데이트
+      updateChromeBadge(notificationData.unreadCount || 1)
     ]).then(() => {
-      console.log('[SW] 🔔 PWA notification process completed');
-    }).catch((error) => {
-      console.error('[SW] 🔔 PWA notification process failed:', error);
+      console.log('[Chrome SW] 🔔 Chrome PWA 알림 및 뱃지 업데이트 완료');
     })
   );
 });
 
-// iOS 16+ PWA 배지 기능 (단순화된 방식)
-async function updateAppBadge(unreadCount) {
-  console.log('[SW] 배지 업데이트 요청:', unreadCount);
-  
+// Chrome PWA 뱃지 업데이트 함수
+async function updateChromeBadge(count) {
   try {
-    // 방법 1: Service Worker registration setAppBadge
-    if ('setAppBadge' in self.registration) {
-      if (unreadCount && unreadCount > 0) {
-        await self.registration.setAppBadge(unreadCount);
-        console.log('[SW] registration.setAppBadge 성공:', unreadCount);
-        return;
-      } else {
-        await self.registration.clearAppBadge();
-        console.log('[SW] registration.clearAppBadge 성공');
-        return;
-      }
-    }
-  } catch (error) {
-    console.log('[SW] registration.setAppBadge 실패:', error);
-  }
-
-  try {
-    // 방법 2: navigator setAppBadge (fallback)
+    console.log('[Chrome SW] 🏷️ Chrome PWA 뱃지 업데이트 시도:', count);
+    
+    // Chrome PWA Navigator Badge API (최우선)
     if ('setAppBadge' in navigator) {
-      if (unreadCount && unreadCount > 0) {
-        await navigator.setAppBadge(unreadCount);
-        console.log('[SW] navigator.setAppBadge 성공:', unreadCount);
-      } else {
-        await navigator.clearAppBadge();
-        console.log('[SW] navigator.clearAppBadge 성공');
-      }
+      await navigator.setAppBadge(count);
+      console.log('[Chrome SW] ✅ Chrome Navigator Badge API 성공:', count);
+      return;
     }
+    
+    // Chrome PWA ServiceWorkerRegistration Badge API
+    if (self.registration && 'setAppBadge' in self.registration) {
+      await self.registration.setAppBadge(count);
+      console.log('[Chrome SW] ✅ Chrome Registration Badge API 성공:', count);
+      return;
+    }
+    
+    // Chrome PWA 클라이언트 메시지 전송
+    const clients = await self.clients.matchAll();
+    clients.forEach(client => {
+      client.postMessage({
+        type: 'BADGE_UPDATE',
+        count: count
+      });
+    });
+    
+    console.log('[Chrome SW] 📤 Chrome PWA 클라이언트 뱃지 메시지 전송:', count);
+    
   } catch (error) {
-    console.log('[SW] navigator.setAppBadge 실패:', error);
+    console.error('[Chrome SW] ❌ Chrome PWA 뱃지 업데이트 실패:', error);
   }
 }
 
-// Clear app badge when app becomes visible
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'CLEAR_BADGE') {
-    updateAppBadge(0);
-  }
-  if (event.data && event.data.type === 'UPDATE_BADGE') {
-    updateAppBadge(event.data.count);
-  }
-});
-
-// Handle notification clicks - iPhone PWA optimized
+// Chrome PWA 알림 클릭 이벤트
 self.addEventListener('notificationclick', (event) => {
-  console.log('[SW] 📱 iPhone PWA notification clicked:', event.action);
-  console.log('[SW] 📱 Notification data:', event.notification.data);
+  console.log('[Chrome SW] 👆 Chrome PWA 알림 클릭:', event);
   
   event.notification.close();
   
-  // Clear app badge when notification is clicked (iPhone PWA critical)
-  updateAppBadge(0);
-  
-  // iPhone PWA optimized window handling
   const urlToOpen = event.notification.data?.url || '/';
-  const chatRoomId = event.notification.data?.chatRoomId;
-  const finalUrl = chatRoomId ? `/?chat=${chatRoomId}` : urlToOpen;
+  const action = event.action;
   
-  console.log('[SW] 📱 Opening URL:', finalUrl);
+  console.log('[Chrome SW] 🎯 Chrome PWA 알림 액션:', action, 'URL:', urlToOpen);
   
   event.waitUntil(
-    self.clients.matchAll({
-      type: 'window',
-      includeUncontrolled: true
-    }).then((clientList) => {
-      // iPhone PWA: Try to focus existing window first
-      for (const client of clientList) {
-        if (client.url.includes(self.location.origin) && 'focus' in client) {
-          console.log('[SW] 📱 Focusing existing window');
-          client.postMessage({
-            type: 'NOTIFICATION_CLICKED',
-            url: finalUrl,
-            chatRoomId: chatRoomId
-          });
-          return client.focus();
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then((clientList) => {
+        // 기존 창이 있으면 포커스
+        for (const client of clientList) {
+          if (client.url.includes(urlToOpen.split('?')[0]) && 'focus' in client) {
+            console.log('[Chrome SW] 🔍 Chrome PWA 기존 창 포커스');
+            return client.focus();
+          }
         }
-      }
-      // If no existing window, open new one
-      console.log('[SW] 📱 Opening new window');
-      return self.clients.openWindow(finalUrl);
-    }).catch((error) => {
-      console.error('[SW] 📱 Failed to handle notification click:', error);
-      // Fallback: just try to open window
-      return self.clients.openWindow(finalUrl);
-    })
+        
+        // 새 창 열기
+        if (self.clients.openWindow) {
+          console.log('[Chrome SW] 🆕 Chrome PWA 새 창 열기:', urlToOpen);
+          return self.clients.openWindow(urlToOpen);
+        }
+      })
+      .then(() => {
+        // 뱃지 클리어 (알림 확인 시)
+        return updateChromeBadge(0);
+      })
   );
 });
 
-// Handle notification close
-self.addEventListener('notificationclose', (event) => {
-  console.log('[SW] Notification closed:', event.notification.tag);
+// Chrome PWA 클라이언트 메시지 처리
+self.addEventListener('message', (event) => {
+  console.log('[Chrome SW] 📨 Chrome PWA 클라이언트 메시지:', event.data);
+  
+  if (event.data && event.data.type === 'BADGE_UPDATE') {
+    updateChromeBadge(event.data.count);
+  }
+  
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
-// Handle app visibility change to update badge
-self.addEventListener('focus', () => {
-  updateAppBadge(0);
+// Chrome PWA 동기화 이벤트 (백그라운드 동기화)
+self.addEventListener('sync', (event) => {
+  console.log('[Chrome SW] 🔄 Chrome PWA 백그라운드 동기화:', event.tag);
+  
+  if (event.tag === 'background-sync') {
+    event.waitUntil(
+      // 백그라운드에서 새 메시지 확인
+      fetch('/api/chat-rooms/unread-count')
+        .then(response => response.json())
+        .then(data => {
+          if (data.unreadCount > 0) {
+            updateChromeBadge(data.unreadCount);
+          }
+        })
+        .catch(error => {
+          console.error('[Chrome SW] ❌ 백그라운드 동기화 실패:', error);
+        })
+    );
+  }
 });
+
+console.log('[Chrome SW] 🚀 Chrome PWA Service Worker 로드 완료');

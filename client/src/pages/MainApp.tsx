@@ -202,38 +202,19 @@ export default function MainApp() {
     refetchInterval: 5000,
   });
 
-  // Request permissions and register push notifications after login
+  // Chrome PWA 초기화 - 기존 푸시 알림 로직 제거하고 ChromePWAManager에 위임
   useEffect(() => {
     if (!user) return;
     
-    console.log('MainApp rendering with user:', user.id);
+    console.log('Chrome PWA MainApp rendering with user:', user.id);
     
-    // Check if permissions have been requested before
+    // Chrome PWA에서는 마이크 권한만 별도로 처리
     const microphoneGranted = localStorage.getItem('microphonePermissionGranted');
-    const notificationGranted = localStorage.getItem('notificationPermissionGranted');
     
-    // 첫 로그인 시 자동으로 푸시 알림 권한 요청 및 등록 (기본값 ON)
-    if (!notificationGranted) {
-      setTimeout(async () => {
-        await autoEnablePushNotifications();
-      }, 1500);
-    } else if (notificationGranted === 'true') {
-      // If notifications are already granted, ensure push subscription is registered
-      setTimeout(() => {
-        registerPushNotification();
-      }, 1000);
-    }
-    
-    // Always try to register push subscription for existing users
-    setTimeout(() => {
-      ensurePushSubscription();
-    }, 2000);
-    
-    // Only show permission modal if microphone permission hasn't been handled yet
-    if (!microphoneGranted && notificationGranted !== 'false') {
+    if (!microphoneGranted) {
       setTimeout(() => {
         setModals(prev => ({ ...prev, permissions: true }));
-      }, 3000); // Delay after push notification setup
+      }, 2000);
     }
   }, [user]);
 
