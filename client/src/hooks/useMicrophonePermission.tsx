@@ -66,20 +66,29 @@ export function useMicrophonePermission() {
 
   // Request microphone permission
   const requestPermission = useCallback(async (): Promise<boolean> => {
-    if (state.hasPermission && state.stream) {
+    if (state.hasPermission && state.stream?.active) {
+      console.log('🎤 Permission already granted with active stream');
       return true;
     }
 
     setState(prev => ({ ...prev, isRequesting: true }));
 
     try {
+      console.log('🎤 Requesting microphone permission...');
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
-          sampleRate: 44100
+          sampleRate: 44100,
+          channelCount: 1
         } 
+      });
+
+      console.log('✅ Microphone stream obtained:', {
+        active: stream.active,
+        tracks: stream.getAudioTracks().length,
+        trackState: stream.getAudioTracks()[0]?.readyState
       });
 
       setState(prev => ({ 
@@ -90,7 +99,6 @@ export function useMicrophonePermission() {
       }));
       
       localStorage.setItem('microphonePermissionGranted', 'true');
-      console.log('✅ Microphone permission granted and stream ready');
       return true;
     } catch (error) {
       console.error('❌ Microphone permission denied:', error);
@@ -102,16 +110,20 @@ export function useMicrophonePermission() {
 
   // Get fresh stream for recording - iPhone PWA optimized
   const getStream = useCallback(async (): Promise<MediaStream | null> => {
+    console.log('🎤 Getting microphone stream...');
+    
     // Always create fresh stream for iPhone PWA to avoid permission issues
     const isIPhonePWA = (window.navigator as any).standalone === true || 
                        window.matchMedia('(display-mode: standalone)').matches;
     
     if (!isIPhonePWA && state.stream && state.stream.active) {
+      console.log('🎤 Using existing active stream');
       return state.stream;
     }
 
     // Create new stream with iPhone PWA compatible settings
     try {
+      console.log('🎤 Creating fresh microphone stream...');
       const audioConstraints = {
         echoCancellation: false, // Disable for iPhone PWA compatibility
         noiseSuppression: false, // Disable for iPhone PWA compatibility

@@ -87,6 +87,7 @@ export function UnifiedSendButton({
       const audioChunks: Blob[] = [];
       
       mediaRecorder.ondataavailable = (event) => {
+        console.log('📊 Audio data chunk received:', event.data.size, 'bytes');
         if (event.data.size > 0) {
           audioChunks.push(event.data);
         }
@@ -95,15 +96,24 @@ export function UnifiedSendButton({
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(audioChunks, { type: mimeType });
         const duration = Date.now() - recordingStartTimeRef.current;
+        console.log('🎤 Recording stopped:', {
+          audioBlobSize: audioBlob.size,
+          duration: Math.floor(duration / 1000),
+          chunksCount: audioChunks.length,
+          mimeType
+        });
         onVoiceRecordingComplete(audioBlob, Math.floor(duration / 1000));
       };
       
       mediaRecorderRef.current = mediaRecorder;
       recordingStartTimeRef.current = Date.now();
       
-      mediaRecorder.start();
+      // Start recording with timeslice for better data collection
+      mediaRecorder.start(100); // Collect data every 100ms
       setIsRecording(true);
       setRecordingDuration(0);
+      
+      console.log('🎤 Recording started with MediaRecorder state:', mediaRecorder.state);
       
       // 녹음 시간 업데이트
       durationIntervalRef.current = setInterval(() => {
