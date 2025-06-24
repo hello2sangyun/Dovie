@@ -10,12 +10,8 @@ export function SimplePushManager() {
     if (!user) return;
 
     const initializePushNotifications = async () => {
-      // Check if already initialized to prevent duplicates
-      const alreadyInitialized = localStorage.getItem('pushNotificationInitialized');
-      if (alreadyInitialized === 'true') {
-        console.log('Push notifications already initialized, skipping');
-        return;
-      }
+      // 매번 초기화를 시도하여 PWA 환경에서 작동 보장
+      console.log('🔔 PWA 푸시 알림 초기화 시작 (사용자:', user.id, ')');
 
       // Check if notifications are supported
       if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
@@ -101,10 +97,11 @@ export function SimplePushManager() {
         });
 
         if (response.ok) {
-          console.log('✅ Push subscription saved to server for user:', user.id);
+          console.log('✅ PWA 푸시 구독 완료:', user.id);
           localStorage.setItem('pushNotificationInitialized', 'true');
         } else {
-          console.log('❌ Failed to save push subscription to server:', response.status);
+          const errorText = await response.text();
+          console.log('❌ 푸시 구독 실패:', response.status, errorText);
         }
       } catch (error) {
         console.error('❌ Push notification setup failed:', error);
