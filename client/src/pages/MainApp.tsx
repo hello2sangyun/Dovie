@@ -20,6 +20,7 @@ import ProfilePhotoModal from "@/components/ProfilePhotoModal";
 import ZeroDelayAvatar from "@/components/ZeroDelayAvatar";
 import { PWAPushManager } from "@/components/PWAPushManager";
 import { usePWABadge } from "@/hooks/usePWABadge";
+import QRCodeModal from "@/components/QRCodeModal";
 import InstantAvatar from "@/components/InstantAvatar";
 import { BannerNotificationContainer } from "@/components/MobileBannerNotification";
 import LoadingScreen from "@/components/LoadingScreen";
@@ -55,6 +56,7 @@ export default function MainApp() {
     createGroup: false,
     profilePhoto: false,
     permissions: false,
+    qrCode: false,
   });
   const [commandModalData, setCommandModalData] = useState<any>(null);
   const [messageDataForCommand, setMessageDataForCommand] = useState<any>(null);
@@ -1316,6 +1318,11 @@ export default function MainApp() {
       <PermissionRequestModal
         isOpen={modals.permissions}
         onComplete={handlePermissionsComplete}
+      />
+
+      <QRCodeModal
+        isOpen={modals.qrCode}
+        onClose={() => setModals(prev => ({ ...prev, qrCode: false }))}
       />
 
       {/* Mobile Banner Notifications - replaces bottom popup notifications */}

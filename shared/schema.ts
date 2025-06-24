@@ -13,6 +13,8 @@ export const users = pgTable("users", {
   birthday: text("birthday"),
   profilePicture: text("profile_picture"),
   qrCode: text("qr_code"),
+  qrToken: text("qr_token"), // 임시 QR 토큰
+  qrTokenExpiry: timestamp("qr_token_expiry"), // 토큰 만료 시간
   isOnline: boolean("is_online").default(false),
   lastSeen: timestamp("last_seen").defaultNow(),
   language: text("language").default("ko"),
