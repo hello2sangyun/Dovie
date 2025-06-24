@@ -1,38 +1,27 @@
 import { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { usePWABadge } from '@/hooks/usePWABadge';
 
 export function SimplePushManager() {
   const { user } = useAuth();
-  const { updateBadge } = usePWABadge();
 
   useEffect(() => {
-    console.log('🔍 SimplePushManager - 사용자 상태:', user ? `${user.id} (${user.displayName})` : 'null');
-    
-    if (!user) {
-      console.log('⏸️ SimplePushManager - 사용자 없음, 푸시 알림 초기화 중단');
-      return;
-    }
+    if (!user) return;
 
     const initializePushNotifications = async () => {
-      console.log('🔔 PWA 푸시 알림 초기화 시작 (사용자:', user.id, user.displayName, ')');
+      // Check if already initialized to prevent duplicates
+      const alreadyInitialized = localStorage.getItem('pushNotificationInitialized');
+      if (alreadyInitialized === 'true') {
+        console.log('Push notifications already initialized, skipping');
+        return;
+      }
 
       // Check if notifications are supported
       if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
         return;
       }
 
-      // Request notification permission if not granted
-      if (Notification.permission === 'default') {
-        console.log('🔔 Requesting notification permission...');
-        const permission = await Notification.requestPermission();
-        if (permission !== 'granted') {
-          console.log('❌ Notification permission denied');
-          return;
-        }
-        localStorage.setItem('notificationPermissionGranted', 'true');
-        console.log('✅ Notification permission granted');
-      } else if (Notification.permission !== 'granted') {
+      // Only proceed if notification permission is already granted
+      if (Notification.permission !== 'granted') {
         return;
       }
 
@@ -76,16 +65,8 @@ export function SimplePushManager() {
           applicationServerKey: urlBase64ToUint8Array(publicKey)
         });
 
-        // Send to server with properly encoded keys
-        const p256dhKey = subscription.getKey('p256dh');
-        const authKey = subscription.getKey('auth');
-        
-        if (!p256dhKey || !authKey) {
-          console.log('❌ Missing required subscription keys');
-          return;
-        }
-
-        const response = await fetch('/api/push-subscription', {
+        // Send to server
+        await fetch('/api/push-subscription', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -94,34 +75,21 @@ export function SimplePushManager() {
           body: JSON.stringify({
             endpoint: subscription.endpoint,
             keys: {
-              p256dh: arrayBufferToBase64(p256dhKey),
-              auth: arrayBufferToBase64(authKey)
+              p256dh: arrayBufferToBase64(subscription.getKey('p256dh')),
+              auth: arrayBufferToBase64(subscription.getKey('auth'))
             }
           })
         });
 
-        if (response.ok) {
-          console.log('✅ PWA 푸시 구독 완료:', user.id);
-          localStorage.setItem('pushNotificationInitialized', 'true');
-        } else {
-          const errorText = await response.text();
-          console.log('❌ 푸시 구독 실패:', response.status, errorText);
-        }
+        localStorage.setItem('pushNotificationInitialized', 'true');
       } catch (error) {
-        console.error('❌ Push notification setup failed:', error);
+        console.error('Push notification setup failed:', error);
       }
     };
 
     // Only initialize once per session
     initializePushNotifications();
   }, [user]);
-
-  // Update badge based on unread counts
-  useEffect(() => {
-    if (user) {
-      updateBadge();
-    }
-  }, [user, updateBadge]);
 
   // Helper functions
   const urlBase64ToUint8Array = (base64String: string) => {

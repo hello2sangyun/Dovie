@@ -29,41 +29,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return;
   };
 
-  // Get stored user ID with debugging
+  // Try to get user from localStorage on app start
   const storedUserId = localStorage.getItem("userId");
-  console.log("🔍 PWA 저장된 사용자 ID:", storedUserId);
 
-  // Fetch user data if stored user ID exists
-  const { data, error, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["/api/auth/me"],
-    enabled: !!storedUserId,
+    enabled: !!storedUserId, // 저장된 ID가 있는 경우에만 실행
+    refetchInterval: false, // 자동 새로고침 비활성화 (불필요한 요청 방지)
+    staleTime: 5 * 60 * 1000, // 5분 동안 캐시 유지
+    gcTime: 10 * 60 * 1000, // 10분 동안 메모리에 보관 (v5에서 cacheTime -> gcTime)
     queryFn: async () => {
-      console.log("🔍 PWA 인증 API 호출 시작, 사용자 ID:", storedUserId);
-      
-      if (!storedUserId) {
-        console.log("❌ PWA 저장된 사용자 ID 없음");
-        localStorage.removeItem("userId");
-        localStorage.removeItem("rememberLogin");
-        throw new Error("Authentication failed");
-      }
-
       const response = await fetch("/api/auth/me", {
-        headers: { "x-user-id": storedUserId },
-        credentials: 'include'
+        headers: {
+          "x-user-id": storedUserId!,
+        },
       });
-
-      console.log("🔍 PWA 인증 API 응답:", response.status, response.ok);
-
+      
       if (!response.ok) {
-        console.log("❌ PWA 인증 API 실패:", response.status);
+        // 인증 실패 시 저장된 사용자 ID 제거
         localStorage.removeItem("userId");
-        localStorage.removeItem("rememberLogin");
+        localStorage.removeItem("rememberLogin"); // 자동 로그인 해제
         throw new Error("Authentication failed");
       }
       
-      const userData = await response.json();
-      console.log("✅ PWA 인증 API 성공:", userData.user?.id, userData.user?.displayName);
-      return userData;
+      return response.json();
     },
     retry: false,
   });
@@ -176,45 +165,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Auto-login effect with detailed debugging
   useEffect(() => {
-    console.log("🔍 PWA 인증 상태 디버깅:", {
-      hasData: !!data,
-      userData: data?.user ? `${data.user.id} (${data.user.displayName})` : 'none',
-      storedUserId,
-      hasError: !!error,
-      errorMessage: error?.message || 'none'
-    });
-
-    if (data?.user && storedUserId && data.user.id.toString() === storedUserId) {
-      console.log("✅ PWA 자동 로그인 성공:", data.user.id, "displayName:", data.user.displayName);
+    if (data?.user && !initialized) {
+      console.log("🔄 Auth context updating user:", data.user.id, "profilePicture:", data.user.profilePicture);
       setUser(data.user);
       setInitialized(true);
-      setProfileImagesLoaded(true);
+      setProfileImagesLoaded(true); // Skip image preloading to prevent loading issues
       
-      // 프로필 이미지 프리로딩을 백그라운드에서 실행
+      // 프로필 이미지 프리로딩을 백그라운드에서 실행 (앱 로딩을 차단하지 않음)
       preloadProfileImages(data.user.id.toString()).catch(() => {
         console.log("Profile image preloading failed, continuing normally");
       });
     } else if (error && storedUserId) {
-      console.log("❌ PWA 인증 실패, 사용자 데이터 정리:", error.message);
+      // Clear user data if authentication fails for stored user
+      console.log("❌ Authentication failed, clearing user data");
       setUser(null);
       localStorage.removeItem("userId");
       localStorage.removeItem("rememberLogin");
       setInitialized(true);
       setProfileImagesLoaded(true);
       setIsPreloadingImages(false);
-    } else if (!storedUserId) {
-      console.log("📱 PWA 저장된 사용자 없음, 로그아웃 상태로 초기화");
+    } else if (!storedUserId && !initialized) {
+      // No stored user ID, mark as initialized immediately
+      console.log("📱 No stored user, initializing as logged out");
       setUser(null);
       setInitialized(true);
       setProfileImagesLoaded(true);
       setIsPreloadingImages(false);
-    } else if (storedUserId && !data && !error) {
-      console.log("⏳ PWA 저장된 사용자 있음, 인증 대기 중:", storedUserId);
-      // 아직 로딩 중인 상태, 기다림
     }
-  }, [data, error, storedUserId]);
+  }, [data, error, storedUserId, initialized]);
 
   // Clear user data when logging out
   const handleSetUser = (newUser: User | null) => {
@@ -224,86 +203,66 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Username login function  
+  // Username login function
   const loginWithUsername = async (username: string, password: string) => {
-    setIsLoading(true);
-    try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message);
-      }
-      
-      const data = await response.json();
-      
-      // 자동 로그인 정보 저장
-      localStorage.setItem("userId", data.user.id.toString());
-      localStorage.setItem("rememberLogin", "true");
-      localStorage.setItem("lastLoginTime", Date.now().toString());
-      
-      // 즉시 사용자 상태 업데이트
-      setUser(data.user);
-      
-      // 프로필 이미지 프리로딩을 백그라운드에서 실행
-      preloadProfileImages(data.user.id.toString()).catch(console.error);
-      
-      console.log("✅ 로그인 성공 - 자동 로그인 설정됨");
-      
-      return data;
-    } catch (error: any) {
-      throw new Error(error.message || "로그인 중 오류가 발생했습니다.");
-    } finally {
-      setIsLoading(false);
+    const response = await fetch("/api/auth/username-login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, password }),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
     }
+    
+    const data = await response.json();
+    setUser(data.user);
+    
+    // 자동 로그인 정보 저장
+    localStorage.setItem("userId", data.user.id.toString());
+    localStorage.setItem("rememberLogin", "true");
+    localStorage.setItem("lastLoginTime", Date.now().toString());
+    
+    console.log("✅ 자동 로그인이 설정되었습니다");
+    
+    // 로그인 후 즉시 푸시 알림 자동 활성화 (2초 후)
+    setTimeout(() => autoEnablePushNotifications(data.user.id), 2000);
+    
+    return data;
   };
 
   // Email login function
   const loginWithEmail = async (email: string, password: string) => {
-    setIsLoading(true);
-    try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message);
-      }
-      
-      const data = await response.json();
-      
-      // 자동 로그인 정보 저장
-      localStorage.setItem("userId", data.user.id.toString());
-      localStorage.setItem("rememberLogin", "true");
-      localStorage.setItem("lastLoginTime", Date.now().toString());
-      
-      // 즉시 사용자 상태 업데이트
-      setUser(data.user);
-      
-      // 프로필 이미지 프리로딩을 백그라운드에서 실행
-      preloadProfileImages(data.user.id.toString()).catch(console.error);
-      
-      console.log("✅ 로그인 성공 - 자동 로그인 설정됨");
-      
-      return data;
-    } catch (error: any) {
-      throw new Error(error.message || "로그인 중 오류가 발생했습니다.");
-    } finally {
-      setIsLoading(false);
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
     }
+    
+    const data = await response.json();
+    setUser(data.user);
+    
+    // 자동 로그인 정보 저장
+    localStorage.setItem("userId", data.user.id.toString());
+    localStorage.setItem("rememberLogin", "true");
+    localStorage.setItem("lastLoginTime", Date.now().toString());
+    
+    console.log("✅ 자동 로그인이 설정되었습니다");
+    
+    // 로그인 후 즉시 푸시 알림 자동 활성화 (2초 후)
+    setTimeout(() => autoEnablePushNotifications(data.user.id), 2000);
+    
+    return data;
   };
 
   // Logout function
@@ -414,7 +373,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user, 
       setUser: handleSetUser, 
       logout,
-      isLoading: isLoading && !user,
+      isLoading: (isLoading && !!storedUserId) || !initialized,
       isPreloadingImages,
       loginWithUsername,
       loginWithEmail,

@@ -29,6 +29,7 @@ self.addEventListener('activate', (event) => {
 // iOS 16 PWA 푸시 알림 처리 (강화된 배지 지원)
 self.addEventListener('push', (event) => {
   console.log('[iOS16 Enhanced SW] 푸시 알림 수신:', event);
+  console.log('[iOS16 Enhanced SW] Push data:', event.data ? event.data.text() : 'No data');
 
   let notificationData = {};
   if (event.data) {
@@ -40,7 +41,7 @@ self.addEventListener('push', (event) => {
       notificationData = { 
         title: 'Dovie Messenger',
         body: event.data.text() || '새 메시지가 도착했습니다.',
-        badge: 1
+        unreadCount: 1
       };
     }
   } else {
@@ -78,7 +79,7 @@ self.addEventListener('push', (event) => {
       // 알림 표시
       self.registration.showNotification(notificationData.title || 'Dovie Messenger', notificationOptions),
       // 배지 업데이트
-      updateBadge(notificationData.unreadCount || notificationData.badge || 1)
+      updateBadge(notificationData.unreadCount || 1)
     ]).then(() => {
       console.log('[iOS16 Enhanced SW] 푸시 알림 표시 완료');
     }).catch(error => {

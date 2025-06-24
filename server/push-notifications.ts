@@ -125,8 +125,7 @@ export async function sendMessageNotification(
   senderName: string,
   messageContent: string,
   chatRoomId: number,
-  messageType: string = 'text',
-  unreadCount: number = 1
+  messageType: string = 'text'
 ): Promise<void> {
   try {
     // Get total unread count across all chat rooms for app badge
@@ -181,8 +180,8 @@ export async function sendMessageNotification(
       tag: `dovie-chat-${chatRoomId}`,
       requireInteraction: false,
       silent: false,
-      badge: unreadCount,
-      unreadCount: unreadCount
+      sound: '/notification-sound.mp3',
+      unreadCount: totalUnreadCount
     });
   } catch (error) {
     console.error(`Failed to send message notification to user ${recipientUserId}:`, error);

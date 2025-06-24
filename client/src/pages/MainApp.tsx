@@ -40,7 +40,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 export default function MainApp() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isPreloadingImages } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { preloadImage, isLoading: imagePreloading } = useImagePreloader();
@@ -365,28 +365,25 @@ export default function MainApp() {
 
   const { totalChatUnread } = calculateUnreadCounts();
 
-  console.log('🔍 MainApp 렌더링 상태:', {
-    isLoading,
-    hasUser: !!user,
-    userId: user?.id,
-    displayName: user?.displayName,
-    isInitialized: initialized
-  });
-
-  // Show loading only during authentication
-  if (isLoading) {
-    console.log('⏳ MainApp - 로딩 화면 표시 (인증 중)');
-    return <LoadingScreen />;
-  }
-
-  // Redirect to login if not authenticated
+  // 사용자가 있으면 바로 메인 앱을 렌더링
   if (!user) {
-    console.log('🚫 MainApp - 사용자 없음, 로그인 페이지로 리다이렉트');
+    // 저장된 사용자 ID가 있으면 로딩 표시
+    const storedUserId = localStorage.getItem("userId");
+    if (storedUserId) {
+      return (
+        <div className="fixed inset-0 bg-white dark:bg-gray-900 flex items-center justify-center">
+          <div className="text-center">
+            <VaultLogo size="lg" className="mx-auto mb-4 animate-pulse" />
+            <p className="text-gray-600 dark:text-gray-400">사용자 정보 불러오는 중...</p>
+          </div>
+        </div>
+      );
+    }
+    
+    // 저장된 사용자 ID가 없으면 로그인 페이지로 리다이렉트
     window.location.href = "/login";
-    return <LoadingScreen />;
+    return null;
   }
-
-  console.log('✅ MainApp - 사용자 인증됨, 메인 앱 렌더링:', user.displayName);
 
   return (
     <div className="fixed inset-0 bg-white dark:bg-gray-900">
