@@ -39,7 +39,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 export default function MainApp() {
-  const { user, isLoading, isPreloadingImages } = useAuth();
+  const { user, isLoading } = useAuth();
   const { updateBadge, clearBadge } = usePWABadge();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -437,36 +437,11 @@ export default function MainApp() {
     setModals(prev => ({ ...prev, permissions: false }));
   };
 
-  // PWA 배지 테스트 시스템
+  // PWA 배지 시스템 (푸시 알림 기능과 연동)
   useEffect(() => {
     if (!user) return;
-    
-    const testBadgeSystem = async () => {
-      console.log('🧪 배지 시스템 테스트 시작');
-      
-      // 현재 안읽은 메시지 수 조회
-      try {
-        const response = await fetch('/api/unread-counts', {
-          headers: { 'X-User-ID': user.id.toString() }
-        });
-        const data = await response.json();
-        const totalUnread = data.unreadCounts?.reduce((total: number, room: any) => 
-          total + (room.unreadCount || 0), 0) || 0;
-        
-        console.log('현재 안읽은 메시지:', totalUnread);
-        
-        // 배지 업데이트 시도
-        if (updateBadge) {
-          await updateBadge(totalUnread);
-        }
-      } catch (error) {
-        console.error('배지 테스트 실패:', error);
-      }
-    };
-    
-    // 3초 후 테스트 실행
-    setTimeout(testBadgeSystem, 3000);
-  }, [user, updateBadge]);
+    console.log('MainApp rendering with user:', user.id);
+  }, [user]);
 
   // Clear app badge when app becomes active (iPhone PWA)
   useEffect(() => {
@@ -596,24 +571,9 @@ export default function MainApp() {
 
   const { totalChatUnread } = calculateUnreadCounts();
 
-  // 사용자가 있으면 바로 메인 앱을 렌더링
+  // 간단한 로그인 상태 체크
   if (!user) {
-    // 저장된 사용자 ID가 있으면 로딩 표시
-    const storedUserId = localStorage.getItem("userId");
-    if (storedUserId) {
-      return (
-        <div className="fixed inset-0 bg-white dark:bg-gray-900 flex items-center justify-center">
-          <div className="text-center">
-            <VaultLogo size="lg" className="mx-auto mb-4 animate-pulse" />
-            <p className="text-gray-600 dark:text-gray-400">사용자 정보 불러오는 중...</p>
-          </div>
-        </div>
-      );
-    }
-    
-    // 저장된 사용자 ID가 없으면 로그인 페이지로 리다이렉트
-    window.location.href = "/login";
-    return null;
+    return <Navigate to="/login" />;
   }
 
   return (

@@ -121,35 +121,27 @@ export default function PhoneLogin() {
       return response.json();
     },
     onSuccess: async (data) => {
-      console.log("SMS 인증 성공:", data.user.id, data.user.username);
-      
-      // 즉시 사용자 상태 설정
-      setUser(data.user);
+      console.log("SMS 인증 성공, 즉시 리다이렉트:", data.user);
       
       // 로그인 상태 저장
       localStorage.setItem("userId", data.user.id.toString());
       localStorage.setItem("rememberLogin", "true");
       localStorage.setItem("lastLoginTime", Date.now().toString());
       
-      // React Query 캐시 업데이트
-      queryClient.setQueryData(["/api/auth/me"], { user: data.user });
+      setUser(data.user);
       
       toast({
         title: "로그인 성공",
         description: "Dovie Messenger에 오신 것을 환영합니다!",
       });
       
-      // PWA 강제 새로고침으로 상태 동기화
-      setTimeout(() => {
-        const hasTemporaryEmail = data.user.email && data.user.email.includes('@phone.local');
-        const needsProfileSetup = !data.user.isProfileComplete || hasTemporaryEmail;
-        
-        if (needsProfileSetup) {
-          window.location.replace("/profile-setup");
-        } else {
-          window.location.replace("/app");
-        }
-      }, 100);
+      // 즉시 리다이렉트
+      const hasTemporaryEmail = data.user.email && data.user.email.includes('@phone.local');
+      const needsProfileSetup = !data.user.isProfileComplete || hasTemporaryEmail;
+      const targetPath = needsProfileSetup ? "/profile-setup" : "/app";
+      
+      console.log(`즉시 ${targetPath}으로 이동`);
+      window.location.href = targetPath;
     },
     onError: (error: any) => {
       toast({
