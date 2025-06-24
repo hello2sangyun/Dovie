@@ -373,7 +373,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user, 
       setUser: handleSetUser, 
       logout,
-      isLoading: (isLoading && !!storedUserId) || !initialized,
+      isLoading: isLoading && !user,
       isPreloadingImages,
       loginWithUsername,
       loginWithEmail,

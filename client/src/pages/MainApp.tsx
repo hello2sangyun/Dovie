@@ -40,7 +40,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 export default function MainApp() {
-  const { user, isLoading, isPreloadingImages } = useAuth();
+  const { user, isLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { preloadImage, isLoading: imagePreloading } = useImagePreloader();
