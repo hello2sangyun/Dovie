@@ -3,8 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import type { User } from "@shared/schema";
 import { useInstantImageCache } from "./useInstantImageCache";
 import { usePermissions } from "./usePermissions";
-import { clearServiceWorkerCaches, performPWAAuthCheck } from "../utils/serviceWorkerHelper";
-import { diagnosePWALogin, testPWAAuth } from "../utils/pwaLoginHelper";
 
 interface AuthContextType {
   user: User | null;
@@ -36,47 +34,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["/api/auth/me"],
-    enabled: !!storedUserId,
+    enabled: !!storedUserId, // 저장된 ID가 있는 경우에만 실행
     refetchInterval: false,
-    staleTime: 0,
-    gcTime: 0,
+    staleTime: 1 * 60 * 1000, // 1분으로 단축
+    gcTime: 2 * 60 * 1000, // 2분으로 단축
     queryFn: async () => {
-      console.log("📱 PWA 인증 체크 시작:", storedUserId);
-      
       const response = await fetch("/api/auth/me", {
-        method: "GET",
         headers: {
           "x-user-id": storedUserId!,
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-          "Pragma": "no-cache",
-          "Expires": "0"
         },
       });
       
-      console.log("📱 PWA 인증 응답:", response.status, response.ok);
-      
       if (!response.ok) {
-        console.log("📱 PWA 인증 실패 - localStorage 정리");
+        // 인증 실패 시 저장된 사용자 ID 제거
         localStorage.removeItem("userId");
-        localStorage.removeItem("rememberLogin");
+        localStorage.removeItem("rememberLogin"); // 자동 로그인 해제
         throw new Error("Authentication failed");
       }
       
-      const userData = await response.json();
-      console.log("📱 PWA 인증 성공:", userData.user?.id);
-      return userData;
+      return response.json();
     },
     retry: false,
   });
 
-  // 연락처와 채팅룸 데이터에서 프로필 이미지 URL 추출 및 프리로딩 (백그라운드에서만 실행)
+  // 연락처와 채팅룸 데이터에서 프로필 이미지 URL 추출 및 프리로딩
   const preloadProfileImages = async (userId: string) => {
+    setIsPreloadingImages(true);
     try {
-      console.log("🚀 Starting background profile image preloading...");
+      console.log("🚀 Starting profile image preloading...");
       
-      // 짧은 타임아웃으로 앱 성능에 영향 최소화
+      // 프리로딩 타임아웃 설정 (최대 10초)
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error("Preloading timeout")), 5000);
+        setTimeout(() => reject(new Error("Preloading timeout")), 10000);
       });
       
       const preloadingPromise = async () => {
@@ -165,55 +154,66 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log("🎉 Profile image preloading completed!");
       };
       
-      // 타임아웃과 함께 백그라운드 프리로딩 실행
+      // 타임아웃과 함께 프리로딩 실행
       await Promise.race([preloadingPromise(), timeoutPromise]);
+      setProfileImagesLoaded(true);
     } catch (error) {
-      console.log("⚠️ Background profile image preloading completed with timeout");
+      console.log("⚠️ Profile image preloading timed out or failed, proceeding anyway");
+      setProfileImagesLoaded(true); // 실패해도 로그인은 진행
+    } finally {
+      setIsPreloadingImages(false);
     }
   };
 
   useEffect(() => {
+    // 저장된 사용자 ID가 없으면 즉시 초기화
+    if (!storedUserId && !initialized) {
+      console.log("📱 로그아웃 상태로 초기화");
+      setUser(null);
+      setInitialized(true);
+      setProfileImagesLoaded(true);
+      setIsPreloadingImages(false);
+      return;
+    }
+    
+    // 인증 성공 처리
     if (data?.user && !initialized) {
-      console.log("🔄 Auth context updating user:", data.user.id, "profilePicture:", data.user.profilePicture);
+      console.log("✅ 인증 성공:", data.user.id, data.user.username);
       setUser(data.user);
       setInitialized(true);
       setProfileImagesLoaded(true);
       setIsPreloadingImages(false);
       
-      // Background image loading for performance (non-blocking)
-      setTimeout(() => {
-        preloadProfileImages(data.user.id.toString()).catch(() => {
-          console.log("Background profile image loading failed");
-        });
-      }, 5000);
-    } else if (error && storedUserId) {
-      console.log("❌ Authentication failed, clearing user data");
-      console.log("❌ Error details:", error);
-      
-      // PWA 진단 실행
-      diagnosePWALogin().then(() => {
-        console.log("📋 PWA 진단 완료");
+      // 이미지 프리로딩을 백그라운드에서 실행
+      preloadProfileImages(data.user.id.toString()).catch(() => {
+        console.log("이미지 프리로딩 실패");
       });
-      
+    } 
+    
+    // 인증 실패 처리 
+    else if (error && storedUserId && !initialized) {
+      console.log("❌ 인증 실패, 세션 클리어");
       setUser(null);
       localStorage.removeItem("userId");
       localStorage.removeItem("rememberLogin");
-      setInitialized(true);
-      setProfileImagesLoaded(true);
-      setIsPreloadingImages(false);
-    } else if (!storedUserId && !initialized) {
-      console.log("📱 로그아웃 상태로 초기화");
-      
-      // PWA 진단 실행
-      diagnosePWALogin().then(() => {
-        console.log("📋 PWA 초기 진단 완료");
-      });
-      
-      setUser(null);
+      localStorage.removeItem("lastLoginTime");
       setInitialized(true);
       setProfileImagesLoaded(true);
       setIsPreloadingImages(false);
     }
+    
+    // 로딩 타임아웃 설정 (3초 후 강제 초기화)
+    const timeoutId = setTimeout(() => {
+      if (!initialized) {
+        console.log("⏰ 로딩 타임아웃, 강제 초기화");
+        setUser(null);
+        setInitialized(true);
+        setProfileImagesLoaded(true);
+        setIsPreloadingImages(false);
+      }
+    }, 3000);
+    
+    return () => clearTimeout(timeoutId);
   }, [data, error, storedUserId, initialized]);
 
   // Clear user data when logging out
@@ -286,7 +286,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return data;
   };
 
-  // Logout function with PWA cache clearing
+  // Logout function
   const logout = async (forceRedirect: boolean = true) => {
     try {
       // Call logout API endpoint
@@ -310,9 +310,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if ((window as any).globalImageCache) {
         (window as any).globalImageCache.clear();
       }
-
-      // Clear Service Worker caches to prevent authentication issues
-      await clearServiceWorkerCaches();
 
       console.log("로그아웃 완료 - 자동 로그인 설정 해제됨");
       

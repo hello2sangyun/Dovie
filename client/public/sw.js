@@ -10,22 +10,12 @@ const STATIC_ASSETS = [
   '/icons/icon-512x512.png'
 ];
 
-// Runtime caching for API responses (EXCLUDE authentication APIs)
+// Runtime caching for API responses
 const API_CACHE_PATTERNS = [
+  /\/api\/auth\/me/,
   /\/api\/contacts/,
   /\/api\/chat-rooms/,
   /\/api\/profile-images\//
-];
-
-// Never cache these authentication/sensitive endpoints
-const NO_CACHE_PATTERNS = [
-  /\/api\/auth\//,
-  /\/api\/login/,
-  /\/api\/signup/,
-  /\/api\/logout/,
-  /\/api\/push-subscription/,
-  /\/api\/sms/,
-  /\/api\/unread-counts/ // 뱃지 기능을 위해 실시간 데이터 필요
 ];
 
 // Install event - cache static assets
@@ -98,12 +88,6 @@ self.addEventListener('fetch', (event) => {
 async function handleApiRequest(request) {
   const url = new URL(request.url);
   
-  // Never cache authentication or sensitive endpoints
-  if (NO_CACHE_PATTERNS.some(pattern => pattern.test(url.pathname))) {
-    console.log('[SW] Bypassing cache for sensitive endpoint:', url.pathname);
-    return fetch(request);
-  }
-  
   try {
     // Try network first
     const networkResponse = await fetch(request.clone());
@@ -124,8 +108,13 @@ async function handleApiRequest(request) {
       return cachedResponse;
     }
     
-    // Never return cached or offline response for auth endpoints
-    // Let authentication failures bubble up to trigger proper re-authentication
+    // Return offline response for critical APIs
+    if (url.pathname === '/api/auth/me') {
+      return new Response(JSON.stringify({ error: 'offline' }), {
+        status: 503,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
     
     throw error;
   }
@@ -379,17 +368,12 @@ async function updateAppBadge(unreadCount) {
   }
 }
 
-// Handle client messages for badge management
+// Clear app badge when app becomes visible
 self.addEventListener('message', (event) => {
-  console.log('[SW] 📨 Message received:', event.data);
-  
   if (event.data && event.data.type === 'CLEAR_BADGE') {
     updateAppBadge(0);
   }
   if (event.data && event.data.type === 'UPDATE_BADGE') {
-    updateAppBadge(event.data.count);
-  }
-  if (event.data && event.data.type === 'SET_BADGE') {
     updateAppBadge(event.data.count);
   }
 });

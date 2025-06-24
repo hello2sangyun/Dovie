@@ -31,29 +31,31 @@ export default function LoginPage() {
 
   const usernameLoginMutation = useMutation({
     mutationFn: async (data: typeof usernameLoginData) => {
-      console.log('📱 PWA 로그인 시작:', data.username);
       const response = await apiRequest("/api/auth/username-login", "POST", data);
       return response.json();
     },
     onSuccess: async (data) => {
-      console.log('✅ PWA 로그인 성공:', data.user.id, data.user.username);
+      console.log('로그인 성공:', data.user.id, data.user.username);
+      
+      // 즉시 사용자 상태 설정
+      setUser(data.user);
       
       // 로그인 상태 저장
       localStorage.setItem("userId", data.user.id.toString());
       localStorage.setItem("rememberLogin", "true");
       localStorage.setItem("lastLoginTime", Date.now().toString());
       
-      console.log('💾 PWA localStorage 저장 완료');
+      // React Query 캐시 업데이트
+      queryClient.setQueryData(["/api/auth/me"], { user: data.user });
       
-      // 사용자 상태 즉시 업데이트
-      setUser(data.user);
-      
-      // 즉시 리다이렉트
-      const targetPath = !data.user.isProfileComplete ? "/profile-setup" : "/app";
-      console.log(`🚀 PWA 리다이렉트: ${targetPath}`);
-      
-      // 강제 페이지 이동 (PWA/브라우저 구분 없이)
-      window.location.href = targetPath;
+      // PWA 강제 새로고침으로 상태 동기화
+      setTimeout(() => {
+        if (!data.user.isProfileComplete) {
+          window.location.replace("/profile-setup");
+        } else {
+          window.location.replace("/app");
+        }
+      }, 100);
     },
     onError: (error: any) => {
       toast({

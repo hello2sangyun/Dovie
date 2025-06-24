@@ -58,18 +58,11 @@
           try {
             console.log('🚀 PWA Service Worker 강제 등록 시작...');
             
-            // Clear all existing registrations to prevent conflicts
+            // 기존 등록 모두 해제
             const registrations = await navigator.serviceWorker.getRegistrations();
             for (const registration of registrations) {
               await registration.unregister();
-              console.log('🔄 Clearing existing Service Worker');
-            }
-            
-            // Clear all caches to prevent authentication issues
-            const cacheNames = await caches.keys();
-            for (const cacheName of cacheNames) {
-              await caches.delete(cacheName);
-              console.log('🗑️ Cleared cache:', cacheName);
+              console.log('🔄 기존 Service Worker 해제됨');
             }
             
             // iOS 16+ 감지 및 최적 Service Worker 선택
@@ -110,17 +103,6 @@
             // Service Worker 준비 대기
             await navigator.serviceWorker.ready;
             console.log('✅ PWA Service Worker 준비 완료');
-            
-            // PWA 디버깅 정보 로그
-            console.log('🔍 PWA 디버깅 상태:', {
-              standalone: window.navigator.standalone,
-              displayMode: window.matchMedia('(display-mode: standalone)').matches,
-              serviceWorkerReady: true,
-              localStorage: {
-                userId: localStorage.getItem('userId'),
-                rememberLogin: localStorage.getItem('rememberLogin')
-              }
-            });
             
             // 즉시 알림 권한 확인
             if ('Notification' in window) {
