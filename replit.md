@@ -184,6 +184,11 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Eliminated automatic "iOS 16 PWA 푸시 알림이 성공적으로 활성화되었습니다!" test messages
   - Removed test push notification endpoints and client-side test functions
   - Push notification system now only sends actual message notifications without spam
+- June 25, 2025: Fixed duplicate push notification issue:
+  - Cleaned up 509 duplicate push subscriptions from database (user 112 had 507 duplicates)
+  - Enhanced upsertPushSubscription method to prevent duplicate subscriptions by endpoint
+  - Push notifications now sent only once per message to each user device
+  - System logs confirm single delivery per message instead of hundreds of duplicates
 - June 16, 2025: Completed comprehensive removal of nearby chat (주변챗) functionality including:
   - Removed location-based database tables (locationChatRooms, locationChatParticipants, locationChatMessages, userLocations)
   - Deleted all location-based API endpoints (/api/location/*)
