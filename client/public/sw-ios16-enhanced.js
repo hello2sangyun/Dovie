@@ -88,31 +88,61 @@ self.addEventListener('push', (event) => {
   );
 });
 
-// iOS 16 강화 배지 업데이트 함수
+// iOS 16+ PWA 배지 업데이트 함수 (다중 방법 시도)
 async function updateBadge(count) {
-  console.log('[iOS16 Enhanced SW] 배지 업데이트 시작:', count);
+  console.log('[iOS16 Enhanced SW] 배지 업데이트 시도:', count);
   
-  // iOS 16+ 앱 배지 API 사용
-  if ('setAppBadge' in navigator) {
+  // 방법 1: self.registration.setAppBadge (iOS 16+ PWA 전용)
+  if ('setAppBadge' in self.registration) {
     try {
-      await navigator.setAppBadge(count > 0 ? count : 0);
+      if (count > 0) {
+        await self.registration.setAppBadge(count);
+      } else {
+        await self.registration.clearAppBadge();
+      }
+      console.log('[iOS16 Enhanced SW] registration.setAppBadge 성공:', count);
+      return;
+    } catch (error) {
+      console.error('[iOS16 Enhanced SW] registration.setAppBadge 실패:', error);
+    }
+  }
+  
+  // 방법 2: 전역 스코프에서 navigator 접근 시도
+  if (typeof navigator !== 'undefined' && 'setAppBadge' in navigator) {
+    try {
+      if (count > 0) {
+        await navigator.setAppBadge(count);
+      } else {
+        await navigator.clearAppBadge();
+      }
       console.log('[iOS16 Enhanced SW] navigator.setAppBadge 성공:', count);
+      return;
     } catch (error) {
       console.error('[iOS16 Enhanced SW] navigator.setAppBadge 실패:', error);
     }
   }
   
-  // Service Worker 레벨 배지 설정 (fallback)
+  // 방법 3: Service Worker 레벨 배지 설정 (fallback)
   if ('badge' in self.registration) {
     try {
       await self.registration.badge.set(count > 0 ? count : 0);
       console.log('[iOS16 Enhanced SW] registration.badge.set 성공:', count);
+      return;
     } catch (error) {
       console.error('[iOS16 Enhanced SW] registration.badge.set 실패:', error);
     }
   }
   
-  console.log('[iOS16 Enhanced SW] 배지 업데이트 완료:', count);
+  // 방법 4: 클라이언트에게 배지 설정 요청
+  const clients = await self.clients.matchAll();
+  clients.forEach(client => {
+    client.postMessage({
+      type: 'SET_BADGE_CLIENT',
+      count: count
+    });
+  });
+  
+  console.log('[iOS16 Enhanced SW] 모든 배지 업데이트 방법 시도 완료:', count);
 }
 
 // 클라이언트에서 배지 업데이트 메시지 처리
