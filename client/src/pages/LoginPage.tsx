@@ -31,23 +31,26 @@ export default function LoginPage() {
 
   const usernameLoginMutation = useMutation({
     mutationFn: async (data: typeof usernameLoginData) => {
+      console.log('📱 PWA 로그인 시작:', data.username);
       const response = await apiRequest("/api/auth/username-login", "POST", data);
       return response.json();
     },
     onSuccess: async (data) => {
-      console.log('로그인 성공, 즉시 리다이렉트:', data.user);
+      console.log('✅ PWA 로그인 성공:', data.user.id, data.user.username);
       
       // 로그인 상태 저장
       localStorage.setItem("userId", data.user.id.toString());
       localStorage.setItem("rememberLogin", "true");
       localStorage.setItem("lastLoginTime", Date.now().toString());
       
+      console.log('💾 PWA localStorage 저장 완료');
+      
       // 사용자 상태 즉시 업데이트
       setUser(data.user);
       
-      // 즉시 리다이렉트 (캐시 업데이트 대기하지 않음)
+      // 즉시 리다이렉트
       const targetPath = !data.user.isProfileComplete ? "/profile-setup" : "/app";
-      console.log(`즉시 ${targetPath}으로 이동`);
+      console.log(`🚀 PWA 리다이렉트: ${targetPath}`);
       
       // 강제 페이지 이동 (PWA/브라우저 구분 없이)
       window.location.href = targetPath;

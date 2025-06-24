@@ -6,7 +6,11 @@ export const diagnosePWALogin = async (): Promise<void> => {
   // 1. PWA 모드 확인
   const isPWAMode = window.navigator.standalone === true || 
                    window.matchMedia('(display-mode: standalone)').matches;
+  const isPWAInstalled = window.matchMedia('(display-mode: standalone)').matches ||
+                         window.navigator.standalone === true ||
+                         document.referrer.includes('android-app://');
   console.log('📱 PWA 모드:', isPWAMode);
+  console.log('📱 PWA 설치됨:', isPWAInstalled);
   
   // 2. Service Worker 상태 확인
   if ('serviceWorker' in navigator) {

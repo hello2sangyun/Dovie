@@ -10,7 +10,8 @@ export function usePWABadge() {
     queryKey: ['/api/unread-counts'],
     enabled: !!user,
     refetchInterval: 30000, // 30초마다 갱신
-    staleTime: 10000 // 10초간 fresh
+    staleTime: 10000, // 10초간 fresh
+    retry: 1 // 실패 시 1회만 재시도
   });
 
   // 배지 업데이트 함수 (iOS 16+ PWA 최적화)
