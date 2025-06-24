@@ -450,8 +450,16 @@ export default function MainApp() {
           headers: { 'X-User-ID': user.id.toString() }
         });
         const data = await response.json();
-        const totalUnread = data.unreadCounts?.reduce((total: number, room: any) => 
-          total + (room.unreadCount || 0), 0) || 0;
+        let totalUnread = 0;
+        try {
+          if (data.unreadCounts && Array.isArray(data.unreadCounts)) {
+            totalUnread = data.unreadCounts.reduce((total: number, room: any) => 
+              total + (room.unreadCount || 0), 0) || 0;
+          }
+        } catch (error) {
+          console.log('배지 계산 중 오류, 기본값 사용:', error);
+          totalUnread = 0;
+        }
         
         console.log('현재 안읽은 메시지:', totalUnread);
         
@@ -464,8 +472,16 @@ export default function MainApp() {
       }
     };
     
-    // 3초 후 테스트 실행
-    setTimeout(testBadgeSystem, 3000);
+    // PWA에서만 배지 테스트 실행
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
+                  (window.navigator as any).standalone === true;
+    
+    if (isPWA) {
+      console.log('🎯 PWA 모드 - 배지 테스트 실행');
+      setTimeout(testBadgeSystem, 5000); // 5초로 지연 증가
+    } else {
+      console.log('🌐 브라우저 모드 - 배지 테스트 스킵');
+    }
   }, [user, updateBadge]);
 
   // Clear app badge when app becomes active (iPhone PWA)

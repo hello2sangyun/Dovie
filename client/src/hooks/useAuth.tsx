@@ -23,9 +23,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profileImagesLoaded, setProfileImagesLoaded] = useState(false);
   const [isPreloadingImages, setIsPreloadingImages] = useState(false);
 
-  // PWAPushManager가 처리하므로 간소화됨
+  // PWA 환경 감지 및 안전한 초기화
   const autoEnablePushNotifications = async (userId?: number) => {
-    console.log('PWAPushManager가 푸시 알림을 처리합니다.');
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
+                  (window.navigator as any).standalone === true;
+    
+    if (isPWA) {
+      console.log('🎯 PWA 환경 - PWAPushManager가 처리합니다');
+    } else {
+      console.log('🌐 브라우저 환경 - 푸시 알림 스킵');
+    }
     return;
   };
 

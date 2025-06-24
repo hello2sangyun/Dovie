@@ -11,7 +11,19 @@ export function PWAPushManager({ onNotificationEnabled }: PWAPushManagerProps) {
 
   useEffect(() => {
     if (user && !isInitializing) {
-      initializePWAPushSystem();
+      // PWA 환경에서만 푸시 시스템 초기화
+      const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
+                    (window.navigator as any).standalone === true;
+      
+      if (isPWA) {
+        console.log('🎯 PWA 모드 감지됨 - 푸시 시스템 초기화');
+        // 3초 지연 후 초기화 (인증 완료 후)
+        setTimeout(() => {
+          initializePWAPushSystem();
+        }, 3000);
+      } else {
+        console.log('🌐 브라우저 모드 - 푸시 시스템 스킵');
+      }
     }
   }, [user, isInitializing]);
 
