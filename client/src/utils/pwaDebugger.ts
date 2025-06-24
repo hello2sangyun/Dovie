@@ -121,12 +121,4 @@ export const pwaDebugger = {
   }
 };
 
-// PWA 앱 시작 시 자동 진단 실행
-if (typeof window !== 'undefined') {
-  // 페이지 로드 후 진단 실행
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      pwaDebugger.runFullDiagnostic();
-    }, 2000);
-  });
-}
+// PWA 자동 진단 제거 (불필요한 로그 방지)

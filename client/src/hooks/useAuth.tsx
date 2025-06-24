@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import type { User } from "@shared/schema";
 import { useInstantImageCache } from "./useInstantImageCache";
 import { usePermissions } from "./usePermissions";
-import { pwaDebugger } from "../utils/pwaDebugger";
 
 interface AuthContextType {
   user: User | null;
@@ -205,6 +204,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [data, error, storedUserId, initialized]);
 
+  // 통합 로그인 처리 함수
+  const handleSuccessfulLogin = (userData: any) => {
+    setUser(userData.user);
+    localStorage.setItem("userId", userData.user.id.toString());
+    localStorage.setItem("rememberLogin", "true");
+    localStorage.setItem("lastLoginTime", Date.now().toString());
+    setTimeout(() => autoEnablePushNotifications(userData.user.id), 2000);
+    return userData;
+  };
+
   // Clear user data when logging out
   const handleSetUser = (newUser: User | null) => {
     setUser(newUser);
@@ -217,9 +226,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginWithUsername = async (username: string, password: string) => {
     const response = await fetch("/api/auth/username-login", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password }),
     });
     
@@ -229,28 +236,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     
     const data = await response.json();
-    setUser(data.user);
-    
-    // 자동 로그인 정보 저장
-    localStorage.setItem("userId", data.user.id.toString());
-    localStorage.setItem("rememberLogin", "true");
-    localStorage.setItem("lastLoginTime", Date.now().toString());
-    
-    console.log("✅ 자동 로그인이 설정되었습니다");
-    
-    // 로그인 후 즉시 푸시 알림 자동 활성화 (2초 후)
-    setTimeout(() => autoEnablePushNotifications(data.user.id), 2000);
-    
-    return data;
+    return handleSuccessfulLogin(data);
   };
 
   // Email login function
   const loginWithEmail = async (email: string, password: string) => {
     const response = await fetch("/api/auth/login", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
     
@@ -260,19 +253,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     
     const data = await response.json();
-    setUser(data.user);
-    
-    // 자동 로그인 정보 저장
-    localStorage.setItem("userId", data.user.id.toString());
-    localStorage.setItem("rememberLogin", "true");
-    localStorage.setItem("lastLoginTime", Date.now().toString());
-    
-    console.log("✅ 자동 로그인이 설정되었습니다");
-    
-    // 로그인 후 즉시 푸시 알림 자동 활성화 (2초 후)
-    setTimeout(() => autoEnablePushNotifications(data.user.id), 2000);
-    
-    return data;
+    return handleSuccessfulLogin(data);
   };
 
   // Logout function

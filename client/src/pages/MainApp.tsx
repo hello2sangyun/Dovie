@@ -5,7 +5,6 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useImagePreloader, preloadGlobalImage } from "@/hooks/useImagePreloader";
-import { pwaDebugger } from "../utils/pwaDebugger";
 
 import { useLocation } from "wouter";
 
@@ -173,95 +172,54 @@ export default function MainApp() {
 
   // Profile images are now preloaded during authentication in useAuth hook
 
-  // Prefetch messages for recent chat rooms
+  // 최근 채팅방 메시지 프리페치 (불필요한 부하 제거)
   useEffect(() => {
     if ((chatRoomsData as any)?.chatRooms && queryClient) {
-      // 최근 채팅방 5개의 메시지를 미리 로딩
-      const recentChatRooms = (chatRoomsData as any).chatRooms.slice(0, 5);
+      const recentChatRooms = (chatRoomsData as any).chatRooms.slice(0, 3); // 5개에서 3개로 축소
       
       recentChatRooms.forEach((room: any, index: number) => {
-        // 각 요청을 100ms씩 지연시켜 서버 부하 분산
         setTimeout(() => {
           queryClient.prefetchQuery({
             queryKey: [`/api/chat-rooms/${room.id}/messages`],
-            queryFn: async () => {
-              const response = await apiRequest(`/api/chat-rooms/${room.id}/messages`, "GET");
-              if (!response.ok) throw new Error('Failed to prefetch messages');
-              return response.json();
-            },
-            staleTime: 30000, // 30초 동안 캐시 유지
+            staleTime: 60000, // 캐시 시간 증가
           });
-        }, index * 100);
+        }, index * 200); // 지연 시간 증가
       });
     }
   }, [(chatRoomsData as any)?.chatRooms, queryClient]);
 
-  // Get unread counts
+  // 읽지 않은 메시지 수 조회 (최적화)
   const { data: unreadCountsData } = useQuery({
     queryKey: ["/api/unread-counts"],
     enabled: !!user,
-    refetchInterval: 5000,
+    refetchInterval: 30000, // 30초로 변경 (불필요한 API 호출 감소)
+    staleTime: 25000,
+    retry: 2,
   });
 
-  // Request permissions and register push notifications after login
+  // 간소화된 권한 요청 및 푸시 알림 등록
   useEffect(() => {
     if (!user) return;
     
-    console.log('MainApp rendering with user:', user.id);
-    
-    // Check if permissions have been requested before
-    const microphoneGranted = localStorage.getItem('microphonePermissionGranted');
     const notificationGranted = localStorage.getItem('notificationPermissionGranted');
     
-    // 첫 로그인 시 자동으로 푸시 알림 권한 요청 및 등록 (기본값 ON)
+    // 첫 로그인 시 푸시 알림 자동 활성화
     if (!notificationGranted) {
-      setTimeout(async () => {
-        await autoEnablePushNotifications();
-      }, 1500);
-    } else if (notificationGranted === 'true') {
-      // If notifications are already granted, ensure push subscription is registered
-      setTimeout(() => {
-        registerPushNotification();
-      }, 1000);
-    }
-    
-    // Always try to register push subscription for existing users
-    setTimeout(() => {
-      ensurePushSubscription();
-    }, 2000);
-    
-    // Only show permission modal if microphone permission hasn't been handled yet
-    if (!microphoneGranted && notificationGranted !== 'false') {
-      setTimeout(() => {
-        setModals(prev => ({ ...prev, permissions: true }));
-      }, 3000); // Delay after push notification setup
+      setTimeout(() => autoEnablePushNotifications(), 2000);
     }
   }, [user]);
 
-  // Function to register push notifications
+  // 간소화된 푸시 알림 등록
   const registerPushNotification = async () => {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      console.log('Push notifications not supported');
-      return false;
-    }
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
 
     try {
       const registration = await navigator.serviceWorker.ready;
       if (!registration.pushManager) return false;
 
-      // Check if already subscribed
       const existingSubscription = await registration.pushManager.getSubscription();
       
-      console.log('🔍 Push subscription check:', {
-        hasExistingSubscription: !!existingSubscription,
-        userId: user?.id,
-        notificationPermission: Notification.permission
-      });
-
       if (existingSubscription) {
-        console.log('🔄 Verifying existing subscription with server...');
-        
-        // Verify existing subscription with server
         const verifyResponse = await fetch('/api/push-subscription', {
           method: 'POST',
           headers: {
@@ -271,17 +229,9 @@ export default function MainApp() {
           body: JSON.stringify(existingSubscription)
         });
         
-        if (verifyResponse.ok) {
-          console.log('✅ Existing subscription verified with server');
-          return true;
-        } else {
-          console.log('⚠️ Existing subscription verification failed, creating new one...');
-        }
+        if (verifyResponse.ok) return true;
       }
 
-      console.log('🔔 Creating new push subscription...');
-      
-      // Get VAPID public key from server
       const vapidResponse = await fetch('/api/vapid-public-key');
       const { publicKey } = await vapidResponse.json();
       
@@ -290,7 +240,6 @@ export default function MainApp() {
         applicationServerKey: publicKey
       });
 
-      // Send subscription to server
       const response = await fetch('/api/push-subscription', {
         method: 'POST',
         headers: {
@@ -301,64 +250,16 @@ export default function MainApp() {
       });
 
       if (response.ok) {
-        console.log('✅ Push subscription registered successfully');
         localStorage.setItem('notificationPermissionGranted', 'true');
         return true;
-      } else {
-        console.error('❌ Failed to register push subscription');
-        return false;
       }
+      return false;
     } catch (error) {
-      console.error('Push notification registration failed:', error);
       return false;
     }
   };
 
-  // Function to ensure push subscription exists for all users  
-  const ensurePushSubscription = async () => {
-    if (!user?.id) {
-      console.log('⚠️ No user ID available for push subscription check');
-      return;
-    }
 
-    console.log('🔍 Checking push subscription status for user:', user.id);
-    
-    // Check server-side subscription status
-    try {
-      const statusResponse = await fetch('/api/push-subscription/status', {
-        headers: {
-          'X-User-ID': user.id.toString()
-        }
-      });
-      
-      if (statusResponse.ok) {
-        const { isSubscribed, subscriptionCount } = await statusResponse.json();
-        console.log(`📊 Server subscription status:`, { isSubscribed, subscriptionCount });
-        
-        if (isSubscribed) {
-          console.log('✅ User already has active push subscription');
-          localStorage.setItem('notificationPermissionGranted', 'true');
-          return;
-        }
-      }
-    } catch (error) {
-      console.error('Failed to check server subscription status:', error);
-    }
-
-    // If notification permission is granted but no server subscription, register one
-    if (Notification.permission === 'granted') {
-      console.log('🔔 Permission granted but no subscription found, registering...');
-      const success = await registerPushNotification();
-      
-      if (success) {
-        console.log('✅ Push subscription successfully ensured');
-      } else {
-        console.log('❌ Failed to ensure push subscription');
-      }
-    } else {
-      console.log('⚠️ Notification permission not granted:', Notification.permission);
-    }
-  };
 
   // Function to automatically enable push notifications on first login - iPhone PWA optimized
   const autoEnablePushNotifications = async () => {
