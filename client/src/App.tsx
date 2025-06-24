@@ -8,6 +8,7 @@ import LoginPage from "@/pages/LoginPage";
 import SignupPage from "@/pages/SignupPage";
 import MainApp from "@/pages/MainApp";
 import ProfileSetupPage from "@/pages/ProfileSetupPage";
+import PhoneLogin from "@/pages/PhoneLogin";
 import LoadingScreen from "@/components/LoadingScreen";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -37,6 +38,7 @@ function AppContent() {
   return (
     <Switch>
       <Route path="/signup" component={SignupPage} />
+      <Route path="/phone-auth" component={PhoneLogin} />
       <Route path="/profile-setup" component={ProfileSetupPage} />
       <Route path="/" component={LoginPage} />
       <Route>

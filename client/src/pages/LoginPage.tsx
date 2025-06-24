@@ -7,10 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useDirectAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
-import VaultLogo from "@/components/VaultLogo";
-import { QuickLogin } from "@/components/QuickLogin";
+// Removed VaultLogo and QuickLogin imports temporarily
 import { User, Lock, Phone } from "lucide-react";
 
 export default function LoginPage() {
@@ -26,7 +25,7 @@ export default function LoginPage() {
   
   // Phone login state - redirect to phone login page
   const handlePhoneLogin = () => {
-    setLocation("/phone-login");
+    setLocation("/phone-auth");
   };
 
   const usernameLoginMutation = useMutation({
