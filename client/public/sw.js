@@ -363,20 +363,13 @@ self.addEventListener('message', (event) => {
       updateAppBadge(0);
       break;
     case 'APP_FOCUS':
-      updateAppBadge(0);
+      // Removed automatic badge clearing on app focus
+      console.log('[SW] App focused - badge maintained');
       break;
   }
 });
 
-// Clear app badge when app becomes visible
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'CLEAR_BADGE') {
-    updateAppBadge(0);
-  }
-  if (event.data && event.data.type === 'UPDATE_BADGE') {
-    updateAppBadge(event.data.count);
-  }
-});
+// Removed duplicate message listener - handled above
 
 // Handle notification clicks - iPhone PWA optimized
 self.addEventListener('notificationclick', (event) => {
@@ -385,8 +378,7 @@ self.addEventListener('notificationclick', (event) => {
   
   event.notification.close();
   
-  // Clear app badge when notification is clicked (iPhone PWA critical)
-  updateAppBadge(0);
+  // Removed automatic badge clearing on notification click - badge should reflect actual unread count
   
   // iPhone PWA optimized window handling
   const urlToOpen = event.notification.data?.url || '/';
@@ -428,7 +420,7 @@ self.addEventListener('notificationclose', (event) => {
   console.log('[SW] Notification closed:', event.notification.tag);
 });
 
-// Handle app visibility change to update badge
+// Handle app visibility change - removed badge clearing to maintain unread count
 self.addEventListener('focus', () => {
-  updateAppBadge(0);
+  console.log('[SW] App focused - maintaining badge state');
 });

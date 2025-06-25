@@ -1,9 +1,10 @@
 import { useEffect, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './useAuth';
 
 export function usePWABadge() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   // 읽지 않은 메시지 수 조회
   const { data: unreadCounts } = useQuery({
@@ -44,15 +45,25 @@ export function usePWABadge() {
     await updateBadge(0);
   }, [updateBadge]);
 
-  // 읽지 않은 메시지 수 변경 시 배지 업데이트
+  // 읽지 않은 메시지 수 변경 시 배지 업데이트 (앱 시작시에도 실행)
   useEffect(() => {
     if (unreadCounts?.unreadCounts && Array.isArray(unreadCounts.unreadCounts)) {
       const totalUnread = unreadCounts.unreadCounts.reduce((total: number, room: any) => 
         total + (room.unreadCount || 0), 0
       );
+      console.log('🎯 PWA 배지 업데이트 요청:', totalUnread);
       updateBadge(totalUnread);
     }
   }, [unreadCounts, updateBadge]);
+
+  // PWA 앱 시작시 배지 상태 강제 복원
+  useEffect(() => {
+    if (user) {
+      // 앱이 시작될 때 unread counts를 즉시 새로고침하여 배지 복원
+      queryClient.invalidateQueries({ queryKey: ['/api/unread-counts'] });
+      console.log('🎯 PWA 앱 시작 - 배지 상태 복원');
+    }
+  }, [user, queryClient]);
 
   // 앱 포커스 시 Service Worker에만 알림 (배지는 실제 읽음 처리 시에만 클리어)
   useEffect(() => {
@@ -88,8 +99,8 @@ export function usePWABadge() {
       if (event.data?.type === 'BADGE_UPDATE') {
         updateBadge(event.data.count || 0);
       } else if (event.data?.type === 'NOTIFICATION_CLICKED') {
-        // 알림 클릭 시 배지 클리어
-        clearBadge();
+        // 알림 클릭 시 실제 읽지 않은 메시지 수를 다시 조회하여 배지 업데이트
+        queryClient.invalidateQueries({ queryKey: ['/api/unread-counts'] });
       }
     };
 
