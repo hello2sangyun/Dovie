@@ -74,12 +74,7 @@ export function PermissionRequestModal({ isOpen, onComplete }: PermissionRequest
               return window.btoa(binary);
             };
 
-            // Get VAPID public key from server
-            const vapidResponse = await fetch('/api/vapid-public-key');
-            if (!vapidResponse.ok) {
-              throw new Error('Failed to get VAPID public key');
-            }
-            const { publicKey: vapidPublicKey } = await vapidResponse.json();
+            const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY || 'BMqZ8XNhzWqDYHWOWOL3PnQj2pF4ej1dvxE6uKODu2mN5qeECeV6qF4ej1dvxE6uKODu2mN5q';
             
             const subscription = await registration.pushManager.subscribe({
               userVisibleOnly: true,
@@ -182,12 +177,8 @@ export function PermissionRequestModal({ isOpen, onComplete }: PermissionRequest
         return window.btoa(binary);
       };
 
-      // Get VAPID public key from server
-      const vapidResponse = await fetch('/api/vapid-public-key');
-      if (!vapidResponse.ok) {
-        throw new Error('Failed to get VAPID public key');
-      }
-      const { publicKey: vapidPublicKey } = await vapidResponse.json();
+      // Subscribe to push notifications
+      const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY || 'BMqZ8XNhzWqDYHWOWOL3PnQj2pF4ej1dvxE6uKODu2mN5qeECeV6qF4ej1dvxE6uKODu2mN5q';
       
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
