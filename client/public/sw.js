@@ -330,28 +330,28 @@ self.addEventListener('push', (event) => {
   );
 });
 
-// App badge functionality - purely reflects database unread message count
-async function updateAppBadge(unreadCount) {
+// Telegram/WhatsApp style badge function - shows exact unread count
+async function setTelegramStyleBadge(count) {
   try {
-    console.log('[SW] 🔢 Setting badge to exact database unread count:', unreadCount);
+    console.log('[SW] 📱 Setting Telegram-style badge:', count);
     
     if ('setAppBadge' in navigator) {
-      // Force clear any existing badge first to eliminate push notification interference
-      await navigator.clearAppBadge();
-      
-      // Set badge to exact database count
-      if (unreadCount > 0) {
-        await navigator.setAppBadge(unreadCount);
-        console.log('[SW] ✅ Badge set to database count:', unreadCount);
+      if (count > 0) {
+        await navigator.setAppBadge(count);
+        console.log('[SW] ✅ Badge set like Telegram:', count);
       } else {
-        console.log('[SW] ✅ Badge cleared (no unread messages in database)');
+        await navigator.clearAppBadge();
+        console.log('[SW] ✅ Badge cleared like Telegram');
       }
-    } else {
-      console.log('[SW] ⚠️ setAppBadge not supported, database count:', unreadCount);
     }
   } catch (error) {
-    console.error('[SW] ❌ Failed to set badge to database count:', error);
+    console.error('[SW] ❌ Telegram-style badge failed:', error);
   }
+}
+
+// Legacy badge function for compatibility
+async function updateAppBadge(unreadCount) {
+  await setTelegramStyleBadge(unreadCount);
 }
 
 // Handle messages from main thread - completely independent from push notifications
@@ -377,6 +377,11 @@ self.addEventListener('message', (event) => {
     case 'CLEAR_BADGE':
       console.log('[SW] Clearing badge (database command)');
       updateAppBadge(0);
+      break;
+    case 'TELEGRAM_STYLE_BADGE':
+      // Set badge exactly like Telegram/WhatsApp
+      console.log('[SW] Setting Telegram-style badge:', event.data.count);
+      setTelegramStyleBadge(event.data.count || 0);
       break;
     case 'FORCE_SET_BADGE':
       // Force set badge regardless of push notification state

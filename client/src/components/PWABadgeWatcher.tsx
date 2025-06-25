@@ -6,84 +6,94 @@ import { useAuth } from '@/hooks/useAuth';
 export function PWABadgeWatcher() {
   const { user } = useAuth();
 
-  // 읽지 않은 메시지 수 지속적 모니터링 - 푸시 알림과 무관
+  // Monitor unread messages like Telegram/WhatsApp - continuous polling
   const { data: unreadCounts, isSuccess } = useQuery({
     queryKey: ['/api/unread-counts'],
     enabled: !!user,
-    staleTime: 0,
+    staleTime: 0, // Always fresh like messaging apps
     refetchOnMount: true,
     refetchOnWindowFocus: true,
-    refetchInterval: 2000, // 2초마다 배지 업데이트
+    refetchInterval: 1500, // Every 1.5s like Telegram
     refetchOnReconnect: true,
-    retry: 3,
+    retry: 5,
   });
 
   // 컴포넌트 마운트시 즉시 배지 초기화
   useEffect(() => {
     if (user) {
       console.log('🚀 PWABadgeWatcher 초기화됨 - 사용자:', user.id);
-      
-      // 즉시 배지 상태 확인 및 설정
-      setTimeout(() => {
-        if (unreadCounts?.unreadCounts) {
-          const totalUnread = unreadCounts.unreadCounts.reduce((total: number, room: any) => 
-            total + (room.unreadCount || 0), 0
-          );
-          console.log('🔴 초기 배지 설정:', totalUnread);
-          updatePWABadgeDirect(totalUnread);
-        }
-      }, 500);
     }
   }, [user]);
 
-  // 데이터베이스 기반 배지 업데이트 - 항상 실행
+  // Telegram/WhatsApp style badge logic - exactly matches chat room red badges
   useEffect(() => {
-    if (isSuccess && unreadCounts?.unreadCounts && Array.isArray(unreadCounts.unreadCounts)) {
-      const totalUnread = unreadCounts.unreadCounts.reduce((total: number, room: any) => 
-        total + (room.unreadCount || 0), 0
-      );
+    if (isSuccess && unreadCounts) {
+      const counts = (unreadCounts as any)?.unreadCounts;
       
-      console.log('🔴 PWA 배지 자동 업데이트:', totalUnread, '개별 방별:', unreadCounts.unreadCounts);
-      
-      // 직접 배지 API 호출 - 푸시 알림 시스템 우회
-      updatePWABadgeDirect(totalUnread);
-    } else if (isSuccess && (!unreadCounts?.unreadCounts || unreadCounts.unreadCounts.length === 0)) {
-      console.log('🔴 읽지 않은 메시지 없음 - 배지 클리어');
-      updatePWABadgeDirect(0);
+      if (counts && Array.isArray(counts)) {
+        // Calculate total exactly like Telegram/WhatsApp
+        const totalUnread = counts.reduce((total: number, room: any) => 
+          total + (room.unreadCount || 0), 0
+        );
+        
+        console.log('📱 Badge Update (Telegram Style):', totalUnread, 'rooms:', counts.length);
+        console.log('📱 Individual room counts:', counts);
+        
+        // Force badge update like Telegram/WhatsApp
+        updatePWABadgeDirect(totalUnread);
+      } else {
+        console.log('📱 No unread messages - clearing badge');
+        updatePWABadgeDirect(0);
+      }
     }
   }, [unreadCounts, isSuccess]);
 
   return null; // 렌더링 없음, 백그라운드 작업만
 }
 
-// 직접 배지 업데이트 함수 - 푸시 알림 시스템과 독립적
+// Telegram/WhatsApp style badge update - always shows exact unread count
 async function updatePWABadgeDirect(count: number) {
   try {
-    console.log('🎯 PWA 배지 직접 업데이트 시도:', count);
+    console.log('🔢 Setting badge to exact count (like Telegram):', count);
     
+    // Primary method: Direct PWA Badge API (iOS 16+, Android PWA)
     if ('setAppBadge' in navigator) {
-      // 푸시 알림 영향 제거를 위해 항상 clear 후 설정
-      await navigator.clearAppBadge();
-      
       if (count > 0) {
         await navigator.setAppBadge(count);
-        console.log('✅ PWA 배지 직접 설정 완료:', count);
+        console.log('✅ Badge set via PWA API:', count);
       } else {
-        console.log('✅ PWA 배지 직접 클리어 완료');
+        await navigator.clearAppBadge();
+        console.log('✅ Badge cleared via PWA API');
       }
     } else {
-      console.warn('⚠️ navigator.setAppBadge API 지원하지 않음');
+      console.log('ℹ️ PWA Badge API not available');
     }
     
-    // Service Worker를 통한 배지 설정도 시도
+    // Secondary method: Service Worker badge (fallback)
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
       navigator.serviceWorker.controller.postMessage({
-        type: 'FORCE_SET_BADGE',
+        type: 'TELEGRAM_STYLE_BADGE',
         count: count,
-        source: 'direct_watcher'
+        timestamp: Date.now()
       });
     }
+    
+    // Tertiary method: Manual notification badge (last resort)
+    if (count > 0 && 'Notification' in window && Notification.permission === 'granted') {
+      // This creates a silent notification that updates the badge
+      try {
+        const notification = new Notification('', {
+          badge: '/icons/icon-72x72.png',
+          silent: true,
+          tag: 'badge-update',
+          data: { badgeOnly: true }
+        });
+        notification.close();
+      } catch (e) {
+        // Silent fail for notification method
+      }
+    }
   } catch (error) {
-    console.error('❌ 직접 배지 업데이트 실패:', error);
+    console.error('❌ Badge update failed:', error);
   }
 }
