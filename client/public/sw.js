@@ -378,6 +378,10 @@ self.addEventListener('message', (event) => {
       console.log('[SW] Clearing badge (database command)');
       updateAppBadge(0);
       break;
+    case 'INIT_BADGE_SYSTEM':
+      // Initialize badge system independent of push notifications
+      console.log('[SW] Badge system initialized - independent mode');
+      break;
     case 'APP_FOCUS':
       // App focused - badge stays exactly as database indicates
       console.log('[SW] App focused - badge remains database-accurate');

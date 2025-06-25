@@ -1,10 +1,11 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './useAuth';
 
 export function usePWABadge() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const badgeInitialized = useRef(false);
 
   // 읽지 않은 메시지 수 조회 - purely database-driven, completely independent from push notifications
   const { data: unreadCounts } = useQuery({
@@ -73,12 +74,28 @@ export function usePWABadge() {
     }
   }, [unreadCounts, updateBadge]);
 
-  // PWA 앱 시작시 배지 상태 강제 복원
+  // PWA 앱 시작시 배지 시스템 강제 초기화 - 푸시 알림과 무관하게 작동
   useEffect(() => {
-    if (user) {
-      // 앱이 시작될 때 unread counts를 즉시 새로고침하여 배지 복원
+    if (user && !badgeInitialized.current) {
+      badgeInitialized.current = true;
+      
+      console.log('🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반');
+      
+      // 즉시 배지 상태를 데이터베이스에서 로드
       queryClient.invalidateQueries({ queryKey: ['/api/unread-counts'] });
-      console.log('🎯 PWA 앱 시작 - 배지 상태 복원');
+      
+      // Service Worker에 배지 시스템 활성화 알림
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+          type: 'INIT_BADGE_SYSTEM',
+          source: 'app_startup'
+        });
+      }
+      
+      // 강제로 첫 배지 업데이트 실행
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['/api/unread-counts'] });
+      }, 1000);
     }
   }, [user, queryClient]);
 
@@ -110,25 +127,32 @@ export function usePWABadge() {
     };
   }, []);
 
-  // Service Worker 메시지 수신
+  // 지속적인 배지 모니터링 - 푸시 알림과 완전히 독립적
   useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data?.type === 'BADGE_UPDATE') {
-        updateBadge(event.data.count || 0);
-      } else if (event.data?.type === 'NOTIFICATION_CLICKED') {
-        // 알림 클릭 시 실제 읽지 않은 메시지 수를 다시 조회하여 배지 업데이트
+    if (!user) return;
+    
+    // 페이지 가시성 변화 감지하여 배지 업데이트
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('📱 앱이 활성화됨 - 배지 상태 새로고침');
         queryClient.invalidateQueries({ queryKey: ['/api/unread-counts'] });
       }
     };
-
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.addEventListener('message', handleMessage);
-      
-      return () => {
-        navigator.serviceWorker.removeEventListener('message', handleMessage);
-      };
-    }
-  }, [updateBadge, clearBadge]);
+    
+    // 윈도우 포커스시 배지 업데이트
+    const handleWindowFocus = () => {
+      console.log('🔍 윈도우 포커스 - 배지 상태 새로고침');
+      queryClient.invalidateQueries({ queryKey: ['/api/unread-counts'] });
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleWindowFocus);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleWindowFocus);
+    };
+  }, [user, queryClient]);
 
   return {
     updateBadge,

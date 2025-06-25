@@ -30,6 +30,7 @@ import { PermissionRequestModal } from "@/components/PermissionRequestModal";
 import PWABadgeManager from "@/components/PWABadgeManager";
 import MobilePushManager from "@/components/MobilePushManager";
 import PushDebugPanel from "@/components/PushDebugPanel";
+import { PWABadgeWatcher } from "@/components/PWABadgeWatcher";
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
 
@@ -69,7 +70,7 @@ export default function MainApp() {
 
   const { sendMessage, connectionState, pendingMessageCount } = useWebSocket(user?.id);
   
-  // PWA badge functionality for unread message counts
+  // PWA badge functionality - always active, independent of push notifications
   const { updateBadge, clearBadge, unreadCount } = usePWABadge();
 
   // Immediate data synchronization when app becomes visible (like Telegram/WhatsApp)
@@ -1197,6 +1198,9 @@ export default function MainApp() {
       {/* PWA Push Notifications and Badge Management */}
       <SimplePushManager />
       <PWABadgeManager />
+      
+      {/* Independent PWA Badge System - Always Active */}
+      <PWABadgeWatcher />
       <MobilePushManager />
       
       {/* Mobile Banner Notifications - replaces bottom popup notifications */}
