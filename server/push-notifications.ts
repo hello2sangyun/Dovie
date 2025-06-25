@@ -43,13 +43,16 @@ export async function sendPushNotification(
     const unreadCounts = await storage.getUnreadCounts(userId);
     const totalUnreadCount = unreadCounts.reduce((total, count) => total + count.unreadCount, 0);
 
+    // Use the unreadCount from payload if provided, otherwise calculate
+    const badgeCount = payload.unreadCount || totalUnreadCount;
+    
     // iOS 16+ PWA 최적화 알림 페이로드
     const notificationPayload = JSON.stringify({
       title: payload.title || "새 메시지",
       body: payload.body || "새 메시지가 도착했습니다",
       icon: '/icons/icon-192x192.png',
-      unreadCount: totalUnreadCount, // iOS 16+ 배지 카운트
       badge: '/icons/icon-72x72.png',
+      unreadCount: badgeCount, // Single badge count field
       data: {
         url: '/',
         timestamp: Date.now(),
@@ -63,7 +66,6 @@ export async function sendPushNotification(
       silent: false, // Enable sound on iPhone PWA
       vibrate: [200, 100, 200], // Simplified vibration for iPhone
       renotify: true, // Force new notification on iPhone
-      unreadCount: totalUnreadCount + 1,
       // iPhone PWA specific optimizations
       dir: 'auto',
       lang: 'ko-KR'

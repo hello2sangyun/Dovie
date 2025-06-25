@@ -1269,9 +1269,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Send push notification to each recipient
           for (const recipient of recipients) {
-            // Get recipient's total unread count (excluding their own messages)
+            // Get recipient's current total unread count (excluding their own messages)
             const unreadCounts = await storage.getUnreadCounts(recipient.id);
-            const totalUnreadCount = unreadCounts.reduce((total, count) => total + count.unreadCount, 0) + 1;
+            const currentUnreadCount = unreadCounts.reduce((total, count) => total + count.unreadCount, 0);
+            // Add 1 for the new message being sent
+            const totalUnreadCount = currentUnreadCount + 1;
             
             await sendPushNotification(recipient.id, {
               title: sender?.displayName || sender?.username || '사용자',

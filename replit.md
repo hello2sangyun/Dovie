@@ -196,6 +196,11 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - PWA app badge now only shows count of unread messages from other users
   - Enhanced push notification payload to include accurate unread count for recipient
   - Badge accurately reflects incoming messages without counting outgoing messages
+- June 25, 2025: Fixed duplicate push subscriptions and badge count accuracy:
+  - Cleaned up 8 duplicate push subscriptions in database, keeping only unique user-endpoint combinations
+  - Removed duplicate unreadCount field in notification payload causing badge count errors
+  - Fixed badge calculation to show exact number of unread messages (2 messages = badge 2, not 3)
+  - Push notifications now send only once per message with accurate badge counts
 - June 25, 2025: Eliminated repetitive push notification requests on app load:
   - Removed duplicate PWAPushManager and usePWAPushNotifications components causing conflicts
   - Created streamlined SimplePushManager component for efficient one-time initialization
