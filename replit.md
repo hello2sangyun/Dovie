@@ -875,6 +875,14 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - **Removed iPhone PWA test guide** from notification settings for cleaner interface
   - **Updated storage folder names** to display contact display names with IDs in format "DisplayName (username)" for better identification
   - **Enhanced microphone stream management** with proper cleanup and global permission state persistence across app navigation
+- June 25, 2025: **Fixed hashtag recommendation system to display actual user hashtags instead of filenames**:
+  - **Identified root cause**: File auto-save logic was storing filenames as command names instead of user-provided hashtags
+  - **Modified message creation route** to extract hashtags from message content before processing file auto-save
+  - **Updated file upload logic** to prioritize actual hashtags over filenames when saving commands to database
+  - **Enhanced hashtag extraction workflow**: When files uploaded with "#Important", system now saves "Important" as commandName
+  - **Maintained backward compatibility** with filename fallback when no hashtags are provided by users
+  - **Fixed HashtagSuggestion display**: Tag recommendations now show actual hashtag names like "#Important" instead of "#IMG_3343"
+  - **Eliminated filename pollution** in hashtag suggestions for cleaner user experience during tag recall
 
 ## User Preferences
 

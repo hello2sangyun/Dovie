@@ -1170,32 +1170,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
                                    (messageData.content && messageData.content.includes('🎬 YouTube 동영상')) ||
                                    (messageData.content && messageData.content.includes('유튜브 검색'));
       
-      // Auto-save file uploads to storage
-      if (messageData.messageType === 'file' && messageData.fileUrl && messageData.fileName) {
-        console.log(`Auto-saving file to storage: ${messageData.fileName}`);
-        try {
-          // Use filename (without extension) as the command name for files
-          const commandName = messageData.fileName.split('.')[0];
-          await storage.saveCommand({
-            userId: Number(userId),
-            chatRoomId: Number(req.params.chatRoomId),
-            commandName: commandName,
-            messageId: message.id,
-            savedText: messageData.content || null,
-            fileUrl: messageData.fileUrl,
-            fileName: messageData.fileName,
-            fileSize: messageData.fileSize || null,
-            originalSenderId: Number(userId),
-            originalTimestamp: new Date()
-          });
-          console.log(`Successfully auto-saved file: ${messageData.fileName}`);
-        } catch (error) {
-          console.log(`Failed to auto-save file ${messageData.fileName}:`, error);
+      // Extract hashtags from message content first
+      let extractedHashtags: string[] = [];
+      if (messageData.content && typeof messageData.content === 'string' && !skipHashtagExtraction) {
+        const hashtagRegex = /#[\w가-힣]+/g;
+        const hashtagMatches = messageData.content.match(hashtagRegex);
+        if (hashtagMatches) {
+          extractedHashtags = hashtagMatches.map(tag => tag.slice(1)); // Remove # symbol
+          console.log(`Found hashtags in message: ${hashtagMatches.join(', ')}`);
         }
       }
       
-      // Extract hashtags from text content
-      if (messageData.content && typeof messageData.content === 'string' && !skipHashtagExtraction) {
+      // Auto-save file uploads to storage
+      if (messageData.messageType === 'file' && messageData.fileUrl && messageData.fileName) {
+        console.log(`Auto-saving file to storage: ${messageData.fileName}`);
+        
+        if (extractedHashtags.length > 0) {
+          // Save file with each user-provided hashtag as separate commands
+          for (const hashtag of extractedHashtags) {
+            try {
+              await storage.saveCommand({
+                userId: Number(userId),
+                chatRoomId: Number(req.params.chatRoomId),
+                commandName: hashtag, // Use actual hashtag instead of filename
+                messageId: message.id,
+                savedText: messageData.content || null,
+                fileUrl: messageData.fileUrl,
+                fileName: messageData.fileName,
+                fileSize: messageData.fileSize || null,
+                originalSenderId: Number(userId),
+                originalTimestamp: new Date()
+              });
+              console.log(`Successfully saved file with hashtag: #${hashtag}`);
+            } catch (error) {
+              console.log(`Failed to save file with hashtag ${hashtag}:`, error);
+            }
+          }
+        } else {
+          // Fallback: save with filename if no hashtags provided
+          try {
+            const commandName = messageData.fileName.split('.')[0];
+            await storage.saveCommand({
+              userId: Number(userId),
+              chatRoomId: Number(req.params.chatRoomId),
+              commandName: commandName,
+              messageId: message.id,
+              savedText: messageData.content || null,
+              fileUrl: messageData.fileUrl,
+              fileName: messageData.fileName,
+              fileSize: messageData.fileSize || null,
+              originalSenderId: Number(userId),
+              originalTimestamp: new Date()
+            });
+            console.log(`Successfully auto-saved file with filename: ${commandName}`);
+          } catch (error) {
+            console.log(`Failed to auto-save file ${messageData.fileName}:`, error);
+          }
+        }
+      }
+      
+      // Skip duplicate hashtag processing since we already handled it above for files
+      if (messageData.messageType !== 'file' && messageData.content && typeof messageData.content === 'string' && !skipHashtagExtraction) {
         const hashtagRegex = /#[\w가-힣]+/g;
         const hashtags = messageData.content.match(hashtagRegex);
         
