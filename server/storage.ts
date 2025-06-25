@@ -986,6 +986,8 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(chatParticipants.userId, userId),
+          // Exclude messages sent by the user themselves
+          sql`${messages.senderId} != ${userId}`,
           sql`${messages.createdAt} > COALESCE(${messageReads.lastReadAt}, '1970-01-01')`
         )
       );
