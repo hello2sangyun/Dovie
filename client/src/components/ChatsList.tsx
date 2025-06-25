@@ -634,6 +634,10 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
   const { data: chatRoomsData, isLoading } = useQuery({
     queryKey: ["/api/chat-rooms"],
     enabled: !!user,
+    staleTime: 0, // Always fetch fresh data like native messaging apps
+    refetchOnMount: true, // Always refresh when component mounts
+    refetchOnWindowFocus: true, // Refresh when app becomes visible
+    refetchInterval: 15000, // Poll every 15 seconds
     queryFn: async () => {
       const response = await fetch("/api/chat-rooms", {
         headers: { "x-user-id": user!.id.toString() },
@@ -643,10 +647,14 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     },
   });
 
-  // 연락처 정보 가져오기
+  // 연락처 정보 가져오기 - immediate refresh like native apps
   const { data: contactsData } = useQuery({
     queryKey: ["/api/contacts"],
     enabled: !!user,
+    staleTime: 0, // Always fetch fresh data
+    refetchOnMount: true, // Always refresh when component mounts
+    refetchOnWindowFocus: true, // Refresh when app becomes visible
+    refetchInterval: 30000, // Poll every 30 seconds
     queryFn: async () => {
       const response = await fetch("/api/contacts", {
         headers: { "x-user-id": user!.id.toString() },
@@ -656,10 +664,14 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     },
   });
 
-  // 읽지 않은 메시지 수 가져오기
+  // 읽지 않은 메시지 수 가져오기 - immediate refresh for real-time badges
   const { data: unreadCountsData } = useQuery({
     queryKey: ["/api/unread-counts"],
     enabled: !!user,
+    staleTime: 0, // Always fetch fresh data for real-time unread counts
+    refetchOnMount: true, // Always refresh when component mounts
+    refetchOnWindowFocus: true, // Refresh when app becomes visible
+    refetchInterval: 10000, // Poll every 10 seconds for unread counts
     queryFn: async () => {
       const response = await fetch("/api/unread-counts", {
         headers: { "x-user-id": user!.id.toString() },

@@ -6,12 +6,14 @@ export function usePWABadge() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // 읽지 않은 메시지 수 조회
+  // 읽지 않은 메시지 수 조회 - real-time for PWA badges like native apps
   const { data: unreadCounts } = useQuery({
     queryKey: ['/api/unread-counts'],
     enabled: !!user,
-    refetchInterval: 30000, // 30초마다 갱신
-    staleTime: 10000 // 10초간 fresh
+    staleTime: 0, // Always fetch fresh data for real-time badges
+    refetchOnMount: true, // Always refresh when component mounts
+    refetchOnWindowFocus: true, // Refresh when app becomes visible
+    refetchInterval: 10000, // Poll every 10 seconds for real-time badge updates
   });
 
   // 배지 업데이트 함수

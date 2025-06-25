@@ -72,6 +72,49 @@ export default function MainApp() {
   // PWA badge functionality for unread message counts
   const { updateBadge, clearBadge, unreadCount } = usePWABadge();
 
+  // Immediate data synchronization when app becomes visible (like Telegram/WhatsApp)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && user) {
+        console.log('🔄 PWA app opened - syncing messages immediately');
+        
+        // Force refresh all critical data immediately
+        queryClient.invalidateQueries({ queryKey: ['/api/chat-rooms'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/unread-counts'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
+        
+        // If a chat room is selected, refresh its messages immediately
+        if (selectedChatRoom) {
+          queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${selectedChatRoom}/messages`] });
+        }
+      }
+    };
+
+    const handleFocus = () => {
+      if (user) {
+        console.log('🔄 PWA app focused - syncing messages immediately');
+        
+        // Force refresh all critical data immediately
+        queryClient.invalidateQueries({ queryKey: ['/api/chat-rooms'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/unread-counts'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
+        
+        // If a chat room is selected, refresh its messages immediately
+        if (selectedChatRoom) {
+          queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${selectedChatRoom}/messages`] });
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [user, queryClient, selectedChatRoom]);
+
   // 브라우저 뒤로가기 버튼 처리 - 앱 내 네비게이션 관리
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
@@ -164,16 +207,24 @@ export default function MainApp() {
     }
   }, []);
 
-  // Get contacts to find contact user data
+  // Get contacts with immediate refresh like native messaging apps
   const { data: contactsData } = useQuery({
     queryKey: ["/api/contacts"],
     enabled: !!user,
+    staleTime: 0, // Always fetch fresh data
+    refetchOnMount: true, // Always refresh when component mounts
+    refetchOnWindowFocus: true, // Refresh when app becomes visible
+    refetchInterval: 30000, // Poll every 30 seconds
   });
 
-  // Get chat rooms data
+  // Get chat rooms data with immediate refresh like native messaging apps
   const { data: chatRoomsData } = useQuery({
     queryKey: ["/api/chat-rooms"],
     enabled: !!user,
+    staleTime: 0, // Always fetch fresh data like Telegram/WhatsApp
+    refetchOnMount: true, // Always refresh when component mounts
+    refetchOnWindowFocus: true, // Refresh when app becomes visible
+    refetchInterval: 15000, // Poll every 15 seconds for chat rooms list
   });
 
   // Profile images are now preloaded during authentication in useAuth hook

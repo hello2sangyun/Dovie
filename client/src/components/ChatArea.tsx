@@ -506,13 +506,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     },
   });
 
-  // Get messages with optimized caching and instant display
+  // Get messages with immediate refresh for PWA app behavior
   const { data: messagesData, isLoading, isFetching } = useQuery({
     queryKey: [isLocationChatRoom ? "/api/location/chat-rooms" : "/api/chat-rooms", chatRoomId, "messages"],
     enabled: !!chatRoomId,
-    staleTime: 30 * 1000, // 30초간 신선한 상태 유지
-    refetchOnMount: false, // 캐시된 데이터가 있으면 즉시 표시
-    refetchOnWindowFocus: false, // 포커스 시 자동 새로고침 비활성화
+    staleTime: 0, // Always fetch fresh data like native messaging apps
+    refetchOnMount: true, // Always refresh when component mounts
+    refetchOnWindowFocus: true, // Refresh when app becomes visible
+    refetchInterval: 10000, // Poll every 10 seconds for real-time updates
     queryFn: async () => {
       const endpoint = isLocationChatRoom 
         ? `/api/location/chat-rooms/${chatRoomId}/messages`
