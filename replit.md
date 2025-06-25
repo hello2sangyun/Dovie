@@ -187,7 +187,8 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
 - June 25, 2025: Fixed duplicate push notification issue:
   - Cleaned up duplicate push subscriptions from database using proper SQL deduplication
   - Enhanced upsertPushSubscription method with delete-then-insert pattern to prevent duplicates
-  - Improved endpoint-based deduplication to ensure one subscription per user-endpoint combination
+  - Removed duplicate sendMessageNotification wrapper function causing double push calls
+  - Streamlined push notification flow to call sendPushNotification directly from message routes
   - Push notifications now sent only once per message to each user device
   - System logs confirm single delivery per message with proper APNS status 201 responses
 - June 25, 2025: Eliminated repetitive push notification requests on app load:

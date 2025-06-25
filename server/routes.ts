@@ -15,7 +15,7 @@ import { processCommand } from "./openai";
 import { db } from "./db";
 import { eq, and, inArray, desc, gte, isNull } from "drizzle-orm";
 import { initializeNotificationScheduler } from "./notification-scheduler";
-import { sendMessageNotification, getVapidPublicKey, sendPushNotification } from "./push-notifications";
+import { getVapidPublicKey, sendPushNotification } from "./push-notifications";
 import twilio from "twilio";
 
 // Configure multer for file uploads
@@ -1269,13 +1269,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Send push notification to each recipient
           for (const recipient of recipients) {
-            await sendMessageNotification(
-              recipient.id,
-              sender?.displayName || sender?.username || '사용자',
-              messageData.content || '새 메시지',
-              Number(req.params.chatRoomId),
-              messageData.messageType || 'text'
-            );
+            await sendPushNotification(recipient.id, {
+              title: sender?.displayName || sender?.username || '사용자',
+              body: messageData.content || '새 메시지',
+              icon: '/icons/icon-192x192.png',
+              badge: '/icons/icon-72x72.png',
+              data: {
+                type: 'message',
+                chatRoomId: Number(req.params.chatRoomId),
+                messageType: messageData.messageType || 'text',
+                senderId: Number(userId),
+                url: `/?chat=${req.params.chatRoomId}`
+              }
+            });
           }
         }
       } catch (pushError) {
