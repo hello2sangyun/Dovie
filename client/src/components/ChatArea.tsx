@@ -34,6 +34,7 @@ import YoutubeSelectionModal from "./YoutubeSelectionModal";
 import { ConnectionStatusIndicator } from "./ConnectionStatusIndicator";
 import { VoiceMessagePreviewModal } from "./VoiceMessagePreviewModal";
 import GestureQuickReply from "./GestureQuickReply";
+import { HashtagSuggestion } from "./HashtagSuggestion";
 // Using inline smart suggestion analysis to avoid import issues
 interface SmartSuggestion {
   type: string;
@@ -434,6 +435,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
+  const [showHashtagSuggestion, setShowHashtagSuggestion] = useState(false);
+  const [hashtagQuery, setHashtagQuery] = useState('');
   
   // 길게 터치 관련 상태
   const [touchTimer, setTouchTimer] = useState<NodeJS.Timeout | null>(null);
