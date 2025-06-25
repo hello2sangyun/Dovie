@@ -54,13 +54,12 @@ export function usePWABadge() {
     }
   }, [unreadCounts, updateBadge]);
 
-  // 앱이 포커스될 때 배지 클리어
+  // 앱 포커스 시 Service Worker에만 알림 (배지는 실제 읽음 처리 시에만 클리어)
   useEffect(() => {
     const handleFocus = () => {
-      console.log('🎯 앱 포커스됨 - 배지 클리어');
-      clearBadge();
+      console.log('🎯 앱 포커스됨 - Service Worker에 알림');
       
-      // Service Worker에 포커스 알림
+      // Service Worker에 포커스 알림 (배지 클리어 없이)
       if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
         navigator.serviceWorker.controller.postMessage({
           type: 'APP_FOCUS'
@@ -81,7 +80,7 @@ export function usePWABadge() {
       window.removeEventListener('focus', handleFocus);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [clearBadge]);
+  }, []);
 
   // Service Worker 메시지 수신
   useEffect(() => {
