@@ -937,10 +937,10 @@ export class DatabaseStorage implements IStorage {
 
   // Push notification operations
   async upsertPushSubscription(userId: number, subscription: { endpoint: string; p256dh: string; auth: string; userAgent: string }): Promise<void> {
-    // Delete ALL existing subscriptions for this user to prevent duplicates from different registrations
+    // First delete any existing subscriptions for this endpoint to prevent duplicates
     await db
       .delete(pushSubscriptions)
-      .where(eq(pushSubscriptions.userId, userId));
+      .where(and(eq(pushSubscriptions.userId, userId), eq(pushSubscriptions.endpoint, subscription.endpoint)));
 
     // Then insert the new subscription
     await db.insert(pushSubscriptions).values({
@@ -951,7 +951,7 @@ export class DatabaseStorage implements IStorage {
       userAgent: subscription.userAgent
     });
 
-    console.log(`Push subscription replaced for user ${userId}, endpoint: ${subscription.endpoint.substring(0, 50)}...`);
+    console.log(`Push subscription upserted for user ${userId}, endpoint: ${subscription.endpoint.substring(0, 50)}...`);
   }
 
   async deletePushSubscription(userId: number, endpoint: string): Promise<void> {
