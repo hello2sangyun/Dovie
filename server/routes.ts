@@ -1260,35 +1260,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Send push notifications to recipients
+      // Send push notifications to recipients using optimized function
       try {
         const chatRoom = await storage.getChatRoomById(Number(req.params.chatRoomId));
         if (chatRoom?.participants) {
           const sender = await storage.getUser(Number(userId));
           const recipients = chatRoom.participants.filter((p: any) => p.id !== Number(userId));
           
-          // Send push notification to each recipient
+          // Import and use the optimized message notification function
+          const { sendMessageNotification } = await import('./push-notifications');
+          
+          // Send single push notification to each recipient using the optimized function
           for (const recipient of recipients) {
-            // Get recipient's current total unread count (excluding their own messages)
-            const unreadCounts = await storage.getUnreadCounts(recipient.id);
-            const currentUnreadCount = unreadCounts.reduce((total, count) => total + count.unreadCount, 0);
-            // Add 1 for the new message being sent
-            const totalUnreadCount = currentUnreadCount + 1;
-            
-            await sendPushNotification(recipient.id, {
-              title: sender?.displayName || sender?.username || '사용자',
-              body: messageData.content || '새 메시지',
-              icon: '/icons/icon-192x192.png',
-              badge: '/icons/icon-72x72.png',
-              unreadCount: totalUnreadCount,
-              data: {
-                type: 'message',
-                chatRoomId: Number(req.params.chatRoomId),
-                messageType: messageData.messageType || 'text',
-                senderId: Number(userId),
-                url: `/?chat=${req.params.chatRoomId}`
-              }
-            });
+            await sendMessageNotification(
+              recipient.id,
+              Number(req.params.chatRoomId),
+              sender?.displayName || sender?.username || '사용자',
+              messageData.content || '새 메시지',
+              messageData.messageType || 'text'
+            );
           }
         }
       } catch (pushError) {
