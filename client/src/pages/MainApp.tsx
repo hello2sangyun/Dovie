@@ -32,7 +32,6 @@ import MobilePushManager from "@/components/MobilePushManager";
 import PushDebugPanel from "@/components/PushDebugPanel";
 import { PWABadgeWatcher } from "@/components/PWABadgeWatcher";
 import { BadgeTestButton } from "@/components/BadgeTestButton";
-import { PWABadgeForcer } from "@/components/PWABadgeForcer";
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
 
@@ -1203,7 +1202,6 @@ export default function MainApp() {
       
       {/* Independent PWA Badge System - Always Active */}
       <PWABadgeWatcher />
-      <PWABadgeForcer />
       <MobilePushManager />
       
       {/* Mobile Banner Notifications - replaces bottom popup notifications */}

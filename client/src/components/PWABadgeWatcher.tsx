@@ -22,12 +22,23 @@ export function PWABadgeWatcher() {
   useEffect(() => {
     if (user) {
       console.log('🚀 PWABadgeWatcher 초기화됨 - 사용자:', user.id);
+      
+      // 즉시 배지 상태 확인 및 설정
+      setTimeout(() => {
+        if (unreadCounts?.unreadCounts) {
+          const totalUnread = unreadCounts.unreadCounts.reduce((total: number, room: any) => 
+            total + (room.unreadCount || 0), 0
+          );
+          console.log('🔴 초기 배지 설정:', totalUnread);
+          updatePWABadgeDirect(totalUnread);
+        }
+      }, 500);
     }
   }, [user]);
 
   // 데이터베이스 기반 배지 업데이트 - 항상 실행
   useEffect(() => {
-    if (isSuccess && unreadCounts && 'unreadCounts' in unreadCounts && Array.isArray(unreadCounts.unreadCounts)) {
+    if (isSuccess && unreadCounts?.unreadCounts && Array.isArray(unreadCounts.unreadCounts)) {
       const totalUnread = unreadCounts.unreadCounts.reduce((total: number, room: any) => 
         total + (room.unreadCount || 0), 0
       );
@@ -36,7 +47,7 @@ export function PWABadgeWatcher() {
       
       // 직접 배지 API 호출 - 푸시 알림 시스템 우회
       updatePWABadgeDirect(totalUnread);
-    } else if (isSuccess && (!unreadCounts || !('unreadCounts' in unreadCounts) || !unreadCounts.unreadCounts || unreadCounts.unreadCounts.length === 0)) {
+    } else if (isSuccess && (!unreadCounts?.unreadCounts || unreadCounts.unreadCounts.length === 0)) {
       console.log('🔴 읽지 않은 메시지 없음 - 배지 클리어');
       updatePWABadgeDirect(0);
     }
