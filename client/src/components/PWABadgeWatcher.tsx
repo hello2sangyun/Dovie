@@ -28,18 +28,20 @@ export function PWABadgeWatcher() {
   // Telegram/WhatsApp style badge logic - exactly matches chat room red badges
   useEffect(() => {
     if (isSuccess && unreadCounts) {
-      const counts = (unreadCounts as any)?.unreadCounts;
+      // Type-safe access to unread counts data
+      const response = unreadCounts as { unreadCounts?: Array<{ chatRoomId: number; unreadCount: number }> };
+      const counts = response.unreadCounts;
       
       if (counts && Array.isArray(counts)) {
-        // Calculate total exactly like Telegram/WhatsApp
-        const totalUnread = counts.reduce((total: number, room: any) => 
+        // Calculate total exactly like Telegram/WhatsApp - sum all chat room badges
+        const totalUnread = counts.reduce((total: number, room: { unreadCount: number }) => 
           total + (room.unreadCount || 0), 0
         );
         
-        console.log('📱 Badge Update (Telegram Style):', totalUnread, 'rooms:', counts.length);
-        console.log('📱 Individual room counts:', counts);
+        console.log('📱 Badge Update (Telegram Style):', totalUnread, 'from', counts.length, 'rooms');
+        console.log('📱 Room breakdown:', counts.map(r => r.unreadCount));
         
-        // Force badge update like Telegram/WhatsApp
+        // Apply badge like Telegram/WhatsApp - immediate visual update
         updatePWABadgeDirect(totalUnread);
       } else {
         console.log('📱 No unread messages - clearing badge');

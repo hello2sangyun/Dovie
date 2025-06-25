@@ -378,6 +378,7 @@ self.addEventListener('message', (event) => {
       console.log('[SW] Clearing badge (database command)');
       updateAppBadge(0);
       break;
+    case 'TELEGRAM_BADGE_UPDATE':
     case 'TELEGRAM_STYLE_BADGE':
       // Set badge exactly like Telegram/WhatsApp
       console.log('[SW] Setting Telegram-style badge:', event.data.count);
