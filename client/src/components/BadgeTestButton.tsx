@@ -3,35 +3,43 @@ import { Button } from "@/components/ui/button";
 export function BadgeTestButton() {
   const testTelegramBadge = async () => {
     try {
-      console.log('🧪 Telegram-style badge test');
+      console.log('🧪 Testing Telegram-style badge sequence');
       
-      // Test different badge counts like Telegram
-      const testCounts = [0, 1, 5, 12, 99, 999];
+      // Test exact count from user's screenshot: 12 (10+1+1)
+      const targetCount = 12;
       
-      for (const count of testCounts) {
-        if ('setAppBadge' in navigator) {
-          if (count > 0) {
-            await navigator.setAppBadge(count);
-            console.log(`✅ Badge set to ${count} (Telegram style)`);
-          } else {
-            await navigator.clearAppBadge();
-            console.log('✅ Badge cleared (Telegram style)');
-          }
-          await new Promise(resolve => setTimeout(resolve, 1000));
+      if ('setAppBadge' in navigator) {
+        // Clear first
+        await navigator.clearAppBadge();
+        console.log('✅ Badge cleared');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Set to target count
+        await navigator.setAppBadge(targetCount);
+        console.log(`✅ Badge set to ${targetCount} (matching your unread messages)`);
+        
+        // Test Service Worker method too
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({
+            type: 'TELEGRAM_BADGE_UPDATE',
+            count: targetCount,
+            timestamp: Date.now(),
+            source: 'test_button'
+          });
         }
+      } else {
+        console.error('❌ setAppBadge API not supported');
+        alert('PWA Badge API not supported on this device/browser');
       }
-      
-      // Finally set to 12 like your screenshot
-      await navigator.setAppBadge(12);
-      console.log('✅ Final badge set to 12');
     } catch (error) {
-      console.error('❌ Telegram badge test failed:', error);
+      console.error('❌ Badge test failed:', error);
+      alert('Badge test failed: ' + String(error));
     }
   };
 
   return (
     <Button onClick={testTelegramBadge} variant="outline" size="sm">
-      Test Telegram Badge (12)
+      Test Badge (12)
     </Button>
   );
 }

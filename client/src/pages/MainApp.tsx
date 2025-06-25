@@ -33,6 +33,8 @@ import PushDebugPanel from "@/components/PushDebugPanel";
 import { PWABadgeWatcher } from "@/components/PWABadgeWatcher";
 import { BadgeTestButton } from "@/components/BadgeTestButton";
 import TelegramBadgeManager from "@/components/TelegramBadgeManager";
+import { BadgeDebugPanel } from "@/components/BadgeDebugPanel";
+import UnreadBadgeManager from "@/components/UnreadBadgeManager";
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
 
@@ -1201,7 +1203,8 @@ export default function MainApp() {
       <SimplePushManager />
       <PWABadgeManager />
       
-      {/* Telegram/WhatsApp Style Badge System */}
+      {/* Unread Message Badge Manager - Telegram/WhatsApp Style */}
+      <UnreadBadgeManager />
       <TelegramBadgeManager />
       <PWABadgeWatcher />
       <MobilePushManager />
