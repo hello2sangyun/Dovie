@@ -146,6 +146,7 @@ export default function MainApp() {
           createGroup: false,
           profilePhoto: false,
           permissions: false,
+          qrCode: false,
         });
         return;
       }
@@ -393,7 +394,7 @@ export default function MainApp() {
   };
 
   const closeModals = () => {
-    setModals({ addContact: false, command: false, createGroup: false, profilePhoto: false, permissions: false });
+    setModals({ addContact: false, command: false, createGroup: false, profilePhoto: false, permissions: false, qrCode: false });
     setCommandModalData(null);
     setMessageDataForCommand(null);
   };

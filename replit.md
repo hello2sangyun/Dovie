@@ -207,15 +207,15 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Eliminated redundant VAPID key requests and push subscription registrations
   - Removed all test push notification endpoints and repetitive initialization code
   - App now loads cleanly without hundreds of unnecessary push notification API calls
-- June 25, 2025: Implemented Telegram/WhatsApp-style PWA badge system with exact unread message counting:
-  - Analyzed and replicated badge logic from popular messaging apps (Telegram, WhatsApp)
-  - PWABadgeWatcher component polls database every 1.5 seconds like Telegram for real-time accuracy
-  - Badge shows exact sum of red numbers from chat room list (e.g., 8+1+1=10 total)
-  - Multiple badge update methods: PWA Badge API (primary), Service Worker (secondary), silent notifications (fallback)
-  - Completely independent from push notification system - works without notification permissions
-  - Added BadgeTestButton for testing Telegram-style badge behavior with different counts
-  - Enhanced Service Worker with setTelegramStyleBadge function for consistent badge handling
-  - Badge persistence across app restarts and maintains accuracy like native messaging apps
+- June 25, 2025: Implemented comprehensive Telegram/WhatsApp-style PWA badge system with multiple components:
+  - Created UnreadBadgeManager with aggressive 1-second polling for real-time accuracy like Telegram
+  - Badge shows exact sum of unread messages across all chat rooms (matches red badges in UI)
+  - Multiple fallback methods: PWA Badge API, Service Worker, document title, favicon badge
+  - TelegramBadgeManager and PWABadgeWatcher components provide redundancy for maximum reliability
+  - BadgeTestButton and BadgeDebugPanel added to settings for testing and troubleshooting
+  - Enhanced Service Worker with UPDATE_BADGE_COUNT handler for consistent badge management
+  - System works independently of push notifications, maintains count accuracy across app sessions
+  - Badge updates every second and responds to app visibility changes for immediate sync
 - June 25, 2025: Fixed duplicate push notification issue and implemented native messaging app behavior:
   - Eliminated duplicate push notifications by consolidating notification logic in message routes
   - Removed redundant sendMessageNotification wrapper function causing double notifications
