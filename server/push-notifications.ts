@@ -39,12 +39,9 @@ export async function sendPushNotification(
       return;
     }
 
-    // Get current unread count for app badge
-    const unreadCounts = await storage.getUnreadCounts(userId);
-    const totalUnreadCount = unreadCounts.reduce((total, count) => total + count.unreadCount, 0);
-
-    // Use the unreadCount from payload if provided, otherwise calculate
-    const badgeCount = payload.unreadCount || totalUnreadCount;
+    // Do NOT include badge count in push notification payload
+    // Badge will be managed separately by the app based on actual unread messages
+    const badgeCount = 0; // Always send 0 to prevent notification system from affecting badge
     
     // iOS 16+ PWA 최적화 알림 페이로드
     const notificationPayload = JSON.stringify({

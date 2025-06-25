@@ -6,35 +6,42 @@ export function usePWABadge() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // 읽지 않은 메시지 수 조회 - real-time for PWA badges like native apps
+  // 읽지 않은 메시지 수 조회 - independent from push notifications
   const { data: unreadCounts } = useQuery({
     queryKey: ['/api/unread-counts'],
     enabled: !!user,
-    staleTime: 0, // Always fetch fresh data for real-time badges
+    staleTime: 0, // Always fetch fresh data for accurate badge count
     refetchOnMount: true, // Always refresh when component mounts
     refetchOnWindowFocus: true, // Refresh when app becomes visible
-    refetchInterval: 10000, // Poll every 10 seconds for real-time badge updates
+    refetchInterval: 5000, // Poll every 5 seconds for accurate badge updates
   });
 
-  // 배지 업데이트 함수
+  // 배지 업데이트 함수 - 실제 읽지 않은 메시지 수만 반영
   const updateBadge = useCallback(async (count: number) => {
     try {
-      // iOS 16+ PWA 배지 API 사용
+      console.log('🎯 PWA 배지 업데이트 시도 (실제 읽지 않은 메시지):', count);
+      
+      // iOS 16+ PWA 배지 API 사용 - 강제 업데이트
       if ('setAppBadge' in navigator) {
+        // Always clear first, then set new count
+        await navigator.clearAppBadge();
+        
         if (count > 0) {
           await navigator.setAppBadge(count);
-          console.log('🎯 PWA 배지 업데이트:', count);
+          console.log('🎯 PWA 배지 설정 완료:', count);
         } else {
-          await navigator.clearAppBadge();
-          console.log('🎯 PWA 배지 클리어');
+          console.log('🎯 PWA 배지 클리어 완료');
         }
+      } else {
+        console.log('🎯 setAppBadge API 지원하지 않음, 카운트:', count);
       }
 
-      // Service Worker에도 알림
+      // Service Worker에도 정확한 카운트 전달
       if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
         navigator.serviceWorker.controller.postMessage({
-          type: 'UPDATE_BADGE',
-          count: count
+          type: 'UPDATE_BADGE_FORCE',
+          count: count,
+          source: 'database' // 데이터베이스 기반 업데이트임을 명시
         });
       }
     } catch (error) {
@@ -47,13 +54,21 @@ export function usePWABadge() {
     await updateBadge(0);
   }, [updateBadge]);
 
-  // 읽지 않은 메시지 수 변경 시 배지 업데이트 (앱 시작시에도 실행)
+  // 읽지 않은 메시지 수 변경 시 배지 업데이트 - 실제 데이터베이스 기반으로만 업데이트
   useEffect(() => {
     if (unreadCounts?.unreadCounts && Array.isArray(unreadCounts.unreadCounts)) {
       const totalUnread = unreadCounts.unreadCounts.reduce((total: number, room: any) => 
         total + (room.unreadCount || 0), 0
       );
-      console.log('🎯 PWA 배지 업데이트 요청:', totalUnread);
+      console.log('🎯 PWA 배지 업데이트 (데이터베이스 기반):', totalUnread);
+      
+      // Force clear all existing notifications to prevent interference
+      if ('serviceWorker' in navigator && 'getNotifications' in navigator.serviceWorker) {
+        navigator.serviceWorker.getNotifications().then(notifications => {
+          notifications.forEach(notification => notification.close());
+        }).catch(err => console.log('Could not clear notifications:', err));
+      }
+      
       updateBadge(totalUnread);
     }
   }, [unreadCounts, updateBadge]);

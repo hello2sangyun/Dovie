@@ -305,8 +305,8 @@ self.addEventListener('push', (event) => {
         options
       ).then(() => {
         console.log('[SW] ✅ PWA notification shown successfully');
-        // Force badge update immediately after showing notification
-        return updateAppBadge(notificationData.unreadCount || 1);
+        // Do NOT update badge here - let the app handle badge based on actual unread count
+        return Promise.resolve();
       }).catch((error) => {
         console.error('[SW] ❌ PWA notification failed:', error);
         console.error('[SW] ❌ Error details:', error.message, error.stack);
@@ -321,8 +321,7 @@ self.addEventListener('push', (event) => {
           return self.registration.showNotification('Dovie');
         });
       }),
-      // Update app badge with enhanced PWA support
-      updateAppBadge(notificationData.unreadCount || 1)
+      // Do NOT update badge here - let the app handle badge based on actual unread count
     ]).then(() => {
       console.log('[SW] 🔔 PWA notification process completed');
     }).catch((error) => {

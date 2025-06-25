@@ -1269,10 +1269,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Send single push notification to each recipient
           for (const recipient of recipients) {
-            // Get recipient's current total unread count
-            const unreadCounts = await storage.getUnreadCounts(recipient.id);
-            const currentUnreadCount = unreadCounts.reduce((total, count) => total + count.unreadCount, 0);
-            const totalUnreadCount = currentUnreadCount + 1; // Add 1 for the new message
+            // Do NOT calculate unread count for push notifications
+            // Badge will be managed separately by the app based on actual database state
             
             // Customize notification body based on message type
             let notificationBody = messageData.content || '새 메시지';
@@ -1308,7 +1306,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               body: notificationBody,
               icon: '/icons/icon-192x192.png',
               badge: '/icons/icon-72x72.png',
-              unreadCount: totalUnreadCount,
+              unreadCount: 0, // Always 0 - badge managed separately by app
               data: {
                 type: 'message',
                 chatRoomId: Number(req.params.chatRoomId),
