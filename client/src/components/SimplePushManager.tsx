@@ -8,6 +8,13 @@ export function SimplePushManager() {
     if (!user) return;
 
     const initializePushNotifications = async () => {
+      // Check if already initialized to prevent duplicates
+      const alreadyInitialized = localStorage.getItem('pushNotificationInitialized');
+      if (alreadyInitialized === 'true') {
+        console.log('Push notifications already initialized, skipping');
+        return;
+      }
+
       // Check if notifications are supported
       if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
         console.log('Push notifications not supported on this device');
