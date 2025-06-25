@@ -1260,25 +1260,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Send push notifications to recipients using optimized function
+      // Send push notifications to recipients - consolidated single call
       try {
         const chatRoom = await storage.getChatRoomById(Number(req.params.chatRoomId));
         if (chatRoom?.participants) {
           const sender = await storage.getUser(Number(userId));
           const recipients = chatRoom.participants.filter((p: any) => p.id !== Number(userId));
           
-          // Import and use the optimized message notification function
-          const { sendMessageNotification } = await import('./push-notifications');
-          
-          // Send single push notification to each recipient using the optimized function
+          // Send single push notification to each recipient
           for (const recipient of recipients) {
-            await sendMessageNotification(
-              recipient.id,
-              Number(req.params.chatRoomId),
-              sender?.displayName || sender?.username || '사용자',
-              messageData.content || '새 메시지',
-              messageData.messageType || 'text'
-            );
+            // Get recipient's current total unread count
+            const unreadCounts = await storage.getUnreadCounts(recipient.id);
+            const currentUnreadCount = unreadCounts.reduce((total, count) => total + count.unreadCount, 0);
+            const totalUnreadCount = currentUnreadCount + 1; // Add 1 for the new message
+            
+            // Customize notification body based on message type
+            let notificationBody = messageData.content || '새 메시지';
+            switch (messageData.messageType) {
+              case 'voice':
+                notificationBody = messageData.content && messageData.content.trim() !== '' 
+                  ? (messageData.content.length > 50 ? messageData.content.substring(0, 47) + '...' : messageData.content)
+                  : '음성 메시지를 보냈습니다';
+                break;
+              case 'file':
+                notificationBody = '파일을 보냈습니다';
+                break;
+              case 'image':
+                notificationBody = '사진을 보냈습니다';
+                break;
+              case 'video':
+                notificationBody = '동영상을 보냈습니다';
+                break;
+              case 'youtube':
+                notificationBody = 'YouTube 동영상을 공유했습니다';
+                break;
+              default:
+                if (messageData.content && messageData.content.length > 50) {
+                  notificationBody = messageData.content.substring(0, 47) + '...';
+                }
+                break;
+            }
+            
+            console.log(`Sending single push notification to user ${recipient.id}: ${sender?.displayName || '사용자'} - ${notificationBody}`);
+            
+            await sendPushNotification(recipient.id, {
+              title: sender?.displayName || sender?.username || '사용자',
+              body: notificationBody,
+              icon: '/icons/icon-192x192.png',
+              badge: '/icons/icon-72x72.png',
+              unreadCount: totalUnreadCount,
+              data: {
+                type: 'message',
+                chatRoomId: Number(req.params.chatRoomId),
+                messageType: messageData.messageType || 'text',
+                senderId: Number(userId),
+                url: `/?chat=${req.params.chatRoomId}`
+              },
+              tag: `dovie-chat-${req.params.chatRoomId}`,
+              requireInteraction: false,
+              silent: false,
+              sound: '/notification-sound.mp3'
+            });
           }
         }
       } catch (pushError) {

@@ -207,7 +207,11 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - Eliminated redundant VAPID key requests and push subscription registrations
   - Removed all test push notification endpoints and repetitive initialization code
   - App now loads cleanly without hundreds of unnecessary push notification API calls
-- June 25, 2025: Implemented native messaging app behavior with immediate message synchronization:
+- June 25, 2025: Fixed duplicate push notification issue and implemented native messaging app behavior:
+  - Eliminated duplicate push notifications by consolidating notification logic in message routes
+  - Removed redundant sendMessageNotification wrapper function causing double notifications
+  - Enhanced push notification flow to send only one notification per message per recipient
+  - Added comprehensive message type handling for appropriate notification text
   - Enhanced PWA to behave like Telegram/WhatsApp with instant message visibility when opening app
   - Updated all queries to use staleTime: 0 for always fresh data like native messaging apps
   - Implemented aggressive polling intervals: chat rooms (15s), messages (10s), unread counts (10s)
