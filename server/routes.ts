@@ -4868,6 +4868,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test push notification endpoint for mobile testing
+  app.post("/api/test-push-notification", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"];
+      if (!userId) {
+        return res.status(401).json({ message: "인증이 필요합니다." });
+      }
+
+      const { title, body } = req.body;
+
+      await sendPushNotification(Number(userId), {
+        title: title || "Dovie Messenger 테스트",
+        body: body || "푸시 알림이 정상적으로 작동합니다!",
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/icon-72x72.png',
+        data: {
+          type: 'test',
+          url: '/'
+        }
+      });
+
+      res.json({ success: true, message: "테스트 알림이 전송되었습니다." });
+    } catch (error) {
+      console.error("Test push notification error:", error);
+      res.status(500).json({ message: "테스트 알림 전송에 실패했습니다." });
+    }
+  });
+
   // Get all profile images for preloading
   app.get("/api/users/all-profile-images", async (req, res) => {
     const userId = req.session?.userId || req.headers["x-user-id"];

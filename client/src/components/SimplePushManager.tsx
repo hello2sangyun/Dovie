@@ -8,20 +8,29 @@ export function SimplePushManager() {
     if (!user) return;
 
     const initializePushNotifications = async () => {
-      // Check if already initialized to prevent duplicates
-      const alreadyInitialized = localStorage.getItem('pushNotificationInitialized');
-      if (alreadyInitialized === 'true') {
-        console.log('Push notifications already initialized, skipping');
-        return;
-      }
-
       // Check if notifications are supported
       if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+        console.log('Push notifications not supported on this device');
         return;
       }
 
-      // Only proceed if notification permission is already granted
-      if (Notification.permission !== 'granted') {
+      // Auto-request permission on mobile devices for PWA
+      const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const isPWA = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
+      
+      console.log('Device detection - Mobile:', isMobile, 'PWA:', isPWA);
+      
+      // Request permission if not already granted, especially for mobile PWA
+      if (Notification.permission === 'default' && (isMobile || isPWA)) {
+        console.log('Requesting notification permission for mobile/PWA');
+        const permission = await Notification.requestPermission();
+        console.log('Permission result:', permission);
+        if (permission !== 'granted') {
+          console.log('Notification permission denied');
+          return;
+        }
+      } else if (Notification.permission !== 'granted') {
+        console.log('Notification permission not granted:', Notification.permission);
         return;
       }
 
@@ -39,8 +48,9 @@ export function SimplePushManager() {
         // Check if already subscribed
         const existingSubscription = await registration.pushManager.getSubscription();
         if (existingSubscription) {
+          console.log('Existing push subscription found, updating server');
           // Verify with server - fixed format
-          await fetch('/api/push-subscription', {
+          const response = await fetch('/api/push-subscription', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -54,7 +64,12 @@ export function SimplePushManager() {
             })
           });
           
-          localStorage.setItem('pushNotificationInitialized', 'true');
+          if (response.ok) {
+            console.log('Push subscription verified with server');
+            localStorage.setItem('pushNotificationInitialized', 'true');
+          } else {
+            console.error('Failed to verify subscription with server');
+          }
           return;
         }
 
@@ -65,7 +80,8 @@ export function SimplePushManager() {
         });
 
         // Send to server - fix format
-        await fetch('/api/push-subscription', {
+        console.log('Sending new push subscription to server');
+        const response = await fetch('/api/push-subscription', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -79,14 +95,23 @@ export function SimplePushManager() {
           })
         });
 
-        localStorage.setItem('pushNotificationInitialized', 'true');
+        if (response.ok) {
+          console.log('Push subscription successfully registered');
+          localStorage.setItem('pushNotificationInitialized', 'true');
+        } else {
+          console.error('Failed to register push subscription:', await response.text());
+        }
       } catch (error) {
         console.error('Push notification setup failed:', error);
       }
     };
 
-    // Only initialize once per session
-    initializePushNotifications();
+    // Initialize immediately on mobile/PWA, or when permission is granted
+    const timer = setTimeout(() => {
+      initializePushNotifications();
+    }, 1000); // Small delay to ensure user context is ready
+
+    return () => clearTimeout(timer);
   }, [user]);
 
   // Helper functions

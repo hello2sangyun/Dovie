@@ -28,6 +28,8 @@ import LoadingScreen from "@/components/LoadingScreen";
 import { ConnectionStatusIndicator } from "@/components/ConnectionStatusIndicator";
 import { PermissionRequestModal } from "@/components/PermissionRequestModal";
 import PWABadgeManager from "@/components/PWABadgeManager";
+import MobilePushManager from "@/components/MobilePushManager";
+import PushDebugPanel from "@/components/PushDebugPanel";
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
 
@@ -1144,6 +1146,7 @@ export default function MainApp() {
       {/* PWA Push Notifications and Badge Management */}
       <SimplePushManager />
       <PWABadgeManager />
+      <MobilePushManager />
       
       {/* Mobile Banner Notifications - replaces bottom popup notifications */}
       <BannerNotificationContainer />
