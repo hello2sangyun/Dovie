@@ -49,7 +49,7 @@ export async function sendPushNotification(
       body: payload.body || "새 메시지가 도착했습니다",
       icon: '/icons/icon-192x192.png',
       badge: '/icons/icon-72x72.png',
-      unreadCount: badgeCount, // Single badge count field
+      unreadCount: 0, // Always 0 - badge managed independently by app
       data: {
         url: '/',
         timestamp: Date.now(),

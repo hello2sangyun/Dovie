@@ -1306,7 +1306,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               body: notificationBody,
               icon: '/icons/icon-192x192.png',
               badge: '/icons/icon-72x72.png',
-              unreadCount: 0, // Always 0 - badge managed separately by app
+              unreadCount: 0, // Never include badge count in push notifications
               data: {
                 type: 'message',
                 chatRoomId: Number(req.params.chatRoomId),

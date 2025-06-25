@@ -330,53 +330,57 @@ self.addEventListener('push', (event) => {
   );
 });
 
-// App badge functionality - database-driven only
+// App badge functionality - purely reflects database unread message count
 async function updateAppBadge(unreadCount) {
   try {
-    console.log('[SW] Updating app badge to reflect actual unread count:', unreadCount);
+    console.log('[SW] 🔢 Setting badge to exact database unread count:', unreadCount);
     
     if ('setAppBadge' in navigator) {
-      // Always clear first to prevent accumulation
+      // Force clear any existing badge first to eliminate push notification interference
       await navigator.clearAppBadge();
       
+      // Set badge to exact database count
       if (unreadCount > 0) {
         await navigator.setAppBadge(unreadCount);
-        console.log('[SW] App badge set to actual unread count:', unreadCount);
+        console.log('[SW] ✅ Badge set to database count:', unreadCount);
       } else {
-        console.log('[SW] App badge cleared (no unread messages)');
+        console.log('[SW] ✅ Badge cleared (no unread messages in database)');
       }
     } else {
-      console.log('[SW] setAppBadge not supported, unread count:', unreadCount);
+      console.log('[SW] ⚠️ setAppBadge not supported, database count:', unreadCount);
     }
   } catch (error) {
-    console.error('[SW] Failed to update app badge:', error);
+    console.error('[SW] ❌ Failed to set badge to database count:', error);
   }
 }
 
-// Handle messages from main thread
+// Handle messages from main thread - completely independent from push notifications
 self.addEventListener('message', (event) => {
   console.log('[SW] Message received:', event.data);
   
   switch (event.data.type) {
-    case 'UPDATE_BADGE_FORCE':
-      // Force update badge based on actual database count, ignore notifications
-      console.log('[SW] Force updating badge from database:', event.data.count);
+    case 'SET_BADGE_DATABASE_COUNT':
+      // Set badge based purely on database unread count, ignore all push notification state
+      console.log('[SW] Setting badge to exact database count:', event.data.count);
       updateAppBadge(event.data.count || 0);
       break;
+    case 'UPDATE_BADGE_FORCE':
     case 'UPDATE_BADGE':
-      // Legacy support - but prioritize database-based updates
-      if (event.data.source === 'database') {
+      // Legacy support - only accept database-sourced updates
+      if (event.data.source === 'database' || event.data.source === 'pure_database') {
+        console.log('[SW] Updating badge from database source:', event.data.count);
         updateAppBadge(event.data.count || 0);
       } else {
-        console.log('[SW] Ignoring non-database badge update');
+        console.log('[SW] Ignoring non-database badge update from:', event.data.source);
       }
       break;
     case 'CLEAR_BADGE':
+      console.log('[SW] Clearing badge (database command)');
       updateAppBadge(0);
       break;
     case 'APP_FOCUS':
-      // App focused - do not modify badge, let app handle it
-      console.log('[SW] App focused - badge controlled by app');
+      // App focused - badge stays exactly as database indicates
+      console.log('[SW] App focused - badge remains database-accurate');
       break;
   }
 });
