@@ -378,6 +378,11 @@ self.addEventListener('message', (event) => {
       console.log('[SW] Clearing badge (database command)');
       updateAppBadge(0);
       break;
+    case 'FORCE_SET_BADGE':
+      // Force set badge regardless of push notification state
+      console.log('[SW] Force setting badge:', event.data.count);
+      updateAppBadge(event.data.count || 0);
+      break;
     case 'INIT_BADGE_SYSTEM':
       // Initialize badge system independent of push notifications
       console.log('[SW] Badge system initialized - independent mode');
