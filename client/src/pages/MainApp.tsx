@@ -23,17 +23,12 @@ import { usePWABadge } from "@/hooks/usePWABadge";
 import QRCodeModal from "@/components/QRCodeModal";
 import InstantAvatar from "@/components/InstantAvatar";
 import { BannerNotificationContainer } from "@/components/MobileBannerNotification";
-import { SimplePushManager } from "@/components/SimplePushManager";
 import LoadingScreen from "@/components/LoadingScreen";
 import { ConnectionStatusIndicator } from "@/components/ConnectionStatusIndicator";
 import { PermissionRequestModal } from "@/components/PermissionRequestModal";
 import PWABadgeManager from "@/components/PWABadgeManager";
-import MobilePushManager from "@/components/MobilePushManager";
-import PushDebugPanel from "@/components/PushDebugPanel";
 import { PWABadgeWatcher } from "@/components/PWABadgeWatcher";
-import { BadgeTestButton } from "@/components/BadgeTestButton";
 import TelegramBadgeManager from "@/components/TelegramBadgeManager";
-import { BadgeDebugPanel } from "@/components/BadgeDebugPanel";
 import UnreadBadgeManager from "@/components/UnreadBadgeManager";
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
@@ -275,13 +270,11 @@ export default function MainApp() {
     const microphoneGranted = localStorage.getItem('microphonePermissionGranted');
     const notificationGranted = localStorage.getItem('notificationPermissionGranted');
     
-    // Push notifications are now handled by SimplePushManager component
-    
-    // Only show permission modal if microphone permission hasn't been handled yet
-    if (!microphoneGranted && notificationGranted !== 'false') {
+    // Show permission modal if either microphone or notification permission hasn't been handled yet
+    if (!microphoneGranted || !notificationGranted) {
       setTimeout(() => {
         setModals(prev => ({ ...prev, permissions: true }));
-      }, 3000); // Delay after push notification setup
+      }, 1000); // Show permissions modal shortly after login
     }
   }, [user]);
 
@@ -1200,15 +1193,13 @@ export default function MainApp() {
         onClose={() => setModals(prev => ({ ...prev, qrCode: false }))}
       />
 
-      {/* PWA Push Notifications and Badge Management */}
-      <SimplePushManager />
+      {/* PWA Badge Management */}
       <PWABadgeManager />
       
       {/* Unread Message Badge Manager - Telegram/WhatsApp Style */}
       <UnreadBadgeManager />
       <TelegramBadgeManager />
       <PWABadgeWatcher />
-      <MobilePushManager />
       
       {/* Mobile Banner Notifications - replaces bottom popup notifications */}
       <BannerNotificationContainer />
@@ -1219,8 +1210,6 @@ export default function MainApp() {
           <LoadingScreen message="프로필 이미지를 다운로드하는 중..." />
         </div>
       )}
-
-      <SimplePushManager />
     </div>
   );
 }
