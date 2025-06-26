@@ -2123,6 +2123,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         
         console.log('📤 File upload message content:', messageContent);
         console.log('📋 Hashtags being sent:', hashtags);
+        console.log('🔍 Expected hashtag extraction from content:', messageContent.match(/#[\w가-힣_]+/g));
         
         return sendMessageMutation.mutateAsync({
           messageType: "file",
