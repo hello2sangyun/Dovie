@@ -17,10 +17,10 @@ export function TelegramBadgeManager() {
   const { data: unreadData, isSuccess, error } = useQuery({
     queryKey: ['/api/unread-counts'],
     enabled: !!user,
-    staleTime: 0, // Always fresh data like messaging apps
+    staleTime: 20000, // 20초 캐시로 성능 개선
     refetchOnMount: true,
     refetchOnWindowFocus: true,
-    refetchInterval: 1500, // 1.5s like Telegram
+    refetchInterval: 120000, // 2분마다 업데이트로 배터리 절약
     refetchOnReconnect: true,
     retry: 3,
     retryDelay: 1000,

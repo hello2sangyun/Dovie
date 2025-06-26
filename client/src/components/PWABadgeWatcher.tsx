@@ -10,10 +10,10 @@ export function PWABadgeWatcher() {
   const { data: unreadCounts, isSuccess } = useQuery({
     queryKey: ['/api/unread-counts'],
     enabled: !!user,
-    staleTime: 0, // Always fresh like messaging apps
+    staleTime: 15000, // 15초 캐시로 성능 개선
     refetchOnMount: true,
     refetchOnWindowFocus: true,
-    refetchInterval: 1500, // Every 1.5s like Telegram
+    refetchInterval: 60000, // 1분마다 업데이트로 배터리 절약
     refetchOnReconnect: true,
     retry: 5,
   });

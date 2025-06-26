@@ -212,20 +212,20 @@ export default function MainApp() {
   const { data: contactsData } = useQuery({
     queryKey: ["/api/contacts"],
     enabled: !!user,
-    staleTime: 0, // Always fetch fresh data
+    staleTime: 30000, // 30초 캐시로 성능 개선
     refetchOnMount: true, // Always refresh when component mounts
     refetchOnWindowFocus: true, // Refresh when app becomes visible
-    refetchInterval: 30000, // Poll every 30 seconds
+    refetchInterval: 120000, // 2분마다 업데이트로 배터리 절약
   });
 
   // Get chat rooms data with immediate refresh like native messaging apps
   const { data: chatRoomsData } = useQuery({
     queryKey: ["/api/chat-rooms"],
     enabled: !!user,
-    staleTime: 0, // Always fetch fresh data like Telegram/WhatsApp
+    staleTime: 30000, // 30초 캐시로 성능 개선
     refetchOnMount: true, // Always refresh when component mounts
     refetchOnWindowFocus: true, // Refresh when app becomes visible
-    refetchInterval: 15000, // Poll every 15 seconds for chat rooms list
+    refetchInterval: 90000, // 1.5분마다 업데이트로 배터리 절약
   });
 
   // Profile images are now preloaded during authentication in useAuth hook
