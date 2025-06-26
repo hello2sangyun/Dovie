@@ -167,7 +167,12 @@ export async function sendMessageNotification(
   try {
     // Get total unread count across all chat rooms for app badge
     const unreadCounts = await storage.getUnreadCounts(recipientUserId);
-    const totalUnreadCount = unreadCounts.reduce((total, count) => total + count.unreadCount, 0) + 1;
+    // Calculate total including the new message being sent
+    const currentTotalUnread = unreadCounts.reduce((total, count) => total + count.unreadCount, 0);
+    const totalUnreadCount = currentTotalUnread + 1;
+    
+    console.log(`📊 Badge count for user ${recipientUserId}: ${currentTotalUnread} + 1 new = ${totalUnreadCount} total unread`);
+    console.log(`📊 Unread counts breakdown:`, unreadCounts.map(c => `Chat ${c.chatRoomId}: ${c.unreadCount}`).join(', '));
     
     let notificationBody = messageContent;
     

@@ -332,19 +332,23 @@ self.addEventListener('push', (event) => {
 // Telegram/WhatsApp style badge function - shows exact unread count
 async function setTelegramStyleBadge(count) {
   try {
-    console.log('[SW] 📱 Setting Telegram-style badge:', count);
+    // Ensure count is a valid number
+    const badgeCount = Math.max(0, parseInt(count) || 0);
+    console.log('[SW] 📱 Setting Telegram-style badge:', badgeCount);
     
     if ('setAppBadge' in navigator) {
-      if (count > 0) {
-        await navigator.setAppBadge(count);
-        console.log('[SW] ✅ Badge set like Telegram:', count);
+      if (badgeCount > 0) {
+        await navigator.setAppBadge(badgeCount);
+        console.log('[SW] ✅ Badge set to:', badgeCount);
       } else {
         await navigator.clearAppBadge();
-        console.log('[SW] ✅ Badge cleared like Telegram');
+        console.log('[SW] ✅ Badge cleared (0 unread)');
       }
+    } else {
+      console.log('[SW] ⚠️ setAppBadge not supported, badge count:', badgeCount);
     }
   } catch (error) {
-    console.error('[SW] ❌ Telegram-style badge failed:', error);
+    console.error('[SW] ❌ Badge update failed:', error);
   }
 }
 
@@ -529,3 +533,30 @@ self.addEventListener('notificationclose', (event) => {
 self.addEventListener('focus', () => {
   console.log('[SW] App focused - maintaining badge state');
 });
+
+// Message listener for badge updates from main app
+self.addEventListener('message', (event) => {
+  console.log('[SW] Message received:', event.data);
+  
+  if (event.data && event.data.type === 'UPDATE_BADGE_COUNT') {
+    const unreadCount = event.data.count;
+    console.log('[SW] Updating badge count to:', unreadCount);
+    updateAppBadge(unreadCount);
+  }
+});
+
+// Periodic badge sync - fetch current unread count every 30 seconds
+setInterval(async () => {
+  try {
+    console.log('[SW] Syncing badge count with server');
+    const response = await fetch('/api/unread-counts');
+    if (response.ok) {
+      const data = await response.json();
+      const totalUnread = data.unreadCounts?.reduce((total, count) => total + count.unreadCount, 0) || 0;
+      console.log('[SW] Server badge sync - total unread:', totalUnread);
+      await updateAppBadge(totalUnread);
+    }
+  } catch (error) {
+    console.error('[SW] Badge sync failed:', error);
+  }
+}, 30000);
