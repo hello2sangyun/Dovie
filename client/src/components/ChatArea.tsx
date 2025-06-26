@@ -2460,7 +2460,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [showHashSuggestions, setShowHashSuggestions] = useState(false);
   const [hashSuggestions, setHashSuggestions] = useState<string[]>([]);
   const [selectedHashIndex, setSelectedHashIndex] = useState(0);
-  // hashtagQuery는 기존 것 사용 (위에 선언되어 있음)
   // 음성 메시지 임시 저장 상태 (스마트 추천 선택 대기)
   const [pendingVoiceMessage, setPendingVoiceMessage] = useState<any>(null);
   // 채팅방별 저장된 명령어들을 태그로 사용
@@ -3392,22 +3391,24 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     // 입력할 때마다 자동으로 임시 저장
     saveDraftMessage(chatRoomId, value);
     
-    // # 태그 감지 및 실시간 추천 - 메시지 시작 부분에 #이 입력되면 즉시 모달 표시
-    if (value.startsWith('#')) {
-      const searchQuery = value.slice(1); // # 제거한 검색어
-      
-      // 해시태그 추천 모달 표시
-      setShowHashtagSuggestion(true);
-      setHashtagQuery(searchQuery);
-      
-      // 스마트 추천 비활성화
+    // # 태그 감지 및 추천 (모든 언어 지원)
+    const hashMatch = value.match(/#([^#\s]*)$/);
+    if (hashMatch) {
+      const currentTag = hashMatch[1].toLowerCase();
+      const filteredTags = storedTags.filter((tag: string) => 
+        tag.toLowerCase().includes(currentTag)
+      );
+      setHashSuggestions(filteredTags);
+      setShowHashSuggestions(filteredTags.length > 0);
+      setSelectedHashIndex(0); // 선택 인덱스 초기화
+      // 태그 추천 활성화 시 스마트 추천 비활성화
       setShowSmartSuggestions(false);
       setSmartSuggestions([]);
       return; // 태그 모드일 때는 스마트 추천 로직 실행하지 않음
     } else {
-      // # 으로 시작하지 않으면 해시태그 모달 닫기
-      setShowHashtagSuggestion(false);
-      setHashtagQuery('');
+      setShowHashSuggestions(false);
+      setHashSuggestions([]);
+      setSelectedHashIndex(0);
     }
     
     if (value.trim().length < 2) {
@@ -3480,22 +3481,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const insertHashtag = () => {
     setMessage(prev => prev + '#');
     setShowCommandSuggestions(true);
-  };
-
-  // 해시태그 선택 핸들러
-  const handleHashtagSelect = (tag: string, fileData: any) => {
-    // 선택된 해시태그로 메시지 교체
-    setMessage(`#${tag}`);
-    
-    // 해시태그 모달 닫기
-    setShowHashtagSuggestion(false);
-    setHashtagQuery('');
-    
-    // 파일 데이터가 있으면 해당 파일 정보 표시 또는 전송
-    if (fileData) {
-      console.log('Selected file data:', fileData);
-      // 선택적으로 파일 정보를 채팅에 표시하거나 다운로드 링크 제공
-    }
   };
 
   // Message context menu handlers
@@ -6374,18 +6359,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         onClose={() => setShowLocationShareModal(false)}
         chatRoomId={chatRoomId}
         requestId={locationRequestId}
-      />
-
-      {/* Hashtag Suggestion Modal */}
-      <HashtagSuggestion
-        isVisible={showHashtagSuggestion}
-        searchQuery={hashtagQuery}
-        onSelectTag={handleHashtagSelect}
-        onClose={() => {
-          setShowHashtagSuggestion(false);
-          setHashtagQuery('');
-        }}
-        chatRoomId={chatRoomId}
       />
 
       {/* YouTube Selection Modal */}
