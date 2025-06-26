@@ -2374,6 +2374,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     });
   }
 
+
+
   // 이어폰 감지 및 자동 재생 함수
   const checkEarphonesAndAutoPlay = async () => {
     try {
