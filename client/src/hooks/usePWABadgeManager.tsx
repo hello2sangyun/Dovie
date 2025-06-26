@@ -2,13 +2,22 @@ import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from './useAuth';
 
+interface UnreadCount {
+  chatRoomId: number;
+  unreadCount: number;
+}
+
+interface UnreadData {
+  unreadCounts: UnreadCount[];
+}
+
 // Comprehensive PWA badge manager that ensures correct total count
 export function usePWABadgeManager() {
   const { user } = useAuth();
   const lastBadgeCountRef = useRef<number>(0);
 
   // Fetch unread counts with aggressive polling for accurate badge
-  const { data: unreadData } = useQuery({
+  const { data: unreadData } = useQuery<UnreadData>({
     queryKey: ['/api/unread-counts'],
     enabled: !!user,
     refetchInterval: 5000, // Check every 5 seconds for accurate badge

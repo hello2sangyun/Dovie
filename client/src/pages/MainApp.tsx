@@ -69,6 +69,9 @@ export default function MainApp() {
   
   // PWA badge functionality - always active, independent of push notifications
   const { updateBadge, clearBadge, unreadCount } = usePWABadge();
+  
+  // Comprehensive PWA badge manager for accurate total count
+  const { currentBadgeCount, totalUnread } = usePWABadgeManager();
 
   // Immediate data synchronization when app becomes visible (like Telegram/WhatsApp)
   useEffect(() => {
@@ -1191,14 +1194,8 @@ export default function MainApp() {
         onClose={() => setModals(prev => ({ ...prev, qrCode: false }))}
       />
 
-      {/* PWA Badge Management */}
-      <PWABadgeManager />
-      
-      {/* Unread Message Badge Manager - Telegram/WhatsApp Style */}
+      {/* Telegram-style notification and PWA badge management */}
       <TelegramStyleNotificationManager />
-      <UnreadBadgeManager />
-      <TelegramBadgeManager />
-      <PWABadgeWatcher />
       
       {/* Mobile Banner Notifications - replaces bottom popup notifications */}
       <BannerNotificationContainer />
