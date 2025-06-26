@@ -883,6 +883,14 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - **Maintained backward compatibility** with filename fallback when no hashtags are provided by users
   - **Fixed HashtagSuggestion display**: Tag recommendations now show actual hashtag names like "#Important" instead of "#IMG_3343"
   - **Eliminated filename pollution** in hashtag suggestions for cleaner user experience during tag recall
+- June 26, 2025: **Completed comprehensive hashtag system improvements with unencrypted storage**:
+  - **Fixed hashtag detection to trigger immediately** when "#" is typed at start of input instead of requiring additional characters
+  - **Enhanced backend API with fileOnly=true parameter** to filter hashtag suggestions to only show file-upload hashtags
+  - **Replaced static hashtag list with dynamic API calls** for real-time file-upload hashtag filtering
+  - **Modified hashtag saving to store unencrypted text** in savedText field for proper search functionality
+  - **Fixed TypeScript compilation errors** in message creation route that were preventing file uploads with hashtags
+  - **Limited hashtag suggestions to 8 items** for better mobile experience and performance
+  - **Complete workflow verified**: Type "#" → immediate API call → file-upload hashtags displayed → selection saves unencrypted for search
 
 ## User Preferences
 
