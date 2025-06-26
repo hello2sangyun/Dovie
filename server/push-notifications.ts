@@ -31,6 +31,20 @@ export async function sendPushNotification(
   payload: PushNotificationPayload
 ): Promise<void> {
   try {
+    // Telegram/WhatsApp-style intelligent filtering: Don't send to active users
+    const userActivity = await storage.getUserActivity(userId);
+    if (userActivity?.isOnline) {
+      console.log(`🚫 Skipping push notification for user ${userId}: currently active/online`);
+      return;
+    }
+
+    // Check if user was active in the last 2 minutes (like WhatsApp)
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+    if (userActivity?.lastSeen && userActivity.lastSeen > twoMinutesAgo) {
+      console.log(`🚫 Skipping push notification for user ${userId}: recently active (${userActivity.lastSeen})`);
+      return;
+    }
+
     // Get user's push subscriptions
     const subscriptions = await storage.getUserPushSubscriptions(userId);
     

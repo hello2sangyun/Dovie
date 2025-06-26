@@ -891,6 +891,16 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - **Optimized user workflow**: Users can continue chatting immediately while files upload in background
   - **Added progress stages**: 25% upload start, 75% server processing, 100% completion with automatic message replacement
   - **Improved error handling**: Failed uploads remove temporary messages and show appropriate error notifications
+- June 26, 2025: **COMPLETED comprehensive Telegram/WhatsApp-style intelligent push notification system**:
+  - **Implemented TelegramStyleNotificationManager component** with real-time user activity tracking and automatic heartbeat updates
+  - **Created intelligent notification filtering** that prevents push notifications for active users (online status or active within last 2 minutes)
+  - **Enhanced push notification backend** with user activity detection to suppress notifications for currently active users like Telegram/WhatsApp
+  - **Added notification grouping and replacement** where newer notifications from same chat replace older ones for cleaner notification management
+  - **Implemented backend API endpoints** (/api/user/heartbeat, /api/user/activity-status) for comprehensive user activity tracking
+  - **Updated database storage methods** with updateUserActivity, getUserActivity, and getActiveUsers functions for real-time status management
+  - **Enhanced Service Worker** with Telegram-style notification actions (Reply, Mark as Read) and proper notification click handling
+  - **Complete intelligent workflow**: User activity detection → notification suppression for active users → grouped notifications → action handling
+  - **System now behaves exactly like Telegram/WhatsApp**: no spam notifications when actively using app, smart notification management
 
 ## User Preferences
 

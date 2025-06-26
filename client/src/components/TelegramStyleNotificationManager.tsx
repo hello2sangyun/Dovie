@@ -3,7 +3,11 @@ import { useAuth } from '../hooks/useAuth';
 
 // Telegram/WhatsApp-style notification management
 // Suppresses notifications when user is actively using the app
-export function TelegramStyleNotificationManager() {
+interface TelegramStyleNotificationManagerProps {
+  className?: string;
+}
+
+export function TelegramStyleNotificationManager({ className }: TelegramStyleNotificationManagerProps = {}) {
   const { user } = useAuth();
   const lastActivityRef = useRef(Date.now());
   const isActiveRef = useRef(true);
