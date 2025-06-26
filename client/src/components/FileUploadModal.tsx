@@ -105,15 +105,19 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
     if (!selectedFiles) return;
 
     setIsUploading(true);
+    
+    // 단일 해시태그를 배열로 변환하여 기존 API 호환성 유지
+    const hashtagArray = hashtag.trim() ? [hashtag.trim()] : [];
+    
+    // 업로드 시작 즉시 모달 닫기
+    handleClose();
+    
     try {
-      // 단일 해시태그를 배열로 변환하여 기존 API 호환성 유지
-      const hashtagArray = hashtag.trim() ? [hashtag.trim()] : [];
       await onUpload(selectedFiles, caption, hashtagArray);
       
       // 업로드 완료 후 commands 캐시를 무효화하여 즉시 검색 가능하게 함
       await queryClient.invalidateQueries({ queryKey: ['/api/commands'] });
       
-      handleClose();
       toast({
         title: "업로드 완료",
         description: `${selectedFiles.length}개 파일이 성공적으로 업로드되었습니다.`,

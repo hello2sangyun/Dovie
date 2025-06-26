@@ -883,6 +883,14 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - **Maintained backward compatibility** with filename fallback when no hashtags are provided by users
   - **Fixed HashtagSuggestion display**: Tag recommendations now show actual hashtag names like "#Important" instead of "#IMG_3343"
   - **Eliminated filename pollution** in hashtag suggestions for cleaner user experience during tag recall
+- June 25, 2025: **Enhanced file upload UX with instant feedback and real-time progress tracking**:
+  - **Improved modal behavior**: Upload button click immediately closes modal instead of waiting for completion
+  - **Added real-time progress indicators**: Chat messages show upload progress with animated progress bars and percentage
+  - **Implemented temporary message system**: Files appear instantly in chat with "업로드 중..." status during processing
+  - **Enhanced visual feedback**: Spinning loader icons and smooth progress animations provide clear upload status
+  - **Optimized user workflow**: Users can continue chatting immediately while files upload in background
+  - **Added progress stages**: 25% upload start, 75% server processing, 100% completion with automatic message replacement
+  - **Improved error handling**: Failed uploads remove temporary messages and show appropriate error notifications
 
 ## User Preferences
 

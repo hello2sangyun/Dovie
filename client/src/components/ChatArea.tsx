@@ -2074,10 +2074,69 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     console.log('📝 캡션:', caption);
     console.log('🏷️ 해시태그:', hashtags);
     
+    // 업로드 시작 즉시 각 파일에 대한 임시 메시지 생성
+    const tempMessages = Array.from(files).map((file, index) => {
+      let messageContent = `📎 ${file.name}`;
+      
+      if (index === 0 && caption) {
+        messageContent += `\n\n${caption}`;
+      }
+      
+      if (hashtags.length > 0) {
+        messageContent += `\n\n${hashtags.map(tag => `#${tag}`).join(' ')}`;
+      }
+      
+      return {
+        id: Date.now() + index, // 임시 ID
+        chatRoomId: chatRoomId,
+        senderId: user?.id || 0,
+        content: messageContent,
+        messageType: "file" as const,
+        fileName: file.name,
+        fileSize: file.size,
+        isUploading: true, // 업로드 중 표시
+        uploadProgress: 0,
+        createdAt: new Date().toISOString(),
+        sender: {
+          id: user?.id || 0,
+          username: user?.username || '',
+          displayName: user?.displayName || '',
+          profilePicture: user?.profilePicture
+        }
+      };
+    });
+    
+    // 임시 메시지들을 채팅에 즉시 표시
+    queryClient.setQueryData([`/api/chat-rooms`, chatRoomId, "messages"], (oldData: any) => {
+      if (!oldData) return { messages: tempMessages };
+      return {
+        ...oldData,
+        messages: [...oldData.messages, ...tempMessages]
+      };
+    });
+    
     try {
       // Process each file individually to match server expectation
       const uploadPromises = Array.from(files).map(async (file, index) => {
+        const tempMessageId = tempMessages[index].id;
         console.log(`📁 파일 ${index + 1} 업로드:`, file.name);
+        
+        // 업로드 진행상황 업데이트
+        const updateProgress = (progress: number) => {
+          queryClient.setQueryData([`/api/chat-rooms`, chatRoomId, "messages"], (oldData: any) => {
+            if (!oldData) return oldData;
+            return {
+              ...oldData,
+              messages: oldData.messages.map((msg: any) => 
+                msg.id === tempMessageId 
+                  ? { ...msg, uploadProgress: progress }
+                  : msg
+              )
+            };
+          });
+        };
+        
+        updateProgress(25); // 업로드 시작
         
         const formData = new FormData();
         formData.append('file', file);
@@ -2090,18 +2149,33 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           body: formData,
         });
         
+        updateProgress(75); // 업로드 완료, 처리 중
+        
         if (!response.ok) {
           const errorText = await response.text();
           console.error(`❌ 파일 ${index + 1} 업로드 실패:`, errorText);
+          
+          // 실패한 임시 메시지 제거
+          queryClient.setQueryData([`/api/chat-rooms`, chatRoomId, "messages"], (oldData: any) => {
+            if (!oldData) return oldData;
+            return {
+              ...oldData,
+              messages: oldData.messages.filter((msg: any) => msg.id !== tempMessageId)
+            };
+          });
+          
           throw new Error(`파일 업로드 실패: ${file.name} - ${response.status}`);
         }
         
         const uploadResult = await response.json();
         console.log(`✅ 파일 ${index + 1} 업로드 성공:`, uploadResult);
         
+        updateProgress(100); // 업로드 완료
+        
         return {
           ...uploadResult,
-          originalFile: file
+          originalFile: file,
+          tempMessageId
         };
       });
       
@@ -2125,7 +2199,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         console.log('📋 Hashtags being sent:', hashtags);
         console.log('🔍 Expected hashtag extraction from content:', messageContent.match(/#[\w가-힣_]+/g));
         
-        return sendMessageMutation.mutateAsync({
+        const realMessage = await sendMessageMutation.mutateAsync({
           messageType: "file",
           fileUrl: uploadData.fileUrl,
           fileName: uploadData.fileName,
@@ -2133,6 +2207,21 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           content: messageContent,
           replyToMessageId: replyToMessage?.id
         });
+        
+        // 임시 메시지를 실제 메시지로 교체
+        queryClient.setQueryData([`/api/chat-rooms`, chatRoomId, "messages"], (oldData: any) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            messages: oldData.messages.map((msg: any) => 
+              msg.id === uploadData.tempMessageId 
+                ? { ...realMessage, sender: msg.sender }
+                : msg
+            )
+          };
+        });
+        
+        return realMessage;
       });
       
       await Promise.all(messagePromises);
@@ -2141,12 +2230,24 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       // Clear reply state
       setReplyToMessage(null);
       
-      // Refresh chat data
-      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms`, chatRoomId, "messages"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      // Refresh chat data to ensure consistency
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms`, chatRoomId, "messages"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      }, 500);
       
     } catch (error) {
       console.error('❌ 파일 업로드 오류:', error);
+      
+      // 실패 시 모든 임시 메시지 제거
+      queryClient.setQueryData([`/api/chat-rooms`, chatRoomId, "messages"], (oldData: any) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          messages: oldData.messages.filter((msg: any) => !msg.isUploading)
+        };
+      });
+      
       throw error;
     }
   };
@@ -5273,6 +5374,35 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                                     </div>
                                   ) : (
                                     <>
+                                      {/* 업로드 진행상황 표시 */}
+                                      {(msg as any).isUploading && (
+                                        <div className="mb-2">
+                                          <div className="flex items-center space-x-2 mb-1">
+                                            <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"></div>
+                                            <span className={cn(
+                                              "text-sm font-medium",
+                                              isMe ? "text-white/90" : "text-gray-700"
+                                            )}>
+                                              업로드 중... {(msg as any).uploadProgress || 0}%
+                                            </span>
+                                          </div>
+                                          <div className={cn(
+                                            "w-full h-1.5 rounded-full overflow-hidden",
+                                            isMe ? "bg-white/20" : "bg-gray-200"
+                                          )}>
+                                            <div 
+                                              className={cn(
+                                                "h-full transition-all duration-300 ease-out",
+                                                isMe ? "bg-white/80" : "bg-purple-500"
+                                              )}
+                                              style={{ 
+                                                width: `${(msg as any).uploadProgress || 0}%` 
+                                              }}
+                                            />
+                                          </div>
+                                        </div>
+                                      )}
+                                      
                                       <div>
                                         {renderMessageWithLinks(msg.content)}
                                         {/* Link Previews */}
