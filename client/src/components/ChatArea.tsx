@@ -2110,9 +2110,19 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       
       // Send each file as a separate message with caption and hashtags
       const messagePromises = uploadResults.map(async (uploadData, index) => {
-        const messageContent = index === 0 && caption ? 
-          `📎 ${uploadData.fileName}\n\n${caption}${hashtags.length > 0 ? '\n\n' + hashtags.map(tag => `#${tag}`).join(' ') : ''}` :
-          `📎 ${uploadData.fileName}`;
+        // Include hashtags in all file messages, caption only in first
+        let messageContent = `📎 ${uploadData.fileName}`;
+        
+        if (index === 0 && caption) {
+          messageContent += `\n\n${caption}`;
+        }
+        
+        if (hashtags.length > 0) {
+          messageContent += `\n\n${hashtags.map(tag => `#${tag}`).join(' ')}`;
+        }
+        
+        console.log('📤 File upload message content:', messageContent);
+        console.log('📋 Hashtags being sent:', hashtags);
         
         return sendMessageMutation.mutateAsync({
           messageType: "file",
