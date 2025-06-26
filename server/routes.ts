@@ -1166,30 +1166,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Auto-save files to storage and extract hashtags from message content
       // Skip hashtag extraction for YouTube messages and recommendation messages
-      const content = messageData.content as string;
-      const messageType = messageData.messageType as string;
-      const fileUrl = messageData.fileUrl as string;
-      const fileName = messageData.fileName as string;
-      const fileSize = messageData.fileSize as number;
-      
-      const skipHashtagExtraction = messageType === 'youtube' || 
-                                   (content && content.includes('🎬 YouTube 동영상')) ||
-                                   (content && content.includes('유튜브 검색'));
+      const skipHashtagExtraction = messageData.messageType === 'youtube' || 
+                                   (messageData.content && messageData.content.includes('🎬 YouTube 동영상')) ||
+                                   (messageData.content && messageData.content.includes('유튜브 검색'));
       
       // Extract hashtags from message content first
       let extractedHashtags: string[] = [];
-      if (content && typeof content === 'string' && !skipHashtagExtraction) {
+      if (messageData.content && typeof messageData.content === 'string' && !skipHashtagExtraction) {
         const hashtagRegex = /#[\w가-힣]+/g;
-        const hashtagMatches = content.match(hashtagRegex);
+        const hashtagMatches = messageData.content.match(hashtagRegex);
         if (hashtagMatches) {
-          extractedHashtags = hashtagMatches.map((tag: string) => tag.slice(1)); // Remove # symbol
+          extractedHashtags = hashtagMatches.map(tag => tag.slice(1)); // Remove # symbol
           console.log(`Found hashtags in message: ${hashtagMatches.join(', ')}`);
         }
       }
       
       // Auto-save file uploads to storage
-      if (messageType === 'file' && fileUrl && fileName) {
-        console.log(`Auto-saving file to storage: ${fileName}`);
+      if (messageData.messageType === 'file' && messageData.fileUrl && messageData.fileName) {
+        console.log(`Auto-saving file to storage: ${messageData.fileName}`);
         
         if (extractedHashtags.length > 0) {
           // Save file with each user-provided hashtag as separate commands
@@ -1200,10 +1194,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 chatRoomId: Number(req.params.chatRoomId),
                 commandName: hashtag, // Use actual hashtag instead of filename
                 messageId: message.id,
-                savedText: content, // Save full content unencrypted for search functionality
-                fileUrl: fileUrl,
-                fileName: fileName,
-                fileSize: fileSize || null,
+                savedText: messageData.content || null,
+                fileUrl: messageData.fileUrl,
+                fileName: messageData.fileName,
+                fileSize: messageData.fileSize || null,
                 originalSenderId: Number(userId),
                 originalTimestamp: new Date()
               });
@@ -1215,22 +1209,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else {
           // Fallback: save with filename if no hashtags provided
           try {
-            const commandName = fileName.split('.')[0];
+            const commandName = messageData.fileName.split('.')[0];
             await storage.saveCommand({
               userId: Number(userId),
               chatRoomId: Number(req.params.chatRoomId),
               commandName: commandName,
               messageId: message.id,
-              savedText: content || null,
-              fileUrl: fileUrl,
-              fileName: fileName,
-              fileSize: fileSize || null,
+              savedText: messageData.content || null,
+              fileUrl: messageData.fileUrl,
+              fileName: messageData.fileName,
+              fileSize: messageData.fileSize || null,
               originalSenderId: Number(userId),
               originalTimestamp: new Date()
             });
             console.log(`Successfully auto-saved file with filename: ${commandName}`);
           } catch (error) {
-            console.log(`Failed to auto-save file ${fileName}:`, error);
+            console.log(`Failed to auto-save file ${messageData.fileName}:`, error);
           }
         }
       }
@@ -2340,13 +2334,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const { chatRoomId, search, hashtag, fileOnly } = req.query;
+      const { chatRoomId, search } = req.query;
       let commands;
       
-      if (hashtag) {
-        // 해시태그 검색 (파일 업로드 명령만 필터링)
-        commands = await storage.searchCommands(Number(userId), String(hashtag));
-      } else if (search) {
+      if (search) {
         commands = await storage.searchCommands(Number(userId), String(search));
       } else {
         commands = await storage.getCommands(Number(userId), chatRoomId ? Number(chatRoomId) : undefined);
@@ -2372,15 +2363,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       });
       
-      // 파일 업로드 해시태그만 필터링 (fileOnly=true인 경우)
-      let filteredCommands = processedCommands;
-      if (fileOnly === 'true') {
-        filteredCommands = processedCommands.filter(command => 
-          command.fileName && command.fileUrl
-        );
-      }
-      
-      res.json({ commands: filteredCommands });
+      res.json({ commands: processedCommands });
     } catch (error) {
       console.error('Commands API error:', error);
       res.status(500).json({ message: "Failed to get commands" });

@@ -32,10 +32,10 @@ export function HashtagSuggestion({
 }: HashtagSuggestionProps) {
   const [filteredTags, setFilteredTags] = useState<FileCommand[]>([]);
 
-  // Fetch hashtag suggestions based on search query with fileOnly filter
+  // Fetch hashtag suggestions based on search query
   const { data: commandsData } = useQuery({
-    queryKey: ['/api/commands', { hashtag: searchQuery, fileOnly: 'true' }],
-    enabled: isVisible && searchQuery.length > 0,
+    queryKey: ['/api/commands', { hashtag: searchQuery }],
+    enabled: isVisible,
     staleTime: 10000,
   });
 

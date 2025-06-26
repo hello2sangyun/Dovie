@@ -3381,46 +3381,16 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     // 입력할 때마다 자동으로 임시 저장
     saveDraftMessage(chatRoomId, value);
     
-    // # 태그 감지 및 추천 - 즉시 트리거 (# 입력 즉시)
+    // # 태그 감지 및 추천 (모든 언어 지원)
     const hashMatch = value.match(/#([^#\s]*)$/);
     if (hashMatch) {
       const currentTag = hashMatch[1].toLowerCase();
-      
-      // 파일 업로드 해시태그만 API에서 가져오기
-      try {
-        const response = await fetch(`/api/commands?hashtag=${encodeURIComponent(currentTag)}&fileOnly=true`, {
-          headers: {
-            'x-user-id': user?.id?.toString() || ''
-          }
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          const commands = data.commands || [];
-          
-          // 파일 업로드로 생성된 해시태그만 필터링 (savedText에서 실제 해시태그 추출)
-          const fileUploadTags = commands
-            .filter((cmd: any) => cmd.fileName && cmd.fileUrl && cmd.savedText)
-            .map((cmd: any) => {
-              // savedText에서 해시태그 추출 (#로 시작하는 단어들)
-              const hashtagMatches = cmd.savedText.match(/#([^\s#]+)/g);
-              return hashtagMatches ? hashtagMatches.map((tag: string) => tag.substring(1)) : [];
-            })
-            .flat()
-            .filter((tag: string) => tag && tag.toLowerCase().includes(currentTag))
-            .filter((tag: string, index: number, array: string[]) => array.indexOf(tag) === index) // 중복 제거
-            .slice(0, 8); // 최대 8개 제한
-          
-          setHashSuggestions(fileUploadTags);
-          setShowHashSuggestions(fileUploadTags.length > 0);
-          setSelectedHashIndex(0);
-        }
-      } catch (error) {
-        console.error('해시태그 검색 오류:', error);
-        setHashSuggestions([]);
-        setShowHashSuggestions(false);
-      }
-      
+      const filteredTags = storedTags.filter((tag: string) => 
+        tag.toLowerCase().includes(currentTag)
+      );
+      setHashSuggestions(filteredTags);
+      setShowHashSuggestions(filteredTags.length > 0);
+      setSelectedHashIndex(0); // 선택 인덱스 초기화
       // 태그 추천 활성화 시 스마트 추천 비활성화
       setShowSmartSuggestions(false);
       setSmartSuggestions([]);
