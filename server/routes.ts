@@ -2334,10 +2334,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const { chatRoomId, search } = req.query;
+      const { chatRoomId, search, hashtag, fileOnly } = req.query;
       let commands;
       
-      if (search) {
+      if (hashtag) {
+        // 해시태그 검색 (파일 업로드 명령만 필터링)
+        commands = await storage.searchCommands(Number(userId), String(hashtag));
+      } else if (search) {
         commands = await storage.searchCommands(Number(userId), String(search));
       } else {
         commands = await storage.getCommands(Number(userId), chatRoomId ? Number(chatRoomId) : undefined);
@@ -2363,7 +2366,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       });
       
-      res.json({ commands: processedCommands });
+      // 파일 업로드 해시태그만 필터링 (fileOnly=true인 경우)
+      let filteredCommands = processedCommands;
+      if (fileOnly === 'true') {
+        filteredCommands = processedCommands.filter(command => 
+          command.fileData && command.fileData.fileName
+        );
+      }
+      
+      res.json({ commands: filteredCommands });
     } catch (error) {
       console.error('Commands API error:', error);
       res.status(500).json({ message: "Failed to get commands" });
