@@ -1200,7 +1200,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 chatRoomId: Number(req.params.chatRoomId),
                 commandName: hashtag, // Use actual hashtag instead of filename
                 messageId: message.id,
-                savedText: hashtag, // Save hashtag unencrypted for search functionality
+                savedText: content, // Save full content unencrypted for search functionality
                 fileUrl: fileUrl,
                 fileName: fileName,
                 fileSize: fileSize || null,
@@ -2376,7 +2376,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let filteredCommands = processedCommands;
       if (fileOnly === 'true') {
         filteredCommands = processedCommands.filter(command => 
-          command.fileData && command.fileData.fileName
+          command.fileName && command.fileUrl
         );
       }
       
