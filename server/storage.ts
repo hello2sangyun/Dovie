@@ -123,6 +123,11 @@ export interface IStorage {
   generateQRToken(userId: number): Promise<string>;
   getUserByQRToken(token: string): Promise<any>;
   addContactByQRToken(userId: number, token: string): Promise<{ success: boolean; contact?: any; message: string }>;
+
+  // User activity tracking for Telegram/WhatsApp-style notifications
+  updateUserActivity(userId: number, activity: { lastSeen?: Date; isOnline?: boolean }): Promise<void>;
+  getUserActivity(userId: number): Promise<{ lastSeen: Date | null; isOnline: boolean } | null>;
+  getActiveUsers(chatRoomId: number): Promise<number[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1074,6 +1079,59 @@ export class DatabaseStorage implements IStorage {
       console.error('QR 연락처 추가 오류:', error);
       return { success: false, message: "연락처 추가 중 오류가 발생했습니다." };
     }
+  }
+
+  // User activity tracking implementation for Telegram/WhatsApp-style notifications
+  async updateUserActivity(userId: number, activity: { lastSeen?: Date; isOnline?: boolean }): Promise<void> {
+    const updates: any = {};
+    
+    if (activity.lastSeen !== undefined) {
+      updates.lastSeen = activity.lastSeen;
+    }
+    
+    if (activity.isOnline !== undefined) {
+      updates.isOnline = activity.isOnline;
+    }
+    
+    await db.update(users).set(updates).where(eq(users.id, userId));
+  }
+
+  async getUserActivity(userId: number): Promise<{ lastSeen: Date | null; isOnline: boolean } | null> {
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+      columns: {
+        lastSeen: true,
+        isOnline: true
+      }
+    });
+    
+    if (!user) return null;
+    
+    return {
+      lastSeen: user.lastSeen,
+      isOnline: user.isOnline || false
+    };
+  }
+
+  async getActiveUsers(chatRoomId: number): Promise<number[]> {
+    // Get participants who were active in the last 5 minutes
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    
+    const activeParticipants = await db
+      .select({ userId: chatParticipants.userId })
+      .from(chatParticipants)
+      .innerJoin(users, eq(chatParticipants.userId, users.id))
+      .where(
+        and(
+          eq(chatParticipants.chatRoomId, chatRoomId),
+          or(
+            eq(users.isOnline, true),
+            gt(users.lastSeen, fiveMinutesAgo)
+          )
+        )
+      );
+    
+    return activeParticipants.map(p => p.userId);
   }
 }
 

@@ -1198,6 +1198,7 @@ export default function MainApp() {
       <PWABadgeManager />
       
       {/* Unread Message Badge Manager - Telegram/WhatsApp Style */}
+      <TelegramStyleNotificationManager />
       <UnreadBadgeManager />
       <TelegramBadgeManager />
       <PWABadgeWatcher />

@@ -5289,7 +5289,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Remove duplicate VAPID endpoint
+  // User activity tracking endpoints for Telegram/WhatsApp-style notifications
+  app.post("/api/user/heartbeat", async (req: any, res: any) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { timestamp, isActive } = req.body;
+      
+      // Update user's last activity timestamp
+      await storage.updateUserActivity(Number(userId), {
+        lastSeen: new Date(timestamp),
+        isOnline: isActive
+      });
+
+      console.log(`💓 Heartbeat from user ${userId}: ${isActive ? 'active' : 'inactive'}`);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Heartbeat update failed:", error);
+      res.status(500).json({ message: "Failed to update activity" });
+    }
+  });
+
+  app.post("/api/user/activity-status", async (req: any, res: any) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { isOnline, lastSeen } = req.body;
+      
+      // Update user's online status like WhatsApp
+      await storage.updateUserActivity(Number(userId), {
+        isOnline,
+        lastSeen: new Date(lastSeen)
+      });
+
+      console.log(`📡 Activity status for user ${userId}: ${isOnline ? 'online' : 'offline'}`);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Activity status update failed:", error);
+      res.status(500).json({ message: "Failed to update status" });
+    }
+  });
 
 
 
