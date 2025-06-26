@@ -1304,65 +1304,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Send push notifications to recipients - consolidated single call
+      // Send intelligent push notifications only when appropriate
       try {
         const chatRoom = await storage.getChatRoomById(Number(req.params.chatRoomId));
         if (chatRoom?.participants) {
           const sender = await storage.getUser(Number(userId));
           const recipients = chatRoom.participants.filter((p: any) => p.id !== Number(userId));
           
-          // Send single push notification to each recipient
-          for (const recipient of recipients) {
-            // Do NOT calculate unread count for push notifications
-            // Badge will be managed separately by the app based on actual database state
+          // Only send push notifications if this is NOT a system message and sender has proper display name
+          const isSystemMessage = messageData.isSystemMessage || false;
+          const hasValidSender = sender && (sender.displayName || sender.username) && 
+                                sender.displayName !== 'Dovie' && sender.username !== 'system';
+          
+          // Skip notifications for YouTube smart suggestions and system messages
+          const isYouTubeMessage = messageData.content && (
+            messageData.content.includes('🎬 YouTube 동영상') || 
+            messageData.content.includes('유튜브 검색')
+          );
+          
+          if (!isSystemMessage && hasValidSender && !isYouTubeMessage) {
+            console.log(`📱 Sending push notifications for message from ${sender.displayName || sender.username}`);
             
-            // Customize notification body based on message type
-            let notificationBody = messageData.content || '새 메시지';
-            switch (messageData.messageType) {
-              case 'voice':
-                notificationBody = messageData.content && messageData.content.trim() !== '' 
-                  ? (messageData.content.length > 50 ? messageData.content.substring(0, 47) + '...' : messageData.content)
-                  : '음성 메시지를 보냈습니다';
-                break;
-              case 'file':
-                notificationBody = '파일을 보냈습니다';
-                break;
-              case 'image':
-                notificationBody = '사진을 보냈습니다';
-                break;
-              case 'video':
-                notificationBody = '동영상을 보냈습니다';
-                break;
-              case 'youtube':
-                notificationBody = 'YouTube 동영상을 공유했습니다';
-                break;
-              default:
-                if (messageData.content && messageData.content.length > 50) {
-                  notificationBody = messageData.content.substring(0, 47) + '...';
-                }
-                break;
+            for (const recipient of recipients) {
+              // Check if recipient has push subscriptions before sending
+              const subscriptions = await storage.getUserPushSubscriptions(recipient.id);
+              if (subscriptions.length === 0) {
+                console.log(`📱 Skipping push notification for user ${recipient.id} - no subscriptions`);
+                continue;
+              }
+              
+              // Customize notification body based on message type
+              let notificationBody = messageData.content || '새 메시지';
+              switch (messageData.messageType) {
+                case 'voice':
+                  notificationBody = messageData.content && messageData.content.trim() !== '' 
+                    ? (messageData.content.length > 50 ? messageData.content.substring(0, 47) + '...' : messageData.content)
+                    : '음성 메시지를 보냈습니다';
+                  break;
+                case 'file':
+                  notificationBody = '파일을 보냈습니다';
+                  break;
+                case 'image':
+                  notificationBody = '사진을 보냈습니다';
+                  break;
+                case 'video':
+                  notificationBody = '동영상을 보냈습니다';
+                  break;
+                case 'youtube':
+                  notificationBody = 'YouTube 동영상을 공유했습니다';
+                  break;
+                default:
+                  if (messageData.content && messageData.content.length > 50) {
+                    notificationBody = messageData.content.substring(0, 47) + '...';
+                  }
+                  break;
+              }
+              
+              console.log(`📱 Sending push notification to user ${recipient.id}: ${sender.displayName || sender.username} - ${notificationBody}`);
+              
+              await sendPushNotification(recipient.id, {
+                title: sender.displayName || sender.username || '사용자',
+                body: notificationBody,
+                icon: '/icons/icon-192x192.png',
+                badge: '/icons/icon-72x72.png',
+                unreadCount: 0, // Never include badge count in push notifications
+                data: {
+                  type: 'message',
+                  chatRoomId: Number(req.params.chatRoomId),
+                  messageType: messageData.messageType || 'text',
+                  senderId: Number(userId),
+                  url: `/?chat=${req.params.chatRoomId}`
+                },
+                tag: `dovie-chat-${req.params.chatRoomId}`,
+                requireInteraction: false,
+                silent: false,
+                sound: '/notification-sound.mp3'
+              });
             }
-            
-            console.log(`Sending single push notification to user ${recipient.id}: ${sender?.displayName || '사용자'} - ${notificationBody}`);
-            
-            await sendPushNotification(recipient.id, {
-              title: sender?.displayName || sender?.username || '사용자',
-              body: notificationBody,
-              icon: '/icons/icon-192x192.png',
-              badge: '/icons/icon-72x72.png',
-              unreadCount: 0, // Never include badge count in push notifications
-              data: {
-                type: 'message',
-                chatRoomId: Number(req.params.chatRoomId),
-                messageType: messageData.messageType || 'text',
-                senderId: Number(userId),
-                url: `/?chat=${req.params.chatRoomId}`
-              },
-              tag: `dovie-chat-${req.params.chatRoomId}`,
-              requireInteraction: false,
-              silent: false,
-              sound: '/notification-sound.mp3'
-            });
+          } else {
+            console.log(`📱 Skipping push notifications - System message: ${isSystemMessage}, Valid sender: ${hasValidSender}, YouTube: ${isYouTubeMessage}`);
           }
         }
       } catch (pushError) {
