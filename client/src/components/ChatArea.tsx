@@ -2460,6 +2460,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [showHashSuggestions, setShowHashSuggestions] = useState(false);
   const [hashSuggestions, setHashSuggestions] = useState<string[]>([]);
   const [selectedHashIndex, setSelectedHashIndex] = useState(0);
+  // hashtagQuery는 기존 것 사용 (위에 선언되어 있음)
   // 음성 메시지 임시 저장 상태 (스마트 추천 선택 대기)
   const [pendingVoiceMessage, setPendingVoiceMessage] = useState<any>(null);
   // 채팅방별 저장된 명령어들을 태그로 사용
@@ -3479,6 +3480,22 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const insertHashtag = () => {
     setMessage(prev => prev + '#');
     setShowCommandSuggestions(true);
+  };
+
+  // 해시태그 선택 핸들러
+  const handleHashtagSelect = (tag: string, fileData: any) => {
+    // 선택된 해시태그로 메시지 교체
+    setMessage(`#${tag}`);
+    
+    // 해시태그 모달 닫기
+    setShowHashtagSuggestion(false);
+    setHashtagQuery('');
+    
+    // 파일 데이터가 있으면 해당 파일 정보 표시 또는 전송
+    if (fileData) {
+      console.log('Selected file data:', fileData);
+      // 선택적으로 파일 정보를 채팅에 표시하거나 다운로드 링크 제공
+    }
   };
 
   // Message context menu handlers
