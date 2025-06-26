@@ -3398,11 +3398,17 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           const data = await response.json();
           const commands = data.commands || [];
           
-          // 파일 업로드로 생성된 해시태그만 필터링 (파일 데이터가 있는 것만)
+          // 파일 업로드로 생성된 해시태그만 필터링 (savedText에서 실제 해시태그 추출)
           const fileUploadTags = commands
-            .filter((cmd: any) => cmd.fileName && cmd.fileUrl)
-            .map((cmd: any) => cmd.commandName)
-            .filter((tag: string) => tag.toLowerCase().includes(currentTag))
+            .filter((cmd: any) => cmd.fileName && cmd.fileUrl && cmd.savedText)
+            .map((cmd: any) => {
+              // savedText에서 해시태그 추출 (#로 시작하는 단어들)
+              const hashtagMatches = cmd.savedText.match(/#([^\s#]+)/g);
+              return hashtagMatches ? hashtagMatches.map((tag: string) => tag.substring(1)) : [];
+            })
+            .flat()
+            .filter((tag: string) => tag && tag.toLowerCase().includes(currentTag))
+            .filter((tag: string, index: number, array: string[]) => array.indexOf(tag) === index) // 중복 제거
             .slice(0, 8); // 최대 8개 제한
           
           setHashSuggestions(fileUploadTags);
