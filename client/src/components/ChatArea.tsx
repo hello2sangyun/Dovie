@@ -3391,24 +3391,22 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     // 입력할 때마다 자동으로 임시 저장
     saveDraftMessage(chatRoomId, value);
     
-    // # 태그 감지 및 추천 (모든 언어 지원)
-    const hashMatch = value.match(/#([^#\s]*)$/);
-    if (hashMatch) {
-      const currentTag = hashMatch[1].toLowerCase();
-      const filteredTags = storedTags.filter((tag: string) => 
-        tag.toLowerCase().includes(currentTag)
-      );
-      setHashSuggestions(filteredTags);
-      setShowHashSuggestions(filteredTags.length > 0);
-      setSelectedHashIndex(0); // 선택 인덱스 초기화
-      // 태그 추천 활성화 시 스마트 추천 비활성화
+    // # 태그 감지 및 실시간 추천 - 메시지 시작 부분에 #이 입력되면 즉시 모달 표시
+    if (value.startsWith('#')) {
+      const searchQuery = value.slice(1); // # 제거한 검색어
+      
+      // 해시태그 추천 모달 표시
+      setShowHashtagSuggestion(true);
+      setHashtagQuery(searchQuery);
+      
+      // 스마트 추천 비활성화
       setShowSmartSuggestions(false);
       setSmartSuggestions([]);
       return; // 태그 모드일 때는 스마트 추천 로직 실행하지 않음
     } else {
-      setShowHashSuggestions(false);
-      setHashSuggestions([]);
-      setSelectedHashIndex(0);
+      // # 으로 시작하지 않으면 해시태그 모달 닫기
+      setShowHashtagSuggestion(false);
+      setHashtagQuery('');
     }
     
     if (value.trim().length < 2) {
@@ -6359,6 +6357,18 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         onClose={() => setShowLocationShareModal(false)}
         chatRoomId={chatRoomId}
         requestId={locationRequestId}
+      />
+
+      {/* Hashtag Suggestion Modal */}
+      <HashtagSuggestion
+        isVisible={showHashtagSuggestion}
+        searchQuery={hashtagQuery}
+        onSelectTag={handleHashtagSelect}
+        onClose={() => {
+          setShowHashtagSuggestion(false);
+          setHashtagQuery('');
+        }}
+        chatRoomId={chatRoomId}
       />
 
       {/* YouTube Selection Modal */}
