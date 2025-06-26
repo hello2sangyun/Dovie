@@ -1173,11 +1173,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Extract hashtags from message content first
       let extractedHashtags: string[] = [];
       if (messageData.content && typeof messageData.content === 'string' && !skipHashtagExtraction) {
-        const hashtagRegex = /#[\w가-힣]+/g;
+        console.log(`📝 Message content for hashtag extraction: "${messageData.content}"`);
+        
+        // Enhanced regex to match hashtags with Korean, alphanumeric, and underscore characters
+        const hashtagRegex = /#[\w가-힣_]+/g;
         const hashtagMatches = messageData.content.match(hashtagRegex);
-        if (hashtagMatches) {
+        
+        if (hashtagMatches && hashtagMatches.length > 0) {
           extractedHashtags = hashtagMatches.map(tag => tag.slice(1)); // Remove # symbol
-          console.log(`Found hashtags in message: ${hashtagMatches.join(', ')}`);
+          console.log(`✅ Found hashtags in message: ${hashtagMatches.join(', ')}`);
+          console.log(`📋 Extracted hashtag names: ${extractedHashtags.join(', ')}`);
+        } else {
+          console.log(`❌ No hashtags found in message content`);
         }
       }
       
@@ -1187,6 +1194,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         if (extractedHashtags.length > 0) {
           // Save file with each user-provided hashtag as separate commands
+          console.log(`💾 Saving file with ${extractedHashtags.length} user hashtags: ${extractedHashtags.join(', ')}`);
           for (const hashtag of extractedHashtags) {
             try {
               await storage.saveCommand({
@@ -1201,13 +1209,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 originalSenderId: Number(userId),
                 originalTimestamp: new Date()
               });
-              console.log(`Successfully saved file with hashtag: #${hashtag}`);
+              console.log(`✅ Successfully saved file with hashtag: "${hashtag}" (will show as #${hashtag})`);
             } catch (error) {
-              console.log(`Failed to save file with hashtag ${hashtag}:`, error);
+              console.log(`❌ Failed to save file with hashtag ${hashtag}:`, error);
             }
           }
         } else {
           // Fallback: save with filename if no hashtags provided
+          console.log(`📁 No hashtags found, falling back to filename-based storage`);
           try {
             const commandName = messageData.fileName.split('.')[0];
             await storage.saveCommand({
@@ -1222,9 +1231,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               originalSenderId: Number(userId),
               originalTimestamp: new Date()
             });
-            console.log(`Successfully auto-saved file with filename: ${commandName}`);
+            console.log(`✅ Successfully auto-saved file with filename: ${commandName}`);
           } catch (error) {
-            console.log(`Failed to auto-save file ${messageData.fileName}:`, error);
+            console.log(`❌ Failed to auto-save file ${messageData.fileName}:`, error);
           }
         }
       }
