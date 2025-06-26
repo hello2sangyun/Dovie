@@ -224,108 +224,107 @@ async function removePendingMessage(messageId) {
   console.log('[SW] Would remove pending message:', messageId);
 }
 
-// Handle push notifications - iPhone & Android PWA optimized
+// Telegram/WhatsApp-style push notification handler
 self.addEventListener('push', (event) => {
-  console.log('[SW] 🔔 PWA Push notification received:', event);
-  console.log('[SW] 🔔 User Agent:', navigator.userAgent);
-  console.log('[SW] 🔔 Service Worker registration:', self.registration);
+  console.log('[SW] Telegram-style push received:', event);
   
-  // Detect device type for PWA optimization
+  // Device detection for platform-specific optimizations
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const isAndroid = /Android/.test(navigator.userAgent);
-  
-  console.log('[SW] 🔔 Device detection - iOS:', isIOS, 'Android:', isAndroid);
   
   let notificationData = {};
   if (event.data) {
     try {
       notificationData = event.data.json();
-      console.log('[SW] 🔔 Notification data parsed:', notificationData);
+      console.log('[SW] Parsed notification data:', notificationData);
     } catch (e) {
-      console.error('[SW] 🔔 Failed to parse notification data:', e);
-      // Fallback for PWA
-      const textData = event.data.text();
-      console.log('[SW] 🔔 Raw notification text:', textData);
+      console.error('[SW] Failed to parse notification:', e);
       notificationData = { 
-        title: 'Dovie Messenger',
-        body: textData || '새 메시지가 도착했습니다.'
+        title: '새 메시지',
+        body: event.data.text() || '메시지를 확인하세요'
       };
     }
   } else {
-    console.log('[SW] 🔔 No notification data provided - using default');
+    console.log('[SW] No data - using default notification');
     notificationData = {
-      title: 'Dovie Messenger',
-      body: '새 메시지가 도착했습니다.'
+      title: '새 메시지',
+      body: '메시지를 확인하세요'
     };
   }
   
-  // PWA critical notification options - optimized for iOS Safari & Android Chrome
+  // Telegram/WhatsApp-style notification options
   const options = {
-    body: notificationData.body || '새 메시지가 도착했습니다.',
+    body: notificationData.body || '메시지를 확인하세요',
     icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-72x72.png', 
-    tag: 'dovie-message-' + Date.now(), // Unique tag for PWA
+    badge: '/icons/icon-72x72.png',
+    tag: notificationData.tag || `dovie-chat-${notificationData.data?.chatRoomId || Date.now()}`,
     data: {
       url: notificationData.data?.url || '/',
       type: notificationData.data?.type || 'message',
-      timestamp: Date.now(),
+      timestamp: notificationData.timestamp || Date.now(),
       chatRoomId: notificationData.data?.chatRoomId,
       messageId: notificationData.data?.messageId,
+      senderId: notificationData.data?.senderId,
+      senderName: notificationData.data?.senderName,
+      unreadCount: notificationData.data?.unreadCount || 0,
       ...notificationData.data
     },
-    // PWA optimized settings - critical for iOS & Android
-    requireInteraction: false, // Allow auto-dismiss
-    silent: false, // Enable sound
-    vibrate: isIOS ? [200, 100, 200] : [200, 100, 200, 100, 200], // iOS vs Android vibration
-    timestamp: Date.now(),
-    renotify: true, // Force new notification
-    // Device specific
+    // Telegram/WhatsApp behavior patterns
+    requireInteraction: false,
+    silent: false,
+    vibrate: isIOS ? [200, 100, 200] : [300, 100, 300, 100, 300], // WhatsApp pattern
+    timestamp: notificationData.timestamp || Date.now(),
+    renotify: true, // Replace previous notifications like Telegram
     dir: 'auto',
     lang: 'ko-KR',
-    // Android specific optimization
+    // Telegram-style actions (when supported)
+    actions: isIOS ? [] : [
+      {
+        action: 'reply',
+        title: '답장',
+        type: 'text',
+        placeholder: '메시지를 입력하세요...'
+      },
+      {
+        action: 'mark_read',
+        title: '읽음으로 표시'
+      }
+    ],
+    // Platform-specific optimizations
     ...(isAndroid && {
       priority: 'high',
       urgency: 'high'
-    }),
-    // iOS specific optimization  
-    ...(isIOS && {
-      actions: [] // iOS PWA needs empty actions array
     })
   };
   
-  console.log('[SW] 🔔 PWA showing notification with options:', options);
-  console.log('[SW] 🔔 Notification title:', notificationData.title || 'Dovie Messenger');
+  console.log('[SW] Showing Telegram-style notification:', {
+    title: notificationData.title,
+    body: options.body,
+    tag: options.tag
+  });
   
   event.waitUntil(
-    Promise.all([
-      // Critical: Show notification with enhanced error handling for PWA
-      self.registration.showNotification(
-        notificationData.title || 'Dovie Messenger', 
-        options
-      ).then(() => {
-        console.log('[SW] ✅ PWA notification shown successfully');
-        // Do NOT update badge here - let the app handle badge based on actual unread count
-        return Promise.resolve();
-      }).catch((error) => {
-        console.error('[SW] ❌ PWA notification failed:', error);
-        console.error('[SW] ❌ Error details:', error.message, error.stack);
-        // Try simple notification as fallback
-        return self.registration.showNotification('새 메시지', {
-          body: '메시지를 확인하세요',
-          icon: '/icons/icon-192x192.png',
-          silent: false
-        }).catch((fallbackError) => {
-          console.error('[SW] ❌ Fallback notification also failed:', fallbackError);
-          // Last resort - minimal notification
-          return self.registration.showNotification('Dovie');
-        });
-      }),
-      // Do NOT update badge here - let the app handle badge based on actual unread count
-    ]).then(() => {
-      console.log('[SW] 🔔 PWA notification process completed');
+    self.registration.showNotification(
+      notificationData.title || '새 메시지',
+      options
+    ).then(() => {
+      console.log('[SW] Telegram-style notification displayed');
+      
+      // Update badge only if unread count is provided (like Telegram)
+      if (notificationData.data?.unreadCount > 0) {
+        return setTelegramStyleBadge(notificationData.data.unreadCount);
+      }
     }).catch((error) => {
-      console.error('[SW] 🔔 PWA notification process failed:', error);
+      console.error('[SW] Notification failed:', error);
+      
+      // Telegram-style fallback - simple notification
+      return self.registration.showNotification('새 메시지', {
+        body: '메시지를 확인하세요',
+        icon: '/icons/icon-192x192.png',
+        tag: `dovie-fallback-${Date.now()}`,
+        silent: false
+      });
     })
   );
 });
@@ -403,49 +402,123 @@ self.addEventListener('message', (event) => {
 
 // Removed duplicate message listener - handled above
 
-// Handle notification clicks - iPhone PWA optimized
+// Telegram/WhatsApp-style notification click handler
 self.addEventListener('notificationclick', (event) => {
-  console.log('[SW] 📱 iPhone PWA notification clicked:', event.action);
-  console.log('[SW] 📱 Notification data:', event.notification.data);
+  console.log('[SW] Notification clicked - Action:', event.action);
+  console.log('[SW] Notification data:', event.notification.data);
   
   event.notification.close();
   
-  // Removed automatic badge clearing on notification click - badge should reflect actual unread count
-  
-  // iPhone PWA optimized window handling
-  const urlToOpen = event.notification.data?.url || '/';
   const chatRoomId = event.notification.data?.chatRoomId;
-  const finalUrl = chatRoomId ? `/?chat=${chatRoomId}` : urlToOpen;
+  const messageId = event.notification.data?.messageId;
+  const senderId = event.notification.data?.senderId;
   
-  console.log('[SW] 📱 Opening URL:', finalUrl);
+  // Handle Telegram-style notification actions
+  if (event.action === 'reply') {
+    console.log('[SW] Reply action triggered');
+    event.waitUntil(handleReplyAction(chatRoomId, messageId));
+    return;
+  }
+  
+  if (event.action === 'mark_read') {
+    console.log('[SW] Mark read action triggered');
+    event.waitUntil(handleMarkReadAction(chatRoomId, messageId));
+    return;
+  }
+  
+  // Default action - open chat (like Telegram/WhatsApp)
+  const urlToOpen = chatRoomId ? `/?chat=${chatRoomId}` : '/';
+  
+  console.log('[SW] Opening chat:', urlToOpen);
   
   event.waitUntil(
     self.clients.matchAll({
       type: 'window',
       includeUncontrolled: true
     }).then((clientList) => {
-      // iPhone PWA: Try to focus existing window first
+      // Try to focus existing window first (like Telegram/WhatsApp)
       for (const client of clientList) {
         if (client.url.includes(self.location.origin) && 'focus' in client) {
-          console.log('[SW] 📱 Focusing existing window');
+          console.log('[SW] Focusing existing window');
           client.postMessage({
             type: 'NOTIFICATION_CLICKED',
-            url: finalUrl,
-            chatRoomId: chatRoomId
+            url: urlToOpen,
+            chatRoomId: chatRoomId,
+            messageId: messageId,
+            action: 'open_chat'
           });
           return client.focus();
         }
       }
-      // If no existing window, open new one
-      console.log('[SW] 📱 Opening new window');
-      return self.clients.openWindow(finalUrl);
+      // Open new window if none exists
+      console.log('[SW] Opening new window');
+      return self.clients.openWindow(urlToOpen);
     }).catch((error) => {
-      console.error('[SW] 📱 Failed to handle notification click:', error);
-      // Fallback: just try to open window
-      return self.clients.openWindow(finalUrl);
+      console.error('[SW] Failed to handle notification click:', error);
+      return self.clients.openWindow(urlToOpen);
     })
   );
 });
+
+// Telegram-style reply action handler
+async function handleReplyAction(chatRoomId, messageId) {
+  try {
+    console.log('[SW] Handling reply action for chat:', chatRoomId);
+    
+    // Focus app and open reply interface
+    const clients = await self.clients.matchAll({ type: 'window' });
+    for (const client of clients) {
+      if (client.url.includes(self.location.origin)) {
+        client.postMessage({
+          type: 'QUICK_REPLY',
+          chatRoomId: chatRoomId,
+          messageId: messageId
+        });
+        return client.focus();
+      }
+    }
+    
+    // Open new window with reply interface
+    return self.clients.openWindow(`/?chat=${chatRoomId}&reply=${messageId}`);
+  } catch (error) {
+    console.error('[SW] Reply action failed:', error);
+  }
+}
+
+// Telegram-style mark read action handler
+async function handleMarkReadAction(chatRoomId, messageId) {
+  try {
+    console.log('[SW] Marking chat as read:', chatRoomId);
+    
+    // Send mark read request to API
+    const response = await fetch(`/api/chat-rooms/${chatRoomId}/mark-read`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ messageId })
+    });
+    
+    if (response.ok) {
+      console.log('[SW] Chat marked as read successfully');
+      
+      // Update badge count (like Telegram)
+      const clients = await self.clients.matchAll({ type: 'window' });
+      for (const client of clients) {
+        if (client.url.includes(self.location.origin)) {
+          client.postMessage({
+            type: 'CHAT_MARKED_READ',
+            chatRoomId: chatRoomId
+          });
+        }
+      }
+    } else {
+      console.error('[SW] Failed to mark chat as read');
+    }
+  } catch (error) {
+    console.error('[SW] Mark read action failed:', error);
+  }
+}
 
 // Handle notification close
 self.addEventListener('notificationclose', (event) => {

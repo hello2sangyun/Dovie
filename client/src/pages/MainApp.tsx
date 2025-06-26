@@ -30,6 +30,7 @@ import PWABadgeManager from "@/components/PWABadgeManager";
 import { PWABadgeWatcher } from "@/components/PWABadgeWatcher";
 import TelegramBadgeManager from "@/components/TelegramBadgeManager";
 import UnreadBadgeManager from "@/components/UnreadBadgeManager";
+import { TelegramStyleNotificationManager } from "@/components/TelegramStyleNotificationManager";
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
 

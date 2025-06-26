@@ -39,36 +39,52 @@ export async function sendPushNotification(
       return;
     }
 
-    // Do NOT include badge count in push notification payload
-    // Badge will be managed separately by the app based on actual unread messages
-    const badgeCount = 0; // Always send 0 to prevent notification system from affecting badge
-    
-    // iOS 16+ PWA 최적화 알림 페이로드
+    // Telegram/WhatsApp-style notification payload
     const notificationPayload = JSON.stringify({
       title: payload.title || "새 메시지",
       body: payload.body || "새 메시지가 도착했습니다",
       icon: '/icons/icon-192x192.png',
       badge: '/icons/icon-72x72.png',
-      unreadCount: 0, // Always 0 - badge managed independently by app
       data: {
-        url: '/',
-        timestamp: Date.now(),
-        type: 'message',
+        url: payload.data?.url || '/',
+        timestamp: payload.timestamp || Date.now(),
+        type: payload.data?.type || 'message',
         chatRoomId: payload.data?.chatRoomId,
         messageId: payload.data?.messageId,
+        senderId: payload.data?.senderId,
+        senderName: payload.data?.senderName,
+        unreadCount: payload.data?.unreadCount || 0,
+        // Telegram-style actions
+        actions: [
+          {
+            action: 'reply',
+            title: '답장',
+            icon: '/icons/reply-icon.png'
+          },
+          {
+            action: 'mark_read',
+            title: '읽음',
+            icon: '/icons/read-icon.png'
+          }
+        ],
         ...payload.data
       },
-      tag: 'dovie-message-' + Date.now(), // Unique tag for iPhone PWA
-      requireInteraction: false, // Critical for iPhone PWA auto-dismiss
-      silent: false, // Enable sound on iPhone PWA
-      vibrate: [200, 100, 200], // Simplified vibration for iPhone
-      renotify: true, // Force new notification on iPhone
-      // iPhone PWA specific optimizations
+      // WhatsApp/Telegram-style notification settings
+      tag: payload.tag || `dovie-chat-${payload.data?.chatRoomId}`,
+      requireInteraction: payload.requireInteraction || false,
+      silent: payload.silent || false,
+      vibrate: [200, 100, 200, 100, 200], // Telegram-style vibration pattern
+      renotify: payload.renotify || true,
+      // Telegram-style notification grouping and persistence
+      persistent: true,
+      sticky: false,
       dir: 'auto',
-      lang: 'ko-KR'
+      lang: 'ko-KR',
+      // WhatsApp-style priority and urgency
+      urgency: 'high'
     });
 
-    // Send notifications to all user devices
+    // Send notifications to all user devices with Telegram/WhatsApp optimizations
     const sendPromises = subscriptions.map(async (subscription) => {
       try {
         const pushSubscription = {
@@ -79,43 +95,51 @@ export async function sendPushNotification(
           }
         };
 
+        // Telegram/WhatsApp-style delivery options
         const options = {
-          TTL: 60 * 60 * 24, // 24 hours
-          urgency: 'high' as const, // High priority for iPhone PWA
+          TTL: 60 * 60 * 24 * 7, // 7 days (like Telegram)
+          urgency: 'high' as const,
           headers: {
             'Topic': 'dovie-messenger',
-            // iOS PWA 특화 헤더
-            'apns-priority': '10', // 최고 우선순위
+            // iOS optimizations (like WhatsApp iOS)
+            'apns-priority': '10',
             'apns-push-type': 'alert',
-            'apns-topic': 'com.dovie.messenger'
+            'apns-topic': 'com.dovie.messenger',
+            'apns-collapse-id': payload.tag, // Group notifications like WhatsApp
+            // Android optimizations (like Telegram Android)
+            'FCM-Collapse-Key': payload.tag,
+            'FCM-Priority': 'high'
           }
         };
 
-        console.log(`Sending push notification to user ${userId}:`, {
-          endpoint: subscription.endpoint,
-          payload: JSON.parse(notificationPayload)
+        console.log(`📱 Sending Telegram-style notification to user ${userId}:`, {
+          endpoint: subscription.endpoint.substring(0, 50) + '...',
+          title: payload.title,
+          body: payload.body,
+          tag: payload.tag
         });
 
         const result = await webpush.sendNotification(pushSubscription, notificationPayload, options);
-        console.log(`Push notification sent successfully to user ${userId}:`, result);
+        console.log(`📱 Notification delivered successfully to user ${userId}`);
       } catch (error) {
-        console.error(`Failed to send push notification to user ${userId}:`, error);
+        console.error(`❌ Failed to send notification to user ${userId}:`, error);
         
-        // Remove invalid subscriptions
+        // Clean up invalid subscriptions (like WhatsApp/Telegram)
         if (error instanceof Error && (
           error.message.includes('410') || 
           error.message.includes('invalid') ||
-          error.message.includes('expired')
+          error.message.includes('expired') ||
+          error.message.includes('unsubscribed')
         )) {
           await storage.deletePushSubscription(userId, subscription.endpoint);
-          console.log(`Removed invalid push subscription for user ${userId}`);
+          console.log(`🧹 Removed invalid subscription for user ${userId}`);
         }
       }
     });
 
     await Promise.allSettled(sendPromises);
   } catch (error) {
-    console.error('Error sending push notifications:', error);
+    console.error('❌ Push notification system error:', error);
   }
 }
 
