@@ -16,10 +16,10 @@ export function UnreadBadgeManager() {
   const { data: unreadData, isSuccess, isError } = useQuery({
     queryKey: ['/api/unread-counts'],
     enabled: !!user,
-    staleTime: 0,
+    staleTime: 10000, // 10초 캐시로 성능 개선
     refetchOnMount: true,
     refetchOnWindowFocus: true,
-    refetchInterval: 1000, // Every second for real-time accuracy
+    refetchInterval: 30000, // 30초마다 업데이트로 배터리 절약
     refetchOnReconnect: true,
     retry: 5,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
