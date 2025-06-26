@@ -3381,7 +3381,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     // 입력할 때마다 자동으로 임시 저장
     saveDraftMessage(chatRoomId, value);
     
-    // # 태그 감지 및 추천 - 즉시 트리거 (문장 시작 또는 끝에서)
+    // # 태그 감지 및 추천 - 즉시 트리거 (# 입력 즉시)
     const hashMatch = value.match(/#([^#\s]*)$/);
     if (hashMatch) {
       const currentTag = hashMatch[1].toLowerCase();
@@ -3400,7 +3400,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           
           // 파일 업로드로 생성된 해시태그만 필터링 (파일 데이터가 있는 것만)
           const fileUploadTags = commands
-            .filter((cmd: any) => cmd.fileData && cmd.fileData.fileName)
+            .filter((cmd: any) => cmd.fileName && cmd.fileUrl)
             .map((cmd: any) => cmd.commandName)
             .filter((tag: string) => tag.toLowerCase().includes(currentTag))
             .slice(0, 8); // 최대 8개 제한
