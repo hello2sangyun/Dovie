@@ -1194,7 +1194,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 chatRoomId: Number(req.params.chatRoomId),
                 commandName: hashtag, // Use actual hashtag instead of filename
                 messageId: message.id,
-                savedText: messageData.content || null,
+                savedText: hashtag, // Save hashtag unencrypted for search functionality
                 fileUrl: messageData.fileUrl,
                 fileName: messageData.fileName,
                 fileSize: messageData.fileSize || null,
