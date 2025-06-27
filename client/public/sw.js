@@ -609,6 +609,16 @@ self.addEventListener('message', (event) => {
         console.log('[SW] Setting document title badge:', event.data.title);
       }
       break;
+    case 'ENABLE_BACKGROUND_REFRESH':
+      // Enable periodic badge refresh when app goes to background
+      console.log('[SW] Enabling background badge refresh');
+      setTimeout(() => refreshBadgeFromServer(), event.data.interval || 300000);
+      break;
+    case 'FORCE_BADGE_REFRESH':
+      // Force immediate badge refresh from server
+      console.log('[SW] Force badge refresh requested');
+      refreshBadgeFromServer();
+      break;
   }
 });
 

@@ -901,6 +901,17 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - **Enhanced Service Worker** with Telegram-style notification actions (Reply, Mark as Read) and proper notification click handling
   - **Complete intelligent workflow**: User activity detection → notification suppression for active users → grouped notifications → action handling
   - **System now behaves exactly like Telegram/WhatsApp**: no spam notifications when actively using app, smart notification management
+- June 26, 2025: **IMPLEMENTED comprehensive independent PWA badge system for closed app functionality**:
+  - **Created independent badge system** that works without app execution using enhanced Service Worker with IndexedDB persistence
+  - **Implemented authentication token storage** in Service Worker for server badge refresh when app is completely closed
+  - **Added background badge refresh** with periodic server synchronization (5-30 minute intervals) independent of push notifications
+  - **Enhanced Service Worker** with badge persistence, document title fallback, and automatic refresh scheduling
+  - **Created useIndependentBadge hook** for app startup badge restoration and background refresh management
+  - **Integrated auth token storage** in useAuth hook to enable badge updates when app is inactive
+  - **Added multiple fallback systems**: PWA Badge API → Service Worker messaging → document title → favicon badge
+  - **Complete independent workflow**: app closed → Service Worker maintains auth → periodic server refresh → badge updates
+  - **Technical solution**: PWA badge limitations solved by persistent Service Worker with server communication and IndexedDB storage
+  - **Result**: Badge now updates accurately even when app hasn't been opened, similar to native messaging apps
 
 ## User Preferences
 
