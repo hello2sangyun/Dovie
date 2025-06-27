@@ -165,12 +165,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Store auth token in Service Worker for independent badge updates
+  const storeAuthTokenInSW = async (userId: string) => {
+    try {
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        // Store user ID as auth token for badge refresh
+        navigator.serviceWorker.controller.postMessage({
+          type: 'STORE_AUTH_TOKEN',
+          token: userId,
+          timestamp: Date.now()
+        });
+        console.log('[Auth] Stored auth token in Service Worker for badge refresh');
+      }
+    } catch (error) {
+      console.error('[Auth] Failed to store auth token in SW:', error);
+    }
+  };
+
   useEffect(() => {
     if (data?.user && !initialized) {
       console.log("🔄 Auth context updating user:", data.user.id, "profilePicture:", data.user.profilePicture);
       setUser(data.user);
       setInitialized(true);
       setProfileImagesLoaded(true); // Skip image preloading to prevent loading issues
+      
+      // Store auth token for independent badge refresh
+      storeAuthTokenInSW(data.user.id.toString());
       
       // 프로필 이미지 프리로딩을 백그라운드에서 실행 (앱 로딩을 차단하지 않음)
       preloadProfileImages(data.user.id.toString()).catch(() => {

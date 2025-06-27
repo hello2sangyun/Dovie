@@ -174,7 +174,7 @@ function shouldCacheApiResponse(pathname) {
   return API_CACHE_PATTERNS.some(pattern => pattern.test(pathname));
 }
 
-// Handle background sync for offline messages
+// Handle background sync for offline messages and badge refresh
 self.addEventListener('sync', (event) => {
   console.log('[SW] Background sync triggered:', event.tag);
   
@@ -182,6 +182,9 @@ self.addEventListener('sync', (event) => {
     event.waitUntil(syncOfflineMessages());
   } else if (event.tag === 'background-sync') {
     event.waitUntil(syncOfflineMessages());
+  } else if (event.tag === 'badge-refresh') {
+    // Independent badge refresh when app is closed
+    event.waitUntil(refreshBadgeFromServer());
   }
 });
 
@@ -329,12 +332,14 @@ self.addEventListener('push', (event) => {
   );
 });
 
-// Telegram/WhatsApp style badge function - shows exact unread count
+// Enhanced independent badge system - works without app execution
 async function setTelegramStyleBadge(count) {
   try {
-    // Ensure count is a valid number
     const badgeCount = Math.max(0, parseInt(count) || 0);
-    console.log('[SW] 📱 Setting Telegram-style badge:', badgeCount);
+    console.log('[SW] 📱 Setting independent badge:', badgeCount);
+    
+    // Store badge count persistently for app startup
+    await storeBadgeCount(badgeCount);
     
     if ('setAppBadge' in navigator) {
       if (badgeCount > 0) {
@@ -345,10 +350,202 @@ async function setTelegramStyleBadge(count) {
         console.log('[SW] ✅ Badge cleared (0 unread)');
       }
     } else {
-      console.log('[SW] ⚠️ setAppBadge not supported, badge count:', badgeCount);
+      // Fallback for unsupported browsers
+      await updateDocumentTitle(badgeCount);
     }
+    
+    // Schedule periodic badge refresh to maintain accuracy
+    await scheduleBadgeRefresh();
   } catch (error) {
     console.error('[SW] ❌ Badge update failed:', error);
+  }
+}
+
+// Store badge count in persistent storage
+async function storeBadgeCount(count) {
+  try {
+    // Use IndexedDB for persistent storage across app sessions
+    const request = indexedDB.open('DovieBadgeDB', 1);
+    
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains('badgeStore')) {
+        db.createObjectStore('badgeStore');
+      }
+    };
+    
+    return new Promise((resolve, reject) => {
+      request.onsuccess = (event) => {
+        const db = event.target.result;
+        const transaction = db.transaction(['badgeStore'], 'readwrite');
+        const store = transaction.objectStore('badgeStore');
+        
+        store.put({
+          count: count,
+          timestamp: Date.now(),
+          lastSync: Date.now()
+        }, 'currentBadge');
+        
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => reject(transaction.error);
+      };
+      
+      request.onerror = () => reject(request.error);
+    });
+  } catch (error) {
+    console.error('[SW] Failed to store badge count:', error);
+  }
+}
+
+// Document title fallback for badge indication
+async function updateDocumentTitle(count) {
+  try {
+    const clients = await self.clients.matchAll();
+    clients.forEach(client => {
+      if (count > 0) {
+        client.postMessage({
+          type: 'UPDATE_TITLE_BADGE',
+          count: count,
+          title: `(${count}) Dovie Messenger`
+        });
+      } else {
+        client.postMessage({
+          type: 'UPDATE_TITLE_BADGE', 
+          count: 0,
+          title: 'Dovie Messenger'
+        });
+      }
+    });
+  } catch (error) {
+    console.error('[SW] Failed to update document title:', error);
+  }
+}
+
+// Schedule periodic badge refresh for apps that remain closed
+async function scheduleBadgeRefresh() {
+  try {
+    // Register periodic background sync if available
+    if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+      await self.registration.sync.register('badge-refresh');
+    }
+    
+    // Also use setTimeout as fallback
+    setTimeout(async () => {
+      await refreshBadgeFromServer();
+    }, 300000); // 5 minutes
+  } catch (error) {
+    console.error('[SW] Badge refresh scheduling failed:', error);
+  }
+}
+
+// Refresh badge count from server when app is closed
+async function refreshBadgeFromServer() {
+  try {
+    console.log('[SW] Refreshing badge from server (app closed)');
+    
+    // Get stored authentication token (user ID)
+    const userId = await getStoredAuthToken();
+    if (!userId) {
+      console.log('[SW] No auth token - skipping badge refresh');
+      return;
+    }
+    
+    // Fetch unread count from server using user ID header
+    const response = await fetch('/api/unread-counts', {
+      headers: {
+        'x-user-id': userId,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      const totalUnread = data.unreadCounts ? 
+        data.unreadCounts.reduce((sum, room) => sum + (room.unreadCount || 0), 0) : 0;
+      
+      console.log('[SW] Server badge refresh - total unread:', totalUnread);
+      await setTelegramStyleBadge(totalUnread);
+      
+      // Schedule next refresh
+      setTimeout(() => refreshBadgeFromServer(), 600000); // 10분 후 재시도
+    } else {
+      console.log('[SW] Badge refresh failed - status:', response.status);
+      // 실패시 더 긴 간격으로 재시도
+      setTimeout(() => refreshBadgeFromServer(), 1800000); // 30분 후 재시도
+    }
+  } catch (error) {
+    console.error('[SW] Badge refresh from server failed:', error);
+    // 네트워크 오류시 재시도
+    setTimeout(() => refreshBadgeFromServer(), 900000); // 15분 후 재시도
+  }
+}
+
+// Get stored authentication token from IndexedDB
+async function getStoredAuthToken() {
+  try {
+    const request = indexedDB.open('DovieAuthDB', 1);
+    
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains('authStore')) {
+        db.createObjectStore('authStore');
+      }
+    };
+    
+    return new Promise((resolve, reject) => {
+      request.onsuccess = (event) => {
+        const db = event.target.result;
+        const transaction = db.transaction(['authStore'], 'readonly');
+        const store = transaction.objectStore('authStore');
+        const getRequest = store.get('authToken');
+        
+        getRequest.onsuccess = () => {
+          const result = getRequest.result;
+          resolve(result ? result.token : null);
+        };
+        
+        getRequest.onerror = () => resolve(null);
+      };
+      
+      request.onerror = () => resolve(null);
+    });
+  } catch (error) {
+    console.error('[SW] Failed to get auth token:', error);
+    return null;
+  }
+}
+
+// Store authentication token for badge refresh
+async function storeAuthToken(token) {
+  try {
+    const request = indexedDB.open('DovieAuthDB', 1);
+    
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains('authStore')) {
+        db.createObjectStore('authStore');
+      }
+    };
+    
+    return new Promise((resolve, reject) => {
+      request.onsuccess = (event) => {
+        const db = event.target.result;
+        const transaction = db.transaction(['authStore'], 'readwrite');
+        const store = transaction.objectStore('authStore');
+        
+        store.put({
+          token: token,
+          timestamp: Date.now()
+        }, 'authToken');
+        
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => reject(transaction.error);
+      };
+      
+      request.onerror = () => reject(request.error);
+    });
+  } catch (error) {
+    console.error('[SW] Failed to store auth token:', error);
   }
 }
 
@@ -393,6 +590,11 @@ self.addEventListener('message', (event) => {
       console.log('[SW] Force setting badge:', event.data.count);
       updateAppBadge(event.data.count || 0);
       break;
+    case 'STORE_AUTH_TOKEN':
+      // Store authentication token for independent badge refresh
+      console.log('[SW] Storing auth token for badge refresh');
+      storeAuthToken(event.data.token);
+      break;
     case 'INIT_BADGE_SYSTEM':
       // Initialize badge system independent of push notifications
       console.log('[SW] Badge system initialized - independent mode');
@@ -400,6 +602,12 @@ self.addEventListener('message', (event) => {
     case 'APP_FOCUS':
       // App focused - badge stays exactly as database indicates
       console.log('[SW] App focused - badge remains database-accurate');
+      break;
+    case 'UPDATE_TITLE_BADGE':
+      // Handle document title badge updates for unsupported browsers
+      if (event.data.count > 0) {
+        console.log('[SW] Setting document title badge:', event.data.title);
+      }
       break;
   }
 });
