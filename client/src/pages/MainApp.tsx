@@ -21,6 +21,7 @@ import ZeroDelayAvatar from "@/components/ZeroDelayAvatar";
 
 import { usePWABadge } from "@/hooks/usePWABadge";
 import { usePWABadgeManager } from "@/hooks/usePWABadgeManager";
+import { useIndependentBadge } from "@/hooks/useIndependentBadge";
 import QRCodeModal from "@/components/QRCodeModal";
 import InstantAvatar from "@/components/InstantAvatar";
 import { BannerNotificationContainer } from "@/components/MobileBannerNotification";
@@ -72,6 +73,9 @@ export default function MainApp() {
   
   // Comprehensive PWA badge manager for accurate total count
   const { currentBadgeCount, totalUnread } = usePWABadgeManager();
+  
+  // Independent badge system - works without app execution
+  const { forceBadgeRefresh, clearBadge: clearIndependentBadge } = useIndependentBadge();
 
   // Immediate data synchronization when app becomes visible (like Telegram/WhatsApp)
   useEffect(() => {
