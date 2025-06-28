@@ -29,6 +29,7 @@ import LoadingScreen from "@/components/LoadingScreen";
 import { ConnectionStatusIndicator } from "@/components/ConnectionStatusIndicator";
 import { PermissionRequestModal } from "@/components/PermissionRequestModal";
 import { TelegramStyleNotificationManager } from "@/components/TelegramStyleNotificationManager";
+import { useCapacitorPushNotifications } from "@/hooks/useCapacitorPushNotifications";
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
 
@@ -76,6 +77,9 @@ export default function MainApp() {
   
   // Independent badge system - works without app execution
   const { forceBadgeRefresh, clearBadge: clearIndependentBadge } = useIndependentBadge();
+  
+  // iOS Capacitor native push notifications
+  const { isRegistered: isIOSRegistered, clearBadge: clearIOSBadge } = useCapacitorPushNotifications();
 
   // Immediate data synchronization when app becomes visible (like Telegram/WhatsApp)
   useEffect(() => {

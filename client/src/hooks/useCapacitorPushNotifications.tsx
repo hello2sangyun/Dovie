@@ -78,10 +78,17 @@ export const useCapacitorPushNotifications = () => {
 
   const sendTokenToServer = async (deviceToken: string) => {
     try {
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        console.log('❌ 사용자 인증 정보가 없습니다');
+        return;
+      }
+
       const response = await fetch('/api/push-subscription/ios', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-user-id': userId,
         },
         body: JSON.stringify({
           deviceToken,
