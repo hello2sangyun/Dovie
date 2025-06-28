@@ -2578,17 +2578,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // iOS 프로젝트 다운로드 페이지
-  app.get("/download", (req, res) => {
-    res.sendFile(path.join(process.cwd(), "download.html"));
-  });
-
-  app.get("/download.html", (req, res) => {
-    res.sendFile(path.join(process.cwd(), "download.html"));
+  // iOS 프로젝트 다운로드 페이지 - 우선순위 높게 설정
+  app.get("/ios-download", (req, res) => {
+    const downloadPageHTML = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dovie Messenger iOS 프로젝트 다운로드</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 50px; 
+            text-align: center; 
+            background: linear-gradient(135deg, #8B5CF6, #3B82F6);
+            color: white;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: rgba(255,255,255,0.1);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 { margin-bottom: 30px; }
+        .download-btn {
+            display: inline-block;
+            background: #10B981;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        .download-btn:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+        .info {
+            margin-top: 30px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 Dovie Messenger iOS 프로젝트</h1>
+        <p>iOS 네이티브 앱으로 변환된 완전한 프로젝트를 다운로드하세요</p>
+        
+        <a href="/ios-download-file" class="download-btn" download>
+            📦 프로젝트 다운로드 (164MB)
+        </a>
+        
+        <div class="info">
+            <h3>다운로드 후 설치 방법:</h3>
+            <p>1. 다운로드된 파일을 맥북의 원하는 폴더에 압축 해제</p>
+            <p>2. 터미널에서 프로젝트 폴더로 이동</p>
+            <p>3. <code>npm install</code> 실행</p>
+            <p>4. <code>npx cap sync ios</code> 실행</p>
+            <p>5. <code>npx cap open ios</code>로 Xcode에서 실행</p>
+        </div>
+    </div>
+</body>
+</html>`;
+    
+    res.set('Content-Type', 'text/html');
+    res.send(downloadPageHTML);
   });
 
   // iOS 프로젝트 파일 다운로드
-  app.get("/dovie-messenger-ios.tar.gz", (req, res) => {
+  app.get("/ios-download-file", (req, res) => {
     const filePath = path.join(process.cwd(), "dovie-messenger-ios.tar.gz");
     
     if (!fs.existsSync(filePath)) {
