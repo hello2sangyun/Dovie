@@ -11,6 +11,15 @@
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
+    "@capacitor/app": "^7.0.1",
+    "@capacitor/camera": "^7.0.1",
+    "@capacitor/cli": "^7.4.0",
+    "@capacitor/core": "^7.4.0",
+    "@capacitor/filesystem": "^7.1.1",
+    "@capacitor/haptics": "^7.0.1",
+    "@capacitor/ios": "^7.4.0",
+    "@capacitor/push-notifications": "^7.0.1",
+    "@capacitor/status-bar": "^7.0.1",
     "@hookform/resolvers": "^3.10.0",
     "@jridgewell/trace-mapping": "^0.3.25",
     "@neondatabase/serverless": "^0.10.4",
