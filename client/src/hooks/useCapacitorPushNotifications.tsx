@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { Toast } from '@capacitor/toast';
+import { Capacitor } from '@capacitor/core';
 
 export const useCapacitorPushNotifications = () => {
   const [isRegistered, setIsRegistered] = useState(false);
@@ -65,7 +66,7 @@ export const useCapacitorPushNotifications = () => {
     };
 
     // Capacitor 환경에서만 실행
-    if (window.Capacitor) {
+    if (Capacitor.isNativePlatform()) {
       initializePushNotifications();
     }
 

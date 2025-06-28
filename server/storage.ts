@@ -1,7 +1,7 @@
 import { 
   users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications,
   fileUploads, fileDownloads, businessProfiles, userPosts, locationShareRequests, locationShares, reminders,
-  messageReactions, messageLikes, pushSubscriptions,
+  messageReactions, messageLikes, pushSubscriptions, iosDeviceTokens,
   type User, type InsertUser, type Contact, type InsertContact,
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
   type Command, type InsertCommand, type MessageRead, type InsertMessageRead,
@@ -118,6 +118,12 @@ export interface IStorage {
   upsertPushSubscription(userId: number, subscription: { endpoint: string; p256dh: string; auth: string; userAgent: string }): Promise<void>;
   deletePushSubscription(userId: number, endpoint: string): Promise<void>;
   getUserPushSubscriptions(userId: number): Promise<{ endpoint: string, p256dh: string, auth: string, userAgent: string }[]>;
+
+  // iOS Native Push Notification operations
+  saveIOSDeviceToken(userId: number, deviceToken: string, platform: string): Promise<void>;
+  hasIOSDeviceToken(userId: number): Promise<boolean>;
+  removeIOSDeviceToken(userId: number): Promise<void>;
+  getIOSDeviceTokens(userId: number): Promise<{ deviceToken: string, platform: string }[]>;
 
   // QR Code System
   generateQRToken(userId: number): Promise<string>;
@@ -1132,6 +1138,74 @@ export class DatabaseStorage implements IStorage {
       );
     
     return activeParticipants.map(p => p.userId);
+  }
+
+  // iOS Native Push Notification operations implementation
+  async saveIOSDeviceToken(userId: number, deviceToken: string, platform: string): Promise<void> {
+    try {
+      await db.insert(iosDeviceTokens).values({
+        userId,
+        deviceToken,
+        platform,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }).onConflictDoUpdate({
+        target: [iosDeviceTokens.userId, iosDeviceTokens.deviceToken],
+        set: {
+          isActive: true,
+          updatedAt: new Date()
+        }
+      });
+    } catch (error) {
+      console.error('iOS 디바이스 토큰 저장 오류:', error);
+      throw error;
+    }
+  }
+
+  async hasIOSDeviceToken(userId: number): Promise<boolean> {
+    try {
+      const token = await db.query.iosDeviceTokens.findFirst({
+        where: and(
+          eq(iosDeviceTokens.userId, userId),
+          eq(iosDeviceTokens.isActive, true)
+        )
+      });
+      return !!token;
+    } catch (error) {
+      console.error('iOS 디바이스 토큰 확인 오류:', error);
+      return false;
+    }
+  }
+
+  async removeIOSDeviceToken(userId: number): Promise<void> {
+    try {
+      await db.update(iosDeviceTokens)
+        .set({ isActive: false, updatedAt: new Date() })
+        .where(eq(iosDeviceTokens.userId, userId));
+    } catch (error) {
+      console.error('iOS 디바이스 토큰 제거 오류:', error);
+      throw error;
+    }
+  }
+
+  async getIOSDeviceTokens(userId: number): Promise<{ deviceToken: string, platform: string }[]> {
+    try {
+      const tokens = await db.query.iosDeviceTokens.findMany({
+        where: and(
+          eq(iosDeviceTokens.userId, userId),
+          eq(iosDeviceTokens.isActive, true)
+        ),
+        columns: {
+          deviceToken: true,
+          platform: true
+        }
+      });
+      return tokens;
+    } catch (error) {
+      console.error('iOS 디바이스 토큰 조회 오류:', error);
+      return [];
+    }
   }
 }
 
