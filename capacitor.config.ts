@@ -5,6 +5,8 @@ const config: CapacitorConfig = {
   appName: 'Dovie Messenger',
   webDir: 'client/dist',
   server: {
+    url: 'http://localhost:5000',
+    cleartext: true,
     androidScheme: 'https'
   },
   plugins: {
