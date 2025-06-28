@@ -92,6 +92,19 @@ export const pushSubscriptions = pgTable("push_subscriptions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// iOS 네이티브 디바이스 토큰 테이블
+export const iosDeviceTokens = pgTable("ios_device_tokens", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  deviceToken: text("device_token").notNull(),
+  platform: text("platform").default("ios").notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  uniqueUserToken: unique().on(table.userId, table.deviceToken),
+}));
+
 export const chatRooms = pgTable("chat_rooms", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),

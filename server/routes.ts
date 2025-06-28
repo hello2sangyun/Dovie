@@ -5407,5 +5407,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // iOS 네이티브 푸시 알림 API
+  app.post("/api/push-subscription/ios", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { deviceToken, platform } = req.body;
+
+      if (!deviceToken) {
+        return res.status(400).json({ message: "Device token is required" });
+      }
+
+      // iOS 디바이스 토큰을 데이터베이스에 저장
+      await storage.saveIOSDeviceToken(Number(userId), deviceToken, platform || 'ios');
+
+      console.log(`✅ iOS 디바이스 토큰 저장 완료 - User: ${userId}, Token: ${deviceToken.substring(0, 20)}...`);
+
+      res.json({ 
+        success: true, 
+        message: "iOS 푸시 알림이 활성화되었습니다" 
+      });
+    } catch (error) {
+      console.error("iOS 푸시 토큰 저장 실패:", error);
+      res.status(500).json({ message: "iOS 푸시 토큰 저장에 실패했습니다" });
+    }
+  });
+
+  app.get("/api/push-subscription/ios/status", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const hasToken = await storage.hasIOSDeviceToken(Number(userId));
+      res.json({ 
+        isRegistered: hasToken,
+        platform: 'ios'
+      });
+    } catch (error) {
+      console.error("iOS 푸시 상태 확인 실패:", error);
+      res.status(500).json({ message: "iOS 푸시 상태 확인에 실패했습니다" });
+    }
+  });
+
+  app.delete("/api/push-subscription/ios", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      await storage.removeIOSDeviceToken(Number(userId));
+      res.json({ 
+        success: true, 
+        message: "iOS 푸시 알림이 비활성화되었습니다" 
+      });
+    } catch (error) {
+      console.error("iOS 푸시 토큰 삭제 실패:", error);
+      res.status(500).json({ message: "iOS 푸시 토큰 삭제에 실패했습니다" });
+    }
+  });
+
   return httpServer;
 }
