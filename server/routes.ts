@@ -2587,6 +2587,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.sendFile(path.join(process.cwd(), "download.html"));
   });
 
+  // iOS 프로젝트 파일 다운로드
+  app.get("/dovie-messenger-ios.tar.gz", (req, res) => {
+    const filePath = path.join(process.cwd(), "dovie-messenger-ios.tar.gz");
+    
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "다운로드 파일을 찾을 수 없습니다." });
+    }
+    
+    res.set({
+      'Content-Type': 'application/gzip',
+      'Content-Disposition': 'attachment; filename="dovie-messenger-ios.tar.gz"',
+      'Cache-Control': 'no-cache'
+    });
+    
+    res.sendFile(filePath);
+  });
+
   // Get blocked contacts
   app.get("/api/contacts/blocked", async (req, res) => {
     const userId = req.headers["x-user-id"];
