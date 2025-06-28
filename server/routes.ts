@@ -2578,6 +2578,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // iOS 프로젝트 다운로드 페이지
+  app.get("/download", (req, res) => {
+    res.sendFile(path.join(process.cwd(), "download.html"));
+  });
+
+  app.get("/download.html", (req, res) => {
+    res.sendFile(path.join(process.cwd(), "download.html"));
+  });
+
   // Get blocked contacts
   app.get("/api/contacts/blocked", async (req, res) => {
     const userId = req.headers["x-user-id"];
