@@ -6,6 +6,16 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// 루트 디렉토리의 정적 파일 서비스 (download.html 등)
+app.use(express.static('./', { 
+  dotfiles: 'ignore',
+  etag: false,
+  extensions: ['html'],
+  index: false,
+  maxAge: '1d',
+  redirect: false
+}));
+
 // 정적 파일 미들웨어 제거 - routes.ts에서 복호화하여 서빙함
 
 app.use((req, res, next) => {
