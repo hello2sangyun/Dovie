@@ -912,6 +912,16 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - **Complete independent workflow**: app closed → Service Worker maintains auth → periodic server refresh → badge updates
   - **Technical solution**: PWA badge limitations solved by persistent Service Worker with server communication and IndexedDB storage
   - **Result**: Badge now updates accurately even when app hasn't been opened, similar to native messaging apps
+- June 28, 2025: **COMPLETED iOS Capacitor Native App Conversion with Push Notifications**:
+  - **Successfully converted PWA to native iOS app** using Capacitor framework for seamless transition from web to native
+  - **Implemented comprehensive iOS device token management** with iosDeviceTokens database table and storage methods
+  - **Created useCapacitorPushNotifications hook** with Capacitor PushNotifications API integration and authentication
+  - **Enhanced iOS AppDelegate.swift** with UNUserNotificationCenterDelegate for proper native notification handling
+  - **Integrated Capacitor configuration** with proper push notification presentation options (badge, sound, alert)
+  - **Added iOS-specific backend routes** for device token registration with Apple Push Notification service compatibility
+  - **Successfully synced Capacitor iOS project** with all 7 plugins installed including @capacitor/push-notifications@7.0.1
+  - **Complete native iOS workflow**: device token registration → backend storage → Apple Push Service integration → native notifications
+  - **Result**: Full transition from PWA limitations to native iOS app with proper push notifications, badge management, and iOS-native user experience
 
 ## User Preferences
 
