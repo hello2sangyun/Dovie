@@ -168,6 +168,9 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // iOS 다운로드 라우터 등록
+  app.use('/api', iosDownloadRouter);
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
