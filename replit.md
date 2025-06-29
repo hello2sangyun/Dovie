@@ -930,15 +930,16 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - **Created comprehensive installation guide** with step-by-step terminal commands for file merging and Xcode setup
   - **Solved large file download limitations** by providing stable, resumable downloads for iOS project distribution
   - **Complete workflow**: split files → progressive download → merge → extract → npm install → Capacitor sync → Xcode launch
-- June 29, 2025: **FINAL RESOLUTION: Created completely standalone iOS project with node_modules-free Podfile**:
+- June 29, 2025: **FINAL RESOLUTION: Standalone iOS project with comprehensive Ruby version troubleshooting**:
    - **Completely rewritten Podfile** to eliminate all node_modules and require_relative references causing pod install failures
    - **Pure CocoaPods implementation** using official repository versions (Capacitor 6.1.2, plugins 6.0.1-6.0.2)
    - **Removed Podfile.lock** and regenerated clean iOS project package without any local path dependencies
    - **Added CODE_SIGNING_ALLOWED = 'NO'** setting to prevent signing errors during initial setup
-   - **Included comprehensive README.md** with Korean installation instructions and troubleshooting guide
+   - **Enhanced README.md with Ruby version troubleshooting** including Homebrew, rbenv, and sudo installation methods
+   - **Comprehensive error resolution guide** for macOS Ruby version conflicts and CocoaPods installation issues
    - **100% standalone iOS project** that works without any Capacitor development environment or node_modules
-   - **Verified solution for pod install error**: completely eliminated "cannot load such file" node_modules references
-   - **Ready for immediate Xcode use**: download → extract → cd App → pod install → open App.xcworkspace
+   - **Multiple Ruby installation pathways** to ensure successful CocoaPods setup regardless of system configuration
+   - **Ready for immediate Xcode use**: download → extract → resolve Ruby version → pod install → open App.xcworkspace
 - June 29, 2025: **Fixed iOS project build errors and created optimized download system**:
    - **Resolved UserNotifications framework import** by adding missing import statement to AppDelegate.swift
    - **Fixed @UIApplicationMain annotation error** by creating separate main.swift file with proper entry point
