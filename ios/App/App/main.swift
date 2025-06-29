@@ -1,4 +1,5 @@
 import UIKit
+import Capacitor
 
 UIApplicationMain(
     CommandLine.argc,
