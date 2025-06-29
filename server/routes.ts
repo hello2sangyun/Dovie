@@ -2742,10 +2742,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/ios-fixed-download", (req, res) => {
-    const filePath = path.join(process.cwd(), 'ios', 'dovie-messenger-ios-fixed.zip');
+    const filePath = path.join(process.cwd(), 'ios', 'dovie-messenger-ios-complete.zip');
     
     if (fs.existsSync(filePath)) {
-      res.download(filePath, 'dovie-messenger-ios-fixed.zip', (err) => {
+      res.download(filePath, 'dovie-messenger-ios-complete.zip', (err) => {
         if (err) {
           console.error('Download error:', err);
           res.status(500).send('다운로드 중 오류가 발생했습니다.');
