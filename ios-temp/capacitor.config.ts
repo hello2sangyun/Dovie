@@ -1,17 +1,9 @@
-import { CapacitorConfig } from '@capacitor/cli';
+import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.dovie.messenger',
   appName: 'Dovie Messenger',
-  webDir: 'public',
-  server: {
-    androidScheme: 'https'
-  },
-  plugins: {
-    PushNotifications: {
-      presentationOptions: ["badge", "sound", "alert"]
-    }
-  }
+  webDir: 'public'
 };
 
 export default config;
