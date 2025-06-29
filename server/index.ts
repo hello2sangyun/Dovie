@@ -172,6 +172,10 @@ app.use((req, res, next) => {
   // iOS 다운로드 라우터 등록
   app.use('/api', iosDownloadRouter);
   
+  // 새로운 iOS 다운로드 엔드포인트 등록
+  app.get('/api/ios-download-new', iosDownloadNewHandler);
+  app.get('/api/ios-file-new', iosFileNewHandler);
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
