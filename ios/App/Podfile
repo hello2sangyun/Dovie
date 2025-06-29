@@ -1,8 +1,6 @@
 platform :ios, '14.0'
 use_frameworks!
 
-install! 'cocoapods', :disable_input_output_paths => true
-
 target 'App' do
   pod 'Capacitor', '6.1.2'
   pod 'CapacitorCordova', '6.1.2'
