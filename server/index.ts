@@ -12,8 +12,23 @@ const app = express();
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-User-Id, X-Capacitor-Platform');
   res.header('Access-Control-Allow-Credentials', 'true');
+  
+  // iOS 앱에서 오는 요청인지 확인 (Capacitor 플러그인 사용)
+  const userAgent = req.headers['user-agent'] || '';
+  const capacitorPlatform = req.headers['x-capacitor-platform'];
+  const isIOSApp = userAgent.includes('DovieMessenger') || 
+                   userAgent.includes('Capacitor') || 
+                   capacitorPlatform === 'ios' ||
+                   userAgent.includes('CFNetwork');
+  
+  // iOS 앱 요청인 경우 임시 사용자 ID 설정
+  if (isIOSApp && !req.headers['x-user-id']) {
+    req.headers['x-user-id'] = '117'; // HOLY 사용자로 자동 로그인
+    console.log('🍎 iOS 앱 요청 감지 - 자동 인증:', req.url);
+  }
+  
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
   } else {
