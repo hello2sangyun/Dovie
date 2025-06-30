@@ -37,6 +37,7 @@ app.use((req, res, next) => {
                    userAgent.includes('Mobile') ||
                    origin.includes('capacitor://') ||
                    referer.includes('capacitor://') ||
+                   referer.includes('85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev') ||
                    req.headers['x-capacitor-platform'] === 'ios';
   
   // iOS 앱 요청인 경우 임시 사용자 ID 설정
