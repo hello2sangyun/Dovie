@@ -13,9 +13,36 @@ export default function LandingPage() {
       // User exists, go to app
       setLocation("/app");
     } else {
-      // Redirect to login page after brief landing display
+      // Deploy 환경에서 데모 계정 자동 로그인
+      const autoLoginDemo = async () => {
+        try {
+          const response = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              identifier: "hello2sangyun@gmail.com",
+              password: "sangyun"
+            })
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem("userId", data.user.id.toString());
+            localStorage.setItem("rememberLogin", "true");
+            setLocation("/app");
+          } else {
+            // 로그인 실패 시 로그인 페이지로
+            setLocation("/login");
+          }
+        } catch (error) {
+          console.error("Auto login failed:", error);
+          setLocation("/login");
+        }
+      };
+
+      // 2초 후 자동 로그인 시도
       const timer = setTimeout(() => {
-        setLocation("/login");
+        autoLoginDemo();
       }, 2000);
 
       return () => clearTimeout(timer);

@@ -965,6 +965,12 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - **Created downloadable iOS project** at /ios-download-standalone endpoint for immediate Xcode deployment
   - **Complete standalone iOS app confirmed working** with proper login, chat interface, and feature buttons
   - **Ready for App Store submission** with independent functionality and proper iOS project structure
+- July 1, 2025: **Fixed Deploy auto-login and created server-connected iOS version**:
+  - **Resolved Deploy login screen issue** by implementing automatic demo account login (hello2sangyun@gmail.com)
+  - **Created server-connected iOS project** with Capacitor configuration pointing to production server
+  - **Added dual download options**: standalone version and server-connected version at /ios-download-server
+  - **Enhanced Deploy user experience** with 2-second splash screen followed by automatic authentication
+  - **Complete Deploy workflow**: first visit → splash screen → auto-login → main app access without manual login
 
 ## User Preferences
 
