@@ -38,6 +38,142 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // iOS 다운로드 라우트를 Vite보다 먼저 등록
+app.get("/ios-download-final", (req, res) => {
+  const downloadPageHTML = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dovie Messenger iOS 최종 프로젝트 다운로드</title>
+    <meta charset="utf-8">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 50px; 
+            text-align: center; 
+            background: linear-gradient(135deg, #8B5CF6, #3B82F6);
+            color: white;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+        }
+        h1 { 
+            font-size: 2.5em; 
+            margin-bottom: 20px; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .download-btn {
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 1.2em;
+            font-weight: bold;
+            display: inline-block;
+            margin: 20px 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .download-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        }
+        .info {
+            background: rgba(255,255,255,0.15);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .status {
+            background: rgba(16, 185, 129, 0.2);
+            border-left: 4px solid #10B981;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        code {
+            background: rgba(0,0,0,0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏆 Dovie Messenger iOS 최종 완성 버전</h1>
+        
+        <div class="status">
+            <h3>✅ 완전히 준비된 네이티브 iOS 앱</h3>
+            <p><strong>프로덕션 서버:</strong> <code>https://vault-messenger-1-hello2sangyun.replit.app</code></p>
+            <p><strong>자동 인증:</strong> 활성화됨 (사용자 ID: 117)</p>
+            <p><strong>App Store 준비:</strong> 완료</p>
+        </div>
+
+        <div class="info">
+            <h3>📱 Xcode 프로젝트 특징</h3>
+            <ul>
+                <li><strong>완전한 네이티브 iOS 앱:</strong> Capacitor 기반 하이브리드 앱</li>
+                <li><strong>프로덕션 서버 연결:</strong> 안정적인 공개 URL</li>
+                <li><strong>푸시 알림 지원:</strong> iOS 네이티브 알림 시스템</li>
+                <li><strong>완전한 기능:</strong> 채팅, 음성, 파일 공유, 연락처</li>
+                <li><strong>App Store 배포 가능:</strong> 코드 서명 및 프로비저닝 프로파일 설정 후</li>
+            </ul>
+        </div>
+
+        <a href="/ios-final-download" class="download-btn">
+            📥 최종 iOS 프로젝트 다운로드
+        </a>
+
+        <div class="info">
+            <h3>🚀 Xcode에서 여는 방법</h3>
+            <ol>
+                <li><strong>ZIP 파일 다운로드</strong> 및 압축 해제</li>
+                <li><strong>터미널에서:</strong> <code>cd ios/App && pod install</code></li>
+                <li><strong>Xcode에서 열기:</strong> <code>open App.xcworkspace</code></li>
+                <li><strong>실제 디바이스나 시뮬레이터에서 실행</strong></li>
+                <li><strong>App Store 배포:</strong> Apple Developer 계정 설정 후 Archive</li>
+            </ol>
+        </div>
+
+        <div class="info">
+            <h3>🎯 App Store 배포를 위한 추가 설정</h3>
+            <p><strong>1. Apple Developer 계정:</strong> developer.apple.com에서 계정 등록</p>
+            <p><strong>2. 코드 서명:</strong> Xcode에서 Team 설정 및 Signing Certificate 구성</p>
+            <p><strong>3. App ID 변경:</strong> com.dovie.messenger를 고유한 Bundle ID로 변경</p>
+            <p><strong>4. Archive 및 업로드:</strong> Product → Archive → Distribute App</p>
+        </div>
+    </div>
+</body>
+</html>
+  `;
+  res.send(downloadPageHTML);
+});
+
+app.get("/ios-final-download", (req, res) => {
+  const filePath = path.join(__dirname, "../ios-temp/dovie-messenger-ios-final.zip");
+  
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send("iOS 프로젝트 파일을 찾을 수 없습니다.");
+  }
+  
+  res.download(filePath, "dovie-messenger-ios-final.zip", (err) => {
+    if (err) {
+      console.error("Download error:", err);
+      res.status(500).send("다운로드 중 오류가 발생했습니다.");
+    }
+  });
+});
+
 app.get("/ios-download-production", (req, res) => {
   const downloadPageHTML = `
 <!DOCTYPE html>
