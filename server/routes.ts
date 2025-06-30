@@ -2848,6 +2848,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.sendFile(filePath);
   });
 
+  // iOS 독립 실행형 프로젝트 다운로드
+  app.get("/ios-download-standalone", (req, res) => {
+    const filePath = path.join(process.cwd(), "public/dovie-messenger-ios-standalone.zip");
+    
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "다운로드 파일을 찾을 수 없습니다." });
+    }
+    
+    res.set({
+      'Content-Type': 'application/zip',
+      'Content-Disposition': 'attachment; filename="dovie-messenger-ios-standalone.zip"',
+      'Cache-Control': 'no-cache'
+    });
+    
+    res.sendFile(filePath);
+  });
+
   // Get blocked contacts
   app.get("/api/contacts/blocked", async (req, res) => {
     const userId = req.headers["x-user-id"];
