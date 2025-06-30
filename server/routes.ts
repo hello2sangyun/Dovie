@@ -2850,7 +2850,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // iOS 독립 실행형 프로젝트 다운로드
   app.get("/ios-download-standalone", (req, res) => {
-    const filePath = path.join(process.cwd(), "public/dovie-messenger-ios-standalone.zip");
+    const filePath = path.join(process.cwd(), "public/dovie-messenger-ios-standalone-fixed.zip");
     
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ message: "다운로드 파일을 찾을 수 없습니다." });
@@ -2858,7 +2858,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     res.set({
       'Content-Type': 'application/zip',
-      'Content-Disposition': 'attachment; filename="dovie-messenger-ios-standalone.zip"',
+      'Content-Disposition': 'attachment; filename="dovie-messenger-ios-standalone-fixed.zip"',
       'Cache-Control': 'no-cache'
     });
     
