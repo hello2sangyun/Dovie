@@ -59,11 +59,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     // MARK: - Push Notifications
     
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: deviceToken)
+        NotificationCenter.default.post(name: NSNotification.Name(rawValue: "CapacitorDidRegisterForRemoteNotifications"), object: deviceToken)
     }
     
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
-        NotificationCenter.default.post(name: .capacitorDidFailToRegisterForRemoteNotifications, object: error)
+        NotificationCenter.default.post(name: NSNotification.Name(rawValue: "CapacitorDidFailToRegisterForRemoteNotifications"), object: error)
     }
     
     // MARK: - UNUserNotificationCenterDelegate
@@ -77,7 +77,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     }
     
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-        NotificationCenter.default.post(name: .capacitorDidReceiveNotificationResponse, object: response)
+        NotificationCenter.default.post(name: NSNotification.Name(rawValue: "CapacitorDidReceiveNotificationResponse"), object: response)
         completionHandler()
     }
 }
