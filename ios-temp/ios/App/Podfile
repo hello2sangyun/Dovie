@@ -8,15 +8,15 @@ install! 'cocoapods', :disable_input_output_paths => true
 
 target 'App' do
   # Capacitor core and plugins from CocoaPods repository
-  pod 'Capacitor', '~> 6.1.2'
-  pod 'CapacitorCordova', '~> 6.1.2'
-  pod 'CapacitorApp', '~> 6.0.1'
-  pod 'CapacitorCamera', '~> 6.0.2'
-  pod 'CapacitorFilesystem', '~> 6.0.1'
-  pod 'CapacitorHaptics', '~> 6.0.1'
-  pod 'CapacitorPushNotifications', '~> 6.0.2'
-  pod 'CapacitorStatusBar', '~> 6.0.1'
-  pod 'CapacitorToast', '~> 6.0.1'
+  pod 'Capacitor', '~> 6.0'
+  pod 'CapacitorCordova', '~> 6.0'
+  pod 'CapacitorApp', '~> 6.0'
+  pod 'CapacitorCamera', '~> 6.0'
+  pod 'CapacitorFilesystem', '~> 6.0'
+  pod 'CapacitorHaptics', '~> 6.0'
+  pod 'CapacitorPushNotifications', '~> 6.0'
+  pod 'CapacitorStatusBar', '~> 6.0'
+  pod 'CapacitorToast', '~> 6.0'
 end
 
 post_install do |installer|
