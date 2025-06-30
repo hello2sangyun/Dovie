@@ -160,13 +160,13 @@ app.get("/ios-download-final", (req, res) => {
 });
 
 app.get("/ios-final-download", (req, res) => {
-  const filePath = path.join(__dirname, "../ios-temp/dovie-messenger-ios-final.zip");
+  const filePath = path.join(__dirname, "../ios-temp/dovie-messenger-ios-network-fixed.zip");
   
   if (!fs.existsSync(filePath)) {
     return res.status(404).send("iOS 프로젝트 파일을 찾을 수 없습니다.");
   }
   
-  res.download(filePath, "dovie-messenger-ios-final.zip", (err) => {
+  res.download(filePath, "dovie-messenger-ios-network-fixed.zip", (err) => {
     if (err) {
       console.error("Download error:", err);
       res.status(500).send("다운로드 중 오류가 발생했습니다.");
