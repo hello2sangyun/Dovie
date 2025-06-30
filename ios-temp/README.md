@@ -31,6 +31,9 @@ cd /다운로드경로/dovie-messenger-ios-fixed
 # iOS 폴더로 이동
 cd ios/App
 
+# CocoaPods 저장소 업데이트 (필수!)
+pod repo update
+
 # CocoaPods 종속성 설치
 pod install
 ```
@@ -50,8 +53,12 @@ open App.xcworkspace
 
 ### CocoaPods 오류
 ```bash
-# Pod 캐시 정리
+# CapacitorCamera 버전 오류 해결법:
 pod repo update
+pod cache clean --all
+pod install
+
+# 또는 더 강력한 정리:
 pod install --repo-update
 ```
 
