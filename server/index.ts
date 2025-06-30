@@ -15,13 +15,29 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-User-Id, X-Capacitor-Platform');
   res.header('Access-Control-Allow-Credentials', 'true');
   
-  // iOS 앱에서 오는 요청인지 확인 (Capacitor 플러그인 사용)
+  // 모든 요청의 헤더 로깅 (디버깅용)
+  if (req.url.includes('/api/')) {
+    console.log('📱 요청 헤더 분석:', {
+      url: req.url,
+      userAgent: req.headers['user-agent'],
+      capacitorPlatform: req.headers['x-capacitor-platform'],
+      origin: req.headers['origin'],
+      referer: req.headers['referer']
+    });
+  }
+  
+  // iOS 앱에서 오는 요청인지 확인 (더 넓은 범위)
   const userAgent = req.headers['user-agent'] || '';
-  const capacitorPlatform = req.headers['x-capacitor-platform'];
+  const origin = req.headers['origin'] || '';
+  const referer = req.headers['referer'] || '';
+  
   const isIOSApp = userAgent.includes('DovieMessenger') || 
                    userAgent.includes('Capacitor') || 
-                   capacitorPlatform === 'ios' ||
-                   userAgent.includes('CFNetwork');
+                   userAgent.includes('CFNetwork') ||
+                   userAgent.includes('Mobile') ||
+                   origin.includes('capacitor://') ||
+                   referer.includes('capacitor://') ||
+                   req.headers['x-capacitor-platform'] === 'ios';
   
   // iOS 앱 요청인 경우 임시 사용자 ID 설정
   if (isIOSApp && !req.headers['x-user-id']) {
