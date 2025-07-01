@@ -48,6 +48,24 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 
     func applicationDidBecomeActive(_ application: UIApplication) {
         // Restart any tasks that were paused (or not yet started) while the application was inactive.
+        
+        // 앱이 활성화될 때 뱃지 초기화
+        UIApplication.shared.applicationIconBadgeNumber = 0
+        print("✅ 앱 활성화 - 뱃지 초기화 완료")
+        
+        // JavaScript에 앱 활성화 이벤트 전달
+        DispatchQueue.main.async {
+            if let webView = self.getCapacitorWebView() {
+                let script = "window.dispatchEvent(new CustomEvent('appDidBecomeActive'));"
+                webView.evaluateJavaScript(script) { result, error in
+                    if let error = error {
+                        print("앱 활성화 이벤트 전달 실패: \(error)")
+                    } else {
+                        print("앱 활성화 이벤트 JavaScript 전달 완료")
+                    }
+                }
+            }
+        }
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
@@ -78,15 +96,27 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         // Capacitor에 토큰 전달
         NotificationCenter.default.post(name: NSNotification.Name(rawValue: "CapacitorDidRegisterForRemoteNotifications"), object: deviceToken)
         
-        // JavaScript로 토큰 전달
+        // JavaScript로 토큰 전달 및 뱃지 업데이트 이벤트 리스너 설정
         DispatchQueue.main.async {
             if let webView = self.getCapacitorWebView() {
-                let script = "window.dispatchEvent(new CustomEvent('deviceTokenReceived', { detail: { token: '\(token)' } }));"
+                let script = """
+                window.dispatchEvent(new CustomEvent('deviceTokenReceived', { detail: { token: '\(token)' } }));
+                
+                // 뱃지 업데이트 이벤트 리스너 설정
+                window.addEventListener('updateBadgeCount', function(event) {
+                    const count = event.detail.count;
+                    console.log('뱃지 업데이트 요청 수신:', count);
+                    if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.updateBadge) {
+                        window.webkit.messageHandlers.updateBadge.postMessage({ count: count });
+                    }
+                });
+                """
+                
                 webView.evaluateJavaScript(script) { result, error in
                     if let error = error {
-                        print("JavaScript 토큰 전달 실패: \(error)")
+                        print("JavaScript 초기화 실패: \(error)")
                     } else {
-                        print("JavaScript로 토큰 전달 성공")
+                        print("JavaScript 초기화 및 이벤트 리스너 설정 성공")
                     }
                 }
             }

@@ -1,0 +1,64 @@
+
+> rest-express@1.0.0 dev
+OpenAI API key is configurederver/index.ts
+🔔 Notification scheduler initialized and started
+8:10:45 AM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 9 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+🔓 자동 인증 적용: /api/unread-counts
+8:11:26 AM [express] GET /api/unread-counts 200 in 156ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:11:30 AM [express] GET /api/unread-counts 304 in 38ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:12:00 AM [express] GET /api/unread-counts 304 in 162ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:12:30 AM [express] GET /api/unread-counts 304 in 153ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:13:00 AM [express] GET /api/unread-counts 304 in 160ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:13:30 AM [express] GET /api/unread-counts 304 in 157ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:14:00 AM [express] GET /api/unread-counts 304 in 151ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:14:31 AM [express] GET /api/unread-counts 304 in 152ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:15:00 AM [express] GET /api/unread-counts 304 in 154ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:15:31 AM [express] GET /api/unread-counts 304 in 159ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:16:00 AM [express] GET /api/unread-counts 304 in 158ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:16:30 AM [express] GET /api/unread-counts 304 in 164ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:17:01 AM [express] GET /api/unread-counts 304 in 163ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:17:31 AM [express] GET /api/unread-counts 304 in 159ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:18:01 AM [express] GET /api/unread-counts 304 in 150ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:18:31 AM [express] GET /api/unread-counts 304 in 156ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:19:01 AM [express] GET /api/unread-counts 304 in 156ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:19:31 AM [express] GET /api/unread-counts 304 in 170ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:20:01 AM [express] GET /api/unread-counts 304 in 152ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:20:31 AM [express] GET /api/unread-counts 304 in 177ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:21:01 AM [express] GET /api/unread-counts 304 in 150ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:21:31 AM [express] GET /api/unread-counts 304 in 151ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:22:01 AM [express] GET /api/unread-counts 304 in 161ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:22:31 AM [express] GET /api/unread-counts 304 in 156ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:23:01 AM [express] GET /api/unread-counts 304 in 153ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:23:31 AM [express] GET /api/unread-counts 304 in 153ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:24:01 AM [express] GET /api/unread-counts 304 in 154ms :: {"unreadCounts":[]}
+🔓 자동 인증 적용: /api/unread-counts
+8:24:31 AM [express] GET /api/unread-counts 304 in 166ms :: {"unreadCounts":[]}
