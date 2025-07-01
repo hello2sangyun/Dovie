@@ -259,6 +259,19 @@ app.get("/api/download-ios-enhanced", (req, res) => {
   res.sendFile(filePath);
 });
 
+// iOS 권한 모달 제거된 앱 다운로드
+app.get("/api/download-ios-no-permission-modal", (req, res) => {
+  const filePath = path.join(__dirname, "../uploads/dovie-ios-no-permission-modal-0701.zip");
+  
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ error: "파일을 찾을 수 없습니다" });
+  }
+  
+  res.setHeader('Content-Disposition', 'attachment; filename="dovie-ios-no-permission-modal-0701.zip"');
+  res.setHeader('Content-Type', 'application/zip');
+  res.sendFile(filePath);
+});
+
 // iOS 디바이스 토큰 상태 확인 API
 app.get("/api/ios-device-status", async (req, res) => {
   try {
