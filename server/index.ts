@@ -175,13 +175,13 @@ app.get("/ios-final-download", (req, res) => {
 });
 
 app.get("/ios-download-dovie", (req, res) => {
-  const filePath = path.join(__dirname, "../ios-temp/dovie-ios-app.tar.gz");
+  const filePath = path.join(__dirname, "../ios-temp/dovie-xcode-ready.zip");
   
   if (!fs.existsSync(filePath)) {
     return res.status(404).send("업데이트된 iOS 앱 파일을 찾을 수 없습니다.");
   }
   
-  res.download(filePath, "Dovie-iOS-App.tar.gz", (err) => {
+  res.download(filePath, "dovie-xcode-ready.zip", (err) => {
     if (err) {
       console.error("Download error:", err);
       res.status(500).send("다운로드 중 오류가 발생했습니다.");
