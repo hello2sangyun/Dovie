@@ -1205,6 +1205,8 @@ export class DatabaseStorage implements IStorage {
 
   async getIOSDeviceTokens(userId: number): Promise<{ deviceToken: string, platform: string }[]> {
     try {
+      console.log(`📱 iOS 토큰 조회 시작: userId=${userId}`);
+      
       const tokens = await db.query.iosDeviceTokens.findMany({
         where: and(
           eq(iosDeviceTokens.userId, userId),
@@ -1215,6 +1217,12 @@ export class DatabaseStorage implements IStorage {
           platform: true
         }
       });
+      
+      console.log(`📱 조회된 iOS 토큰 수: ${tokens.length}`);
+      if (tokens.length > 0) {
+        console.log(`📱 첫 번째 토큰: ${tokens[0].deviceToken.substring(0, 20)}...`);
+      }
+      
       return tokens;
     } catch (error) {
       console.error('iOS 디바이스 토큰 조회 오류:', error);

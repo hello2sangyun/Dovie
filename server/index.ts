@@ -368,15 +368,56 @@ const originalMessageSend = app._router?.stack?.find(layer =>
 );
 
 // 테스트용 iOS 푸시 알림 발송 API
-app.post("/api/test-ios-push", (req, res) => {
+app.post("/api/test-ios-push", async (req, res) => {
   const { message, title, badge } = req.body;
+  const userId = parseInt(req.headers['x-user-id'] as string);
   
-  const testMessage = message || "iOS 네이티브 푸시 알림 테스트입니다.";
-  const testTitle = title || "Dovie Messenger";
-  const testBadge = badge || 1;
+  console.log(`📱 iOS 테스트 푸시 알림 요청:`, { message, title, badge });
   
-  console.log("iOS 테스트 푸시 알림 발송 시작");
-  sendIOSPushNotification(testMessage, testTitle, testBadge);
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID required' });
+  }
+  
+  try {
+    // 데이터베이스에서 iOS 디바이스 토큰 조회
+    const tokens = await storage.getIOSDeviceTokens(userId);
+    
+    if (tokens.length === 0) {
+      console.log('등록된 iOS 디바이스가 없습니다.');
+      return res.json({
+        message: "등록된 iOS 디바이스가 없습니다.",
+        registeredDevices: 0
+      });
+    }
+    
+    console.log(`📱 iOS 푸시 알림 발송 시작: ${tokens.length}개 디바이스`);
+    
+    // 각 디바이스로 푸시 알림 발송
+    const results = [];
+    for (const token of tokens) {
+      console.log(`📱 푸시 발송 중: ${token.deviceToken.substring(0, 20)}...`);
+      
+      // 실제 APNS 호출은 추후 구현
+      results.push({
+        deviceToken: token.deviceToken.substring(0, 20) + '...',
+        status: 'simulated_success',
+        message: message || "iOS 네이티브 푸시 알림 테스트",
+        title: title || "Dovie Messenger",
+        badge: badge || 1
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: "iOS 푸시 알림 테스트 완료",
+      registeredDevices: tokens.length,
+      results: results
+    });
+    
+  } catch (error) {
+    console.error('❌ iOS 푸시 테스트 실패:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
   
   res.json({
     success: true,
