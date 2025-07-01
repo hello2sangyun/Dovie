@@ -1995,6 +1995,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // iOS 푸시 토큰 등록 API (네이티브 앱용)
+  app.post('/api/push-subscription/ios', async (req, res) => {
+    const userId = Number(req.headers['x-user-id']);
+    const { deviceToken, platform } = req.body;
+    
+    console.log('📱 iOS 네이티브 푸시 토큰 등록 요청:', {
+      userId,
+      deviceToken: deviceToken ? `${deviceToken.substring(0, 20)}...` : 'none',
+      platform
+    });
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    
+    if (!deviceToken) {
+      return res.status(400).json({ message: "Device token is required" });
+    }
+
+    try {
+      // iOS 디바이스 토큰을 데이터베이스에 저장
+      await storage.saveIOSDeviceToken(userId, deviceToken, platform || 'ios');
+      
+      console.log('✅ iOS 푸시 토큰 데이터베이스 저장 성공');
+      
+      res.json({ 
+        success: true,
+        message: "iOS push token registered successfully",
+        userId,
+        tokenPreview: deviceToken.substring(0, 20) + '...'
+      });
+    } catch (error) {
+      console.error('❌ iOS 푸시 토큰 저장 실패:', error);
+      res.status(500).json({ message: "Failed to register push token" });
+    }
+  });
+
   // Bulk delete commands endpoint
   app.post("/api/commands/bulk-delete", async (req, res) => {
     try {
