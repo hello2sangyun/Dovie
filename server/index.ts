@@ -189,6 +189,31 @@ app.get("/ios-download-dovie", (req, res) => {
   });
 });
 
+// iOS 디바이스 토큰 등록 API
+app.post("/api/ios-device-token", (req, res) => {
+  const { deviceToken, platform, bundleId } = req.body;
+  
+  console.log("iOS 디바이스 토큰 등록 요청:", {
+    deviceToken: deviceToken ? `${deviceToken.substring(0, 20)}...` : 'none',
+    platform,
+    bundleId
+  });
+  
+  if (!deviceToken) {
+    return res.status(400).json({ error: "디바이스 토큰이 필요합니다." });
+  }
+  
+  // 여기서 디바이스 토큰을 데이터베이스에 저장
+  // 현재는 로깅만 수행
+  console.log("iOS 푸시 토큰 등록 성공:", deviceToken.substring(0, 20) + "...");
+  
+  res.json({ 
+    success: true, 
+    message: "디바이스 토큰이 성공적으로 등록되었습니다.",
+    deviceToken: deviceToken.substring(0, 20) + "..."
+  });
+});
+
 app.get("/ios-download-production", (req, res) => {
   const downloadPageHTML = `
 <!DOCTYPE html>
