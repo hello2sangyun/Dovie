@@ -7,7 +7,7 @@ channel = "stable-24_05"
 packages = ["ffmpeg", "freetype", "imagemagick", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "tcl", "tk", "zlib", "zip"]
 
 [deployment]
-deploymentTarget = "gce"
+deploymentTarget = "cloudrun"
 build = ["npm", "run", "build"]
 run = ["npm", "run", "start"]
 
