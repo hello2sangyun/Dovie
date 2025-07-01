@@ -45,13 +45,24 @@ export async function sendPushNotification(
       return;
     }
 
-    // Get user's push subscriptions
+    // Get user's push subscriptions (PWA)
     const subscriptions = await storage.getUserPushSubscriptions(userId);
     
-    if (subscriptions.length === 0) {
-      console.log(`No push subscriptions found for user ${userId}`);
+    // Get iOS device tokens (native app)
+    let iosTokens: any[] = [];
+    try {
+      iosTokens = await storage.getIOSDeviceTokens(userId);
+      console.log(`📱 Found ${iosTokens.length} iOS device tokens for user ${userId}`);
+    } catch (error) {
+      console.log(`❌ Failed to get iOS tokens for user ${userId}:`, error);
+    }
+    
+    if (subscriptions.length === 0 && iosTokens.length === 0) {
+      console.log(`❌ No push subscriptions or iOS tokens found for user ${userId}`);
       return;
     }
+
+    console.log(`📱 총 알림 대상: PWA ${subscriptions.length}개, iOS ${iosTokens.length}개`);
 
     // Telegram/WhatsApp-style notification payload
     const notificationPayload = JSON.stringify({
@@ -152,9 +163,107 @@ export async function sendPushNotification(
     });
 
     await Promise.allSettled(sendPromises);
+
+    // iOS APNS 푸시 알림 발송
+    if (iosTokens.length > 0) {
+      console.log(`📱 iOS APNS 알림 발송 시작: ${iosTokens.length}개 디바이스`);
+      await sendIOSPushNotifications(iosTokens, payload, userId);
+    }
+
   } catch (error) {
     console.error('❌ Push notification system error:', error);
   }
+}
+
+// iOS APNS 푸시 알림 발송 함수
+async function sendIOSPushNotifications(
+  iosTokens: any[], 
+  payload: PushNotificationPayload,
+  userId: number
+): Promise<void> {
+  const https = require('https');
+  
+  for (const tokenInfo of iosTokens) {
+    try {
+      const deviceToken = tokenInfo.device_token;
+      
+      // iOS APNS 페이로드 구성
+      const apnsPayload = {
+        aps: {
+          alert: {
+            title: payload.title || "새 메시지",
+            body: payload.body || "새 메시지가 도착했습니다"
+          },
+          badge: payload.data?.unreadCount || 1,
+          sound: "default",
+          "mutable-content": 1,
+          "content-available": 1,
+          category: "MESSAGE_CATEGORY"
+        },
+        custom: {
+          type: payload.data?.type || 'message',
+          chatRoomId: payload.data?.chatRoomId,
+          messageId: payload.data?.messageId,
+          senderId: payload.data?.senderId,
+          senderName: payload.data?.senderName,
+          url: payload.data?.url || '/'
+        }
+      };
+
+      // APNS HTTP/2 요청 구성
+      const postData = JSON.stringify(apnsPayload);
+      
+      const options = {
+        hostname: 'api.development.push.apple.com', // 개발용 (프로덕션: api.push.apple.com)
+        port: 443,
+        path: `/3/device/${deviceToken}`,
+        method: 'POST',
+        headers: {
+          'authorization': `bearer ${getAPNSJWT()}`,
+          'apns-push-type': 'alert',
+          'apns-expiration': '0',
+          'apns-priority': '10',
+          'apns-topic': 'com.dovie.messenger',
+          'content-type': 'application/json',
+          'content-length': Buffer.byteLength(postData)
+        }
+      };
+
+      console.log(`📱 iOS APNS 알림 발송: ${deviceToken.substring(0, 20)}...`);
+
+      // HTTP/2 요청 발송
+      const req = https.request(options, (res: any) => {
+        console.log(`📱 APNS 응답 상태: ${res.statusCode} for user ${userId}`);
+        
+        if (res.statusCode === 200) {
+          console.log(`✅ iOS 푸시 알림 성공: user ${userId}`);
+        } else if (res.statusCode === 410) {
+          console.log(`🧹 iOS 토큰 만료됨, 삭제 필요: user ${userId}`);
+          // 만료된 토큰 삭제
+          storage.deleteIOSDeviceToken(userId, deviceToken);
+        } else {
+          console.log(`❌ iOS 푸시 알림 실패: ${res.statusCode} for user ${userId}`);
+        }
+      });
+
+      req.on('error', (error: Error) => {
+        console.error(`❌ iOS APNS 요청 오류 user ${userId}:`, error);
+      });
+
+      req.write(postData);
+      req.end();
+
+    } catch (error) {
+      console.error(`❌ iOS 토큰 ${tokenInfo.device_token?.substring(0, 20)}... 발송 실패:`, error);
+    }
+  }
+}
+
+// APNS JWT 토큰 생성 (실제 환경에서는 팀 ID, 키 ID, 개인키 필요)
+function getAPNSJWT(): string {
+  // 개발용 임시 토큰 (실제로는 Apple Developer 계정의 키 사용)
+  // 실제 구현시 jwt 라이브러리와 Apple 개인키 필요
+  return "임시_개발용_토큰";
 }
 
 export async function sendMessageNotification(

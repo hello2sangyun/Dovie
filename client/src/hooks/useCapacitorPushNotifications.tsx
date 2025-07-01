@@ -84,6 +84,8 @@ export const useCapacitorPushNotifications = () => {
         return;
       }
 
+      console.log(`📱 서버로 iOS 토큰 전송 시작: ${deviceToken.substring(0, 20)}...`);
+
       const response = await fetch('/api/push-subscription/ios', {
         method: 'POST',
         headers: {
@@ -96,10 +98,12 @@ export const useCapacitorPushNotifications = () => {
         }),
       });
 
+      const result = await response.json();
+      
       if (response.ok) {
-        console.log('✅ iOS 푸시 토큰이 서버에 저장되었습니다');
+        console.log('✅ iOS 푸시 토큰이 서버에 저장되었습니다:', result);
       } else {
-        console.error('❌ iOS 푸시 토큰 저장 실패');
+        console.error('❌ iOS 푸시 토큰 저장 실패:', response.status, result);
       }
     } catch (error) {
       console.error('❌ 서버 통신 오류:', error);
