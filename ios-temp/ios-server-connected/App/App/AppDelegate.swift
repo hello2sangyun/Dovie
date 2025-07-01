@@ -49,6 +49,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     func applicationDidBecomeActive(_ application: UIApplication) {
         // Restart any tasks that were paused (or not yet started) while the application was inactive.
         
+        // 앱이 활성화될 때 배지 초기화 (사용자가 앱을 열었으므로)
+        UIApplication.shared.applicationIconBadgeNumber = 0
+        print("앱 활성화 - 배지 초기화됨")
+        
         // 앱이 활성화될 때 뱃지 초기화
         UIApplication.shared.applicationIconBadgeNumber = 0
         print("✅ 앱 활성화 - 뱃지 초기화 완료")
