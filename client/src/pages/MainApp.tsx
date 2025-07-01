@@ -142,7 +142,7 @@ export default function MainApp() {
       }
       
       // 모달이 열려있는 경우 모달 닫기
-      if (modals.addContact || modals.command || modals.createGroup || modals.profilePhoto || modals.permissions) {
+      if (modals.addContact || modals.command || modals.createGroup || modals.profilePhoto) {
         setModals({
           addContact: false,
           command: false,
@@ -281,7 +281,7 @@ export default function MainApp() {
     // Show permission modal if either microphone or notification permission hasn't been handled yet
     if (!microphoneGranted || !notificationGranted) {
       setTimeout(() => {
-        setModals(prev => ({ ...prev, permissions: true }));
+        // 네이티브 앱에서는 시스템 권한 사용
       }, 1000); // Show permissions modal shortly after login
     }
   }, [user]);
@@ -292,9 +292,7 @@ export default function MainApp() {
 
 
 
-  const handlePermissionsComplete = () => {
-    setModals(prev => ({ ...prev, permissions: false }));
-  };
+  // 네이티브 앱에서는 권한 모달 불필요
 
   // Clear app badge when app becomes active (iPhone PWA) - enhanced with PWA badge hook
   useEffect(() => {
@@ -383,7 +381,7 @@ export default function MainApp() {
   const handleCreateCommand = (fileData?: any, messageData?: any) => {
     setCommandModalData(fileData);
     setMessageDataForCommand(messageData);
-    setModals({ ...modals, command: true, permissions: false });
+    setModals({ ...modals, command: true });
   };
 
   const handleChatRoomSelect = (chatRoomId: number) => {
@@ -395,7 +393,7 @@ export default function MainApp() {
   };
 
   const closeModals = () => {
-    setModals({ addContact: false, command: false, createGroup: false, profilePhoto: false, permissions: false, qrCode: false });
+    setModals({ addContact: false, command: false, createGroup: false, profilePhoto: false, qrCode: false });
     setCommandModalData(null);
     setMessageDataForCommand(null);
   };
