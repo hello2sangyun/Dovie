@@ -80,7 +80,18 @@
         <key>UIBackgroundModes</key>
         <array>
                 <string>remote-notification</string>
-                <string>push-notifications</string>
+                <string>background-app-refresh</string>
         </array>
+        <key>NSUserNotificationUsageDescription</key>
+        <string>이 앱은 새로운 메시지 알림을 위해 푸시 알림 권한이 필요합니다.</string>
+        <key>UIUserNotificationSettings</key>
+        <dict>
+                <key>UIUserNotificationTypeBadge</key>
+                <true/>
+                <key>UIUserNotificationTypeSound</key>
+                <true/>
+                <key>UIUserNotificationTypeAlert</key>
+                <true/>
+        </dict>
 </dict>
 </plist>
