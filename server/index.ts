@@ -5,6 +5,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import iosDownloadRouter from "./ios-download-final";
 import { iosDownloadNewHandler, iosFileNewHandler } from "./ios-download-new";
+import { storage } from "./storage";
 
 const app = express();
 
@@ -190,7 +191,7 @@ app.get("/ios-download-dovie", (req, res) => {
 });
 
 // iOS 디바이스 토큰 등록 API
-app.post("/api/ios-device-token", (req, res) => {
+app.post("/api/ios-device-token", async (req, res) => {
   const { deviceToken, platform, bundleId, userId } = req.body;
   
   console.log("iOS 디바이스 토큰 등록 요청:", {
@@ -204,22 +205,33 @@ app.post("/api/ios-device-token", (req, res) => {
     return res.status(400).json({ error: "디바이스 토큰이 필요합니다." });
   }
   
-  // iOS 디바이스 토큰을 데이터베이스에 저장 (실제 구현 필요)
-  console.log("iOS 푸시 토큰 등록 성공:", deviceToken.substring(0, 20) + "...");
-  
-  // 글로벌 iOS 토큰 저장소에 추가 (메모리)
-  if (!global.iosDeviceTokens) {
-    global.iosDeviceTokens = new Map();
+  try {
+    // iOS 디바이스 토큰을 데이터베이스에 저장
+    await storage.saveIosDeviceToken(userId, deviceToken, platform, bundleId);
+    console.log("✅ iOS 푸시 토큰 데이터베이스 저장 성공:", deviceToken.substring(0, 20) + "...");
+    
+    // 메모리에도 저장 (하위 호환성)
+    if (!global.iosDeviceTokens) {
+      global.iosDeviceTokens = new Map();
+    }
+    
+    global.iosDeviceTokens.set(userId || 'default', {
+      token: deviceToken,
+      platform,
+      bundleId,
+      registeredAt: new Date()
+    });
+    
+    // 데이터베이스에서 총 등록된 디바이스 수 확인
+    const totalDevices = await storage.getIosDeviceTokensCount();
+    console.log(`iOS 토큰 저장 완료. 총 등록된 디바이스: ${totalDevices}개`);
+  } catch (error) {
+    console.error("❌ iOS 디바이스 토큰 저장 실패:", error);
+    return res.status(500).json({ 
+      error: "디바이스 토큰 저장에 실패했습니다.",
+      details: error.message 
+    });
   }
-  
-  global.iosDeviceTokens.set(userId || 'default', {
-    token: deviceToken,
-    platform,
-    bundleId,
-    registeredAt: new Date()
-  });
-  
-  console.log(`iOS 토큰 저장 완료. 총 등록된 디바이스: ${global.iosDeviceTokens.size}개`);
   
   res.json({ 
     success: true, 

@@ -1189,6 +1189,19 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getIosDeviceTokensCount(): Promise<number> {
+    try {
+      const [result] = await db
+        .select({ count: count() })
+        .from(iosDeviceTokens)
+        .where(eq(iosDeviceTokens.isActive, true));
+      return result?.count || 0;
+    } catch (error) {
+      console.error('iOS 디바이스 토큰 카운트 조회 오류:', error);
+      return 0;
+    }
+  }
+
   async getIOSDeviceTokens(userId: number): Promise<{ deviceToken: string, platform: string }[]> {
     try {
       const tokens = await db.query.iosDeviceTokens.findMany({
