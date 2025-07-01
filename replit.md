@@ -982,6 +982,15 @@ Dovie Messenger is a full-stack chat application built with modern web technolog
   - **Added dual download options**: standalone version and server-connected version at /ios-download-server
   - **Enhanced Deploy user experience** with 2-second splash screen followed by automatic authentication
   - **Complete Deploy workflow**: first visit → splash screen → auto-login → main app access without manual login
+- July 1, 2025: **COMPLETED iOS native app optimization with enhanced push notifications and status bar fixes**:
+  - **Fixed critical iOS status bar layout issues** by adjusting CSS safe-area positioning for proper battery indicator and time display
+  - **Enhanced native push notification system** with comprehensive AppDelegate integration including device token management and notification event handling
+  - **Implemented automatic app badge management** with real-time unread message count updates and automatic badge clearing when app becomes active
+  - **Strengthened JavaScript-native communication** with bidirectional event system for push notifications, badge updates, and app lifecycle events
+  - **Optimized microphone permissions** for native iOS environment with proper Info.plist configuration
+  - **Created enhanced iOS project package** (dovie-ios-enhanced-0829.zip, 318KB) with all improvements integrated
+  - **Established comprehensive download system** at /ios-enhanced-download with detailed installation guide
+  - **Verified complete PWA to native app transition** with all web-based permission requests removed and replaced with native iOS APIs
 
 ## User Preferences
 
