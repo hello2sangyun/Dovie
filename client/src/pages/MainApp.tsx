@@ -27,7 +27,7 @@ import InstantAvatar from "@/components/InstantAvatar";
 import { BannerNotificationContainer } from "@/components/MobileBannerNotification";
 import LoadingScreen from "@/components/LoadingScreen";
 import { ConnectionStatusIndicator } from "@/components/ConnectionStatusIndicator";
-import { PermissionRequestModal } from "@/components/PermissionRequestModal";
+
 import { TelegramStyleNotificationManager } from "@/components/TelegramStyleNotificationManager";
 import { useCapacitorPushNotifications } from "@/hooks/useCapacitorPushNotifications";
 
@@ -59,7 +59,6 @@ export default function MainApp() {
     command: false,
     createGroup: false,
     profilePhoto: false,
-    permissions: false,
     qrCode: false,
   });
   const [commandModalData, setCommandModalData] = useState<any>(null);
@@ -149,7 +148,7 @@ export default function MainApp() {
           command: false,
           createGroup: false,
           profilePhoto: false,
-          permissions: false,
+
           qrCode: false,
         });
         return;
@@ -1191,11 +1190,7 @@ export default function MainApp() {
         onClose={closeModals}
       />
       
-      {/* Permission Request Modal for PWA functionality */}
-      <PermissionRequestModal
-        isOpen={modals.permissions}
-        onComplete={handlePermissionsComplete}
-      />
+
 
       <QRCodeModal
         isOpen={modals.qrCode}
