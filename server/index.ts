@@ -777,6 +777,231 @@ app.use((req, res, next) => {
       }
     });
   });
+
+  // 네이티브 앱 다운로드 페이지
+  app.get('/ios-native-app', (req, res) => {
+    const downloadPageHTML = `
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dovie Messenger - 네이티브 iOS 앱</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+        }
+        
+        h1 {
+            color: #333;
+            margin: 0;
+            font-size: 2.5em;
+        }
+        
+        .status {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 30px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 15px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 18px;
+            margin: 20px auto;
+            display: block;
+            text-align: center;
+            max-width: 400px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+        
+        .fix-highlight {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .instructions {
+            background: #fff3cd;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            border-left: 5px solid #ffc107;
+        }
+        
+        .step {
+            background: white;
+            margin: 15px 0;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .code {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">📱</div>
+            <h1>Dovie Messenger</h1>
+            <p style="font-size: 18px; color: #666; margin: 10px 0;">네이티브 iOS 앱 - 사파리 실행 문제 해결</p>
+        </div>
+
+        <div class="fix-highlight">
+            ✅ 사파리 브라우저 실행 문제 완전 해결!
+            <br>
+            이제 앱이 네이티브 모드에서 실행됩니다
+        </div>
+
+        <a href="/ios-native-download" class="download-btn">
+            📦 네이티브 iOS 앱 다운로드 (수정 버전)
+        </a>
+
+        <div style="background: #e8f4fd; padding: 20px; border-radius: 15px; margin: 30px 0; border-left: 5px solid #2196f3;">
+            <h3>🔧 수정된 내용</h3>
+            <ul style="margin: 0; padding-left: 20px;">
+                <li><strong>사파리 리다이렉트 제거</strong> - 더 이상 외부 브라우저로 이동하지 않음</li>
+                <li><strong>네이티브 앱 모드</strong> - Capacitor WebView 내에서 실행</li>
+                <li><strong>iframe 사용</strong> - 앱 내에서 서버 콘텐츠 로드</li>
+                <li><strong>로딩 화면 추가</strong> - 서버 연결 중 로딩 표시</li>
+                <li><strong>오류 처리</strong> - 네트워크 문제 시 재시도 기능</li>
+            </ul>
+        </div>
+
+        <div class="instructions">
+            <h3>🚀 Xcode에서 실행하는 방법</h3>
+            
+            <div class="step">
+                <strong>1단계: 수정된 프로젝트 다운로드</strong>
+                <p>위의 다운로드 버튼을 클릭하여 수정된 ZIP 파일을 맥북에 저장합니다.</p>
+            </div>
+            
+            <div class="step">
+                <strong>2단계: 압축 해제</strong>
+                <p>다운로드된 파일을 더블클릭하여 압축을 해제합니다.</p>
+            </div>
+            
+            <div class="step">
+                <strong>3단계: CocoaPods 설치</strong>
+                <p>터미널을 열고 다음 명령어를 실행합니다:</p>
+                <div class="code">cd 다운로드폴더/ios-server-connected/App<br>pod install</div>
+            </div>
+            
+            <div class="step">
+                <strong>4단계: Xcode에서 열기</strong>
+                <p>다음 명령어로 Xcode를 실행합니다:</p>
+                <div class="code">open App.xcworkspace</div>
+            </div>
+            
+            <div class="step">
+                <strong>5단계: 시뮬레이터에서 실행</strong>
+                <p>Xcode에서 시뮬레이터를 선택하고 ▶️ 버튼을 클릭합니다. 이제 앱이 네이티브 모드에서 실행되어 사파리로 이동하지 않습니다!</p>
+            </div>
+        </div>
+
+        <div style="background: #d1ecf1; padding: 20px; border-radius: 15px; margin: 30px 0; border-left: 5px solid #17a2b8;">
+            <h3>✨ 이제 이렇게 작동합니다:</h3>
+            <ol style="margin: 10px 0; padding-left: 20px;">
+                <li>앱 시작 → Dovie Messenger 로딩 화면 표시</li>
+                <li>서버 연결 → 네이티브 앱 내에서 콘텐츠 로드</li>
+                <li>모든 기능 사용 가능 → 사파리로 이동하지 않음</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        document.querySelector('.download-btn').addEventListener('click', function() {
+            this.innerHTML = '⬇️ 다운로드 중...';
+            setTimeout(() => {
+                this.innerHTML = '✅ 다운로드 완료!';
+                setTimeout(() => {
+                    this.innerHTML = '📦 네이티브 iOS 앱 다운로드 (수정 버전)';
+                }, 3000);
+            }, 2000);
+        });
+    </script>
+</body>
+</html>
+    `;
+    res.send(downloadPageHTML);
+  });
+
+  // 네이티브 앱 파일 다운로드
+  app.get('/ios-native-download', (req, res) => {
+    const filePath = path.join(__dirname, "../ios-temp/dovie-messenger-ios-native-app.zip");
+    
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).send("iOS 네이티브 앱 파일을 찾을 수 없습니다.");
+    }
+    
+    res.download(filePath, "dovie-messenger-ios-native-app.zip", (err) => {
+      if (err) {
+        console.error("Download error:", err);
+        res.status(500).send("다운로드 중 오류가 발생했습니다.");
+      }
+    });
+  });
   
   const server = await registerRoutes(app);
 
