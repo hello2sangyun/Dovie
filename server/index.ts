@@ -380,6 +380,29 @@ app.post("/api/test-ios-push", async (req, res) => {
   }
 });
 
+// iOS 테스트 가이드 페이지
+app.get("/ios-test", (req, res) => {
+  const guideFilePath = path.join(__dirname, "../ios-test-guide.html");
+  if (fs.existsSync(guideFilePath)) {
+    res.sendFile(guideFilePath);
+  } else {
+    res.status(404).send("테스트 가이드 페이지를 찾을 수 없습니다");
+  }
+});
+
+// iOS 테스트 프로젝트 다운로드 엔드포인트 (푸시 알림 및 뱃지 테스트용)
+app.get("/ios-test-download", (req, res) => {
+  const filePath = path.join(__dirname, "../dovie-ios-test-project.zip");
+  
+  if (fs.existsSync(filePath)) {
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', 'attachment; filename="dovie-ios-test-project.zip"');
+    res.download(filePath, 'dovie-ios-test-project.zip');
+  } else {
+    res.status(404).json({ error: "iOS 테스트 프로젝트 파일을 찾을 수 없습니다" });
+  }
+});
+
 app.get("/ios-download-production", (req, res) => {
   const downloadPageHTML = `
 <!DOCTYPE html>
