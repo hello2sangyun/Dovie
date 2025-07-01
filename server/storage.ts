@@ -1207,16 +1207,15 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`📱 iOS 토큰 조회 시작: userId=${userId}`);
       
-      const tokens = await db.query.iosDeviceTokens.findMany({
-        where: and(
-          eq(iosDeviceTokens.userId, userId),
-          eq(iosDeviceTokens.isActive, true)
-        ),
-        columns: {
-          deviceToken: true,
-          platform: true
-        }
-      });
+      const tokens = await db.select({
+        deviceToken: iosDeviceTokens.deviceToken,
+        platform: iosDeviceTokens.platform
+      })
+      .from(iosDeviceTokens)
+      .where(and(
+        eq(iosDeviceTokens.userId, userId),
+        eq(iosDeviceTokens.isActive, true)
+      ));
       
       console.log(`📱 조회된 iOS 토큰 수: ${tokens.length}`);
       if (tokens.length > 0) {

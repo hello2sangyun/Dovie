@@ -380,7 +380,9 @@ app.post("/api/test-ios-push", async (req, res) => {
   
   try {
     // 데이터베이스에서 iOS 디바이스 토큰 조회
+    console.log(`📱 storage.getIOSDeviceTokens 호출 전: userId=${userId}`);
     const tokens = await storage.getIOSDeviceTokens(userId);
+    console.log(`📱 storage.getIOSDeviceTokens 호출 후: tokens=${JSON.stringify(tokens)}`);
     
     if (tokens.length === 0) {
       console.log('등록된 iOS 디바이스가 없습니다.');
