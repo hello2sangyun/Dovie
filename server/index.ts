@@ -1002,6 +1002,222 @@ app.use((req, res, next) => {
       }
     });
   });
+
+  // 최종 iOS 앱 다운로드 페이지 (새로운 도메인 연결)
+  app.get('/ios-final', (req, res) => {
+    const downloadPageHTML = `
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dovie Messenger - 최종 iOS 앱</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+        }
+        
+        h1 {
+            color: #333;
+            margin: 0;
+            font-size: 2.5em;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 15px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 18px;
+            margin: 20px auto;
+            display: block;
+            text-align: center;
+            max-width: 400px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+        
+        .update-highlight {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .instructions {
+            background: #fff3cd;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            border-left: 5px solid #ffc107;
+        }
+        
+        .step {
+            background: white;
+            margin: 15px 0;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .code {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">📱</div>
+            <h1>Dovie Messenger</h1>
+            <p style="font-size: 18px; color: #666; margin: 10px 0;">최종 iOS 앱 - 새로운 도메인 연결</p>
+        </div>
+
+        <div class="update-highlight">
+            ✅ 새로운 서버 도메인으로 업데이트!
+            <br>
+            dovie-hello2sangyun.replit.app 연결
+        </div>
+
+        <a href="/ios-final-download" class="download-btn">
+            📦 최종 iOS 앱 다운로드
+        </a>
+
+        <div style="background: #e8f4fd; padding: 20px; border-radius: 15px; margin: 30px 0; border-left: 5px solid #2196f3;">
+            <h3>🔧 업데이트된 내용</h3>
+            <ul style="margin: 0; padding-left: 20px;">
+                <li><strong>새로운 서버 연결</strong> - dovie-hello2sangyun.replit.app</li>
+                <li><strong>네이티브 앱 모드</strong> - 사파리로 이동하지 않음</li>
+                <li><strong>iframe 내장</strong> - 앱 내에서 서버 콘텐츠 실행</li>
+                <li><strong>로딩 화면</strong> - 서버 연결 중 표시</li>
+                <li><strong>오류 처리</strong> - 연결 실패 시 재시도 기능</li>
+            </ul>
+        </div>
+
+        <div class="instructions">
+            <h3>🚀 Xcode에서 실행하는 방법</h3>
+            
+            <div class="step">
+                <strong>1단계: 최종 프로젝트 다운로드</strong>
+                <p>위의 다운로드 버튼을 클릭하여 최종 ZIP 파일을 맥북에 저장합니다.</p>
+            </div>
+            
+            <div class="step">
+                <strong>2단계: 압축 해제</strong>
+                <p>다운로드된 파일을 더블클릭하여 압축을 해제합니다.</p>
+            </div>
+            
+            <div class="step">
+                <strong>3단계: CocoaPods 설치</strong>
+                <p>터미널을 열고 다음 명령어를 실행합니다:</p>
+                <div class="code">cd 다운로드폴더/ios-server-connected/App<br>pod install</div>
+            </div>
+            
+            <div class="step">
+                <strong>4단계: Xcode에서 열기</strong>
+                <p>다음 명령어로 Xcode를 실행합니다:</p>
+                <div class="code">open App.xcworkspace</div>
+            </div>
+            
+            <div class="step">
+                <strong>5단계: 시뮬레이터에서 실행</strong>
+                <p>Xcode에서 시뮬레이터를 선택하고 ▶️ 버튼을 클릭합니다. 이제 새로운 도메인으로 연결된 앱이 실행됩니다!</p>
+            </div>
+        </div>
+
+        <div style="background: #d1ecf1; padding: 20px; border-radius: 15px; margin: 30px 0; border-left: 5px solid #17a2b8;">
+            <h3>✨ 새로운 워크플로우:</h3>
+            <ol style="margin: 10px 0; padding-left: 20px;">
+                <li>앱 시작 → Dovie Messenger 로딩 화면</li>
+                <li>dovie-hello2sangyun.replit.app 서버 연결</li>
+                <li>네이티브 앱 내에서 모든 기능 사용</li>
+                <li>더 이상 사파리로 이동하지 않음</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        document.querySelector('.download-btn').addEventListener('click', function() {
+            this.innerHTML = '⬇️ 다운로드 중...';
+            setTimeout(() => {
+                this.innerHTML = '✅ 다운로드 완료!';
+                setTimeout(() => {
+                    this.innerHTML = '📦 최종 iOS 앱 다운로드';
+                }, 3000);
+            }, 2000);
+        });
+    </script>
+</body>
+</html>
+    `;
+    res.send(downloadPageHTML);
+  });
+
+  // 최종 iOS 앱 파일 다운로드
+  app.get('/ios-final-download', (req, res) => {
+    const filePath = path.join(__dirname, "../ios-temp/dovie-messenger-ios-final.zip");
+    
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).send("최종 iOS 앱 파일을 찾을 수 없습니다.");
+    }
+    
+    res.download(filePath, "dovie-messenger-ios-final.zip", (err) => {
+      if (err) {
+        console.error("Download error:", err);
+        res.status(500).send("다운로드 중 오류가 발생했습니다.");
+      }
+    });
+  });
   
   const server = await registerRoutes(app);
 
