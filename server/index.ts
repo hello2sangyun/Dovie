@@ -246,6 +246,23 @@ app.post("/api/ios-device-token", async (req, res) => {
   });
 });
 
+// iOS 디바이스 토큰 상태 확인 API
+app.get("/api/ios-device-status", async (req, res) => {
+  try {
+    const totalDevices = await storage.getIOSDeviceTokensCount();
+    const memoryDevices = global.iosDeviceTokens ? global.iosDeviceTokens.size : 0;
+    
+    res.json({
+      totalDevicesInDB: totalDevices,
+      memoryDevices: memoryDevices,
+      registeredUsers: global.iosDeviceTokens ? Array.from(global.iosDeviceTokens.keys()) : []
+    });
+  } catch (error) {
+    console.error("iOS 디바이스 상태 확인 오류:", error);
+    res.status(500).json({ error: "상태 확인 실패" });
+  }
+});
+
 // iOS 테스트 푸시 알림 API 추가
 app.post("/api/test-ios-push", (req, res) => {
   console.log('📱 iOS 테스트 푸시 알림 요청:', req.body);
