@@ -5,7 +5,7 @@
         <key>CFBundleDevelopmentRegion</key>
         <string>en</string>
         <key>CFBundleDisplayName</key>
-        <string>Dovie Messenger</string>
+        <string>Dovie</string>
         <key>CFBundleExecutable</key>
         <string>$(EXECUTABLE_NAME)</string>
         <key>CFBundleIdentifier</key>
@@ -77,5 +77,10 @@
         <string>이 앱은 파일 공유를 위해 카메라 접근이 필요합니다.</string>
         <key>NSPhotoLibraryUsageDescription</key>
         <string>이 앱은 사진 공유를 위해 사진 라이브러리 접근이 필요합니다.</string>
+        <key>UIBackgroundModes</key>
+        <array>
+                <string>remote-notification</string>
+                <string>push-notifications</string>
+        </array>
 </dict>
 </plist>
