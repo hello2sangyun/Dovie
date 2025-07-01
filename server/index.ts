@@ -289,76 +289,32 @@ app.get("/api/ios-device-status", async (req, res) => {
   }
 });
 
-// iOS 테스트 푸시 알림 API 추가
-app.post("/api/test-ios-push", (req, res) => {
-  console.log('📱 iOS 테스트 푸시 알림 요청:', req.body);
-  
-  const { message, title, badge } = req.body;
-  const userId = Number(req.headers['x-user-id']) || 117;
-  
-  if (!global.iosDeviceTokens || global.iosDeviceTokens.size === 0) {
-    console.log("등록된 iOS 디바이스가 없습니다.");
-    return res.status(404).json({ 
-      message: "등록된 iOS 디바이스가 없습니다.",
-      registeredDevices: 0
-    });
-  }
-  
-  const deviceInfo = global.iosDeviceTokens.get(userId) || global.iosDeviceTokens.get('default');
-  
-  if (!deviceInfo) {
-    console.log(`사용자 ${userId}의 등록된 디바이스를 찾을 수 없음`);
-    console.log('등록된 사용자들:', Array.from(global.iosDeviceTokens.keys()));
-    return res.status(404).json({ 
-      message: "해당 사용자의 디바이스를 찾을 수 없습니다.",
-      availableUsers: Array.from(global.iosDeviceTokens.keys())
-    });
-  }
-  
-  console.log(`✅ 테스트 푸시 알림 발송: 사용자 ${userId}`);
-  console.log(`디바이스 토큰: ${deviceInfo.token.substring(0, 20)}...`);
-  
-  const pushResult = {
-    success: true,
-    deviceToken: deviceInfo.token.substring(0, 20) + '...',
-    message: message || 'iOS 네이티브 앱 테스트 푸시 알림!',
-    title: title || 'Dovie Messenger',
-    badge: badge || 1,
-    timestamp: new Date().toISOString(),
-    userId: userId,
-    platform: deviceInfo.platform,
-    bundleId: deviceInfo.bundleId
-  };
-  
-  console.log('📱 iOS 테스트 푸시 시뮬레이션 완료:', pushResult);
-  
-  res.json({
-    success: true,
-    message: "테스트 푸시 알림 시뮬레이션 성공",
-    result: pushResult
-  });
-});
+// 기존 메모리 기반 iOS 테스트 API 제거됨 - 데이터베이스 기반으로 대체
 
-// iOS APNS 푸시 알림 발송 함수
-function sendIOSPushNotification(message: any, title = "새 메시지", badgeCount = 1) {
-  if (!global.iosDeviceTokens || global.iosDeviceTokens.size === 0) {
-    console.log("등록된 iOS 디바이스가 없습니다.");
-    return;
-  }
-  
-  console.log(`iOS 푸시 알림 발송 시도: ${global.iosDeviceTokens.size}개 디바이스`);
-  
-  global.iosDeviceTokens.forEach((deviceInfo, userId) => {
-    console.log(`iOS 푸시 알림 발송 [사용자 ${userId}]:`, {
-      title,
-      message: message.substring(0, 50) + "...",
-      badge: badgeCount,
-      token: deviceInfo.token.substring(0, 20) + "..."
-    });
+// iOS APNS 푸시 알림 발송 함수 (데이터베이스 기반)
+async function sendIOSPushNotification(message: any, title = "새 메시지", badgeCount = 1) {
+  try {
+    // 모든 iOS 디바이스 토큰 수 확인
+    const totalTokens = await storage.getIOSDeviceTokensCount();
+    console.log(`📱 전체 등록된 iOS 디바이스 토큰 수: ${totalTokens}`);
+    
+    if (totalTokens === 0) {
+      console.log("등록된 iOS 디바이스가 없습니다.");
+      return;
+    }
+    
+    console.log(`iOS 푸시 알림 발송 시도: ${totalTokens}개 디바이스`);
     
     // 실제 APNS 발송은 추후 node-apn 라이브러리로 구현 가능
     // 현재는 시뮬레이션만 수행
-  });
+    console.log(`📱 푸시 알림 내용:`, {
+      title,
+      message: typeof message === 'string' ? message.substring(0, 50) + "..." : message,
+      badge: badgeCount
+    });
+  } catch (error) {
+    console.error('iOS 푸시 알림 발송 중 오류:', error);
+  }
 }
 
 // 메시지 생성 시 iOS 푸시 알림 자동 발송
@@ -373,8 +329,10 @@ app.post("/api/test-ios-push", async (req, res) => {
   const userId = parseInt(req.headers['x-user-id'] as string);
   
   console.log(`📱 iOS 테스트 푸시 알림 요청:`, { message, title, badge });
+  console.log(`📱 파싱된 userId: ${userId}, 타입: ${typeof userId}`);
   
   if (!userId) {
+    console.log('❌ User ID가 없거나 유효하지 않음');
     return res.status(400).json({ error: 'User ID required' });
   }
   
