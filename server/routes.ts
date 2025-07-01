@@ -5776,5 +5776,297 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 서버 연결형 iOS 프로젝트 다운로드
+  app.get("/ios-download-server", (req, res) => {
+    const downloadPage = `
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>서버 연결형 Dovie iOS 프로젝트</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            max-width: 700px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+        
+        .project-info {
+            background: linear-gradient(135deg, #f8f9ff 0%, #e8f4fd 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 25px 0;
+            border-left: 5px solid #667eea;
+        }
+        
+        .download-btn {
+            display: block;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 18px 35px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: bold;
+            text-align: center;
+            margin: 25px auto;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+            max-width: 350px;
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .feature-list {
+            background: #f0f8ff;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+        
+        .feature-list h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .feature-list ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .feature-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        
+        .feature-list li:before {
+            content: "✅";
+            position: absolute;
+            left: 0;
+        }
+        
+        .installation-steps {
+            background: #fff3cd;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .step {
+            background: white;
+            margin: 12px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+        }
+        
+        code {
+            background: #f8f9fa;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            color: #d63384;
+            font-weight: 500;
+        }
+        
+        .server-info {
+            background: #d1ecf1;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid #bee5eb;
+        }
+        
+        .warning {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 서버 연결형 Dovie iOS</h1>
+        
+        <div class="project-info">
+            <h3>🚀 완전한 기능을 갖춘 iOS 네이티브 앱</h3>
+            <p><strong>실제 서버와 연결되어 모든 Dovie Messenger 기능을 사용할 수 있습니다.</strong></p>
+            <p>Xcode에서 바로 실행하여 완전한 메신저 앱을 체험하세요.</p>
+        </div>
+
+        <div class="server-info">
+            <h3>🌐 서버 연결 정보</h3>
+            <p><strong>서버 URL:</strong> <code>https://vault-messenger-1-hello2sangyun.replit.app</code></p>
+            <p><strong>자동 로그인:</strong> 활성화됨 (데모 계정)</p>
+            <p><strong>실시간 기능:</strong> 완전 지원</p>
+        </div>
+
+        <a href="/ios-server-connected-download" class="download-btn">
+            📥 서버 연결형 iOS 프로젝트 다운로드
+        </a>
+
+        <div class="feature-list">
+            <h3>✨ 포함된 기능들</h3>
+            <ul>
+                <li>실시간 채팅 및 메시지 전송</li>
+                <li>음성 메시지 녹음 및 재생</li>
+                <li>파일 공유 (이미지, 문서, 동영상)</li>
+                <li>연락처 관리 및 QR 코드 공유</li>
+                <li>푸시 알림 (iOS 네이티브)</li>
+                <li>YouTube 동영상 검색 및 공유</li>
+                <li>자료실 및 해시태그 검색</li>
+                <li>프로필 사진 업로드</li>
+            </ul>
+        </div>
+
+        <div class="installation-steps">
+            <h3>🛠 설치 및 실행 방법</h3>
+            
+            <div class="step">
+                <strong>1단계: 프로젝트 다운로드</strong><br>
+                위의 다운로드 버튼을 클릭하여 ZIP 파일을 받으세요.
+            </div>
+            
+            <div class="step">
+                <strong>2단계: 압축 해제</strong><br>
+                다운로드된 파일을 더블클릭하여 압축을 해제하세요.
+            </div>
+            
+            <div class="step">
+                <strong>3단계: CocoaPods 설치</strong><br>
+                터미널에서: <code>cd ios/App && pod install</code>
+            </div>
+            
+            <div class="step">
+                <strong>4단계: Xcode에서 열기</strong><br>
+                <code>open App.xcworkspace</code> 또는 Xcode에서 직접 열기
+            </div>
+            
+            <div class="step">
+                <strong>5단계: 실행</strong><br>
+                시뮬레이터 또는 실제 디바이스에서 실행하세요.
+            </div>
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ 주의사항:</strong><br>
+            • Xcode 14.0 이상 필요<br>
+            • iOS 14.0 이상 지원<br>
+            • 실제 디바이스 테스트 시 Apple Developer 계정 필요<br>
+            • 네트워크 연결 필요 (서버 통신)
+        </div>
+
+        <div class="project-info">
+            <h3>🎯 App Store 배포 준비</h3>
+            <p>이 프로젝트는 App Store 배포가 가능하도록 구성되어 있습니다.</p>
+            <p>Bundle ID 변경 및 코드 서명 설정 후 바로 배포할 수 있습니다.</p>
+        </div>
+    </div>
+
+    <script>
+        document.querySelector('.download-btn').addEventListener('click', function() {
+            this.innerHTML = '⬇️ 다운로드 중...';
+            setTimeout(() => {
+                this.innerHTML = '✅ 다운로드 완료!';
+            }, 2000);
+        });
+    </script>
+</body>
+</html>`;
+    
+    res.send(downloadPage);
+  });
+
+  // 실제 서버 연결형 파일 다운로드
+  app.get("/ios-server-connected-download", (req, res) => {
+    const filePath = path.join(process.cwd(), 'ios-temp', 'dovie-messenger-ios-server-connected.zip');
+    
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).send(`
+        <!DOCTYPE html>
+        <html lang="ko">
+        <head>
+          <meta charset="UTF-8">
+          <title>파일 준비 중</title>
+          <style>
+            body { 
+              font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+              text-align: center; 
+              padding: 50px; 
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              color: white; 
+              min-height: 100vh; 
+              margin: 0;
+            }
+            .container { 
+              background: rgba(255,255,255,0.1); 
+              padding: 40px; 
+              border-radius: 20px; 
+              backdrop-filter: blur(10px); 
+              max-width: 600px; 
+              margin: 0 auto; 
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>⏳ 파일 준비 중</h1>
+            <p>서버 연결형 iOS 프로젝트를 생성하고 있습니다.</p>
+            <p>잠시 후 다시 시도해 주세요.</p>
+            <p><a href="/ios-download-server" style="color: #fff; text-decoration: underline;">다시 시도하기</a></p>
+          </div>
+        </body>
+        </html>
+      `);
+    }
+
+    const stats = fs.statSync(filePath);
+    const fileSizeInKB = Math.round(stats.size / 1024);
+
+    res.setHeader('Content-Disposition', 'attachment; filename="dovie-messenger-ios-server-connected.zip"');
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Length', stats.size);
+
+    const fileStream = fs.createReadStream(filePath);
+    fileStream.pipe(res);
+  });
+
   return httpServer;
 }
