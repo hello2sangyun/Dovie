@@ -174,6 +174,21 @@ app.get("/ios-final-download", (req, res) => {
   });
 });
 
+app.get("/ios-download-dovie", (req, res) => {
+  const filePath = path.join(__dirname, "../ios-temp/ios-server-connected-updated.zip");
+  
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send("업데이트된 iOS 앱 파일을 찾을 수 없습니다.");
+  }
+  
+  res.download(filePath, "Dovie-iOS-App.zip", (err) => {
+    if (err) {
+      console.error("Download error:", err);
+      res.status(500).send("다운로드 중 오류가 발생했습니다.");
+    }
+  });
+});
+
 app.get("/ios-download-production", (req, res) => {
   const downloadPageHTML = `
 <!DOCTYPE html>
