@@ -229,6 +229,56 @@ app.post("/api/ios-device-token", (req, res) => {
   });
 });
 
+// iOS 테스트 푸시 알림 API 추가
+app.post("/api/test-ios-push", (req, res) => {
+  console.log('📱 iOS 테스트 푸시 알림 요청:', req.body);
+  
+  const { message, title, badge } = req.body;
+  const userId = Number(req.headers['x-user-id']) || 117;
+  
+  if (!global.iosDeviceTokens || global.iosDeviceTokens.size === 0) {
+    console.log("등록된 iOS 디바이스가 없습니다.");
+    return res.status(404).json({ 
+      message: "등록된 iOS 디바이스가 없습니다.",
+      registeredDevices: 0
+    });
+  }
+  
+  const deviceInfo = global.iosDeviceTokens.get(userId) || global.iosDeviceTokens.get('default');
+  
+  if (!deviceInfo) {
+    console.log(`사용자 ${userId}의 등록된 디바이스를 찾을 수 없음`);
+    console.log('등록된 사용자들:', Array.from(global.iosDeviceTokens.keys()));
+    return res.status(404).json({ 
+      message: "해당 사용자의 디바이스를 찾을 수 없습니다.",
+      availableUsers: Array.from(global.iosDeviceTokens.keys())
+    });
+  }
+  
+  console.log(`✅ 테스트 푸시 알림 발송: 사용자 ${userId}`);
+  console.log(`디바이스 토큰: ${deviceInfo.token.substring(0, 20)}...`);
+  
+  const pushResult = {
+    success: true,
+    deviceToken: deviceInfo.token.substring(0, 20) + '...',
+    message: message || 'iOS 네이티브 앱 테스트 푸시 알림!',
+    title: title || 'Dovie Messenger',
+    badge: badge || 1,
+    timestamp: new Date().toISOString(),
+    userId: userId,
+    platform: deviceInfo.platform,
+    bundleId: deviceInfo.bundleId
+  };
+  
+  console.log('📱 iOS 테스트 푸시 시뮬레이션 완료:', pushResult);
+  
+  res.json({
+    success: true,
+    message: "테스트 푸시 알림 시뮬레이션 성공",
+    result: pushResult
+  });
+});
+
 // iOS APNS 푸시 알림 발송 함수
 function sendIOSPushNotification(message, title = "새 메시지", badgeCount = 1) {
   if (!global.iosDeviceTokens || global.iosDeviceTokens.size === 0) {
