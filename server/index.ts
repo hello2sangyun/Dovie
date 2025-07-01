@@ -7,6 +7,11 @@ import iosDownloadRouter from "./ios-download-final";
 import { iosDownloadNewHandler, iosFileNewHandler } from "./ios-download-new";
 import { storage } from "./storage";
 
+// Global 타입 선언
+declare global {
+  var iosDeviceTokens: Map<string | number, any>;
+}
+
 const app = express();
 
 // CORS 미들웨어 추가 - iOS 앱 접근 허용
@@ -207,7 +212,7 @@ app.post("/api/ios-device-token", async (req, res) => {
   
   try {
     // iOS 디바이스 토큰을 데이터베이스에 저장
-    await storage.saveIosDeviceToken(userId, deviceToken, platform, bundleId);
+    await storage.saveIOSDeviceToken(userId, deviceToken, platform);
     console.log("✅ iOS 푸시 토큰 데이터베이스 저장 성공:", deviceToken.substring(0, 20) + "...");
     
     // 메모리에도 저장 (하위 호환성)
@@ -223,13 +228,13 @@ app.post("/api/ios-device-token", async (req, res) => {
     });
     
     // 데이터베이스에서 총 등록된 디바이스 수 확인
-    const totalDevices = await storage.getIosDeviceTokensCount();
+    const totalDevices = await storage.getIOSDeviceTokensCount();
     console.log(`iOS 토큰 저장 완료. 총 등록된 디바이스: ${totalDevices}개`);
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ iOS 디바이스 토큰 저장 실패:", error);
     return res.status(500).json({ 
       error: "디바이스 토큰 저장에 실패했습니다.",
-      details: error.message 
+      details: error?.message || error 
     });
   }
   
@@ -292,7 +297,7 @@ app.post("/api/test-ios-push", (req, res) => {
 });
 
 // iOS APNS 푸시 알림 발송 함수
-function sendIOSPushNotification(message, title = "새 메시지", badgeCount = 1) {
+function sendIOSPushNotification(message: any, title = "새 메시지", badgeCount = 1) {
   if (!global.iosDeviceTokens || global.iosDeviceTokens.size === 0) {
     console.log("등록된 iOS 디바이스가 없습니다.");
     return;

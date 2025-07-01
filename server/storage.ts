@@ -124,6 +124,7 @@ export interface IStorage {
   hasIOSDeviceToken(userId: number): Promise<boolean>;
   removeIOSDeviceToken(userId: number): Promise<void>;
   getIOSDeviceTokens(userId: number): Promise<{ deviceToken: string, platform: string }[]>;
+  getIOSDeviceTokensCount(): Promise<number>;
 
   // QR Code System
   generateQRToken(userId: number): Promise<string>;
@@ -1189,7 +1190,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getIosDeviceTokensCount(): Promise<number> {
+  async getIOSDeviceTokensCount(): Promise<number> {
     try {
       const [result] = await db
         .select({ count: count() })
