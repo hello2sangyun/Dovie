@@ -378,17 +378,6 @@ app.post("/api/test-ios-push", async (req, res) => {
     console.error('❌ iOS 푸시 테스트 실패:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-  
-  res.json({
-    success: true,
-    message: "iOS 테스트 푸시 알림이 발송되었습니다.",
-    devices: global.iosDeviceTokens ? global.iosDeviceTokens.size : 0,
-    testData: {
-      title: testTitle,
-      message: testMessage,
-      badge: testBadge
-    }
-  });
 });
 
 app.get("/ios-download-production", (req, res) => {
