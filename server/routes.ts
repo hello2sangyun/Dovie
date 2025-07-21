@@ -17,6 +17,8 @@ import { eq, and, inArray, desc, gte, isNull } from "drizzle-orm";
 import { initializeNotificationScheduler } from "./notification-scheduler";
 import { getVapidPublicKey, sendPushNotification } from "./push-notifications";
 import twilio from "twilio";
+import passport from "./auth";
+import session from "express-session";
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -47,6 +49,18 @@ const upload = multer({
 const connections = new Map<number, WebSocket>();
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // 세션 설정
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'your-secret-key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false } // HTTPS가 아닌 경우 false
+  }));
+
+  // Passport 초기화
+  app.use(passport.initialize());
+  app.use(passport.session());
+
   // Auth routes
 
   // SMS 인증 코드 전송
@@ -176,6 +190,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("SMS verify error:", error);
       res.status(500).json({ message: "인증에 실패했습니다." });
     }
+  });
+
+  // Google 로그인 시작
+  app.get("/api/auth/google", 
+    passport.authenticate('google', { scope: ['profile', 'email'] })
+  );
+
+  // Google 로그인 콜백
+  app.get("/api/auth/google/callback",
+    passport.authenticate('google', { failureRedirect: '/login' }),
+    async (req, res) => {
+      const user = req.user as any;
+      console.log('Google 로그인 성공:', user.id, user.displayName);
+      
+      // 온라인 상태 업데이트
+      await storage.updateUser(user.id, { isOnline: true });
+      
+      // 프로필이 완성되지 않은 경우 프로필 설정 페이지로, 완성된 경우 메인 페이지로
+      if (!user.isProfileComplete) {
+        res.redirect(`/?userId=${user.id}&profileIncomplete=true`);
+      } else {
+        res.redirect(`/?userId=${user.id}`);
+      }
+    }
+  );
+
+  // Facebook 로그인 시작
+  app.get("/api/auth/facebook",
+    passport.authenticate('facebook', { scope: ['email'] })
+  );
+
+  // Facebook 로그인 콜백
+  app.get("/api/auth/facebook/callback",
+    passport.authenticate('facebook', { failureRedirect: '/login' }),
+    async (req, res) => {
+      const user = req.user as any;
+      console.log('Facebook 로그인 성공:', user.id, user.displayName);
+      
+      // 온라인 상태 업데이트
+      await storage.updateUser(user.id, { isOnline: true });
+      
+      // 프로필이 완성되지 않은 경우 프로필 설정 페이지로, 완성된 경우 메인 페이지로
+      if (!user.isProfileComplete) {
+        res.redirect(`/?userId=${user.id}&profileIncomplete=true`);
+      } else {
+        res.redirect(`/?userId=${user.id}`);
+      }
+    }
+  );
+
+  // 소셜 로그인 사용자 정보 API
+  app.get("/api/auth/user", async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      const user = req.user as any;
+      const fullUser = await storage.getUser(user.id);
+      
+      if (!fullUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json({ user: fullUser });
+    } catch (error) {
+      console.error("Get user error:", error);
+      res.status(500).json({ message: "Failed to get user information" });
+    }
+  });
+
+  // 로그아웃 API
+  app.post("/api/auth/logout", (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        console.error("Logout error:", err);
+        return res.status(500).json({ message: "Logout failed" });
+      }
+      res.json({ success: true, message: "Logged out successfully" });
+    });
   });
 
   // 회원가입 API

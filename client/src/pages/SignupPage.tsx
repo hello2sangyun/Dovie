@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Mail, Lock, User, Eye, EyeOff, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { SiGoogle, SiFacebook } from "react-icons/si";
 
 export default function SignupPage() {
   const [, setLocation] = useLocation();
@@ -30,6 +31,15 @@ export default function SignupPage() {
   // Phone signup redirects to phone login
   const handlePhoneSignup = () => {
     setLocation("/phone-login");
+  };
+
+  // Social login handlers
+  const handleGoogleLogin = () => {
+    window.location.href = '/api/auth/google';
+  };
+
+  const handleFacebookLogin = () => {
+    window.location.href = '/api/auth/facebook';
   };
 
   const signupMutation = useMutation({
@@ -223,17 +233,73 @@ export default function SignupPage() {
                     {signupMutation.isPending ? "계정 생성 중..." : "계정 만들기"}
                   </Button>
                 </form>
+
+                <div className="mt-6 space-y-4">
+                  <div className="flex items-center">
+                    <div className="flex-1 border-t border-gray-300"></div>
+                    <div className="px-3 text-sm text-gray-500">또는</div>
+                    <div className="flex-1 border-t border-gray-300"></div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Button
+                      onClick={handleGoogleLogin}
+                      variant="outline"
+                      className="w-full flex items-center gap-3 py-3 border-gray-300 hover:bg-gray-50"
+                    >
+                      <SiGoogle className="h-5 w-5 text-red-500" />
+                      Google로 계속하기
+                    </Button>
+
+                    <Button
+                      onClick={handleFacebookLogin}
+                      variant="outline"
+                      className="w-full flex items-center gap-3 py-3 border-gray-300 hover:bg-gray-50"
+                    >
+                      <SiFacebook className="h-5 w-5 text-blue-600" />
+                      Facebook으로 계속하기
+                    </Button>
+                  </div>
+                </div>
               </TabsContent>
 
               <TabsContent value="phone" className="mt-6">
-                <div className="text-center space-y-4">
-                  <p className="text-gray-600">휴대폰 인증을 통해 가입하시겠습니까?</p>
-                  <Button
-                    onClick={handlePhoneSignup}
-                    className="w-full bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700"
-                  >
-                    휴대폰 인증으로 가입하기
-                  </Button>
+                <div className="space-y-6">
+                  <div className="text-center">
+                    <p className="text-gray-600 mb-4">휴대폰 인증을 통해 가입하시겠습니까?</p>
+                    <Button
+                      onClick={handlePhoneSignup}
+                      className="w-full bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700"
+                    >
+                      휴대폰 인증으로 가입하기
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center">
+                    <div className="flex-1 border-t border-gray-300"></div>
+                    <div className="px-3 text-sm text-gray-500">또는</div>
+                    <div className="flex-1 border-t border-gray-300"></div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Button
+                      onClick={handleGoogleLogin}
+                      variant="outline"
+                      className="w-full flex items-center gap-3 py-3 border-gray-300 hover:bg-gray-50"
+                    >
+                      <SiGoogle className="h-5 w-5 text-red-500" />
+                      Google로 계속하기
+                    </Button>
+
+                    <Button
+                      onClick={handleFacebookLogin}
+                      variant="outline"
+                      className="w-full flex items-center gap-3 py-3 border-gray-300 hover:bg-gray-50"
+                    >
+                      <SiFacebook className="h-5 w-5 text-blue-600" />
+                      Facebook으로 계속하기
+                    </Button>
+                  </div>
                 </div>
               </TabsContent>
             </Tabs>
