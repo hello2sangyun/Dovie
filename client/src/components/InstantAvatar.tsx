@@ -72,18 +72,36 @@ export const InstantAvatar = memo(function InstantAvatar({
 
     // URL 형태에 따라 최적화된 경로로 변환
     let optimizedSrc = src;
-    if (src.startsWith('/uploads/')) {
+    
+    // 이미 완전한 HTTP URL인 경우 (구글, 페이스북 프로필 등)
+    if (src.startsWith('http://') || src.startsWith('https://')) {
+      optimizedSrc = src;
+    }
+    // API 경로가 이미 포함된 경우
+    else if (src.startsWith('/api/profile-images/')) {
+      optimizedSrc = src;
+    }
+    // uploads 경로인 경우 API 경로로 변환
+    else if (src.startsWith('/uploads/')) {
       const filename = src.split('/').pop();
       if (filename) {
         optimizedSrc = `/api/profile-images/${filename}`;
       }
-    } else if (src.startsWith('profile_')) {
-      // 파일명만 있는 경우 API 경로 추가
+    } 
+    // profile_ 으로 시작하는 파일명인 경우
+    else if (src.startsWith('profile_')) {
       optimizedSrc = `/api/profile-images/${src}`;
-    } else if (!src.startsWith('http') && !src.startsWith('/api/')) {
-      // 상대 경로인 경우 API 경로로 변환
+    } 
+    // 기타 상대 경로인 경우
+    else if (!src.startsWith('/') && !src.includes('://')) {
       optimizedSrc = `/api/profile-images/${src}`;
     }
+    // 나머지는 그대로 사용
+    else {
+      optimizedSrc = src;
+    }
+
+    console.log(`InstantAvatar: ${src} → ${optimizedSrc}`);
 
     // 즉시 캐시된 이미지 확인
     const cachedImage = getInstantImage(optimizedSrc);
@@ -93,7 +111,7 @@ export const InstantAvatar = memo(function InstantAvatar({
       return;
     }
 
-    // 캐시에 없으면 원본 URL 사용
+    // 캐시에 없으면 최적화된 URL 사용
     setDisplaySrc(optimizedSrc);
     setShowFallback(false);
   }, [src, getInstantImage, forceUpdate]);
