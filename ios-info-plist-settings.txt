@@ -1,0 +1,73 @@
+📱 **Dovie Messenger - Info.plist 완전 설정 가이드**
+
+## 🔧 Info.plist에 추가해야 할 권한들
+
+### 1. **카메라 권한** (사진/동영상 촬영용)
+Key: NSCameraUsageDescription
+Type: String
+Value: 사진과 동영상을 촬영하여 메시지로 전송하기 위해 카메라 접근이 필요합니다.
+
+### 2. **사진 라이브러리 권한** (갤러리 접근용)
+Key: NSPhotoLibraryUsageDescription
+Type: String
+Value: 사진과 동영상을 선택하여 메시지로 전송하기 위해 사진 라이브러리 접근이 필요합니다.
+
+### 3. **마이크 권한** (음성 메시지용)
+Key: NSMicrophoneUsageDescription
+Type: String
+Value: 음성 메시지를 녹음하기 위해 마이크 접근이 필요합니다.
+
+### 4. **연락처 권한** (친구 찾기용)
+Key: NSContactsUsageDescription
+Type: String
+Value: 친구를 찾고 연락처를 동기화하기 위해 연락처 접근이 필요합니다.
+
+### 5. **백그라운드 모드** (푸시 알림용)
+Key: UIBackgroundModes
+Type: Array
+Values:
+- background-processing
+- remote-notification
+- background-fetch
+
+### 6. **URL 스키마** (딥링크용)
+Key: CFBundleURLTypes
+Type: Array
+- Item 0 (Dictionary):
+  - CFBundleURLName: com.dovie.messenger
+  - CFBundleURLSchemes (Array):
+    - dovie
+
+### 7. **앱 표시 이름**
+Key: CFBundleDisplayName
+Type: String
+Value: Dovie Messenger
+
+## 📋 **Xcode에서 설정하는 방법:**
+
+### 방법 1: Info.plist 파일에서 직접 편집
+1. Xcode에서 Info.plist 파일 열기
+2. 오른쪽 클릭 → "Add Row"
+3. 위의 Key들을 하나씩 추가
+4. Type과 Value 설정
+
+### 방법 2: 프로젝트 설정에서 편집
+1. 프로젝트 네비게이터에서 프로젝트 파일 선택
+2. Target → "Info" 탭
+3. "Custom iOS Target Properties"에서 권한 추가
+
+## 🔒 **중요한 권한들:**
+
+✅ **NSCameraUsageDescription** - 필수 (카메라 기능)
+✅ **NSPhotoLibraryUsageDescription** - 필수 (사진 전송)
+✅ **NSMicrophoneUsageDescription** - 필수 (음성 메시지)
+✅ **UIBackgroundModes** - 필수 (푸시 알림)
+⚠️ **NSContactsUsageDescription** - 선택적 (연락처 동기화)
+
+## 🚀 **설정 완료 후:**
+
+1. 앱 빌드 및 실행
+2. 각 기능 사용 시 권한 요청 팝업 확인
+3. 설정에서 권한 상태 확인 가능
+
+이 설정들을 추가하면 완전한 네이티브 iOS 메신저 앱이 됩니다!
