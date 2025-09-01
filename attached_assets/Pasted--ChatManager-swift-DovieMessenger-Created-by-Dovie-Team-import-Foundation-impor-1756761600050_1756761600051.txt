@@ -1,0 +1,264 @@
+//
+//  ChatManager.swift
+//  DovieMessenger
+//
+//  Created by Dovie Team
+//
+
+import Foundation
+import Combine
+
+class ChatManager: ObservableObject {
+    @Published var chatRooms: [ChatRoom] = []
+    @Published var messages: [Message] = []
+    @Published var currentChatRoom: ChatRoom?
+    @Published var isConnected = false
+    @Published var typingUsers: [Int: User] = [:]
+    @Published var unreadCounts: [Int: Int] = [:]
+    
+    private var cancellables = Set<AnyCancellable>()
+    private var webSocketService: WebSocketService?
+    
+    init() {
+        setupWebSocket()
+    }
+    
+    private func setupWebSocket() {
+        webSocketService = WebSocketService()
+        webSocketService?.delegate = self
+        webSocketService?.connect()
+    }
+    
+    func loadChatRooms() {
+        APIService.shared.request<[ChatRoom]>(
+            endpoint: "/api/chat-rooms",
+            method: .GET,
+            body: nil,
+            headers: [:]
+        )
+        .sink(
+            receiveCompletion: { completion in
+                if case .failure(let error) = completion {
+                    print("채팅방 로드 실패: \(error)")
+                }
+            },
+            receiveValue: { chatRooms in
+                self.chatRooms = chatRooms
+                self.loadUnreadCounts()
+            }
+        )
+        .store(in: &cancellables)
+    }
+    
+    func createChatRoom(name: String, participantIds: [Int], isGroup: Bool) {
+        let body = [
+            "name": name,
+            "participantIds": participantIds,
+            "isGroup": isGroup
+        ] as [String: Any]
+        
+        guard let bodyData = try? JSONSerialization.data(withJSONObject: body) else {
+            return
+        }
+        
+        APIService.shared.request<ChatRoom>(
+            endpoint: "/api/chat-rooms",
+            method: .POST,
+            body: bodyData,
+            headers: [:]
+        )
+        .sink(
+            receiveCompletion: { _ in },
+            receiveValue: { chatRoom in
+                self.chatRooms.insert(chatRoom, at: 0)
+            }
+        )
+        .store(in: &cancellables)
+    }
+    
+    func joinChatRoom(_ chatRoom: ChatRoom) {
+        currentChatRoom = chatRoom
+        loadMessages(for: chatRoom.id)
+        webSocketService?.joinRoom(chatRoom.id)
+        markMessagesAsRead(chatRoomId: chatRoom.id)
+    }
+    
+    func leaveChatRoom() {
+        if let chatRoom = currentChatRoom {
+            webSocketService?.leaveRoom(chatRoom.id)
+        }
+        currentChatRoom = nil
+        messages = []
+        typingUsers = [:]
+    }
+    
+    func loadMessages(for chatRoomId: Int) {
+        APIService.shared.request<[Message]>(
+            endpoint: "/api/chat-rooms/\(chatRoomId)/messages",
+            method: .GET,
+            body: nil,
+            headers: [:]
+        )
+        .sink(
+            receiveCompletion: { completion in
+                if case .failure(let error) = completion {
+                    print("메시지 로드 실패: \(error)")
+                }
+            },
+            receiveValue: { messages in
+                self.messages = messages
+            }
+        )
+        .store(in: &cancellables)
+    }
+    
+    func sendMessage(content: String) {
+        guard let chatRoom = currentChatRoom else { return }
+        
+        let messageData = [
+            "chatRoomId": chatRoom.id,
+            "content": content,
+            "messageType": "text"
+        ] as [String: Any]
+        
+        guard let bodyData = try? JSONSerialization.data(withJSONObject: messageData) else {
+            return
+        }
+        
+        APIService.shared.request<Message>(
+            endpoint: "/api/messages",
+            method: .POST,
+            body: bodyData,
+            headers: [:]
+        )
+        .sink(
+            receiveCompletion: { _ in },
+            receiveValue: { message in
+                self.messages.append(message)
+            }
+        )
+        .store(in: &cancellables)
+        
+        // WebSocket으로도 전송
+        webSocketService?.sendMessage(chatRoomId: chatRoom.id, content: content, type: "text")
+    }
+    
+    func sendFileMessage(data: Data, filename: String, type: MessageType) {
+        guard let chatRoom = currentChatRoom else { return }
+        
+        // 먼저 파일 업로드
+        APIService.shared.uploadFile(data: data, filename: filename, endpoint: "/api/upload")
+            .sink(
+                receiveCompletion: { _ in },
+                receiveValue: { response in
+                    // 파일 업로드 성공 후 메시지 전송
+                    let messageData = [
+                        "chatRoomId": chatRoom.id,
+                        "content": response.filePath,
+                        "messageType": type.rawValue,
+                        "fileName": response.originalName,
+                        "fileSize": response.fileSize
+                    ] as [String: Any]
+                    
+                    guard let bodyData = try? JSONSerialization.data(withJSONObject: messageData) else {
+                        return
+                    }
+                    
+                    APIService.shared.request<Message>(
+                        endpoint: "/api/messages",
+                        method: .POST,
+                        body: bodyData,
+                        headers: [:]
+                    )
+                    .sink(
+                        receiveCompletion: { _ in },
+                        receiveValue: { message in
+                            self.messages.append(message)
+                        }
+                    )
+                    .store(in: &self.cancellables)
+                }
+            )
+            .store(in: &cancellables)
+    }
+    
+    func startTyping() {
+        guard let chatRoom = currentChatRoom else { return }
+        webSocketService?.sendTyping(chatRoomId: chatRoom.id, isTyping: true)
+    }
+    
+    func stopTyping() {
+        guard let chatRoom = currentChatRoom else { return }
+        webSocketService?.sendTyping(chatRoomId: chatRoom.id, isTyping: false)
+    }
+    
+    private func markMessagesAsRead(chatRoomId: Int) {
+        let body = ["chatRoomId": chatRoomId]
+        
+        guard let bodyData = try? JSONSerialization.data(withJSONObject: body) else {
+            return
+        }
+        
+        APIService.shared.request<EmptyResponse>(
+            endpoint: "/api/messages/mark-read",
+            method: .POST,
+            body: bodyData,
+            headers: [:]
+        )
+        .sink(
+            receiveCompletion: { _ in },
+            receiveValue: { _ in
+                self.unreadCounts[chatRoomId] = 0
+            }
+        )
+        .store(in: &cancellables)
+    }
+    
+    private func loadUnreadCounts() {
+        APIService.shared.request<[String: Int]>(
+            endpoint: "/api/messages/unread-counts",
+            method: .GET,
+            body: nil,
+            headers: [:]
+        )
+        .sink(
+            receiveCompletion: { _ in },
+            receiveValue: { counts in
+                self.unreadCounts = counts.compactMapValues { $0 }
+            }
+        )
+        .store(in: &cancellables)
+    }
+}
+
+// MARK: - WebSocket Delegate
+extension ChatManager: WebSocketServiceDelegate {
+    func webSocketDidConnect() {
+        isConnected = true
+    }
+    
+    func webSocketDidDisconnect() {
+        isConnected = false
+    }
+    
+    func webSocketDidReceiveMessage(_ message: Message) {
+        if message.chatRoomId == currentChatRoom?.id {
+            messages.append(message)
+        }
+        
+        // 읽지 않은 메시지 수 업데이트
+        if message.chatRoomId != currentChatRoom?.id {
+            unreadCounts[message.chatRoomId] = (unreadCounts[message.chatRoomId] ?? 0) + 1
+        }
+    }
+    
+    func webSocketDidReceiveTyping(userId: Int, user: User, isTyping: Bool) {
+        if isTyping {
+            typingUsers[userId] = user
+        } else {
+            typingUsers.removeValue(forKey: userId)
+        }
+    }
+}
+
+struct EmptyResponse: Codable {}
