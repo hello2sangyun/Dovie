@@ -1,0 +1,228 @@
+//
+//  AuthenticationManager.swift
+//  DovieMessenger
+//
+//  Created by Dovie Team
+//
+
+import Foundation
+import SwiftUI
+import Combine
+
+class AuthenticationManager: ObservableObject {
+    @Published var currentUser: User?
+    @Published var isAuthenticated = false
+    @Published var isLoading = false
+    @Published var errorMessage: String?
+    
+    private var cancellables = Set<AnyCancellable>()
+    
+    init() {
+        checkAuthenticationStatus()
+    }
+    
+    private func checkAuthenticationStatus() {
+        if let token = KeychainManager.shared.getToken() {
+            fetchCurrentUser()
+        }
+    }
+    
+    private func fetchCurrentUser() {
+        APIService.shared.request<User>(
+            endpoint: "/api/auth/user",
+            method: .GET,
+            body: nil,
+            headers: [:]
+        )
+        .sink(
+            receiveCompletion: { (completion: Subscribers.Completion<Error>) in
+                if case .failure = completion {
+                    self.logout()
+                }
+            },
+            receiveValue: { (user: User) in
+                self.currentUser = user
+                self.isAuthenticated = true
+            }
+        )
+        .store(in: &cancellables)
+    }
+    
+    func loginWithEmail(email: String, password: String) {
+        guard !email.isEmpty && !password.isEmpty else {
+            errorMessage = "이메일과 비밀번호를 입력해주세요."
+            return
+        }
+        
+        isLoading = true
+        errorMessage = nil
+        
+        let body = [
+            "email": email,
+            "password": password
+        ]
+        
+        guard let bodyData = try? JSONSerialization.data(withJSONObject: body) else {
+            errorMessage = "요청 데이터 생성에 실패했습니다."
+            isLoading = false
+            return
+        }
+        
+        APIService.shared.request<LoginResponse>(
+            endpoint: "/api/auth/login",
+            method: .POST,
+            body: bodyData,
+            headers: [:]
+        )
+        .sink(
+            receiveCompletion: { (completion: Subscribers.Completion<Error>) in
+                self.isLoading = false
+                if case .failure(let error) = completion {
+                    self.errorMessage = error.localizedDescription
+                }
+            },
+            receiveValue: { (response: LoginResponse) in
+                self.handleLoginSuccess(response)
+            }
+        )
+        .store(in: &cancellables)
+    }
+    
+    func signupWithEmail(username: String, displayName: String, email: String, password: String) {
+        isLoading = true
+        errorMessage = nil
+        
+        let body = [
+            "username": username,
+            "displayName": displayName,
+            "email": email,
+            "password": password
+        ]
+        
+        guard let bodyData = try? JSONSerialization.data(withJSONObject: body) else {
+            errorMessage = "요청 데이터 생성에 실패했습니다."
+            isLoading = false
+            return
+        }
+        
+        APIService.shared.request<LoginResponse>(
+            endpoint: "/api/auth/register",
+            method: .POST,
+            body: bodyData,
+            headers: [:]
+        )
+        .sink(
+            receiveCompletion: { (completion: Subscribers.Completion<Error>) in
+                self.isLoading = false
+                if case .failure(let error) = completion {
+                    self.errorMessage = error.localizedDescription
+                }
+            },
+            receiveValue: { (response: LoginResponse) in
+                self.handleLoginSuccess(response)
+            }
+        )
+        .store(in: &cancellables)
+    }
+    
+    func sendPhoneVerification(phoneNumber: String, countryCode: String) {
+        isLoading = true
+        errorMessage = nil
+        
+        let fullPhoneNumber = countryCode + phoneNumber
+        let body = ["phoneNumber": fullPhoneNumber]
+        
+        guard let bodyData = try? JSONSerialization.data(withJSONObject: body) else {
+            errorMessage = "요청 데이터 생성에 실패했습니다."
+            isLoading = false
+            return
+        }
+        
+        APIService.shared.request<VerificationResponse>(
+            endpoint: "/api/auth/send-phone-verification",
+            method: .POST,
+            body: bodyData,
+            headers: [:]
+        )
+        .sink(
+            receiveCompletion: { (completion: Subscribers.Completion<Error>) in
+                self.isLoading = false
+                if case .failure(let error) = completion {
+                    self.errorMessage = error.localizedDescription
+                }
+            },
+            receiveValue: { (response: VerificationResponse) in
+                // 인증번호 전송 성공
+            }
+        )
+        .store(in: &cancellables)
+    }
+    
+    func verifyPhoneCode(phoneNumber: String, verificationCode: String) {
+        isLoading = true
+        errorMessage = nil
+        
+        let body = [
+            "phoneNumber": phoneNumber,
+            "verificationCode": verificationCode
+        ]
+        
+        guard let bodyData = try? JSONSerialization.data(withJSONObject: body) else {
+            errorMessage = "요청 데이터 생성에 실패했습니다."
+            isLoading = false
+            return
+        }
+        
+        APIService.shared.request<LoginResponse>(
+            endpoint: "/api/auth/verify-phone",
+            method: .POST,
+            body: bodyData,
+            headers: [:]
+        )
+        .sink(
+            receiveCompletion: { (completion: Subscribers.Completion<Error>) in
+                self.isLoading = false
+                if case .failure(let error) = completion {
+                    self.errorMessage = error.localizedDescription
+                }
+            },
+            receiveValue: { (response: LoginResponse) in
+                self.handleLoginSuccess(response)
+            }
+        )
+        .store(in: &cancellables)
+    }
+    
+    func signInWithGoogle() {
+        errorMessage = "Google 로그인은 SDK 설정 후 사용 가능합니다."
+    }
+    
+    func signInWithFacebook() {
+        errorMessage = "Facebook 로그인은 SDK 설정 후 사용 가능합니다."
+    }
+    
+    func logout() {
+        KeychainManager.shared.removeToken()
+        currentUser = nil
+        isAuthenticated = false
+        errorMessage = nil
+    }
+    
+    private func handleLoginSuccess(_ response: LoginResponse) {
+        KeychainManager.shared.saveToken(response.token)
+        currentUser = response.user
+        isAuthenticated = true
+        errorMessage = nil
+    }
+}
+
+// MARK: - Response Models
+struct LoginResponse: Codable {
+    let token: String
+    let user: User
+}
+
+struct VerificationResponse: Codable {
+    let success: Bool
+    let message: String
+}
