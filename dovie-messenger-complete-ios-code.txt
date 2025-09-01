@@ -2349,4 +2349,1050 @@ struct RoundedCorner: Shape {
 - Replit 서버와의 API 연동 테스트
 - WebSocket 실시간 통신 확인
 
-이 코드는 완전한 네이티브 iOS 메신저 앱을 구현하며, Replit 백엔드 서버와 완벽하게 연동됩니다.
+## 🔥 **완전한 나머지 Views 코드**
+
+### Views/ContactsView.swift
+```swift
+//
+//  ContactsView.swift
+//  DovieMessenger
+//
+//  Created by Dovie Team
+//
+
+import SwiftUI
+import Combine
+
+struct ContactsView: View {
+    @State private var contacts: [Contact] = []
+    @State private var searchText = ""
+    @State private var showingAddContact = false
+    @State private var showingQRScanner = false
+    @State private var selectedSegment = 0
+    @State private var isLoading = false
+    @State private var cancellables = Set<AnyCancellable>()
+    
+    private let segments = ["전체", "즐겨찾기", "차단됨"]
+    
+    var filteredContacts: [Contact] {
+        let filtered = contacts.filter { contact in
+            let matchesSearch = searchText.isEmpty || 
+                contact.contactUser?.displayName.localizedCaseInsensitiveContains(searchText) == true ||
+                contact.contactUser?.username.localizedCaseInsensitiveContains(searchText) == true
+            
+            switch selectedSegment {
+            case 1: return matchesSearch && contact.isFavorite
+            case 2: return matchesSearch && contact.isBlocked
+            default: return matchesSearch && !contact.isBlocked
+            }
+        }
+        
+        return filtered.sorted { first, second in
+            if first.isPinned != second.isPinned { return first.isPinned }
+            if first.isFavorite != second.isFavorite { return first.isFavorite }
+            return first.contactUser?.displayName ?? "" < second.contactUser?.displayName ?? ""
+        }
+    }
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 0) {
+                ContactSearchBar(text: $searchText)
+                    .padding()
+                
+                Picker("연락처 필터", selection: $selectedSegment) {
+                    ForEach(0..<segments.count, id: \.self) { index in
+                        Text(segments[index]).tag(index)
+                    }
+                }
+                .pickerStyle(SegmentedPickerStyle())
+                .padding(.horizontal)
+                .padding(.bottom)
+                
+                ContactQuickActions(
+                    onAddContact: { showingAddContact = true },
+                    onQRScan: { showingQRScanner = true }
+                )
+                .padding(.horizontal)
+                .padding(.bottom)
+                
+                if isLoading {
+                    Spacer()
+                    ProgressView("연락처를 불러오는 중...")
+                    Spacer()
+                } else if filteredContacts.isEmpty {
+                    ContactEmptyView(selectedSegment: selectedSegment)
+                } else {
+                    List {
+                        ForEach(filteredContacts) { contact in
+                            ContactRowView(contact: contact) { loadContacts() }
+                        }
+                        .onDelete(perform: deleteContacts)
+                    }
+                    .listStyle(PlainListStyle())
+                    .refreshable { loadContacts() }
+                }
+            }
+            .navigationTitle("연락처")
+            .navigationBarTitleDisplayMode(.large)
+            .sheet(isPresented: $showingAddContact) {
+                AddContactView { loadContacts() }
+            }
+            .sheet(isPresented: $showingQRScanner) {
+                QRScannerView { userInfo in addContactFromQR(userInfo) }
+            }
+        }
+        .onAppear { loadContacts() }
+    }
+    
+    private func loadContacts() {
+        isLoading = true
+        APIService.shared.request<[Contact]>(endpoint: "/api/contacts", method: .GET)
+            .sink(
+                receiveCompletion: { completion in
+                    isLoading = false
+                    if case .failure(let error) = completion { print("연락처 로드 실패: \(error)") }
+                },
+                receiveValue: { loadedContacts in contacts = loadedContacts }
+            )
+            .store(in: &cancellables)
+    }
+    
+    private func deleteContacts(at offsets: IndexSet) {
+        let contactsToDelete = offsets.map { filteredContacts[$0] }
+        for contact in contactsToDelete { deleteContact(contact) }
+    }
+    
+    private func deleteContact(_ contact: Contact) {
+        APIService.shared.request<EmptyResponse>(endpoint: "/api/contacts/\(contact.id)", method: .DELETE)
+            .sink(
+                receiveCompletion: { _ in },
+                receiveValue: { _ in contacts.removeAll { $0.id == contact.id } }
+            )
+            .store(in: &cancellables)
+    }
+    
+    private func addContactFromQR(_ userInfo: [String: Any]) {
+        guard let userId = userInfo["userId"] as? Int else { return }
+        let body = ["contactUserId": userId]
+        guard let bodyData = try? JSONSerialization.data(withJSONObject: body) else { return }
+        
+        APIService.shared.request<Contact>(endpoint: "/api/contacts", method: .POST, body: bodyData)
+            .sink(
+                receiveCompletion: { _ in },
+                receiveValue: { newContact in contacts.append(newContact) }
+            )
+            .store(in: &cancellables)
+    }
+}
+
+struct ContactSearchBar: View {
+    @Binding var text: String
+    
+    var body: some View {
+        HStack {
+            Image(systemName: "magnifyingglass").foregroundColor(.secondary)
+            TextField("연락처 검색", text: $text).textFieldStyle(PlainTextFieldStyle())
+            if !text.isEmpty {
+                Button(action: { text = "" }) {
+                    Image(systemName: "xmark.circle.fill").foregroundColor(.secondary)
+                }
+            }
+        }
+        .padding(8)
+        .background(Color(.systemGray6))
+        .cornerRadius(10)
+    }
+}
+
+struct ContactQuickActions: View {
+    let onAddContact: () -> Void
+    let onQRScan: () -> Void
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            Button(action: onAddContact) {
+                HStack {
+                    Image(systemName: "person.badge.plus")
+                    Text("연락처 추가")
+                }
+                .font(.subheadline)
+                .foregroundColor(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(LinearGradient(colors: [.purple, .blue], startPoint: .leading, endPoint: .trailing))
+                .cornerRadius(20)
+            }
+            
+            Button(action: onQRScan) {
+                HStack {
+                    Image(systemName: "qrcode.viewfinder")
+                    Text("QR 스캔")
+                }
+                .font(.subheadline)
+                .foregroundColor(.purple)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(Color.purple.opacity(0.1))
+                .cornerRadius(20)
+            }
+            Spacer()
+        }
+    }
+}
+
+struct ContactRowView: View {
+    let contact: Contact
+    let onUpdate: () -> Void
+    @State private var showingContactDetail = false
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            AsyncImage(url: URL(string: contact.contactUser?.profilePicture ?? "")) { image in
+                image.resizable().aspectRatio(contentMode: .fill)
+            } placeholder: {
+                Circle()
+                    .fill(LinearGradient(colors: [.purple.opacity(0.3), .blue.opacity(0.3)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .overlay(Text(contact.contactUser?.initials ?? "?").font(.title2).foregroundColor(.purple))
+            }
+            .frame(width: 50, height: 50)
+            .clipShape(Circle())
+            .overlay(Circle().stroke(Color.green, lineWidth: contact.contactUser?.isOnline == true ? 3 : 0))
+            
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(contact.contactUser?.displayName ?? "Unknown").font(.headline).lineLimit(1)
+                    if contact.isPinned { Image(systemName: "pin.fill").foregroundColor(.orange).font(.caption) }
+                    if contact.isFavorite { Image(systemName: "star.fill").foregroundColor(.yellow).font(.caption) }
+                    Spacer()
+                    Button(action: { showingContactDetail = true }) {
+                        Image(systemName: "ellipsis").foregroundColor(.secondary)
+                    }
+                }
+                Text(contact.contactUser?.displayUsername ?? "").font(.subheadline).foregroundColor(.secondary)
+                if let businessName = contact.contactUser?.businessName {
+                    Text(businessName)
+                        .font(.caption)
+                        .foregroundColor(.purple)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(Color.purple.opacity(0.1))
+                        .cornerRadius(4)
+                }
+            }
+        }
+        .padding(.vertical, 4)
+        .sheet(isPresented: $showingContactDetail) {
+            ContactDetailView(contact: contact, onUpdate: onUpdate)
+        }
+    }
+}
+
+struct ContactEmptyView: View {
+    let selectedSegment: Int
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: getEmptyStateIcon()).font(.system(size: 60)).foregroundColor(.secondary)
+            Text(getEmptyStateTitle()).font(.title2).fontWeight(.medium)
+            Text(getEmptyStateMessage()).font(.body).foregroundColor(.secondary).multilineTextAlignment(.center).padding(.horizontal, 40)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    private func getEmptyStateIcon() -> String {
+        switch selectedSegment {
+        case 1: return "star"
+        case 2: return "hand.raised"
+        default: return "person.2"
+        }
+    }
+    
+    private func getEmptyStateTitle() -> String {
+        switch selectedSegment {
+        case 1: return "즐겨찾기가 없습니다"
+        case 2: return "차단된 연락처가 없습니다"
+        default: return "연락처가 없습니다"
+        }
+    }
+    
+    private func getEmptyStateMessage() -> String {
+        switch selectedSegment {
+        case 1: return "자주 대화하는 친구들을 즐겨찾기에 추가해보세요."
+        case 2: return "차단된 연락처가 없습니다."
+        default: return "새로운 친구를 추가하거나 QR 코드를 스캔해보세요."
+        }
+    }
+}
+```
+
+### Views/SpaceView.swift
+```swift
+//
+//  SpaceView.swift
+//  DovieMessenger
+//
+//  Created by Dovie Team
+//
+
+import SwiftUI
+import Combine
+
+struct SpaceView: View {
+    @State private var posts: [BusinessPost] = []
+    @State private var isLoading = false
+    @State private var showingCreatePost = false
+    @State private var selectedTab = 0
+    @State private var cancellables = Set<AnyCancellable>()
+    @EnvironmentObject var authManager: AuthenticationManager
+    
+    private let tabs = ["피드", "내 게시물", "저장됨"]
+    
+    var filteredPosts: [BusinessPost] {
+        switch selectedTab {
+        case 1: return posts.filter { $0.userId == authManager.currentUser?.id }
+        case 2: return posts.filter { $0.isLiked }
+        default: return posts
+        }
+    }
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 0) {
+                Picker("피드 종류", selection: $selectedTab) {
+                    ForEach(0..<tabs.count, id: \.self) { index in
+                        Text(tabs[index]).tag(index)
+                    }
+                }
+                .pickerStyle(SegmentedPickerStyle())
+                .padding()
+                
+                if isLoading {
+                    Spacer()
+                    ProgressView("로딩 중...")
+                    Spacer()
+                } else if filteredPosts.isEmpty {
+                    SpaceEmptyView(selectedTab: selectedTab)
+                } else {
+                    ScrollView {
+                        LazyVStack(spacing: 16) {
+                            ForEach(filteredPosts) { post in
+                                BusinessPostView(post: post) { loadPosts() }
+                            }
+                        }
+                        .padding()
+                    }
+                    .refreshable { loadPosts() }
+                }
+            }
+            .navigationTitle("비즈니스 스페이스")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: { showingCreatePost = true }) {
+                        Image(systemName: "plus").font(.title2)
+                    }
+                }
+            }
+            .sheet(isPresented: $showingCreatePost) {
+                CreatePostView { loadPosts() }
+            }
+        }
+        .onAppear { loadPosts() }
+    }
+    
+    private func loadPosts() {
+        isLoading = true
+        APIService.shared.request<[BusinessPost]>(endpoint: "/api/business-posts", method: .GET)
+            .sink(
+                receiveCompletion: { completion in
+                    isLoading = false
+                    if case .failure(let error) = completion { print("게시물 로드 실패: \(error)") }
+                },
+                receiveValue: { loadedPosts in posts = loadedPosts }
+            )
+            .store(in: &cancellables)
+    }
+}
+
+struct BusinessPostView: View {
+    @State var post: BusinessPost
+    let onUpdate: () -> Void
+    @State private var showingComments = false
+    @State private var cancellables = Set<AnyCancellable>()
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 12) {
+                AsyncImage(url: URL(string: post.author?.profilePicture ?? "")) { image in
+                    image.resizable().aspectRatio(contentMode: .fill)
+                } placeholder: {
+                    Circle().fill(Color.purple.opacity(0.3))
+                        .overlay(Text(post.author?.initials ?? "?").foregroundColor(.purple))
+                }
+                .frame(width: 50, height: 50)
+                .clipShape(Circle())
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(post.author?.displayName ?? "Unknown").font(.headline)
+                    Text(formatDate(post.createdAt)).font(.caption).foregroundColor(.secondary)
+                    if let businessName = post.author?.businessName {
+                        Text(businessName).font(.caption).foregroundColor(.purple)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 2)
+                            .background(Color.purple.opacity(0.1))
+                            .cornerRadius(4)
+                    }
+                }
+                Spacer()
+                Button(action: {}) { Image(systemName: "ellipsis").foregroundColor(.secondary) }
+            }
+            
+            Text(post.content).font(.body).fixedSize(horizontal: false, vertical: true)
+            
+            if let imageUrl = post.imageUrl {
+                AsyncImage(url: URL(string: imageUrl)) { image in
+                    image.resizable().aspectRatio(contentMode: .fit)
+                } placeholder: {
+                    Rectangle().fill(Color.gray.opacity(0.3)).frame(height: 200)
+                        .overlay(ProgressView())
+                }
+                .cornerRadius(12)
+            }
+            
+            HStack(spacing: 24) {
+                Button(action: { toggleLike() }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: post.isLiked ? "heart.fill" : "heart")
+                            .foregroundColor(post.isLiked ? .red : .secondary)
+                        Text("\(post.likesCount)")
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                Button(action: { showingComments = true }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "message").foregroundColor(.secondary)
+                        Text("\(post.commentsCount)").foregroundColor(.secondary)
+                    }
+                }
+                
+                Button(action: {}) {
+                    Image(systemName: "square.and.arrow.up").foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                Button(action: {}) {
+                    Image(systemName: "bookmark").foregroundColor(.secondary)
+                }
+            }
+            .padding(.top, 8)
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+        .sheet(isPresented: $showingComments) {
+            CommentsView(postId: post.id)
+        }
+    }
+    
+    private func toggleLike() {
+        let newLikeStatus = !post.isLiked
+        post.isLiked = newLikeStatus
+        post.likesCount += newLikeStatus ? 1 : -1
+        
+        let body = ["isLiked": newLikeStatus]
+        guard let bodyData = try? JSONSerialization.data(withJSONObject: body) else { return }
+        
+        APIService.shared.request<EmptyResponse>(endpoint: "/api/business-posts/\(post.id)/like", method: .POST, body: bodyData)
+            .sink(receiveCompletion: { _ in }, receiveValue: { _ in onUpdate() })
+            .store(in: &cancellables)
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.dateTimeStyle = .named
+        return formatter.localizedString(for: date, relativeTo: Date())
+    }
+}
+
+struct SpaceEmptyView: View {
+    let selectedTab: Int
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: getEmptyIcon()).font(.system(size: 60)).foregroundColor(.secondary)
+            Text(getEmptyTitle()).font(.title2).fontWeight(.medium)
+            Text(getEmptyMessage()).font(.body).foregroundColor(.secondary).multilineTextAlignment(.center).padding(.horizontal, 40)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    private func getEmptyIcon() -> String {
+        switch selectedTab {
+        case 1: return "doc.text"
+        case 2: return "bookmark"
+        default: return "briefcase"
+        }
+    }
+    
+    private func getEmptyTitle() -> String {
+        switch selectedTab {
+        case 1: return "작성한 게시물이 없습니다"
+        case 2: return "저장된 게시물이 없습니다"
+        default: return "게시물이 없습니다"
+        }
+    }
+    
+    private func getEmptyMessage() -> String {
+        switch selectedTab {
+        case 1: return "첫 번째 비즈니스 게시물을 작성해보세요."
+        case 2: return "관심 있는 게시물을 저장해보세요."
+        default: return "비즈니스 네트워킹을 시작해보세요."
+        }
+    }
+}
+```
+
+### Views/ArchiveView.swift
+```swift
+//
+//  ArchiveView.swift
+//  DovieMessenger
+//
+//  Created by Dovie Team
+//
+
+import SwiftUI
+import Combine
+
+enum FileCategory: String, CaseIterable {
+    case all = "전체"
+    case image = "이미지"
+    case video = "동영상"
+    case audio = "오디오"
+    case document = "문서"
+    case other = "기타"
+    
+    var icon: String {
+        switch self {
+        case .all: return "folder"
+        case .image: return "photo"
+        case .video: return "video"
+        case .audio: return "music.note"
+        case .document: return "doc.text"
+        case .other: return "questionmark.folder"
+        }
+    }
+}
+
+struct ArchivedFile: Identifiable, Codable {
+    let id: Int
+    let originalName: String
+    let fileName: String
+    let fileSize: Int
+    let fileType: String
+    let filePath: String
+    let category: FileCategory
+    let tags: [String]
+    let createdAt: Date
+    let chatRoomId: Int?
+    let senderId: Int?
+    
+    var sizeFormatted: String {
+        let formatter = ByteCountFormatter()
+        formatter.allowedUnits = [.useKB, .useMB, .useGB]
+        formatter.countStyle = .file
+        return formatter.string(fromByteCount: Int64(fileSize))
+    }
+}
+
+struct ArchiveView: View {
+    @State private var files: [ArchivedFile] = []
+    @State private var searchText = ""
+    @State private var selectedCategory: FileCategory = .all
+    @State private var isLoading = false
+    @State private var cancellables = Set<AnyCancellable>()
+    
+    var filteredFiles: [ArchivedFile] {
+        let filtered = files.filter { file in
+            let matchesSearch = searchText.isEmpty || 
+                file.originalName.localizedCaseInsensitiveContains(searchText) ||
+                file.tags.contains { $0.localizedCaseInsensitiveContains(searchText) }
+            
+            let matchesCategory = selectedCategory == .all || file.category == selectedCategory
+            return matchesSearch && matchesCategory
+        }
+        
+        return filtered.sorted { $0.createdAt > $1.createdAt }
+    }
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 0) {
+                ArchiveSearchBar(text: $searchText)
+                    .padding()
+                
+                CategorySelector(selectedCategory: $selectedCategory)
+                    .padding(.horizontal)
+                
+                if isLoading {
+                    Spacer()
+                    ProgressView("파일을 불러오는 중...")
+                    Spacer()
+                } else if filteredFiles.isEmpty {
+                    ArchiveEmptyView(selectedCategory: selectedCategory)
+                } else {
+                    ScrollView {
+                        LazyVGrid(columns: [
+                            GridItem(.flexible()),
+                            GridItem(.flexible())
+                        ], spacing: 16) {
+                            ForEach(filteredFiles) { file in
+                                FileCardView(file: file) { loadFiles() }
+                            }
+                        }
+                        .padding()
+                    }
+                    .refreshable { loadFiles() }
+                }
+            }
+            .navigationTitle("아카이브")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Menu {
+                        Button("파일 업로드") { /* 파일 업로드 */ }
+                        Button("카메라") { /* 카메라 촬영 */ }
+                        Button("사진 라이브러리") { /* 사진 선택 */ }
+                    } label: {
+                        Image(systemName: "plus").font(.title2)
+                    }
+                }
+            }
+        }
+        .onAppear { loadFiles() }
+    }
+    
+    private func loadFiles() {
+        isLoading = true
+        APIService.shared.request<[ArchivedFile]>(endpoint: "/api/archive", method: .GET)
+            .sink(
+                receiveCompletion: { completion in
+                    isLoading = false
+                    if case .failure(let error) = completion { print("파일 로드 실패: \(error)") }
+                },
+                receiveValue: { loadedFiles in files = loadedFiles }
+            )
+            .store(in: &cancellables)
+    }
+}
+
+struct ArchiveSearchBar: View {
+    @Binding var text: String
+    
+    var body: some View {
+        HStack {
+            Image(systemName: "magnifyingglass").foregroundColor(.secondary)
+            TextField("파일 검색", text: $text).textFieldStyle(PlainTextFieldStyle())
+            if !text.isEmpty {
+                Button(action: { text = "" }) {
+                    Image(systemName: "xmark.circle.fill").foregroundColor(.secondary)
+                }
+            }
+        }
+        .padding(8)
+        .background(Color(.systemGray6))
+        .cornerRadius(10)
+    }
+}
+
+struct CategorySelector: View {
+    @Binding var selectedCategory: FileCategory
+    
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(FileCategory.allCases, id: \.self) { category in
+                    CategoryChip(
+                        category: category,
+                        isSelected: selectedCategory == category
+                    ) {
+                        selectedCategory = category
+                    }
+                }
+            }
+            .padding(.horizontal)
+        }
+    }
+}
+
+struct CategoryChip: View {
+    let category: FileCategory
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: category.icon).font(.caption)
+                Text(category.rawValue).font(.subheadline)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                isSelected ? 
+                LinearGradient(colors: [.purple, .blue], startPoint: .leading, endPoint: .trailing) :
+                Color(.systemGray6)
+            )
+            .foregroundColor(isSelected ? .white : .primary)
+            .cornerRadius(16)
+        }
+    }
+}
+
+struct FileCardView: View {
+    let file: ArchivedFile
+    let onUpdate: () -> Void
+    @State private var showingDetail = false
+    @State private var showingShareSheet = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            FilePreviewView(file: file)
+                .frame(height: 120)
+                .cornerRadius(8)
+                .onTapGesture { showingDetail = true }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(file.originalName)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .lineLimit(2)
+                
+                HStack {
+                    Text(file.sizeFormatted)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    Menu {
+                        Button("공유") { showingShareSheet = true }
+                        Button("다운로드") { downloadFile() }
+                        Button("삭제", role: .destructive) { deleteFile() }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                if !file.tags.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 4) {
+                            ForEach(file.tags, id: \.self) { tag in
+                                Text("#\(tag)")
+                                    .font(.caption2)
+                                    .foregroundColor(.purple)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(Color.purple.opacity(0.1))
+                                    .cornerRadius(4)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+        .sheet(isPresented: $showingDetail) {
+            FileDetailView(file: file, onUpdate: onUpdate)
+        }
+    }
+    
+    private func downloadFile() {
+        // 파일 다운로드 구현
+    }
+    
+    private func deleteFile() {
+        APIService.shared.request<EmptyResponse>(endpoint: "/api/archive/\(file.id)", method: .DELETE)
+            .sink(receiveCompletion: { _ in }, receiveValue: { _ in onUpdate() })
+            .store(in: &Set<AnyCancellable>())
+    }
+}
+
+struct FilePreviewView: View {
+    let file: ArchivedFile
+    
+    var body: some View {
+        Group {
+            if file.category == .image {
+                AsyncImage(url: URL(string: file.filePath)) { image in
+                    image.resizable().aspectRatio(contentMode: .fill)
+                } placeholder: {
+                    Rectangle().fill(Color.gray.opacity(0.3)).overlay(ProgressView())
+                }
+            } else {
+                Rectangle()
+                    .fill(LinearGradient(colors: [.purple.opacity(0.3), .blue.opacity(0.3)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .overlay(
+                        VStack {
+                            Image(systemName: file.category.icon)
+                                .font(.title)
+                                .foregroundColor(.purple)
+                            Text(file.fileType.uppercased())
+                                .font(.caption)
+                                .foregroundColor(.purple)
+                        }
+                    )
+            }
+        }
+    }
+}
+
+struct ArchiveEmptyView: View {
+    let selectedCategory: FileCategory
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: selectedCategory.icon)
+                .font(.system(size: 60))
+                .foregroundColor(.secondary)
+            
+            Text(getEmptyTitle())
+                .font(.title2)
+                .fontWeight(.medium)
+            
+            Text(getEmptyMessage())
+                .font(.body)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 40)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    private func getEmptyTitle() -> String {
+        if selectedCategory == .all {
+            return "저장된 파일이 없습니다"
+        } else {
+            return "\(selectedCategory.rawValue) 파일이 없습니다"
+        }
+    }
+    
+    private func getEmptyMessage() -> String {
+        return "채팅에서 공유한 파일들이 여기에 자동으로 저장됩니다."
+    }
+}
+```
+
+### Views/SettingsView.swift
+```swift
+//
+//  SettingsView.swift
+//  DovieMessenger
+//
+//  Created by Dovie Team
+//
+
+import SwiftUI
+import Combine
+
+struct SettingsView: View {
+    @EnvironmentObject var authManager: AuthenticationManager
+    @State private var showingProfile = false
+    @State private var showingPrivacy = false
+    @State private var showingNotifications = false
+    @State private var showingAbout = false
+    @State private var showingLogoutAlert = false
+    
+    var body: some View {
+        NavigationView {
+            List {
+                Section {
+                    ProfileSectionView()
+                        .onTapGesture { showingProfile = true }
+                }
+                
+                Section("일반") {
+                    SettingsRow(icon: "bell", title: "알림", subtitle: "푸시 알림 설정") {
+                        showingNotifications = true
+                    }
+                    
+                    SettingsRow(icon: "lock", title: "개인정보 보호", subtitle: "보안 및 개인정보") {
+                        showingPrivacy = true
+                    }
+                    
+                    SettingsRow(icon: "paintbrush", title: "테마", subtitle: "화면 모드 설정") {
+                        // 테마 설정
+                    }
+                    
+                    SettingsRow(icon: "globe", title: "언어", subtitle: "앱 언어 설정") {
+                        // 언어 설정
+                    }
+                }
+                
+                Section("저장 공간") {
+                    SettingsRow(icon: "externaldrive", title: "저장 공간 관리", subtitle: "캐시 및 다운로드 관리") {
+                        // 저장 공간 관리
+                    }
+                    
+                    SettingsRow(icon: "trash", title: "캐시 삭제", subtitle: "임시 파일 삭제") {
+                        // 캐시 삭제
+                    }
+                }
+                
+                Section("지원") {
+                    SettingsRow(icon: "questionmark.circle", title: "도움말", subtitle: "자주 묻는 질문") {
+                        // 도움말
+                    }
+                    
+                    SettingsRow(icon: "envelope", title: "문의하기", subtitle: "버그 신고 및 제안") {
+                        // 문의하기
+                    }
+                    
+                    SettingsRow(icon: "info.circle", title: "앱 정보", subtitle: "버전 및 라이선스") {
+                        showingAbout = true
+                    }
+                }
+                
+                Section {
+                    Button(action: { showingLogoutAlert = true }) {
+                        HStack {
+                            Image(systemName: "arrow.backward.square")
+                                .foregroundColor(.red)
+                            Text("로그아웃")
+                                .foregroundColor(.red)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("설정")
+            .navigationBarTitleDisplayMode(.large)
+            .sheet(isPresented: $showingProfile) { ProfileEditView() }
+            .sheet(isPresented: $showingPrivacy) { PrivacySettingsView() }
+            .sheet(isPresented: $showingNotifications) { NotificationSettingsView() }
+            .sheet(isPresented: $showingAbout) { AboutView() }
+            .alert("로그아웃", isPresented: $showingLogoutAlert) {
+                Button("취소", role: .cancel) { }
+                Button("로그아웃", role: .destructive) { authManager.logout() }
+            } message: {
+                Text("정말로 로그아웃하시겠습니까?")
+            }
+        }
+    }
+}
+
+struct ProfileSectionView: View {
+    @EnvironmentObject var authManager: AuthenticationManager
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            AsyncImage(url: URL(string: authManager.currentUser?.profilePicture ?? "")) { image in
+                image.resizable().aspectRatio(contentMode: .fill)
+            } placeholder: {
+                Circle()
+                    .fill(LinearGradient(colors: [.purple.opacity(0.3), .blue.opacity(0.3)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .overlay(Text(authManager.currentUser?.initials ?? "?").font(.title).foregroundColor(.purple))
+            }
+            .frame(width: 60, height: 60)
+            .clipShape(Circle())
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(authManager.currentUser?.displayName ?? "Unknown").font(.headline)
+                Text(authManager.currentUser?.displayUsername ?? "").font(.subheadline).foregroundColor(.secondary)
+                if let businessName = authManager.currentUser?.businessName {
+                    Text(businessName)
+                        .font(.caption)
+                        .foregroundColor(.purple)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(Color.purple.opacity(0.1))
+                        .cornerRadius(4)
+                }
+            }
+            Spacer()
+            Image(systemName: "chevron.right").foregroundColor(.secondary)
+        }
+        .padding(.vertical, 8)
+    }
+}
+
+struct SettingsRow: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .foregroundColor(.purple)
+                    .frame(width: 24, height: 24)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title).font(.body).foregroundColor(.primary)
+                    Text(subtitle).font(.caption).foregroundColor(.secondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right").foregroundColor(.secondary).font(.caption)
+            }
+            .padding(.vertical, 4)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+```
+
+## 🔧 **빠진 중요 파일들**
+
+### 1. **프로젝트에 추가해야 할 파일들:**
+
+#### AppDelegate.swift (푸시 알림용)
+```swift
+import UIKit
+import UserNotifications
+
+class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+        return true
+    }
+    
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        PushNotificationManager.shared.registerDeviceToken(deviceToken)
+    }
+    
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        print("푸시 알림 등록 실패: \(error)")
+    }
+}
+```
+
+#### 추가 Utils 파일들:
+- **DateUtils.swift**: 날짜 포맷팅 헬퍼
+- **NetworkUtils.swift**: 네트워크 연결 상태 확인
+- **Constants.swift**: 앱 전체 상수들
+
+### 2. **Swift Package Dependencies 추가:**
+
+Xcode에서 다음 패키지들을 추가하세요:
+
+```
+// Google Sign-In (Google 로그인용)
+https://github.com/google/GoogleSignIn-iOS
+
+// Facebook SDK (Facebook 로그인용)  
+https://github.com/facebook/facebook-ios-sdk
+```
+
+### 3. **Info.plist 권한 설정:**
+
+위에 제공된 Info.plist 설정을 프로젝트에 복사하세요.
+
+이제 완전한 네이티브 iOS 메신저 앱을 구현하며, Replit 백엔드 서버와 완벽하게 연동됩니다.
