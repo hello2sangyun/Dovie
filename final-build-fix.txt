@@ -1,41 +1,34 @@
-🔧 DovieMessenger - 최종 빌드 오류 해결 가이드
+🔧 Swift 코드 오류 수정 가이드
 
-## 현재 상태 분석:
-✅ Info.plist가 올바른 위치에 있음 (DovieMessenger 폴더 내)
-✅ 모든 권한 설정이 정확함
-❌ 여전히 "Multiple commands produce" 오류 발생
+## 발견된 오류들:
 
-## 해결 방법:
+### 1. User.swift - Regex 오류:
+```swift
+// 잘못된 코드:
+let emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i
 
-### 1. Build Settings에서 Info.plist 경로 확인:
-- Project → Target → Build Settings
-- "Info.plist File" 검색
-- 경로가 "DovieMessenger/Info.plist"로 설정되어 있는지 확인
-
-### 2. 중복 파일 완전 제거:
-- 프로젝트에서 "Info" 또는 "Info.plist" 검색
-- 여러 개 있다면 하나만 남기고 모두 삭제
-
-### 3. 빌드 폴더 완전 정리:
-```
-Command + Shift + K (Clean Build Folder)
-Command + Shift + Option + K (Clean All)
+// 올바른 코드:
+let emailRegex = "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}$"
 ```
 
-### 4. Derived Data 삭제:
-- Xcode → Preferences → Locations
-- Derived Data 폴더 열기
-- DovieMessenger 관련 폴더 삭제
+### 2. User.swift - 최상위 표현식 오류:
+```swift
+// import 문 다음에 바로 코드 작성하지 말고, struct/class 안에 넣기
+```
 
-### 5. 프로젝트 파일 재생성 (최후 수단):
-만약 계속 문제가 발생한다면:
-- 새 iOS 프로젝트 생성
-- 모든 Swift 파일들을 새 프로젝트로 복사
-- Info.plist 새로 설정
+### 3. ChatManager.swift - 클로저 타입 어노테이션:
+```swift
+// 잘못된 코드:
+.sink { _ in }
+.sink { counts in }
 
-### 6. 확인 사항:
-- Target이 하나만 있는지 확인
-- Bundle Identifier가 고유한지 확인
-- Scheme이 올바르게 설정되어 있는지 확인
+// 올바른 코드:
+.sink { (completion: Subscribers.Completion<Error>) in }
+.sink { (counts: MessageCounts) in }
+```
 
-대부분의 경우 Clean Build Folder만으로도 해결됩니다.
+## 수정할 파일들:
+1. User.swift
+2. ChatManager.swift
+
+이 오류들을 수정하면 앱이 정상적으로 빌드됩니다.
