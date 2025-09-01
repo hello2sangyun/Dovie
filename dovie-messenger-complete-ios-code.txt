@@ -2239,6 +2239,9 @@ struct TypingIndicatorView: View {
 ### 5. 나머지 뷰들 (요약 버전)
 
 #### Views/ContactsView.swift, SpaceView.swift, ArchiveView.swift, SettingsView.swift
+
+
+
 이 뷰들은 연락처 관리, 비즈니스 네트워킹, 파일 아카이브, 설정 기능을 제공하며, 위의 패턴과 동일한 SwiftUI 구조를 따릅니다.
 
 ### 6. 유틸리티 및 확장
