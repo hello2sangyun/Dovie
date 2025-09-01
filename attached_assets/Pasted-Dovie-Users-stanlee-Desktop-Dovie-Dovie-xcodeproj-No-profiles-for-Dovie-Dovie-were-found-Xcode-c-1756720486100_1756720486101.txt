@@ -1,0 +1,101 @@
+Dovie
+/Users/stanlee/Desktop/Dovie/Dovie.xcodeproj No profiles for 'Dovie.Dovie' were found: Xcode couldn't find any iOS App Development provisioning profiles matching 'Dovie.Dovie'.
+
+/Users/stanlee/Desktop/Dovie/Dovie.xcodeproj The operation couldn’t be completed. Unable to log in with account 'hello2sangyun@gmail.com'. The login details for account 'hello2sangyun@gmail.com' were rejected.
+
+/Users/stanlee/Desktop/Dovie/Dovie/AuthenticationManager.swift
+/Users/stanlee/Desktop/Dovie/Dovie/AuthenticationManager.swift:40:33 Missing arguments for parameters 'method', 'body', 'headers' in call
+
+/Users/stanlee/Desktop/Dovie/Dovie/AuthenticationManager.swift:72:28 Missing argument for parameter 'headers' in call
+
+/Users/stanlee/Desktop/Dovie/Dovie/AuthenticationManager.swift:82:41 Cannot infer type of closure parameter 'response' without a type annotation
+
+/Users/stanlee/Desktop/Dovie/Dovie/AuthenticationManager.swift:119:29 Missing argument for parameter 'headers' in call
+
+/Users/stanlee/Desktop/Dovie/Dovie/AuthenticationManager.swift:129:41 Cannot infer type of closure parameter 'response' without a type annotation
+
+/Users/stanlee/Desktop/Dovie/Dovie/AuthenticationManager.swift:208:42 Missing arguments for parameters 'body', 'headers' in call
+
+/Users/stanlee/Desktop/Dovie/Dovie/AuthenticationManager.swift:214:29 Cannot infer type of closure parameter '_' without a type annotation
+
+/Users/stanlee/Desktop/Dovie/Dovie/AuthenticationView.swift
+/Users/stanlee/Desktop/Dovie/Dovie/AuthenticationView.swift:56:21 'PhoneLoginView' initializer is inaccessible due to 'private' protection level
+
+/Users/stanlee/Desktop/Dovie/Dovie/AuthenticationView.swift:56:36 Missing argument for parameter 'authManager' in call
+
+/Users/stanlee/Desktop/Dovie/Dovie/AuthenticationView.swift:57:26 Value of type 'PhoneLoginView' has no member 'tag'
+
+/Users/stanlee/Desktop/Dovie/Dovie/AuthenticationView.swift:225:8 Invalid redeclaration of 'PhoneLoginView'
+
+/Users/stanlee/Desktop/Dovie/Dovie/AuthenticationView.swift:349:8 Invalid redeclaration of 'SignupView'
+
+/Users/stanlee/Desktop/Dovie/Dovie/ChatManager.swift
+/Users/stanlee/Desktop/Dovie/Dovie/ChatManager.swift:62:39 Missing arguments for parameters 'method', 'body', 'headers' in call
+
+/Users/stanlee/Desktop/Dovie/Dovie/ChatManager.swift:88:31 Missing argument for parameter 'headers' in call
+
+/Users/stanlee/Desktop/Dovie/Dovie/ChatManager.swift:135:38 Missing arguments for parameters 'method', 'body', 'headers' in call
+
+/Users/stanlee/Desktop/Dovie/Dovie/ChatManager.swift:143:45 Cannot infer type of closure parameter 'messages' without a type annotation
+
+/Users/stanlee/Desktop/Dovie/Dovie/ChatManager.swift:162:30 Missing argument for parameter 'headers' in call
+
+/Users/stanlee/Desktop/Dovie/Dovie/ChatManager.swift:303:42 Missing arguments for parameters 'method', 'body', 'headers' in call
+
+/Users/stanlee/Desktop/Dovie/Dovie/ChatManager.swift:311:45 Cannot infer type of closure parameter 'counts' without a type annotation
+
+/Users/stanlee/Desktop/Dovie/Dovie/ChatsListView.swift
+/Users/stanlee/Desktop/Dovie/Dovie/ChatsListView.swift:62:53 Cannot find 'ChatRoomView' in scope
+
+/Users/stanlee/Desktop/Dovie/Dovie/ContentView.swift
+/Users/stanlee/Desktop/Dovie/Dovie/ContentView.swift:53:13 Cannot find 'ArchiveView' in scope
+
+/Users/stanlee/Desktop/Dovie/Dovie/PhoneLoginView.swift
+/Users/stanlee/Desktop/Dovie/Dovie/PhoneLoginView.swift:1:8 Invalid redeclaration of 'PhoneLoginView'
+
+/Users/stanlee/Desktop/Dovie/Dovie/PhoneLoginView.swift:1:24 Cannot find type 'View' in scope
+
+/Users/stanlee/Desktop/Dovie/Dovie/PhoneLoginView.swift:2:6 Unknown attribute 'EnvironmentObject'
+
+/Users/stanlee/Desktop/Dovie/Dovie/PhoneLoginView.swift:3:6 Unknown attribute 'State'
+
+/Users/stanlee/Desktop/Dovie/Dovie/PhoneLoginView.swift:4:6 Unknown attribute 'State'
+
+/Users/stanlee/Desktop/Dovie/Dovie/PhoneLoginView.swift:5:6 Unknown attribute 'State'
+
+/Users/stanlee/Desktop/Dovie/Dovie/PhoneLoginView.swift:6:6 Unknown attribute 'State'
+
+/Users/stanlee/Desktop/Dovie/Dovie/PhoneLoginView.swift:8:20 Cannot find type 'View' in scope
+
+/Users/stanlee/Desktop/Dovie/Dovie/PhoneLoginView.swift:124:8 Invalid redeclaration of 'SignupView'
+
+/Users/stanlee/Desktop/Dovie/Dovie/PhoneLoginView.swift:124:20 Cannot find type 'View' in scope
+
+/Users/stanlee/Desktop/Dovie/Dovie/PhoneLoginView.swift:125:6 Unknown attribute 'EnvironmentObject'
+
+/Users/stanlee/Desktop/Dovie/Dovie/PhoneLoginView.swift:126:6 Unknown attribute 'State'
+
+/Users/stanlee/Desktop/Dovie/Dovie/PhoneLoginView.swift:127:6 Unknown attribute 'State'
+
+/Users/stanlee/Desktop/Dovie/Dovie/PhoneLoginView.swift:128:6 Unknown attribute 'State'
+
+/Users/stanlee/Desktop/Dovie/Dovie/PhoneLoginView.swift:129:6 Unknown attribute 'State'
+
+/Users/stanlee/Desktop/Dovie/Dovie/PhoneLoginView.swift:130:6 Unknown attribute 'State'
+
+/Users/stanlee/Desktop/Dovie/Dovie/PhoneLoginView.swift:131:6 Unknown attribute 'State'
+
+/Users/stanlee/Desktop/Dovie/Dovie/PhoneLoginView.swift:132:6 Unknown attribute 'State'
+
+/Users/stanlee/Desktop/Dovie/Dovie/PhoneLoginView.swift:134:20 Cannot find type 'View' in scope
+
+/Users/stanlee/Desktop/Dovie/Dovie/PushNotificationManager.swift
+/Users/stanlee/Desktop/Dovie/Dovie/PushNotificationManager.swift:53:13 Cannot find 'UIApplication' in scope
+
+/Users/stanlee/Desktop/Dovie/Dovie/PushNotificationManager.swift:76:20 Type 'Any' cannot conform to 'Encodable'
+
+/Users/stanlee/Desktop/Dovie/Dovie/PushNotificationManager.swift:76:20 Type 'Any' cannot conform to 'Decodable'
+
+/Users/stanlee/Desktop/Dovie/Dovie/PushNotificationManager.swift:79:28 Missing argument for parameter 'headers' in call
+
+/Users/stanlee/Desktop/Dovie/Dovie/PushNotificationManager.swift:97:13 Cannot find 'UIApplication' in scope
