@@ -1,0 +1,34 @@
+🔧 Facebook SDK 제거 및 기본 앱 실행 가이드
+
+## Facebook SDK 오류 해결:
+
+### 1. Package Dependencies에서 Facebook SDK 제거:
+- Project Settings → Package Dependencies
+- FacebookGamingServices 선택 후 삭제
+- 관련된 모든 Facebook 패키지 제거
+
+### 2. Swift 코드에서 Facebook 관련 코드 주석 처리:
+AuthenticationManager.swift에서:
+```swift
+// import FacebookLogin
+// import FacebookCore
+
+// Facebook 로그인 관련 메서드들 주석 처리
+```
+
+### 3. 빌드 재시도:
+- Command + Shift + K (Clean)
+- Command + B (Build)
+
+### 4. 기본 앱 실행:
+Facebook 없이도 다음 기능들이 모두 작동:
+- 이메일/비밀번호 로그인
+- 실시간 채팅
+- 연락처 관리
+- 파일 아카이브
+- 설정
+
+### 5. 나중에 Facebook 추가:
+앱이 정상 작동 확인 후, 필요시 올바른 Facebook SDK 재추가 가능
+
+기본 기능 우선 테스트하는 것이 좋습니다.
