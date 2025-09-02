@@ -1,0 +1,601 @@
+# Dovie Messenger iOS - Complete Swift Code Files (Part 2)
+
+## 6. AuthenticationManager.swift
+```swift
+//
+//  AuthenticationManager.swift
+//  DovieMessenger
+//
+//  Created by Dovie Team
+//
+
+import Foundation
+import SwiftUI
+import Combine
+
+class AuthenticationManager: ObservableObject {
+    @Published var currentUser: User?
+    @Published var isAuthenticated = false
+    @Published var isLoading = false
+    @Published var errorMessage: String?
+    
+    private var cancellables = Set<AnyCancellable>()
+    
+    init() {
+        checkAuthenticationStatus()
+    }
+    
+    private func checkAuthenticationStatus() {
+        if let token = KeychainManager.shared.getToken() {
+            fetchCurrentUser()
+        }
+    }
+    
+    private func fetchCurrentUser() {
+        APIService.shared.request<User>(
+            endpoint: "/api/auth/user",
+            method: .GET,
+            body: nil,
+            headers: [:]
+        )
+        .sink(
+            receiveCompletion: { (completion: Subscribers.Completion<Error>) in
+                if case .failure = completion {
+                    self.logout()
+                }
+            },
+            receiveValue: { (user: User) in
+                self.currentUser = user
+                self.isAuthenticated = true
+            }
+        )
+        .store(in: &cancellables)
+    }
+    
+    func loginWithEmail(email: String, password: String) {
+        guard !email.isEmpty && !password.isEmpty else {
+            errorMessage = "이메일과 비밀번호를 입력해주세요."
+            return
+        }
+        
+        isLoading = true
+        errorMessage = nil
+        
+        let body = [
+            "email": email,
+            "password": password
+        ]
+        
+        guard let bodyData = try? JSONSerialization.data(withJSONObject: body) else {
+            errorMessage = "요청 데이터 생성에 실패했습니다."
+            isLoading = false
+            return
+        }
+        
+        APIService.shared.request<LoginResponse>(
+            endpoint: "/api/auth/login",
+            method: .POST,
+            body: bodyData,
+            headers: [:]
+        )
+        .sink(
+            receiveCompletion: { (completion: Subscribers.Completion<Error>) in
+                self.isLoading = false
+                if case .failure(let error) = completion {
+                    self.errorMessage = error.localizedDescription
+                }
+            },
+            receiveValue: { (response: LoginResponse) in
+                self.handleLoginSuccess(response)
+            }
+        )
+        .store(in: &cancellables)
+    }
+    
+    func signupWithEmail(username: String, displayName: String, email: String, password: String) {
+        isLoading = true
+        errorMessage = nil
+        
+        let body = [
+            "username": username,
+            "displayName": displayName,
+            "email": email,
+            "password": password
+        ]
+        
+        guard let bodyData = try? JSONSerialization.data(withJSONObject: body) else {
+            errorMessage = "요청 데이터 생성에 실패했습니다."
+            isLoading = false
+            return
+        }
+        
+        APIService.shared.request<LoginResponse>(
+            endpoint: "/api/auth/register",
+            method: .POST,
+            body: bodyData,
+            headers: [:]
+        )
+        .sink(
+            receiveCompletion: { (completion: Subscribers.Completion<Error>) in
+                self.isLoading = false
+                if case .failure(let error) = completion {
+                    self.errorMessage = error.localizedDescription
+                }
+            },
+            receiveValue: { (response: LoginResponse) in
+                self.handleLoginSuccess(response)
+            }
+        )
+        .store(in: &cancellables)
+    }
+    
+    func sendPhoneVerification(phoneNumber: String, countryCode: String) {
+        isLoading = true
+        errorMessage = nil
+        
+        let fullPhoneNumber = countryCode + phoneNumber
+        let body = ["phoneNumber": fullPhoneNumber]
+        
+        guard let bodyData = try? JSONSerialization.data(withJSONObject: body) else {
+            errorMessage = "요청 데이터 생성에 실패했습니다."
+            isLoading = false
+            return
+        }
+        
+        APIService.shared.request<VerificationResponse>(
+            endpoint: "/api/auth/send-phone-verification",
+            method: .POST,
+            body: bodyData,
+            headers: [:]
+        )
+        .sink(
+            receiveCompletion: { (completion: Subscribers.Completion<Error>) in
+                self.isLoading = false
+                if case .failure(let error) = completion {
+                    self.errorMessage = error.localizedDescription
+                }
+            },
+            receiveValue: { (response: VerificationResponse) in
+                // 인증번호 전송 성공
+            }
+        )
+        .store(in: &cancellables)
+    }
+    
+    func verifyPhoneCode(phoneNumber: String, verificationCode: String) {
+        isLoading = true
+        errorMessage = nil
+        
+        let body = [
+            "phoneNumber": phoneNumber,
+            "verificationCode": verificationCode
+        ]
+        
+        guard let bodyData = try? JSONSerialization.data(withJSONObject: body) else {
+            errorMessage = "요청 데이터 생성에 실패했습니다."
+            isLoading = false
+            return
+        }
+        
+        APIService.shared.request<LoginResponse>(
+            endpoint: "/api/auth/verify-phone",
+            method: .POST,
+            body: bodyData,
+            headers: [:]
+        )
+        .sink(
+            receiveCompletion: { (completion: Subscribers.Completion<Error>) in
+                self.isLoading = false
+                if case .failure(let error) = completion {
+                    self.errorMessage = error.localizedDescription
+                }
+            },
+            receiveValue: { (response: LoginResponse) in
+                self.handleLoginSuccess(response)
+            }
+        )
+        .store(in: &cancellables)
+    }
+    
+    func signInWithGoogle() {
+        errorMessage = "Google 로그인은 SDK 설정 후 사용 가능합니다."
+    }
+    
+    func signInWithFacebook() {
+        errorMessage = "Facebook 로그인은 SDK 설정 후 사용 가능합니다."
+    }
+    
+    func logout() {
+        KeychainManager.shared.removeToken()
+        currentUser = nil
+        isAuthenticated = false
+        errorMessage = nil
+    }
+    
+    private func handleLoginSuccess(_ response: LoginResponse) {
+        KeychainManager.shared.saveToken(response.token)
+        currentUser = response.user
+        isAuthenticated = true
+        errorMessage = nil
+    }
+}
+
+// MARK: - Response Models
+struct LoginResponse: Codable {
+    let token: String
+    let user: User
+}
+
+struct VerificationResponse: Codable {
+    let success: Bool
+    let message: String
+}
+```
+
+## 7. APIService.swift
+```swift
+//
+//  APIService.swift
+//  DovieMessenger
+//
+//  Created by Dovie Team
+//
+
+import Foundation
+import Combine
+
+enum HTTPMethod: String {
+    case GET = "GET"
+    case POST = "POST"
+    case PUT = "PUT"
+    case DELETE = "DELETE"
+    case PATCH = "PATCH"
+}
+
+class APIService: ObservableObject {
+    static let shared = APIService()
+    
+    private let baseURL = "https://dovie-hello2sangyun.replit.app"
+    private let session = URLSession.shared
+    
+    private init() {}
+    
+    func request<T: Codable>(
+        endpoint: String,
+        method: HTTPMethod,
+        body: Data?,
+        headers: [String: String]
+    ) -> AnyPublisher<T, Error> {
+        guard let url = URL(string: baseURL + endpoint) else {
+            return Fail(error: APIError.invalidURL)
+                .eraseToAnyPublisher()
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = method.rawValue
+        request.httpBody = body
+        
+        // 기본 헤더 설정
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        
+        // 인증 토큰 추가
+        if let token = KeychainManager.shared.getToken() {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        // 추가 헤더 설정
+        for (key, value) in headers {
+            request.setValue(value, forHTTPHeaderField: key)
+        }
+        
+        return session.dataTaskPublisher(for: request)
+            .map(\.data)
+            .decode(type: T.self, decoder: JSONDecoder.withDateDecoding)
+            .receive(on: DispatchQueue.main)
+            .handleEvents(receiveOutput: { data in
+                print("API Response: \(String(data: try! JSONSerialization.data(withJSONObject: data), encoding: .utf8) ?? "")")
+            })
+            .catch { error -> AnyPublisher<T, Error> in
+                print("API Error: \(error)")
+                return Fail(error: error).eraseToAnyPublisher()
+            }
+            .eraseToAnyPublisher()
+    }
+    
+    func uploadFile(data: Data, filename: String, endpoint: String) -> AnyPublisher<FileUploadResponse, Error> {
+        guard let url = URL(string: baseURL + endpoint) else {
+            return Fail(error: APIError.invalidURL)
+                .eraseToAnyPublisher()
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        
+        let boundary = UUID().uuidString
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        
+        if let token = KeychainManager.shared.getToken() {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(filename)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
+        body.append(data)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        
+        request.httpBody = body
+        
+        return session.dataTaskPublisher(for: request)
+            .map(\.data)
+            .decode(type: FileUploadResponse.self, decoder: JSONDecoder())
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
+    }
+}
+
+enum APIError: Error {
+    case invalidURL
+    case noData
+    case decodingError
+}
+
+struct FileUploadResponse: Codable {
+    let success: Bool
+    let filePath: String
+    let originalName: String
+    let fileSize: Int
+}
+
+extension JSONDecoder {
+    static var withDateDecoding: JSONDecoder {
+        let decoder = JSONDecoder()
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+        decoder.dateDecodingStrategy = .formatted(formatter)
+        return decoder
+    }
+}
+```
+
+## 8. KeychainManager.swift
+```swift
+//
+//  KeychainManager.swift
+//  DovieMessenger
+//
+//  Created by Dovie Team
+//
+
+import Foundation
+import Security
+
+class KeychainManager {
+    static let shared = KeychainManager()
+    
+    private let service = "com.dovie.messenger"
+    private let tokenKey = "auth_token"
+    
+    private init() {}
+    
+    func saveToken(_ token: String) {
+        let data = token.data(using: .utf8)!
+        
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: tokenKey,
+            kSecValueData as String: data
+        ]
+        
+        SecItemDelete(query as CFDictionary)
+        SecItemAdd(query as CFDictionary, nil)
+    }
+    
+    func getToken() -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: tokenKey,
+            kSecReturnData as String: kCFBooleanTrue!,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        
+        var dataTypeRef: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &dataTypeRef)
+        
+        if status == errSecSuccess {
+            if let data = dataTypeRef as? Data {
+                return String(data: data, encoding: .utf8)
+            }
+        }
+        
+        return nil
+    }
+    
+    func removeToken() {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: tokenKey
+        ]
+        
+        SecItemDelete(query as CFDictionary)
+    }
+}
+```
+
+## 9. WebSocketService.swift
+```swift
+//
+//  WebSocketService.swift
+//  DovieMessenger
+//
+//  Created by Dovie Team
+//
+
+import Foundation
+import Combine
+
+protocol WebSocketServiceDelegate: AnyObject {
+    func webSocketDidConnect()
+    func webSocketDidDisconnect()
+    func webSocketDidReceiveMessage(_ message: Message)
+    func webSocketDidReceiveTyping(userId: Int, user: User, isTyping: Bool)
+}
+
+class WebSocketService: NSObject {
+    weak var delegate: WebSocketServiceDelegate?
+    
+    private var webSocketTask: URLSessionWebSocketTask?
+    private var urlSession: URLSession?
+    private let baseURL = "wss://dovie-hello2sangyun.replit.app"
+    
+    override init() {
+        super.init()
+        urlSession = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
+    }
+    
+    func connect() {
+        guard let url = URL(string: "\(baseURL)/ws") else { return }
+        
+        var request = URLRequest(url: url)
+        if let token = KeychainManager.shared.getToken() {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        webSocketTask = urlSession?.webSocketTask(with: request)
+        webSocketTask?.resume()
+        
+        receiveMessage()
+        delegate?.webSocketDidConnect()
+    }
+    
+    func disconnect() {
+        webSocketTask?.cancel(with: .normalClosure, reason: nil)
+        webSocketTask = nil
+        delegate?.webSocketDidDisconnect()
+    }
+    
+    func joinRoom(_ roomId: Int) {
+        sendMessage(type: "join", data: ["roomId": roomId])
+    }
+    
+    func leaveRoom(_ roomId: Int) {
+        sendMessage(type: "leave", data: ["roomId": roomId])
+    }
+    
+    func sendMessage(chatRoomId: Int, content: String, type: String) {
+        let data = [
+            "chatRoomId": chatRoomId,
+            "content": content,
+            "messageType": type
+        ] as [String: Any]
+        
+        sendMessage(type: "message", data: data)
+    }
+    
+    func sendTyping(chatRoomId: Int, isTyping: Bool) {
+        let data = [
+            "chatRoomId": chatRoomId,
+            "isTyping": isTyping
+        ] as [String: Any]
+        
+        sendMessage(type: "typing", data: data)
+    }
+    
+    private func sendMessage(type: String, data: [String: Any]) {
+        let message = [
+            "type": type,
+            "data": data
+        ] as [String: Any]
+        
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: message),
+              let jsonString = String(data: jsonData, encoding: .utf8) else { return }
+        
+        let message = URLSessionWebSocketTask.Message.string(jsonString)
+        webSocketTask?.send(message) { error in
+            if let error = error {
+                print("WebSocket send error: \(error)")
+            }
+        }
+    }
+    
+    private func receiveMessage() {
+        webSocketTask?.receive { [weak self] result in
+            switch result {
+            case .success(let message):
+                switch message {
+                case .string(let text):
+                    self?.handleMessage(text)
+                case .data(let data):
+                    if let text = String(data: data, encoding: .utf8) {
+                        self?.handleMessage(text)
+                    }
+                @unknown default:
+                    break
+                }
+                self?.receiveMessage()
+                
+            case .failure(let error):
+                print("WebSocket receive error: \(error)")
+            }
+        }
+    }
+    
+    private func handleMessage(_ text: String) {
+        guard let data = text.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let type = json["type"] as? String,
+              let messageData = json["data"] as? [String: Any] else { return }
+        
+        DispatchQueue.main.async {
+            switch type {
+            case "message":
+                self.handleNewMessage(messageData)
+            case "typing":
+                self.handleTyping(messageData)
+            default:
+                break
+            }
+        }
+    }
+    
+    private func handleNewMessage(_ data: [String: Any]) {
+        guard let messageData = try? JSONSerialization.data(withJSONObject: data),
+              let message = try? JSONDecoder.withDateDecoding.decode(Message.self, from: messageData) else { return }
+        
+        delegate?.webSocketDidReceiveMessage(message)
+    }
+    
+    private func handleTyping(_ data: [String: Any]) {
+        guard let userId = data["userId"] as? Int,
+              let userData = data["user"] as? [String: Any],
+              let isTyping = data["isTyping"] as? Bool,
+              let userJSONData = try? JSONSerialization.data(withJSONObject: userData),
+              let user = try? JSONDecoder.withDateDecoding.decode(User.self, from: userJSONData) else { return }
+        
+        delegate?.webSocketDidReceiveTyping(userId: userId, user: user, isTyping: isTyping)
+    }
+}
+
+extension WebSocketService: URLSessionWebSocketDelegate {
+    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {
+        print("WebSocket connected")
+        DispatchQueue.main.async {
+            self.delegate?.webSocketDidConnect()
+        }
+    }
+    
+    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
+        print("WebSocket disconnected")
+        DispatchQueue.main.async {
+            self.delegate?.webSocketDidDisconnect()
+        }
+    }
+}
+```
+
+이것은 두 번째 부분입니다. 나머지 파일들을 계속 제공하겠습니다.

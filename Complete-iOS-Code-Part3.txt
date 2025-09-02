@@ -1,0 +1,738 @@
+# Dovie Messenger iOS - Complete Swift Code Files (Part 3)
+
+## 10. ChatManager.swift
+```swift
+//
+//  ChatManager.swift
+//  DovieMessenger
+//
+//  Created by Dovie Team
+//
+
+import Foundation
+import SwiftUI
+import Combine
+
+class ChatManager: ObservableObject, WebSocketServiceDelegate {
+    @Published var chatRooms: [ChatRoom] = []
+    @Published var currentChatRoom: ChatRoom?
+    @Published var messages: [Message] = []
+    @Published var typingUsers: [User] = []
+    @Published var isConnected = false
+    
+    private let webSocketService = WebSocketService()
+    private var cancellables = Set<AnyCancellable>()
+    
+    init() {
+        webSocketService.delegate = self
+    }
+    
+    func connect() {
+        webSocketService.connect()
+    }
+    
+    func disconnect() {
+        webSocketService.disconnect()
+    }
+    
+    func loadChatRooms() {
+        APIService.shared.request<[ChatRoom]>(
+            endpoint: "/api/chat-rooms",
+            method: .GET,
+            body: nil,
+            headers: [:]
+        )
+        .sink(
+            receiveCompletion: { (completion: Subscribers.Completion<Error>) in
+                if case .failure(let error) = completion {
+                    print("채팅방 로드 실패: \(error)")
+                }
+            },
+            receiveValue: { (rooms: [ChatRoom]) in
+                self.chatRooms = rooms
+            }
+        )
+        .store(in: &cancellables)
+    }
+    
+    func loadMessages(for roomId: Int) {
+        APIService.shared.request<[Message]>(
+            endpoint: "/api/chat-rooms/\(roomId)/messages",
+            method: .GET,
+            body: nil,
+            headers: [:]
+        )
+        .sink(
+            receiveCompletion: { (completion: Subscribers.Completion<Error>) in
+                if case .failure(let error) = completion {
+                    print("메시지 로드 실패: \(error)")
+                }
+            },
+            receiveValue: { (messages: [Message]) in
+                self.messages = messages
+            }
+        )
+        .store(in: &cancellables)
+    }
+    
+    func createChatRoom(with participants: [String], name: String?) {
+        let body = [
+            "participants": participants,
+            "name": name ?? "",
+            "isGroup": participants.count > 1
+        ] as [String: Any]
+        
+        guard let bodyData = try? JSONSerialization.data(withJSONObject: body) else {
+            return
+        }
+        
+        APIService.shared.request<ChatRoom>(
+            endpoint: "/api/chat-rooms",
+            method: .POST,
+            body: bodyData,
+            headers: [:]
+        )
+        .sink(
+            receiveCompletion: { (completion: Subscribers.Completion<Error>) in
+                if case .failure(let error) = completion {
+                    print("채팅방 생성 실패: \(error)")
+                }
+            },
+            receiveValue: { (chatRoom: ChatRoom) in
+                self.chatRooms.insert(chatRoom, at: 0)
+            }
+        )
+        .store(in: &cancellables)
+    }
+    
+    func sendMessage(content: String, type: String = "text") {
+        guard let roomId = currentChatRoom?.id else { return }
+        
+        webSocketService.sendMessage(chatRoomId: roomId, content: content, type: type)
+        
+        // API 호출로도 저장
+        let body = [
+            "content": content,
+            "messageType": type
+        ]
+        
+        guard let bodyData = try? JSONSerialization.data(withJSONObject: body) else {
+            return
+        }
+        
+        APIService.shared.request<Message>(
+            endpoint: "/api/chat-rooms/\(roomId)/messages",
+            method: .POST,
+            body: bodyData,
+            headers: [:]
+        )
+        .sink(
+            receiveCompletion: { (completion: Subscribers.Completion<Error>) in
+                if case .failure(let error) = completion {
+                    print("메시지 전송 실패: \(error)")
+                }
+            },
+            receiveValue: { _ in
+                // WebSocket으로 이미 처리됨
+            }
+        )
+        .store(in: &cancellables)
+    }
+    
+    func sendTyping(_ isTyping: Bool) {
+        guard let roomId = currentChatRoom?.id else { return }
+        webSocketService.sendTyping(chatRoomId: roomId, isTyping: isTyping)
+    }
+    
+    func joinChatRoom(_ chatRoom: ChatRoom) {
+        currentChatRoom = chatRoom
+        webSocketService.joinRoom(chatRoom.id)
+        loadMessages(for: chatRoom.id)
+    }
+    
+    func leaveChatRoom() {
+        if let roomId = currentChatRoom?.id {
+            webSocketService.leaveRoom(roomId)
+        }
+        currentChatRoom = nil
+        messages = []
+        typingUsers = []
+    }
+    
+    // MARK: - WebSocketServiceDelegate
+    func webSocketDidConnect() {
+        isConnected = true
+    }
+    
+    func webSocketDidDisconnect() {
+        isConnected = false
+    }
+    
+    func webSocketDidReceiveMessage(_ message: Message) {
+        if message.chatRoomId == currentChatRoom?.id {
+            messages.append(message)
+        }
+        
+        // 채팅방 목록 업데이트
+        if let index = chatRooms.firstIndex(where: { $0.id == message.chatRoomId }) {
+            chatRooms[index].lastMessage = message
+            chatRooms[index].updatedAt = message.createdAt
+            
+            // 최신 메시지를 맨 위로
+            let room = chatRooms.remove(at: index)
+            chatRooms.insert(room, at: 0)
+        }
+    }
+    
+    func webSocketDidReceiveTyping(userId: Int, user: User, isTyping: Bool) {
+        if isTyping {
+            if !typingUsers.contains(where: { $0.id == user.id }) {
+                typingUsers.append(user)
+            }
+        } else {
+            typingUsers.removeAll { $0.id == user.id }
+        }
+    }
+}
+
+// MARK: - Models
+struct ChatRoom: Codable, Identifiable {
+    let id: Int
+    let name: String
+    let isGroup: Bool
+    let participants: [User]
+    var lastMessage: Message?
+    let createdAt: Date
+    var updatedAt: Date
+    
+    var displayName: String {
+        if isGroup {
+            return name.isEmpty ? participants.map { $0.displayName }.joined(separator: ", ") : name
+        } else {
+            return participants.first?.displayName ?? "Unknown"
+        }
+    }
+}
+
+struct Message: Codable, Identifiable {
+    let id: Int
+    let chatRoomId: Int
+    let senderId: String
+    let content: String
+    let messageType: String
+    let createdAt: Date
+    let sender: User
+    let fileUrl: String?
+    let fileName: String?
+    let fileSize: Int?
+    let voiceDuration: Double?
+}
+```
+
+## 11. PushNotificationManager.swift
+```swift
+//
+//  PushNotificationManager.swift
+//  DovieMessenger
+//
+//  Created by Dovie Team
+//
+
+import Foundation
+import UserNotifications
+import UIKit
+import Combine
+
+class PushNotificationManager: NSObject, ObservableObject {
+    static let shared = PushNotificationManager()
+    
+    @Published var isAuthorized = false
+    @Published var deviceToken: String?
+    
+    private var cancellables = Set<AnyCancellable>()
+    
+    override init() {
+        super.init()
+        checkAuthorizationStatus()
+    }
+    
+    func requestPermissions() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+            DispatchQueue.main.async {
+                self.isAuthorized = granted
+                if granted {
+                    self.registerForRemoteNotifications()
+                }
+            }
+        }
+    }
+    
+    private func checkAuthorizationStatus() {
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
+            DispatchQueue.main.async {
+                self.isAuthorized = settings.authorizationStatus == .authorized
+            }
+        }
+    }
+    
+    private func registerForRemoteNotifications() {
+        DispatchQueue.main.async {
+            UIApplication.shared.registerForRemoteNotifications()
+        }
+    }
+    
+    func didRegisterForRemoteNotifications(with deviceToken: Data) {
+        let tokenParts = deviceToken.map { data in String(format: "%02.2hhx", data) }
+        let token = tokenParts.joined()
+        self.deviceToken = token
+        
+        // 서버에 디바이스 토큰 전송
+        sendDeviceTokenToServer(token)
+    }
+    
+    func didFailToRegisterForRemoteNotifications(with error: Error) {
+        print("Failed to register for remote notifications: \(error)")
+    }
+    
+    private func sendDeviceTokenToServer(_ token: String) {
+        let body = [
+            "deviceToken": token,
+            "platform": "ios"
+        ]
+        
+        guard let bodyData = try? JSONSerialization.data(withJSONObject: body) else {
+            return
+        }
+        
+        APIService.shared.request<TokenResponse>(
+            endpoint: "/api/push-tokens",
+            method: .POST,
+            body: bodyData,
+            headers: [:]
+        )
+        .sink(
+            receiveCompletion: { (completion: Subscribers.Completion<Error>) in
+                if case .failure(let error) = completion {
+                    print("디바이스 토큰 전송 실패: \(error)")
+                }
+            },
+            receiveValue: { (response: TokenResponse) in
+                print("디바이스 토큰 등록 성공")
+            }
+        )
+        .store(in: &cancellables)
+    }
+    
+    func handleNotification(_ userInfo: [AnyHashable: Any]) {
+        // 푸시 알림 처리 로직
+        if let chatRoomId = userInfo["chatRoomId"] as? Int {
+            // 특정 채팅방으로 이동
+            NotificationCenter.default.post(
+                name: NSNotification.Name("OpenChatRoom"),
+                object: nil,
+                userInfo: ["chatRoomId": chatRoomId]
+            )
+        }
+    }
+    
+    func setBadgeCount(_ count: Int) {
+        DispatchQueue.main.async {
+            UIApplication.shared.applicationIconBadgeNumber = count
+        }
+    }
+    
+    func clearBadge() {
+        setBadgeCount(0)
+    }
+}
+
+extension PushNotificationManager: UNUserNotificationCenterDelegate {
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        // 앱이 foreground에 있을 때 알림 표시
+        completionHandler([.alert, .badge, .sound])
+    }
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        // 사용자가 알림을 탭했을 때
+        let userInfo = response.notification.request.content.userInfo
+        handleNotification(userInfo)
+        completionHandler()
+    }
+}
+
+struct TokenResponse: Codable {
+    let success: Bool
+    let message: String
+}
+```
+
+## 12. ChatsListView.swift
+```swift
+//
+//  ChatsListView.swift
+//  DovieMessenger
+//
+//  Created by Dovie Team
+//
+
+import SwiftUI
+
+struct ChatsListView: View {
+    @EnvironmentObject var chatManager: ChatManager
+    @EnvironmentObject var authManager: AuthenticationManager
+    @State private var searchText = ""
+    @State private var showingNewChatSheet = false
+    
+    var filteredChatRooms: [ChatRoom] {
+        if searchText.isEmpty {
+            return chatManager.chatRooms
+        } else {
+            return chatManager.chatRooms.filter { room in
+                room.displayName.lowercased().contains(searchText.lowercased())
+            }
+        }
+    }
+    
+    var body: some View {
+        NavigationView {
+            VStack {
+                if chatManager.chatRooms.isEmpty {
+                    emptyStateView
+                } else {
+                    chatListView
+                }
+            }
+            .navigationTitle("채팅")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        showingNewChatSheet = true
+                    }) {
+                        Image(systemName: "square.and.pencil")
+                    }
+                }
+            }
+            .searchable(text: $searchText, prompt: "채팅 검색")
+            .sheet(isPresented: $showingNewChatSheet) {
+                NewChatView()
+            }
+            .onAppear {
+                chatManager.connect()
+                chatManager.loadChatRooms()
+            }
+            .refreshable {
+                chatManager.loadChatRooms()
+            }
+        }
+    }
+    
+    private var emptyStateView: some View {
+        VStack(spacing: 20) {
+            Spacer()
+            
+            Image(systemName: "message.circle")
+                .font(.system(size: 80))
+                .foregroundColor(.gray)
+            
+            Text("아직 채팅이 없습니다")
+                .font(.title2)
+                .fontWeight(.medium)
+                .foregroundColor(.primary)
+            
+            Text("새 채팅을 시작해보세요")
+                .font(.body)
+                .foregroundColor(.secondary)
+            
+            Button("새 채팅") {
+                showingNewChatSheet = true
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            
+            Spacer()
+        }
+        .padding()
+    }
+    
+    private var chatListView: some View {
+        List {
+            ForEach(filteredChatRooms) { chatRoom in
+                NavigationLink(destination: ChatRoomView(chatRoom: chatRoom)) {
+                    ChatRoomRowView(chatRoom: chatRoom, currentUser: authManager.currentUser)
+                }
+                .listRowInsets(EdgeInsets())
+            }
+            .onDelete(perform: deleteChatRooms)
+        }
+        .listStyle(PlainListStyle())
+    }
+    
+    private func deleteChatRooms(offsets: IndexSet) {
+        // 채팅방 삭제 로직 구현
+        chatManager.chatRooms.remove(atOffsets: offsets)
+    }
+}
+
+struct ChatRoomRowView: View {
+    let chatRoom: ChatRoom
+    let currentUser: User?
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            // 프로필 이미지
+            if chatRoom.isGroup {
+                groupAvatarView
+            } else if let otherUser = chatRoom.participants.first(where: { $0.id != currentUser?.id }) {
+                userAvatarView(otherUser)
+            } else {
+                defaultAvatarView
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(chatRoom.displayName)
+                        .font(.system(size: 16, weight: .semibold))
+                        .lineLimit(1)
+                    
+                    Spacer()
+                    
+                    if let lastMessage = chatRoom.lastMessage {
+                        Text(formatDate(lastMessage.createdAt))
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                HStack {
+                    if let lastMessage = chatRoom.lastMessage {
+                        Text(lastMessageText(lastMessage))
+                            .font(.system(size: 14))
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                    } else {
+                        Text("메시지 없음")
+                            .font(.system(size: 14))
+                            .foregroundColor(.secondary)
+                            .italic()
+                    }
+                    
+                    Spacer()
+                    
+                    // 읽지 않은 메시지 배지
+                    if let unreadCount = getUnreadCount() {
+                        Text("\(unreadCount)")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.red)
+                            .clipShape(Capsule())
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .contentShape(Rectangle())
+    }
+    
+    private var groupAvatarView: some View {
+        ZStack {
+            Circle()
+                .fill(Color.purple.gradient)
+                .frame(width: 50, height: 50)
+            
+            Image(systemName: "person.2.fill")
+                .font(.system(size: 20))
+                .foregroundColor(.white)
+        }
+    }
+    
+    private func userAvatarView(_ user: User) -> some View {
+        AsyncImage(url: URL(string: user.profileImageURL ?? "")) { image in
+            image
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+        } placeholder: {
+            Circle()
+                .fill(Color.purple.gradient)
+                .overlay(
+                    Text(user.computedInitials)
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(.white)
+                )
+        }
+        .frame(width: 50, height: 50)
+        .clipShape(Circle())
+        .overlay(
+            // 온라인 상태 표시
+            Circle()
+                .fill(user.isOnline ? Color.green : Color.clear)
+                .frame(width: 16, height: 16)
+                .offset(x: 18, y: 18)
+        )
+    }
+    
+    private var defaultAvatarView: some View {
+        Circle()
+            .fill(Color.gray.gradient)
+            .frame(width: 50, height: 50)
+            .overlay(
+                Image(systemName: "person.fill")
+                    .font(.system(size: 20))
+                    .foregroundColor(.white)
+            )
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let calendar = Calendar.current
+        if calendar.isToday(date) {
+            let formatter = DateFormatter()
+            formatter.timeStyle = .short
+            return formatter.string(from: date)
+        } else if calendar.isYesterday(date) {
+            return "어제"
+        } else {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .short
+            return formatter.string(from: date)
+        }
+    }
+    
+    private func lastMessageText(_ message: Message) -> String {
+        switch message.messageType {
+        case "text":
+            return message.content
+        case "image":
+            return "📷 사진"
+        case "voice":
+            return "🎤 음성 메시지"
+        case "file":
+            return "📄 \(message.fileName ?? "파일")"
+        default:
+            return message.content
+        }
+    }
+    
+    private func getUnreadCount() -> Int? {
+        // 읽지 않은 메시지 수 계산 로직 구현
+        // 현재는 임시로 nil 반환
+        return nil
+    }
+}
+
+struct NewChatView: View {
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var chatManager: ChatManager
+    @State private var selectedUsers: Set<String> = []
+    @State private var searchText = ""
+    @State private var contacts: [User] = []
+    
+    var body: some View {
+        NavigationView {
+            VStack {
+                List {
+                    ForEach(contacts) { contact in
+                        ContactRowView(
+                            user: contact,
+                            isSelected: selectedUsers.contains(contact.id)
+                        ) {
+                            if selectedUsers.contains(contact.id) {
+                                selectedUsers.remove(contact.id)
+                            } else {
+                                selectedUsers.insert(contact.id)
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("새 채팅")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("취소") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("생성") {
+                        createChat()
+                    }
+                    .disabled(selectedUsers.isEmpty)
+                }
+            }
+            .searchable(text: $searchText, prompt: "연락처 검색")
+            .onAppear {
+                loadContacts()
+            }
+        }
+    }
+    
+    private func loadContacts() {
+        // 연락처 로드 로직 구현
+        // 현재는 임시 데이터
+        contacts = []
+    }
+    
+    private func createChat() {
+        chatManager.createChatRoom(with: Array(selectedUsers), name: nil)
+        dismiss()
+    }
+}
+
+struct ContactRowView: View {
+    let user: User
+    let isSelected: Bool
+    let onTap: () -> Void
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            AsyncImage(url: URL(string: user.profileImageURL ?? "")) { image in
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } placeholder: {
+                Circle()
+                    .fill(Color.purple.gradient)
+                    .overlay(
+                        Text(user.computedInitials)
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.white)
+                    )
+            }
+            .frame(width: 40, height: 40)
+            .clipShape(Circle())
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(user.displayName)
+                    .font(.system(size: 16, weight: .medium))
+                
+                if let email = user.email {
+                    Text(email)
+                        .font(.system(size: 14))
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            Spacer()
+            
+            if isSelected {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.purple)
+            } else {
+                Image(systemName: "circle")
+                    .foregroundColor(.gray)
+            }
+        }
+        .padding(.vertical, 8)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onTap()
+        }
+    }
+}
+```
+
+이것은 세 번째 부분입니다. 나머지 파일들을 계속 제공하겠습니다.

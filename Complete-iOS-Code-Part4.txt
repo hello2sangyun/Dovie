@@ -1,0 +1,1068 @@
+# Dovie Messenger iOS - Complete Swift Code Files (Part 4)
+
+## 13. ChatRoomView.swift
+```swift
+//
+//  ChatRoomView.swift
+//  DovieMessenger
+//
+//  Created by Dovie Team
+//
+
+import SwiftUI
+import PhotosUI
+import AVFoundation
+
+struct ChatRoomView: View {
+    let chatRoom: ChatRoom
+    @EnvironmentObject var chatManager: ChatManager
+    @EnvironmentObject var authManager: AuthenticationManager
+    @State private var messageText = ""
+    @State private var showingImagePicker = false
+    @State private var showingVoiceRecorder = false
+    @State private var selectedImage: UIImage?
+    @State private var isTyping = false
+    @State private var typingTimer: Timer?
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // 메시지 목록
+            messagesListView
+            
+            // 타이핑 인디케이터
+            if !chatManager.typingUsers.isEmpty {
+                typingIndicatorView
+            }
+            
+            // 메시지 입력 영역
+            messageInputView
+        }
+        .navigationTitle(chatRoom.displayName)
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(false)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: {
+                    // 채팅방 설정
+                }) {
+                    Image(systemName: "info.circle")
+                }
+            }
+        }
+        .onAppear {
+            chatManager.joinChatRoom(chatRoom)
+        }
+        .onDisappear {
+            chatManager.leaveChatRoom()
+        }
+        .sheet(isPresented: $showingImagePicker) {
+            DovieImagePicker(selectedImage: $selectedImage)
+        }
+        .sheet(isPresented: $showingVoiceRecorder) {
+            VoiceRecorderView { audioData in
+                // 음성 메시지 전송
+                uploadAndSendVoiceMessage(audioData)
+            }
+        }
+        .onChange(of: selectedImage) { image in
+            if let image = image {
+                uploadAndSendImage(image)
+                selectedImage = nil
+            }
+        }
+    }
+    
+    private var messagesListView: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(spacing: 8) {
+                    ForEach(chatManager.messages) { message in
+                        MessageBubbleView(
+                            message: message,
+                            isCurrentUser: message.senderId == authManager.currentUser?.id
+                        )
+                        .id(message.id)
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+            }
+            .onChange(of: chatManager.messages.count) { _ in
+                if let lastMessage = chatManager.messages.last {
+                    withAnimation(.easeInOut) {
+                        proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                    }
+                }
+            }
+        }
+    }
+    
+    private var typingIndicatorView: some View {
+        HStack {
+            Text("\(chatManager.typingUsers.map { $0.displayName }.joined(separator: ", "))가 입력 중...")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .padding(.horizontal)
+            
+            Spacer()
+        }
+        .padding(.vertical, 4)
+        .background(Color(.systemBackground))
+    }
+    
+    private var messageInputView: some View {
+        HStack(spacing: 12) {
+            // 추가 옵션 버튼
+            Button(action: {
+                showingImagePicker = true
+            }) {
+                Image(systemName: "plus.circle")
+                    .font(.system(size: 24))
+                    .foregroundColor(.purple)
+            }
+            
+            // 텍스트 입력 필드
+            TextField("메시지를 입력하세요", text: $messageText, axis: .vertical)
+                .textFieldStyle(.roundedBorder)
+                .lineLimit(1...4)
+                .onChange(of: messageText) { newValue in
+                    handleTyping()
+                }
+            
+            // 전송/음성 버튼
+            if messageText.isEmpty {
+                Button(action: {
+                    showingVoiceRecorder = true
+                }) {
+                    Image(systemName: "mic.fill")
+                        .font(.system(size: 18))
+                        .foregroundColor(.white)
+                        .frame(width: 36, height: 36)
+                        .background(Color.purple)
+                        .clipShape(Circle())
+                }
+            } else {
+                Button(action: {
+                    sendTextMessage()
+                }) {
+                    Image(systemName: "arrow.up")
+                        .font(.system(size: 18))
+                        .foregroundColor(.white)
+                        .frame(width: 36, height: 36)
+                        .background(Color.purple)
+                        .clipShape(Circle())
+                }
+            }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(Color(.systemBackground))
+    }
+    
+    private func sendTextMessage() {
+        guard !messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        
+        chatManager.sendMessage(content: messageText, type: "text")
+        messageText = ""
+        
+        // 타이핑 상태 해제
+        chatManager.sendTyping(false)
+        isTyping = false
+    }
+    
+    private func handleTyping() {
+        if !messageText.isEmpty && !isTyping {
+            isTyping = true
+            chatManager.sendTyping(true)
+        }
+        
+        // 타이핑 타이머 리셋
+        typingTimer?.invalidate()
+        typingTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { _ in
+            if isTyping {
+                isTyping = false
+                chatManager.sendTyping(false)
+            }
+        }
+        
+        if messageText.isEmpty && isTyping {
+            isTyping = false
+            chatManager.sendTyping(false)
+            typingTimer?.invalidate()
+        }
+    }
+    
+    private func uploadAndSendImage(_ image: UIImage) {
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else { return }
+        
+        // 이미지 업로드 및 메시지 전송 로직
+        // 현재는 임시로 텍스트 메시지 전송
+        chatManager.sendMessage(content: "📷 이미지가 전송되었습니다.", type: "image")
+    }
+    
+    private func uploadAndSendVoiceMessage(_ audioData: Data) {
+        // 음성 메시지 업로드 및 전송 로직
+        // 현재는 임시로 텍스트 메시지 전송
+        chatManager.sendMessage(content: "🎤 음성 메시지가 전송되었습니다.", type: "voice")
+    }
+}
+
+struct MessageBubbleView: View {
+    let message: Message
+    let isCurrentUser: Bool
+    
+    var body: some View {
+        HStack {
+            if isCurrentUser {
+                Spacer(minLength: 80)
+                messageContent
+            } else {
+                HStack(alignment: .bottom, spacing: 8) {
+                    senderAvatar
+                    messageContent
+                    Spacer(minLength: 80)
+                }
+            }
+        }
+    }
+    
+    private var senderAvatar: some View {
+        Group {
+            if !isCurrentUser {
+                AsyncImage(url: URL(string: message.sender.profileImageURL ?? "")) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } placeholder: {
+                    Circle()
+                        .fill(Color.purple.gradient)
+                        .overlay(
+                            Text(message.sender.computedInitials)
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.white)
+                        )
+                }
+                .frame(width: 32, height: 32)
+                .clipShape(Circle())
+            }
+        }
+    }
+    
+    private var messageContent: some View {
+        VStack(alignment: isCurrentUser ? .trailing : .leading, spacing: 4) {
+            if !isCurrentUser {
+                Text(message.sender.displayName)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            Group {
+                switch message.messageType {
+                case "text":
+                    textMessageView
+                case "image":
+                    imageMessageView
+                case "voice":
+                    voiceMessageView
+                case "file":
+                    fileMessageView
+                default:
+                    textMessageView
+                }
+            }
+            
+            Text(formatTime(message.createdAt))
+                .font(.caption2)
+                .foregroundColor(.secondary)
+        }
+    }
+    
+    private var textMessageView: some View {
+        Text(message.content)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(isCurrentUser ? Color.purple : Color(.systemGray5))
+            .foregroundColor(isCurrentUser ? .white : .primary)
+            .clipShape(RoundedRectangle(cornerRadius: 18))
+    }
+    
+    private var imageMessageView: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if let imageUrl = message.fileUrl {
+                AsyncImage(url: URL(string: imageUrl)) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                } placeholder: {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(.systemGray5))
+                        .frame(height: 200)
+                        .overlay(
+                            ProgressView()
+                        )
+                }
+                .frame(maxWidth: 250, maxHeight: 250)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+            
+            if !message.content.isEmpty {
+                Text(message.content)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(isCurrentUser ? Color.purple : Color(.systemGray5))
+                    .foregroundColor(isCurrentUser ? .white : .primary)
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
+            }
+        }
+    }
+    
+    private var voiceMessageView: some View {
+        HStack(spacing: 12) {
+            Button(action: {
+                // 음성 재생/일시정지
+            }) {
+                Image(systemName: "play.circle.fill")
+                    .font(.system(size: 32))
+                    .foregroundColor(isCurrentUser ? .white : .purple)
+            }
+            
+            VStack(alignment: .leading, spacing: 2) {
+                // 파형 또는 진행 바
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(isCurrentUser ? Color.white.opacity(0.3) : Color.purple.opacity(0.3))
+                    .frame(height: 4)
+                    .frame(width: 120)
+                
+                if let duration = message.voiceDuration {
+                    Text("\(Int(duration))초")
+                        .font(.caption2)
+                        .foregroundColor(isCurrentUser ? .white.opacity(0.7) : .secondary)
+                }
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(isCurrentUser ? Color.purple : Color(.systemGray5))
+        .clipShape(RoundedRectangle(cornerRadius: 18))
+    }
+    
+    private var fileMessageView: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "doc.fill")
+                .font(.system(size: 24))
+                .foregroundColor(isCurrentUser ? .white : .purple)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(message.fileName ?? "파일")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(isCurrentUser ? .white : .primary)
+                
+                if let fileSize = message.fileSize {
+                    Text(formatFileSize(fileSize))
+                        .font(.caption2)
+                        .foregroundColor(isCurrentUser ? .white.opacity(0.7) : .secondary)
+                }
+            }
+            
+            Spacer()
+            
+            Button(action: {
+                // 파일 다운로드
+            }) {
+                Image(systemName: "arrow.down.circle")
+                    .font(.system(size: 20))
+                    .foregroundColor(isCurrentUser ? .white : .purple)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(isCurrentUser ? Color.purple : Color(.systemGray5))
+        .clipShape(RoundedRectangle(cornerRadius: 18))
+    }
+    
+    private func formatTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
+    }
+    
+    private func formatFileSize(_ bytes: Int) -> String {
+        let formatter = ByteCountFormatter()
+        formatter.allowedUnits = [.useKB, .useMB]
+        formatter.countStyle = .file
+        return formatter.string(fromByteCount: Int64(bytes))
+    }
+}
+
+struct VoiceRecorderView: View {
+    let onComplete: (Data) -> Void
+    @Environment(\.dismiss) private var dismiss
+    @State private var isRecording = false
+    @State private var audioRecorder: AVAudioRecorder?
+    @State private var audioSession: AVAudioSession?
+    @State private var recordingDuration: TimeInterval = 0
+    @State private var timer: Timer?
+    
+    var body: some View {
+        VStack(spacing: 30) {
+            Text("음성 메시지 녹음")
+                .font(.title2)
+                .fontWeight(.semibold)
+            
+            VStack(spacing: 20) {
+                // 녹음 시간 표시
+                Text(formatDuration(recordingDuration))
+                    .font(.system(size: 32, weight: .bold, design: .monospaced))
+                    .foregroundColor(.purple)
+                
+                // 녹음 애니메이션
+                Circle()
+                    .fill(isRecording ? Color.red : Color.gray)
+                    .frame(width: 100, height: 100)
+                    .scaleEffect(isRecording ? 1.2 : 1.0)
+                    .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: isRecording)
+                    .overlay(
+                        Image(systemName: "mic.fill")
+                            .font(.system(size: 40))
+                            .foregroundColor(.white)
+                    )
+            }
+            
+            HStack(spacing: 40) {
+                Button("취소") {
+                    stopRecording()
+                    dismiss()
+                }
+                .font(.system(size: 18, weight: .medium))
+                .foregroundColor(.red)
+                
+                Button(isRecording ? "완료" : "녹음") {
+                    if isRecording {
+                        finishRecording()
+                    } else {
+                        startRecording()
+                    }
+                }
+                .font(.system(size: 18, weight: .medium))
+                .foregroundColor(.purple)
+                .disabled(recordingDuration == 0 && !isRecording)
+            }
+        }
+        .padding()
+        .onAppear {
+            setupAudioSession()
+        }
+    }
+    
+    private func setupAudioSession() {
+        audioSession = AVAudioSession.sharedInstance()
+        
+        do {
+            try audioSession?.setCategory(.playAndRecord, mode: .default)
+            try audioSession?.setActive(true)
+        } catch {
+            print("오디오 세션 설정 실패: \(error)")
+        }
+    }
+    
+    private func startRecording() {
+        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let audioFilename = documentsPath.appendingPathComponent("recording.m4a")
+        
+        let settings = [
+            AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+            AVSampleRateKey: 12000,
+            AVNumberOfChannelsKey: 1,
+            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
+        ]
+        
+        do {
+            audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
+            audioRecorder?.record()
+            
+            isRecording = true
+            recordingDuration = 0
+            
+            timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+                recordingDuration += 0.1
+            }
+        } catch {
+            print("녹음 시작 실패: \(error)")
+        }
+    }
+    
+    private func stopRecording() {
+        audioRecorder?.stop()
+        timer?.invalidate()
+        isRecording = false
+    }
+    
+    private func finishRecording() {
+        stopRecording()
+        
+        if let audioRecorder = audioRecorder {
+            let audioData = try? Data(contentsOf: audioRecorder.url)
+            if let data = audioData {
+                onComplete(data)
+            }
+        }
+        
+        dismiss()
+    }
+    
+    private func formatDuration(_ duration: TimeInterval) -> String {
+        let minutes = Int(duration) / 60
+        let seconds = Int(duration) % 60
+        let milliseconds = Int((duration.truncatingRemainder(dividingBy: 1)) * 10)
+        return String(format: "%02d:%02d.%01d", minutes, seconds, milliseconds)
+    }
+}
+```
+
+## 14. ContactsView.swift
+```swift
+//
+//  ContactsView.swift
+//  DovieMessenger
+//
+//  Created by Dovie Team
+//
+
+import SwiftUI
+import Combine
+
+struct ContactsView: View {
+    @EnvironmentObject var authManager: AuthenticationManager
+    @State private var contacts: [User] = []
+    @State private var favoriteContacts: [User] = []
+    @State private var searchText = ""
+    @State private var showingAddContact = false
+    @State private var showingQRScanner = false
+    @State private var isLoading = false
+    @State private var cancellables = Set<AnyCancellable>()
+    
+    var filteredContacts: [User] {
+        if searchText.isEmpty {
+            return contacts
+        } else {
+            return contacts.filter { contact in
+                contact.displayName.lowercased().contains(searchText.lowercased()) ||
+                contact.email?.lowercased().contains(searchText.lowercased()) == true
+            }
+        }
+    }
+    
+    var body: some View {
+        NavigationView {
+            VStack {
+                if isLoading {
+                    ProgressView("연락처를 불러오는 중...")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if contacts.isEmpty {
+                    emptyStateView
+                } else {
+                    contactsListView
+                }
+            }
+            .navigationTitle("연락처")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Menu {
+                        Button(action: {
+                            showingAddContact = true
+                        }) {
+                            Label("연락처 추가", systemImage: "plus")
+                        }
+                        
+                        Button(action: {
+                            showingQRScanner = true
+                        }) {
+                            Label("QR 코드 스캔", systemImage: "qrcode.viewfinder")
+                        }
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                }
+            }
+            .searchable(text: $searchText, prompt: "연락처 검색")
+            .sheet(isPresented: $showingAddContact) {
+                AddContactView { newContact in
+                    addContact(newContact)
+                }
+            }
+            .sheet(isPresented: $showingQRScanner) {
+                QRScannerView { qrCode in
+                    handleQRCode(qrCode)
+                }
+            }
+            .onAppear {
+                loadContacts()
+            }
+            .refreshable {
+                loadContacts()
+            }
+        }
+    }
+    
+    private var emptyStateView: some View {
+        VStack(spacing: 20) {
+            Spacer()
+            
+            Image(systemName: "person.2.circle")
+                .font(.system(size: 80))
+                .foregroundColor(.gray)
+            
+            Text("연락처가 없습니다")
+                .font(.title2)
+                .fontWeight(.medium)
+                .foregroundColor(.primary)
+            
+            Text("새로운 친구를 추가해보세요")
+                .font(.body)
+                .foregroundColor(.secondary)
+            
+            Button("연락처 추가") {
+                showingAddContact = true
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            
+            Spacer()
+        }
+        .padding()
+    }
+    
+    private var contactsListView: some View {
+        List {
+            if !favoriteContacts.isEmpty {
+                Section("즐겨찾기") {
+                    ForEach(favoriteContacts) { contact in
+                        ContactRowView(contact: contact, currentUser: authManager.currentUser) { action in
+                            handleContactAction(action, contact: contact)
+                        }
+                    }
+                }
+            }
+            
+            Section("전체 연락처") {
+                ForEach(filteredContacts) { contact in
+                    ContactRowView(contact: contact, currentUser: authManager.currentUser) { action in
+                        handleContactAction(action, contact: contact)
+                    }
+                }
+                .onDelete(perform: deleteContacts)
+            }
+        }
+    }
+    
+    private func loadContacts() {
+        isLoading = true
+        
+        APIService.shared.request<ContactsResponse>(
+            endpoint: "/api/contacts",
+            method: .GET,
+            body: nil,
+            headers: [:]
+        )
+        .sink(
+            receiveCompletion: { (completion: Subscribers.Completion<Error>) in
+                self.isLoading = false
+                if case .failure(let error) = completion {
+                    print("연락처 로드 실패: \(error)")
+                }
+            },
+            receiveValue: { (response: ContactsResponse) in
+                self.contacts = response.contacts
+                self.favoriteContacts = response.favorites
+            }
+        )
+        .store(in: &cancellables)
+    }
+    
+    private func addContact(_ contact: AddContactRequest) {
+        let body = [
+            "username": contact.username,
+            "email": contact.email ?? "",
+            "phoneNumber": contact.phoneNumber ?? ""
+        ]
+        
+        guard let bodyData = try? JSONSerialization.data(withJSONObject: body) else {
+            return
+        }
+        
+        APIService.shared.request<User>(
+            endpoint: "/api/contacts",
+            method: .POST,
+            body: bodyData,
+            headers: [:]
+        )
+        .sink(
+            receiveCompletion: { (completion: Subscribers.Completion<Error>) in
+                if case .failure(let error) = completion {
+                    print("연락처 추가 실패: \(error)")
+                }
+            },
+            receiveValue: { (newContact: User) in
+                self.contacts.append(newContact)
+            }
+        )
+        .store(in: &cancellables)
+    }
+    
+    private func handleContactAction(_ action: ContactAction, contact: User) {
+        switch action {
+        case .message:
+            // 메시지 보내기
+            break
+        case .call:
+            // 전화걸기
+            break
+        case .favorite:
+            toggleFavorite(contact)
+        case .block:
+            blockContact(contact)
+        case .delete:
+            removeContact(contact)
+        }
+    }
+    
+    private func toggleFavorite(_ contact: User) {
+        let endpoint = favoriteContacts.contains(where: { $0.id == contact.id }) ?
+            "/api/contacts/\(contact.id)/unfavorite" :
+            "/api/contacts/\(contact.id)/favorite"
+        
+        APIService.shared.request<FavoriteResponse>(
+            endpoint: endpoint,
+            method: .POST,
+            body: nil,
+            headers: [:]
+        )
+        .sink(
+            receiveCompletion: { (completion: Subscribers.Completion<Error>) in
+                if case .failure(let error) = completion {
+                    print("즐겨찾기 변경 실패: \(error)")
+                }
+            },
+            receiveValue: { (response: FavoriteResponse) in
+                if response.isFavorite {
+                    self.favoriteContacts.append(contact)
+                } else {
+                    self.favoriteContacts.removeAll { $0.id == contact.id }
+                }
+            }
+        )
+        .store(in: &cancellables)
+    }
+    
+    private func blockContact(_ contact: User) {
+        APIService.shared.request<BlockResponse>(
+            endpoint: "/api/contacts/\(contact.id)/block",
+            method: .POST,
+            body: nil,
+            headers: [:]
+        )
+        .sink(
+            receiveCompletion: { (completion: Subscribers.Completion<Error>) in
+                if case .failure(let error) = completion {
+                    print("연락처 차단 실패: \(error)")
+                }
+            },
+            receiveValue: { (response: BlockResponse) in
+                self.contacts.removeAll { $0.id == contact.id }
+                self.favoriteContacts.removeAll { $0.id == contact.id }
+            }
+        )
+        .store(in: &cancellables)
+    }
+    
+    private func removeContact(_ contact: User) {
+        APIService.shared.request<DeleteResponse>(
+            endpoint: "/api/contacts/\(contact.id)",
+            method: .DELETE,
+            body: nil,
+            headers: [:]
+        )
+        .sink(
+            receiveCompletion: { (completion: Subscribers.Completion<Error>) in
+                if case .failure(let error) = completion {
+                    print("연락처 삭제 실패: \(error)")
+                }
+            },
+            receiveValue: { (response: DeleteResponse) in
+                self.contacts.removeAll { $0.id == contact.id }
+                self.favoriteContacts.removeAll { $0.id == contact.id }
+            }
+        )
+        .store(in: &cancellables)
+    }
+    
+    private func deleteContacts(offsets: IndexSet) {
+        for index in offsets {
+            let contact = filteredContacts[index]
+            removeContact(contact)
+        }
+    }
+    
+    private func handleQRCode(_ qrCode: String) {
+        // QR 코드 처리 로직
+        print("QR Code: \(qrCode)")
+    }
+}
+
+struct ContactRowView: View {
+    let contact: User
+    let currentUser: User?
+    let onAction: (ContactAction) -> Void
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            // 프로필 이미지
+            AsyncImage(url: URL(string: contact.profileImageURL ?? "")) { image in
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } placeholder: {
+                Circle()
+                    .fill(Color.purple.gradient)
+                    .overlay(
+                        Text(contact.computedInitials)
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(.white)
+                    )
+            }
+            .frame(width: 50, height: 50)
+            .clipShape(Circle())
+            .overlay(
+                // 온라인 상태 표시
+                Circle()
+                    .fill(contact.isOnline ? Color.green : Color.clear)
+                    .frame(width: 16, height: 16)
+                    .overlay(
+                        Circle()
+                            .stroke(Color.white, lineWidth: 2)
+                    )
+                    .offset(x: 18, y: 18)
+            )
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(contact.displayName)
+                    .font(.system(size: 16, weight: .semibold))
+                
+                if let businessAddress = contact.businessAddress {
+                    Text(businessAddress)
+                        .font(.system(size: 14))
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                }
+                
+                if let email = contact.email {
+                    Text(email)
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                }
+            }
+            
+            Spacer()
+            
+            HStack(spacing: 8) {
+                Button(action: {
+                    onAction(.message)
+                }) {
+                    Image(systemName: "message.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(.white)
+                        .frame(width: 32, height: 32)
+                        .background(Color.purple)
+                        .clipShape(Circle())
+                }
+                
+                Menu {
+                    Button(action: { onAction(.call) }) {
+                        Label("전화걸기", systemImage: "phone.fill")
+                    }
+                    
+                    Button(action: { onAction(.favorite) }) {
+                        Label("즐겨찾기", systemImage: "heart")
+                    }
+                    
+                    Button(action: { onAction(.block) }) {
+                        Label("차단하기", systemImage: "hand.raised")
+                    }
+                    
+                    Button(action: { onAction(.delete) }) {
+                        Label("삭제하기", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .foregroundColor(.secondary)
+                        .frame(width: 32, height: 32)
+                }
+            }
+        }
+        .padding(.vertical, 8)
+    }
+}
+
+struct AddContactView: View {
+    let onAdd: (AddContactRequest) -> Void
+    @Environment(\.dismiss) private var dismiss
+    
+    @State private var username = ""
+    @State private var email = ""
+    @State private var phoneNumber = ""
+    @State private var searchType: ContactSearchType = .username
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 20) {
+                Picker("검색 방법", selection: $searchType) {
+                    Text("사용자명").tag(ContactSearchType.username)
+                    Text("이메일").tag(ContactSearchType.email)
+                    Text("전화번호").tag(ContactSearchType.phone)
+                }
+                .pickerStyle(SegmentedPickerStyle())
+                
+                VStack(spacing: 16) {
+                    switch searchType {
+                    case .username:
+                        TextField("사용자명", text: $username)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .autocapitalization(.none)
+                    case .email:
+                        TextField("이메일", text: $email)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .keyboardType(.emailAddress)
+                            .autocapitalization(.none)
+                    case .phone:
+                        TextField("전화번호", text: $phoneNumber)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .keyboardType(.phonePad)
+                    }
+                }
+                
+                Spacer()
+            }
+            .padding()
+            .navigationTitle("연락처 추가")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("취소") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("추가") {
+                        addContact()
+                    }
+                    .disabled(!isValidInput)
+                }
+            }
+        }
+    }
+    
+    private var isValidInput: Bool {
+        switch searchType {
+        case .username:
+            return !username.isEmpty
+        case .email:
+            return !email.isEmpty && User.isValidEmail(email)
+        case .phone:
+            return !phoneNumber.isEmpty
+        }
+    }
+    
+    private func addContact() {
+        let request = AddContactRequest(
+            username: searchType == .username ? username : "",
+            email: searchType == .email ? email : nil,
+            phoneNumber: searchType == .phone ? phoneNumber : nil
+        )
+        
+        onAdd(request)
+        dismiss()
+    }
+}
+
+struct QRScannerView: View {
+    let onQRCodeScanned: (String) -> Void
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        NavigationView {
+            VStack {
+                Text("QR 코드를 스캔하세요")
+                    .font(.title2)
+                    .padding()
+                
+                // QR 스캐너 구현 (AVFoundation 사용)
+                Rectangle()
+                    .fill(Color.black)
+                    .overlay(
+                        Text("QR 스캐너\n(카메라 권한 필요)")
+                            .multilineTextAlignment(.center)
+                            .foregroundColor(.white)
+                    )
+                
+                Spacer()
+            }
+            .navigationTitle("QR 스캔")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("취소") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Models and Enums
+struct ContactsResponse: Codable {
+    let contacts: [User]
+    let favorites: [User]
+}
+
+struct AddContactRequest {
+    let username: String
+    let email: String?
+    let phoneNumber: String?
+}
+
+struct FavoriteResponse: Codable {
+    let success: Bool
+    let isFavorite: Bool
+}
+
+struct BlockResponse: Codable {
+    let success: Bool
+    let message: String
+}
+
+struct DeleteResponse: Codable {
+    let success: Bool
+    let message: String
+}
+
+enum ContactSearchType {
+    case username
+    case email
+    case phone
+}
+
+enum ContactAction {
+    case message
+    case call
+    case favorite
+    case block
+    case delete
+}
+```
+
+이것은 네 번째 부분입니다. 마지막 파일들을 계속 제공하겠습니다.
