@@ -13,36 +13,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         // 푸시 알림 델리게이트 설정
         UNUserNotificationCenter.current().delegate = self
         
-        // 푸시 알림 권한 요청 (개인 개발자 계정용)
-        let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
+        // 푸시 알림 권한 요청
+        let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound, .provisional]
         UNUserNotificationCenter.current().requestAuthorization(options: authOptions) { granted, error in
             print("푸시 알림 권한 요청 결과: granted=\(granted), error=\(String(describing: error))")
             
             if granted {
                 DispatchQueue.main.async {
-                    print("푸시 알림 권한 허용됨 - 디바이스 토큰 생성 시뮬레이션")
-                    // 개인 개발자 계정에서는 실제 APNS 등록 대신 시뮬레이션 토큰 사용
-                    let simulatedToken = "sim_ios_token_\(Int(Date().timeIntervalSince1970))_user117"
-                    print("시뮬레이션 디바이스 토큰: \(simulatedToken)")
-                    
-                    // JavaScript로 시뮬레이션 토큰 전달
-                    if let webView = self.getCapacitorWebView() {
-                        let script = """
-                        console.log('🎯 시뮬레이션 디바이스 토큰 수신: \(simulatedToken)');
-                        window.dispatchEvent(new CustomEvent('deviceTokenReceived', { detail: { token: '\(simulatedToken)' } }));
-                        if (window.registerDeviceTokenToServer) {
-                            window.registerDeviceTokenToServer('\(simulatedToken)');
-                        }
-                        """
-                        
-                        webView.evaluateJavaScript(script) { result, error in
-                            if let error = error {
-                                print("JavaScript 토큰 전달 실패: \(error)")
-                            } else {
-                                print("✅ 시뮬레이션 토큰 JavaScript 전달 완료")
-                            }
-                        }
-                    }
+                    UIApplication.shared.registerForRemoteNotifications()
+                    print("원격 알림 등록 요청 완료")
                 }
             } else {
                 print("푸시 알림 권한이 거부되었습니다")

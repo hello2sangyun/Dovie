@@ -17,8 +17,6 @@ import { eq, and, inArray, desc, gte, isNull } from "drizzle-orm";
 import { initializeNotificationScheduler } from "./notification-scheduler";
 import { getVapidPublicKey, sendPushNotification } from "./push-notifications";
 import twilio from "twilio";
-import passport from "./auth";
-import session from "express-session";
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -49,18 +47,6 @@ const upload = multer({
 const connections = new Map<number, WebSocket>();
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // 세션 설정
-  app.use(session({
-    secret: process.env.SESSION_SECRET || 'your-secret-key',
-    resave: false,
-    saveUninitialized: false,
-    cookie: { secure: false } // HTTPS가 아닌 경우 false
-  }));
-
-  // Passport 초기화
-  app.use(passport.initialize());
-  app.use(passport.session());
-
   // Auth routes
 
   // SMS 인증 코드 전송
@@ -190,86 +176,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("SMS verify error:", error);
       res.status(500).json({ message: "인증에 실패했습니다." });
     }
-  });
-
-  // Google 로그인 시작
-  app.get("/api/auth/google", 
-    passport.authenticate('google', { scope: ['profile', 'email'] })
-  );
-
-  // Google 로그인 콜백
-  app.get("/api/auth/google/callback",
-    passport.authenticate('google', { failureRedirect: '/login' }),
-    async (req, res) => {
-      const user = req.user as any;
-      console.log('Google 로그인 성공:', user.id, user.displayName);
-      
-      // 온라인 상태 업데이트
-      await storage.updateUser(user.id, { isOnline: true });
-      
-      // 프로필이 완성되지 않은 경우 프로필 설정 페이지로, 완성된 경우 메인 페이지로
-      if (!user.isProfileComplete) {
-        res.redirect(`/?userId=${user.id}&profileIncomplete=true`);
-      } else {
-        res.redirect(`/?userId=${user.id}`);
-      }
-    }
-  );
-
-  // Facebook 로그인 시작
-  app.get("/api/auth/facebook",
-    passport.authenticate('facebook', { scope: ['email'] })
-  );
-
-  // Facebook 로그인 콜백
-  app.get("/api/auth/facebook/callback",
-    passport.authenticate('facebook', { failureRedirect: '/login' }),
-    async (req, res) => {
-      const user = req.user as any;
-      console.log('Facebook 로그인 성공:', user.id, user.displayName);
-      
-      // 온라인 상태 업데이트
-      await storage.updateUser(user.id, { isOnline: true });
-      
-      // 프로필이 완성되지 않은 경우 프로필 설정 페이지로, 완성된 경우 메인 페이지로
-      if (!user.isProfileComplete) {
-        res.redirect(`/?userId=${user.id}&profileIncomplete=true`);
-      } else {
-        res.redirect(`/?userId=${user.id}`);
-      }
-    }
-  );
-
-  // 소셜 로그인 사용자 정보 API
-  app.get("/api/auth/user", async (req, res) => {
-    try {
-      if (!req.user) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-      
-      const user = req.user as any;
-      const fullUser = await storage.getUser(user.id);
-      
-      if (!fullUser) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      res.json({ user: fullUser });
-    } catch (error) {
-      console.error("Get user error:", error);
-      res.status(500).json({ message: "Failed to get user information" });
-    }
-  });
-
-  // 로그아웃 API
-  app.post("/api/auth/logout", (req, res) => {
-    req.logout((err) => {
-      if (err) {
-        console.error("Logout error:", err);
-        return res.status(500).json({ message: "Logout failed" });
-      }
-      res.json({ success: true, message: "Logged out successfully" });
-    });
   });
 
   // 회원가입 API
@@ -2884,120 +2790,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } else {
       res.status(404).send('파일을 찾을 수 없습니다.');
-    }
-  });
-
-  // iOS 푸시 알림 전송 함수
-  async function sendIOSPushNotification(deviceToken: string, payload: any) {
-    try {
-      console.log('📱 iOS 푸시 알림 전송 시작');
-      console.log('디바이스 토큰:', deviceToken.substring(0, 10) + '...');
-      console.log('페이로드:', payload);
-      
-      // 시뮬레이션 모드 (실제 APNS 인증서 없이)
-      const simulationResult = {
-        success: true,
-        messageId: `sim_${Date.now()}`,
-        statusCode: 200,
-        deviceToken: deviceToken,
-        payload: payload,
-        timestamp: new Date().toISOString(),
-        mode: 'simulation'
-      };
-      
-      console.log('✅ iOS 푸시 알림 시뮬레이션 완료:', simulationResult);
-      return simulationResult;
-      
-    } catch (error) {
-      console.error('❌ iOS 푸시 알림 전송 실패:', error);
-      return {
-        success: false,
-        error: error.message,
-        deviceToken: deviceToken
-      };
-    }
-  }
-
-  // iOS 테스트 푸시 알림 API (네이티브 앱용)
-  app.post('/api/test-ios-push', async (req, res) => {
-    try {
-      const { message, title, badge } = req.body;
-      const userId = req.headers['x-user-id'] as string;
-      
-      if (!userId) {
-        return res.status(400).json({ error: '사용자 ID가 필요합니다' });
-      }
-      
-      console.log(`📱 iOS 테스트 푸시 요청 - 사용자 ${userId}`);
-      console.log('메시지:', message);
-      console.log('제목:', title);
-      console.log('뱃지:', badge);
-      
-      // 등록된 iOS 디바이스 토큰 확인
-      const deviceTokens = await storage.getIOSDeviceTokens(parseInt(userId));
-      console.log(`등록된 디바이스: ${deviceTokens.length}개`);
-      
-      if (deviceTokens.length === 0) {
-        return res.status(404).json({ 
-          error: '등록된 iOS 디바이스가 없습니다',
-          registeredDevices: 0,
-          suggestion: '앱에서 푸시 알림 권한을 허용하고 디바이스 토큰이 등록되었는지 확인해주세요'
-        });
-      }
-      
-      // 각 디바이스에 테스트 푸시 전송
-      const results = [];
-      for (const deviceToken of deviceTokens) {
-        try {
-          console.log(`푸시 전송 시도: ${deviceToken.device_token.substring(0, 10)}...`);
-          
-          const result = await sendIOSPushNotification(
-            deviceToken.device_token,
-            {
-              title: title || 'Dovie Messenger',
-              body: message || '테스트 푸시 알림입니다',
-              badge: badge || 1,
-              sound: 'default',
-              data: {
-                type: 'test',
-                timestamp: Date.now()
-              }
-            }
-          );
-          
-          results.push({
-            deviceId: deviceToken.id,
-            success: result.success,
-            response: result
-          });
-          
-          console.log(`✅ 디바이스 ${deviceToken.id} 푸시 전송 완료:`, result);
-          
-        } catch (error) {
-          console.error(`❌ 디바이스 ${deviceToken.id} 푸시 전송 실패:`, error);
-          results.push({
-            deviceId: deviceToken.id,
-            success: false,
-            error: error.message
-          });
-        }
-      }
-      
-      res.json({
-        success: true,
-        message: '테스트 푸시 전송 완료',
-        registeredDevices: deviceTokens.length,
-        results: results,
-        successCount: results.filter(r => r.success).length,
-        failureCount: results.filter(r => !r.success).length
-      });
-      
-    } catch (error) {
-      console.error('iOS 테스트 푸시 오류:', error);
-      res.status(500).json({ 
-        error: '푸시 테스트 실패', 
-        details: error.message 
-      });
     }
   });
 

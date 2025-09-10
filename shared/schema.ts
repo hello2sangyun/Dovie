@@ -8,12 +8,8 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   displayName: text("display_name").notNull(),
   email: text("email").unique().notNull(),
-  password: text("password"), // 소셜 로그인 시에는 null 가능
+  password: text("password").notNull(),
   phoneNumber: text("phone_number"),
-  // 소셜 로그인 정보
-  googleId: text("google_id"),
-  facebookId: text("facebook_id"),
-  loginProvider: text("login_provider").default("email"), // email, google, facebook, phone
   birthday: text("birthday"),
   profilePicture: text("profile_picture"),
   qrCode: text("qr_code"),

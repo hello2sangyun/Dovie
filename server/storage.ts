@@ -24,14 +24,10 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByPhoneNumber(phoneNumber: string): Promise<User | undefined>;
-  getUserByGoogleId(googleId: string): Promise<User | undefined>;
-  getUserByFacebookId(facebookId: string): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined>;
   updateUserProfilePicture(id: number, profilePicture: string): Promise<User | undefined>;
-  linkGoogleAccount(userId: number, googleId: string): Promise<User>;
-  linkFacebookAccount(userId: number, facebookId: string): Promise<User>;
 
   // Contact operations
   getContacts(userId: number): Promise<(Contact & { contactUser: User })[]>;
@@ -162,16 +158,6 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async getUserByGoogleId(googleId: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.googleId, googleId));
-    return user;
-  }
-
-  async getUserByFacebookId(facebookId: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.facebookId, facebookId));
-    return user;
-  }
-
   async getAllUsers(): Promise<User[]> {
     return await db.select().from(users);
   }
@@ -188,22 +174,6 @@ export class DatabaseStorage implements IStorage {
 
   async updateUserProfilePicture(id: number, profilePicture: string): Promise<User | undefined> {
     const [user] = await db.update(users).set({ profilePicture }).where(eq(users.id, id)).returning();
-    return user;
-  }
-
-  async linkGoogleAccount(userId: number, googleId: string): Promise<User> {
-    const [user] = await db.update(users)
-      .set({ googleId, loginProvider: 'google' })
-      .where(eq(users.id, userId))
-      .returning();
-    return user;
-  }
-
-  async linkFacebookAccount(userId: number, facebookId: string): Promise<User> {
-    const [user] = await db.update(users)
-      .set({ facebookId, loginProvider: 'facebook' })
-      .where(eq(users.id, userId))
-      .returning();
     return user;
   }
 

@@ -3,217 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dovie iOS App 테스트 가이드 (개인 개발자용)</title>
+    <title>Dovie Messenger iOS 푸시 알림 테스트</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
             max-width: 800px;
             margin: 0 auto;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #333;
-        }
-        
-        .container {
-            background: white;
-            border-radius: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
             padding: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
         }
-        
         h1 {
-            color: #6366f1;
             text-align: center;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-        
-        .subtitle {
-            text-align: center;
-            color: #666;
-            font-size: 1.1em;
             margin-bottom: 30px;
+            font-size: 2.5em;
         }
-        
         .step {
-            background: #f8fafc;
-            border-left: 5px solid #6366f1;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
             padding: 20px;
             margin: 20px 0;
-            border-radius: 8px;
+            border-left: 5px solid #4CAF50;
         }
-        
-        .step h3 {
-            color: #6366f1;
-            margin-top: 0;
-            font-size: 1.3em;
-        }
-        
         .download-btn {
-            display: inline-block;
-            background: linear-gradient(45deg, #6366f1, #8b5cf6);
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: #4CAF50;
             color: white;
-            padding: 15px 30px;
             text-decoration: none;
-            border-radius: 8px;
-            font-weight: 600;
-            margin: 10px 0;
-            transition: transform 0.2s;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.2em;
+            margin: 20px 0;
+            transition: background 0.3s;
         }
-        
         .download-btn:hover {
-            transform: translateY(-2px);
-            text-decoration: none;
-            color: white;
+            background: #45a049;
         }
-        
         .test-btn {
             display: inline-block;
-            background: linear-gradient(45deg, #10b981, #34d399);
+            padding: 10px 20px;
+            background: #FF9500;
             color: white;
-            padding: 15px 30px;
             text-decoration: none;
             border-radius: 8px;
-            font-weight: 600;
-            margin: 10px 0;
-            transition: transform 0.2s;
+            margin: 5px;
         }
-        
-        .test-btn:hover {
-            transform: translateY(-2px);
-            text-decoration: none;
-            color: white;
-        }
-        
-        .code {
-            background: #1e293b;
-            color: #e2e8f0;
+        .warning {
+            background: rgba(255,152,0,0.2);
+            border-left: 5px solid #FF9500;
             padding: 15px;
-            border-radius: 8px;
-            font-family: 'SF Mono', Consolas, monospace;
-            margin: 10px 0;
-            overflow-x: auto;
+            border-radius: 10px;
+            margin: 20px 0;
         }
-        
-        .important {
-            background: #fef3c7;
-            border: 1px solid #f59e0b;
+        .success {
+            background: rgba(76,175,80,0.2);
+            border-left: 5px solid #4CAF50;
             padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
+            border-radius: 10px;
+            margin: 20px 0;
         }
-        
-        .important h4 {
-            color: #d97706;
-            margin-top: 0;
+        code {
+            background: rgba(0,0,0,0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'SF Mono', monospace;
+        }
+        .test-section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>📱 Dovie iOS App</h1>
-        <p class="subtitle">개인 개발자 계정용 테스트 가이드</p>
+        <h1>📱 Dovie Messenger iOS 푸시 알림 테스트</h1>
         
-        <div class="important">
-            <h4>🔧 개인 개발자 계정 최적화</h4>
-            <p>이 버전은 Apple Developer Program 개인 계정에서 사용할 수 있도록 최적화되었습니다:</p>
-            <ul>
-                <li>푸시 알림 entitlements 제거 (provisioning profile 오류 해결)</li>
-                <li>시뮬레이션 디바이스 토큰 시스템 적용</li>
-                <li>기본 앱 기능 및 서버 연결 테스트 가능</li>
-            </ul>
+        <div class="success">
+            <h3>✅ 현재 상태</h3>
+            <p>• iOS 디바이스 토큰 시스템: 완성</p>
+            <p>• 푸시 알림 테스트 API: 작동 중</p>
+            <p>• 뱃지 카운트 시스템: 구현됨</p>
+            <p>• 서버 연결: https://dovie-hello2sangyun.replit.app</p>
         </div>
-        
-        <div class="step">
-            <h3>1️⃣ iOS 프로젝트 다운로드</h3>
-            <p>개인 개발자 계정용으로 최적화된 최신 iOS 프로젝트를 다운로드하세요:</p>
-            <a href="/ios-test-download" class="download-btn">📦 iOS 프로젝트 다운로드</a>
-        </div>
-        
-        <div class="step">
-            <h3>2️⃣ Xcode 설정</h3>
-            <p>다운로드한 파일을 압축 해제하고 Xcode에서 열어주세요:</p>
-            <div class="code">
-# 압축 해제
-unzip dovie-ios-test-project.zip
 
-# Xcode 워크스페이스 열기
-open ios-server-connected/App/App.xcworkspace
-            </div>
+        <div class="step">
+            <h3>1단계: iOS 프로젝트 다운로드</h3>
+            <p>실제 iOS 디바이스에서 푸시 알림과 뱃지를 테스트하기 위한 Xcode 프로젝트를 다운로드하세요.</p>
+            <a href="/ios-test-download" class="download-btn">
+                📥 Dovie iOS 테스트 프로젝트 다운로드 (ZIP)
+            </a>
+        </div>
+
+        <div class="step">
+            <h3>2단계: Xcode에서 프로젝트 열기</h3>
+            <p>1. ZIP 파일을 압축 해제</p>
+            <p>2. <code>App/App.xcworkspace</code> 파일을 Xcode에서 열기</p>
+            <p>3. iOS 디바이스를 Mac에 연결</p>
+            <p>4. Bundle Identifier를 고유한 값으로 변경 (예: com.yourname.dovie)</p>
+        </div>
+
+        <div class="step">
+            <h3>3단계: 실제 디바이스에서 실행</h3>
+            <p>1. Xcode에서 타겟을 실제 iOS 디바이스로 선택</p>
+            <p>2. <strong>Command + R</strong>로 앱 빌드 및 실행</p>
+            <p>3. 푸시 알림 권한 허용</p>
+            <p>4. 앱이 서버에 연결되는지 확인</p>
+        </div>
+
+        <div class="warning">
+            <h3>⚠️ 주의사항</h3>
+            <p>• 실제 APNS 푸시를 위해서는 Apple Developer 계정이 필요합니다</p>
+            <p>• 현재는 시뮬레이션 모드로 작동합니다</p>
+            <p>• Bundle ID는 고유한 값으로 변경해야 합니다</p>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 푸시 알림 테스트</h3>
+            <p>앱이 실행되면 아래 버튼을 클릭하여 푸시 알림을 테스트할 수 있습니다:</p>
             
-            <div class="important">
-                <h4>⚙️ Bundle Identifier 설정</h4>
-                <p>Xcode에서 다음 설정을 확인해주세요:</p>
-                <ul>
-                    <li><strong>Team:</strong> 본인의 Apple Developer Team 선택</li>
-                    <li><strong>Bundle Identifier:</strong> com.dovie.messenger (또는 고유한 식별자)</li>
-                    <li><strong>Signing:</strong> Automatically manage signing 체크</li>
-                </ul>
-            </div>
-        </div>
-        
-        <div class="step">
-            <h3>3️⃣ 실제 디바이스에서 실행</h3>
-            <p>iPhone을 Mac에 연결하고 Xcode에서 빌드하여 테스트하세요:</p>
-            <ul>
-                <li>iPhone을 USB로 Mac에 연결</li>
-                <li>Xcode에서 디바이스 선택</li>
-                <li><strong>Command + R</strong> 키로 빌드 및 실행</li>
-                <li>iPhone에서 "개발자 신뢰" 설정 (설정 > 일반 > VPN 및 기기 관리)</li>
-            </ul>
-        </div>
-        
-        <div class="step">
-            <h3>4️⃣ 앱 기능 테스트</h3>
-            <p>앱이 성공적으로 실행되면 다음 기능들을 테스트해보세요:</p>
-            <ul>
-                <li>📱 앱 시작 및 서버 연결 확인</li>
-                <li>🔐 로그인 (기존 계정 또는 새 계정 생성)</li>
-                <li>💬 실시간 채팅 기능</li>
-                <li>🔔 푸시 알림 권한 허용 (시뮬레이션 토큰 등록)</li>
-                <li>📋 디바이스 토큰 서버 등록 확인</li>
-            </ul>
-        </div>
-        
-        <div class="step">
-            <h3>5️⃣ 푸시 알림 테스트</h3>
-            <p>시뮬레이션 푸시 알림 시스템을 테스트해보세요:</p>
-            <a href="/ios-test" class="test-btn">🧪 iOS 푸시 테스트 페이지</a>
+            <a href="#" class="test-btn" onclick="testPush('기본 테스트', 1)">
+                기본 푸시 테스트
+            </a>
+            <a href="#" class="test-btn" onclick="testPush('뱃지 카운트 테스트', 5)">
+                뱃지 5개 테스트
+            </a>
+            <a href="#" class="test-btn" onclick="testPush('긴 메시지 테스트입니다. 실제로 어떻게 표시되는지 확인해보세요!', 10)">
+                긴 메시지 테스트
+            </a>
             
-            <div class="important">
-                <h4>📝 테스트 참고사항</h4>
-                <ul>
-                    <li>개인 계정에서는 실제 APNS 푸시가 아닌 시뮬레이션 시스템 사용</li>
-                    <li>디바이스 토큰은 앱 시작 시 자동으로 생성되어 서버에 등록</li>
-                    <li>Xcode 콘솔에서 "시뮬레이션 디바이스 토큰" 메시지 확인 가능</li>
-                    <li>실제 푸시 알림은 Apple Developer Program 유료 계정 필요</li>
-                </ul>
+            <div id="testResult" style="margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; display: none;">
+                <h4>테스트 결과:</h4>
+                <pre id="resultText"></pre>
             </div>
         </div>
-        
+
         <div class="step">
-            <h3>6️⃣ 문제 해결</h3>
-            <p>빌드 또는 실행 중 문제가 발생하면:</p>
-            <ul>
-                <li><strong>Provisioning Profile 오류:</strong> Bundle Identifier 변경 후 다시 시도</li>
-                <li><strong>Trust 오류:</strong> iPhone 설정에서 개발자 앱 신뢰 설정</li>
-                <li><strong>빌드 실패:</strong> Xcode에서 "Clean Build Folder" 실행</li>
-                <li><strong>서버 연결 실패:</strong> WiFi 연결 및 서버 상태 확인</li>
-            </ul>
+            <h3>4단계: 테스트 확인사항</h3>
+            <p>✅ 앱에서 푸시 알림 권한 허용됨</p>
+            <p>✅ 디바이스 토큰이 서버에 등록됨</p>
+            <p>✅ 홈 화면에서 앱 아이콘에 뱃지 숫자 표시</p>
+            <p>✅ 푸시 알림 수신 시 사운드 및 진동</p>
+            <p>✅ 앱 활성화 시 뱃지 자동 클리어</p>
         </div>
-        
+
         <div class="step">
-            <h3>🎯 최종 목표</h3>
-            <p>이 테스트를 통해 다음을 확인할 수 있습니다:</p>
+            <h3>5단계: 실제 APNS 연동 (선택사항)</h3>
+            <p>실제 Apple Push Notification Service를 사용하려면:</p>
+            <p>1. Apple Developer 계정에서 Push Notification 인증서 생성</p>
+            <p>2. 서버 환경변수에 APNS 키 설정:</p>
             <ul>
-                <li>✅ iOS 네이티브 앱 정상 실행</li>
-                <li>✅ 서버와의 실시간 통신</li>
-                <li>✅ 디바이스 토큰 등록 시스템</li>
-                <li>✅ 기본 채팅 및 파일 전송 기능</li>
-                <li>✅ 마이크 권한 및 음성 메시지</li>
+                <li><code>APNS_KEY_ID</code>: Apple Developer Key ID</li>
+                <li><code>APNS_TEAM_ID</code>: Apple Developer Team ID</li>
+                <li><code>APNS_PRIVATE_KEY</code>: APNS 인증키 (PEM 형식)</li>
             </ul>
         </div>
     </div>
+
+    <script>
+        async function testPush(message, badge) {
+            const resultDiv = document.getElementById('testResult');
+            const resultText = document.getElementById('resultText');
+            
+            resultDiv.style.display = 'block';
+            resultText.textContent = '푸시 알림 테스트 중...';
+            
+            try {
+                const response = await fetch('/api/test-ios-push', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-user-id': '117'
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        title: 'Dovie Messenger',
+                        badge: badge
+                    })
+                });
+                
+                const result = await response.json();
+                resultText.textContent = JSON.stringify(result, null, 2);
+                
+                if (result.success) {
+                    resultText.textContent = `✅ 푸시 알림 테스트 성공!\n등록된 디바이스: ${result.registeredDevices}개\n\n` + JSON.stringify(result, null, 2);
+                }
+                
+            } catch (error) {
+                resultText.textContent = `❌ 테스트 실패: ${error.message}`;
+            }
+        }
+    </script>
 </body>
 </html>
