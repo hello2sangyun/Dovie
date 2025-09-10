@@ -1,7 +1,5 @@
 import webpush from 'web-push';
 import { storage } from './storage';
-import jwt from 'jsonwebtoken';
-import https from 'https';
 
 // VAPID keys for web push
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || 'BEJz0sc4kl1Mc2a34ZXfkT3zTCkgJtWE58fpZgpo7Z9tAl3cmbwGP4JCZSrbMdCzvILww-1eMC7ONC-JCo_dFRc';
@@ -261,43 +259,11 @@ async function sendIOSPushNotifications(
   }
 }
 
-// APNS JWT 토큰 생성 
+// APNS JWT 토큰 생성 (실제 환경에서는 팀 ID, 키 ID, 개인키 필요)
 function getAPNSJWT(): string {
-  // Apple Developer 계정 설정 (환경변수로 관리)
-  const keyId = process.env.APNS_KEY_ID || 'PLACEHOLDER_KEY_ID';
-  const teamId = process.env.APNS_TEAM_ID || 'PLACEHOLDER_TEAM_ID';
-  const privateKey = process.env.APNS_PRIVATE_KEY || `-----BEGIN PRIVATE KEY-----
-PLACEHOLDER_PRIVATE_KEY_FOR_DEVELOPMENT
------END PRIVATE KEY-----`;
-
-  // 개발용 플레이스홀더 토큰 (실제 배포시 환경변수 설정 필요)
-  if (privateKey.includes('PLACEHOLDER')) {
-    console.log('⚠️  APNS 개발 모드: 플레이스홀더 토큰 사용 중');
-    return 'dev_placeholder_token';
-  }
-
-  try {
-    // JWT 토큰 생성
-    const token = jwt.sign(
-      {
-        iss: teamId,
-        iat: Math.floor(Date.now() / 1000)
-      },
-      privateKey,
-      {
-        algorithm: 'ES256',
-        header: {
-          alg: 'ES256',
-          kid: keyId
-        }
-      }
-    );
-    
-    return token;
-  } catch (error) {
-    console.error('❌ APNS JWT 토큰 생성 실패:', error);
-    return 'fallback_token';
-  }
+  // 개발용 임시 토큰 (실제로는 Apple Developer 계정의 키 사용)
+  // 실제 구현시 jwt 라이브러리와 Apple 개인키 필요
+  return "임시_개발용_토큰";
 }
 
 export async function sendMessageNotification(
