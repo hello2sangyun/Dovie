@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { UserAvatar } from "@/components/UserAvatar";
 import InstantAvatar from "@/components/InstantAvatar";
 import MediaPreview from "@/components/MediaPreview";
-import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause, MoreVertical, LogOut, Settings, MapPin } from "lucide-react";
+import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause, MoreVertical, LogOut, Settings, MapPin, Sparkles } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
@@ -35,6 +35,7 @@ import { ConnectionStatusIndicator } from "./ConnectionStatusIndicator";
 import { VoiceMessagePreviewModal } from "./VoiceMessagePreviewModal";
 import GestureQuickReply from "./GestureQuickReply";
 import { HashtagSuggestion } from "./HashtagSuggestion";
+import { AIChatAssistantModal } from "./AIChatAssistantModal";
 // Using inline smart suggestion analysis to avoid import issues
 interface SmartSuggestion {
   type: string;
@@ -317,6 +318,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   const [showYoutubeModal, setShowYoutubeModal] = useState(false);
   const [youtubeSearchQuery, setYoutubeSearchQuery] = useState("");
+  const [showAIAssistantModal, setShowAIAssistantModal] = useState(false);
 
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
 
@@ -5659,6 +5661,21 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           <div className="flex items-center gap-3 w-full max-w-4xl mx-auto">
           {/* Enhanced left buttons group */}
           <div className="flex items-center gap-1">
+            {/* AI Assistant Button with sparkle animation */}
+            <InteractiveButton
+              type="hover"
+              intensity="moderate"
+              accessibilityMode={accessibilitySettings.reducedMotion}
+              hapticFeedback={accessibilitySettings.hapticEnabled}
+              className="text-purple-500 hover:text-purple-600 hover:bg-purple-50 p-2 h-9 w-9 rounded-lg transition-all duration-200 flex items-center justify-center relative group"
+              onClick={() => setShowAIAssistantModal(true)}
+              aria-label="AI 어시스턴트"
+              data-testid="button-ai-assistant"
+            >
+              <Sparkles className="h-4 w-4 animate-pulse" />
+              <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75 group-hover:opacity-100" />
+            </InteractiveButton>
+            
             <InteractiveButton
               type="hover"
               intensity="moderate"
@@ -6500,6 +6517,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         }}
         onSelect={handleYoutubeVideoSelect}
         initialQuery={youtubeSearchQuery}
+      />
+
+      {/* AI Chat Assistant Modal */}
+      <AIChatAssistantModal
+        isOpen={showAIAssistantModal}
+        onClose={() => setShowAIAssistantModal(false)}
+        chatRoomId={chatRoomId}
       />
 
       {/* Reminder Time Selection Modal */}
