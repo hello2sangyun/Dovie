@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { UserAvatar } from "@/components/UserAvatar";
 import InstantAvatar from "@/components/InstantAvatar";
 import MediaPreview from "@/components/MediaPreview";
-import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause, MoreVertical, LogOut, Settings, MapPin, Sparkles } from "lucide-react";
+import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause, MoreVertical, LogOut, Settings, MapPin, Sparkles, Bell } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
@@ -36,6 +36,7 @@ import VoiceMessageConfirmModal from "./VoiceMessageConfirmModal";
 import GestureQuickReply from "./GestureQuickReply";
 import { HashtagSuggestion } from "./HashtagSuggestion";
 import { AIChatAssistantModal } from "./AIChatAssistantModal";
+import AiNoticesModal from "./AiNoticesModal";
 
 import TypingIndicator, { useTypingIndicator } from "./TypingIndicator";
 import { 
@@ -241,6 +242,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [reminderText, setReminderText] = useState("");
 
   const [showAIAssistantModal, setShowAIAssistantModal] = useState(false);
+  const [showAiNoticesModal, setShowAiNoticesModal] = useState(false);
 
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
 
@@ -476,6 +478,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       return response.json();
     },
   });
+
+  // Get unread AI notices count for this chat room
+  const { data: aiNoticesData } = useQuery({
+    queryKey: [`/api/chat-rooms/${chatRoomId}/ai-notices`],
+    enabled: !!user && !!chatRoomId && !isLocationChatRoom,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  const unreadAiNoticesCount = aiNoticesData?.filter((notice: any) => !notice.isRead).length || 0;
 
   // Send message mutation
   const sendMessageMutation = useMutation({
@@ -4164,8 +4175,26 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                 size="sm" 
                 className="text-gray-400 hover:text-purple-600"
                 onClick={() => setShowSearch(!showSearch)}
+                data-testid="button-search"
               >
                 <Search className="h-4 w-4" />
+              </Button>
+            )}
+
+            {!isLocationChatRoom && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="relative text-gray-400 hover:text-purple-600"
+                onClick={() => setShowAiNoticesModal(true)}
+                data-testid="button-ai-notices"
+              >
+                <Bell className="h-4 w-4" />
+                {unreadAiNoticesCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                    {unreadAiNoticesCount > 9 ? '9+' : unreadAiNoticesCount}
+                  </span>
+                )}
               </Button>
             )}
 
@@ -6215,6 +6244,25 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         isOpen={showAIAssistantModal}
         onClose={() => setShowAIAssistantModal(false)}
         chatRoomId={chatRoomId}
+      />
+
+      <AiNoticesModal
+        open={showAiNoticesModal}
+        onOpenChange={setShowAiNoticesModal}
+        chatRoomId={chatRoomId}
+        onNoticeClick={(messageId) => {
+          setShowAiNoticesModal(false);
+          setTimeout(() => {
+            const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+            if (messageElement) {
+              messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              messageElement.classList.add('bg-yellow-100');
+              setTimeout(() => {
+                messageElement.classList.remove('bg-yellow-100');
+              }, 2000);
+            }
+          }, 100);
+        }}
       />
 
       {/* Reminder Time Selection Modal */}

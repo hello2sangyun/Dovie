@@ -1617,6 +1617,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Notice endpoints
+  app.get("/api/chat-rooms/:chatRoomId/ai-notices", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const chatRoomId = Number(req.params.chatRoomId);
+      const notices = await storage.getChatRoomAiNotices(Number(userId), chatRoomId);
+      res.json(notices);
+    } catch (error) {
+      console.error("Get AI notices error:", error);
+      res.status(500).json({ message: "Failed to get AI notices" });
+    }
+  });
+
+  app.get("/api/ai-notices/unread-count", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const count = await storage.getUnreadAiNoticesCount(Number(userId));
+      res.json({ count });
+    } catch (error) {
+      console.error("Get unread AI notices count error:", error);
+      res.status(500).json({ message: "Failed to get unread count" });
+    }
+  });
+
+  app.post("/api/ai-notices/:noticeId/read", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const noticeId = Number(req.params.noticeId);
+      await storage.markAiNoticeAsRead(noticeId, Number(userId));
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Mark AI notice as read error:", error);
+      res.status(500).json({ message: "Failed to mark notice as read" });
+    }
+  });
+
   // Chat room upload endpoint for voice messages with transcription
   app.post("/api/chat-rooms/:chatRoomId/upload", upload.single("file"), async (req, res) => {
     const userId = req.headers["x-user-id"];
