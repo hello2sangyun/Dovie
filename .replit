@@ -49,8 +49,20 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
+localPort = 34623
+externalPort = 3001
+
+[[ports]]
+localPort = 36165
+externalPort = 3002
+
+[[ports]]
 localPort = 43827
 externalPort = 3000
+
+[[ports]]
+localPort = 45369
+externalPort = 3003
 
 [agent]
 integrations = ["javascript_websocket==1.0.0"]
