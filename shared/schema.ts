@@ -133,7 +133,7 @@ export const messages = pgTable("messages", {
   fileUrl: text("file_url"),
   fileName: text("file_name"),
   fileSize: integer("file_size"),
-  voiceDuration: decimal("voice_duration", { precision: 10, scale: 2, mode: "number" }), // in seconds for voice messages (e.g., 2.72)
+  voiceDuration: decimal("voice_duration", { precision: 10, scale: 2 }), // in seconds for voice messages (e.g., 2.72)
   detectedLanguage: text("detected_language"), // detected language for voice messages
   confidence: decimal("confidence", { precision: 3, scale: 2 }), // transcription confidence score
   isCommandRecall: boolean("is_command_recall").default(false),
@@ -730,6 +730,11 @@ export const insertChatRoomSchema = createInsertSchema(chatRooms).omit({
 export const insertMessageSchema = createInsertSchema(messages).omit({
   id: true,
   createdAt: true,
+}).extend({
+  voiceDuration: z.union([z.string(), z.number()]).transform(val => {
+    if (typeof val === 'string') return parseFloat(val);
+    return val;
+  }).optional(),
 });
 
 export const insertMessageReadSchema = createInsertSchema(messageReads).omit({
