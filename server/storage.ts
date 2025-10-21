@@ -410,7 +410,7 @@ export class DatabaseStorage implements IStorage {
 
     return rows.map(row => ({
       ...row.messages,
-      content: decryptText(row.messages.content),
+      content: row.messages.content ? decryptText(row.messages.content) : null,
       sender: row.users
     })).reverse();
   }
@@ -463,7 +463,7 @@ export class DatabaseStorage implements IStorage {
 
     return {
       ...result.messages,
-      content: decryptText(result.messages.content),
+      content: result.messages.content ? decryptText(result.messages.content) : null,
       sender: result.users
     } as Message & { sender: User };
   }
