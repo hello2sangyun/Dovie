@@ -428,16 +428,20 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       const voiceSuggestions = serverSuggestions.length > 0 ? serverSuggestions : clientSuggestions;
       
       // 먼저 음성 메시지 전송
-      const audioFormData = new FormData();
-      audioFormData.append('audio', audioBlob, 'voice_message.webm');
-      audioFormData.append('transcription', result.transcription || '');
+      const voiceMessageData = {
+        messageType: 'voice',
+        content: result.transcription || '',
+        fileUrl: result.audioUrl,
+        voiceDuration: result.duration || 0
+      };
       
       const sendResponse = await fetch(`/api/chat-rooms/${chatRoomId}/messages`, {
         method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           'x-user-id': user!.id.toString(),
         },
-        body: audioFormData,
+        body: JSON.stringify(voiceMessageData),
       });
       
       if (!sendResponse.ok) {
