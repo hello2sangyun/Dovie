@@ -3533,16 +3533,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const fileBuffer = fs.readFileSync(req.file.path);
-      const encryptedData = encryptFileData(fileBuffer);
-      const encryptedFileName = hashFileName(req.file.originalname);
-      const encryptedFilePath = path.join(uploadDir, encryptedFileName);
-
-      await fs.promises.writeFile(encryptedFilePath, encryptedData, 'utf8');
-      fs.unlinkSync(req.file.path); // 임시 파일 삭제
+      // 파일을 암호화하지 않고 원본으로 저장 (고유한 파일명 생성)
+      const timestamp = Date.now();
+      const randomString = Math.random().toString(36).substring(2, 15);
+      const ext = path.extname(req.file.originalname);
+      const fileName = `file_${timestamp}_${randomString}${ext}`;
+      const finalPath = path.join(uploadDir, fileName);
+      
+      // 파일을 최종 위치로 이동
+      fs.renameSync(req.file.path, finalPath);
+      
+      console.log(`File saved: ${fileName} (${req.file.size} bytes)`);
 
       res.json({
-        fileUrl: `/uploads/${encryptedFileName}`,
+        fileUrl: `/uploads/${fileName}`,
         fileName: req.file.originalname,
         fileSize: req.file.size,
         fileType: req.file.mimetype
@@ -3578,8 +3582,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       else if (ext === '.pdf') contentType = 'application/pdf';
       else if (ext === '.txt') contentType = 'text/plain';
 
-      // 음성 파일인 경우 원본 그대로 서빙 (암호화하지 않음)
-      if (filename.startsWith('voice_')) {
+      // 음성 파일이나 일반 파일인 경우 원본 그대로 서빙 (암호화하지 않음)
+      if (filename.startsWith('voice_') || filename.startsWith('file_')) {
         const rawData = await fs.promises.readFile(filePath);
         res.set('Content-Type', contentType);
         res.set('Cache-Control', 'public, max-age=31536000');
@@ -3587,7 +3591,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return;
       }
 
-      // 일반 파일의 경우 복호화 시도
+      // 레거시 암호화된 파일의 경우 복호화 시도 (프로필 사진 등)
       try {
         const encryptedData = await fs.promises.readFile(filePath, 'utf8');
         const decryptedBuffer = decryptFileData(encryptedData);
