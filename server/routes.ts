@@ -1519,8 +1519,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Verify user is participant of this chat room
-      const participants = await storage.getChatRoomParticipants(chatRoomId);
-      const isParticipant = participants.some(p => p.userId === Number(userId));
+      const chatRoom = await storage.getChatRoomById(chatRoomId);
+      if (!chatRoom) {
+        return res.status(404).json({ 
+          success: false,
+          message: "채팅방을 찾을 수 없습니다." 
+        });
+      }
+      
+      const isParticipant = chatRoom.participants.some((p: any) => p.id === Number(userId));
       
       if (!isParticipant) {
         return res.status(403).json({ 
@@ -1529,8 +1536,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Get all messages from this chat room for context
-      const allMessages = await storage.getChatRoomMessages(chatRoomId);
+      // Get all messages from this chat room for context (limit to 200 for performance)
+      const allMessages = await storage.getMessages(chatRoomId, 200);
       
       if (!allMessages || allMessages.length === 0) {
         return res.json({
@@ -1540,17 +1547,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Prepare message data for AI with sender names
-      const messagesWithSenderNames = await Promise.all(
-        allMessages.map(async (msg) => {
-          const sender = await storage.getUserById(msg.senderId);
-          return {
-            senderName: sender?.displayName || sender?.username || "알 수 없음",
-            content: msg.content || "",
-            createdAt: msg.createdAt?.toISOString() || new Date().toISOString(),
-            messageType: msg.messageType
-          };
-        })
-      );
+      const messagesWithSenderNames = allMessages.map((msg: any) => ({
+        senderName: msg.sender?.displayName || msg.sender?.username || "알 수 없음",
+        content: msg.content || "",
+        createdAt: msg.createdAt?.toISOString() || new Date().toISOString(),
+        messageType: msg.messageType
+      }));
 
       // Call OpenAI to answer the question based on chat context
       const aiResponse = await answerChatQuestion(question.trim(), messagesWithSenderNames);

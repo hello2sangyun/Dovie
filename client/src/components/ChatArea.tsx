@@ -303,6 +303,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [fileDataForCommand, setFileDataForCommand] = useState<any>(null);
   const [showAddFriendModal, setShowAddFriendModal] = useState(false);
   const [nonFriendUsers, setNonFriendUsers] = useState<any[]>([]);
+  const [friendModalDismissed, setFriendModalDismissed] = useState(false);
   const [showTranslateModal, setShowTranslateModal] = useState(false);
   const [messageToTranslate, setMessageToTranslate] = useState<any>(null);
   const [translatedMessages, setTranslatedMessages] = useState<{[key: number]: {text: string, language: string}}>({});
@@ -4220,7 +4221,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // Check if other participants are friends when entering chat room
   useEffect(() => {
-    if (currentChatRoom && contactsData && user) {
+    if (currentChatRoom && contactsData && user && !friendModalDismissed) {
       const otherParticipants = currentChatRoom.participants?.filter((p: any) => p.id !== user.id) || [];
       const contacts = contactsData.contacts || [];
       
@@ -4234,7 +4235,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         setShowAddFriendModal(true);
       }
     }
-  }, [currentChatRoom, contactsData, user]);
+  }, [currentChatRoom, contactsData, user, friendModalDismissed]);
 
   const formatTime = (dateString: string) => {
     return new Date(dateString).toLocaleTimeString('ko-KR', { 
@@ -6269,6 +6270,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           onClose={() => {
             setShowAddFriendModal(false);
             setNonFriendUsers([]);
+            setFriendModalDismissed(true);
           }}
           users={nonFriendUsers}
         />
