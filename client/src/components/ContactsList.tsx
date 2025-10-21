@@ -802,8 +802,8 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       <YoutubeSelectionModal
         isOpen={showYoutubeModal}
         onClose={() => setShowYoutubeModal(false)}
-        onSelectVideo={handleYoutubeVideoSelect}
-        initialSearchQuery={youtubeSearchQuery}
+        onSelect={handleYoutubeVideoSelect}
+        initialQuery={youtubeSearchQuery}
       />
     </div>
   );
