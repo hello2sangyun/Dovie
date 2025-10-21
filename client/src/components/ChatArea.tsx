@@ -102,7 +102,8 @@ interface ChatAreaProps {
 }
 
 // URL detection utility
-const detectUrls = (text: string): string[] => {
+const detectUrls = (text: string | null | undefined): string[] => {
+  if (!text) return [];
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   return text.match(urlRegex) || [];
 };
@@ -4140,7 +4141,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   };
 
   // 링크 감지 및 클릭 가능하게 만드는 함수
-  const renderMessageWithLinks = (content: string) => {
+  const renderMessageWithLinks = (content: string | null | undefined) => {
+    if (!content) return null;
     // Combined regex for URLs and mentions
     const combinedRegex = /(https?:\/\/[^\s]+)|(@\w+)/g;
     const parts = content.split(combinedRegex);
