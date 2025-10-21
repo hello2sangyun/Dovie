@@ -1618,6 +1618,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AI Notice endpoints
+  app.get("/api/ai-notices", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const notices = await storage.getUserAiNotices(Number(userId));
+      res.json(notices);
+    } catch (error) {
+      console.error("Get all AI notices error:", error);
+      res.status(500).json({ message: "Failed to get AI notices" });
+    }
+  });
+
   app.get("/api/chat-rooms/:chatRoomId/ai-notices", async (req, res) => {
     const userId = req.headers["x-user-id"];
     if (!userId) {

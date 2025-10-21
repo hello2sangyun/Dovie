@@ -13,7 +13,7 @@ import InstantAvatar from "@/components/InstantAvatar";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Search, Pin, Users, X, Trash2, LogOut, MoreVertical, Mic } from "lucide-react";
+import { Plus, Search, Pin, Users, X, Trash2, LogOut, MoreVertical, Mic, Bell } from "lucide-react";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 import VoiceMessageConfirmModal from "./VoiceMessageConfirmModal";
@@ -428,14 +428,40 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     },
   });
 
+  // AI 알림 가져오기
+  const { data: aiNoticesData } = useQuery({
+    queryKey: ["/api/ai-notices"],
+    enabled: !!user,
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    refetchInterval: 30000, // Poll every 30 seconds
+    queryFn: async () => {
+      const response = await fetch("/api/ai-notices", {
+        headers: { "x-user-id": user!.id.toString() },
+      });
+      if (!response.ok) throw new Error("Failed to fetch AI notices");
+      return response.json();
+    },
+  });
+
   const chatRooms = chatRoomsData?.chatRooms || [];
   const contacts = contactsData?.contacts || [];
   const unreadCounts = unreadCountsData?.unreadCounts || [];
+  const aiNotices = aiNoticesData || [];
 
   // 특정 채팅방의 읽지 않은 메시지 수 가져오기
   const getUnreadCount = (chatRoomId: number) => {
     const unreadData = unreadCounts.find((item: any) => item.chatRoomId === chatRoomId);
     return unreadData ? unreadData.unreadCount : 0;
+  };
+
+  // 특정 채팅방의 읽지 않은 AI 알림 수 가져오기
+  const getAiNoticeCount = (chatRoomId: number) => {
+    const roomNotices = aiNotices.filter((notice: any) => 
+      notice.chatRoomId === chatRoomId && !notice.isRead
+    );
+    return roomNotices.length;
   };
 
   // 채팅방 이름을 상대방의 닉네임으로 표시하는 함수
@@ -641,6 +667,7 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
                 onClick={() => isMultiSelectMode ? toggleRoomSelection(chatRoom.id) : onSelectChat(chatRoom.id)}
                 isPinned
                 unreadCount={getUnreadCount(chatRoom.id)}
+                aiNoticeCount={getAiNoticeCount(chatRoom.id)}
                 hasDraft={hasDraftMessage(chatRoom.id)}
                 draftPreview={getDraftPreview(chatRoom.id)}
                 isMultiSelectMode={isMultiSelectMode}
@@ -668,6 +695,7 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
                 isSelected={selectedChatId === chatRoom.id}
                 onClick={() => isMultiSelectMode ? toggleRoomSelection(chatRoom.id) : onSelectChat(chatRoom.id)}
                 unreadCount={getUnreadCount(chatRoom.id)}
+                aiNoticeCount={getAiNoticeCount(chatRoom.id)}
                 hasDraft={hasDraftMessage(chatRoom.id)}
                 draftPreview={getDraftPreview(chatRoom.id)}
                 isMultiSelectMode={isMultiSelectMode}
@@ -746,6 +774,7 @@ function ChatRoomItem({
   onClick, 
   isPinned = false,
   unreadCount = 0,
+  aiNoticeCount = 0,
   hasDraft = false,
   draftPreview = "",
   isMultiSelectMode = false,
@@ -760,6 +789,7 @@ function ChatRoomItem({
   onClick: () => void;
   isPinned?: boolean;
   unreadCount?: number;
+  aiNoticeCount?: number;
   hasDraft?: boolean;
   draftPreview?: string;
   isMultiSelectMode?: boolean;
@@ -942,8 +972,14 @@ function ChatRoomItem({
                 </Badge>
               )}
               {unreadCount > 0 && (
-                <Badge variant="default" className="bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 min-w-[20px] h-5 flex items-center justify-center rounded-full">
+                <Badge variant="default" className="bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 min-w-[20px] h-5 flex items-center justify-center rounded-full" data-testid={`badge-unread-${chatRoom.id}`}>
                   {unreadCount > 99 ? '99+' : unreadCount}
+                </Badge>
+              )}
+              {aiNoticeCount > 0 && (
+                <Badge variant="default" className="bg-purple-500 hover:bg-purple-600 text-white text-xs px-2 py-1 min-w-[20px] h-5 flex items-center justify-center rounded-full" data-testid={`badge-ai-notice-${chatRoom.id}`}>
+                  <Bell className="h-3 w-3 mr-0.5" />
+                  {aiNoticeCount}
                 </Badge>
               )}
             </div>
