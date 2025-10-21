@@ -800,3 +800,126 @@ export async function analyzeMessageForNotices(
     };
   }
 }
+
+// AI Voice Enhancement - Correct transcription using chat context
+export async function correctTranscriptionWithContext(
+  transcription: string,
+  chatMessages: Array<{ senderName: string; content: string; createdAt: string; messageType?: string }>,
+  senderName: string
+): Promise<{ success: boolean; correctedText?: string; error?: string }> {
+  try {
+    console.log(`AI Voice Enhancement: Correcting transcription with ${chatMessages.length} messages as context`);
+    
+    // Extract user's speaking style from their previous messages
+    const userMessages = chatMessages
+      .filter(msg => msg.senderName === senderName && msg.messageType === 'text')
+      .slice(-20) // Last 20 text messages from the user (reduced from 50)
+      .map(msg => msg.content);
+    
+    // Prepare recent chat context for understanding topic (with character limit)
+    const MAX_CONTEXT_CHARS = 2000;
+    let recentContextMessages = chatMessages
+      .slice(-20) // Last 20 messages for context (reduced from 30)
+      .map(msg => {
+        const content = msg.messageType === 'file' ? '[파일]' : 
+                       msg.messageType === 'voice' ? '[음성 메시지]' : 
+                       msg.messageType === 'image' ? '[이미지]' : 
+                       msg.content;
+        return `${msg.senderName}: ${content}`;
+      });
+    
+    // Truncate context if too long to avoid token limits
+    let recentContext = recentContextMessages.join('\n');
+    if (recentContext.length > MAX_CONTEXT_CHARS) {
+      // Take only the most recent messages that fit within the limit
+      recentContext = recentContextMessages
+        .reverse()
+        .reduce((acc, msg) => {
+          if ((acc + msg).length < MAX_CONTEXT_CHARS) {
+            return msg + '\n' + acc;
+          }
+          return acc;
+        }, '')
+        .trim();
+    }
+    
+    // Limit user style context
+    const MAX_STYLE_CHARS = 1000;
+    let userStyleContext = '';
+    if (userMessages.length > 0) {
+      const styleMessages = userMessages.slice(-5).join('\n'); // Reduced from 10
+      userStyleContext = `\n\n사용자의 평소 말투 예시:\n${
+        styleMessages.length > MAX_STYLE_CHARS 
+          ? styleMessages.substring(0, MAX_STYLE_CHARS) + '...' 
+          : styleMessages
+      }`;
+    }
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `당신은 음성 인식 텍스트를 보정하는 AI입니다. 채팅 히스토리와 사용자의 말투를 분석하여 Whisper가 생성한 전사 텍스트의 오류를 수정하세요.
+
+보정 가이드라인:
+1. **맥락 기반 수정**: 최근 대화 주제와 맥락을 고려하여 단어를 수정
+   - 예: "강남역" → "강남역" (지명 보정)
+   - 예: "수진" → "수진" (이름 보정)
+
+2. **사용자 말투 유지**: 사용자의 평소 말투와 문체를 분석하고 그대로 유지
+   - 예: 평소 "~야"를 쓰면 그대로 유지
+   - 예: 이모티콘을 자주 쓰면 적절히 추가
+
+3. **띄어쓰기 및 맞춤법**: 자연스러운 한국어로 수정
+   - 예: "안녕하세요만나서반가워요" → "안녕하세요 만나서 반가워요"
+
+4. **동음이의어 구분**: 맥락을 고려하여 올바른 단어 선택
+   - 예: "밤" (시간) vs "밤" (식품)
+   - 예: "배" (신체) vs "배" (과일) vs "배" (배송)
+
+5. **최소한의 수정**: 명백한 오류만 수정하고, 불필요한 변경은 하지 마세요
+   - 전사 텍스트가 이미 정확하면 그대로 반환
+
+6. **자연스러운 구어체**: 음성 메시지는 구어체이므로 너무 격식체로 바꾸지 마세요
+   - 예: "했어" → "했어" (O), "했습니다" (X)
+
+수정된 텍스트만 반환하세요. 설명이나 부가 정보는 포함하지 마세요.`
+        },
+        {
+          role: "user",
+          content: `최근 대화 맥락:\n${recentContext}${userStyleContext}\n\n음성 인식 텍스트:\n"${transcription}"\n\n위 텍스트를 맥락과 사용자 말투를 고려하여 보정하세요.`
+        }
+      ],
+      max_tokens: 300,
+      temperature: 0.3
+    });
+
+    const correctedText = response.choices[0].message.content?.trim();
+    
+    if (!correctedText) {
+      return {
+        success: false,
+        error: "텍스트 보정 실패"
+      };
+    }
+
+    console.log(`AI Voice Enhancement: Corrected "${transcription}" → "${correctedText}"`);
+    
+    return {
+      success: true,
+      correctedText
+    };
+  } catch (error: any) {
+    console.error("AI Voice Enhancement error:", {
+      message: error.message,
+      status: error.status,
+      code: error.code
+    });
+    
+    return {
+      success: false,
+      error: `AI 음성 보정 실패: ${error.message || 'Unknown error'}`
+    };
+  }
+}

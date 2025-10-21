@@ -5,7 +5,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, insertUserPostSchema, insertPostLikeSchema, insertPostCommentSchema, insertCompanyChannelSchema, insertCompanyProfileSchema, insertLocationShareRequestSchema, insertLocationShareSchema, chatRooms, chatParticipants, userPosts, postLikes, postComments, companyChannels, companyChannelFollowers, companyChannelAdmins, users, businessProfiles, contacts, businessPostReads, businessPosts, businessPostLikes, companyProfiles, messages, messageLikes, linkPreviews, locationShares } from "@shared/schema";
 import { sql } from "drizzle-orm";
-import { translateText, transcribeAudio, answerChatQuestion, analyzeMessageForNotices } from "./openai";
+import { translateText, transcribeAudio, answerChatQuestion, analyzeMessageForNotices, correctTranscriptionWithContext } from "./openai";
 import bcrypt from "bcryptjs";
 import multer from "multer";
 import path from "path";
@@ -3619,6 +3619,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "음성 변환 중 오류가 발생했습니다."
+      });
+    }
+  });
+
+  // AI Voice Enhancement - Correct transcription with chat context
+  app.post("/api/voice-messages/correct-transcription", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      // Validate input with Zod
+      const schema = z.object({
+        transcription: z.string().min(1).max(1000),
+        chatRoomId: z.number().int().positive()
+      });
+
+      const validation = schema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          success: false,
+          error: "Invalid request data",
+          details: validation.error.errors
+        });
+      }
+
+      const { transcription, chatRoomId } = validation.data;
+
+      console.log(`AI Voice Enhancement: Correcting transcription for chat room ${chatRoomId}`);
+
+      // Get user info
+      const user = await storage.getUserById(Number(userId));
+      if (!user) {
+        return res.status(404).json({ 
+          success: false,
+          error: "User not found" 
+        });
+      }
+
+      // SECURITY: Verify user is a participant in the chat room
+      const chatRoom = await storage.getChatRoomById(chatRoomId);
+      if (!chatRoom) {
+        return res.status(404).json({
+          success: false,
+          error: "Chat room not found"
+        });
+      }
+
+      const isParticipant = chatRoom.participants?.some(
+        (p: any) => p.id === Number(userId)
+      );
+      
+      if (!isParticipant) {
+        return res.status(403).json({
+          success: false,
+          error: "You are not a participant in this chat room"
+        });
+      }
+
+      // Get chat room messages for context
+      const chatMessages = await storage.getMessagesByChatRoom(chatRoomId);
+      
+      // Transform messages to the format expected by correctTranscriptionWithContext
+      const messagesWithSender = chatMessages.map(msg => ({
+        senderName: msg.sender?.displayName || msg.sender?.username || 'Unknown',
+        content: msg.content || '',
+        createdAt: msg.createdAt,
+        messageType: msg.messageType
+      }));
+
+      // Call AI to correct the transcription
+      const result = await correctTranscriptionWithContext(
+        transcription,
+        messagesWithSender,
+        user.displayName || user.username
+      );
+
+      if (result.success && result.correctedText) {
+        console.log(`AI Voice Enhancement: Successfully corrected transcription`);
+        res.json({
+          success: true,
+          correctedText: result.correctedText
+        });
+      } else {
+        console.error(`AI Voice Enhancement: Failed to correct transcription - ${result.error}`);
+        res.status(500).json({
+          success: false,
+          error: result.error || "Failed to correct transcription"
+        });
+      }
+    } catch (error: any) {
+      console.error("AI Voice Enhancement error:", error);
+      res.status(500).json({
+        success: false,
+        error: error.message || "Failed to correct transcription"
       });
     }
   });
