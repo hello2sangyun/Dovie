@@ -183,6 +183,19 @@ export const commands = pgTable("commands", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// AI Notices - Smart notifications detected by AI (appointments, schedules, important info)
+export const aiNotices = pgTable("ai_notices", {
+  id: serial("id").primaryKey(),
+  chatRoomId: integer("chat_room_id").references(() => chatRooms.id).notNull(),
+  messageId: integer("message_id").references(() => messages.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(), // User who should see this notice
+  noticeType: text("notice_type").notNull(), // appointment, schedule, reminder, important_info, deadline, etc.
+  content: text("content").notNull(), // AI-generated notice text
+  metadata: jsonb("metadata"), // Additional structured data (date, time, location, participants, etc.)
+  isRead: boolean("is_read").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const phoneVerifications = pgTable("phone_verifications", {
   id: serial("id").primaryKey(),
   phoneNumber: text("phone_number").notNull(),
@@ -748,6 +761,11 @@ export const insertCommandSchema = createInsertSchema(commands).omit({
   createdAt: true,
 });
 
+export const insertAiNoticeSchema = createInsertSchema(aiNotices).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertPhoneVerificationSchema = createInsertSchema(phoneVerifications).omit({
   id: true,
   createdAt: true,
@@ -816,6 +834,8 @@ export type MessageRead = typeof messageReads.$inferSelect;
 export type InsertMessageRead = z.infer<typeof insertMessageReadSchema>;
 export type Command = typeof commands.$inferSelect;
 export type InsertCommand = z.infer<typeof insertCommandSchema>;
+export type AiNotice = typeof aiNotices.$inferSelect;
+export type InsertAiNotice = z.infer<typeof insertAiNoticeSchema>;
 export type PhoneVerification = typeof phoneVerifications.$inferSelect;
 export type InsertPhoneVerification = z.infer<typeof insertPhoneVerificationSchema>;
 
