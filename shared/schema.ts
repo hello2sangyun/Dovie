@@ -133,7 +133,7 @@ export const messages = pgTable("messages", {
   fileUrl: text("file_url"),
   fileName: text("file_name"),
   fileSize: integer("file_size"),
-  voiceDuration: integer("voice_duration"), // in seconds for voice messages
+  voiceDuration: decimal("voice_duration", { precision: 10, scale: 2, mode: "number" }), // in seconds for voice messages (e.g., 2.72)
   detectedLanguage: text("detected_language"), // detected language for voice messages
   confidence: decimal("confidence", { precision: 3, scale: 2 }), // transcription confidence score
   isCommandRecall: boolean("is_command_recall").default(false),
