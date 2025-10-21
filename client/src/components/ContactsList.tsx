@@ -1,24 +1,65 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { Plus, Search, Star, MoreVertical, Users } from "lucide-react";
+import { Plus, Search, Star, MoreVertical, Users, Mic } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { InstantAvatar } from "@/components/InstantAvatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
+import YoutubeSelectionModal from "./YoutubeSelectionModal";
 
 interface ContactsListProps {
   onAddContact: () => void;
   onSelectContact: (contactId: number) => void;
 }
 
+// Smart suggestion interface (from ChatsList)
+interface SmartSuggestion {
+  type: string;
+  text: string;
+  result?: string;
+  icon: string;
+  category: string;
+  keyword?: string;
+  confidence?: number;
+}
+
+const analyzeTextForSmartSuggestions = (text: string): SmartSuggestion[] => {
+  if (!text || text.trim().length < 2) {
+    return [];
+  }
+
+  const suggestions: SmartSuggestion[] = [];
+
+  // YouTube 감지
+  if (/유튜브|youtube|영상|비디오|뮤직비디오|mv|검색.*영상|영상.*검색|봐봐|보여.*영상/i.test(text)) {
+    const keyword = text
+      .replace(/유튜브|youtube|영상|비디오|뮤직비디오|mv|검색|찾아|보여|봐봐|해줘|하자|보자/gi, '')
+      .trim();
+    
+    suggestions.push({
+      type: 'youtube',
+      text: `🎥 YouTube에서 "${keyword}" 검색하기`,
+      result: `YouTube 영상을 검색합니다: ${keyword}`,
+      icon: '🎥',
+      category: 'YouTube 검색',
+      keyword: keyword || '검색',
+      confidence: 0.9
+    });
+  }
+
+  return suggestions;
+};
+
 export default function ContactsList({ onAddContact, onSelectContact }: ContactsListProps) {
   const { user } = useAuth();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   
   const [searchTerm, setSearchTerm] = useState("");
@@ -27,6 +68,19 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [contactToBlock, setContactToBlock] = useState<any>(null);
   const [contactToDelete, setContactToDelete] = useState<any>(null);
+
+  // 음성 메시지 관련 상태
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingContact, setRecordingContact] = useState<any>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const [recordingStartTime, setRecordingStartTime] = useState(0);
+
+  // YouTube 선택 모달 상태
+  const [showYoutubeModal, setShowYoutubeModal] = useState(false);
+  const [youtubeSearchQuery, setYoutubeSearchQuery] = useState("");
+  const [youtubeChatRoomId, setYoutubeChatRoomId] = useState<number | null>(null);
 
   // Toggle favorite mutation
   const toggleFavoriteMutation = useMutation({
@@ -76,6 +130,19 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
         headers: { "x-user-id": user!.id.toString() },
       });
       if (!response.ok) throw new Error("Failed to fetch contacts");
+      return response.json();
+    },
+  });
+
+  // 채팅방 목록 가져오기 (1:1 채팅방 찾기용)
+  const { data: chatRoomsData } = useQuery({
+    queryKey: ["/api/chat-rooms"],
+    enabled: !!user,
+    queryFn: async () => {
+      const response = await fetch("/api/chat-rooms", {
+        headers: { "x-user-id": user!.id.toString() },
+      });
+      if (!response.ok) throw new Error("Failed to fetch chat rooms");
       return response.json();
     },
   });
@@ -172,6 +239,281 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     return name.charAt(0).toUpperCase();
   };
 
+  // 친구와의 1:1 채팅방 찾기 또는 생성
+  const findOrCreateDirectChatRoom = async (contactUserId: number): Promise<number> => {
+    console.log('🔍 친구와의 1:1 채팅방 찾기/생성:', contactUserId);
+    
+    // 기존 채팅방 목록에서 해당 친구와의 1:1 채팅방 찾기
+    const chatRooms = chatRoomsData?.chatRooms || [];
+    const existingChatRoom = chatRooms.find((room: any) => {
+      // 1:1 채팅방이고, 참가자가 2명이고, 그 중 한 명이 해당 친구인지 확인
+      if (room.isGroup || !room.participants || room.participants.length !== 2) {
+        return false;
+      }
+      return room.participants.some((p: any) => p.id === contactUserId);
+    });
+
+    if (existingChatRoom) {
+      console.log('✅ 기존 1:1 채팅방 발견:', existingChatRoom.id);
+      return existingChatRoom.id;
+    }
+
+    // 1:1 채팅방이 없으면 새로 생성
+    console.log('📝 새로운 1:1 채팅방 생성 중...');
+    try {
+      const response = await fetch('/api/chat-rooms', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': user!.id.toString(),
+        },
+        body: JSON.stringify({
+          name: '',
+          participantIds: [contactUserId],
+          isGroup: false,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create chat room');
+      }
+
+      const { chatRoom } = await response.json();
+      console.log('✅ 새로운 1:1 채팅방 생성 완료:', chatRoom.id);
+      
+      // 채팅방 목록 새로고침
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      
+      return chatRoom.id;
+    } catch (error) {
+      console.error('❌ 1:1 채팅방 생성 실패:', error);
+      throw error;
+    }
+  };
+
+  // 길게 누르기 시작
+  const handleLongPressStart = (contact: any) => {
+    console.log('🎯 친구 간편음성메세지 - 길게 누르기 시작:', contact.contactUser.displayName);
+    
+    const timer = setTimeout(() => {
+      startVoiceRecording(contact);
+    }, 800); // 800ms 후 음성 녹음 시작
+    
+    setLongPressTimer(timer);
+  };
+
+  // 길게 누르기 끝
+  const handleLongPressEnd = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+    
+    if (isRecording) {
+      stopVoiceRecording();
+    }
+  };
+
+  // 음성 녹음 시작
+  const startVoiceRecording = async (contact: any) => {
+    console.log('🎤 친구 음성 녹음 시작:', contact.contactUser.displayName);
+    
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
+      
+      mediaRecorderRef.current = mediaRecorder;
+      chunksRef.current = [];
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunksRef.current.push(event.data);
+        }
+      };
+      
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm;codecs=opus' });
+        const duration = Math.max(1, Math.round((Date.now() - recordingStartTime) / 1000));
+        
+        console.log('📞 duration:', duration);
+        console.log('🎤 친구 간편음성메세지 전송 시작:', contact.contactUserId, '파일 크기:', audioBlob.size, '지속시간:', duration);
+        
+        if (audioBlob.size > 0) {
+          await sendVoiceMessage(contact, audioBlob);
+        } else {
+          console.error('❌ Empty audio blob created');
+        }
+        
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.onerror = (event) => {
+        console.error('❌ MediaRecorder error:', event);
+      };
+
+      // Start recording with timeslice for regular data events
+      mediaRecorder.start(1000); // Collect data every 1 second
+      setIsRecording(true);
+      setRecordingContact(contact);
+      setRecordingStartTime(Date.now());
+      
+      console.log('🎤 음성 녹음 시작:', contact.contactUser.displayName);
+    } catch (error) {
+      console.error('❌ Voice recording failed:', error);
+      toast({
+        title: "마이크 권한 필요",
+        description: "음성 메시지를 보내려면 마이크 권한이 필요합니다.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // 음성 녹음 중지
+  const stopVoiceRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      console.log('🛑 음성 녹음 중지');
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      setRecordingContact(null);
+    }
+  };
+
+  // 음성 메시지 전송 (친구용 - 1:1 채팅방으로 전송)
+  const sendVoiceMessage = async (contact: any, audioBlob: Blob) => {
+    try {
+      console.log('🎤 친구 간편음성메세지 - 통합 처리 시작:', contact.contactUser.displayName);
+      
+      // 1:1 채팅방 찾기/생성
+      const chatRoomId = await findOrCreateDirectChatRoom(contact.contactUserId);
+      console.log('📱 1:1 채팅방 ID:', chatRoomId);
+      
+      // FormData로 파일 업로드
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'voice_message.webm');
+      
+      console.log('📤 통합 음성 처리 API 호출 중...');
+      
+      // 통합된 음성 처리
+      const transcribeResponse = await fetch('/api/transcribe', {
+        method: 'POST',
+        headers: {
+          'x-user-id': user!.id.toString(),
+        },
+        body: formData,
+      });
+      
+      console.log('📡 통합 처리 응답 상태:', transcribeResponse.status);
+      
+      if (!transcribeResponse.ok) {
+        throw new Error(`Transcription failed: ${transcribeResponse.status}`);
+      }
+      
+      const result = await transcribeResponse.json();
+      console.log('✅ 통합 음성 처리 성공:', result);
+      
+      // 빈 음성 녹음 감지 시 조용히 취소
+      if (result.error === "SILENT_RECORDING") {
+        console.log("🔇 빈 음성 녹음 감지됨 (ContactsList), 메시지 전송 취소");
+        return;
+      }
+      
+      // 서버에서 받은 스마트 추천과 클라이언트 분석 결합
+      const serverSuggestions = result.smartSuggestions || [];
+      const clientSuggestions = analyzeTextForSmartSuggestions(result.transcription || '');
+      
+      // 서버 추천이 없으면 클라이언트 분석 사용
+      const voiceSuggestions = serverSuggestions.length > 0 ? serverSuggestions : clientSuggestions;
+      
+      // 먼저 음성 메시지 전송
+      const audioFormData = new FormData();
+      audioFormData.append('audio', audioBlob, 'voice_message.webm');
+      audioFormData.append('transcription', result.transcription || '');
+      
+      const sendResponse = await fetch(`/api/chat-rooms/${chatRoomId}/messages`, {
+        method: 'POST',
+        headers: {
+          'x-user-id': user!.id.toString(),
+        },
+        body: audioFormData,
+      });
+      
+      if (!sendResponse.ok) {
+        throw new Error('Failed to send voice message');
+      }
+      
+      console.log('✅ 친구에게 음성 메시지 전송 완료');
+      
+      // YouTube 스마트 추천 처리
+      const youtubeSuggestion = voiceSuggestions.find((s: SmartSuggestion) => s.type === 'youtube');
+      if (youtubeSuggestion) {
+        console.log('🎬 YouTube 추천 발견:', youtubeSuggestion.keyword);
+        setYoutubeSearchQuery(youtubeSuggestion.keyword || '');
+        setYoutubeChatRoomId(chatRoomId);
+        setShowYoutubeModal(true);
+      }
+      
+      // 채팅방 목록 새로고침
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] });
+      
+      toast({
+        title: "음성 메시지 전송 완료",
+        description: `${contact.contactUser.displayName}님에게 전송되었습니다.`,
+      });
+    } catch (error) {
+      console.error('❌ 친구 음성 메시지 전송 실패:', error);
+      toast({
+        title: "음성 메시지 전송 실패",
+        description: "다시 시도해주세요.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // YouTube 비디오 선택 핸들러
+  const handleYoutubeVideoSelect = async (video: any) => {
+    if (!youtubeChatRoomId) {
+      console.error('❌ youtubeChatRoomId가 없음');
+      return;
+    }
+    
+    console.log('🎥 YouTube 비디오 선택됨:', video.title, 'for chat room:', youtubeChatRoomId);
+    
+    const youtubeMessage = {
+      content: `📺 ${youtubeSearchQuery} 추천 영상\n${video.title}`,
+      messageType: "text",
+      youtubePreview: video
+    };
+    
+    try {
+      const response = await fetch(`/api/chat-rooms/${youtubeChatRoomId}/messages`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-user-id': user!.id.toString(),
+        },
+        body: JSON.stringify(youtubeMessage),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to send YouTube message');
+      }
+      
+      console.log('✅ YouTube 메시지 전송 성공');
+      
+      // 메시지 목록 새로고침
+      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${youtubeChatRoomId}/messages`] });
+      
+      setShowYoutubeModal(false);
+      setYoutubeChatRoomId(null);
+    } catch (error) {
+      console.error('❌ YouTube 메시지 전송 실패:', error);
+    }
+  };
+
   const getOnlineStatus = (user: any) => {
     if (user.isOnline) return "온라인";
     if (!user.lastSeen) return "오프라인";
@@ -243,19 +585,36 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
           <div className="flex overflow-x-auto px-2 py-2 space-x-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
             {favoriteContacts.map((contact: any) => {
               const displayName = contact.nickname || contact.contactUser.displayName;
+              const isRecordingThisContact = isRecording && recordingContact?.id === contact.id;
               
               return (
                 <div key={contact.id} className="flex flex-col items-center space-y-1 min-w-[60px] group">
                   <div 
-                    className="relative cursor-pointer"
-                    onClick={() => onSelectContact(contact.contactUserId)}
+                    className={cn(
+                      "relative cursor-pointer",
+                      isRecordingThisContact && "animate-pulse"
+                    )}
+                    onClick={() => !isRecording && onSelectContact(contact.contactUserId)}
+                    onTouchStart={() => handleLongPressStart(contact)}
+                    onTouchEnd={handleLongPressEnd}
+                    onMouseDown={() => handleLongPressStart(contact)}
+                    onMouseUp={handleLongPressEnd}
+                    onMouseLeave={handleLongPressEnd}
                   >
                     <InstantAvatar
                       src={contact.contactUser.profilePicture}
                       fallbackText={displayName}
                       size="md"
-                      className="group-hover:ring-2 group-hover:ring-blue-300 transition-all"
+                      className={cn(
+                        "group-hover:ring-2 group-hover:ring-blue-300 transition-all",
+                        isRecordingThisContact && "ring-4 ring-red-500 ring-offset-2"
+                      )}
                     />
+                    {isRecordingThisContact && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-red-500 bg-opacity-30 rounded-full">
+                        <Mic className="h-6 w-6 text-white animate-pulse" />
+                      </div>
+                    )}
                     {hasRecentPost(contact.contactUserId) && (
                       <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 border-2 border-white rounded-full flex items-center justify-center z-20">
                         <Users className="h-2 w-2 text-white" />
@@ -285,23 +644,41 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
           </div>
         ) : (
           filteredAndSortedContacts.map((contact: any) => {
+            const isRecordingThisContact = isRecording && recordingContact?.id === contact.id;
+            
             return (
             <div
               key={contact.id}
-              className="px-3 py-2 hover:bg-purple-50 border-b border-gray-100 transition-colors"
+              className={cn(
+                "px-3 py-2 hover:bg-purple-50 border-b border-gray-100 transition-colors",
+                isRecordingThisContact && "bg-red-50 animate-pulse"
+              )}
             >
               <div className="flex items-center justify-between">
                 <div 
                   className="cursor-pointer flex-1 flex items-center space-x-2"
-                  onClick={() => onSelectContact(contact.contactUserId)}
+                  onClick={() => !isRecording && onSelectContact(contact.contactUserId)}
+                  onTouchStart={() => handleLongPressStart(contact)}
+                  onTouchEnd={handleLongPressEnd}
+                  onMouseDown={() => handleLongPressStart(contact)}
+                  onMouseUp={handleLongPressEnd}
+                  onMouseLeave={handleLongPressEnd}
                 >
                   <div className="relative">
                     <InstantAvatar
                       src={contact.contactUser.profilePicture}
                       fallbackText={contact.nickname || contact.contactUser.displayName}
                       size="sm"
-                      className="hover:ring-2 hover:ring-blue-300 transition-all"
+                      className={cn(
+                        "hover:ring-2 hover:ring-blue-300 transition-all",
+                        isRecordingThisContact && "ring-4 ring-red-500 ring-offset-2"
+                      )}
                     />
+                    {isRecordingThisContact && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-red-500 bg-opacity-30 rounded-full">
+                        <Mic className="h-4 w-4 text-white animate-pulse" />
+                      </div>
+                    )}
                     {hasRecentPost(contact.contactUserId) && (
                       <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 border-2 border-white rounded-full flex items-center justify-center z-20">
                         <Users className="h-2 w-2 text-white" />
@@ -420,6 +797,14 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* YouTube 선택 모달 */}
+      <YoutubeSelectionModal
+        isOpen={showYoutubeModal}
+        onClose={() => setShowYoutubeModal(false)}
+        onSelectVideo={handleYoutubeVideoSelect}
+        initialSearchQuery={youtubeSearchQuery}
+      />
     </div>
   );
 }
