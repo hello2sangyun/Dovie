@@ -591,7 +591,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
                 <div key={contact.id} className="flex flex-col items-center space-y-1 min-w-[60px] group">
                   <div 
                     className={cn(
-                      "relative cursor-pointer",
+                      "relative cursor-pointer select-none",
                       isRecordingThisContact && "animate-pulse"
                     )}
                     onClick={() => !isRecording && onSelectContact(contact.contactUserId)}
@@ -656,7 +656,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
             >
               <div className="flex items-center justify-between">
                 <div 
-                  className="cursor-pointer flex-1 flex items-center space-x-2"
+                  className="cursor-pointer flex-1 flex items-center space-x-2 select-none"
                   onClick={() => !isRecording && onSelectContact(contact.contactUserId)}
                   onTouchStart={() => handleLongPressStart(contact)}
                   onTouchEnd={handleLongPressEnd}
