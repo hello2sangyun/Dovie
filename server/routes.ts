@@ -1164,87 +1164,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const message = await storage.createMessage(messageData);
       const messageWithSender = await storage.getMessageById(message.id);
 
-      // Auto-save files to storage and extract hashtags from message content
-      // Skip hashtag extraction for YouTube messages and recommendation messages
-      const skipHashtagExtraction = messageData.messageType === 'youtube' || 
-                                   (messageData.content && messageData.content.includes('🎬 YouTube 동영상')) ||
-                                   (messageData.content && messageData.content.includes('유튜브 검색'));
+      // Auto-save file uploads to storage with description
+      // Skip auto-save for YouTube messages and recommendation messages
+      const skipAutoSave = messageData.messageType === 'youtube' || 
+                          (messageData.content && messageData.content.includes('🎬 YouTube 동영상')) ||
+                          (messageData.content && messageData.content.includes('유튜브 검색'));
       
-      // Extract hashtags from message content first
-      let extractedHashtags: string[] = [];
-      if (messageData.content && typeof messageData.content === 'string' && !skipHashtagExtraction) {
-        console.log(`📝 Message content for hashtag extraction: "${messageData.content}"`);
-        
-        // Enhanced regex to match hashtags with Korean, alphanumeric, and underscore characters
-        const hashtagRegex = /#[\w가-힣_]+/g;
-        const hashtagMatches = messageData.content.match(hashtagRegex);
-        
-        if (hashtagMatches && hashtagMatches.length > 0) {
-          extractedHashtags = hashtagMatches.map(tag => tag.slice(1)); // Remove # symbol
-          console.log(`✅ Found hashtags in message: ${hashtagMatches.join(', ')}`);
-          console.log(`📋 Extracted hashtag names: ${extractedHashtags.join(', ')}`);
-        } else {
-          console.log(`❌ No hashtags found in message content`);
+      // Extract description from message content for file uploads
+      let fileDescription = '';
+      if (messageData.content && typeof messageData.content === 'string' && !skipAutoSave) {
+        // Extract description (everything after the filename in the content)
+        const lines = messageData.content.split('\n\n');
+        if (lines.length > 1) {
+          // Skip the first line (filename with 📎), use the rest as description
+          fileDescription = lines.slice(1).join('\n\n').trim();
+          console.log(`📄 Extracted description: "${fileDescription}"`);
         }
       }
       
-      // Auto-save file uploads to storage
-      if (messageData.messageType === 'file' && messageData.fileUrl && messageData.fileName) {
+      // Auto-save file uploads to storage with description
+      if (messageData.messageType === 'file' && messageData.fileUrl && messageData.fileName && !skipAutoSave) {
         console.log(`Auto-saving file to storage: ${messageData.fileName}`);
         
-        if (extractedHashtags.length > 0) {
-          // Save file with each user-provided hashtag as separate commands
-          console.log(`💾 Saving file with ${extractedHashtags.length} user hashtags: ${extractedHashtags.join(', ')}`);
-          for (const hashtag of extractedHashtags) {
-            try {
-              await storage.saveCommand({
-                userId: Number(userId),
-                chatRoomId: Number(req.params.chatRoomId),
-                commandName: hashtag, // Use actual hashtag instead of filename
-                messageId: message.id,
-                savedText: messageData.content || null,
-                fileUrl: messageData.fileUrl,
-                fileName: messageData.fileName,
-                fileSize: messageData.fileSize || null,
-                originalSenderId: Number(userId),
-                originalTimestamp: new Date()
-              });
-              console.log(`✅ Successfully saved file with hashtag: "${hashtag}" (will show as #${hashtag})`);
-            } catch (error) {
-              console.log(`❌ Failed to save file with hashtag ${hashtag}:`, error);
-            }
-          }
-        } else {
-          // Fallback: save with filename if no hashtags provided
-          console.log(`📁 No hashtags found, falling back to filename-based storage`);
-          try {
-            const commandName = messageData.fileName.split('.')[0];
-            await storage.saveCommand({
-              userId: Number(userId),
-              chatRoomId: Number(req.params.chatRoomId),
-              commandName: commandName,
-              messageId: message.id,
-              savedText: messageData.content || null,
-              fileUrl: messageData.fileUrl,
-              fileName: messageData.fileName,
-              fileSize: messageData.fileSize || null,
-              originalSenderId: Number(userId),
-              originalTimestamp: new Date()
-            });
-            console.log(`✅ Successfully auto-saved file with filename: ${commandName}`);
-          } catch (error) {
-            console.log(`❌ Failed to auto-save file ${messageData.fileName}:`, error);
-          }
+        try {
+          // Use filename (without extension) as command name
+          const commandName = messageData.fileName.split('.')[0];
+          await storage.saveCommand({
+            userId: Number(userId),
+            chatRoomId: Number(req.params.chatRoomId),
+            commandName: commandName,
+            messageId: message.id,
+            savedText: messageData.content || null,
+            description: fileDescription || null, // Store description for AI learning
+            fileUrl: messageData.fileUrl,
+            fileName: messageData.fileName,
+            fileSize: messageData.fileSize || null,
+            originalSenderId: Number(userId),
+            originalTimestamp: new Date()
+          });
+          console.log(`✅ Successfully auto-saved file: ${commandName} with description: "${fileDescription}"`);
+        } catch (error) {
+          console.log(`❌ Failed to auto-save file ${messageData.fileName}:`, error);
         }
       }
       
-      // Skip duplicate hashtag processing since we already handled it above for files
-      if (messageData.messageType !== 'file' && messageData.content && typeof messageData.content === 'string' && !skipHashtagExtraction) {
-        const hashtagRegex = /#[\w가-힣]+/g;
+      // Keep hashtag support for non-file messages (text messages with #tags)
+      if (messageData.messageType !== 'file' && messageData.content && typeof messageData.content === 'string' && !skipAutoSave) {
+        const hashtagRegex = /#[\w가-힣_]+/g;
         const hashtags = messageData.content.match(hashtagRegex);
         
         if (hashtags && hashtags.length > 0) {
-          console.log(`Found hashtags in message: ${hashtags.join(', ')}`);
+          console.log(`Found hashtags in text message: ${hashtags.join(', ')}`);
           for (const hashtag of hashtags) {
             // Create a command for each hashtag
             const commandName = hashtag.slice(1); // Remove the # symbol
@@ -1255,6 +1225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 commandName: commandName,
                 messageId: message.id,
                 savedText: messageData.content,
+                description: null,
                 fileUrl: messageData.fileUrl || null,
                 fileName: messageData.fileName || null,
                 fileSize: messageData.fileSize || null,
@@ -1267,8 +1238,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
         }
-      } else if (skipHashtagExtraction) {
-        console.log('Skipping hashtag extraction for YouTube message');
+      } else if (skipAutoSave) {
+        console.log('Skipping auto-save for YouTube/system message');
       }
 
       // Handle mentions if present

@@ -1848,10 +1848,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     setShowFileUploadModal(true);
   };
 
-  const handleFileUploadWithHashtags = async (files: FileList, caption: string, hashtags: string[]) => {
+  const handleFileUploadWithHashtags = async (files: FileList, caption: string, description: string) => {
     console.log('📤 다중 파일 업로드 시작:', files.length, '개 파일');
     console.log('📝 캡션:', caption);
-    console.log('🏷️ 해시태그:', hashtags);
+    console.log('📄 설명:', description);
     
     // 업로드 시작 즉시 각 파일에 대한 임시 메시지 생성
     const tempMessages = Array.from(files).map((file, index) => {
@@ -1861,8 +1861,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         messageContent += `\n\n${caption}`;
       }
       
-      if (hashtags.length > 0) {
-        messageContent += `\n\n${hashtags.map(tag => `#${tag}`).join(' ')}`;
+      if (description.trim()) {
+        messageContent += `\n\n${description}`;
       }
       
       return {
@@ -1961,22 +1961,21 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       const uploadResults = await Promise.all(uploadPromises);
       console.log('✅ 모든 파일 업로드 완료:', uploadResults.length, '개');
       
-      // Send each file as a separate message with caption and hashtags
+      // Send each file as a separate message with caption and description
       const messagePromises = uploadResults.map(async (uploadData, index) => {
-        // Include hashtags in all file messages, caption only in first
+        // Include description in all file messages, caption only in first
         let messageContent = `📎 ${uploadData.fileName}`;
         
         if (index === 0 && caption) {
           messageContent += `\n\n${caption}`;
         }
         
-        if (hashtags.length > 0) {
-          messageContent += `\n\n${hashtags.map(tag => `#${tag}`).join(' ')}`;
+        if (description.trim()) {
+          messageContent += `\n\n${description}`;
         }
         
         console.log('📤 File upload message content:', messageContent);
-        console.log('📋 Hashtags being sent:', hashtags);
-        console.log('🔍 Expected hashtag extraction from content:', messageContent.match(/#[\w가-힣_]+/g));
+        console.log('📄 Description being sent:', description);
         
         const realMessage = await sendMessageMutation.mutateAsync({
           messageType: "file",

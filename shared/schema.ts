@@ -177,6 +177,7 @@ export const commands = pgTable("commands", {
   fileName: text("file_name"),
   fileSize: integer("file_size"),
   savedText: text("saved_text"),
+  description: text("description"), // AI learning data
   originalSenderId: integer("original_sender_id").references(() => users.id),
   originalTimestamp: timestamp("original_timestamp"),
   createdAt: timestamp("created_at").defaultNow(),
