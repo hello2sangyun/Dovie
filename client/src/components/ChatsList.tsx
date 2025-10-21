@@ -16,57 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Search, Pin, Users, X, Trash2, LogOut, MoreVertical, Mic } from "lucide-react";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
-import YoutubeSelectionModal from "./YoutubeSelectionModal";
 import VoiceMessageConfirmModal from "./VoiceMessageConfirmModal";
-// Unified smart suggestion system - copied inline to avoid import issues
-interface SmartSuggestion {
-  type: string;
-  text: string;
-  result?: string;
-  icon: string;
-  category: string;
-  keyword?: string;
-  confidence?: number;
-}
-
-const analyzeTextForSmartSuggestions = (text: string): SmartSuggestion[] => {
-  if (!text || text.trim().length < 2) {
-    return [];
-  }
-
-  const suggestions: SmartSuggestion[] = [];
-
-  // YouTube 감지
-  if (/유튜브|youtube|영상|비디오|뮤직비디오|mv|검색.*영상|영상.*검색|봐봐|보여.*영상/i.test(text)) {
-    const keyword = text
-      .replace(/유튜브|youtube|영상|비디오|뮤직비디오|mv|검색|찾아|보여|봐봐|해줘|하자|보자/gi, '')
-      .trim();
-    
-    suggestions.push({
-      type: 'youtube',
-      text: `🎥 YouTube에서 "${keyword}" 검색하기`,
-      result: `YouTube 영상을 검색합니다: ${keyword}`,
-      icon: '🎥',
-      category: 'YouTube 검색',
-      keyword: keyword || '검색',
-      confidence: 0.9
-    });
-  }
-
-  // 위치 공유 감지
-  if (/어디|위치|장소|주소|어디야|어디에|어디로|어디서|여기|거기|오세요|와|갈게|만나|위치공유|현재위치|gps/i.test(text)) {
-    suggestions.push({
-      type: 'location',
-      text: '📍 현재 위치 공유하기',
-      result: '현재 위치를 공유합니다',
-      icon: '📍',
-      category: '위치 공유',
-      confidence: 0.85
-    });
-  }
-
-  return suggestions;
-};
 
 interface ChatsListProps {
   onSelectChat: (chatId: number) => void;
@@ -97,10 +47,6 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
   const chunksRef = useRef<Blob[]>([]);
   const [recordingStartTime, setRecordingStartTime] = useState(0);
   
-  // YouTube 선택 모달 상태
-  const [showYoutubeModal, setShowYoutubeModal] = useState(false);
-  const [youtubeSearchQuery, setYoutubeSearchQuery] = useState("");
-  
   // Voice Confirm Modal 상태
   const [showVoiceConfirmModal, setShowVoiceConfirmModal] = useState(false);
   const [voiceConfirmData, setVoiceConfirmData] = useState<{
@@ -108,63 +54,7 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     audioUrl: string;
     duration: number;
     chatRoomId: number;
-    voiceSuggestions: SmartSuggestion[];
   } | null>(null);
-
-  // YouTube 비디오 선택 핸들러 - ChatArea와 동일한 구조로 수정
-  const handleYoutubeVideoSelect = async (video: any) => {
-    if (!recordingChatRoom) {
-      console.error('❌ recordingChatRoom이 없음');
-      return;
-    }
-    
-    console.log('🎥 YouTube 비디오 선택됨:', video.title, 'for chat room:', recordingChatRoom.id);
-    
-    const youtubeMessage = {
-      content: `📺 ${youtubeSearchQuery} 추천 영상\n${video.title}`,
-      messageType: "text",
-      youtubePreview: video
-    };
-    
-    try {
-      // 정확한 API 엔드포인트 사용
-      const response = await fetch(`/api/chat-rooms/${recordingChatRoom.id}/messages`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'x-user-id': user!.id.toString(),
-        },
-        body: JSON.stringify(youtubeMessage)
-      });
-      
-      if (response.ok) {
-        console.log('✅ YouTube 영상 메시지 전송 성공');
-        
-        // 캐시 무효화
-        queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${recordingChatRoom.id}/messages`] });
-        queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
-        
-        // 모달 닫기 및 상태 초기화
-        setShowYoutubeModal(false);
-        setYoutubeSearchQuery("");
-        setRecordingChatRoom(null);
-        
-        toast({
-          title: "YouTube 영상 공유 완료",
-          description: video.title,
-        });
-      } else {
-        throw new Error(`Failed to send YouTube message: ${response.status}`);
-      }
-    } catch (error) {
-      console.error('❌ YouTube 영상 메시지 전송 실패:', error);
-      toast({
-        variant: "destructive",
-        title: "YouTube 영상 공유 실패",
-        description: "다시 시도해주세요.",
-      });
-    }
-  };
 
   // Voice Confirm Modal 콜백 함수들
   const handleVoiceMessageSend = async (editedText: string) => {
@@ -202,19 +92,6 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
         
         // 해당 채팅방으로 자동 이동
         onSelectChat(voiceConfirmData.chatRoomId);
-        
-        // 스마트 추천 처리 (YouTube)
-        if (voiceConfirmData.voiceSuggestions.length > 0) {
-          const youtubeSuggestion = voiceConfirmData.voiceSuggestions.find((s: any) => s.type === 'youtube');
-          if (youtubeSuggestion && youtubeSuggestion.keyword) {
-            setYoutubeSearchQuery(youtubeSuggestion.keyword);
-            setRecordingChatRoom({ id: voiceConfirmData.chatRoomId });
-            
-            setTimeout(() => {
-              setShowYoutubeModal(true);
-            }, 500);
-          }
-        }
         
         // 모달 닫기 (성공 시에만)
         setShowVoiceConfirmModal(false);
@@ -399,164 +276,6 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     }
   };
 
-  // 스마트 추천 처리 함수
-  const processSmartSuggestions = async (transcription: string, chatRoomId: number) => {
-    const suggestions = getSmartSuggestions(transcription);
-    
-    if (suggestions.length > 0) {
-      console.log('🤖 스마트 추천 발견:', suggestions.length, '개');
-      
-      // 자동 실행되는 추천 처리
-      for (const suggestion of suggestions) {
-        if (suggestion.type === 'youtube') {
-          // YouTube 검색 및 영상 선택 모달 열기
-          const searchQuery = transcription.replace(/유튜브|youtube|검색|찾아|보여|영상|봤어|봐봐/gi, '').trim();
-          
-          setYoutubeSearchQuery(searchQuery);
-          setRecordingChatRoom({ id: chatRoomId });
-          setShowYoutubeModal(true);
-        } else if (suggestion.type === 'location') {
-          // 위치 공유 요청 감지
-          try {
-            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-              navigator.geolocation.getCurrentPosition(resolve, reject, {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 60000
-              });
-            });
-
-            const { latitude, longitude } = position.coords;
-            const googleMapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
-
-            const locationMessage = {
-              content: `📍 현재 위치를 공유했습니다`,
-              messageType: "text",
-              locationShare: {
-                latitude: latitude.toString(),
-                longitude: longitude.toString(),
-                googleMapsUrl,
-                accuracy: position.coords.accuracy?.toString()
-              }
-            };
-
-            setTimeout(async () => {
-              await fetch(`/api/chat-rooms/${chatRoomId}/messages`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'x-user-id': user!.id.toString(),
-                },
-                body: JSON.stringify(locationMessage),
-              });
-            }, 500);
-          } catch (error) {
-            console.error('위치 공유 처리 실패:', error);
-          }
-        } else if (['translation', 'summary', 'search', 'news', 'calculation', 'currency'].includes(suggestion.type)) {
-          // 기타 스마트 추천은 자동 메시지 전송하지 않음 (음성 메시지만 유지)
-          console.log('🤖 스마트 추천 감지:', suggestion.type, '- 자동 메시지 전송 생략');
-        }
-      }
-    }
-  };
-
-  // 스마트 추천 함수 (ChatArea에서 가져옴)
-  const getSmartSuggestions = (text: string) => {
-    const suggestions = [];
-    const lowerText = text.toLowerCase();
-
-    // YouTube 감지
-    if (/유튜브|youtube|영상|비디오|뮤직비디오|mv/i.test(text)) {
-      suggestions.push({
-        type: 'youtube',
-        text: '🎬 YouTube 영상',
-        result: '영상을 검색해서 공유할게요',
-        icon: '🎬',
-        category: 'YouTube 검색'
-      });
-    }
-
-    // 위치 관련 감지
-    if (/어디|위치|장소|주소|어디야|어디에|어디로|어디서|여기|거기|오세요|와|갈게|만나|시간|위치공유/i.test(text)) {
-      suggestions.push({
-        type: 'location',
-        text: '📍 위치 공유',
-        result: '현재 위치를 공유할게요',
-        icon: '📍',
-        category: '위치 공유'
-      });
-    }
-
-    // 번역 감지
-    if (/번역|translate|영어로|한국어로|일본어로|중국어로/i.test(text)) {
-      suggestions.push({
-        type: 'translation',
-        text: '🌐 번역',
-        result: '번역해드릴게요',
-        icon: '🌐',
-        category: '번역'
-      });
-    }
-
-    // 검색 감지
-    if (/검색|찾아|알아봐|search|google/i.test(text)) {
-      suggestions.push({
-        type: 'search',
-        text: '🔍 검색',
-        result: '검색해드릴게요',
-        icon: '🔍',
-        category: '검색'
-      });
-    }
-
-    // 요약 감지
-    if (/요약|정리|summary|간단히/i.test(text)) {
-      suggestions.push({
-        type: 'summary',
-        text: '📝 요약',
-        result: '요약해드릴게요',
-        icon: '📝',
-        category: '요약'
-      });
-    }
-
-    // 뉴스 감지
-    if (/뉴스|news|기사|최신|오늘/i.test(text)) {
-      suggestions.push({
-        type: 'news',
-        text: '📰 뉴스',
-        result: '최신 뉴스를 찾아드릴게요',
-        icon: '📰',
-        category: '뉴스'
-      });
-    }
-
-    // 계산 감지
-    if (/계산|더하기|빼기|곱하기|나누기|\+|\-|\*|\/|\=|[0-9]/i.test(text)) {
-      suggestions.push({
-        type: 'calculation',
-        text: '🔢 계산',
-        result: '계산해드릴게요',
-        icon: '🔢',
-        category: '계산'
-      });
-    }
-
-    // 환율 감지
-    if (/환율|달러|엔|유로|원|currency|exchange/i.test(text)) {
-      suggestions.push({
-        type: 'currency',
-        text: '💱 환율',
-        result: '환율을 확인해드릴게요',
-        icon: '💱',
-        category: '환율'
-      });
-    }
-
-    return suggestions;
-  };
-
   // 음성 메시지 전송 (채팅방용) - 통합된 방식 사용
   const sendVoiceMessage = async (chatRoom: any, audioBlob: Blob) => {
     try {
@@ -592,30 +311,13 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
         return;
       }
       
-      // 통합된 스마트 추천 사용 (서버에서 이미 분석 완료)
-      console.log('🎙️ Voice transcription with integrated suggestions:', result.smartSuggestions?.length || 0);
-      console.log('🎙️ Full smartSuggestions data:', result.smartSuggestions);
-      
-      // 서버에서 받은 스마트 추천과 클라이언트 분석 결합
-      const serverSuggestions = result.smartSuggestions || [];
-      const clientSuggestions = analyzeTextForSmartSuggestions(result.transcription || '');
-      
-      // 서버 추천이 없으면 클라이언트 분석 사용
-      const voiceSuggestions = serverSuggestions.length > 0 ? serverSuggestions : clientSuggestions;
-      
-      // 스마트 추천 상세 로깅
-      voiceSuggestions.forEach((suggestion: SmartSuggestion, index: number) => {
-        console.log(`🎯 Suggestion ${index}:`, suggestion);
-      });
-      
       // 모달 데이터 설정 및 모달 표시
       console.log('📋 Voice Confirm Modal 표시');
       setVoiceConfirmData({
         transcription: result.transcription || '',
         audioUrl: result.audioUrl,
         duration: result.duration || 0,
-        chatRoomId: chatRoom.id,
-        voiceSuggestions: voiceSuggestions
+        chatRoomId: chatRoom.id
       });
       setShowVoiceConfirmModal(true);
     } catch (error) {
@@ -1020,18 +722,6 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* YouTube 선택 모달 */}
-      <YoutubeSelectionModal
-        isOpen={showYoutubeModal}
-        onClose={() => {
-          setShowYoutubeModal(false);
-          setYoutubeSearchQuery("");
-          setRecordingChatRoom(null);
-        }}
-        onSelect={handleYoutubeVideoSelect}
-        initialQuery={youtubeSearchQuery}
-      />
 
       {/* Voice Message Confirm Modal */}
       {voiceConfirmData && (

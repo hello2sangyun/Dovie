@@ -30,63 +30,12 @@ import { LinkPreview } from "./LinkPreview";
 
 import { LocationShareModal } from "./LocationShareModal";
 import ReminderTimeModal from "./ReminderTimeModal";
-import YoutubeSelectionModal from "./YoutubeSelectionModal";
 import { ConnectionStatusIndicator } from "./ConnectionStatusIndicator";
 import { VoiceMessagePreviewModal } from "./VoiceMessagePreviewModal";
 import VoiceMessageConfirmModal from "./VoiceMessageConfirmModal";
 import GestureQuickReply from "./GestureQuickReply";
 import { HashtagSuggestion } from "./HashtagSuggestion";
 import { AIChatAssistantModal } from "./AIChatAssistantModal";
-// Using inline smart suggestion analysis to avoid import issues
-interface SmartSuggestion {
-  type: string;
-  text: string;
-  result?: string;
-  icon: string;
-  category: string;
-  keyword?: string;
-  confidence?: number;
-  action?: () => void;
-}
-
-const analyzeTextForSmartSuggestions = (text: string): SmartSuggestion[] => {
-  if (!text || text.trim().length < 2) {
-    return [];
-  }
-
-  const suggestions: SmartSuggestion[] = [];
-
-  // YouTube 감지
-  if (/유튜브|youtube|영상|비디오|뮤직비디오|mv|검색.*영상|영상.*검색|봐봐|보여.*영상/i.test(text)) {
-    const keyword = text
-      .replace(/유튜브|youtube|영상|비디오|뮤직비디오|mv|검색|찾아|보여|봐봐|해줘|하자|보자/gi, '')
-      .trim();
-    
-    suggestions.push({
-      type: 'youtube',
-      text: `🎥 YouTube에서 "${keyword}" 검색하기`,
-      result: `YouTube 영상을 검색합니다: ${keyword}`,
-      icon: '🎥',
-      category: 'YouTube 검색',
-      keyword: keyword || '검색',
-      confidence: 0.9
-    });
-  }
-
-  // 나중에알림 감지
-  if (/나중에|다시|리마인드|알림|연락할게|조금.*있다가|후에.*연락|잊지.*말고|기억해|까먹지.*말고|다음에.*얘기|잠시.*후|잠깐.*있다가/i.test(text)) {
-    suggestions.push({
-      type: 'reminder',
-      text: '⏰ 추후 미리알림을 해드릴까요?',
-      result: '리마인더를 설정합니다',
-      icon: '⏰',
-      category: '나중에알림',
-      confidence: 0.85
-    });
-  }
-
-  return suggestions;
-};
 
 import TypingIndicator, { useTypingIndicator } from "./TypingIndicator";
 import { 
@@ -222,33 +171,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
   };
 
-  // YouTube 비디오 선택 핸들러
-  const handleYoutubeVideoSelect = (video: any) => {
-    const youtubeMessage = {
-      chatRoomId: chatRoomId,
-      senderId: user!.id,
-      content: `📺 ${youtubeSearchQuery} 추천 영상\n${video.title}`,
-      messageType: "text",
-      youtubePreview: video
-    };
-    
-    sendMessageMutation.mutate(youtubeMessage);
-    setShowYoutubeModal(false);
-    setYoutubeSearchQuery("");
-    
-    // 음성 처리 상태 초기화
-    setIsProcessingVoice(false);
-    setPendingVoiceMessage(null);
-    setShowSmartSuggestions(false);
-    setSmartSuggestions([]);
-    
-    // 스마트 추천 타이머 정리
-    if (suggestionTimeout) {
-      clearTimeout(suggestionTimeout);
-      setSuggestionTimeout(null);
-    }
-  };
-
   // 리마인더 설정 핸들러
   const handleSetReminder = async (reminderTime: Date, reminderText: string) => {
     try {
@@ -318,9 +240,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [showReminderModal, setShowReminderModal] = useState(false);
   const [reminderText, setReminderText] = useState("");
 
-
-  const [showYoutubeModal, setShowYoutubeModal] = useState(false);
-  const [youtubeSearchQuery, setYoutubeSearchQuery] = useState("");
   const [showAIAssistantModal, setShowAIAssistantModal] = useState(false);
 
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
@@ -398,7 +317,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     transcription: string;
     audioUrl: string;
     duration: number;
-    smartSuggestions: any[];
   } | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [playingAudio, setPlayingAudio] = useState<number | null>(null);
@@ -676,20 +594,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         }
       }
 
-      // YouTube 검색 처리
-      if (type === 'youtube') {
-        const searchQuery = (originalText || content).replace(/유튜브|youtube|검색|찾아|보여/gi, '').trim();
-        if (searchQuery) {
-          const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}`;
-          return { 
-            success: true, 
-            result: `📺 YouTube 검색: ${searchQuery}\n🔗 ${youtubeSearchUrl}`,
-            action: () => window.open(youtubeSearchUrl, '_blank')
-          };
-        }
-        return { success: true, result: '📺 YouTube에서 검색할 내용을 말씀해주세요' };
-      }
-
       // 기타 기능들
       const otherResponses = {
         reminder: '30분 후 리마인드가 설정되었습니다 ⏰',
@@ -884,100 +788,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     },
     onSuccess: async (result) => {
       if (result.success && result.transcription) {
-        // 통합된 스마트 추천 사용 (서버에서 이미 분석 완료)
-        console.log('🎙️ Voice transcription with integrated suggestions:', result.smartSuggestions?.length || 0);
-        const voiceSuggestions = result.smartSuggestions || [];
-        
-        if (voiceSuggestions.length > 0) {
-          // YouTube 자동 처리
-          const youtubeSuggestion = voiceSuggestions.find((s: any) => s.type === 'youtube');
-          if (youtubeSuggestion && youtubeSuggestion.keyword) {
-            console.log('🎥 Auto-triggering YouTube search with keyword:', youtubeSuggestion.keyword);
-            setYoutubeSearchQuery(youtubeSuggestion.keyword);
-            setShowYoutubeModal(true);
-            
-            // 음성 메시지도 함께 전송
-            const messageData: any = {
-              content: result.transcription,
-              messageType: "voice",
-              fileUrl: result.audioUrl,
-              fileName: "voice_message.webm",
-              fileSize: 0,
-              voiceDuration: Math.round(result.duration || 0),
-              detectedLanguage: result.detectedLanguage || "korean",
-              confidence: String(result.confidence || 0.9)
-            };
-
-            if (replyToMessage) {
-              messageData.replyToMessageId = replyToMessage.id;
-              messageData.replyToContent = replyToMessage?.messageType === 'voice' && replyToMessage.transcription 
-                ? replyToMessage.transcription 
-                : replyToMessage?.content;
-              messageData.replyToSender = replyToMessage?.sender.displayName;
-            }
-
-            sendMessageMutation.mutate(messageData);
-            setReplyToMessage(null);
-            return;
-          }
-          
-          // 다른 스마트 추천이 있는 경우 팝업으로 표시
-          const convertedSuggestions = voiceSuggestions.map((s: any) => ({
-            type: s.type,
-            text: s.text || s.keyword,
-            icon: s.icon || '🤖',
-            result: s.keyword || '',
-            category: s.type
-          }));
-          
-          const maxSuggestions = convertedSuggestions.some((s: any) => s.type === 'currency') ? convertedSuggestions.length : 3;
-          setSmartSuggestions(convertedSuggestions.slice(0, maxSuggestions));
-          setShowSmartSuggestions(true);
-          setSelectedSuggestionIndex(0);
-          setIsNavigatingWithKeyboard(false);
-          
-          // 음성 메시지 임시 저장 (사용자가 추천을 선택할 수 있도록)
-          setPendingVoiceMessage({
-            content: result.transcription,
-            messageType: "voice",
-            fileUrl: result.audioUrl,
-            fileName: "voice_message.webm",
-            fileSize: 0,
-            voiceDuration: Math.round(result.duration || 0),
-            detectedLanguage: result.detectedLanguage || "korean",
-            confidence: String(result.confidence || 0.9),
-            replyToMessageId: replyToMessage?.id,
-            replyToContent: replyToMessage?.messageType === 'voice' && replyToMessage.transcription 
-              ? replyToMessage.transcription 
-              : replyToMessage?.content,
-            replyToSender: replyToMessage?.sender.displayName
-          });
-          
-          // 10초 후 자동으로 원본 메시지 전송
-          const timeout = setTimeout(() => {
-            if (pendingVoiceMessage) {
-              sendMessageMutation.mutate(pendingVoiceMessage);
-              setPendingVoiceMessage(null);
-              setShowSmartSuggestions(false);
-              setSmartSuggestions([]);
-            }
-          }, 10000);
-          setSuggestionTimeout(timeout);
-          
-          toast({
-            title: "음성 변환 완료!",
-            description: `"${result.transcription}" - 스마트 추천을 확인해보세요`,
-          });
-        } else {
-          // 스마트 추천이 없는 경우 VoiceMessageConfirmModal 표시
-          setVoiceConfirmData({
-            transcription: result.transcription,
-            audioUrl: result.audioUrl || "",
-            duration: result.duration || 0,
-            smartSuggestions: []
-          });
-          setShowVoiceConfirmModal(true);
-        }
+        // VoiceMessageConfirmModal 표시
+        setVoiceConfirmData({
+          transcription: result.transcription,
+          audioUrl: result.audioUrl || "",
+          duration: result.duration || 0
+        });
+        setShowVoiceConfirmModal(true);
         
         // 회신 모드 해제
         setReplyToMessage(null);
@@ -2012,58 +1829,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
     if (mentionAll) {
       messageData.mentionAll = true;
-    }
-
-    // YouTube 검색 감지 및 처리 - 음성 메시지와 동일한 강력한 패턴 매칭
-    const youtubePatterns = [
-      // 기본 유튜브 언급
-      /(.+)\s*유튜브\s*(본적\s*있어|봐봐|보자|찾아봐|검색|영상|뮤직비디오|mv)/i,
-      /유튜브로?\s*(.+?)\s*(검색|찾아|봐|보자|들어봐)/i,
-      /(.+?)\s*유튜브\s*(영상|뮤직비디오|mv)/i,
-      /유튜브에서\s*(.+)/i,
-      
-      // 영상/비디오 관련
-      /(.+)\s*(영상|비디오|뮤직비디오|mv)\s*(봐봐|보자|찾아|검색)/i,
-      /(영상|비디오|뮤직비디오|mv)\s*(.+?)\s*(봐|보자|찾아)/i,
-      
-      // YouTube 영어 표기
-      /(.+)\s*youtube\s*(video|music|mv|watch)/i,
-      /youtube\s*(.+)/i,
-      
-      // 간접적 표현
-      /(.+)\s*(뮤직비디오|음악|노래)\s*(봐봐|들어봐|찾아|검색)/i,
-      /(.+)\s*(좋더라|재밌더라|봤는데)\s*(유튜브|영상)/i,
-      
-      // 추천/공유 의도
-      /(.+)\s*(추천|공유|같이\s*봐|보여줄게)/i
-    ];
-
-    let youtubeKeyword = null;
-    for (const pattern of youtubePatterns) {
-      const match = message.match(pattern);
-      if (match) {
-        // 키워드 추출 및 정제
-        const rawKeyword = match[1] || match[2];
-        if (rawKeyword) {
-          youtubeKeyword = rawKeyword
-            .replace(/유튜브|youtube|영상|비디오|뮤직비디오|mv|검색|찾아|보여|봐봐|해줘|하자|보자|들어봐|좋더라|재밌더라|봤는데|추천|공유|같이|보여줄게/gi, '')
-            .trim();
-          
-          if (youtubeKeyword && youtubeKeyword.length > 0) {
-            console.log('🎥 텍스트 YouTube 키워드 감지:', youtubeKeyword);
-            break;
-          }
-        }
-      }
-    }
-
-    if (youtubeKeyword) {
-      // YouTube 검색 모달 표시 (키워드 미리 채움)
-      setYoutubeSearchQuery(youtubeKeyword);
-      setShowYoutubeModal(true);
-      setMessage("");
-      resetTextareaSize();
-      return;
     }
 
     sendMessageMutation.mutate(messageData);
@@ -3454,17 +3219,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         setSuggestionTimeout(null);
       }
       
-      if (suggestion.type === 'youtube') {
-        // YouTube 검색 및 영상 임베드 - 선택 모달 사용
-        const searchQuery = pendingVoiceMessage.content.replace(/유튜브|youtube|검색|찾아|보여|영상|봤어|봐봐/gi, '').trim();
-        
-        // 먼저 원본 음성메시지 전송
-        sendMessageMutation.mutate(pendingVoiceMessage);
-        
-        // YouTube 선택 모달 열기
-        setYoutubeSearchQuery(searchQuery);
-        setShowYoutubeModal(true);
-      } else if (suggestion.type === 'reminder') {
+      if (suggestion.type === 'reminder') {
         // 리마인더 설정 모달 열기
         setReminderText(pendingVoiceMessage.content);
         setShowReminderModal(true);
@@ -3479,14 +3234,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       setPendingVoiceMessage(null);
     } else {
       // 일반 텍스트 입력 시 처리
-      if (suggestion.type === 'youtube') {
-        // 텍스트 입력에서 YouTube 검색 및 영상 선택 모달
-        const searchQuery = message.replace(/유튜브|youtube|검색|찾아|보여|영상|봤어|봐봐/gi, '').trim();
-        
-        setYoutubeSearchQuery(searchQuery);
-        setShowYoutubeModal(true);
-        setMessage("");
-      } else if (suggestion.type === 'reminder') {
+      if (suggestion.type === 'reminder') {
         // 리마인더 설정 모달 열기
         setReminderText(message);
         setShowReminderModal(true);
@@ -3496,11 +3244,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     
     setShowSmartSuggestions(false);
     setSmartSuggestions([]);
-  };
-
-  // 통합 스마트 추천 분석 함수
-  const analyzeTextForUnifiedSuggestions = (text: string): SmartSuggestion[] => {
-    return analyzeTextForSmartSuggestions(text);
   };
 
   const handleMessageChange = async (value: string) => {
@@ -3519,53 +3262,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       setHashSuggestions(filteredTags);
       setShowHashSuggestions(filteredTags.length > 0);
       setSelectedHashIndex(0); // 선택 인덱스 초기화
-      // 태그 추천 활성화 시 스마트 추천 비활성화
-      setShowSmartSuggestions(false);
-      setSmartSuggestions([]);
-      return; // 태그 모드일 때는 스마트 추천 로직 실행하지 않음
+      return; // 태그 모드일 때는 다른 로직 실행하지 않음
     } else {
       setShowHashSuggestions(false);
       setHashSuggestions([]);
       setSelectedHashIndex(0);
-    }
-    
-    if (value.trim().length < 2) {
-      setShowSmartSuggestions(false);
-      setSmartSuggestions([]);
-      return;
-    }
-    
-    const allSuggestions = await analyzeTextForSmartSuggestions(value);
-    
-    // 기존 타이머 제거
-    if (suggestionTimeout) {
-      clearTimeout(suggestionTimeout);
-    }
-
-    if (allSuggestions.length > 0) {
-      // 환율 변환의 경우 모든 제안 표시, 다른 경우 최대 3개
-      const maxSuggestions = allSuggestions.some(s => s.type === 'currency') ? allSuggestions.length : 3;
-      setSmartSuggestions(allSuggestions.slice(0, maxSuggestions));
-      setShowSmartSuggestions(true);
-      setSelectedSuggestionIndex(0); // 첫 번째 항목 선택
-      setIsNavigatingWithKeyboard(false); // 새로운 제안 시 키보드 네비게이션 상태 초기화
-      
-      // 5초 후 자동으로 숨김 (키보드 네비게이션 중이거나 마우스 호버 중이 아닐 때만)
-      if (!isNavigatingWithKeyboard && !isHoveringOverSuggestions) {
-        const timeout = setTimeout(() => {
-          // 타이머 실행 시점에서도 호버 상태가 아닐 때만 숨김
-          if (!isHoveringOverSuggestions && !isNavigatingWithKeyboard) {
-            setShowSmartSuggestions(false);
-            setSmartSuggestions([]);
-          }
-        }, 5000);
-        setSuggestionTimeout(timeout);
-      }
-    } else {
-      setShowSmartSuggestions(false);
-      setSmartSuggestions([]);
-      setSelectedSuggestionIndex(0);
-      setIsNavigatingWithKeyboard(false);
     }
   };
 
@@ -6508,29 +6209,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         onClose={() => setShowLocationShareModal(false)}
         chatRoomId={chatRoomId}
         requestId={locationRequestId}
-      />
-
-      {/* YouTube Selection Modal */}
-      <YoutubeSelectionModal
-        isOpen={showYoutubeModal}
-        onClose={() => {
-          setShowYoutubeModal(false);
-          setYoutubeSearchQuery("");
-          
-          // 음성 처리 상태 초기화
-          setIsProcessingVoice(false);
-          setPendingVoiceMessage(null);
-          setShowSmartSuggestions(false);
-          setSmartSuggestions([]);
-          
-          // 스마트 추천 타이머 정리
-          if (suggestionTimeout) {
-            clearTimeout(suggestionTimeout);
-            setSuggestionTimeout(null);
-          }
-        }}
-        onSelect={handleYoutubeVideoSelect}
-        initialQuery={youtubeSearchQuery}
       />
 
       {/* AI Chat Assistant Modal */}

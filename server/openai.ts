@@ -266,14 +266,13 @@ export async function processCommand(commandText: string): Promise<CommandRespon
   }
 }
 
-// Audio transcription for voice messages with integrated smart suggestions
+// Audio transcription for voice messages
 export async function transcribeAudio(filePath: string): Promise<{ 
   success: boolean, 
   transcription?: string, 
   duration?: number, 
   detectedLanguage?: string,
   confidence?: number,
-  smartSuggestions?: any[],
   error?: string 
 }> {
   try {
@@ -320,8 +319,7 @@ export async function transcribeAudio(filePath: string): Promise<{
         detectedLanguage: "ko",
         duration: 0,
         confidence: 0,
-        error: "SILENT_RECORDING",
-        smartSuggestions: []
+        error: "SILENT_RECORDING"
       };
     }
     
@@ -361,8 +359,7 @@ export async function transcribeAudio(filePath: string): Promise<{
           detectedLanguage: "ko",
           duration: 0,
           confidence: 0,
-          error: "SILENT_RECORDING",
-          smartSuggestions: []
+          error: "SILENT_RECORDING"
         };
       }
       
@@ -438,89 +435,8 @@ export async function transcribeAudio(filePath: string): Promise<{
         error: "SILENT_RECORDING", // Special error code for silent recordings
         duration: transcription.duration || 0,
         detectedLanguage,
-        confidence: 0,
-        smartSuggestions: []
+        confidence: 0
       };
-    }
-    
-    // Analyze transcribed text for smart suggestions using a single OpenAI call
-    let smartSuggestions: any[] = [];
-    if (transcribedText && transcribedText.length > 5) {
-      console.log("🤖 Analyzing transcription for smart suggestions:", transcribedText);
-      
-      try {
-        const analysisResponse = await openai.chat.completions.create({
-          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-          messages: [
-            {
-              role: "system",
-              content: `당신은 음성 메시지 텍스트를 분석해서 사용자가 YouTube 영상을 원하는지, 나중에 알림을 원하는지, 또는 위치를 공유하려는지 파악하는 AI입니다. 
-              오직 YouTube, 나중에알림, 위치공유 관련 요청만 감지하고 JSON으로 응답하세요:
-              
-              YouTube 감지 조건:
-              - 유튜브, youtube, 영상, 비디오, 뮤직비디오, mv 등의 키워드
-              - "영상 봐봐", "유튜브로 검색", "[아티스트명] 영상" 등의 표현
-              
-              나중에알림 감지 조건:
-              - "나중에 다시 알려줄게", "조금 있다가 연락할게", "잠깐 후에 말할게"
-              - "나중에 알림", "리마인더", "reminder", "알려줘", "잊지 않게"
-              - "5분 후에", "30분 후에", "1시간 후에", "내일", "오후에" 등 시간 표현
-              
-              위치공유 감지 조건:
-              - "주소 보내줄게", "위치 보내줄게", "내 위치 알려줄게", "맵 찍어줄게"
-              - "어디야", "어디로 가면 돼", "주소 알려줘", "위치 알려줘"
-              - "내가 어디 있는지 알려줄게", "지금 어디 있어", "여기로 와"
-              - "길 안내", "내비게이션", "지도", "구글맵", "카카오맵"
-              
-              응답 형식:
-              {
-                "suggestions": [
-                  {
-                    "type": "youtube",
-                    "keyword": "추출된 키워드",
-                    "confidence": 0.9,
-                    "text": "🎥 YouTube에서 [키워드] 검색하기",
-                    "icon": "🎥"
-                  },
-                  {
-                    "type": "reminder",
-                    "text": "⏰ 나중에 알림 설정하기",
-                    "confidence": 0.9,
-                    "icon": "⏰",
-                    "reminderText": "원본 메시지 내용"
-                  },
-                  {
-                    "type": "location",
-                    "text": "📍 위치 공유하기",
-                    "confidence": 0.9,
-                    "icon": "📍",
-                    "requestMessage": "원본 메시지 내용"
-                  }
-                ]
-              }
-              
-              관련이 없으면 빈 배열로 응답: {"suggestions": []}
-              
-              YouTube의 경우 검색할 키워드를 정확히 추출하고, 나중에알림의 경우 원본 메시지를 reminderText로 저장하고, 위치공유의 경우 원본 메시지를 requestMessage로 저장하세요.
-              매칭되는 것이 없으면 빈 배열을 반환하세요.`
-            },
-            {
-              role: "user",
-              content: transcribedText
-            }
-          ],
-          response_format: { type: "json_object" }
-        });
-        
-        const analysisResult = JSON.parse(analysisResponse.choices[0].message.content || '{"suggestions":[]}');
-        smartSuggestions = analysisResult.suggestions || [];
-        
-        console.log("🤖 Smart suggestions analysis completed:", smartSuggestions.length, "suggestions");
-        
-      } catch (analysisError) {
-        console.error("Smart suggestions analysis failed:", analysisError);
-        // Continue without suggestions rather than failing the whole transcription
-      }
     }
     
     return {
@@ -528,8 +444,7 @@ export async function transcribeAudio(filePath: string): Promise<{
       transcription: transcribedText,
       duration: transcription.duration || 0,
       detectedLanguage,
-      confidence: 0.9, // Whisper doesn't provide confidence scores, but it's generally reliable
-      smartSuggestions
+      confidence: 0.9 // Whisper doesn't provide confidence scores, but it's generally reliable
     };
   } catch (error: any) {
     console.error("Audio transcription error:", {

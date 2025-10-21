@@ -12,51 +12,12 @@ import { apiRequest } from "@/lib/queryClient";
 import { InstantAvatar } from "@/components/InstantAvatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
-import YoutubeSelectionModal from "./YoutubeSelectionModal";
 import VoiceMessageConfirmModal from "./VoiceMessageConfirmModal";
 
 interface ContactsListProps {
   onAddContact: () => void;
   onSelectContact: (contactId: number) => void;
 }
-
-// Smart suggestion interface (from ChatsList)
-interface SmartSuggestion {
-  type: string;
-  text: string;
-  result?: string;
-  icon: string;
-  category: string;
-  keyword?: string;
-  confidence?: number;
-}
-
-const analyzeTextForSmartSuggestions = (text: string): SmartSuggestion[] => {
-  if (!text || text.trim().length < 2) {
-    return [];
-  }
-
-  const suggestions: SmartSuggestion[] = [];
-
-  // YouTube 감지
-  if (/유튜브|youtube|영상|비디오|뮤직비디오|mv|검색.*영상|영상.*검색|봐봐|보여.*영상/i.test(text)) {
-    const keyword = text
-      .replace(/유튜브|youtube|영상|비디오|뮤직비디오|mv|검색|찾아|보여|봐봐|해줘|하자|보자/gi, '')
-      .trim();
-    
-    suggestions.push({
-      type: 'youtube',
-      text: `🎥 YouTube에서 "${keyword}" 검색하기`,
-      result: `YouTube 영상을 검색합니다: ${keyword}`,
-      icon: '🎥',
-      category: 'YouTube 검색',
-      keyword: keyword || '검색',
-      confidence: 0.9
-    });
-  }
-
-  return suggestions;
-};
 
 export default function ContactsList({ onAddContact, onSelectContact }: ContactsListProps) {
   const { user } = useAuth();
@@ -77,11 +38,6 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const [recordingStartTime, setRecordingStartTime] = useState(0);
-
-  // YouTube 선택 모달 상태
-  const [showYoutubeModal, setShowYoutubeModal] = useState(false);
-  const [youtubeSearchQuery, setYoutubeSearchQuery] = useState("");
-  const [youtubeChatRoomId, setYoutubeChatRoomId] = useState<number | null>(null);
   
   // Voice Confirm Modal 상태
   const [showVoiceConfirmModal, setShowVoiceConfirmModal] = useState(false);
@@ -91,7 +47,6 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     duration: number;
     chatRoomId: number;
     contactUserId: number;
-    voiceSuggestions: SmartSuggestion[];
   } | null>(null);
 
   // Toggle favorite mutation
@@ -432,13 +387,6 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
         return;
       }
       
-      // 서버에서 받은 스마트 추천과 클라이언트 분석 결합
-      const serverSuggestions = result.smartSuggestions || [];
-      const clientSuggestions = analyzeTextForSmartSuggestions(result.transcription || '');
-      
-      // 서버 추천이 없으면 클라이언트 분석 사용
-      const voiceSuggestions = serverSuggestions.length > 0 ? serverSuggestions : clientSuggestions;
-      
       // 모달 데이터 설정 및 모달 표시
       console.log('📋 Voice Confirm Modal 표시');
       setVoiceConfirmData({
@@ -446,8 +394,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
         audioUrl: result.audioUrl,
         duration: result.duration || 0,
         chatRoomId: chatRoomId,
-        contactUserId: contact.contactUserId,
-        voiceSuggestions: voiceSuggestions
+        contactUserId: contact.contactUserId
       });
       setShowVoiceConfirmModal(true);
     } catch (error) {
@@ -457,47 +404,6 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
         description: "다시 시도해주세요.",
         variant: "destructive",
       });
-    }
-  };
-
-  // YouTube 비디오 선택 핸들러
-  const handleYoutubeVideoSelect = async (video: any) => {
-    if (!youtubeChatRoomId) {
-      console.error('❌ youtubeChatRoomId가 없음');
-      return;
-    }
-    
-    console.log('🎥 YouTube 비디오 선택됨:', video.title, 'for chat room:', youtubeChatRoomId);
-    
-    const youtubeMessage = {
-      content: `📺 ${youtubeSearchQuery} 추천 영상\n${video.title}`,
-      messageType: "text",
-      youtubePreview: video
-    };
-    
-    try {
-      const response = await fetch(`/api/chat-rooms/${youtubeChatRoomId}/messages`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'x-user-id': user!.id.toString(),
-        },
-        body: JSON.stringify(youtubeMessage),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to send YouTube message');
-      }
-      
-      console.log('✅ YouTube 메시지 전송 성공');
-      
-      // 메시지 목록 새로고침
-      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${youtubeChatRoomId}/messages`] });
-      
-      setShowYoutubeModal(false);
-      setYoutubeChatRoomId(null);
-    } catch (error) {
-      console.error('❌ YouTube 메시지 전송 실패:', error);
     }
   };
 
@@ -529,15 +435,6 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       }
       
       console.log('✅ 친구에게 음성 메시지 전송 완료');
-      
-      // YouTube 스마트 추천 처리
-      const youtubeSuggestion = voiceConfirmData.voiceSuggestions.find((s: SmartSuggestion) => s.type === 'youtube');
-      if (youtubeSuggestion) {
-        console.log('🎬 YouTube 추천 발견:', youtubeSuggestion.keyword);
-        setYoutubeSearchQuery(youtubeSuggestion.keyword || '');
-        setYoutubeChatRoomId(voiceConfirmData.chatRoomId);
-        setShowYoutubeModal(true);
-      }
       
       // 채팅방 목록 새로고침
       queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
@@ -871,14 +768,6 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* YouTube 선택 모달 */}
-      <YoutubeSelectionModal
-        isOpen={showYoutubeModal}
-        onClose={() => setShowYoutubeModal(false)}
-        onSelect={handleYoutubeVideoSelect}
-        initialQuery={youtubeSearchQuery}
-      />
 
       {/* Voice Message Confirm Modal */}
       {voiceConfirmData && (
