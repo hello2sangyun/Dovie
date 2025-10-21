@@ -48,5 +48,9 @@ args = "npm run db:push"
 localPort = 5000
 externalPort = 80
 
+[[ports]]
+localPort = 42199
+externalPort = 3000
+
 [agent]
 integrations = ["javascript_websocket==1.0.0"]

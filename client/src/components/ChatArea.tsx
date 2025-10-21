@@ -5665,21 +5665,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               accessibilityMode={accessibilitySettings.reducedMotion}
               hapticFeedback={accessibilitySettings.hapticEnabled}
               className="text-gray-500 hover:text-purple-600 hover:bg-purple-50 p-2 h-9 w-9 rounded-lg transition-all duration-200 flex items-center justify-center"
-              onClick={() => {
-                setMessage(prev => prev + "#");
-                messageInputRef.current?.focus();
-              }}
-              aria-label="스마트 추천"
-            >
-              <Hash className="h-4 w-4" />
-            </InteractiveButton>
-            
-            <InteractiveButton
-              type="hover"
-              intensity="moderate"
-              accessibilityMode={accessibilitySettings.reducedMotion}
-              hapticFeedback={accessibilitySettings.hapticEnabled}
-              className="text-gray-500 hover:text-purple-600 hover:bg-purple-50 p-2 h-9 w-9 rounded-lg transition-all duration-200 flex items-center justify-center"
               onClick={handleFileUpload}
               disabled={uploadFileMutation.isPending}
               aria-label="파일 첨부"
