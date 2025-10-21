@@ -306,7 +306,7 @@ export class DatabaseStorage implements IStorage {
       if (!lastMessageByRoom.has(message.messages.chatRoomId)) {
         lastMessageByRoom.set(message.messages.chatRoomId, {
           ...message.messages,
-          content: message.messages.content ? decryptText(message.messages.content) : null,
+          content: (message.messages.content && message.messages.content.trim()) ? decryptText(message.messages.content) : null,
           sender: message.users
         });
       }
@@ -410,7 +410,7 @@ export class DatabaseStorage implements IStorage {
 
     return rows.map(row => ({
       ...row.messages,
-      content: row.messages.content ? decryptText(row.messages.content) : null,
+      content: (row.messages.content && row.messages.content.trim()) ? decryptText(row.messages.content) : null,
       sender: row.users
     })).reverse();
   }
@@ -463,7 +463,7 @@ export class DatabaseStorage implements IStorage {
 
     return {
       ...result.messages,
-      content: result.messages.content ? decryptText(result.messages.content) : null,
+      content: (result.messages.content && result.messages.content.trim()) ? decryptText(result.messages.content) : null,
       sender: result.users
     } as Message & { sender: User };
   }
