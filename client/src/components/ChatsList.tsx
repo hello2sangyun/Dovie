@@ -759,6 +759,7 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
           transcription={voiceConfirmData.transcription}
           audioUrl={voiceConfirmData.audioUrl}
           duration={voiceConfirmData.duration}
+          chatRoomId={voiceConfirmData.chatRoomId}
           onSend={handleVoiceMessageSend}
           onReRecord={handleVoiceReRecord}
         />

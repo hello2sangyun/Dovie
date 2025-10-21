@@ -6298,6 +6298,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           transcription={voiceConfirmData.transcription}
           audioUrl={voiceConfirmData.audioUrl}
           duration={voiceConfirmData.duration}
+          chatRoomId={chatRoom.id}
           onSend={async (editedText: string) => {
             try {
               const messageData: any = {

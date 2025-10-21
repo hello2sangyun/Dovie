@@ -777,6 +777,7 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
           transcription={voiceConfirmData.transcription}
           audioUrl={voiceConfirmData.audioUrl}
           duration={voiceConfirmData.duration}
+          chatRoomId={voiceConfirmData.chatRoomId}
           onSend={handleVoiceMessageSend}
           onReRecord={handleVoiceReRecord}
         />

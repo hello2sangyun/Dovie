@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Mic, Send, X } from "lucide-react";
+import { Mic, Send, X, Sparkles } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 
 interface VoiceMessageConfirmModalProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface VoiceMessageConfirmModalProps {
   transcription: string;
   audioUrl: string;
   duration: number;
+  chatRoomId: number;
   onSend: (editedText: string) => Promise<void>;
   onReRecord: () => void;
 }
@@ -20,11 +22,59 @@ export default function VoiceMessageConfirmModal({
   transcription,
   audioUrl,
   duration,
+  chatRoomId,
   onSend,
   onReRecord,
 }: VoiceMessageConfirmModalProps) {
   const [editedText, setEditedText] = useState(transcription);
   const [isSending, setIsSending] = useState(false);
+  const [isCorrecting, setIsCorrecting] = useState(false);
+  const [aiCorrectionApplied, setAiCorrectionApplied] = useState(false);
+
+  // AI Voice Enhancement: Auto-correct transcription when modal opens
+  useEffect(() => {
+    if (isOpen && transcription && chatRoomId) {
+      correctTranscription();
+    } else {
+      // Reset state when modal closes
+      setEditedText(transcription);
+      setAiCorrectionApplied(false);
+    }
+  }, [isOpen, transcription, chatRoomId]);
+
+  const correctTranscription = async () => {
+    setIsCorrecting(true);
+    try {
+      console.log("AI Voice Enhancement: Correcting transcription...");
+      const response = await apiRequest(
+        "/api/voice-messages/correct-transcription",
+        "POST",
+        {
+          transcription,
+          chatRoomId,
+        }
+      );
+
+      const result = await response.json();
+      
+      if (result.success && result.correctedText) {
+        console.log("AI Voice Enhancement: Transcription corrected", {
+          original: transcription,
+          corrected: result.correctedText
+        });
+        setEditedText(result.correctedText);
+        setAiCorrectionApplied(true);
+      } else {
+        console.warn("AI Voice Enhancement: Correction failed, using original", result.error);
+        setEditedText(transcription);
+      }
+    } catch (error) {
+      console.error("AI Voice Enhancement: Error correcting transcription", error);
+      setEditedText(transcription);
+    } finally {
+      setIsCorrecting(false);
+    }
+  };
 
   const handleSend = async () => {
     setIsSending(true);
@@ -64,14 +114,29 @@ export default function VoiceMessageConfirmModal({
 
           {/* Transcription 편집 */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              인식된 텍스트 (수정 가능)
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                인식된 텍스트 (수정 가능)
+              </label>
+              {isCorrecting && (
+                <div className="flex items-center text-xs text-purple-600 dark:text-purple-400">
+                  <Sparkles className="w-3 h-3 mr-1 animate-pulse" />
+                  AI 보정 중...
+                </div>
+              )}
+              {aiCorrectionApplied && !isCorrecting && (
+                <div className="flex items-center text-xs text-purple-600 dark:text-purple-400">
+                  <Sparkles className="w-3 h-3 mr-1" />
+                  AI 보정 완료
+                </div>
+              )}
+            </div>
             <Textarea
               value={editedText}
               onChange={(e) => setEditedText(e.target.value)}
               placeholder="음성으로 인식된 텍스트를 수정할 수 있습니다..."
               className="min-h-[100px] resize-none"
+              disabled={isCorrecting}
               data-testid="textarea-transcription"
             />
             <p className="text-xs text-gray-500">
