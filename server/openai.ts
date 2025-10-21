@@ -689,3 +689,114 @@ Prioritize commonly used reaction emojis like: ❤️, 😂, 😢, 😮, 👍, �
     };
   }
 }
+
+// Analyze message for important notices (appointments, schedules, deadlines, important info)
+export async function analyzeMessageForNotices(
+  messageContent: string,
+  senderName: string,
+  chatRoomName: string
+): Promise<{
+  success: boolean;
+  hasNotice: boolean;
+  notices: Array<{
+    type: 'appointment' | 'schedule' | 'reminder' | 'important_info' | 'deadline';
+    content: string;
+    metadata?: {
+      date?: string;
+      time?: string;
+      location?: string;
+      participants?: string[];
+      priority?: 'low' | 'medium' | 'high';
+    };
+  }>;
+}> {
+  try {
+    console.log(`Analyzing message for notices: "${messageContent}"`);
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `당신은 채팅 메시지를 분석하여 중요한 알림을 감지하는 AI입니다.
+
+다음과 같은 정보를 감지하고 JSON 형식으로 반환하세요:
+
+1. **appointment** (약속): 특정 시간과 장소에서 만나는 약속
+   예: "내일 3시에 강남역에서 보자", "다음주 월요일 저녁 7시 회의"
+
+2. **schedule** (일정): 특정 날짜에 해야 할 일이나 행사
+   예: "이번 주말에 여행 가자", "다음달 15일이 발표날"
+
+3. **deadline** (마감): 특정 날짜까지 완료해야 하는 일
+   예: "금요일까지 보고서 제출", "내일까지 결제해야 해"
+
+4. **reminder** (리마인더): 잊지 말아야 할 중요한 사항
+   예: "엄마 생일 잊지마", "내일 택배 받아야 해"
+
+5. **important_info** (중요 정보): 기억해야 할 중요한 정보
+   예: "비밀번호는 1234야", "회의실은 3층이야"
+
+분석 규칙:
+- 일상적인 대화는 무시 (예: "안녕", "뭐해?", "ㅋㅋㅋ")
+- 명확한 날짜/시간이 있는 경우 metadata에 포함
+- 장소 정보가 있으면 location에 포함
+- 참석자 정보가 있으면 participants에 포함
+- 긴급도에 따라 priority 설정 (high/medium/low)
+
+응답 형식:
+{
+  "hasNotice": true/false,
+  "notices": [
+    {
+      "type": "appointment",
+      "content": "간결한 알림 내용 (한 문장)",
+      "metadata": {
+        "date": "2024-01-15",
+        "time": "15:00",
+        "location": "강남역",
+        "participants": ["수진", "민수"],
+        "priority": "high"
+      }
+    }
+  ]
+}`
+        },
+        {
+          role: "user",
+          content: `채팅방: ${chatRoomName}
+보낸 사람: ${senderName}
+메시지: "${messageContent}"
+
+이 메시지에서 중요한 알림을 추출하세요.`
+        }
+      ],
+      response_format: { type: "json_object" },
+      max_tokens: 500,
+      temperature: 0.3
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || '{"hasNotice": false, "notices": []}');
+
+    console.log(`AI Notice Analysis Result:`, result);
+
+    return {
+      success: true,
+      hasNotice: result.hasNotice || false,
+      notices: result.notices || []
+    };
+
+  } catch (error: any) {
+    console.error("AI Notice Analysis error:", {
+      message: error.message,
+      status: error.status,
+      code: error.code
+    });
+
+    return {
+      success: false,
+      hasNotice: false,
+      notices: []
+    };
+  }
+}

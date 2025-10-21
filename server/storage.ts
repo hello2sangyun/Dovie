@@ -1,7 +1,7 @@
 import { 
   users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications,
   fileUploads, fileDownloads, businessProfiles, userPosts, locationShareRequests, locationShares, reminders,
-  messageReactions, messageLikes, pushSubscriptions, iosDeviceTokens,
+  messageReactions, messageLikes, pushSubscriptions, iosDeviceTokens, aiNotices,
   type User, type InsertUser, type Contact, type InsertContact,
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
   type Command, type InsertCommand, type MessageRead, type InsertMessageRead,
@@ -12,7 +12,8 @@ import {
   type LocationShareRequest, type InsertLocationShareRequest,
   type LocationShare, type InsertLocationShare,
   type Reminder, type InsertReminder,
-  type MessageReaction, type InsertMessageReaction
+  type MessageReaction, type InsertMessageReaction,
+  type AiNotice, type InsertAiNotice
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, or, count, gt, lt, sql, inArray } from "drizzle-orm";
@@ -107,6 +108,13 @@ export interface IStorage {
   updateReminder(reminderId: number, userId: number, updates: Partial<InsertReminder>): Promise<Reminder | undefined>;
   deleteReminder(reminderId: number, userId: number): Promise<void>;
   getPendingReminders(): Promise<Reminder[]>;
+
+  // AI Notice operations
+  createAiNotice(notice: InsertAiNotice): Promise<AiNotice>;
+  getUserAiNotices(userId: number): Promise<AiNotice[]>;
+  getChatRoomAiNotices(userId: number, chatRoomId: number): Promise<AiNotice[]>;
+  markAiNoticeAsRead(noticeId: number, userId: number): Promise<void>;
+  getUnreadAiNoticesCount(userId: number): Promise<number>;
 
   // Message reaction operations
   addMessageReaction(messageId: number, userId: number, emoji: string, emojiName: string): Promise<void>;
@@ -868,6 +876,46 @@ export class DatabaseStorage implements IStorage {
         lt(reminders.reminderTime, now)
       ))
       .orderBy(asc(reminders.reminderTime));
+  }
+
+  // AI Notice operations implementation
+  async createAiNotice(notice: InsertAiNotice): Promise<AiNotice> {
+    const [newNotice] = await db.insert(aiNotices).values(notice).returning();
+    return newNotice;
+  }
+
+  async getUserAiNotices(userId: number): Promise<AiNotice[]> {
+    return await db.select().from(aiNotices)
+      .where(eq(aiNotices.userId, userId))
+      .orderBy(desc(aiNotices.createdAt));
+  }
+
+  async getChatRoomAiNotices(userId: number, chatRoomId: number): Promise<AiNotice[]> {
+    return await db.select().from(aiNotices)
+      .where(and(
+        eq(aiNotices.userId, userId),
+        eq(aiNotices.chatRoomId, chatRoomId)
+      ))
+      .orderBy(desc(aiNotices.createdAt));
+  }
+
+  async markAiNoticeAsRead(noticeId: number, userId: number): Promise<void> {
+    await db.update(aiNotices)
+      .set({ isRead: true })
+      .where(and(
+        eq(aiNotices.id, noticeId),
+        eq(aiNotices.userId, userId)
+      ));
+  }
+
+  async getUnreadAiNoticesCount(userId: number): Promise<number> {
+    const result = await db.select({ count: count() })
+      .from(aiNotices)
+      .where(and(
+        eq(aiNotices.userId, userId),
+        eq(aiNotices.isRead, false)
+      ));
+    return result[0]?.count || 0;
   }
 
   // Message reaction operations

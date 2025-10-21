@@ -5,7 +5,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, insertUserPostSchema, insertPostLikeSchema, insertPostCommentSchema, insertCompanyChannelSchema, insertCompanyProfileSchema, insertLocationShareRequestSchema, insertLocationShareSchema, chatRooms, chatParticipants, userPosts, postLikes, postComments, companyChannels, companyChannelFollowers, companyChannelAdmins, users, businessProfiles, contacts, businessPostReads, businessPosts, businessPostLikes, companyProfiles, messages, messageLikes, linkPreviews, locationShares } from "@shared/schema";
 import { sql } from "drizzle-orm";
-import { translateText, transcribeAudio, answerChatQuestion } from "./openai";
+import { translateText, transcribeAudio, answerChatQuestion, analyzeMessageForNotices } from "./openai";
 import bcrypt from "bcryptjs";
 import multer from "multer";
 import path from "path";
@@ -1421,6 +1421,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: "new_message",
         message: messageWithSender,
       });
+
+      // Background AI Notice Analysis (non-blocking)
+      // Analyze text messages for appointments, schedules, and important info
+      if (messageData.messageType === 'text' && messageData.content && 
+          typeof messageData.content === 'string' && !messageData.isSystemMessage) {
+        
+        // Run AI analysis in background (don't await to avoid delaying message send)
+        const sender = await storage.getUser(Number(userId));
+        const chatRoom = await storage.getChatRoomById(Number(req.params.chatRoomId));
+        
+        if (sender && chatRoom) {
+          (async () => {
+            try {
+              console.log(`🤖 AI Notice Analysis: Analyzing message from ${sender.displayName}`);
+              
+              const analysisResult = await analyzeMessageForNotices(
+                messageData.content!,
+                sender.displayName || sender.username,
+                chatRoom.name || 'Chat'
+              );
+              
+              if (analysisResult.success && analysisResult.hasNotice && analysisResult.notices.length > 0) {
+                console.log(`🔔 AI detected ${analysisResult.notices.length} notice(s)`);
+                
+                // Save notices to database for all chat participants
+                const participants = chatRoom.participants?.filter((p: any) => p.id !== Number(userId)) || [];
+                
+                for (const notice of analysisResult.notices) {
+                  for (const participant of participants) {
+                    try {
+                      await storage.createAiNotice({
+                        chatRoomId: Number(req.params.chatRoomId),
+                        messageId: message.id,
+                        userId: participant.id,
+                        noticeType: notice.type,
+                        content: notice.content,
+                        metadata: notice.metadata || null,
+                        isRead: false
+                      });
+                      
+                      console.log(`✅ Created AI notice for user ${participant.id}: ${notice.type} - ${notice.content}`);
+                      
+                      // Notify user via WebSocket
+                      broadcastToUser(participant.id, {
+                        type: "ai_notice",
+                        notice: {
+                          chatRoomId: Number(req.params.chatRoomId),
+                          messageId: message.id,
+                          noticeType: notice.type,
+                          content: notice.content,
+                          metadata: notice.metadata
+                        }
+                      });
+                    } catch (noticeError) {
+                      console.error(`❌ Failed to create AI notice for user ${participant.id}:`, noticeError);
+                    }
+                  }
+                }
+              } else {
+                console.log(`🤖 AI Notice Analysis: No important notices detected`);
+              }
+            } catch (aiError) {
+              console.error("Background AI Notice Analysis error:", aiError);
+              // Silently fail - don't block message sending
+            }
+          })();
+        }
+      }
 
       res.json({ message: messageWithSender });
     } catch (error: any) {

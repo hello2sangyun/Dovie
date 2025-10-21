@@ -109,10 +109,13 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recording.webm');
 
-      const response = await apiRequest('/api/transcribe', 'POST', formData, {
+      const userId = localStorage.getItem("userId");
+      const response = await fetch('/api/transcribe', {
+        method: 'POST',
         headers: {
-          // Don't set Content-Type, let browser set it with boundary
-        }
+          ...(userId ? { "x-user-id": userId } : {})
+        },
+        body: formData
       });
 
       if (!response.ok) {
