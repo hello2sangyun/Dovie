@@ -306,7 +306,7 @@ export class DatabaseStorage implements IStorage {
       if (!lastMessageByRoom.has(message.messages.chatRoomId)) {
         lastMessageByRoom.set(message.messages.chatRoomId, {
           ...message.messages,
-          content: decryptText(message.messages.content),
+          content: message.messages.content ? decryptText(message.messages.content) : null,
           sender: message.users
         });
       }
