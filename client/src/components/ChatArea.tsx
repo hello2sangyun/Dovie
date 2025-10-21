@@ -33,6 +33,7 @@ import ReminderTimeModal from "./ReminderTimeModal";
 import YoutubeSelectionModal from "./YoutubeSelectionModal";
 import { ConnectionStatusIndicator } from "./ConnectionStatusIndicator";
 import { VoiceMessagePreviewModal } from "./VoiceMessagePreviewModal";
+import VoiceMessageConfirmModal from "./VoiceMessageConfirmModal";
 import GestureQuickReply from "./GestureQuickReply";
 import { HashtagSuggestion } from "./HashtagSuggestion";
 import { AIChatAssistantModal } from "./AIChatAssistantModal";
@@ -390,6 +391,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     duration: 0,
     audioUrl: ""
   });
+  
+  // Voice Confirm Modal state
+  const [showVoiceConfirmModal, setShowVoiceConfirmModal] = useState(false);
+  const [voiceConfirmData, setVoiceConfirmData] = useState<{
+    transcription: string;
+    audioUrl: string;
+    duration: number;
+    smartSuggestions: any[];
+  } | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [playingAudio, setPlayingAudio] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -959,14 +969,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             description: `"${result.transcription}" - 스마트 추천을 확인해보세요`,
           });
         } else {
-          // 스마트 추천이 없는 경우도 미리보기 모달 표시
-          setVoicePreviewData({
-            audioBlob: result.audioBlob || null,
-            transcribedText: result.transcription,
+          // 스마트 추천이 없는 경우 VoiceMessageConfirmModal 표시
+          setVoiceConfirmData({
+            transcription: result.transcription,
+            audioUrl: result.audioUrl || "",
             duration: result.duration || 0,
-            audioUrl: result.audioUrl || ""
+            smartSuggestions: []
           });
-          setShowVoicePreview(true);
+          setShowVoiceConfirmModal(true);
         }
         
         // 회신 모드 해제
@@ -6551,6 +6561,70 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         duration={voicePreviewData.duration}
         isProcessing={isProcessingVoice}
       />
+
+      {/* Voice Message Confirm Modal */}
+      {voiceConfirmData && (
+        <VoiceMessageConfirmModal
+          isOpen={showVoiceConfirmModal}
+          onClose={() => {
+            setShowVoiceConfirmModal(false);
+            setVoiceConfirmData(null);
+          }}
+          transcription={voiceConfirmData.transcription}
+          audioUrl={voiceConfirmData.audioUrl}
+          duration={voiceConfirmData.duration}
+          onSend={async (editedText: string) => {
+            try {
+              const messageData: any = {
+                content: editedText,
+                messageType: "voice",
+                fileUrl: voiceConfirmData.audioUrl,
+                fileName: "voice_message.webm",
+                fileSize: 0,
+                voiceDuration: Math.round(voiceConfirmData.duration),
+                detectedLanguage: "korean",
+                confidence: "0.9"
+              };
+
+              if (replyToMessage) {
+                messageData.replyToMessageId = replyToMessage.id;
+                messageData.replyToContent = replyToMessage.messageType === 'voice' && replyToMessage.transcription 
+                  ? replyToMessage.transcription 
+                  : replyToMessage.content;
+                messageData.replyToSender = replyToMessage.sender.displayName;
+              }
+
+              await sendMessageMutation.mutateAsync(messageData);
+              
+              setShowVoiceConfirmModal(false);
+              setVoiceConfirmData(null);
+              setReplyToMessage(null);
+              
+              toast({
+                title: "음성 메시지 전송 완료!",
+                description: editedText ? `"${editedText}"` : "음성이 텍스트로 변환되어 전송되었습니다.",
+              });
+            } catch (error) {
+              console.error('❌ 음성 메시지 전송 실패:', error);
+              toast({
+                variant: "destructive",
+                title: "메시지 전송 실패",
+                description: "다시 시도해주세요.",
+              });
+              // 에러를 다시 throw하여 모달이 닫히지 않도록 함
+              throw error;
+            }
+          }}
+          onReRecord={() => {
+            setShowVoiceConfirmModal(false);
+            setVoiceConfirmData(null);
+            toast({
+              title: "다시 녹음",
+              description: "음성 녹음 버튼을 눌러 다시 녹음하세요.",
+            });
+          }}
+        />
+      )}
 
     </div>
   );

@@ -17,6 +17,7 @@ import { Plus, Search, Pin, Users, X, Trash2, LogOut, MoreVertical, Mic } from "
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 import YoutubeSelectionModal from "./YoutubeSelectionModal";
+import VoiceMessageConfirmModal from "./VoiceMessageConfirmModal";
 // Unified smart suggestion system - copied inline to avoid import issues
 interface SmartSuggestion {
   type: string;
@@ -99,6 +100,16 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
   // YouTube 선택 모달 상태
   const [showYoutubeModal, setShowYoutubeModal] = useState(false);
   const [youtubeSearchQuery, setYoutubeSearchQuery] = useState("");
+  
+  // Voice Confirm Modal 상태
+  const [showVoiceConfirmModal, setShowVoiceConfirmModal] = useState(false);
+  const [voiceConfirmData, setVoiceConfirmData] = useState<{
+    transcription: string;
+    audioUrl: string;
+    duration: number;
+    chatRoomId: number;
+    voiceSuggestions: SmartSuggestion[];
+  } | null>(null);
 
   // YouTube 비디오 선택 핸들러 - ChatArea와 동일한 구조로 수정
   const handleYoutubeVideoSelect = async (video: any) => {
@@ -153,6 +164,104 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
         description: "다시 시도해주세요.",
       });
     }
+  };
+
+  // Voice Confirm Modal 콜백 함수들
+  const handleVoiceMessageSend = async (editedText: string) => {
+    if (!voiceConfirmData) return;
+    
+    try {
+      console.log('📨 편집된 음성 메시지 전송:', editedText);
+      
+      const messageData = {
+        content: editedText,
+        messageType: "voice",
+        fileUrl: voiceConfirmData.audioUrl,
+        fileName: "voice_message.webm",
+        fileSize: 0,
+        voiceDuration: Math.round(voiceConfirmData.duration),
+        detectedLanguage: "korean",
+        confidence: String(0.9)
+      };
+
+      const messageResponse = await fetch(`/api/chat-rooms/${voiceConfirmData.chatRoomId}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': user!.id.toString(),
+        },
+        body: JSON.stringify(messageData),
+      });
+
+      if (messageResponse.ok) {
+        console.log('✅ 음성 메시지 전송 성공!');
+        
+        // 캐시 무효화
+        queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${voiceConfirmData.chatRoomId}/messages`] });
+        queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+        
+        // 해당 채팅방으로 자동 이동
+        onSelectChat(voiceConfirmData.chatRoomId);
+        
+        // 스마트 추천 처리 (YouTube)
+        if (voiceConfirmData.voiceSuggestions.length > 0) {
+          const youtubeSuggestion = voiceConfirmData.voiceSuggestions.find((s: any) => s.type === 'youtube');
+          if (youtubeSuggestion && youtubeSuggestion.keyword) {
+            setYoutubeSearchQuery(youtubeSuggestion.keyword);
+            setRecordingChatRoom({ id: voiceConfirmData.chatRoomId });
+            
+            setTimeout(() => {
+              setShowYoutubeModal(true);
+            }, 500);
+          }
+        }
+        
+        // 모달 닫기 (성공 시에만)
+        setShowVoiceConfirmModal(false);
+        setVoiceConfirmData(null);
+        
+        toast({
+          title: "음성 메시지 전송 완료",
+          description: editedText ? `"${editedText}"` : "음성이 텍스트로 변환되어 전송되었습니다.",
+        });
+      } else {
+        throw new Error('Failed to send message');
+      }
+    } catch (error) {
+      console.error('❌ 음성 메시지 전송 실패:', error);
+      toast({
+        variant: "destructive",
+        title: "메시지 전송 실패",
+        description: "다시 시도해주세요.",
+      });
+      // 에러를 다시 throw하여 모달이 닫히지 않도록 함
+      throw error;
+    }
+  };
+
+  const handleVoiceReRecord = () => {
+    console.log('🔄 다시 녹음 시작');
+    
+    // 모달 닫기
+    setShowVoiceConfirmModal(false);
+    
+    // 녹음 시작 (현재 chatRoom context 유지)
+    if (voiceConfirmData) {
+      const chatRoom = (chatRoomsData as any)?.chatRooms?.find((room: any) => room.id === voiceConfirmData.chatRoomId);
+      if (chatRoom) {
+        setTimeout(() => {
+          startVoiceRecording(chatRoom);
+        }, 300);
+      }
+    }
+    
+    setVoiceConfirmData(null);
+  };
+
+  const handleVoiceModalClose = () => {
+    console.log('❌ Voice Confirm Modal 닫기');
+    setShowVoiceConfirmModal(false);
+    setVoiceConfirmData(null);
   };
 
   // 채팅방 나가기 mutation
@@ -499,80 +608,16 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
         console.log(`🎯 Suggestion ${index}:`, suggestion);
       });
       
-      // 먼저 음성 메시지 전송
-      const messageData = {
-        content: result.transcription,
-        messageType: "voice",
-        fileUrl: result.audioUrl,
-        fileName: "voice_message.webm",
-        fileSize: 0,
-        voiceDuration: Math.round(result.duration || 0),
-        detectedLanguage: result.detectedLanguage || "korean",
-        confidence: String(result.confidence || 0.9)
-      };
-
-      console.log('📨 메시지 전송 데이터:', messageData);
-
-      // 메시지 전송
-      const messageResponse = await fetch(`/api/chat-rooms/${chatRoom.id}/messages`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-user-id': user!.id.toString(),
-        },
-        body: JSON.stringify(messageData),
+      // 모달 데이터 설정 및 모달 표시
+      console.log('📋 Voice Confirm Modal 표시');
+      setVoiceConfirmData({
+        transcription: result.transcription || '',
+        audioUrl: result.audioUrl,
+        duration: result.duration || 0,
+        chatRoomId: chatRoom.id,
+        voiceSuggestions: voiceSuggestions
       });
-
-      if (messageResponse.ok) {
-        console.log('✅ 채팅방 간편음성메세지 전송 성공!');
-        
-        // 캐시 무효화로 메시지 목록 새로고침
-        queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoom.id}/messages`] });
-        queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
-        
-        // 해당 채팅방으로 자동 이동
-        onSelectChat(chatRoom.id);
-        
-        // 핵심 문제 해결: 채팅방 이동 전에 스마트 추천 처리해야 함
-        if (voiceSuggestions.length > 0) {
-          console.log('🎯 ChatsList 스마트 추천 처리 시작:', voiceSuggestions.length, '개');
-          
-          // YouTube 추천 우선 처리 (채팅방 이동 전)
-          const youtubeSuggestion = voiceSuggestions.find((s: any) => s.type === 'youtube');
-          if (youtubeSuggestion && youtubeSuggestion.keyword) {
-            console.log('🎥 YouTube 추천 감지 - 키워드:', youtubeSuggestion.keyword);
-            console.log('🎥 recordingChatRoom 설정:', chatRoom.id);
-            
-            // 상태 설정
-            setYoutubeSearchQuery(youtubeSuggestion.keyword);
-            setRecordingChatRoom(chatRoom);
-            
-            // 채팅방 이동 후 YouTube 모달 표시
-            setTimeout(() => {
-              console.log('🎥 YouTube 모달 표시 시도');
-              console.log('🎥 현재 상태 - showYoutubeModal:', false, '→ true');
-              console.log('🎥 현재 상태 - youtubeSearchQuery:', youtubeSuggestion.keyword);
-              console.log('🎥 현재 상태 - recordingChatRoom:', chatRoom.id);
-              setShowYoutubeModal(true);
-            }, 500); // 더 긴 딜레이로 채팅방 전환 완료 대기
-          }
-          
-          // 다른 스마트 추천들은 ChatArea에서 처리될 것임
-          const otherSuggestions = voiceSuggestions.filter((s: any) => s.type !== 'youtube');
-          if (otherSuggestions.length > 0) {
-            console.log('🎯 다른 스마트 추천들 감지됨:', otherSuggestions.map((s: any) => s.type).join(', '));
-            console.log('🎯 이 추천들은 ChatArea에서 처리될 예정');
-          }
-        }
-        
-        toast({
-          title: "음성 메시지 전송 완료",
-          description: result.transcription ? `"${result.transcription}"` : "음성이 텍스트로 변환되어 전송되었습니다.",
-        });
-      } else {
-        const errorText = await messageResponse.text();
-        console.error('❌ 채팅방 간편음성메세지 전송 실패:', messageResponse.status, errorText);
-      }
+      setShowVoiceConfirmModal(true);
     } catch (error) {
       console.error('❌ 채팅방 간편음성메세지 전체 프로세스 실패:', error);
       console.error('❌ 오류 상세 정보:', {
@@ -987,6 +1032,19 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
         onSelect={handleYoutubeVideoSelect}
         initialQuery={youtubeSearchQuery}
       />
+
+      {/* Voice Message Confirm Modal */}
+      {voiceConfirmData && (
+        <VoiceMessageConfirmModal
+          isOpen={showVoiceConfirmModal}
+          onClose={handleVoiceModalClose}
+          transcription={voiceConfirmData.transcription}
+          audioUrl={voiceConfirmData.audioUrl}
+          duration={voiceConfirmData.duration}
+          onSend={handleVoiceMessageSend}
+          onReRecord={handleVoiceReRecord}
+        />
+      )}
     </div>
   );
 }

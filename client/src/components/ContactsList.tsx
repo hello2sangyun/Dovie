@@ -13,6 +13,7 @@ import { InstantAvatar } from "@/components/InstantAvatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import YoutubeSelectionModal from "./YoutubeSelectionModal";
+import VoiceMessageConfirmModal from "./VoiceMessageConfirmModal";
 
 interface ContactsListProps {
   onAddContact: () => void;
@@ -81,6 +82,17 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
   const [showYoutubeModal, setShowYoutubeModal] = useState(false);
   const [youtubeSearchQuery, setYoutubeSearchQuery] = useState("");
   const [youtubeChatRoomId, setYoutubeChatRoomId] = useState<number | null>(null);
+  
+  // Voice Confirm Modal 상태
+  const [showVoiceConfirmModal, setShowVoiceConfirmModal] = useState(false);
+  const [voiceConfirmData, setVoiceConfirmData] = useState<{
+    transcription: string;
+    audioUrl: string;
+    duration: number;
+    chatRoomId: number;
+    contactUserId: number;
+    voiceSuggestions: SmartSuggestion[];
+  } | null>(null);
 
   // Toggle favorite mutation
   const toggleFavoriteMutation = useMutation({
@@ -427,46 +439,17 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       // 서버 추천이 없으면 클라이언트 분석 사용
       const voiceSuggestions = serverSuggestions.length > 0 ? serverSuggestions : clientSuggestions;
       
-      // 먼저 음성 메시지 전송
-      const voiceMessageData = {
-        messageType: 'voice',
-        content: result.transcription || '',
-        fileUrl: result.audioUrl,
-        voiceDuration: result.duration || 0
-      };
-      
-      const sendResponse = await fetch(`/api/chat-rooms/${chatRoomId}/messages`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-user-id': user!.id.toString(),
-        },
-        body: JSON.stringify(voiceMessageData),
+      // 모달 데이터 설정 및 모달 표시
+      console.log('📋 Voice Confirm Modal 표시');
+      setVoiceConfirmData({
+        transcription: result.transcription || '',
+        audioUrl: result.audioUrl,
+        duration: result.duration || 0,
+        chatRoomId: chatRoomId,
+        contactUserId: contact.contactUserId,
+        voiceSuggestions: voiceSuggestions
       });
-      
-      if (!sendResponse.ok) {
-        throw new Error('Failed to send voice message');
-      }
-      
-      console.log('✅ 친구에게 음성 메시지 전송 완료');
-      
-      // YouTube 스마트 추천 처리
-      const youtubeSuggestion = voiceSuggestions.find((s: SmartSuggestion) => s.type === 'youtube');
-      if (youtubeSuggestion) {
-        console.log('🎬 YouTube 추천 발견:', youtubeSuggestion.keyword);
-        setYoutubeSearchQuery(youtubeSuggestion.keyword || '');
-        setYoutubeChatRoomId(chatRoomId);
-        setShowYoutubeModal(true);
-      }
-      
-      // 채팅방 목록 새로고침
-      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
-      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] });
-      
-      toast({
-        title: "음성 메시지 전송 완료",
-        description: `${contact.contactUser.displayName}님에게 전송되었습니다.`,
-      });
+      setShowVoiceConfirmModal(true);
     } catch (error) {
       console.error('❌ 친구 음성 메시지 전송 실패:', error);
       toast({
@@ -516,6 +499,93 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
     } catch (error) {
       console.error('❌ YouTube 메시지 전송 실패:', error);
     }
+  };
+
+  // Voice Confirm Modal 콜백 함수들
+  const handleVoiceMessageSend = async (editedText: string) => {
+    if (!voiceConfirmData) return;
+    
+    try {
+      console.log('📨 편집된 음성 메시지 전송:', editedText);
+      
+      const voiceMessageData = {
+        messageType: 'voice',
+        content: editedText,
+        fileUrl: voiceConfirmData.audioUrl,
+        voiceDuration: voiceConfirmData.duration
+      };
+      
+      const sendResponse = await fetch(`/api/chat-rooms/${voiceConfirmData.chatRoomId}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': user!.id.toString(),
+        },
+        body: JSON.stringify(voiceMessageData),
+      });
+      
+      if (!sendResponse.ok) {
+        throw new Error('Failed to send voice message');
+      }
+      
+      console.log('✅ 친구에게 음성 메시지 전송 완료');
+      
+      // YouTube 스마트 추천 처리
+      const youtubeSuggestion = voiceConfirmData.voiceSuggestions.find((s: SmartSuggestion) => s.type === 'youtube');
+      if (youtubeSuggestion) {
+        console.log('🎬 YouTube 추천 발견:', youtubeSuggestion.keyword);
+        setYoutubeSearchQuery(youtubeSuggestion.keyword || '');
+        setYoutubeChatRoomId(voiceConfirmData.chatRoomId);
+        setShowYoutubeModal(true);
+      }
+      
+      // 채팅방 목록 새로고침
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${voiceConfirmData.chatRoomId}/messages`] });
+      
+      // 모달 닫기 (성공 시에만)
+      setShowVoiceConfirmModal(false);
+      setVoiceConfirmData(null);
+      
+      toast({
+        title: "음성 메시지 전송 완료",
+        description: editedText ? `"${editedText}"` : "음성이 텍스트로 변환되어 전송되었습니다.",
+      });
+    } catch (error) {
+      console.error('❌ 음성 메시지 전송 실패:', error);
+      toast({
+        title: "음성 메시지 전송 실패",
+        description: "다시 시도해주세요.",
+        variant: "destructive",
+      });
+      // 에러를 다시 throw하여 모달이 닫히지 않도록 함
+      throw error;
+    }
+  };
+
+  const handleVoiceReRecord = () => {
+    console.log('🔄 다시 녹음 시작');
+    
+    // 모달 닫기
+    setShowVoiceConfirmModal(false);
+    
+    // 녹음 시작 (현재 contact context 유지)
+    if (voiceConfirmData) {
+      const contact = (contactsData as any)?.find((c: any) => c.contactUserId === voiceConfirmData.contactUserId);
+      if (contact) {
+        setTimeout(() => {
+          startVoiceRecording(contact);
+        }, 300);
+      }
+    }
+    
+    setVoiceConfirmData(null);
+  };
+
+  const handleVoiceModalClose = () => {
+    console.log('❌ Voice Confirm Modal 닫기');
+    setShowVoiceConfirmModal(false);
+    setVoiceConfirmData(null);
   };
 
   const getOnlineStatus = (user: any) => {
@@ -809,6 +879,19 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
         onSelect={handleYoutubeVideoSelect}
         initialQuery={youtubeSearchQuery}
       />
+
+      {/* Voice Message Confirm Modal */}
+      {voiceConfirmData && (
+        <VoiceMessageConfirmModal
+          isOpen={showVoiceConfirmModal}
+          onClose={handleVoiceModalClose}
+          transcription={voiceConfirmData.transcription}
+          audioUrl={voiceConfirmData.audioUrl}
+          duration={voiceConfirmData.duration}
+          onSend={handleVoiceMessageSend}
+          onReRecord={handleVoiceReRecord}
+        />
+      )}
     </div>
   );
 }
