@@ -610,6 +610,100 @@ export async function generateFileSummary(fileName: string, fileType: string, fi
   }
 }
 
+// AI Chat Assistant - Answer questions based on chat room context
+export async function answerChatQuestion(
+  question: string,
+  chatMessages: Array<{ senderName: string; content: string; createdAt: string; messageType?: string }>
+): Promise<CommandResponse> {
+  try {
+    console.log(`AI Chat Assistant: Answering question with ${chatMessages.length} messages as context`);
+    
+    // Prepare chat context from messages
+    const chatContext = chatMessages
+      .slice(-100) // Use last 100 messages for context
+      .map(msg => {
+        const date = new Date(msg.createdAt).toLocaleString('ko-KR');
+        const content = msg.messageType === 'file' ? '[파일]' : 
+                       msg.messageType === 'voice' ? '[음성 메시지]' : 
+                       msg.messageType === 'image' ? '[이미지]' : 
+                       msg.content;
+        return `[${date}] ${msg.senderName}: ${content}`;
+      })
+      .join('\n');
+    
+    if (!chatContext.trim()) {
+      return {
+        success: false,
+        content: "아직 대화 내용이 없어서 답변할 수 없습니다. 채팅을 시작한 후 다시 질문해주세요.",
+        type: 'text'
+      };
+    }
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `당신은 Dovie Messenger의 AI 어시스턴트입니다. 채팅방의 대화 내용을 분석하여 사용자의 질문에 정확하고 친절하게 답변하세요.
+
+답변 가이드라인:
+1. 채팅 기록에 명확한 정보가 있으면 정확히 인용하여 답변하세요
+2. 날짜, 시간, 이름 등 구체적인 정보를 포함하세요
+3. 정보가 불확실하거나 없으면 솔직히 말하세요
+4. 친근하고 자연스러운 한국어로 대화하세요
+5. 답변은 간결하고 명확하게 작성하세요 (3-4 문장 이내)
+
+예시:
+질문: "수진이 생일이 언제야?"
+답변: "채팅 기록을 보니 1월 15일에 수진님이 '내일이 내 생일이야'라고 하셨어요. 그러니까 수진님 생일은 1월 16일입니다!"
+
+질문: "내일 뭐한다고 했지?"
+답변: "어제 대화에서 '내일 저녁 7시에 강남역에서 만나자'고 약속하셨네요. 잊지 마세요!"
+
+질문: "지난주에 무슨 영화 봤어?"
+답변: "죄송하지만 채팅 기록에 영화에 대한 대화가 없어서 확인할 수 없습니다."`
+        },
+        {
+          role: "user",
+          content: `채팅 기록:\n${chatContext}\n\n질문: ${question}`
+        }
+      ],
+      max_tokens: 500,
+      temperature: 0.7
+    });
+
+    const answer = response.choices[0].message.content?.trim();
+    
+    if (!answer) {
+      return {
+        success: false,
+        content: "답변을 생성하지 못했습니다. 다시 시도해주세요.",
+        type: 'text'
+      };
+    }
+
+    console.log("AI Chat Assistant: Answer generated successfully");
+    
+    return {
+      success: true,
+      content: answer,
+      type: 'text'
+    };
+  } catch (error: any) {
+    console.error("AI Chat Assistant error:", {
+      message: error.message,
+      status: error.status,
+      code: error.code
+    });
+    
+    return {
+      success: false,
+      content: `AI 답변 실패: ${error.message || 'Unknown error'}. 잠시 후 다시 시도해주세요.`,
+      type: 'text'
+    };
+  }
+}
+
 // Analyze message content and suggest personalized emoji reactions
 export async function analyzeMessageForEmojiSuggestions(
   messageContent: string, 

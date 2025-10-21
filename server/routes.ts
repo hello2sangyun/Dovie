@@ -5,7 +5,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, insertUserPostSchema, insertPostLikeSchema, insertPostCommentSchema, insertCompanyChannelSchema, insertCompanyProfileSchema, insertLocationShareRequestSchema, insertLocationShareSchema, chatRooms, chatParticipants, userPosts, postLikes, postComments, companyChannels, companyChannelFollowers, companyChannelAdmins, users, businessProfiles, contacts, businessPostReads, businessPosts, businessPostLikes, companyProfiles, messages, messageLikes, linkPreviews, locationShares } from "@shared/schema";
 import { sql } from "drizzle-orm";
-import { translateText, transcribeAudio } from "./openai";
+import { translateText, transcribeAudio, answerChatQuestion } from "./openai";
 import bcrypt from "bcryptjs";
 import multer from "multer";
 import path from "path";
@@ -1497,6 +1497,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Message edit error:", error);
       res.status(500).json({ message: "Failed to edit message" });
+    }
+  });
+
+  // AI Chat Assistant endpoint - Answer questions based on chat room context
+  app.post("/api/chat-rooms/:chatRoomId/ai-assistant", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const chatRoomId = Number(req.params.chatRoomId);
+      const { question } = req.body;
+
+      if (!question || typeof question !== 'string' || question.trim().length === 0) {
+        return res.status(400).json({ 
+          success: false,
+          message: "질문을 입력해주세요." 
+        });
+      }
+
+      // Verify user is participant of this chat room
+      const participants = await storage.getChatRoomParticipants(chatRoomId);
+      const isParticipant = participants.some(p => p.userId === Number(userId));
+      
+      if (!isParticipant) {
+        return res.status(403).json({ 
+          success: false,
+          message: "이 채팅방에 접근 권한이 없습니다." 
+        });
+      }
+
+      // Get all messages from this chat room for context
+      const allMessages = await storage.getChatRoomMessages(chatRoomId);
+      
+      if (!allMessages || allMessages.length === 0) {
+        return res.json({
+          success: true,
+          answer: "아직 대화 내용이 없어서 답변할 수 없습니다. 채팅을 시작한 후 다시 질문해주세요."
+        });
+      }
+
+      // Prepare message data for AI with sender names
+      const messagesWithSenderNames = await Promise.all(
+        allMessages.map(async (msg) => {
+          const sender = await storage.getUserById(msg.senderId);
+          return {
+            senderName: sender?.displayName || sender?.username || "알 수 없음",
+            content: msg.content || "",
+            createdAt: msg.createdAt?.toISOString() || new Date().toISOString(),
+            messageType: msg.messageType
+          };
+        })
+      );
+
+      // Call OpenAI to answer the question based on chat context
+      const aiResponse = await answerChatQuestion(question.trim(), messagesWithSenderNames);
+
+      if (!aiResponse.success) {
+        return res.status(500).json({
+          success: false,
+          message: aiResponse.content
+        });
+      }
+
+      res.json({
+        success: true,
+        answer: aiResponse.content
+      });
+
+    } catch (error: any) {
+      console.error("AI Chat Assistant error:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "AI 답변 중 오류가 발생했습니다. 다시 시도해주세요." 
+      });
     }
   });
 
