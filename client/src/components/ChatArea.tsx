@@ -4310,7 +4310,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     id={`message-${msg.id}`}
                     ref={(el) => messageRefs.current[msg.id] = el}
                     className={cn(
-                      "flex items-end mb-2 transition-all duration-500 group max-w-[85%]",
+                      "flex items-end mb-2 transition-all duration-500 group max-w-[92%]",
                       isMe ? "space-x-0 flex-row-reverse space-x-reverse" : "space-x-2",
                       highlightedMessageId === msg.id && "bg-yellow-100/50 rounded-xl p-2 -mx-2"
                     )}
@@ -4438,7 +4438,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       {msg.replyToMessageId && (
                         <div 
                           className={cn(
-                            "clickable mb-1 p-1 border-l-3 rounded-r-lg cursor-pointer transition-all duration-200 hover:shadow-md select-auto",
+                            "reply-area mb-1 p-1 border-l-3 rounded-r-lg cursor-pointer transition-all duration-200 hover:shadow-md select-auto",
                             isMe 
                               ? "border-white bg-white/20 hover:bg-white/30 backdrop-blur-sm" 
                               : "border-purple-500 bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 shadow-sm"
