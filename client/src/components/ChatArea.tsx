@@ -4238,7 +4238,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       <div 
         id="chat-messages-area"
         ref={chatScrollRef}
-        className="flex-1 overflow-y-auto overflow-x-hidden px-1.5 py-2 space-y-0.5 min-h-0 overscroll-behavior-y-contain overscroll-behavior-x-none pb-32 scrollbar-thin scrollbar-thumb-purple-300 scrollbar-track-gray-100 relative w-full"
+        className="flex-1 overflow-y-auto overflow-x-hidden px-0.5 py-2 space-y-0.5 min-h-0 overscroll-behavior-y-contain overscroll-behavior-x-none pb-32 scrollbar-thin scrollbar-thumb-purple-300 scrollbar-track-gray-100 relative w-full"
         style={{ wordBreak: 'break-word' }}
         onScroll={handleScroll}
         tabIndex={0}
