@@ -17,6 +17,13 @@ import { eq, and, inArray, desc, gte, isNull } from "drizzle-orm";
 import { initializeNotificationScheduler } from "./notification-scheduler";
 import { getVapidPublicKey, sendPushNotification } from "./push-notifications";
 import twilio from "twilio";
+import { z } from "zod";
+
+// Zod validation schemas
+const updateUserNotificationsSchema = z.object({
+  notificationsEnabled: z.boolean().optional(),
+  notificationSound: z.string().optional(),
+});
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -463,14 +470,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "인증이 필요합니다." });
       }
 
-      const { notificationsEnabled, notificationSound } = req.body;
+      // Validate request body with Zod schema
+      const validated = updateUserNotificationsSchema.parse(req.body);
 
       const updates: any = {};
-      if (typeof notificationsEnabled === 'boolean') {
-        updates.notificationsEnabled = notificationsEnabled;
+      if (typeof validated.notificationsEnabled === 'boolean') {
+        updates.notificationsEnabled = validated.notificationsEnabled;
       }
-      if (notificationSound) {
-        updates.notificationSound = notificationSound;
+      if (validated.notificationSound) {
+        updates.notificationSound = validated.notificationSound;
       }
 
       const user = await storage.updateUser(Number(userId), updates);
