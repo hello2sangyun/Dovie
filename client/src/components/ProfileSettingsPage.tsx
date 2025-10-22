@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -7,7 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Upload, User, Mail, Phone, Calendar } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, Upload, User, Mail, Phone, Calendar, Mic } from "lucide-react";
 
 interface ProfileSettingsPageProps {
   onBack: () => void;
@@ -23,6 +25,51 @@ export default function ProfileSettingsPage({ onBack }: ProfileSettingsPageProps
     phoneNumber: user?.phoneNumber || "",
     birthday: user?.birthday || "",
   });
+
+  const [allowVoiceBookmarks, setAllowVoiceBookmarks] = useState(
+    user?.allowVoiceBookmarks ?? true
+  );
+
+  // Birthday state for year/month/day selects
+  const [birthYear, setBirthYear] = useState<string>("");
+  const [birthMonth, setBirthMonth] = useState<string>("");
+  const [birthDay, setBirthDay] = useState<string>("");
+
+  const getDaysInMonth = (year: number, month: number): number => {
+    if (month === 2) {
+      const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+      return isLeapYear ? 29 : 28;
+    }
+    return [4, 6, 9, 11].includes(month) ? 30 : 31;
+  };
+
+  const maxDays = birthYear && birthMonth 
+    ? getDaysInMonth(parseInt(birthYear), parseInt(birthMonth))
+    : 31;
+
+  // Parse birthday into year/month/day when user data loads
+  useEffect(() => {
+    if (user?.birthday) {
+      const date = new Date(user.birthday);
+      setBirthYear(date.getFullYear().toString());
+      setBirthMonth((date.getMonth() + 1).toString().padStart(2, '0'));
+      setBirthDay(date.getDate().toString().padStart(2, '0'));
+    }
+  }, [user?.birthday]);
+
+  useEffect(() => {
+    if (birthDay && parseInt(birthDay) > maxDays) {
+      setBirthDay(maxDays.toString().padStart(2, '0'));
+    }
+  }, [maxDays, birthDay]);
+
+  // Update formData.birthday when year/month/day changes
+  useEffect(() => {
+    if (birthYear && birthMonth && birthDay) {
+      const birthday = `${birthYear}-${birthMonth.padStart(2, '0')}-${birthDay.padStart(2, '0')}`;
+      setFormData(prev => ({ ...prev, birthday }));
+    }
+  }, [birthYear, birthMonth, birthDay]);
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -43,6 +90,23 @@ export default function ProfileSettingsPage({ onBack }: ProfileSettingsPageProps
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleVoiceBookmarksChange = async (checked: boolean) => {
+    const previousValue = allowVoiceBookmarks;
+    setAllowVoiceBookmarks(checked);
+    try {
+      const response = await apiRequest("/api/auth/profile", "PATCH", {
+        allowVoiceBookmarks: checked
+      });
+      if (!response.ok) {
+        throw new Error("Failed to update voice bookmarks setting");
+      }
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+    } catch (error) {
+      console.error("Failed to update voice bookmarks setting:", error);
+      setAllowVoiceBookmarks(previousValue);
+    }
   };
 
   if (!user) return null;
@@ -113,17 +177,85 @@ export default function ProfileSettingsPage({ onBack }: ProfileSettingsPageProps
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="birthday" className="flex items-center text-sm font-medium">
+              <div className="space-y-3">
+                <Label className="flex items-center text-sm font-medium">
                   <Calendar className="h-4 w-4 mr-2 text-gray-500" />
                   생년월일
                 </Label>
-                <Input
-                  id="birthday"
-                  type="date"
-                  value={formData.birthday}
-                  onChange={(e) => handleInputChange("birthday", e.target.value)}
-                />
+                <p className="text-xs text-gray-500">생년월일을 선택해주세요</p>
+                <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                  {/* Year Select */}
+                  <div className="space-y-1">
+                    <Label htmlFor="birth-year" className="text-xs text-gray-600">년도</Label>
+                    <Select value={birthYear} onValueChange={setBirthYear}>
+                      <SelectTrigger 
+                        id="birth-year" 
+                        className="h-12 text-base"
+                        data-testid="select-birth-year"
+                      >
+                        <SelectValue placeholder="년" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        {Array.from({ length: 100 }, (_, i) => {
+                          const year = new Date().getFullYear() - i;
+                          return (
+                            <SelectItem key={year} value={year.toString()}>
+                              {year}년
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Month Select */}
+                  <div className="space-y-1">
+                    <Label htmlFor="birth-month" className="text-xs text-gray-600">월</Label>
+                    <Select value={birthMonth} onValueChange={setBirthMonth}>
+                      <SelectTrigger 
+                        id="birth-month" 
+                        className="h-12 text-base"
+                        data-testid="select-birth-month"
+                      >
+                        <SelectValue placeholder="월" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        {Array.from({ length: 12 }, (_, i) => {
+                          const month = (i + 1).toString().padStart(2, '0');
+                          return (
+                            <SelectItem key={month} value={month}>
+                              {i + 1}월
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Day Select */}
+                  <div className="space-y-1">
+                    <Label htmlFor="birth-day" className="text-xs text-gray-600">일</Label>
+                    <Select value={birthDay} onValueChange={setBirthDay}>
+                      <SelectTrigger 
+                        id="birth-day" 
+                        className="h-12 text-base"
+                        data-testid="select-birth-day"
+                      >
+                        <SelectValue placeholder="일" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        {Array.from({ length: maxDays }, (_, i) => {
+                          const day = (i + 1).toString().padStart(2, '0');
+                          return (
+                            <SelectItem key={day} value={day}>
+                              {i + 1}일
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
 
               <div className="pt-4">
@@ -136,6 +268,34 @@ export default function ProfileSettingsPage({ onBack }: ProfileSettingsPageProps
                 </Button>
               </div>
             </form>
+          </CardContent>
+        </Card>
+
+        {/* Voice Message Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base font-semibold flex items-center">
+              <Mic className="h-4 w-4 mr-2 text-gray-500" />
+              음성 메시지 설정
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-start justify-between space-x-4">
+              <div className="flex-1 space-y-1">
+                <Label htmlFor="voice-bookmarks" className="text-sm font-medium cursor-pointer">
+                  다른 사람이 내 음성 메시지를 북마크할 수 있도록 허용
+                </Label>
+                <p className="text-xs text-gray-500">
+                  허용하지 않으면 다른 사람이 북마크 요청을 할 수 있습니다
+                </p>
+              </div>
+              <Switch
+                id="voice-bookmarks"
+                checked={allowVoiceBookmarks}
+                onCheckedChange={handleVoiceBookmarksChange}
+                data-testid="switch-voice-bookmarks"
+              />
+            </div>
           </CardContent>
         </Card>
 

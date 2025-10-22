@@ -223,6 +223,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [translatedMessages, setTranslatedMessages] = useState<{[key: number]: {text: string, language: string}}>({});
   const [translatingMessages, setTranslatingMessages] = useState<Set<number>>(new Set());
   const [isTranslating, setIsTranslating] = useState(false);
+  const [showOriginal, setShowOriginal] = useState<Set<number>>(new Set()); // 원문을 보여줄 메시지 ID들
   const [showLocationShareModal, setShowLocationShareModal] = useState(false);
   const [locationRequestId, setLocationRequestId] = useState<number | undefined>();
   
@@ -3068,24 +3069,39 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     setShowCommandSuggestions(true);
   };
 
-  // Message context menu handlers
+  // Message context menu handlers - position next to message bubble
   const handleMessageRightClick = (e: React.MouseEvent, message: any) => {
     e.preventDefault();
+    const target = e.currentTarget as HTMLElement;
+    const rect = target.getBoundingClientRect();
+    
+    // Position menu to the right of received messages, left of sent messages
+    const isOwnMessage = message.senderId === user?.id;
+    const x = isOwnMessage ? rect.left - 10 : rect.right + 10;
+    const y = rect.top;
+    
     setContextMenu({
       visible: true,
-      x: e.clientX,
-      y: e.clientY,
+      x,
+      y,
       message,
     });
   };
 
   const handleMessageLongPress = (e: React.TouchEvent, message: any) => {
     e.preventDefault();
-    const touch = e.touches[0];
+    const target = e.currentTarget as HTMLElement;
+    const rect = target.getBoundingClientRect();
+    
+    // Position menu to the right of received messages, left of sent messages
+    const isOwnMessage = message.senderId === user?.id;
+    const x = isOwnMessage ? rect.left - 10 : rect.right + 10;
+    const y = rect.top;
+    
     setContextMenu({
       visible: true,
-      x: touch.clientX,
-      y: touch.clientY,
+      x,
+      y,
       message,
     });
   };
@@ -3847,12 +3863,17 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                 })}
               </div>
             ) : (
-              <div className={cn(
-                "purple-gradient rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0",
-                showMobileHeader ? "w-8 h-8 text-sm" : "w-10 h-10"
-              )}>
-                {getInitials(chatRoomDisplayName)}
-              </div>
+              <InstantAvatar
+                src={currentChatRoom.participants?.find((p: any) => p.id !== user?.id)?.profilePicture}
+                alt={chatRoomDisplayName}
+                fallbackText={chatRoomDisplayName}
+                size={showMobileHeader ? "sm" : "md"}
+                className={cn(
+                  "flex-shrink-0",
+                  showMobileHeader ? "w-8 h-8" : "w-10 h-10"
+                )}
+                data-testid="avatar-chat-header"
+              />
             )}
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-1 min-w-0">
@@ -3924,23 +3945,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               </Button>
             )}
 
-            {!isLocationChatRoom && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="relative text-gray-400 hover:text-purple-600"
-                onClick={() => setShowAiNoticesModal(true)}
-                data-testid="button-ai-notices"
-              >
-                <Bell className="h-4 w-4" />
-                {unreadAiNoticesCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                    {unreadAiNoticesCount > 9 ? '9+' : unreadAiNoticesCount}
-                  </span>
-                )}
-              </Button>
-            )}
-
             {/* 주변챗용 특별한 정보 버튼 */}
             {isLocationChatRoom ? (
               <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
@@ -4005,49 +4009,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                         {user?.allowVoicePlayback !== false 
                           ? "다른 사용자가 내 음성을 재생할 수 있습니다" 
                           : "내 음성은 텍스트로만 표시됩니다"}
-                      </p>
-                    </div>
-
-                    {/* 자동 재생 설정 */}
-                    <div className="px-4 py-2 border-b border-gray-100">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm text-gray-700">음성 자동 재생</span>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={user?.autoPlayVoiceMessages === true}
-                            onChange={async (e) => {
-                              try {
-                                const response = await fetch('/api/auth/voice-settings', {
-                                  method: 'PATCH',
-                                  headers: {
-                                    'Content-Type': 'application/json',
-                                    'x-user-id': user!.id.toString()
-                                  },
-                                  body: JSON.stringify({
-                                    autoPlayVoiceMessages: e.target.checked
-                                  })
-                                });
-                                
-                                if (response.ok) {
-                                  queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
-                                }
-                              } catch (error) {
-                              }
-                            }}
-                            className="sr-only"
-                          />
-                          <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-purple-600 peer-focus:ring-2 peer-focus:ring-purple-300 transition-colors">
-                            <div className="w-4 h-4 bg-white rounded-full shadow transform peer-checked:translate-x-4 transition-transform absolute top-0.5 left-0.5"></div>
-                          </div>
-                        </label>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {user?.autoPlayVoiceMessages 
-                          ? "이어폰 연결 시 새 음성 메시지 자동 재생" 
-                          : "음성 메시지를 수동으로 재생"}
                       </p>
                     </div>
 
@@ -4790,16 +4751,42 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                             uiAdaptations.compactMode && "text-sm leading-tight"
                           )}>
                             {translatedMessages[msg.id] ? (
-                              // 번역된 메시지 표시 (flip 효과)
+                              // 번역된 메시지 표시 - 토글 가능
                               <div className="animate-in fade-in-0 zoom-in-95 duration-300">
                                 <div className="flex items-start space-x-1">
                                   <div className="flex-1">
-                                    <div className="mb-2">
-                                      {renderMessageWithLinks(translatedMessages[msg.id].text)}
-                                    </div>
-                                    <div className="text-xs opacity-70 flex items-center space-x-1">
+                                    {/* 토글 버튼 */}
+                                    <button
+                                      onClick={() => {
+                                        setShowOriginal(prev => {
+                                          const newSet = new Set(prev);
+                                          if (newSet.has(msg.id)) {
+                                            newSet.delete(msg.id);
+                                          } else {
+                                            newSet.add(msg.id);
+                                          }
+                                          return newSet;
+                                        });
+                                      }}
+                                      className="mb-2 px-2 py-1 text-xs rounded-md transition-all duration-200 hover:scale-105 flex items-center space-x-1 bg-purple-100 hover:bg-purple-200 text-purple-700 dark:bg-purple-900/30 dark:hover:bg-purple-900/50 dark:text-purple-300"
+                                      data-testid={`toggle-translation-${msg.id}`}
+                                    >
                                       <Languages className="h-3 w-3" />
-                                      <span>ChatGPT 번역완료</span>
+                                      <span>{showOriginal.has(msg.id) ? '번역 보기' : '원문 보기'}</span>
+                                    </button>
+                                    
+                                    {/* 메시지 내용 - 부드러운 전환 애니메이션 */}
+                                    <div className="transition-all duration-300 ease-in-out">
+                                      <div className="mb-2">
+                                        {showOriginal.has(msg.id) 
+                                          ? renderMessageWithLinks(msg.content)
+                                          : renderMessageWithLinks(translatedMessages[msg.id].text)
+                                        }
+                                      </div>
+                                      <div className="text-xs opacity-70 flex items-center space-x-1">
+                                        <Languages className="h-3 w-3" />
+                                        <span>ChatGPT 번역완료</span>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>

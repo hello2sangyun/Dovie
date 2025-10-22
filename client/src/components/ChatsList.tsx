@@ -896,23 +896,22 @@ function ChatRoomItem({
         )}
         {chatRoom.isGroup ? (
           <div className="relative w-12 h-12 flex items-center justify-center">
-            {chatRoom.participants.slice(0, 3).map((participant: any, index: number) => {
-              // 삼각형 배치 좌표
-              const trianglePositions = [
-                { top: '2px', left: '50%', transform: 'translateX(-50%)' }, // 상단 중앙
-                { bottom: '2px', left: '2px' }, // 하단 좌측
-                { bottom: '2px', right: '2px' } // 하단 우측
+            {chatRoom.participants.slice(0, 2).map((participant: any, index: number) => {
+              // 깔끔한 수평 겹침 배치 (2명만 표시)
+              const horizontalPositions = [
+                { top: '50%', left: '0px', transform: 'translateY(-50%)' },
+                { top: '50%', right: '0px', transform: 'translateY(-50%)' }
               ];
               
-              const position = trianglePositions[index] || trianglePositions[0];
+              const position = horizontalPositions[index];
               
               return (
                 <div
                   key={participant.id}
-                  className="absolute border-2 border-white dark:border-gray-700 rounded-full shadow-sm"
+                  className="absolute border-2 border-white dark:border-gray-800 rounded-full shadow-md"
                   style={{
                     ...position,
-                    zIndex: 3 - index
+                    zIndex: 2 - index
                   }}
                 >
                   <InstantAvatar 
@@ -924,6 +923,14 @@ function ChatRoomItem({
                 </div>
               );
             })}
+            {chatRoom.participants.length > 2 && (
+              <div 
+                className="absolute bottom-0 right-0 bg-purple-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-md border-2 border-white dark:border-gray-800"
+                style={{ zIndex: 3 }}
+              >
+                +{chatRoom.participants.length - 2}
+              </div>
+            )}
           </div>
         ) : (
           <InstantAvatar 

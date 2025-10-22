@@ -10,7 +10,7 @@ import { useLocation } from "wouter";
 import VaultLogo from "@/components/VaultLogo";
 import ContactsList from "@/components/ContactsList";
 import ChatsList from "@/components/ChatsList";
-import ArchiveList from "@/components/ArchiveList";
+import BookmarkList from "@/components/BookmarkList";
 import ChatArea from "@/components/ChatArea";
 import AddContactModal from "@/components/AddContactModal";
 import CommandModal from "@/components/CommandModal";
@@ -37,7 +37,7 @@ import SimpleSpacePage from "@/pages/SimpleSpacePage";
 import LinkedInSpacePage from "@/pages/LinkedInSpacePage";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookUser, MessageCircle, Archive, Settings, Search, MessageSquare, Users, Building2, Shield, UserX, Camera, QrCode } from "lucide-react";
+import { BookUser, MessageCircle, Bookmark, Settings, Search, MessageSquare, Users, Building2, Shield, UserX, Camera, QrCode } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
@@ -459,8 +459,8 @@ export default function MainApp() {
             if (value === "settings") {
               setRightPanelContent(value);
               setSelectedChatRoom(null);
-            } else if (value === "archive") {
-              setRightPanelContent("archive");
+            } else if (value === "bookmark") {
+              setRightPanelContent("bookmark");
               setSelectedChatRoom(null);
             } else {
               setRightPanelContent(null);
@@ -497,14 +497,14 @@ export default function MainApp() {
 
 
               <TabsTrigger 
-                value="archive"
+                value="bookmark"
                 className={cn(
                   "py-2 px-3 text-sm font-medium rounded-none border-b-2 border-transparent flex-col items-center gap-1 min-w-0",
                   "data-[state=active]:border-purple-600 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-600"
                 )}
               >
-                <Archive className="h-4 w-4" />
-                <span className="text-xs truncate">저장소</span>
+                <Bookmark className="h-4 w-4" />
+                <span className="text-xs truncate">북마크</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="settings"
@@ -556,13 +556,13 @@ export default function MainApp() {
                   </div>
                 )}
 
-                {activeTab === "archive" && (
+                {activeTab === "bookmark" && (
                   <div
-                    key="desktop-archive"
+                    key="desktop-bookmark"
                     className="absolute inset-0"
                   >
-                    <TabsContent value="archive" className="h-full m-0">
-                      <ArchiveList />
+                    <TabsContent value="bookmark" className="h-full m-0">
+                      <BookmarkList />
                     </TabsContent>
                   </div>
                 )}
@@ -574,7 +574,7 @@ export default function MainApp() {
                   >
                     <TabsContent value="settings" className="h-full m-0">
                       <div className="h-full flex flex-col bg-white">
-                        <div className="flex justify-between items-center p-4 border-b">
+                        <div className="flex justify-between items-center p-4 border-b flex-shrink-0">
                           <h2 className="text-lg font-semibold text-gray-900">설정</h2>
                           <button
                             onClick={() => setModals(prev => ({ ...prev, qrCode: true }))}
@@ -584,8 +584,8 @@ export default function MainApp() {
                             <QrCode className="h-6 w-6" />
                           </button>
                         </div>
-                        <div className="h-full overflow-y-auto">
-                          <div className="p-4">
+                        <div className="flex-1 overflow-y-auto scrollbar-thin" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+                          <div className="p-4 space-y-4">
                             {/* 프로필 섹션 */}
                             <div 
                               className="mb-6 bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
@@ -724,11 +724,11 @@ export default function MainApp() {
                 </div>
               </div>
             </div>
-          ) : rightPanelContent === "archive" ? (
+          ) : rightPanelContent === "bookmark" ? (
             <div className="flex-1 bg-gray-50 overflow-y-auto">
               <div className="max-w-4xl mx-auto p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h1 className="text-2xl font-bold text-gray-900">저장소</h1>
+                  <h1 className="text-2xl font-bold text-gray-900">북마크</h1>
                   <Button
                     variant="outline"
                     onClick={() => {
@@ -739,7 +739,7 @@ export default function MainApp() {
                     뒤로 가기
                   </Button>
                 </div>
-                <ArchiveList />
+                <BookmarkList />
               </div>
             </div>
           ) : rightPanelContent === "profile" ? (
@@ -1052,25 +1052,25 @@ export default function MainApp() {
                 </div>
               </div>
             )}
-            {activeMobileTab === "archive" && (
+            {activeMobileTab === "bookmark" && (
               <div
-                key="archive"
+                key="bookmark"
                 className="absolute inset-0 flex flex-col"
               >
-                {/* Search Header for Archive */}
+                {/* Search Header for Bookmark */}
                 <div className="flex-shrink-0 p-4 bg-gray-50 border-b border-gray-200">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <input
                       type="text"
-                      placeholder="자료실 검색..."
+                      placeholder="북마크 검색..."
                       className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                   </div>
                 </div>
                 
                 <div className="flex-1 overflow-hidden">
-                  <ArchiveList />
+                  <BookmarkList />
                 </div>
               </div>
             )}
@@ -1141,12 +1141,12 @@ export default function MainApp() {
                 variant="ghost"
                 className={cn(
                   "flex flex-col items-center py-1 px-2",
-                  activeMobileTab === "archive" ? "text-purple-600" : "text-gray-400"
+                  activeMobileTab === "bookmark" ? "text-purple-600" : "text-gray-400"
                 )}
-                onClick={() => setActiveMobileTab("archive")}
+                onClick={() => setActiveMobileTab("bookmark")}
               >
-                <Archive className="h-4 w-4" />
-                <span className="text-xs mt-0.5">저장소</span>
+                <Bookmark className="h-4 w-4" />
+                <span className="text-xs mt-0.5">북마크</span>
               </Button>
               <Button
                 variant="ghost"

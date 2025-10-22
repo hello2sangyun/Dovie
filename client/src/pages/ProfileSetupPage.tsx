@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Camera, Calendar, User, ArrowRight } from "lucide-react";
 
 export default function ProfileSetupPage() {
@@ -27,6 +28,37 @@ export default function ProfileSetupPage() {
   });
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
+
+  // Birthday state for year/month/day selects
+  const [birthYear, setBirthYear] = useState<string>("");
+  const [birthMonth, setBirthMonth] = useState<string>("");
+  const [birthDay, setBirthDay] = useState<string>("");
+
+  const getDaysInMonth = (year: number, month: number): number => {
+    if (month === 2) {
+      const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+      return isLeapYear ? 29 : 28;
+    }
+    return [4, 6, 9, 11].includes(month) ? 30 : 31;
+  };
+
+  const maxDays = birthYear && birthMonth 
+    ? getDaysInMonth(parseInt(birthYear), parseInt(birthMonth))
+    : 31;
+
+  useEffect(() => {
+    if (birthDay && parseInt(birthDay) > maxDays) {
+      setBirthDay(maxDays.toString().padStart(2, '0'));
+    }
+  }, [maxDays, birthDay]);
+
+  // Update formData.birthday when year/month/day changes
+  useEffect(() => {
+    if (birthYear && birthMonth && birthDay) {
+      const birthday = `${birthYear}-${birthMonth.padStart(2, '0')}-${birthDay.padStart(2, '0')}`;
+      setFormData(prev => ({ ...prev, birthday }));
+    }
+  }, [birthYear, birthMonth, birthDay]);
 
   // Update form data when user data changes
   useEffect(() => {
@@ -258,17 +290,84 @@ export default function ProfileSetupPage() {
               </div>
 
               {/* 생년월일 */}
-              <div className="space-y-2">
-                <Label htmlFor="birthday">생년월일 (선택사항)</Label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
-                    id="birthday"
-                    type="date"
-                    value={formData.birthday}
-                    onChange={(e) => setFormData(prev => ({ ...prev, birthday: e.target.value }))}
-                    className="pl-10"
-                  />
+              <div className="space-y-3">
+                <Label className="flex items-center text-sm font-medium">
+                  <Calendar className="h-4 w-4 mr-2 text-gray-500" />
+                  생년월일 (선택사항)
+                </Label>
+                <p className="text-xs text-gray-500">생년월일을 선택해주세요</p>
+                <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                  {/* Year Select */}
+                  <div className="space-y-1">
+                    <Label htmlFor="birth-year" className="text-xs text-gray-600">년도</Label>
+                    <Select value={birthYear} onValueChange={setBirthYear}>
+                      <SelectTrigger 
+                        id="birth-year" 
+                        className="h-12 text-base"
+                        data-testid="select-birth-year"
+                      >
+                        <SelectValue placeholder="년" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        {Array.from({ length: 100 }, (_, i) => {
+                          const year = new Date().getFullYear() - i;
+                          return (
+                            <SelectItem key={year} value={year.toString()}>
+                              {year}년
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Month Select */}
+                  <div className="space-y-1">
+                    <Label htmlFor="birth-month" className="text-xs text-gray-600">월</Label>
+                    <Select value={birthMonth} onValueChange={setBirthMonth}>
+                      <SelectTrigger 
+                        id="birth-month" 
+                        className="h-12 text-base"
+                        data-testid="select-birth-month"
+                      >
+                        <SelectValue placeholder="월" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        {Array.from({ length: 12 }, (_, i) => {
+                          const month = (i + 1).toString().padStart(2, '0');
+                          return (
+                            <SelectItem key={month} value={month}>
+                              {i + 1}월
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Day Select */}
+                  <div className="space-y-1">
+                    <Label htmlFor="birth-day" className="text-xs text-gray-600">일</Label>
+                    <Select value={birthDay} onValueChange={setBirthDay}>
+                      <SelectTrigger 
+                        id="birth-day" 
+                        className="h-12 text-base"
+                        data-testid="select-birth-day"
+                      >
+                        <SelectValue placeholder="일" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        {Array.from({ length: maxDays }, (_, i) => {
+                          const day = (i + 1).toString().padStart(2, '0');
+                          return (
+                            <SelectItem key={day} value={day}>
+                              {i + 1}일
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
 
