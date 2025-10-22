@@ -538,10 +538,17 @@ export async function answerChatQuestion(
       .slice(-100) // Use last 100 messages for context
       .map(msg => {
         const date = new Date(msg.createdAt).toLocaleString('ko-KR');
-        const content = msg.messageType === 'file' ? '[파일]' : 
-                       msg.messageType === 'voice' ? '[음성 메시지]' : 
-                       msg.messageType === 'image' ? '[이미지]' : 
-                       msg.content;
+        let content = msg.content;
+        
+        // For voice messages, use the transcript content
+        if (msg.messageType === 'voice') {
+          content = msg.content ? `[음성 메시지: ${msg.content}]` : '[음성 메시지]';
+        } else if (msg.messageType === 'file') {
+          content = '[파일]';
+        } else if (msg.messageType === 'image') {
+          content = '[이미지]';
+        }
+        
         return `[${date}] ${msg.senderName}: ${content}`;
       })
       .join('\n');
