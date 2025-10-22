@@ -53,6 +53,11 @@ const upload = multer({
 // WebSocket connection management
 const connections = new Map<number, WebSocket>();
 
+// Helper function to sanitize filenames for safe storage
+const sanitizeFilename = (filename: string): string => {
+  return filename.replace(/[^a-zA-Z0-9가-힣._-]/g, '_');
+};
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
 
@@ -1835,7 +1840,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Profile photo upload route
+  // Profile photo upload route without encryption
   app.post("/api/upload-profile-photo", upload.single("file"), async (req, res) => {
     try {
       const userId = req.headers["x-user-id"];
@@ -1857,9 +1862,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "File size must be less than 5MB" });
       }
 
-      // 파일 데이터 암호화
-      const encryptedData = encryptFileData(req.file.buffer);
-      const hashedFileName = hashFileName(req.file.originalname);
+      // 타임스탬프 기반 파일명 생성 (암호화 없음)
+      const timestamp = Date.now();
+      const fileExtension = path.extname(req.file.originalname);
+      const profileFileName = `profile_${timestamp}_${sanitizeFilename(req.file.originalname)}`;
+      const finalPath = path.join(uploadDir, profileFileName);
 
       // 기존 프로필 사진 파일 삭제 (있는 경우)
       const existingUser = await storage.getUser(Number(userId));
@@ -1877,11 +1884,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // 새 프로필 사진 저장
-      const encryptedFilePath = path.join(uploadDir, hashedFileName);
-      fs.writeFileSync(encryptedFilePath, encryptedData, 'utf8');
+      // 파일을 직접 저장 (암호화 없음)
+      fs.renameSync(req.file.path, finalPath);
 
-      const fileUrl = `/uploads/${hashedFileName}`;
+      const fileUrl = `/uploads/${profileFileName}`;
 
       // 사용자 프로필 업데이트
       await storage.updateUserProfilePicture(Number(userId), fileUrl);
@@ -2011,35 +2017,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(304).end();
       }
       
-      // 암호화된 파일인지 확인하고 복호화
-      try {
-        // 암호화된 해시 파일명인 경우 복호화 필요
-        if (/^[a-f0-9]{64}\.(jpg|jpeg|png|gif|webp)$/i.test(filename)) {
-          console.log('Decrypting profile image:', filename);
-          const encryptedData = fs.readFileSync(filePath, 'utf8');
-          const decryptedBuffer = decryptFileData(encryptedData);
-          
-          // 복호화된 데이터를 직접 전송
-          res.writeHead(200, {
-            'Content-Type': contentType,
-            'Content-Length': decryptedBuffer.length.toString(),
-            'Cache-Control': 'public, max-age=86400',
-            'ETag': etag,
-            'Last-Modified': stats.mtime.toUTCString()
-          });
-          res.end(decryptedBuffer);
-          console.log('Successfully decrypted file:', filename);
-        } else {
-          // 일반 파일 스트림으로 전송
-          const fileStream = fs.createReadStream(filePath);
-          fileStream.pipe(res);
-        }
-      } catch (decryptError) {
-        console.error('Decryption failed for file:', filename, decryptError);
-        // 복호화 실패 시 원본 파일 스트림으로 전송 시도
-        const fileStream = fs.createReadStream(filePath);
-        fileStream.pipe(res);
-      }
+      // 파일을 직접 스트리밍 (암호화 없음)
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.pipe(res);
       
     } catch (error) {
       console.error("Profile image serving error:", error);
@@ -2047,26 +2027,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // File upload route with encryption (for non-voice files)
+  // File upload route without encryption (for non-voice files)
   app.post("/api/upload", upload.single("file"), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
       }
 
-      // 파일 내용을 읽어서 암호화
-      const fileBuffer = fs.readFileSync(req.file.path);
-      const encryptedData = encryptFileData(fileBuffer);
+      // 타임스탬프 기반 파일명 생성 (암호화 없음)
+      const timestamp = Date.now();
+      const safeFileName = sanitizeFilename(req.file.originalname);
+      const newFilename = `${timestamp}_${safeFileName}`;
+      const filePath = path.join(uploadDir, newFilename);
       
-      // 암호화된 파일명 생성
-      const encryptedFileName = hashFileName(req.file.originalname);
-      const encryptedFilePath = path.join(uploadDir, encryptedFileName);
-      
-      // 암호화된 데이터를 파일로 저장
-      fs.writeFileSync(encryptedFilePath, encryptedData, 'utf8');
-      
-      // 원본 임시 파일 삭제
-      fs.unlinkSync(req.file.path);
+      // 파일을 직접 저장 (암호화 없음)
+      fs.renameSync(req.file.path, filePath);
 
       // AI 파일 요약 생성
       let fileSummary = "파일";
@@ -2089,7 +2064,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('Filename encoding conversion failed, using original:', req.file.originalname);
       }
 
-      const fileUrl = `/uploads/${encryptedFileName}`;
+      const fileUrl = `/uploads/${newFilename}`;
       res.json({
         fileUrl,
         fileName: displayFileName,
@@ -2102,7 +2077,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Text file creation endpoint for message saving with encryption
+  // Text file creation endpoint for message saving without encryption
   app.post("/api/create-text-file", async (req, res) => {
     const userId = req.headers["x-user-id"];
     if (!userId) {
@@ -2115,9 +2090,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Content and fileName are required" });
       }
 
-      // 텍스트 내용을 Buffer로 변환 후 암호화
+      // 텍스트 내용을 Buffer로 변환
       const contentBuffer = Buffer.from(content, 'utf8');
-      const encryptedData = encryptFileData(contentBuffer);
       
       // 파일명 UTF-8 보정 및 안전한 파일명 생성
       let safeFileName;
@@ -2130,19 +2104,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // 디코딩 실패 시 원본 사용
         safeFileName = fileName.replace(/[^a-zA-Z0-9가-힣._-]/g, '_') + '.txt';
       }
-      const encryptedFileName = hashFileName(safeFileName);
-      const filePath = path.join(uploadDir, encryptedFileName);
       
-      // 암호화된 데이터를 파일로 저장
-      await fs.promises.writeFile(filePath, encryptedData, 'utf8');
+      // 타임스탬프 기반 파일명 생성 (암호화 없음)
+      const timestamp = Date.now();
+      const newFilename = `${timestamp}_${sanitizeFilename(safeFileName)}`;
+      const filePath = path.join(uploadDir, newFilename);
+      
+      // 텍스트를 직접 저장 (암호화 없음)
+      await fs.promises.writeFile(filePath, content, 'utf8');
       
       const fileStats = await fs.promises.stat(filePath);
-      const fileUrl = `/uploads/${encryptedFileName}`;
+      const fileUrl = `/uploads/${newFilename}`;
 
       res.json({
         fileUrl,
         fileName: safeFileName,
-        fileSize: contentBuffer.length, // 원본 크기 반환
+        fileSize: contentBuffer.length,
       });
     } catch (error) {
       console.error('Text file creation error:', error);
@@ -2428,7 +2405,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const profileImageCache = new Map<string, { buffer: Buffer; contentType: string; timestamp: number }>();
   const CACHE_TTL = 60 * 60 * 1000; // 1시간
   
-  // 프로필 이미지 전용 엔드포인트 (최적화된 성능)
+  // 프로필 이미지 전용 엔드포인트 (최적화된 성능, 레거시 암호화 파일 지원)
   app.get("/api/profile-images/:filename", async (req, res) => {
     try {
       const filename = req.params.filename;
@@ -2463,14 +2440,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       else if (ext === '.bmp') contentType = 'image/bmp';
       else if (ext === '.svg') contentType = 'image/svg+xml';
       
+      // 레거시 암호화 파일 감지 (64자 해시 패턴)
+      const baseFilename = path.basename(filename, ext);
+      const isLegacyEncrypted = /^[a-f0-9]{64}$/i.test(baseFilename);
+      
       let fileBuffer: Buffer;
       
-      try {
-        // 먼저 암호화된 파일로 시도
-        const encryptedData = fs.readFileSync(filePath, 'utf8');
-        fileBuffer = decryptFileData(encryptedData);
-      } catch (decryptError) {
-        // 복호화 실패시 일반 파일로 읽기
+      if (isLegacyEncrypted) {
+        // 암호화된 레거시 프로필 이미지 - 복호화 후 제공
+        console.log(`🔓 Decrypting legacy encrypted profile image: ${filename}`);
+        try {
+          const encryptedData = fs.readFileSync(filePath, 'utf8');
+          fileBuffer = decryptFileData(encryptedData);
+        } catch (decryptError: any) {
+          console.error(`❌ Failed to decrypt legacy profile image ${filename}:`, decryptError?.message);
+          return res.status(500).json({ message: "Failed to decrypt legacy profile image" });
+        }
+      } else {
+        // 새 파일은 직접 읽기 (암호화 없음)
         fileBuffer = fs.readFileSync(filePath);
       }
       
@@ -2496,7 +2483,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Serve files (both encrypted and unencrypted)
+  // Serve files directly without encryption (with legacy encrypted file support)
   app.get("/uploads/:filename", async (req, res) => {
     try {
       const filename = req.params.filename;
@@ -2512,8 +2499,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const isVoiceFile = filename.startsWith('voice_') && filename.endsWith('.webm');
       // 프로필 이미지인지 확인 (profile_로 시작하는 파일명)
       const isProfileImage = filename.startsWith('profile_');
-      // 일반 파일인지 확인 (file_로 시작하는 파일명 - 최근 파일, 암호화 안됨)
-      const isGeneralFile = filename.startsWith('file_');
+      
+      // 프로필 이미지는 최적화된 엔드포인트로 리다이렉트
+      if (isProfileImage) {
+        console.log(`👤 Redirecting profile image to optimized endpoint: ${filename}`);
+        return res.redirect(`/api/profile-images/${filename}`);
+      }
       
       // 파일 확장자에 따른 Content-Type 설정
       const ext = path.extname(filename).toLowerCase();
@@ -2534,60 +2525,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       else if (ext === '.docx') contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
       else if (ext === '.xlsx') contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
       
-      if (isVoiceFile) {
-        // 음성 파일은 암호화되지 않았으므로 직접 제공
-        console.log(`🎤 Serving voice file without encryption: ${filename}`);
-        const fileBuffer = fs.readFileSync(filePath);
-        
-        res.set({
-          'Content-Type': 'audio/webm',
-          'Content-Length': fileBuffer.length,
-          'Accept-Ranges': 'bytes',
-          'Cache-Control': 'public, max-age=31536000'
-        });
-        
-        res.send(fileBuffer);
-      } else if (isProfileImage) {
-        // 프로필 이미지는 최적화된 엔드포인트로 리다이렉트
-        console.log(`👤 Redirecting profile image to optimized endpoint: ${filename}`);
-        return res.redirect(`/api/profile-images/${filename}`);
-      } else if (isGeneralFile) {
-        // file_로 시작하는 파일은 암호화되지 않은 최근 파일이므로 직접 제공
-        console.log(`📄 Serving general file without encryption: ${filename}`);
-        const fileBuffer = fs.readFileSync(filePath);
-        
-        res.set({
-          'Content-Type': contentType,
-          'Content-Length': fileBuffer.length,
-          'Cache-Control': 'public, max-age=31536000',
-          'Access-Control-Allow-Origin': '*',
-          'Accept-Ranges': 'bytes'
-        });
-        
-        res.send(fileBuffer);
-      } else {
-        // 기타 파일 처리 (암호화된 파일로 간주하여 복호화 시도)
-        let fileBuffer: Buffer;
-        
+      // 레거시 암호화 파일 감지 (64자 해시 패턴)
+      const baseFilename = path.basename(filename, ext);
+      const isLegacyEncrypted = /^[a-f0-9]{64}$/i.test(baseFilename);
+      
+      if (isLegacyEncrypted) {
+        // 암호화된 레거시 파일 - 복호화 후 제공
+        console.log(`🔓 Decrypting legacy encrypted file: ${filename}`);
         try {
-          // 먼저 암호화된 텍스트로 읽기 시도
           const encryptedData = fs.readFileSync(filePath, 'utf8');
-          fileBuffer = decryptFileData(encryptedData);
-          console.log(`🔓 Successfully decrypted file: ${filename}`);
-        } catch (decryptError: any) {
-          // 복호화 실패시 바이너리로 읽기 (암호화되지 않은 파일)
-          console.warn(`⚠️ Decryption failed for ${filename}, serving as raw file`);
-          console.warn(`   Reason: ${decryptError?.message || 'Unknown error'}`);
-          console.warn(`   Error type: ${decryptError?.name || 'N/A'}`);
+          const decryptedBuffer = decryptFileData(encryptedData);
           
-          try {
-            fileBuffer = fs.readFileSync(filePath);
-            console.log(`✅ Successfully served raw file: ${filename}`);
-          } catch (readError: any) {
-            console.error(`❌ Failed to read raw file ${filename}: ${readError?.message}`);
-            throw readError;
-          }
+          res.set({
+            'Content-Type': contentType,
+            'Content-Length': decryptedBuffer.length,
+            'Cache-Control': 'public, max-age=31536000',
+            'Access-Control-Allow-Origin': '*',
+            'Accept-Ranges': 'bytes'
+          });
+          
+          res.send(decryptedBuffer);
+        } catch (decryptError: any) {
+          console.error(`❌ Failed to decrypt legacy file ${filename}:`, decryptError?.message);
+          return res.status(500).json({ message: "Failed to decrypt legacy file" });
         }
+      } else {
+        // 새 파일은 직접 제공 (암호화 없음)
+        console.log(`📄 Serving file directly: ${filename}`);
+        const fileBuffer = fs.readFileSync(filePath);
         
         res.set({
           'Content-Type': contentType,
@@ -2609,7 +2574,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Legacy encrypted file serving for non-profile images
+  // File serving endpoint (no encryption)
   app.get("/api/encrypted-files/:filename", async (req: Request, res: Response) => {
     try {
       const filename = req.params.filename;
@@ -2619,17 +2584,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "File not found" });
       }
 
-      // 파일이 암호화되었는지 확인 후 처리
-      let decryptedBuffer: Buffer;
-          
-      try {
-        // 먼저 암호화된 텍스트로 읽기 시도
-        const encryptedData = fs.readFileSync(filePath, 'utf8');
-        decryptedBuffer = decryptFileData(encryptedData);
-      } catch (decryptError) {
-        // 복호화 실패시 바이너리로 읽기 (암호화되지 않은 파일)
-        decryptedBuffer = fs.readFileSync(filePath);
-      }
+      // 파일을 직접 읽기 (암호화 없음)
+      const fileBuffer = fs.readFileSync(filePath);
       
       // 파일 확장자에 따른 Content-Type 설정
       const ext = path.extname(filename).toLowerCase();
@@ -2650,16 +2606,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.set({
         'Content-Type': contentType,
-        'Content-Length': decryptedBuffer.length,
+        'Content-Length': fileBuffer.length,
         'Cache-Control': 'public, max-age=31536000',
         'Access-Control-Allow-Origin': '*',
         'Cross-Origin-Resource-Policy': 'cross-origin'
       });
       
-      res.send(decryptedBuffer);
+      res.send(fileBuffer);
     } catch (error) {
-      console.error('Encrypted file serving error:', error);
-      res.status(500).json({ message: "Failed to serve encrypted file" });
+      console.error('File serving error:', error);
+      res.status(500).json({ message: "Failed to serve file" });
     }
   });
 
