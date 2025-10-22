@@ -1260,21 +1260,19 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   // 채팅방 진입 시 읽지 않은 메시지부터 표시하는 기능
   useEffect(() => {
     if (messages && messages.length > 0 && chatScrollRef.current && !isLoading) {
-      // 약간의 지연을 두어 DOM이 완전히 렌더링된 후 스크롤
-      setTimeout(() => {
-        if (firstUnreadMessageId && messageRefs.current[firstUnreadMessageId]) {
-          // 읽지 않은 메시지가 있으면 해당 위치로 스크롤
-          messageRefs.current[firstUnreadMessageId]?.scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-          });
-        } else {
-          // 모든 메시지를 읽었거나 읽지 않은 메시지가 없으면 최신 메시지로 스크롤
-          if (messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-          }
+      // 즉시 스크롤하여 부드러운 애니메이션 효과 제거 (사용자 경험 개선)
+      if (firstUnreadMessageId && messageRefs.current[firstUnreadMessageId]) {
+        // 읽지 않은 메시지가 있으면 해당 위치로 즉시 스크롤
+        messageRefs.current[firstUnreadMessageId]?.scrollIntoView({
+          behavior: "instant",
+          block: "center"
+        });
+      } else {
+        // 모든 메시지를 읽었거나 읽지 않은 메시지가 없으면 최신 메시지로 즉시 스크롤
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ behavior: "instant" });
         }
-      }, 100);
+      }
     }
   }, [chatRoomId, messages.length, firstUnreadMessageId, isLoading]);
 
