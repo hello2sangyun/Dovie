@@ -4317,7 +4317,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   >
                   <div className={cn(
                     "flex flex-col items-center flex-shrink-0",
-                    isMe ? "mr-1.5" : "ml-1.5"
+                    !isMe && "ml-1.5"
                   )}>
                     {isLocationChatRoom ? (
                       // 주변챗에서는 임시 프로필 표시
