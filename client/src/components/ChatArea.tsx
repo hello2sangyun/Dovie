@@ -348,6 +348,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   // 길게 터치 관련 상태
   const [touchTimer, setTouchTimer] = useState<NodeJS.Timeout | null>(null);
   const [isLongPress, setIsLongPress] = useState(false);
+  const [touchStartData, setTouchStartData] = useState<{rect: DOMRect, message: any} | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatAreaRef = useRef<HTMLDivElement>(null);
@@ -3455,12 +3456,24 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // 길게 터치 이벤트 핸들러
   const handleTouchStart = (e: React.TouchEvent, message: any) => {
-    console.log('🔵 Touch Start:', message.id);
     setIsLongPress(false);
+    
+    // 터치 시작 시점에 element의 위치 정보를 미리 저장
+    const target = e.currentTarget as HTMLElement;
+    const rect = target.getBoundingClientRect();
+    setTouchStartData({ rect, message });
+    
     const timer = setTimeout(() => {
-      console.log('🟢 Long Press Detected:', message.id);
       setIsLongPress(true);
-      handleMessageRightClick(e as any, message);
+      
+      // 저장된 위치 정보와 메시지로 메뉴 표시
+      const isOwnMessage = message.senderId === user?.id;
+      const x = isOwnMessage ? rect.left - 10 : rect.right + 10;
+      const y = rect.top;
+      
+      setContextMenuPosition({ x, y });
+      setContextMenuMessage(message);
+      
       navigator.vibrate?.(50); // 햅틱 피드백
     }, 800); // 800ms 길게 터치
     
@@ -3468,20 +3481,20 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   };
 
   const handleTouchEnd = () => {
-    console.log('🔴 Touch End');
     if (touchTimer) {
       clearTimeout(touchTimer);
       setTouchTimer(null);
     }
+    setTouchStartData(null);
     setTimeout(() => setIsLongPress(false), 100);
   };
 
   const handleTouchMove = () => {
-    console.log('🟡 Touch Move');
     if (touchTimer) {
       clearTimeout(touchTimer);
       setTouchTimer(null);
     }
+    setTouchStartData(null);
   };
 
   // Sound notification functions
@@ -4370,21 +4383,16 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       }}
                       onContextMenu={(e) => handleMessageRightClick(e, msg)}
                       onTouchStart={(e) => {
-                        console.log('📱 Touch Start Event');
                         const target = e.target as HTMLElement;
-                        console.log('Target:', target.tagName, target.className);
                         
                         // 실제 버튼이나 링크를 직접 터치한 경우만 차단
                         if (target.tagName === 'BUTTON' || target.tagName === 'A' || target.closest('.reaction-buttons')) {
-                          console.log('🚫 Blocked by interactive element');
                           return;
                         }
                         
-                        console.log('✅ Processing touch');
                         handleTouchStart(e, msg);
                       }}
                       onTouchEnd={(e) => {
-                        console.log('📱 Touch End Event');
                         const target = e.target as HTMLElement;
                         
                         // 실제 버튼이나 링크를 직접 터치한 경우만 차단
