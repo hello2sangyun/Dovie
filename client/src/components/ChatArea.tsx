@@ -4370,22 +4370,31 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       }}
                       onContextMenu={(e) => handleMessageRightClick(e, msg)}
                       onTouchStart={(e) => {
-                        // 버튼이나 인터랙티브 요소가 아닌 경우에만 처리
+                        console.log('📱 Touch Start Event');
                         const target = e.target as HTMLElement;
-                        if (!target.closest('button') && !target.closest('[role="button"]') && !target.closest('a')) {
-                          e.stopPropagation();
-                          handleTouchStart(e, msg);
+                        console.log('Target:', target.tagName, target.className);
+                        
+                        // 실제 버튼이나 링크를 직접 터치한 경우만 차단
+                        if (target.tagName === 'BUTTON' || target.tagName === 'A' || target.closest('.reaction-buttons')) {
+                          console.log('🚫 Blocked by interactive element');
+                          return;
                         }
+                        
+                        console.log('✅ Processing touch');
+                        handleTouchStart(e, msg);
                       }}
                       onTouchEnd={(e) => {
+                        console.log('📱 Touch End Event');
                         const target = e.target as HTMLElement;
-                        if (!target.closest('button') && !target.closest('[role="button"]') && !target.closest('a')) {
-                          e.stopPropagation();
-                          handleTouchEnd();
+                        
+                        // 실제 버튼이나 링크를 직접 터치한 경우만 차단
+                        if (target.tagName === 'BUTTON' || target.tagName === 'A' || target.closest('.reaction-buttons')) {
+                          return;
                         }
+                        
+                        handleTouchEnd();
                       }}
                       onTouchMove={(e) => {
-                        e.stopPropagation();
                         handleTouchMove();
                       }}
                       onClick={(e) => {
