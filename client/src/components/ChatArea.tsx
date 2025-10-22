@@ -373,6 +373,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const [lastScrollTop, setLastScrollTop] = useState(0);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const hasScrolledManually = useRef(false);
 
   // Get chat room details (only for regular chats, not location chats)
   const { data: chatRoomsData } = useQuery({
@@ -1155,10 +1157,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     // Detect if user is manually scrolling
     const isScrollingUp = scrollTop < lastScrollTop;
     
+    // 사용자가 수동으로 위로 스크롤하면
     if (isScrollingUp && !isNearBottom) {
+      hasScrolledManually.current = true;
       setIsUserScrolling(true);
       setShouldAutoScroll(false);
+      setIsInitialLoad(false); // 초기 로드 완료로 표시
     } else if (isNearBottom) {
+      // 맨 아래 근처로 돌아오면 자동 스크롤 재활성화
+      hasScrolledManually.current = false; // 수동 스크롤 플래그 리셋
       setIsUserScrolling(false);
       setShouldAutoScroll(true);
     }
@@ -1181,16 +1188,23 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     if (messages && messages.length > 0) {
       const messageCount = messages.length;
       
-      // Only auto-scroll if user hasn't manually scrolled up or this is initial load
-      if (shouldAutoScroll && (!lastMessageCount || messageCount > lastMessageCount)) {
+      // 초기 로드 시: 첫 메시지만 자동 스크롤 (그 이후는 사용자가 제어)
+      if (isInitialLoad && messageCount > 0) {
+        setTimeout(() => {
+          scrollToBottom('instant');
+          setIsInitialLoad(false); // 초기 로드 완료
+        }, 100);
+      } 
+      // 일반 메시지 수신 시: 맨 아래 근처에 있을 때만 자동 스크롤
+      else if (!hasScrolledManually.current && shouldAutoScroll && messageCount > lastMessageCount) {
         setTimeout(() => {
           scrollToBottom('smooth');
-        }, 100); // Small delay to ensure DOM is updated
+        }, 100);
       }
       
       setLastMessageCount(messageCount);
     }
-  }, [messages, shouldAutoScroll, lastMessageCount]);
+  }, [messages, shouldAutoScroll, lastMessageCount, isInitialLoad]);
 
   // Cleanup scroll timeout on unmount
   useEffect(() => {
@@ -1465,6 +1479,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     // 새 채팅방의 임시 메시지 불러오기
     const draftMessage = loadDraftMessage(chatRoomId);
     setMessage(draftMessage);
+    
+    // 채팅방 변경 시 초기 로드 플래그 리셋
+    setIsInitialLoad(true);
+    hasScrolledManually.current = false;
+    setShouldAutoScroll(true);
   }, [chatRoomId]);
 
   const handleSendMessage = () => {
