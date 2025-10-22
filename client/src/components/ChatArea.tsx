@@ -4365,17 +4365,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                             : msg.sender.displayName
                           }
                         </span>
-                        <span className="text-xs text-gray-400 font-medium">
-                          {formatTime(msg.createdAt)}
-                        </span>
-                      </div>
-                    )}
-                    
-                    {isMe && (
-                      <div className="flex items-center space-x-2 mb-0.5">
-                        <span className="text-xs text-gray-400 font-medium">
-                          {formatTime(msg.createdAt)}
-                        </span>
                       </div>
                     )}
 
@@ -4535,91 +4524,101 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       )}
                       
                       {msg.messageType === "voice" ? (
-                        <div className="flex items-center space-x-3 min-w-0">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleVoicePlayback(msg.id, msg.fileUrl, msg.voiceDuration, msg.senderId);
-                            }}
-                            className={cn(
-                              "clickable w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-105 select-auto flex-shrink-0 shadow-sm",
-                              isMe ? "bg-white/20 hover:bg-white/30" : "bg-purple-100 hover:bg-purple-200"
-                            )}
-                            style={{ 
-                              userSelect: 'auto',
-                              WebkitUserSelect: 'auto',
-                              MozUserSelect: 'auto',
-                              msUserSelect: 'auto',
-                              WebkitTouchCallout: 'default'
-                            }}
-                          >
-                            {playingAudio === msg.id ? (
-                              <Pause className={cn(
-                                "h-5 w-5",
-                                isMe ? "text-white" : "text-purple-600"
-                              )} />
-                            ) : (
-                              <Play className={cn(
-                                "h-5 w-5",
-                                isMe ? "text-white" : "text-purple-600"
-                              )} />
-                            )}
-                          </button>
-                          
-                          {/* 오디오 파형 그래프 영역 */}
-                          <div className="flex-1 min-w-0 max-w-xs">
-                            {/* 음성 라벨을 우측 상단에 배치 */}
-                            <div className="flex items-center justify-end space-x-1 mb-1">
-                              <div className={cn(
-                                "px-1.5 py-0.5 rounded-full text-xs font-medium",
-                                isMe ? "bg-white/20 text-white" : "bg-purple-100 text-purple-600"
-                              )}>
-                                음성
-                              </div>
-                              {msg.voiceDuration && (
-                                <span className={cn(
-                                  "text-xs px-1.5 py-0.5 rounded-full",
-                                  isMe ? "bg-white/20 text-white/70" : "bg-gray-100 text-gray-500"
+                        <div>
+                          <div className="flex items-center space-x-3 min-w-0">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleVoicePlayback(msg.id, msg.fileUrl, msg.voiceDuration, msg.senderId);
+                              }}
+                              className={cn(
+                                "clickable w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-105 select-auto flex-shrink-0 shadow-sm",
+                                isMe ? "bg-white/20 hover:bg-white/30" : "bg-purple-100 hover:bg-purple-200"
+                              )}
+                              style={{ 
+                                userSelect: 'auto',
+                                WebkitUserSelect: 'auto',
+                                MozUserSelect: 'auto',
+                                msUserSelect: 'auto',
+                                WebkitTouchCallout: 'default'
+                              }}
+                            >
+                              {playingAudio === msg.id ? (
+                                <Pause className={cn(
+                                  "h-5 w-5",
+                                  isMe ? "text-white" : "text-purple-600"
+                                )} />
+                              ) : (
+                                <Play className={cn(
+                                  "h-5 w-5",
+                                  isMe ? "text-white" : "text-purple-600"
+                                )} />
+                              )}
+                            </button>
+                            
+                            {/* 오디오 파형 그래프 영역 */}
+                            <div className="flex-1 min-w-0 max-w-xs">
+                              {/* 음성 라벨을 우측 상단에 배치 */}
+                              <div className="flex items-center justify-end space-x-1 mb-1">
+                                <div className={cn(
+                                  "px-1.5 py-0.5 rounded-full text-xs font-medium",
+                                  isMe ? "bg-white/20 text-white" : "bg-purple-100 text-purple-600"
                                 )}>
-                                  {msg.voiceDuration}초
-                                </span>
+                                  음성
+                                </div>
+                                {msg.voiceDuration && (
+                                  <span className={cn(
+                                    "text-xs px-1.5 py-0.5 rounded-full",
+                                    isMe ? "bg-white/20 text-white/70" : "bg-gray-100 text-gray-500"
+                                  )}>
+                                    {msg.voiceDuration}초
+                                  </span>
+                                )}
+                              </div>
+                              
+                              {/* 컴팩트한 정적 오디오 파형 */}
+                              <div className="flex items-center space-x-0.5 h-2 mb-1">
+                                {(() => {
+                                  // 정적 파형 (15개 막대, 더 컴팩트)
+                                  const staticHeights = [0.3, 0.6, 0.4, 0.8, 0.3, 0.7, 0.5, 0.9, 0.4, 0.6, 0.3, 0.5, 0.7, 0.2, 0.4];
+                                  
+                                  return staticHeights.map((height, i) => (
+                                    <div
+                                      key={i}
+                                      className={cn(
+                                        "rounded-full flex-shrink-0 opacity-60",
+                                        isMe
+                                          ? "bg-white/40"
+                                          : "bg-purple-200"
+                                      )}
+                                      style={{
+                                        width: '1.5px',
+                                        height: `${height * 8}px`,
+                                        minHeight: '1.5px'
+                                      }}
+                                    />
+                                  ));
+                                })()}
+                              </div>
+                              
+                              {msg.content && (
+                                <div className={cn(
+                                  "text-sm leading-relaxed",
+                                  isMe ? "text-white/90" : "text-gray-800"
+                                )}>
+                                  {msg.content}
+                                </div>
                               )}
                             </div>
-                            
-                            {/* 컴팩트한 정적 오디오 파형 */}
-                            <div className="flex items-center space-x-0.5 h-2 mb-1">
-                              {(() => {
-                                // 정적 파형 (15개 막대, 더 컴팩트)
-                                const staticHeights = [0.3, 0.6, 0.4, 0.8, 0.3, 0.7, 0.5, 0.9, 0.4, 0.6, 0.3, 0.5, 0.7, 0.2, 0.4];
-                                
-                                return staticHeights.map((height, i) => (
-                                  <div
-                                    key={i}
-                                    className={cn(
-                                      "rounded-full flex-shrink-0 opacity-60",
-                                      isMe
-                                        ? "bg-white/40"
-                                        : "bg-purple-200"
-                                    )}
-                                    style={{
-                                      width: '1.5px',
-                                      height: `${height * 8}px`,
-                                      minHeight: '1.5px'
-                                    }}
-                                  />
-                                ));
-                              })()}
-                            </div>
-                            
-                            {msg.content && (
-                              <div className={cn(
-                                "text-sm leading-relaxed",
-                                isMe ? "text-white/90" : "text-gray-800"
-                              )}>
-                                {msg.content}
-                              </div>
-                            )}
                           </div>
+                          
+                          {/* 음성 메시지 타임스탬프 */}
+                          <span className={cn(
+                            "text-[10px] mt-1 block text-right",
+                            isMe ? "text-white/60" : "text-gray-500"
+                          )}>
+                            {formatTime(msg.createdAt)}
+                          </span>
                         </div>
 
                       ) : msg.messageType === "file" ? (
@@ -4707,6 +4706,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                               </p>
                             </div>
                           )}
+                          
+                          {/* 파일 메시지 타임스탬프 */}
+                          <span className={cn(
+                            "text-[10px] mt-1 block text-right",
+                            isMe ? "text-white/60" : "text-gray-500"
+                          )}>
+                            {formatTime(msg.createdAt)}
+                          </span>
                         </div>
                       ) : msg.messageType === "poll" && msg.pollData ? (
                         <PollMessage
@@ -4715,26 +4722,34 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           onVote={(optionIndex) => {
                             console.log('Vote for option:', optionIndex, 'in poll:', msg.id);
                           }}
+                          timestamp={formatTime(msg.createdAt)}
                         />
                       ) : msg.messageType === "boom" ? (
                         explodedMessages.has(msg.id) ? (
                           // 폭발한 메시지
                           <div className="text-center py-4">
-                            <div className="inline-flex items-center space-x-2 bg-gray-100 rounded-lg px-4 py-2 border-2 border-dashed border-gray-300">
-                              <span className="text-2xl animate-bounce">💥</span>
-                              <span className="text-sm text-gray-600 font-medium">이 메시지는 폭발했습니다</span>
-                              <span className="text-xs text-gray-400">(삭제됨)</span>
+                            <div className="inline-flex flex-col items-center space-y-2 bg-gray-100 rounded-lg px-4 py-2 border-2 border-dashed border-gray-300">
+                              <div className="flex items-center space-x-2">
+                                <span className="text-2xl animate-bounce">💥</span>
+                                <span className="text-sm text-gray-600 font-medium">이 메시지는 폭발했습니다</span>
+                                <span className="text-xs text-gray-400">(삭제됨)</span>
+                              </div>
+                              
+                              {/* 폭발 메시지 타임스탬프 */}
+                              <span className="text-[10px] block text-right w-full text-gray-500">
+                                {formatTime(msg.createdAt)}
+                              </span>
                             </div>
                           </div>
                         ) : (
                           // 활성 폭탄 메시지 (카운트다운)
-                          <div className="relative">
-                            <div className={cn(
-                              "flex items-center space-x-3 p-3 rounded-lg border-2",
-                              messageTimers[msg.id] <= 5 
-                                ? "border-red-500 bg-red-50 animate-pulse" 
-                                : "border-orange-500 bg-orange-50"
-                            )}>
+                          <div className={cn(
+                            "flex flex-col p-3 rounded-lg border-2",
+                            messageTimers[msg.id] <= 5 
+                              ? "border-red-500 bg-red-50 animate-pulse" 
+                              : "border-orange-500 bg-orange-50"
+                          )}>
+                            <div className="flex items-center space-x-3">
                               <div className={cn(
                                 "text-2xl",
                                 messageTimers[msg.id] <= 3 ? "animate-bounce" : ""
@@ -4761,29 +4776,57 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                                 </div>
                               </div>
                             </div>
+                            
+                            {/* 활성 폭탄 타임스탬프 */}
+                            <span className={cn(
+                              "text-[10px] mt-2 block text-right",
+                              messageTimers[msg.id] <= 5 ? "text-red-600" : "text-orange-600"
+                            )}>
+                              {formatTime(msg.createdAt)}
+                            </span>
                           </div>
                         )
                       ) : msg.messageType === "sendback" ? (
                         // SendBack 메시지 (작성자에게만 보임)
-                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <span className="text-lg">↩️</span>
-                            <span className="text-xs text-yellow-700 font-medium">작성자만 볼 수 있는 피드백</span>
+                        <div>
+                          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <span className="text-lg">↩️</span>
+                              <span className="text-xs text-yellow-700 font-medium">작성자만 볼 수 있는 피드백</span>
+                            </div>
+                            <p className="text-sm text-yellow-800">
+                              {msg.content.replace('↩️ 피드백: ', '')}
+                            </p>
+                            
+                            {/* Sendback 메시지 타임스탬프 */}
+                            <span className={cn(
+                              "text-[10px] mt-1 block text-right",
+                              "text-yellow-600"
+                            )}>
+                              {formatTime(msg.createdAt)}
+                            </span>
                           </div>
-                          <p className="text-sm text-yellow-800">
-                            {msg.content.replace('↩️ 피드백: ', '')}
-                          </p>
                         </div>
                       ) : msg.messageType === "spotlight" ? (
                         // Spotlight 메시지
-                        <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <span className="text-lg">📌</span>
-                            <span className="text-xs text-purple-700 font-medium">주목 메시지</span>
+                        <div>
+                          <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <span className="text-lg">📌</span>
+                              <span className="text-xs text-purple-700 font-medium">주목 메시지</span>
+                            </div>
+                            <p className="text-sm text-purple-800">
+                              {msg.content}
+                            </p>
+                            
+                            {/* Spotlight 메시지 타임스탬프 */}
+                            <span className={cn(
+                              "text-[10px] mt-1 block text-right",
+                              "text-purple-600"
+                            )}>
+                              {formatTime(msg.createdAt)}
+                            </span>
                           </div>
-                          <p className="text-sm text-purple-800">
-                            {msg.content}
-                          </p>
                         </div>
                       ) : (
                         <div className={cn(
@@ -5073,6 +5116,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
                             </>
                           )}
+                          
+                          {/* 텍스트 메시지 타임스탬프 */}
+                          <span className={cn(
+                            "text-[10px] mt-1 block text-right",
+                            isMe ? "text-white/60" : "text-gray-500"
+                          )}>
+                            {formatTime(msg.createdAt)}
+                          </span>
                         </div>
                       )}
                     </div>
