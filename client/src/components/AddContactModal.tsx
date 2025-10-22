@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +18,6 @@ interface AddContactModalProps {
 
 export default function AddContactModal({ open, onClose }: AddContactModalProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [contactUsername, setContactUsername] = useState("");
   const [nickname, setNickname] = useState("");
@@ -39,32 +37,9 @@ export default function AddContactModal({ open, onClose }: AddContactModalProps)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
-      toast({
-        title: "친구 추가 완료",
-        description: "새로운 친구가 추가되었습니다.",
-      });
       handleClose();
     },
     onError: (error: any) => {
-      let errorMessage = "다시 시도해주세요.";
-      
-      if (error.message) {
-        if (error.message.includes("already in your contacts")) {
-          errorMessage = "이미 친구 목록에 있는 사용자입니다.";
-        } else if (error.message.includes("Cannot add yourself")) {
-          errorMessage = "자기 자신을 친구로 추가할 수 없습니다.";
-        } else if (error.message.includes("User not found")) {
-          errorMessage = "해당 사용자를 찾을 수 없습니다.";
-        } else {
-          errorMessage = error.message;
-        }
-      }
-      
-      toast({
-        variant: "destructive",
-        title: "친구 추가 실패",
-        description: errorMessage,
-      });
     },
   });
 
@@ -77,11 +52,6 @@ export default function AddContactModal({ open, onClose }: AddContactModalProps)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!contactUsername.trim()) {
-      toast({
-        variant: "destructive",
-        title: "입력 오류",
-        description: "사용자 ID를 입력해주세요.",
-      });
       return;
     }
 
@@ -191,11 +161,6 @@ export default function AddContactModal({ open, onClose }: AddContactModalProps)
   const handleQRScanResult = async (userId: number, userData: any) => {
     // 자기 자신을 스캔한 경우 방지
     if (userId === user?.id) {
-      toast({
-        title: "친구 추가 불가",
-        description: "자기 자신을 친구로 추가할 수 없습니다.",
-        variant: "destructive",
-      });
       return;
     }
 
@@ -206,30 +171,9 @@ export default function AddContactModal({ open, onClose }: AddContactModalProps)
       });
       
       queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
-      toast({
-        title: "친구 추가 완료",
-        description: `${userData.displayName || userData.username}님이 친구로 추가되었습니다.`,
-      });
       
       onClose();
     } catch (error: any) {
-      let errorMessage = "오류가 발생했습니다.";
-      
-      if (error.message) {
-        if (error.message.includes("already in your contacts")) {
-          errorMessage = "이미 친구 목록에 있는 사용자입니다.";
-        } else if (error.message.includes("Cannot add yourself")) {
-          errorMessage = "자기 자신을 친구로 추가할 수 없습니다.";
-        } else {
-          errorMessage = error.message;
-        }
-      }
-      
-      toast({
-        title: "친구 추가 실패",
-        description: errorMessage,
-        variant: "destructive",
-      });
     }
   };
 

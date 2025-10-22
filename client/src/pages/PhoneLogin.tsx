@@ -7,14 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 import VaultLogo from "@/components/VaultLogo";
 import { countries } from "@/data/countries";
 import { Phone, MessageSquare } from "lucide-react";
 
 export default function PhoneLogin() {
   const { setUser } = useAuth();
-  const { toast } = useToast();
   const [step, setStep] = useState<"phone" | "verification">("phone");
   const [selectedCountry, setSelectedCountry] = useState(countries.find(c => c.code === "KR") || countries[0]);
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -91,26 +89,8 @@ export default function PhoneLogin() {
     onSuccess: (data) => {
       setFullPhoneNumber(`${selectedCountry.dialCode}${phoneNumber}`);
       setStep("verification");
-      
-      if (data.developmentMode && data.verificationCode) {
-        toast({
-          title: "개발 모드 - 인증 코드",
-          description: `콘솔에 표시된 인증 코드: ${data.verificationCode}`,
-          duration: 10000, // 10초간 표시
-        });
-      } else {
-        toast({
-          title: "인증 코드 전송",
-          description: `${selectedCountry.dialCode}${phoneNumber}로 인증 코드를 전송했습니다.`,
-        });
-      }
     },
     onError: (error: any) => {
-      toast({
-        title: "오류",
-        description: "인증 코드 전송에 실패했습니다. 다시 시도해주세요.",
-        variant: "destructive",
-      });
     },
   });
 
@@ -128,11 +108,6 @@ export default function PhoneLogin() {
       // React Query 캐시 무효화로 인증 상태 즉시 업데이트
       await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       
-      toast({
-        title: "로그인 성공",
-        description: "Dovie Messenger에 오신 것을 환영합니다!",
-      });
-      
       // 인증 상태 업데이트 후 페이지 이동
       setTimeout(() => {
         // 프로필이 미완성이거나 임시 이메일을 사용하는 경우 프로필 설정으로 이동
@@ -147,22 +122,12 @@ export default function PhoneLogin() {
       }, 500);
     },
     onError: (error: any) => {
-      toast({
-        title: "인증 실패",
-        description: "인증 코드가 올바르지 않습니다. 다시 확인해주세요.",
-        variant: "destructive",
-      });
     },
   });
 
   const handleSendSMS = (e: React.FormEvent) => {
     e.preventDefault();
     if (!phoneNumber.trim()) {
-      toast({
-        title: "오류",
-        description: "전화번호를 입력해주세요.",
-        variant: "destructive",
-      });
       return;
     }
 
@@ -175,11 +140,6 @@ export default function PhoneLogin() {
   const handleVerifySMS = (e: React.FormEvent) => {
     e.preventDefault();
     if (!verificationCode.trim()) {
-      toast({
-        title: "오류",
-        description: "인증 코드를 입력해주세요.",
-        variant: "destructive",
-      });
       return;
     }
 

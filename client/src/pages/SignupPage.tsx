@@ -10,12 +10,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Mail, Lock, User, Eye, EyeOff, Phone } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 
 export default function SignupPage() {
   const [, setLocation] = useLocation();
   const { setUser } = useAuth();
-  const { toast } = useToast();
   
   const [usernameFormData, setUsernameFormData] = useState({
     username: "",
@@ -45,18 +43,9 @@ export default function SignupPage() {
     onSuccess: (data) => {
       setUser(data.user);
       localStorage.setItem("userId", data.user.id.toString());
-      toast({
-        title: "회원가입 성공",
-        description: "프로필을 완성해주세요!",
-      });
       setLocation("/profile-setup");
     },
     onError: (error: any) => {
-      toast({
-        variant: "destructive",
-        title: "회원가입 실패",
-        description: error.message || "다시 시도해주세요.",
-      });
     },
   });
 
@@ -64,29 +53,14 @@ export default function SignupPage() {
     e.preventDefault();
     
     if (!usernameFormData.username.trim()) {
-      toast({
-        variant: "destructive",
-        title: "사용자명 오류",
-        description: "사용자명을 입력해주세요.",
-      });
       return;
     }
     
     if (usernameFormData.password !== usernameFormData.confirmPassword) {
-      toast({
-        variant: "destructive",
-        title: "비밀번호 불일치",
-        description: "비밀번호가 일치하지 않습니다.",
-      });
       return;
     }
 
     if (usernameFormData.password.length < 6) {
-      toast({
-        variant: "destructive",
-        title: "비밀번호 오류",
-        description: "비밀번호는 6자 이상이어야 합니다.",
-      });
       return;
     }
 

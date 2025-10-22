@@ -8,7 +8,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Users } from "lucide-react";
 
@@ -20,7 +19,6 @@ interface CreateGroupChatModalProps {
 
 export default function CreateGroupChatModal({ open, onClose, onSuccess }: CreateGroupChatModalProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [groupName, setGroupName] = useState("");
   const [selectedContacts, setSelectedContacts] = useState<number[]>([]);
@@ -57,19 +55,10 @@ export default function CreateGroupChatModal({ open, onClose, onSuccess }: Creat
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
-      toast({
-        title: "그룹 채팅 생성 완료",
-        description: `${groupName} 그룹이 생성되었습니다.`,
-      });
       onSuccess(data.chatRoom.id);
       handleClose();
     },
     onError: (error: any) => {
-      toast({
-        variant: "destructive",
-        title: "그룹 채팅 생성 실패",
-        description: error.message || "다시 시도해주세요.",
-      });
     },
   });
 

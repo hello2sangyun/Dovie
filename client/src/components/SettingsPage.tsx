@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +23,6 @@ interface SettingsPageProps {
 
 export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
   const { user, setUser } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [displayName, setDisplayName] = useState(user?.displayName || "");
   const [username, setUsername] = useState(user?.username || "");
@@ -86,19 +84,9 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
       queryClient.invalidateQueries();
       
       console.log("✅ Profile updated successfully, new URL:", data.user.profilePicture);
-      
-      toast({
-        title: "프로필 업데이트 완료",
-        description: "프로필이 성공적으로 업데이트되었습니다.",
-      });
     },
     onError: (error) => {
       console.error("Profile update error:", error);
-      toast({
-        variant: "destructive",
-        title: "업데이트 실패",
-        description: "다시 시도해주세요.",
-      });
     },
   });
 
@@ -113,18 +101,9 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
     },
     onSuccess: (data) => {
       setUser(prev => prev ? { ...prev, allowVoicePlayback: data.settings.allowVoicePlayback, autoPlayVoiceMessages: data.settings.autoPlayVoiceMessages } : prev);
-      toast({
-        title: "음성 설정 업데이트 완료",
-        description: "음성 메시지 설정이 변경되었습니다.",
-      });
     },
     onError: (error) => {
       console.error("Voice settings update error:", error);
-      toast({
-        variant: "destructive",
-        title: "설정 업데이트 실패",
-        description: "다시 시도해주세요.",
-      });
     },
   });
 
@@ -193,11 +172,6 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
     },
     onError: (error) => {
       console.error("Image upload error:", error);
-      toast({
-        variant: "destructive",
-        title: "이미지 업로드 실패",
-        description: "이미지 업로드에 실패했습니다.",
-      });
     },
   });
 
@@ -210,19 +184,10 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
     onSuccess: (data) => {
       setUser(data.user);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      toast({
-        title: "비즈니스 등록 신청 완료",
-        description: "검토 후 승인 여부를 알려드립니다.",
-      });
       setBusinessName("");
       setBusinessAddress("");
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "등록 신청 실패",
-        description: "다시 시도해주세요.",
-      });
     },
   });
 
@@ -298,11 +263,6 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
 
   const handleBusinessRegistration = () => {
     if (!businessName.trim() || !businessAddress.trim()) {
-      toast({
-        variant: "destructive",
-        title: "입력 오류",
-        description: "사업장명과 주소를 모두 입력해주세요.",
-      });
       return;
     }
     

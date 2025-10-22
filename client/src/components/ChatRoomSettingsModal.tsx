@@ -7,7 +7,6 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/useAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Settings, Users, UserPlus, LogOut, AlertTriangle } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -21,7 +20,6 @@ interface ChatRoomSettingsModalProps {
 
 export default function ChatRoomSettingsModal({ open, onClose, chatRoom, onLeaveRoom }: ChatRoomSettingsModalProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [newRoomName, setNewRoomName] = useState(chatRoom?.name || "");
   const [showParticipants, setShowParticipants] = useState(false);
@@ -41,17 +39,8 @@ export default function ChatRoomSettingsModal({ open, onClose, chatRoom, onLeave
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
-      toast({
-        title: "채팅방 이름 변경 완료",
-        description: `채팅방 이름이 "${newRoomName}"으로 변경되었습니다.`,
-      });
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "이름 변경 실패",
-        description: "다시 시도해주세요.",
-      });
     },
   });
 
@@ -65,19 +54,10 @@ export default function ChatRoomSettingsModal({ open, onClose, chatRoom, onLeave
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
-      toast({
-        title: "채팅방에서 나왔습니다",
-        description: saveFiles ? "파일들이 저장소로 이동되었습니다." : "파일들이 삭제되었습니다.",
-      });
       onLeaveRoom();
       onClose();
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "채팅방 나가기 실패",
-        description: "다시 시도해주세요.",
-      });
     },
   });
 

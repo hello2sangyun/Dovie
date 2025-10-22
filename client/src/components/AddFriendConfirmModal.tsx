@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -22,7 +21,6 @@ interface AddFriendConfirmModalProps {
 }
 
 export default function AddFriendConfirmModal({ open, onClose, users }: AddFriendConfirmModalProps) {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [selectAll, setSelectAll] = useState(false);
@@ -78,21 +76,6 @@ export default function AddFriendConfirmModal({ open, onClose, users }: AddFrien
       const successful = results.filter(r => r.success);
       const failed = results.filter(r => !r.success);
       
-      if (successful.length > 0) {
-        toast({
-          title: "친구 추가 완료",
-          description: `${successful.length}명이 친구 목록에 추가되었습니다.`,
-        });
-      }
-      
-      if (failed.length > 0) {
-        toast({
-          variant: "destructive",
-          title: "일부 친구 추가 실패",
-          description: `${failed.length}명의 사용자를 추가하는데 실패했습니다.`,
-        });
-      }
-      
       // 성공 시 즉시 팝업 닫기
       setTimeout(() => {
         onClose();
@@ -100,11 +83,6 @@ export default function AddFriendConfirmModal({ open, onClose, users }: AddFrien
     },
     onError: (error: any) => {
       console.error("친구 추가 실패:", error);
-      toast({
-        variant: "destructive",
-        title: "친구 추가 실패",
-        description: "친구 추가 중 오류가 발생했습니다. 다시 시도해주세요.",
-      });
     },
   });
 

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { MapPin, Loader2, ExternalLink } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 
 interface LocationShareModalProps {
   isOpen: boolean;
@@ -29,7 +28,6 @@ export function LocationShareModal({
   const [isLoading, setIsLoading] = useState(false);
   const [locationData, setLocationData] = useState<LocationData | null>(null);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const { toast } = useToast();
 
   // Check geolocation permission when modal opens
   useEffect(() => {
@@ -133,21 +131,11 @@ export function LocationShareModal({
 
       const result = await response.json();
       
-      toast({
-        title: "위치 공유 완료",
-        description: "위치가 성공적으로 공유되었습니다.",
-      });
-
       onLocationShared?.();
       onClose();
       
     } catch (error) {
       console.error('Location sharing error:', error);
-      toast({
-        title: "위치 공유 실패",
-        description: error instanceof Error ? error.message : "위치를 공유할 수 없습니다.",
-        variant: "destructive",
-      });
     } finally {
       setIsLoading(false);
     }

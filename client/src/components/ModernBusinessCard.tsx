@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,7 +31,6 @@ interface ModernBusinessCardProps {
 
 export default function ModernBusinessCard({ onBack }: ModernBusinessCardProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Form states
@@ -81,17 +79,8 @@ export default function ModernBusinessCard({ onBack }: ModernBusinessCardProps) 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/business-cards"] });
-      toast({
-        title: "명함이 저장되었습니다",
-        description: "디지털 명함 정보가 성공적으로 업데이트되었습니다.",
-      });
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "저장 실패",
-        description: "명함 저장 중 오류가 발생했습니다.",
-      });
     },
   });
 
@@ -104,17 +93,8 @@ export default function ModernBusinessCard({ onBack }: ModernBusinessCardProps) 
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/business-cards/share-info"] });
       navigator.clipboard.writeText(data.shareUrl);
-      toast({
-        title: "공유 링크가 생성되었습니다",
-        description: "링크가 클립보드에 복사되었습니다.",
-      });
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "공유 링크 생성 실패",
-        description: "링크 생성 중 오류가 발생했습니다.",
-      });
     },
   });
 
@@ -133,10 +113,6 @@ export default function ModernBusinessCard({ onBack }: ModernBusinessCardProps) 
   const copyShareLink = () => {
     if (shareData?.shareUrl) {
       navigator.clipboard.writeText(shareData.shareUrl);
-      toast({
-        title: "링크가 복사되었습니다",
-        description: "공유 링크가 클립보드에 복사되었습니다.",
-      });
     }
   };
 

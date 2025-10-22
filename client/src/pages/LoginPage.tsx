@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import VaultLogo from "@/components/VaultLogo";
@@ -14,7 +13,6 @@ import { User, Lock, Phone } from "lucide-react";
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
-  const { toast } = useToast();
   const { setUser } = useAuth();
   
   // Username/Password login state
@@ -44,11 +42,6 @@ export default function LoginPage() {
       }
     },
     onError: (error: any) => {
-      toast({
-        variant: "destructive",
-        title: "로그인 실패",
-        description: error.message || "사용자명 또는 비밀번호를 확인해주세요.",
-      });
     },
   });
 
@@ -56,11 +49,6 @@ export default function LoginPage() {
     e.preventDefault();
     
     if (!usernameLoginData.username || !usernameLoginData.password) {
-      toast({
-        variant: "destructive",
-        title: "입력 오류",
-        description: "사용자명과 비밀번호를 모두 입력해주세요.",
-      });
       return;
     }
     

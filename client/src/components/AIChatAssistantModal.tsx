@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { X, Mic, Send, Sparkles } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
 interface AIChatAssistantModalProps {
@@ -60,7 +59,6 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { toast } = useToast();
 
   // Start voice recording
   const startRecording = async () => {
@@ -87,11 +85,6 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
       setAudioChunks(chunks);
     } catch (error) {
       console.error('Error starting recording:', error);
-      toast({
-        variant: "destructive",
-        title: "녹음 실패",
-        description: "마이크 권한을 확인해주세요.",
-      });
     }
   };
 
@@ -131,22 +124,12 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
       }
     } catch (error) {
       console.error('Transcription error:', error);
-      toast({
-        variant: "destructive",
-        title: "음성 인식 실패",
-        description: "음성을 인식하지 못했습니다. 다시 시도해주세요.",
-      });
     }
   };
 
   // Submit question to AI
   const handleSubmit = async () => {
     if (!question.trim()) {
-      toast({
-        variant: "destructive",
-        title: "질문을 입력하세요",
-        description: "AI에게 물어볼 내용을 입력해주세요.",
-      });
       return;
     }
 
@@ -171,11 +154,6 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
       }
     } catch (error) {
       console.error('AI Assistant error:', error);
-      toast({
-        variant: "destructive",
-        title: "AI 응답 실패",
-        description: "AI가 응답하지 못했습니다. 다시 시도해주세요.",
-      });
     } finally {
       setIsLoading(false);
     }

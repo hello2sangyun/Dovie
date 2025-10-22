@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Save, Reply, Languages, Edit3, Globe, FileText, Copy } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 
 interface MessageContextMenuProps {
   x: number;
@@ -32,7 +31,6 @@ export default function MessageContextMenu({
   canSummarize = false,
   visible 
 }: MessageContextMenuProps) {
-  const { toast } = useToast();
   const menuRef = useRef<HTMLDivElement>(null);
   const [menuPosition, setMenuPosition] = useState({ x, y });
 

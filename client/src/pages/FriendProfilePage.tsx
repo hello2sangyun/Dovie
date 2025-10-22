@@ -3,7 +3,6 @@ import { useLocation, useRoute } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Phone, Video, UserPlus, Search, MoreHorizontal, MapPin, Briefcase, Globe, Calendar, Heart, MessageCircle, Share, Building, MessageSquare } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -68,7 +67,6 @@ export default function FriendProfilePage() {
   const [match, params] = useRoute("/friend/:userId");
   const userId = params?.userId;
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = useState("posts");
@@ -119,11 +117,6 @@ export default function FriendProfilePage() {
       setLocation(`/app?chat=${data.chatRoom.id}`);
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "채팅방 생성 실패",
-        description: "다시 시도해주세요.",
-      });
     },
   });
 

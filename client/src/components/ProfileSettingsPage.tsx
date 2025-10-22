@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +15,6 @@ interface ProfileSettingsPageProps {
 
 export default function ProfileSettingsPage({ onBack }: ProfileSettingsPageProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   
   const [formData, setFormData] = useState({
@@ -33,17 +31,8 @@ export default function ProfileSettingsPage({ onBack }: ProfileSettingsPageProps
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      toast({
-        title: "프로필 업데이트 완료",
-        description: "프로필 정보가 성공적으로 업데이트되었습니다.",
-      });
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "업데이트 실패",
-        description: "프로필 업데이트 중 오류가 발생했습니다.",
-      });
     },
   });
 

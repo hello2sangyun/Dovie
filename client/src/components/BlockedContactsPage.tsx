@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { InstantAvatar } from "@/components/InstantAvatar";
@@ -14,7 +13,6 @@ interface BlockedContactsPageProps {
 
 export default function BlockedContactsPage({ onBack }: BlockedContactsPageProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Fetch blocked contacts
@@ -39,17 +37,8 @@ export default function BlockedContactsPage({ onBack }: BlockedContactsPageProps
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/contacts/blocked"] });
       queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
-      toast({
-        title: "차단 해제 완료",
-        description: "연락처 차단이 해제되었습니다.",
-      });
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "차단 해제 실패",
-        description: "차단 해제 중 오류가 발생했습니다.",
-      });
     },
   });
 

@@ -31,6 +31,7 @@ export const users = pgTable("users", {
   // 음성 메시지 설정
   allowVoicePlayback: boolean("allow_voice_playback").default(true), // 다른 사람이 내 음성을 들을 수 있는지
   autoPlayVoiceMessages: boolean("auto_play_voice_messages").default(false), // 이어폰 착용 시 자동 재생
+  allowVoiceBookmarks: boolean("allow_voice_bookmarks").default(true), // 다른 사람이 내 음성을 북마크할 수 있는지
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -381,6 +382,31 @@ export const reminders = pgTable("reminders", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   completedAt: timestamp("completed_at"),
 });
+
+// 북마크 테이블
+export const bookmarks = pgTable("bookmarks", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  messageId: integer("message_id").references(() => messages.id).notNull(),
+  chatRoomId: integer("chat_room_id").references(() => chatRooms.id).notNull(),
+  bookmarkType: text("bookmark_type").notNull(), // "message", "file", "voice"
+  note: text("note"), // 북마크에 대한 사용자 메모
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// 음성 북마크 요청 테이블
+export const voiceBookmarkRequests = pgTable("voice_bookmark_requests", {
+  id: serial("id").primaryKey(),
+  requesterId: integer("requester_id").references(() => users.id).notNull(),
+  targetUserId: integer("target_user_id").references(() => users.id).notNull(),
+  messageId: integer("message_id").references(() => messages.id).notNull(),
+  chatRoomId: integer("chat_room_id").references(() => chatRooms.id).notNull(),
+  status: text("status").notNull().default("pending"), // "pending", "approved", "denied"
+  createdAt: timestamp("created_at").defaultNow(),
+  respondedAt: timestamp("responded_at"),
+}, (table) => ({
+  uniqueRequest: unique().on(table.requesterId, table.messageId),
+}));
 
 export const usersRelations = relations(users, ({ many }) => ({
   contacts: many(contacts, { relationName: "userContacts" }),
@@ -771,7 +797,16 @@ export const insertPhoneVerificationSchema = createInsertSchema(phoneVerificatio
   createdAt: true,
 });
 
+export const insertBookmarkSchema = createInsertSchema(bookmarks).omit({
+  id: true,
+  createdAt: true,
+});
 
+export const insertVoiceBookmarkRequestSchema = createInsertSchema(voiceBookmarkRequests).omit({
+  id: true,
+  createdAt: true,
+  respondedAt: true,
+});
 
 export const insertFileUploadSchema = createInsertSchema(fileUploads).omit({
   id: true,
@@ -838,7 +873,10 @@ export type AiNotice = typeof aiNotices.$inferSelect;
 export type InsertAiNotice = z.infer<typeof insertAiNoticeSchema>;
 export type PhoneVerification = typeof phoneVerifications.$inferSelect;
 export type InsertPhoneVerification = z.infer<typeof insertPhoneVerificationSchema>;
-
+export type Bookmark = typeof bookmarks.$inferSelect;
+export type InsertBookmark = z.infer<typeof insertBookmarkSchema>;
+export type VoiceBookmarkRequest = typeof voiceBookmarkRequests.$inferSelect;
+export type InsertVoiceBookmarkRequest = z.infer<typeof insertVoiceBookmarkRequestSchema>;
 
 export type FileUpload = typeof fileUploads.$inferSelect;
 export type InsertFileUpload = z.infer<typeof insertFileUploadSchema>;

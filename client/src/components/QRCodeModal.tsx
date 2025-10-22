@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2, Copy, RefreshCw } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 import QRCode from 'qrcode';
 
 interface QRCodeModalProps {
@@ -13,7 +12,6 @@ interface QRCodeModalProps {
 
 export default function QRCodeModal({ isOpen, onClose }: QRCodeModalProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [qrCodeUrl, setQRCodeUrl] = useState<string>('');
   const [token, setToken] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -53,11 +51,6 @@ export default function QRCodeModal({ isOpen, onClose }: QRCodeModalProps) {
       setQRCodeUrl(qrDataUrl);
     } catch (error) {
       console.error('QR 코드 생성 오류:', error);
-      toast({
-        title: "오류",
-        description: "QR 코드 생성에 실패했습니다.",
-        variant: "destructive"
-      });
     } finally {
       setIsGenerating(false);
     }
@@ -66,10 +59,6 @@ export default function QRCodeModal({ isOpen, onClose }: QRCodeModalProps) {
   const copyToken = () => {
     if (token) {
       navigator.clipboard.writeText(token);
-      toast({
-        title: "복사 완료",
-        description: "QR 코드가 클립보드에 복사되었습니다."
-      });
     }
   };
 

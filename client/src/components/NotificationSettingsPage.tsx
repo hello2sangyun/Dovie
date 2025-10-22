@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +17,6 @@ interface NotificationSettingsPageProps {
 
 export default function NotificationSettingsPage({ onBack }: NotificationSettingsPageProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   
   const [settings, setSettings] = useState({
@@ -46,17 +44,8 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      toast({
-        title: "알림 설정 저장",
-        description: "알림 설정이 성공적으로 저장되었습니다.",
-      });
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "저장 실패",
-        description: "알림 설정 저장 중 오류가 발생했습니다.",
-      });
     },
   });
 

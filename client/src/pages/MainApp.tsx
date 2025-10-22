@@ -3,7 +3,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 import { useImagePreloader, preloadGlobalImage } from "@/hooks/useImagePreloader";
 
 import { useLocation } from "wouter";
@@ -44,7 +43,6 @@ import { cn } from "@/lib/utils";
 
 export default function MainApp() {
   const { user, isLoading, isPreloadingImages } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const { preloadImage, isLoading: imagePreloading } = useImagePreloader();
   const [location, setLocation] = useLocation();

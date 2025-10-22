@@ -5,7 +5,6 @@ import "react-image-crop/dist/ReactCrop.css";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Camera, Loader2, Upload } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -32,7 +31,6 @@ function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: numbe
 
 export default function ProfilePhotoUpload({ isOpen, onClose }: ProfilePhotoUploadProps) {
   const { user, setUser } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [imgSrc, setImgSrc] = useState("");
   const [crop, setCrop] = useState<Crop>();
@@ -110,11 +108,6 @@ export default function ProfilePhotoUpload({ isOpen, onClose }: ProfilePhotoUplo
         
         console.log("🔄 Profile photo update process completed successfully");
         
-        toast({
-          title: "프로필 사진 업데이트 완료",
-          description: "프로필 사진이 성공적으로 변경되었습니다.",
-        });
-        
         onClose();
         setImgSrc("");
         setCrop(undefined);
@@ -122,19 +115,9 @@ export default function ProfilePhotoUpload({ isOpen, onClose }: ProfilePhotoUplo
         
       } catch (error) {
         console.error("❌ Profile photo update process failed:", error);
-        toast({
-          variant: "destructive",
-          title: "업데이트 처리 실패",
-          description: "프로필 사진 업데이트 후 처리 중 오류가 발생했습니다.",
-        });
       }
     },
     onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "업로드 실패",
-        description: error.message || "프로필 사진 업로드 중 오류가 발생했습니다.",
-      });
     },
     onSettled: () => {
       setIsUploading(false);
@@ -204,11 +187,6 @@ export default function ProfilePhotoUpload({ isOpen, onClose }: ProfilePhotoUplo
         uploadMutation.mutate(croppedFile);
       } catch (error) {
         console.error("크롭 처리 실패:", error);
-        toast({
-          variant: "destructive",
-          title: "이미지 처리 실패",
-          description: "이미지 크롭 처리 중 오류가 발생했습니다.",
-        });
         setIsUploading(false);
       }
     }

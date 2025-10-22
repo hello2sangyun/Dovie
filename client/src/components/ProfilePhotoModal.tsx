@@ -2,7 +2,6 @@ import { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Upload, Crop, X } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -18,7 +17,6 @@ export default function ProfilePhotoModal({ isOpen, onClose }: ProfilePhotoModal
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
-  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // 이미지 업로드 뮤테이션
@@ -43,20 +41,11 @@ export default function ProfilePhotoModal({ isOpen, onClose }: ProfilePhotoModal
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      toast({
-        title: "프로필 사진 업데이트 완료",
-        description: "프로필 사진이 성공적으로 변경되었습니다.",
-      });
       onClose();
       setSelectedImage(null);
       setCroppedImage(null);
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "업로드 실패",
-        description: "프로필 사진 업로드 중 오류가 발생했습니다.",
-      });
     },
   });
 
@@ -64,11 +53,6 @@ export default function ProfilePhotoModal({ isOpen, onClose }: ProfilePhotoModal
     const file = event.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) { // 5MB 제한
-        toast({
-          variant: "destructive",
-          title: "파일 크기 초과",
-          description: "5MB 이하의 이미지만 업로드 가능합니다.",
-        });
         return;
       }
 
@@ -122,11 +106,6 @@ export default function ProfilePhotoModal({ isOpen, onClose }: ProfilePhotoModal
       
       uploadProfilePhotoMutation.mutate(file);
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "업로드 실패",
-        description: "이미지 처리 중 오류가 발생했습니다.",
-      });
     } finally {
       setIsUploading(false);
     }

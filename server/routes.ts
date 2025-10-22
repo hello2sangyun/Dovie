@@ -3,7 +3,7 @@ import express from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, insertUserPostSchema, insertPostLikeSchema, insertPostCommentSchema, insertCompanyChannelSchema, insertCompanyProfileSchema, insertLocationShareRequestSchema, insertLocationShareSchema, chatRooms, chatParticipants, userPosts, postLikes, postComments, companyChannels, companyChannelFollowers, companyChannelAdmins, users, businessProfiles, contacts, businessPostReads, businessPosts, businessPostLikes, companyProfiles, messages, messageLikes, linkPreviews, locationShares } from "@shared/schema";
+import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, insertUserPostSchema, insertPostLikeSchema, insertPostCommentSchema, insertCompanyChannelSchema, insertCompanyProfileSchema, insertLocationShareRequestSchema, insertLocationShareSchema, insertBookmarkSchema, insertVoiceBookmarkRequestSchema, chatRooms, chatParticipants, userPosts, postLikes, postComments, companyChannels, companyChannelFollowers, companyChannelAdmins, users, businessProfiles, contacts, businessPostReads, businessPosts, businessPostLikes, companyProfiles, messages, messageLikes, linkPreviews, locationShares, bookmarks, voiceBookmarkRequests } from "@shared/schema";
 import { sql } from "drizzle-orm";
 import { translateText, transcribeAudio, answerChatQuestion, analyzeMessageForNotices, correctTranscriptionWithContext } from "./openai";
 import bcrypt from "bcryptjs";
@@ -2466,6 +2466,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // 파일이 존재하는지 확인
       if (!fs.existsSync(filePath)) {
+        console.error(`❌ File not found: ${filename}`);
         return res.status(404).json({ message: "File not found" });
       }
       
@@ -2473,9 +2474,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const isVoiceFile = filename.startsWith('voice_') && filename.endsWith('.webm');
       // 프로필 이미지인지 확인 (profile_로 시작하는 파일명)
       const isProfileImage = filename.startsWith('profile_');
+      // 일반 파일인지 확인 (file_로 시작하는 파일명 - 최근 파일, 암호화 안됨)
+      const isGeneralFile = filename.startsWith('file_');
+      
+      // 파일 확장자에 따른 Content-Type 설정
+      const ext = path.extname(filename).toLowerCase();
+      let contentType = 'application/octet-stream';
+      
+      if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
+      else if (ext === '.png') contentType = 'image/png';
+      else if (ext === '.gif') contentType = 'image/gif';
+      else if (ext === '.webp') contentType = 'image/webp';
+      else if (ext === '.bmp') contentType = 'image/bmp';
+      else if (ext === '.svg') contentType = 'image/svg+xml';
+      else if (ext === '.mp4') contentType = 'video/mp4';
+      else if (ext === '.webm') contentType = isVoiceFile ? 'audio/webm' : 'video/webm';
+      else if (ext === '.mov') contentType = 'video/quicktime';
+      else if (ext === '.avi') contentType = 'video/x-msvideo';
+      else if (ext === '.pdf') contentType = 'application/pdf';
+      else if (ext === '.txt') contentType = 'text/plain';
+      else if (ext === '.docx') contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      else if (ext === '.xlsx') contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
       
       if (isVoiceFile) {
         // 음성 파일은 암호화되지 않았으므로 직접 제공
+        console.log(`🎤 Serving voice file without encryption: ${filename}`);
         const fileBuffer = fs.readFileSync(filePath);
         
         res.set({
@@ -2488,37 +2511,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.send(fileBuffer);
       } else if (isProfileImage) {
         // 프로필 이미지는 최적화된 엔드포인트로 리다이렉트
+        console.log(`👤 Redirecting profile image to optimized endpoint: ${filename}`);
         return res.redirect(`/api/profile-images/${filename}`);
+      } else if (isGeneralFile) {
+        // file_로 시작하는 파일은 암호화되지 않은 최근 파일이므로 직접 제공
+        console.log(`📄 Serving general file without encryption: ${filename}`);
+        const fileBuffer = fs.readFileSync(filePath);
+        
+        res.set({
+          'Content-Type': contentType,
+          'Content-Length': fileBuffer.length,
+          'Cache-Control': 'public, max-age=31536000',
+          'Access-Control-Allow-Origin': '*',
+          'Accept-Ranges': 'bytes'
+        });
+        
+        res.send(fileBuffer);
       } else {
-        // 일반 파일 처리 (암호화된 파일 포함)
+        // 기타 파일 처리 (암호화된 파일로 간주하여 복호화 시도)
         let fileBuffer: Buffer;
         
         try {
           // 먼저 암호화된 텍스트로 읽기 시도
           const encryptedData = fs.readFileSync(filePath, 'utf8');
           fileBuffer = decryptFileData(encryptedData);
-          console.log(`Successfully decrypted file: ${filename}`);
-        } catch (decryptError) {
+          console.log(`🔓 Successfully decrypted file: ${filename}`);
+        } catch (decryptError: any) {
           // 복호화 실패시 바이너리로 읽기 (암호화되지 않은 파일)
-          fileBuffer = fs.readFileSync(filePath);
-          console.log(`File not encrypted, serving directly: ${filename}`);
+          console.warn(`⚠️ Decryption failed for ${filename}, serving as raw file`);
+          console.warn(`   Reason: ${decryptError?.message || 'Unknown error'}`);
+          console.warn(`   Error type: ${decryptError?.name || 'N/A'}`);
+          
+          try {
+            fileBuffer = fs.readFileSync(filePath);
+            console.log(`✅ Successfully served raw file: ${filename}`);
+          } catch (readError: any) {
+            console.error(`❌ Failed to read raw file ${filename}: ${readError?.message}`);
+            throw readError;
+          }
         }
-        
-        // 이미지 확장자에 따른 Content-Type 설정
-        const ext = path.extname(filename).toLowerCase();
-        let contentType = 'application/octet-stream';
-        
-        if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
-        else if (ext === '.png') contentType = 'image/png';
-        else if (ext === '.gif') contentType = 'image/gif';
-        else if (ext === '.webp') contentType = 'image/webp';
-        else if (ext === '.bmp') contentType = 'image/bmp';
-        else if (ext === '.svg') contentType = 'image/svg+xml';
-        else if (ext === '.mp4') contentType = 'video/mp4';
-        else if (ext === '.webm') contentType = 'video/webm';
-        else if (ext === '.mov') contentType = 'video/quicktime';
-        else if (ext === '.avi') contentType = 'video/x-msvideo';
-        else if (ext === '.pdf') contentType = 'application/pdf';
         
         res.set({
           'Content-Type': contentType,
@@ -2530,8 +2561,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         res.send(fileBuffer);
       }
-    } catch (error) {
-      console.error('File serving error:', error);
+    } catch (error: any) {
+      console.error(`❌ File serving error for ${req.params.filename}:`, {
+        message: error?.message,
+        name: error?.name,
+        stack: error?.stack?.split('\n')[0]
+      });
       res.status(500).json({ message: "Failed to serve file" });
     }
   });
@@ -3752,62 +3787,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("File upload error:", error);
       res.status(500).json({ message: "File upload failed" });
-    }
-  });
-
-  // File decryption route for profile pictures and other encrypted files
-  app.get("/uploads/:filename", async (req, res) => {
-    try {
-      const { filename } = req.params;
-      const filePath = path.join(uploadDir, filename);
-
-      if (!fs.existsSync(filePath)) {
-        return res.status(404).json({ message: "File not found" });
-      }
-
-      // 파일 확장자로 MIME 타입 결정
-      const ext = path.extname(filename).toLowerCase();
-      let contentType = 'application/octet-stream';
-      
-      if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
-      else if (ext === '.png') contentType = 'image/png';
-      else if (ext === '.gif') contentType = 'image/gif';
-      else if (ext === '.webp') contentType = 'image/webp';
-      else if (ext === '.mp3') contentType = 'audio/mpeg';
-      else if (ext === '.wav') contentType = 'audio/wav';
-      else if (ext === '.webm') contentType = 'audio/webm';
-      else if (ext === '.mp4') contentType = 'video/mp4';
-      else if (ext === '.pdf') contentType = 'application/pdf';
-      else if (ext === '.txt') contentType = 'text/plain';
-
-      // 음성 파일이나 일반 파일인 경우 원본 그대로 서빙 (암호화하지 않음)
-      if (filename.startsWith('voice_') || filename.startsWith('file_')) {
-        const rawData = await fs.promises.readFile(filePath);
-        res.set('Content-Type', contentType);
-        res.set('Cache-Control', 'public, max-age=31536000');
-        res.send(rawData);
-        return;
-      }
-
-      // 레거시 암호화된 파일의 경우 복호화 시도 (프로필 사진 등)
-      try {
-        const encryptedData = await fs.promises.readFile(filePath, 'utf8');
-        const decryptedBuffer = decryptFileData(encryptedData);
-        
-        res.set('Content-Type', contentType);
-        res.set('Cache-Control', 'public, max-age=31536000');
-        res.send(decryptedBuffer);
-      } catch (decryptError) {
-        console.log('Decryption failed, serving raw file:', filename);
-        // 복호화 실패 시 원본 파일 그대로 서빙
-        const rawData = await fs.promises.readFile(filePath);
-        res.set('Content-Type', contentType);
-        res.set('Cache-Control', 'public, max-age=31536000');
-        res.send(rawData);
-      }
-    } catch (error) {
-      console.error("File serving error:", error);
-      res.status(500).json({ message: "File serving failed" });
     }
   });
 
@@ -5773,6 +5752,252 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Update reminder error:", error);
       res.status(500).json({ message: "Failed to update reminder" });
+    }
+  });
+
+  // Bookmark endpoints
+  app.post('/api/bookmarks', async (req, res) => {
+    const userId = Number(req.headers['x-user-id']);
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { messageId, chatRoomId, bookmarkType, note } = req.body;
+      
+      if (!messageId || !chatRoomId || !bookmarkType) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      // Check if user is a participant of the chat room
+      const chatRoom = await storage.getChatRoomById(Number(chatRoomId));
+      if (!chatRoom) {
+        return res.status(404).json({ message: "Chat room not found" });
+      }
+      
+      const isParticipant = chatRoom.participants.some((p: any) => p.id === userId);
+      if (!isParticipant) {
+        return res.status(403).json({ message: "Not authorized: You are not a participant of this chat room" });
+      }
+
+      // Check if bookmark already exists
+      const exists = await storage.checkBookmarkExists(userId, Number(messageId));
+      if (exists) {
+        return res.status(400).json({ message: "Bookmark already exists" });
+      }
+
+      // For voice bookmarks, check if the sender allows voice bookmarks
+      if (bookmarkType === 'voice') {
+        const message = await storage.getMessageById(Number(messageId));
+        if (!message) {
+          return res.status(404).json({ message: "Message not found" });
+        }
+
+        const sender = await storage.getUser(message.senderId);
+        if (sender?.allowVoiceBookmarks === false) {
+          return res.status(403).json({ message: "Voice bookmarks are not allowed by this user" });
+        }
+      }
+
+      const bookmarkData = insertBookmarkSchema.parse({
+        userId,
+        messageId: Number(messageId),
+        chatRoomId: Number(chatRoomId),
+        bookmarkType,
+        note: note || null
+      });
+
+      const bookmark = await storage.createBookmark(bookmarkData);
+      res.json({ bookmark });
+    } catch (error) {
+      console.error("Create bookmark error:", error);
+      res.status(500).json({ message: "Failed to create bookmark" });
+    }
+  });
+
+  app.get('/api/bookmarks', async (req, res) => {
+    const userId = Number(req.headers['x-user-id']);
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const userBookmarks = await storage.getBookmarksByUser(userId);
+      
+      // Fetch message details for each bookmark
+      const bookmarksWithMessages = await Promise.all(
+        userBookmarks.map(async (bookmark) => {
+          const message = await storage.getMessageById(bookmark.messageId);
+          return {
+            ...bookmark,
+            message: message || null
+          };
+        })
+      );
+
+      res.json({ bookmarks: bookmarksWithMessages });
+    } catch (error) {
+      console.error("Get bookmarks error:", error);
+      res.status(500).json({ message: "Failed to get bookmarks" });
+    }
+  });
+
+  app.delete('/api/bookmarks/:id', async (req, res) => {
+    const userId = Number(req.headers['x-user-id']);
+    const bookmarkId = Number(req.params.id);
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      // Check if bookmark belongs to user
+      const bookmark = await storage.getBookmarkById(bookmarkId);
+      if (!bookmark) {
+        return res.status(404).json({ message: "Bookmark not found" });
+      }
+
+      if (bookmark.userId !== userId) {
+        return res.status(403).json({ message: "Not authorized to delete this bookmark" });
+      }
+
+      // Check if user is still a participant of the chat room
+      const chatRoom = await storage.getChatRoomById(bookmark.chatRoomId);
+      if (!chatRoom) {
+        return res.status(404).json({ message: "Chat room not found" });
+      }
+      
+      const isParticipant = chatRoom.participants.some((p: any) => p.id === userId);
+      if (!isParticipant) {
+        return res.status(403).json({ message: "Not authorized: You are not a participant of this chat room" });
+      }
+
+      await storage.deleteBookmark(bookmarkId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete bookmark error:", error);
+      res.status(500).json({ message: "Failed to delete bookmark" });
+    }
+  });
+
+  // Voice bookmark request endpoints
+  app.post('/api/voice-bookmark-requests', async (req, res) => {
+    const userId = Number(req.headers['x-user-id']);
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { targetUserId, messageId, chatRoomId } = req.body;
+      
+      if (!targetUserId || !messageId || !chatRoomId) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      // Check if target user allows voice bookmarks
+      const targetUser = await storage.getUser(Number(targetUserId));
+      if (targetUser?.allowVoiceBookmarks === false) {
+        return res.status(403).json({ message: "This user does not allow voice bookmarks" });
+      }
+
+      const requestData = insertVoiceBookmarkRequestSchema.parse({
+        requesterId: userId,
+        targetUserId: Number(targetUserId),
+        messageId: Number(messageId),
+        chatRoomId: Number(chatRoomId),
+        status: 'pending'
+      });
+
+      const request = await storage.createVoiceBookmarkRequest(requestData);
+      res.json({ request });
+    } catch (error) {
+      console.error("Create voice bookmark request error:", error);
+      res.status(500).json({ message: "Failed to create voice bookmark request" });
+    }
+  });
+
+  app.get('/api/voice-bookmark-requests/pending', async (req, res) => {
+    const userId = Number(req.headers['x-user-id']);
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const requests = await storage.getPendingVoiceBookmarkRequestsForUser(userId);
+      
+      // Fetch requester details for each request
+      const requestsWithDetails = await Promise.all(
+        requests.map(async (request) => {
+          const requester = await storage.getUser(request.requesterId);
+          const message = await storage.getMessageById(request.messageId);
+          return {
+            ...request,
+            requester: requester ? {
+              id: requester.id,
+              displayName: requester.displayName,
+              profilePicture: requester.profilePicture
+            } : null,
+            message: message || null
+          };
+        })
+      );
+
+      res.json({ requests: requestsWithDetails });
+    } catch (error) {
+      console.error("Get pending voice bookmark requests error:", error);
+      res.status(500).json({ message: "Failed to get pending requests" });
+    }
+  });
+
+  app.post('/api/voice-bookmark-requests/:id/respond', async (req, res) => {
+    const userId = Number(req.headers['x-user-id']);
+    const requestId = Number(req.params.id);
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { status } = req.body;
+      
+      if (!status || !['approved', 'denied'].includes(status)) {
+        return res.status(400).json({ message: "Invalid status. Must be 'approved' or 'denied'" });
+      }
+
+      // Check if request belongs to user
+      const request = await storage.getVoiceBookmarkRequestById(requestId);
+      if (!request) {
+        return res.status(404).json({ message: "Request not found" });
+      }
+
+      if (request.targetUserId !== userId) {
+        return res.status(403).json({ message: "Not authorized to respond to this request" });
+      }
+
+      if (request.status !== 'pending') {
+        return res.status(400).json({ message: "Request has already been responded to" });
+      }
+
+      await storage.updateVoiceBookmarkRequestStatus(requestId, status);
+
+      // If approved, create the bookmark for the requester
+      if (status === 'approved') {
+        const message = await storage.getMessageById(request.messageId);
+        if (message) {
+          await storage.createBookmark({
+            userId: request.requesterId,
+            messageId: request.messageId,
+            chatRoomId: request.chatRoomId,
+            bookmarkType: 'voice',
+            note: null
+          });
+        }
+      }
+
+      res.json({ success: true, status });
+    } catch (error) {
+      console.error("Respond to voice bookmark request error:", error);
+      res.status(500).json({ message: "Failed to respond to request" });
     }
   });
 

@@ -11,7 +11,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { InstantAvatar } from "@/components/InstantAvatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useToast } from "@/hooks/use-toast";
 import VoiceMessageConfirmModal from "./VoiceMessageConfirmModal";
 
 interface ContactsListProps {
@@ -21,7 +20,6 @@ interface ContactsListProps {
 
 export default function ContactsList({ onAddContact, onSelectContact }: ContactsListProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   
   const [searchTerm, setSearchTerm] = useState("");
@@ -330,11 +328,6 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       console.log('🎤 음성 녹음 시작:', contact.contactUser.displayName);
     } catch (error) {
       console.error('❌ Voice recording failed:', error);
-      toast({
-        title: "마이크 권한 필요",
-        description: "음성 메시지를 보내려면 마이크 권한이 필요합니다.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -443,18 +436,8 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       // 모달 닫기 (성공 시에만)
       setShowVoiceConfirmModal(false);
       setVoiceConfirmData(null);
-      
-      toast({
-        title: "음성 메시지 전송 완료",
-        description: editedText ? `"${editedText}"` : "음성이 텍스트로 변환되어 전송되었습니다.",
-      });
     } catch (error) {
       console.error('❌ 음성 메시지 전송 실패:', error);
-      toast({
-        title: "음성 메시지 전송 실패",
-        description: "다시 시도해주세요.",
-        variant: "destructive",
-      });
       // 에러를 다시 throw하여 모달이 닫히지 않도록 함
       throw error;
     }

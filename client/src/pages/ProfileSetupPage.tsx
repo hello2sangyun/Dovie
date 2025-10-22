@@ -10,12 +10,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera, Calendar, User, ArrowRight } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 
 export default function ProfileSetupPage() {
   const [, setLocation] = useLocation();
   const { user, setUser } = useAuth();
-  const { toast } = useToast();
   
   const [formData, setFormData] = useState({
     username: user?.username || "",
@@ -69,11 +67,6 @@ export default function ProfileSetupPage() {
       setFormData(prev => ({ ...prev, profilePicture: data.fileUrl }));
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "업로드 실패",
-        description: "이미지 업로드에 실패했습니다.",
-      });
     },
   });
 
@@ -87,18 +80,9 @@ export default function ProfileSetupPage() {
     },
     onSuccess: (data) => {
       setUser(data.user);
-      toast({
-        title: "프로필 완성!",
-        description: "Dovie 메신저를 시작해보세요.",
-      });
       setLocation("/app");
     },
     onError: (error: any) => {
-      toast({
-        variant: "destructive",
-        title: "프로필 업데이트 실패",
-        description: error.message || "다시 시도해주세요.",
-      });
     },
   });
 
@@ -117,20 +101,10 @@ export default function ProfileSetupPage() {
     
     // Password validation
     if (!formData.password || formData.password.length < 6) {
-      toast({
-        variant: "destructive",
-        title: "비밀번호 오류",
-        description: "비밀번호는 최소 6자 이상이어야 합니다.",
-      });
       return;
     }
     
     if (formData.password !== formData.confirmPassword) {
-      toast({
-        variant: "destructive",
-        title: "비밀번호 불일치",
-        description: "비밀번호가 일치하지 않습니다.",
-      });
       return;
     }
     

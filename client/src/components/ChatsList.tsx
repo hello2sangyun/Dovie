@@ -30,7 +30,6 @@ interface ChatsListProps {
 
 export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup, contactFilter, onClearFilter, friendFilter, onClearFriendFilter }: ChatsListProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
@@ -96,21 +95,11 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
         // 모달 닫기 (성공 시에만)
         setShowVoiceConfirmModal(false);
         setVoiceConfirmData(null);
-        
-        toast({
-          title: "음성 메시지 전송 완료",
-          description: editedText ? `"${editedText}"` : "음성이 텍스트로 변환되어 전송되었습니다.",
-        });
       } else {
         throw new Error('Failed to send message');
       }
     } catch (error) {
       console.error('❌ 음성 메시지 전송 실패:', error);
-      toast({
-        variant: "destructive",
-        title: "메시지 전송 실패",
-        description: "다시 시도해주세요.",
-      });
       // 에러를 다시 throw하여 모달이 닫히지 않도록 함
       throw error;
     }
@@ -149,17 +138,8 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
-      toast({
-        title: "채팅방 나가기 완료",
-        description: saveFiles ? "파일들이 저장소로 이동되었습니다." : "파일들이 삭제되었습니다.",
-      });
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "채팅방 나가기 실패",
-        description: "다시 시도해주세요.",
-      });
     },
   });
 

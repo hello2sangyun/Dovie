@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
 import { Camera, Upload, Type } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 import QrScanner from 'qr-scanner';
 
 interface QRScannerModalProps {
@@ -15,7 +14,6 @@ interface QRScannerModalProps {
 
 export default function QRScannerModal({ isOpen, onClose, onSuccess }: QRScannerModalProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const videoRef = useRef<HTMLVideoElement>(null);
   const qrScannerRef = useRef<QrScanner | null>(null);
   const [isScanning, setIsScanning] = useState(false);
@@ -57,11 +55,6 @@ export default function QRScannerModal({ isOpen, onClose, onSuccess }: QRScanner
       console.log('QR 스캐너 시작됨');
     } catch (error) {
       console.error('카메라 시작 오류:', error);
-      toast({
-        title: "카메라 오류",
-        description: "카메라에 접근할 수 없습니다. 브라우저 설정에서 카메라 권한을 허용해주세요.",
-        variant: "destructive"
-      });
       setScanMode('manual');
       setIsScanning(false);
     }
@@ -105,26 +98,11 @@ export default function QRScannerModal({ isOpen, onClose, onSuccess }: QRScanner
       const data = await response.json();
 
       if (data.success) {
-        toast({
-          title: "연락처 추가 완료",
-          description: data.message
-        });
         onSuccess(data.contact);
         onClose();
-      } else {
-        toast({
-          title: "연락처 추가 실패",
-          description: data.message,
-          variant: "destructive"
-        });
       }
     } catch (error) {
       console.error('QR 처리 오류:', error);
-      toast({
-        title: "오류",
-        description: "QR 코드 처리 중 오류가 발생했습니다.",
-        variant: "destructive"
-      });
     }
   };
 
@@ -143,11 +121,6 @@ export default function QRScannerModal({ isOpen, onClose, onSuccess }: QRScanner
         })
         .catch((error) => {
           console.error('이미지 QR 스캔 오류:', error);
-          toast({
-            title: "스캔 실패",
-            description: "이미지에서 QR 코드를 찾을 수 없습니다.",
-            variant: "destructive"
-          });
         });
     }
   };

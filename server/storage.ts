@@ -1,7 +1,7 @@
 import { 
   users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications,
   fileUploads, fileDownloads, businessProfiles, userPosts, locationShareRequests, locationShares, reminders,
-  messageReactions, messageLikes, pushSubscriptions, iosDeviceTokens, aiNotices,
+  messageReactions, messageLikes, pushSubscriptions, iosDeviceTokens, aiNotices, bookmarks, voiceBookmarkRequests,
   type User, type InsertUser, type Contact, type InsertContact,
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
   type Command, type InsertCommand, type MessageRead, type InsertMessageRead,
@@ -13,7 +13,9 @@ import {
   type LocationShare, type InsertLocationShare,
   type Reminder, type InsertReminder,
   type MessageReaction, type InsertMessageReaction,
-  type AiNotice, type InsertAiNotice
+  type AiNotice, type InsertAiNotice,
+  type Bookmark, type InsertBookmark,
+  type VoiceBookmarkRequest, type InsertVoiceBookmarkRequest
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, or, count, gt, lt, sql, inArray } from "drizzle-orm";
@@ -143,6 +145,20 @@ export interface IStorage {
   updateUserActivity(userId: number, activity: { lastSeen?: Date; isOnline?: boolean }): Promise<void>;
   getUserActivity(userId: number): Promise<{ lastSeen: Date | null; isOnline: boolean } | null>;
   getActiveUsers(chatRoomId: number): Promise<number[]>;
+
+  // Bookmark operations
+  createBookmark(data: InsertBookmark): Promise<Bookmark>;
+  getBookmarksByUser(userId: number): Promise<Bookmark[]>;
+  getBookmarkById(id: number): Promise<Bookmark | undefined>;
+  deleteBookmark(id: number): Promise<void>;
+  checkBookmarkExists(userId: number, messageId: number): Promise<boolean>;
+
+  // Voice Bookmark Request operations
+  createVoiceBookmarkRequest(data: InsertVoiceBookmarkRequest): Promise<VoiceBookmarkRequest>;
+  getVoiceBookmarkRequestsByUser(userId: number): Promise<VoiceBookmarkRequest[]>;
+  getPendingVoiceBookmarkRequestsForUser(targetUserId: number): Promise<VoiceBookmarkRequest[]>;
+  updateVoiceBookmarkRequestStatus(id: number, status: string): Promise<void>;
+  getVoiceBookmarkRequestById(id: number): Promise<VoiceBookmarkRequest | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1274,6 +1290,136 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('iOS 디바이스 토큰 조회 오류:', error);
       return [];
+    }
+  }
+
+  // Bookmark operations implementation
+  async createBookmark(data: InsertBookmark): Promise<Bookmark> {
+    try {
+      const [bookmark] = await db.insert(bookmarks).values(data).returning();
+      return bookmark;
+    } catch (error) {
+      console.error('북마크 생성 오류:', error);
+      throw error;
+    }
+  }
+
+  async getBookmarksByUser(userId: number): Promise<Bookmark[]> {
+    try {
+      const userBookmarks = await db.select()
+        .from(bookmarks)
+        .where(eq(bookmarks.userId, userId))
+        .orderBy(desc(bookmarks.createdAt));
+      return userBookmarks;
+    } catch (error) {
+      console.error('북마크 조회 오류:', error);
+      throw error;
+    }
+  }
+
+  async getBookmarkById(id: number): Promise<Bookmark | undefined> {
+    try {
+      const [bookmark] = await db.select()
+        .from(bookmarks)
+        .where(eq(bookmarks.id, id));
+      return bookmark;
+    } catch (error) {
+      console.error('북마크 조회 오류:', error);
+      throw error;
+    }
+  }
+
+  async deleteBookmark(id: number): Promise<void> {
+    try {
+      await db.delete(bookmarks).where(eq(bookmarks.id, id));
+    } catch (error) {
+      console.error('북마크 삭제 오류:', error);
+      throw error;
+    }
+  }
+
+  async checkBookmarkExists(userId: number, messageId: number): Promise<boolean> {
+    try {
+      const [bookmark] = await db.select()
+        .from(bookmarks)
+        .where(
+          and(
+            eq(bookmarks.userId, userId),
+            eq(bookmarks.messageId, messageId)
+          )
+        );
+      return !!bookmark;
+    } catch (error) {
+      console.error('북마크 존재 확인 오류:', error);
+      return false;
+    }
+  }
+
+  // Voice Bookmark Request operations implementation
+  async createVoiceBookmarkRequest(data: InsertVoiceBookmarkRequest): Promise<VoiceBookmarkRequest> {
+    try {
+      const [request] = await db.insert(voiceBookmarkRequests).values(data).returning();
+      return request;
+    } catch (error) {
+      console.error('음성 북마크 요청 생성 오류:', error);
+      throw error;
+    }
+  }
+
+  async getVoiceBookmarkRequestsByUser(userId: number): Promise<VoiceBookmarkRequest[]> {
+    try {
+      const requests = await db.select()
+        .from(voiceBookmarkRequests)
+        .where(eq(voiceBookmarkRequests.requesterId, userId))
+        .orderBy(desc(voiceBookmarkRequests.createdAt));
+      return requests;
+    } catch (error) {
+      console.error('음성 북마크 요청 조회 오류:', error);
+      throw error;
+    }
+  }
+
+  async getPendingVoiceBookmarkRequestsForUser(targetUserId: number): Promise<VoiceBookmarkRequest[]> {
+    try {
+      const requests = await db.select()
+        .from(voiceBookmarkRequests)
+        .where(
+          and(
+            eq(voiceBookmarkRequests.targetUserId, targetUserId),
+            eq(voiceBookmarkRequests.status, 'pending')
+          )
+        )
+        .orderBy(desc(voiceBookmarkRequests.createdAt));
+      return requests;
+    } catch (error) {
+      console.error('대기 중인 음성 북마크 요청 조회 오류:', error);
+      throw error;
+    }
+  }
+
+  async updateVoiceBookmarkRequestStatus(id: number, status: string): Promise<void> {
+    try {
+      await db.update(voiceBookmarkRequests)
+        .set({ 
+          status,
+          respondedAt: new Date()
+        })
+        .where(eq(voiceBookmarkRequests.id, id));
+    } catch (error) {
+      console.error('음성 북마크 요청 상태 업데이트 오류:', error);
+      throw error;
+    }
+  }
+
+  async getVoiceBookmarkRequestById(id: number): Promise<VoiceBookmarkRequest | undefined> {
+    try {
+      const [request] = await db.select()
+        .from(voiceBookmarkRequests)
+        .where(eq(voiceBookmarkRequests.id, id));
+      return request;
+    } catch (error) {
+      console.error('음성 북마크 요청 조회 오류:', error);
+      throw error;
     }
   }
 }

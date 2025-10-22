@@ -2,7 +2,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Download, FileText, Code, Quote, Copy, ExternalLink } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { getInitials, formatFileSize } from "@/lib/utils";
 
 interface PreviewModalProps {
@@ -25,7 +24,6 @@ interface PreviewModalProps {
 }
 
 export default function PreviewModal({ open, onClose, command }: PreviewModalProps) {
-  const { toast } = useToast();
 
   const isFile = !!command.fileUrl;
   const isText = !!command.savedText;
@@ -43,10 +41,6 @@ export default function PreviewModal({ open, onClose, command }: PreviewModalPro
   const handleCopyText = () => {
     if (command.savedText) {
       navigator.clipboard.writeText(command.savedText);
-      toast({
-        title: "복사 완료",
-        description: "텍스트가 클립보드에 복사되었습니다.",
-      });
     }
   };
 

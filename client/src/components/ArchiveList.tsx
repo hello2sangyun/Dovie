@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useToast } from "@/hooks/use-toast";
 import { Search, Filter, FileText, Code, FileImage, FileSpreadsheet, File, Video, Trash2, X, Hash, Folder, FolderOpen, ChevronRight, ArrowLeft } from "lucide-react";
 import PreviewModal from "./PreviewModal";
 import { debounce } from "@/lib/utils";
@@ -517,7 +516,6 @@ function FileListView({
 
 export default function ArchiveList() {
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   
   const [searchInput, setSearchInput] = useState("");
@@ -697,20 +695,11 @@ export default function ArchiveList() {
       return response.json();
     },
     onSuccess: () => {
-      toast({
-        title: "삭제 완료",
-        description: `${selectedItems.size}개의 파일이 삭제되었습니다.`,
-      });
       setSelectedItems(new Set());
       setSelectionMode(false);
       queryClient.invalidateQueries({ queryKey: ["/api/commands"] });
     },
     onError: () => {
-      toast({
-        title: "삭제 실패",
-        description: "파일 삭제 중 오류가 발생했습니다.",
-        variant: "destructive",
-      });
     },
   });
 

@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,7 +49,6 @@ export default function CommandModal({
   chatRoomId 
 }: CommandModalProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [hashtagInput, setHashtagInput] = useState("");
@@ -62,11 +60,6 @@ export default function CommandModal({
     // 유효성 검사
     const validation = validateHashtag(cleanTag);
     if (!validation.isValid) {
-      toast({
-        variant: "destructive",
-        title: "입력 오류",
-        description: validation.error,
-      });
       return;
     }
     
@@ -144,26 +137,9 @@ export default function CommandModal({
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/commands"] });
-      toast({
-        title: "해시태그 등록 완료",
-        description: `${hashtags.length}개의 해시태그가 등록되었습니다: ${hashtags.map(tag => `#${tag}`).join(', ')}`,
-      });
       handleClose();
     },
     onError: (error: any) => {
-      if (error.message.includes("already exists")) {
-        toast({
-          variant: "destructive",
-          title: "중복된 해시태그",
-          description: "이미 존재하는 해시태그입니다. 다른 태그를 사용해주세요.",
-        });
-      } else {
-        toast({
-          variant: "destructive",
-          title: "명령어 등록 실패",
-          description: "다시 시도해주세요.",
-        });
-      }
     },
   });
 
@@ -203,11 +179,6 @@ export default function CommandModal({
     }
     
     if (hashtags.length === 0 && !hashtagInput.trim()) {
-      toast({
-        variant: "destructive",
-        title: "입력 오류",
-        description: "최소 하나의 해시태그를 입력해주세요.",
-      });
       return;
     }
     

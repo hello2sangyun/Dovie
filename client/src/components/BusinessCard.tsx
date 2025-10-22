@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,7 +40,6 @@ interface BusinessCardProps {
 
 export default function BusinessCard({ userId, isOwnCard = false }: BusinessCardProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
@@ -75,17 +73,8 @@ export default function BusinessCard({ userId, isOwnCard = false }: BusinessCard
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/business-cards"] });
       setIsEditing(false);
-      toast({
-        title: "명함 업데이트 완료",
-        description: "명함 정보가 성공적으로 업데이트되었습니다.",
-      });
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "명함 업데이트 실패",
-        description: "명함 업데이트 중 오류가 발생했습니다.",
-      });
     },
   });
 
@@ -98,10 +87,6 @@ export default function BusinessCard({ userId, isOwnCard = false }: BusinessCard
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/business-cards/share-info"] });
       navigator.clipboard.writeText(data.shareUrl);
-      toast({
-        title: "공유 링크 생성 완료",
-        description: "공유 링크가 클립보드에 복사되었습니다.",
-      });
     },
   });
 
@@ -122,10 +107,6 @@ export default function BusinessCard({ userId, isOwnCard = false }: BusinessCard
 
   const handleCopyShareLink = (shareUrl: string) => {
     navigator.clipboard.writeText(shareUrl);
-    toast({
-      title: "링크 복사 완료",
-      description: "공유 링크가 클립보드에 복사되었습니다.",
-    });
   };
 
   if (cardLoading || profileLoading) {

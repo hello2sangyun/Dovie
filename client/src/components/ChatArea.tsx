@@ -11,7 +11,6 @@ import InstantAvatar from "@/components/InstantAvatar";
 import MediaPreview from "@/components/MediaPreview";
 import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause, MoreVertical, LogOut, Settings, MapPin, Sparkles, Bell } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 import AddFriendConfirmModal from "./AddFriendConfirmModal";
 import MessageContextMenu from "./MessageContextMenu";
@@ -61,7 +60,6 @@ const detectUrls = (text: string | null | undefined): string[] => {
 
 export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader, onBackClick, isLocationChat }: ChatAreaProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   
   // Use the isLocationChat prop directly
   const isLocationChatRoom = isLocationChat || false;
@@ -190,20 +188,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       });
 
       if (response.ok) {
-        toast({
-          title: "리마인더 설정 완료!",
-          description: `${reminderTime.toLocaleString('ko-KR')}에 알림을 보내드릴게요.`,
-        });
       } else {
         throw new Error('리마인더 설정 실패');
       }
     } catch (error) {
       console.error('리마인더 설정 오류:', error);
-      toast({
-        variant: "destructive",
-        title: "리마인더 설정 실패",
-        description: "다시 시도해 주세요.",
-      });
     }
     
     setShowReminderModal(false);
@@ -258,26 +247,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         // Invalidate messages to refresh the UI
         const queryKey = isLocationChatRoom ? "/api/location/chat-rooms" : "/api/chat-rooms";
         queryClient.invalidateQueries({ queryKey: [queryKey, chatRoomId, "messages"] });
-        
-        if (type === 'reaction') {
-          toast({
-            title: "반응이 추가되었습니다",
-            duration: 2000,
-          });
-        } else {
-          toast({
-            title: "답장이 전송되었습니다",
-            duration: 2000,
-          });
-        }
       }
     } catch (error) {
       console.error('Quick reply error:', error);
-      toast({
-        title: "오류 발생",
-        description: "답장 전송에 실패했습니다.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -544,11 +516,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       }, 50);
     },
     onError: (error) => {
-      toast({
-        variant: "destructive",
-        title: "메시지 전송 실패",
-        description: "다시 시도해주세요.",
-      });
     },
   });
 
@@ -631,11 +598,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       }
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "처리 실패",
-        description: "다시 시도해주세요.",
-      });
     }
   });
 
@@ -661,17 +623,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       if (onBackClick) {
         onBackClick();
       }
-      toast({
-        title: "채팅방에서 나갔습니다",
-        description: "성공적으로 채팅방을 나갔습니다.",
-      });
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "나가기 실패",
-        description: "채팅방을 나가는 중 오류가 발생했습니다.",
-      });
     },
   });
 
@@ -689,20 +642,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       
       setEditingMessage(null);
       setEditContent("");
-      
-      toast({
-        title: "수정 완료",
-        description: "메시지가 성공적으로 수정되었습니다.",
-        className: "max-w-xs",
-      });
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "수정 실패",
-        description: "메시지 수정 중 오류가 발생했습니다.",
-        className: "max-w-xs",
-      });
     },
   });
 
@@ -727,11 +668,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           newSet.delete(messageToTranslate.id);
           return newSet;
         });
-        
-        toast({
-          title: "번역 완료!",
-          description: "메시지가 성공적으로 번역되었습니다.",
-        });
       }
       setIsTranslating(false);
       setShowTranslateModal(false);
@@ -747,12 +683,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           return newSet;
         });
       }
-      
-      toast({
-        variant: "destructive",
-        title: "번역 실패",
-        description: "번역 중 오류가 발생했습니다. 다시 시도해주세요.",
-      });
     },
   });
 
@@ -813,20 +743,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         // 빈 음성 녹음의 경우 조용히 취소 (사용자에게 알리지 않음)
         console.log("🔇 빈 음성 녹음 감지됨, 메시지 전송 취소");
       } else {
-        toast({
-          variant: "destructive",
-          title: "음성 변환 실패",
-          description: "음성을 텍스트로 변환할 수 없습니다.",
-        });
       }
       setIsProcessingVoice(false);
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "음성 처리 실패",
-        description: "음성 메시지 처리 중 오류가 발생했습니다.",
-      });
       setIsProcessingVoice(false);
     },
   });
@@ -865,19 +785,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           });
         }
       } else {
-        toast({
-          variant: "destructive",
-          title: "Command failed",
-          description: result.content,
-        });
       }
     },
     onError: (error) => {
-      toast({
-        variant: "destructive",
-        title: "Command processing failed",
-        description: "Please check if AI services are available.",
-      });
     },
   });
 
@@ -898,18 +808,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           replyToMessageId: replyToMessage?.id
         });
       } else {
-        toast({
-          variant: "destructive",
-          title: "번역 실패",
-          description: result.content,
-        });
       }
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "번역 오류",
-        description: "번역 서비스에 연결할 수 없습니다.",
-      });
     }
   };
 
@@ -926,10 +826,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         .slice(-20);
       
       if (textMessages.length === 0) {
-        toast({
-          title: "번역할 메시지가 없습니다",
-          description: "텍스트 메시지가 없어 번역할 수 없습니다.",
-        });
         return;
       }
 
@@ -993,25 +889,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         });
         
         setTranslatedMessages(prev => ({ ...prev, ...newTranslations }));
-        
-        toast({
-          title: "번역 완료",
-          description: `${successfulTranslations.length}개 메시지가 번역되었습니다.`,
-        });
       } else {
-        toast({
-          variant: "destructive",
-          title: "번역 실패",
-          description: "메시지를 번역할 수 없습니다.",
-        });
       }
       
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "번역 오류",
-        description: "번역 중 오류가 발생했습니다.",
-      });
     } finally {
       setIsTranslating(false);
     }
@@ -1032,18 +913,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         });
         setShowCalculatorModal(true);
       } else {
-        toast({
-          variant: "destructive",
-          title: "계산 실패",
-          description: result.content,
-        });
       }
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "계산 오류",
-        description: "계산 서비스에 연결할 수 없습니다.",
-      });
     }
   };
 
@@ -1081,11 +952,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       // 즉시 활성 투표로 설정
       setActivePoll(pollData);
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "투표 오류",
-        description: "투표 생성 중 오류가 발생했습니다.",
-      });
     }
   };
 
@@ -1111,11 +977,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       queryClient.invalidateQueries(["/api/chat-rooms", chatRoomId, "messages"]);
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "빠른 답장 실패",
-        description: "빠른 답장을 보내는 중 오류가 발생했습니다.",
-      });
     },
   });
 
@@ -1190,21 +1051,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         },
         onError: (error) => {
           console.error('❌ 파일 메시지 전송 실패:', error);
-          toast({
-            variant: "destructive",
-            title: "메시지 전송 실패",
-            description: "파일이 업로드되었지만 메시지 전송에 실패했습니다.",
-          });
         }
       });
     },
     onError: (error) => {
       console.error('❌ 파일 업로드 실패:', error);
-      toast({
-        variant: "destructive",
-        title: "파일 업로드 실패",
-        description: "파일 업로드 중 오류가 발생했습니다. 다시 시도해주세요.",
-      });
     },
   });
 
@@ -1237,18 +1088,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       
       // 모바일 키보드 숨기기
       hideMobileKeyboard();
-      
-      toast({
-        title: "음성 메시지 전송 완료!",
-        description: "수정된 텍스트로 전송되었습니다.",
-      });
     } catch (error) {
       console.error('Voice message send failed:', error);
-      toast({
-        variant: "destructive",
-        title: "전송 실패",
-        description: "메시지 전송에 실패했습니다.",
-      });
     }
     
     // Clear reply mode and state
@@ -1667,17 +1508,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               targetUserId: targetMessage.senderId,
               replyToMessageId: messageId
             });
-            
-            toast({
-              title: "피드백 전송 완료",
-              description: `메시지 작성자에게만 피드백이 전송되었습니다.`,
-            });
           } else {
-            toast({
-              variant: "destructive",
-              title: "메시지를 찾을 수 없습니다",
-              description: "올바른 메시지 번호를 입력해주세요.",
-            });
           }
           setMessage("");
           setShowChatCommands(false);
@@ -1701,17 +1532,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               spotlightMessageId: messageId,
               spotlightDuration: duration
             });
-            
-            toast({
-              title: "메시지 고정 완료",
-              description: `메시지가 ${duration} 상단에 고정되었습니다.`,
-            });
           } else {
-            toast({
-              variant: "destructive",
-              title: "메시지를 찾을 수 없습니다",
-              description: "올바른 메시지 번호를 입력해주세요.",
-            });
           }
           setMessage("");
           setShowChatCommands(false);
@@ -1747,17 +1568,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               boomTimer: seconds,
               expiresAt: expirationTime.toISOString()
             });
-            
-            toast({
-              title: "시한폭탄 메시지 전송!",
-              description: `${seconds}초 후에 메시지가 폭발합니다.`,
-            });
           } else {
-            toast({
-              variant: "destructive",
-              title: "잘못된 시간 형식",
-              description: "예: 10s (초), 5m (분), 1h (시간)",
-            });
           }
           setMessage("");
           setShowChatCommands(false);
@@ -2100,11 +1911,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       const maxSize = 500 * 1024 * 1024; // 500MB
       
       if (file.size > maxSize) {
-        toast({
-          variant: "destructive",
-          title: "파일 크기 제한 초과",
-          description: `파일 크기가 500MB를 초과합니다. (현재: ${(file.size / 1024 / 1024).toFixed(1)}MB)`,
-        });
         return;
       }
       
@@ -2118,11 +1924,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     if (targetMessage) {
       // For voice messages, check if there's transcribed text content
       if (targetMessage.messageType === "voice" && !targetMessage.content) {
-        toast({
-          variant: "destructive",
-          title: "번역 불가",
-          description: "음성 메시지에 텍스트 내용이 없어 번역할 수 없습니다.",
-        });
         return;
       }
       
@@ -2131,11 +1932,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         setMessageToTranslate(targetMessage);
         setShowTranslateModal(true);
       } else {
-        toast({
-          variant: "destructive",
-          title: "번역 불가",
-          description: "번역할 텍스트가 없습니다.",
-        });
       }
     }
   };
@@ -2156,11 +1952,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const handleVoiceRecordingComplete = (audioBlob: Blob, duration: number) => {
     setIsProcessingVoice(true);
     transcribeVoiceMutation.mutate(audioBlob);
-    
-    toast({
-      title: "음성 처리 중...",
-      description: "음성을 텍스트로 변환하고 있습니다.",
-    });
   }
 
 
@@ -2207,11 +1998,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           // 발신자의 음성 재생 허용 설정 확인
           const senderInfo = message?.sender;
           if (senderInfo && senderInfo.allowVoicePlayback === false) {
-            toast({
-              variant: "destructive",
-              title: "재생 제한",
-              description: "발신자가 음성 재생을 허용하지 않습니다.",
-            });
             return;
           }
         }
@@ -2233,37 +2019,16 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           audio.onerror = () => {
             console.error("Audio file could not be loaded:", audioUrl);
             setPlayingAudio(null);
-            toast({
-              variant: "destructive",
-              title: "재생 실패",
-              description: "음성 파일을 로드할 수 없습니다.",
-            });
           };
           
           setPlayingAudio(messageId);
           await audio.play();
-          
-          toast({
-            title: "음성 재생 중",
-            description: "녹음된 음성을 재생하고 있습니다.",
-          });
         } else {
-          // 음성 파일 URL이 없는 경우 알림
-          toast({
-            variant: "destructive",
-            title: "재생 불가",
-            description: "음성 파일을 찾을 수 없습니다.",
-          });
         }
         
       } catch (error) {
         console.error("Audio playback error:", error);
         setPlayingAudio(null);
-        toast({
-          variant: "destructive",
-          title: "재생 실패",
-          description: "음성 재생 중 오류가 발생했습니다.",
-        });
       }
     }
   };
@@ -2313,11 +2078,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       const maxSize = 500 * 1024 * 1024; // 500MB
       
       if (file.size > maxSize) {
-        toast({
-          variant: "destructive",
-          title: "파일 크기 제한 초과",
-          description: `파일 크기가 500MB를 초과합니다. (현재: ${(file.size / 1024 / 1024).toFixed(1)}MB)`,
-        });
         // Reset file input
         event.target.value = '';
         return;
@@ -3069,10 +2829,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           category: '파일 공유',
           action: () => {
             // 실제로는 최근 파일 목록을 가져와서 표시
-            toast({
-              title: "파일 검색",
-              description: "최근 공유된 파일을 찾고 있습니다..."
-            });
           }
         };
       }
@@ -3355,16 +3111,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const handleCopyText = () => {
     if (contextMenu.message?.content) {
       navigator.clipboard.writeText(contextMenu.message.content).then(() => {
-        toast({
-          title: "복사 완료",
-          description: "메시지가 클립보드에 복사되었습니다.",
-        });
       }).catch(() => {
-        toast({
-          variant: "destructive",
-          title: "복사 실패",
-          description: "텍스트 복사에 실패했습니다.",
-        });
       });
     }
   };
@@ -3908,10 +3655,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               if (!isMentionAll && username !== user?.username) {
                 // Navigate to user profile
                 console.log(`Navigate to @${username} profile`);
-                toast({
-                  title: "사용자 프로필",
-                  description: `@${username}의 프로필로 이동합니다.`,
-                });
               }
             }}
           >
@@ -4247,19 +3990,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                                 
                                 if (response.ok) {
                                   queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
-                                  toast({
-                                    title: e.target.checked ? "음성 재생 허용됨" : "음성 재생 차단됨",
-                                    description: e.target.checked 
-                                      ? "다른 사용자가 내 음성 메시지를 들을 수 있습니다"
-                                      : "다른 사용자가 내 음성 메시지를 들을 수 없습니다"
-                                  });
                                 }
                               } catch (error) {
-                                toast({
-                                  variant: "destructive",
-                                  title: "설정 변경 실패",
-                                  description: "다시 시도해주세요."
-                                });
                               }
                             }}
                             className="sr-only"
@@ -4301,19 +4033,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                                 
                                 if (response.ok) {
                                   queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
-                                  toast({
-                                    title: e.target.checked ? "자동 재생 활성화" : "자동 재생 비활성화",
-                                    description: e.target.checked 
-                                      ? "이어폰 착용 시 음성 메시지가 자동 재생됩니다"
-                                      : "음성 메시지를 수동으로 재생해야 합니다"
-                                  });
                                 }
                               } catch (error) {
-                                toast({
-                                  variant: "destructive",
-                                  title: "설정 변경 실패",
-                                  description: "다시 시도해주세요."
-                                });
                               }
                             }}
                             className="sr-only"
@@ -4806,7 +4527,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                         </div>
 
                       ) : msg.messageType === "file" ? (
-                        <div>
+                        <div className="relative">
                           <MediaPreview
                             fileUrl={msg.fileUrl}
                             fileName={msg.fileName}
@@ -4815,6 +4536,51 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                             isMe={isMe}
                             className="mb-2"
                           />
+                          
+                          {/* 원형 업로드 진행률 오버레이 */}
+                          {(msg as any).isUploading && (msg as any).uploadProgress < 100 && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-lg">
+                              <div className="relative flex items-center justify-center">
+                                {/* SVG 원형 진행률 */}
+                                <svg className="transform -rotate-90" width="60" height="60">
+                                  <defs>
+                                    <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                      <stop offset="0%" stopColor="#9333ea" />
+                                      <stop offset="100%" stopColor="#c026d3" />
+                                    </linearGradient>
+                                  </defs>
+                                  {/* 배경 원 */}
+                                  <circle
+                                    cx="30"
+                                    cy="30"
+                                    r="26"
+                                    stroke="rgba(255, 255, 255, 0.2)"
+                                    strokeWidth="4"
+                                    fill="none"
+                                  />
+                                  {/* 진행률 원 */}
+                                  <circle
+                                    cx="30"
+                                    cy="30"
+                                    r="26"
+                                    stroke="url(#progressGradient)"
+                                    strokeWidth="4"
+                                    fill="none"
+                                    strokeLinecap="round"
+                                    strokeDasharray={`${2 * Math.PI * 26}`}
+                                    strokeDashoffset={`${2 * Math.PI * 26 * (1 - ((msg as any).uploadProgress || 0) / 100)}`}
+                                    className="transition-all duration-300 ease-out"
+                                  />
+                                </svg>
+                                {/* 중앙 퍼센트 텍스트 */}
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <span className="text-white font-bold text-sm">
+                                    {(msg as any).uploadProgress || 0}%
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                           
                           {msg.isCommandRecall && (
                             <div className={cn(
@@ -5120,8 +4886,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                                     </div>
                                   ) : (
                                     <>
-                                      {/* 업로드 진행상황 표시 */}
-                                      {(msg as any).isUploading && (
+                                      {/* 업로드 진행상황 표시 (파일이 아닌 경우에만) */}
+                                      {(msg as any).isUploading && msg.messageType !== 'file' && (
                                         <div className="mb-2">
                                           <div className="flex items-center space-x-2 mb-1">
                                             <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"></div>
@@ -5963,7 +5729,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     size="sm"
                     onClick={() => {
                       navigator.clipboard.writeText(smartResultModal.content);
-                      toast({ title: "복사 완료", description: "결과가 클립보드에 복사되었습니다." });
                     }}
                   >
                     복사
@@ -6051,10 +5816,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         onCopyText={() => {
           if (contextMenu.message?.content) {
             navigator.clipboard.writeText(contextMenu.message.content);
-            toast({
-              title: "텍스트가 복사되었습니다",
-              description: "클립보드에 메시지 내용이 복사되었습니다.",
-            });
           }
           setContextMenu({ ...contextMenu, visible: false });
         }}
@@ -6142,11 +5903,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           onVote={(optionIndex) => {
             // 중복 투표 방지: 이미 투표한 사용자는 투표할 수 없음
             if (userVote !== null) {
-              toast({
-                variant: "destructive",
-                title: "이미 투표하셨습니다",
-                description: "한 번만 투표할 수 있습니다.",
-              });
               return;
             }
 
@@ -6162,11 +5918,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               ...prev,
               [optionIndex]: (prev[optionIndex] || 0) + 1
             }));
-
-            toast({
-              title: "투표 완료!",
-              description: `"${activePoll.options[optionIndex]}"에 투표했습니다.`,
-            });
           }}
         />
       )}
@@ -6325,18 +6076,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               setShowVoiceConfirmModal(false);
               setVoiceConfirmData(null);
               setReplyToMessage(null);
-              
-              toast({
-                title: "음성 메시지 전송 완료!",
-                description: editedText ? `"${editedText}"` : "음성이 텍스트로 변환되어 전송되었습니다.",
-              });
             } catch (error) {
               console.error('❌ 음성 메시지 전송 실패:', error);
-              toast({
-                variant: "destructive",
-                title: "메시지 전송 실패",
-                description: "다시 시도해주세요.",
-              });
               // 에러를 다시 throw하여 모달이 닫히지 않도록 함
               throw error;
             }
@@ -6344,10 +6085,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           onReRecord={() => {
             setShowVoiceConfirmModal(false);
             setVoiceConfirmData(null);
-            toast({
-              title: "다시 녹음",
-              description: "음성 녹음 버튼을 눌러 다시 녹음하세요.",
-            });
           }}
         />
       )}

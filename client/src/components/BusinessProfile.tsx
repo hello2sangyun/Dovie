@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,7 +30,6 @@ interface BusinessProfileProps {
 
 export default function BusinessProfile({ userId, isOwnProfile = false }: BusinessProfileProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [newSkill, setNewSkill] = useState("");
@@ -59,17 +57,8 @@ export default function BusinessProfile({ userId, isOwnProfile = false }: Busine
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/business-profiles"] });
       setIsEditing(false);
-      toast({
-        title: "프로필 업데이트 완료",
-        description: "비즈니스 프로필이 성공적으로 업데이트되었습니다.",
-      });
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "프로필 업데이트 실패",
-        description: "프로필 업데이트 중 오류가 발생했습니다.",
-      });
     },
   });
 

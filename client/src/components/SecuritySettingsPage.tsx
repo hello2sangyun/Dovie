@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +15,6 @@ interface SecuritySettingsPageProps {
 
 export default function SecuritySettingsPage({ onBack }: SecuritySettingsPageProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -48,17 +46,8 @@ export default function SecuritySettingsPage({ onBack }: SecuritySettingsPagePro
         newPassword: "",
         confirmPassword: "",
       });
-      toast({
-        title: "비밀번호 변경 완료",
-        description: "비밀번호가 성공적으로 변경되었습니다.",
-      });
     },
     onError: (error: any) => {
-      toast({
-        variant: "destructive",
-        title: "비밀번호 변경 실패",
-        description: error.message || "비밀번호 변경 중 오류가 발생했습니다.",
-      });
     },
   });
 
@@ -68,17 +57,8 @@ export default function SecuritySettingsPage({ onBack }: SecuritySettingsPagePro
       return response.json();
     },
     onSuccess: () => {
-      toast({
-        title: "보안 설정 저장",
-        description: "보안 설정이 성공적으로 저장되었습니다.",
-      });
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "저장 실패",
-        description: "보안 설정 저장 중 오류가 발생했습니다.",
-      });
     },
   });
 
@@ -86,20 +66,10 @@ export default function SecuritySettingsPage({ onBack }: SecuritySettingsPagePro
     e.preventDefault();
     
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      toast({
-        variant: "destructive",
-        title: "비밀번호 불일치",
-        description: "새 비밀번호와 확인 비밀번호가 일치하지 않습니다.",
-      });
       return;
     }
 
     if (passwordForm.newPassword.length < 6) {
-      toast({
-        variant: "destructive",
-        title: "비밀번호 길이 부족",
-        description: "비밀번호는 최소 6자 이상이어야 합니다.",
-      });
       return;
     }
 
