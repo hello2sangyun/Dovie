@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Bell, Volume2, Smartphone, MessageSquare } from "lucide-react";
+import { ArrowLeft, Bell, Volume2, Smartphone, MessageSquare, CheckCircle2, XCircle } from "lucide-react";
 import { PushNotificationManager } from "./PushNotificationManager";
 import { PushNotificationTester } from "./PushNotificationTester";
 
@@ -15,10 +15,26 @@ interface NotificationSettingsPageProps {
   onBack: () => void;
 }
 
+const LOCALSTORAGE_KEY = "notification_settings";
+
+interface LocalStorageSettings {
+  messageNotifications: boolean;
+  groupNotifications: boolean;
+  mentionNotifications: boolean;
+  locationChatNotifications: boolean;
+  businessNotifications: boolean;
+  vibration: boolean;
+  showPreview: boolean;
+  quietHours: boolean;
+  quietStart: string;
+  quietEnd: string;
+}
+
 export default function NotificationSettingsPage({ onBack }: NotificationSettingsPageProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [settings, setSettings] = useState({
     notificationsEnabled: user?.notificationsEnabled ?? true,
     notificationSound: user?.notificationSound ?? "default",
@@ -34,18 +50,66 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
     quietEnd: "08:00",
   });
 
+  // Load settings from localStorage on mount
+  useEffect(() => {
+    if (user) {
+      const savedSettings = localStorage.getItem(LOCALSTORAGE_KEY);
+      if (savedSettings) {
+        try {
+          const parsed: LocalStorageSettings = JSON.parse(savedSettings);
+          setSettings(prev => ({
+            ...prev,
+            notificationsEnabled: user.notificationsEnabled ?? true,
+            notificationSound: user.notificationSound ?? "default",
+            ...parsed,
+          }));
+        } catch (error) {
+          console.error("Failed to parse notification settings from localStorage:", error);
+        }
+      } else {
+        // Initialize with user data from backend
+        setSettings(prev => ({
+          ...prev,
+          notificationsEnabled: user.notificationsEnabled ?? true,
+          notificationSound: user.notificationSound ?? "default",
+        }));
+      }
+    }
+  }, [user]);
+
   const updateNotificationsMutation = useMutation({
     mutationFn: async (data: typeof settings) => {
+      // Save backend-supported settings
       const response = await apiRequest("/api/auth/notifications", "PATCH", {
         notificationsEnabled: data.notificationsEnabled,
         notificationSound: data.notificationSound,
       });
+      
+      // Save localStorage settings
+      const localSettings: LocalStorageSettings = {
+        messageNotifications: data.messageNotifications,
+        groupNotifications: data.groupNotifications,
+        mentionNotifications: data.mentionNotifications,
+        locationChatNotifications: data.locationChatNotifications,
+        businessNotifications: data.businessNotifications,
+        vibration: data.vibration,
+        showPreview: data.showPreview,
+        quietHours: data.quietHours,
+        quietStart: data.quietStart,
+        quietEnd: data.quietEnd,
+      };
+      localStorage.setItem(LOCALSTORAGE_KEY, JSON.stringify(localSettings));
+      
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      setSaveStatus('success');
+      setTimeout(() => setSaveStatus('idle'), 3000);
     },
     onError: () => {
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
     },
   });
 
@@ -72,6 +136,7 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
           size="sm"
           onClick={onBack}
           className="mr-2 h-8 w-8 p-0"
+          data-testid="button-back"
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
@@ -85,6 +150,27 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
         WebkitOverflowScrolling: 'touch',
         maxHeight: '100%'
       }}>
+        {/* Save Status Message */}
+        {saveStatus !== 'idle' && (
+          <div className={`flex items-center gap-2 p-3 rounded-lg ${
+            saveStatus === 'success' 
+              ? 'bg-green-50 text-green-700 border border-green-200' 
+              : 'bg-red-50 text-red-700 border border-red-200'
+          }`} data-testid="save-status-message">
+            {saveStatus === 'success' ? (
+              <>
+                <CheckCircle2 className="h-5 w-5" />
+                <span className="text-sm font-medium">알림 설정이 성공적으로 저장되었습니다.</span>
+              </>
+            ) : (
+              <>
+                <XCircle className="h-5 w-5" />
+                <span className="text-sm font-medium">알림 설정 저장에 실패했습니다. 다시 시도해주세요.</span>
+              </>
+            )}
+          </div>
+        )}
+
         {/* General Notifications */}
         <Card>
           <CardHeader>
@@ -102,6 +188,7 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
               <Switch
                 checked={settings.notificationsEnabled}
                 onCheckedChange={(checked) => handleToggle("notificationsEnabled", checked)}
+                data-testid="switch-notifications-enabled"
               />
             </div>
 
@@ -115,7 +202,7 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
                 onValueChange={(value) => handleSelectChange("notificationSound", value)}
                 disabled={!settings.notificationsEnabled}
               >
-                <SelectTrigger>
+                <SelectTrigger data-testid="select-notification-sound">
                   <SelectValue placeholder="알림 소리 선택" />
                 </SelectTrigger>
                 <SelectContent>
@@ -148,6 +235,7 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
                 checked={settings.messageNotifications}
                 onCheckedChange={(checked) => handleToggle("messageNotifications", checked)}
                 disabled={!settings.notificationsEnabled}
+                data-testid="switch-message-notifications"
               />
             </div>
 
@@ -160,6 +248,7 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
                 checked={settings.groupNotifications}
                 onCheckedChange={(checked) => handleToggle("groupNotifications", checked)}
                 disabled={!settings.notificationsEnabled}
+                data-testid="switch-group-notifications"
               />
             </div>
 
@@ -172,6 +261,7 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
                 checked={settings.mentionNotifications}
                 onCheckedChange={(checked) => handleToggle("mentionNotifications", checked)}
                 disabled={!settings.notificationsEnabled}
+                data-testid="switch-mention-notifications"
               />
             </div>
 
@@ -184,6 +274,20 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
                 checked={settings.locationChatNotifications}
                 onCheckedChange={(checked) => handleToggle("locationChatNotifications", checked)}
                 disabled={!settings.notificationsEnabled}
+                data-testid="switch-location-chat-notifications"
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-sm font-medium">비즈니스 알림</Label>
+                <p className="text-xs text-gray-500">비즈니스 관련 알림</p>
+              </div>
+              <Switch
+                checked={settings.businessNotifications}
+                onCheckedChange={(checked) => handleToggle("businessNotifications", checked)}
+                disabled={!settings.notificationsEnabled}
+                data-testid="switch-business-notifications"
               />
             </div>
           </CardContent>
@@ -207,6 +311,7 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
                 checked={settings.vibration}
                 onCheckedChange={(checked) => handleToggle("vibration", checked)}
                 disabled={!settings.notificationsEnabled}
+                data-testid="switch-vibration"
               />
             </div>
 
@@ -219,6 +324,7 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
                 checked={settings.showPreview}
                 onCheckedChange={(checked) => handleToggle("showPreview", checked)}
                 disabled={!settings.notificationsEnabled}
+                data-testid="switch-show-preview"
               />
             </div>
 
@@ -231,6 +337,7 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
                 checked={settings.quietHours}
                 onCheckedChange={(checked) => handleToggle("quietHours", checked)}
                 disabled={!settings.notificationsEnabled}
+                data-testid="switch-quiet-hours"
               />
             </div>
 
@@ -243,6 +350,7 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
                     value={settings.quietStart}
                     onChange={(e) => handleSelectChange("quietStart", e.target.value)}
                     className="text-sm border rounded px-2 py-1"
+                    data-testid="input-quiet-start"
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -252,6 +360,7 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
                     value={settings.quietEnd}
                     onChange={(e) => handleSelectChange("quietEnd", e.target.value)}
                     className="text-sm border rounded px-2 py-1"
+                    data-testid="input-quiet-end"
                   />
                 </div>
               </div>
@@ -281,6 +390,7 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
             onClick={handleSave}
             className="w-full"
             disabled={updateNotificationsMutation.isPending}
+            data-testid="button-save-settings"
           >
             {updateNotificationsMutation.isPending ? "저장 중..." : "설정 저장"}
           </Button>
