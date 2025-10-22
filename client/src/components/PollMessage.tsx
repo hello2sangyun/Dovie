@@ -15,7 +15,6 @@ interface PollMessageProps {
   onVote?: (optionIndex: number) => void;
   userVote?: number | null;
   voteResults?: { [key: number]: number };
-  timestamp?: string;
 }
 
 export default function PollMessage({ 
@@ -23,8 +22,7 @@ export default function PollMessage({
   isMe, 
   onVote, 
   userVote, 
-  voteResults = {},
-  timestamp
+  voteResults = {} 
 }: PollMessageProps) {
   const [selectedOption, setSelectedOption] = useState<number | null>(userVote || null);
 
@@ -156,16 +154,6 @@ export default function PollMessage({
         <span>{totalVotes}명 참여</span>
         <span>{getTimeRemaining()}</span>
       </div>
-
-      {/* 타임스탬프 */}
-      {timestamp && (
-        <div className={cn(
-          "text-[10px] text-right",
-          isMe ? "text-white/60" : "text-gray-500"
-        )}>
-          {timestamp}
-        </div>
-      )}
     </div>
   );
 }
