@@ -3485,7 +3485,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       });
       
       navigator.vibrate?.(50); // 햅틱 피드백
-    }, 800); // 800ms 길게 터치
+    }, 500); // 500ms 길게 터치
     
     setTouchTimer(timer);
   };
