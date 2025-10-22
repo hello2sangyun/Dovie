@@ -3471,8 +3471,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       const x = isOwnMessage ? rect.left - 10 : rect.right + 10;
       const y = rect.top;
       
-      setContextMenuPosition({ x, y });
-      setContextMenuMessage(message);
+      setContextMenu({
+        visible: true,
+        x,
+        y,
+        message
+      });
       
       navigator.vibrate?.(50); // 햅틱 피드백
     }, 800); // 800ms 길게 터치
