@@ -681,6 +681,23 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           newSet.delete(messageToTranslate.id);
           return newSet;
         });
+        
+        // 번역 완료 후 해당 메시지로 스크롤 및 강조
+        const messageId = messageToTranslate.id;
+        setHighlightedMessageId(messageId);
+        
+        // 메시지로 스크롤
+        setTimeout(() => {
+          const messageElement = messageRefs.current[messageId];
+          if (messageElement) {
+            messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 100);
+        
+        // 2초 후 강조 효과 제거
+        setTimeout(() => {
+          setHighlightedMessageId(null);
+        }, 2000);
       }
       setIsTranslating(false);
       setShowTranslateModal(false);

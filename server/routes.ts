@@ -2799,6 +2799,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { text, targetLanguage } = req.body;
       
+      console.log(`🌐 Translation request - Language: ${targetLanguage}, Text length: ${text?.length}`);
+      
       if (!text || !targetLanguage) {
         return res.status(400).json({ 
           success: false,
@@ -2815,7 +2817,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       const targetLanguageName = languageNames[targetLanguage as keyof typeof languageNames] || targetLanguage;
+      console.log(`🌐 Mapped language code '${targetLanguage}' to '${targetLanguageName}'`);
+      
       const result = await translateText(text, targetLanguageName);
+      console.log(`🌐 Translation result - Success: ${result.success}, Content length: ${result.content?.length}`);
       
       if (result.success) {
         res.json({
@@ -2823,6 +2828,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           translatedText: result.content
         });
       } else {
+        console.error(`❌ Translation failed for language: ${targetLanguageName}`);
         res.status(500).json({
           success: false,
           message: "번역에 실패했습니다."

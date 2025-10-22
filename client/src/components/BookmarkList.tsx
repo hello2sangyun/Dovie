@@ -3,8 +3,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MessageCircle, File, Mic, Search, Trash2, Bookmark, Download, Share2, Eye } from "lucide-react";
+import { MessageCircle, File, Mic, Search, Trash2, Bookmark, Download, Share2, Eye, ExternalLink } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { ImageViewerModal } from "./ImageViewerModal";
+import { AudioPlayerModal } from "./AudioPlayerModal";
+import { FilePreviewModal } from "./FilePreviewModal";
 
 interface BookmarkData {
   id: number;
@@ -37,6 +40,12 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<'all' | 'file' | 'voice'>('all');
+  
+  // Modal states
+  const [imageViewerOpen, setImageViewerOpen] = useState(false);
+  const [audioPlayerOpen, setAudioPlayerOpen] = useState(false);
+  const [filePreviewOpen, setFilePreviewOpen] = useState(false);
+  const [selectedBookmark, setSelectedBookmark] = useState<BookmarkData | null>(null);
 
   // Fetch bookmarks
   const { data: bookmarksData, isLoading } = useQuery<{ bookmarks: BookmarkData[] }>({
@@ -184,8 +193,40 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
     return "내용 없음";
   };
 
-  // Handle preview/navigate to message
+  // Handle preview based on bookmark type
   const handlePreview = (bookmark: BookmarkData) => {
+    if (!bookmark.message) return;
+    
+    setSelectedBookmark(bookmark);
+    
+    // For voice messages
+    if (bookmark.bookmarkType === 'voice' && bookmark.message.fileUrl) {
+      setAudioPlayerOpen(true);
+      return;
+    }
+    
+    // For file bookmarks
+    if (bookmark.bookmarkType === 'file' && bookmark.message.fileUrl) {
+      const fileName = bookmark.message.fileName || '';
+      const extension = fileName.split('.').pop()?.toLowerCase();
+      
+      // Check if it's an image
+      if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension || '')) {
+        setImageViewerOpen(true);
+      } else {
+        setFilePreviewOpen(true);
+      }
+      return;
+    }
+    
+    // For regular messages or if no specific preview available, navigate to chat
+    if (onNavigateToMessage) {
+      onNavigateToMessage(bookmark.chatRoomId, bookmark.message.id);
+    }
+  };
+  
+  // Handle navigate to chat room
+  const handleNavigateToChat = (bookmark: BookmarkData) => {
     if (onNavigateToMessage && bookmark.message) {
       onNavigateToMessage(bookmark.chatRoomId, bookmark.message.id);
     }
@@ -375,17 +416,29 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
 
                   {/* Action buttons */}
                   <div className="mt-3 flex items-center justify-between pt-3 border-t border-gray-100">
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1.5">
                       {/* Preview button */}
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handlePreview(bookmark)}
-                        className="h-8 px-3 text-xs hover:bg-purple-50 hover:text-purple-600"
+                        className="h-8 px-2.5 text-xs hover:bg-purple-50 hover:text-purple-600"
                         data-testid={`button-preview-bookmark-${bookmark.id}`}
                       >
                         <Eye className="h-3.5 w-3.5 mr-1" />
                         미리보기
+                      </Button>
+                      
+                      {/* Navigate to chat button */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleNavigateToChat(bookmark)}
+                        className="h-8 px-2.5 text-xs hover:bg-indigo-50 hover:text-indigo-600"
+                        data-testid={`button-navigate-to-chat-${bookmark.id}`}
+                      >
+                        <ExternalLink className="h-3.5 w-3.5 mr-1" />
+                        채팅방
                       </Button>
 
                       {/* Download button - only for file/voice */}
@@ -394,25 +447,13 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDownload(bookmark)}
-                          className="h-8 px-3 text-xs hover:bg-blue-50 hover:text-blue-600"
+                          className="h-8 px-2.5 text-xs hover:bg-blue-50 hover:text-blue-600"
                           data-testid={`button-download-bookmark-${bookmark.id}`}
                         >
                           <Download className="h-3.5 w-3.5 mr-1" />
                           다운로드
                         </Button>
                       )}
-
-                      {/* Share button */}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleShare(bookmark)}
-                        className="h-8 px-3 text-xs hover:bg-green-50 hover:text-green-600"
-                        data-testid={`button-share-bookmark-${bookmark.id}`}
-                      >
-                        <Share2 className="h-3.5 w-3.5 mr-1" />
-                        공유
-                      </Button>
                     </div>
 
                     {/* Delete button */}
@@ -432,6 +473,43 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
           </div>
         )}
       </div>
+      
+      {/* Preview Modals */}
+      {selectedBookmark && (
+        <>
+          <ImageViewerModal
+            isOpen={imageViewerOpen}
+            onClose={() => {
+              setImageViewerOpen(false);
+              setSelectedBookmark(null);
+            }}
+            imageUrl={selectedBookmark.message?.fileUrl || ''}
+            fileName={selectedBookmark.message?.fileName || undefined}
+          />
+          
+          <AudioPlayerModal
+            isOpen={audioPlayerOpen}
+            onClose={() => {
+              setAudioPlayerOpen(false);
+              setSelectedBookmark(null);
+            }}
+            audioUrl={selectedBookmark.message?.fileUrl || ''}
+            fileName={selectedBookmark.message?.fileName || undefined}
+            duration={selectedBookmark.message?.voiceDuration || undefined}
+          />
+          
+          <FilePreviewModal
+            isOpen={filePreviewOpen}
+            onClose={() => {
+              setFilePreviewOpen(false);
+              setSelectedBookmark(null);
+            }}
+            fileUrl={selectedBookmark.message?.fileUrl || ''}
+            fileName={selectedBookmark.message?.fileName || ''}
+            fileSize={selectedBookmark.message?.fileSize || undefined}
+          />
+        </>
+      )}
     </div>
   );
 }
