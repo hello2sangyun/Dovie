@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Save, Reply, Languages, Edit3, Globe, FileText, Copy } from "lucide-react";
+import { Save, Reply, Edit3, Globe, Copy } from "lucide-react";
 
 interface MessageContextMenuProps {
   x: number;
@@ -9,11 +9,9 @@ interface MessageContextMenuProps {
   onSaveMessage: () => void;
   onReplyMessage: () => void;
   onTranslateMessage: () => void;
-  onSummarizeMessage?: () => void;
   onEditMessage?: () => void;
   onCopyText?: () => void;
   canEdit?: boolean;
-  canSummarize?: boolean;
   visible: boolean;
 }
 
@@ -24,11 +22,9 @@ export default function MessageContextMenu({
   onSaveMessage,
   onReplyMessage,
   onTranslateMessage,
-  onSummarizeMessage,
   onEditMessage,
   onCopyText,
   canEdit = false,
-  canSummarize = false,
   visible 
 }: MessageContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
@@ -149,12 +145,6 @@ export default function MessageContextMenu({
     onClose();
   };
 
-  const handleSummarizeClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onSummarizeMessage?.();
-    onClose();
-  };
-
   const handleCopyClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onCopyText?.();
@@ -230,18 +220,6 @@ export default function MessageContextMenu({
           <Globe className="w-3 h-3 mr-1 text-purple-600 dark:text-purple-400" />
           번역
         </Button>
-        
-        {canSummarize && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-center px-2 py-1.5 h-7 text-xs hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all duration-200 rounded-lg mx-1"
-            onClick={handleSummarizeClick}
-          >
-            <FileText className="w-3 h-3 mr-1 text-indigo-600 dark:text-indigo-400" />
-            요약
-          </Button>
-        )}
       </div>
     </>
   );

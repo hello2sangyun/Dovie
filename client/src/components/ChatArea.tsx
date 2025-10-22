@@ -3214,48 +3214,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     setEditContent("");
   };
 
-  // 메시지 요약 핸들러
-  const handleSummarizeMessage = async () => {
-    if (contextMenu.message) {
-      try {
-        setSmartResultModal({
-          show: true,
-          title: '메시지 요약 중...',
-          content: '잠시만 기다려주세요...'
-        });
-
-        const response = await fetch('/api/smart-suggestion', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            type: 'summary', 
-            content: contextMenu.message.content,
-            originalText: contextMenu.message.content 
-          })
-        });
-        
-        if (!response.ok) {
-          throw new Error('API 요청 실패');
-        }
-        
-        const result = await response.json();
-        
-        setSmartResultModal({
-          show: true,
-          title: '메시지 요약',
-          content: result.result || "요약할 수 없습니다."
-        });
-        
-      } catch (error) {
-        setSmartResultModal({
-          show: true,
-          title: "요약 실패",
-          content: "요약 서비스를 사용할 수 없습니다. 잠시 후 다시 시도해주세요."
-        });
-      }
-    }
-  };
-
   // 욕설 방지 모달 상태
   const [showProfanityModal, setShowProfanityModal] = useState(false);
   const [profanityMessage, setProfanityMessage] = useState("");
@@ -4410,14 +4368,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       onTouchStart={(e) => {
                         // 버튼이나 인터랙티브 요소가 아닌 경우에만 처리
                         const target = e.target as HTMLElement;
-                        if (!target.closest('button') && !target.closest('[role="button"]') && !target.closest('.clickable')) {
+                        if (!target.closest('button') && !target.closest('[role="button"]') && !target.closest('a')) {
                           e.stopPropagation();
                           handleTouchStart(e, msg);
                         }
                       }}
                       onTouchEnd={(e) => {
                         const target = e.target as HTMLElement;
-                        if (!target.closest('button') && !target.closest('[role="button"]') && !target.closest('.clickable')) {
+                        if (!target.closest('button') && !target.closest('[role="button"]') && !target.closest('a')) {
                           e.stopPropagation();
                           handleTouchEnd();
                         }
@@ -5911,7 +5869,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         y={contextMenu.y}
         visible={contextMenu.visible}
         canEdit={contextMenu.message?.senderId === user?.id}
-        canSummarize={contextMenu.message?.content && contextMenu.message.content.length > 50}
         onClose={() => setContextMenu({ ...contextMenu, visible: false })}
         onReplyMessage={() => {
           handleReplyMessage();
@@ -5926,10 +5883,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         }}
         onSaveMessage={() => {
           handleSaveMessage();
-          setContextMenu({ ...contextMenu, visible: false });
-        }}
-        onSummarizeMessage={() => {
-          handleSummarizeMessage();
           setContextMenu({ ...contextMenu, visible: false });
         }}
         onTranslateMessage={() => {
@@ -6093,8 +6046,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         onEditMessage={contextMenu.message?.senderId === user?.id ? () => handleEditMessage(contextMenu.message) : undefined}
         onCopyText={handleCopyText}
         canEdit={contextMenu.message?.senderId === user?.id}
-        canSummarize={contextMenu.message?.content && contextMenu.message.content.length > 50}
-        onSummarizeMessage={handleSummarizeMessage}
       />
 
       {/* File Upload Modal with Hashtag Support */}
