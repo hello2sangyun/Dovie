@@ -36,6 +36,7 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState<'all' | 'file' | 'voice'>('all');
 
   // Fetch bookmarks
   const { data: bookmarksData, isLoading } = useQuery<{ bookmarks: BookmarkData[] }>({
@@ -87,6 +88,11 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
     
     let filtered = bookmarksData.bookmarks;
     
+    // Apply tab filter
+    if (activeTab !== 'all') {
+      filtered = filtered.filter((bookmark) => bookmark.bookmarkType === activeTab);
+    }
+    
     // Apply search filter
     if (searchTerm.trim()) {
       const searchLower = searchTerm.toLowerCase();
@@ -109,7 +115,7 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
     filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     
     return filtered;
-  }, [bookmarksData?.bookmarks, searchTerm, chatRoomsData]);
+  }, [bookmarksData?.bookmarks, searchTerm, activeTab, chatRoomsData]);
 
   // Get icon for bookmark type
   const getBookmarkIcon = (type: string) => {
@@ -236,6 +242,51 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
 
   return (
     <div className="flex flex-col h-full bg-gray-50" data-testid="bookmark-list">
+      {/* Tab Filter */}
+      <div className="p-3 bg-white border-b border-gray-200">
+        <div className="flex gap-2">
+          <Button
+            variant={activeTab === 'all' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setActiveTab('all')}
+            className={`flex-1 h-9 text-sm font-medium transition-all ${
+              activeTab === 'all' 
+                ? 'bg-purple-600 text-white hover:bg-purple-700' 
+                : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+            data-testid="tab-all"
+          >
+            전체
+          </Button>
+          <Button
+            variant={activeTab === 'file' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setActiveTab('file')}
+            className={`flex-1 h-9 text-sm font-medium transition-all ${
+              activeTab === 'file' 
+                ? 'bg-purple-600 text-white hover:bg-purple-700' 
+                : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+            data-testid="tab-file"
+          >
+            📁 파일
+          </Button>
+          <Button
+            variant={activeTab === 'voice' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setActiveTab('voice')}
+            className={`flex-1 h-9 text-sm font-medium transition-all ${
+              activeTab === 'voice' 
+                ? 'bg-purple-600 text-white hover:bg-purple-700' 
+                : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+            data-testid="tab-voice"
+          >
+            🎤 음성
+          </Button>
+        </div>
+      </div>
+      
       {/* Search bar */}
       <div className="p-4 bg-white border-b border-gray-200">
         <div className="relative">
