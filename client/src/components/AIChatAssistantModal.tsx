@@ -224,42 +224,86 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={isRecording ? stopRecording : startRecording}
+          {/* Unified Send Button - Text + Voice */}
+          <div className="flex items-center justify-end gap-2">
+            {isRecording && (
+              <div className="flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-600 rounded-full text-xs font-medium">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                녹음 중
+              </div>
+            )}
+            
+            <button
+              onMouseDown={(e) => {
+                e.preventDefault();
+                if (isLoading) return;
+                
+                // 텍스트가 있으면 즉시 전송
+                if (question.trim()) {
+                  handleSubmit();
+                } else {
+                  // 텍스트가 없으면 녹음 시작
+                  if (!isRecording) {
+                    startRecording();
+                  }
+                }
+              }}
+              onMouseUp={(e) => {
+                e.preventDefault();
+                if (isRecording) {
+                  stopRecording();
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (isRecording) {
+                  stopRecording();
+                }
+              }}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                if (isLoading) return;
+                
+                if (question.trim()) {
+                  handleSubmit();
+                } else {
+                  if (!isRecording) {
+                    startRecording();
+                  }
+                }
+              }}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                if (isRecording) {
+                  stopRecording();
+                }
+              }}
               disabled={isLoading}
-              className={`flex items-center gap-2 ${
+              className={`h-12 w-12 p-3 rounded-full transition-all duration-200 select-none cursor-pointer flex items-center justify-center shadow-lg ${
                 isRecording 
-                  ? 'bg-red-500 text-white hover:bg-red-600 border-red-500' 
-                  : 'border-purple-300 text-purple-600 hover:bg-purple-50'
-              }`}
-              data-testid="button-voice-record"
-            >
-              <Mic className={`h-4 w-4 ${isRecording ? 'animate-pulse' : ''}`} />
-              {isRecording ? '녹음 중지' : '음성 입력'}
-            </Button>
-
-            <Button
-              onClick={handleSubmit}
-              disabled={!question.trim() || isLoading || isRecording}
-              className="flex-1 purple-gradient hover:purple-gradient-hover text-white"
-              data-testid="button-submit-question"
+                  ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
+                  : question.trim() 
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                    : 'bg-purple-500 hover:bg-purple-600 text-white'
+              } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              aria-label={
+                isRecording 
+                  ? '녹음 중지' 
+                  : question.trim() 
+                    ? '질문 전송' 
+                    : '누르면 음성 입력'
+              }
+              data-testid="button-unified-send"
             >
               {isLoading ? (
-                <>
-                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2" />
-                  AI가 생각 중...
-                </>
+                <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+              ) : isRecording ? (
+                <Mic className="h-5 w-5 animate-pulse" />
+              ) : question.trim() ? (
+                <Send className="h-5 w-5" />
               ) : (
-                <>
-                  <Send className="h-4 w-4 mr-2" />
-                  질문하기
-                </>
+                <Mic className="h-5 w-5" />
               )}
-            </Button>
+            </button>
           </div>
 
           {/* Answer Display */}

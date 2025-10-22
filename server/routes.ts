@@ -3693,7 +3693,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`AI Voice Enhancement: Correcting transcription for chat room ${chatRoomId}`);
 
       // Get user info
-      const user = await storage.getUserById(Number(userId));
+      const user = await storage.getUser(Number(userId));
       if (!user) {
         return res.status(404).json({ 
           success: false,

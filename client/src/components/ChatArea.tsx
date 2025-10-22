@@ -375,6 +375,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const hasScrolledManually = useRef(false);
+  const [isAtBottom, setIsAtBottom] = useState(true);
+  const [unreadNewMessages, setUnreadNewMessages] = useState(0);
 
   // Get chat room details (only for regular chats, not location chats)
   const { data: chatRoomsData } = useQuery({
@@ -1074,6 +1076,29 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
   });
 
+  // Bookmark creation mutation
+  const createBookmarkMutation = useMutation({
+    mutationFn: async ({ messageId, chatRoomId, bookmarkType }: { messageId: number; chatRoomId: number; bookmarkType: 'message' | 'file' | 'voice' }) => {
+      const response = await apiRequest('/api/bookmarks', 'POST', {
+        messageId,
+        chatRoomId,
+        bookmarkType
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || '북마크 생성 실패');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/bookmarks'] });
+      console.log('✅ 북마크 생성 성공');
+    },
+    onError: (error) => {
+      console.error('❌ 북마크 생성 실패:', error);
+    }
+  });
+
   // Handle sending voice message from preview modal
   const handleSendVoiceMessage = async (editedText: string) => {
     setShowVoicePreview(false);
@@ -1141,6 +1166,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     // Check if user is near the bottom (within 100px)
     const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
     
+    // Update isAtBottom state
+    setIsAtBottom(isNearBottom);
+    
     // Detect if user is manually scrolling
     const isScrollingUp = scrollTop < lastScrollTop;
     
@@ -1151,10 +1179,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       setShouldAutoScroll(false);
       setIsInitialLoad(false); // 초기 로드 완료로 표시
     } else if (isNearBottom) {
-      // 맨 아래 근처로 돌아오면 자동 스크롤 재활성화
+      // 맨 아래 근처로 돌아오면 자동 스크롤 재활성화 및 새 메시지 카운터 초기화
       hasScrolledManually.current = false; // 수동 스크롤 플래그 리셋
       setIsUserScrolling(false);
       setShouldAutoScroll(true);
+      setUnreadNewMessages(0); // 새 메시지 카운터 초기화
     }
     
     setLastScrollTop(scrollTop);
@@ -1182,16 +1211,25 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           setIsInitialLoad(false); // 초기 로드 완료
         }, 100);
       } 
-      // 일반 메시지 수신 시: 맨 아래 근처에 있을 때만 자동 스크롤
-      else if (!hasScrolledManually.current && shouldAutoScroll && messageCount > lastMessageCount) {
-        setTimeout(() => {
-          scrollToBottom('smooth');
-        }, 100);
+      // 일반 메시지 수신 시
+      else if (messageCount > lastMessageCount) {
+        const newMessageCount = messageCount - lastMessageCount;
+        
+        // 맨 아래에 있으면 자동 스크롤
+        if (!hasScrolledManually.current && shouldAutoScroll) {
+          setTimeout(() => {
+            scrollToBottom('smooth');
+          }, 100);
+        } 
+        // 위에서 스크롤 중이면 새 메시지 카운터 증가
+        else if (!isAtBottom) {
+          setUnreadNewMessages(prev => prev + newMessageCount);
+        }
       }
       
       setLastMessageCount(messageCount);
     }
-  }, [messages, shouldAutoScroll, lastMessageCount, isInitialLoad]);
+  }, [messages, shouldAutoScroll, lastMessageCount, isInitialLoad, isAtBottom]);
 
   // Cleanup scroll timeout on unmount
   useEffect(() => {
@@ -3167,17 +3205,28 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         } catch (error) {
           console.error('음성 북마크 요청 실패:', error);
         }
+        setContextMenu({ ...contextMenu, visible: false });
         return;
       }
     }
     
-    // 일반 메시지이거나 음성 북마크가 허용된 경우 바로 북마크 생성
-    const messageData = {
-      content: message.content,
-      senderId: message.senderId,
-      timestamp: message.createdAt,
-    };
-    onCreateCommand(null, messageData);
+    // 북마크 타입 결정
+    let bookmarkType: 'message' | 'file' | 'voice' = 'message';
+    if (isVoiceMessage) {
+      bookmarkType = 'voice';
+    } else if (message.messageType === 'file') {
+      bookmarkType = 'file';
+    }
+    
+    // 북마크 직접 생성
+    createBookmarkMutation.mutate({
+      messageId: message.id,
+      chatRoomId: message.chatRoomId,
+      bookmarkType
+    });
+    
+    // 컨텍스트 메뉴 닫기
+    setContextMenu({ ...contextMenu, visible: false });
   };
 
   const handleReplyMessage = () => {
@@ -5115,8 +5164,31 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         <div ref={messagesEndRef} />
       </div>
 
+      {/* New Messages Banner - Telegram Style */}
+      {!isAtBottom && unreadNewMessages > 0 && (
+        <div 
+          className="absolute bottom-32 left-1/2 transform -translate-x-1/2 z-40 cursor-pointer"
+          onClick={() => {
+            setUnreadNewMessages(0);
+            setShouldAutoScroll(true);
+            setIsAtBottom(true);
+            scrollToBottom('smooth');
+          }}
+          data-testid="banner-new-messages"
+        >
+          <div className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-full shadow-lg flex items-center space-x-2 transition-all duration-200 transform hover:scale-105">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+            <span className="font-medium text-sm">
+              새로운 메시지 {unreadNewMessages > 1 ? `${unreadNewMessages}개` : ''}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Floating Scroll to Bottom Button */}
-      {!shouldAutoScroll && (
+      {!shouldAutoScroll && unreadNewMessages === 0 && (
         <button
           onClick={() => {
             setShouldAutoScroll(true);
@@ -5124,6 +5196,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           }}
           className="fixed bottom-24 right-6 z-40 bg-purple-500 hover:bg-purple-600 text-white rounded-full p-3 shadow-lg transition-all duration-200 transform hover:scale-105"
           aria-label="최신 메시지로 이동"
+          data-testid="button-scroll-to-bottom"
         >
           <svg 
             className="w-5 h-5" 
