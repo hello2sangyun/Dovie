@@ -201,6 +201,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "모든 필드를 입력해주세요." });
       }
 
+      // 사용자명 검증: 영문 + 특수문자만 허용 (숫자, 한글 등 불가)
+      const usernameRegex = /^[a-zA-Z!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+$/;
+      if (!usernameRegex.test(username)) {
+        console.log("Invalid username format:", username);
+        return res.status(400).json({ message: "사용자명은 영문과 특수문자만 사용할 수 있습니다." });
+      }
+
+      // 사용자명을 소문자로 변환 (대소문자 구분 안 함)
+      const normalizedUsername = username.toLowerCase();
+
       // 이메일 중복 확인
       const existingUserByEmail = await storage.getUserByEmail(email);
       if (existingUserByEmail) {
@@ -208,21 +218,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "이미 사용 중인 이메일입니다." });
       }
 
-      // 사용자명 중복 확인
-      const existingUserByUsername = await storage.getUserByUsername(username);
+      // 사용자명 중복 확인 (소문자로 변환하여 비교)
+      const existingUserByUsername = await storage.getUserByUsername(normalizedUsername);
       if (existingUserByUsername) {
-        console.log("Username already exists:", username);
+        console.log("Username already exists:", normalizedUsername);
         return res.status(400).json({ message: "이미 사용 중인 사용자명입니다." });
       }
 
       // 비밀번호 해싱
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // 사용자 생성 데이터 준비
+      // 사용자 생성 데이터 준비 (username은 소문자로 저장)
       const userData = {
         email,
         password: hashedPassword,
-        username,
+        username: normalizedUsername,
         displayName,
         isEmailVerified: true,
         isProfileComplete: false,
@@ -260,8 +270,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "사용자명과 비밀번호를 입력해주세요." });
       }
 
+      // 사용자명을 소문자로 변환 (대소문자 구분 안 함)
+      const normalizedUsername = username.toLowerCase();
+
       // 사용자명으로 사용자 찾기
-      const user = await storage.getUserByUsername(username);
+      const user = await storage.getUserByUsername(normalizedUsername);
       if (!user) {
         return res.status(401).json({ message: "사용자명 또는 비밀번호가 올바르지 않습니다." });
       }

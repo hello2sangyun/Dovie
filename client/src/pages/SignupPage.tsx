@@ -102,13 +102,21 @@ export default function SignupPage() {
                       <Input
                         id="username"
                         type="text"
-                        placeholder="사용자명을 입력해주세요"
+                        placeholder="영문과 특수문자만 사용 가능"
                         value={usernameFormData.username}
-                        onChange={(e) => setUsernameFormData(prev => ({ ...prev, username: e.target.value }))}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // 영문 + 특수문자만 허용
+                          const regex = /^[a-zA-Z!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]*$/;
+                          if (regex.test(value) || value === '') {
+                            setUsernameFormData(prev => ({ ...prev, username: value }));
+                          }
+                        }}
                         className="pl-10"
                         required
                       />
                     </div>
+                    <p className="text-xs text-gray-500">영문과 특수문자만 사용 가능 (대소문자 구분 안 함)</p>
                   </div>
 
                   <div className="space-y-2">
