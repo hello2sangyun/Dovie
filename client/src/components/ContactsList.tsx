@@ -258,7 +258,8 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
   };
 
   // 길게 누르기 시작
-  const handleLongPressStart = (contact: any) => {
+  const handleLongPressStart = (contact: any, e: React.TouchEvent | React.MouseEvent) => {
+    // preventDefault를 여기서 호출하지 않음 - 일반 탭(짧은 터치) 동작을 위해
     console.log('🎯 친구 간편음성메세지 - 길게 누르기 시작:', contact.contactUser.displayName);
     
     const timer = setTimeout(() => {
@@ -269,7 +270,13 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
   };
 
   // 길게 누르기 끝
-  const handleLongPressEnd = () => {
+  const handleLongPressEnd = (e: React.TouchEvent | React.MouseEvent) => {
+    // 실제로 녹음이 시작되었을 때만 기본 동작(click) 차단
+    // longPressTimer는 짧은 탭에서도 설정되므로 체크하지 않음
+    if (isRecording) {
+      e.preventDefault();
+    }
+    
     if (longPressTimer) {
       clearTimeout(longPressTimer);
       setLongPressTimer(null);
@@ -278,6 +285,12 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
     if (isRecording) {
       stopVoiceRecording();
     }
+  };
+
+  // 컨텍스트 메뉴 차단 (길게 누르기 시 나타나는 이미지 확대 메뉴)
+  const handleContextMenu = (e: React.MouseEvent | React.TouchEvent) => {
+    // 항상 컨텍스트 메뉴 차단 (이미지 확대 방지)
+    e.preventDefault();
   };
 
   // 음성 녹음 시작
@@ -550,11 +563,12 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
                       isRecordingThisContact && "animate-pulse"
                     )}
                     onClick={() => !isRecording && onSelectContact(contact.contactUserId)}
-                    onTouchStart={() => handleLongPressStart(contact)}
-                    onTouchEnd={handleLongPressEnd}
-                    onMouseDown={() => handleLongPressStart(contact)}
-                    onMouseUp={handleLongPressEnd}
-                    onMouseLeave={handleLongPressEnd}
+                    onTouchStart={(e) => handleLongPressStart(contact, e)}
+                    onTouchEnd={(e) => handleLongPressEnd(e)}
+                    onMouseDown={(e) => handleLongPressStart(contact, e)}
+                    onMouseUp={(e) => handleLongPressEnd(e)}
+                    onMouseLeave={(e) => handleLongPressEnd(e)}
+                    onContextMenu={handleContextMenu}
                   >
                     <InstantAvatar
                       src={contact.contactUser.profilePicture}
@@ -613,11 +627,12 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
                 <div 
                   className="cursor-pointer flex-1 flex items-center space-x-2 select-none"
                   onClick={() => !isRecording && onSelectContact(contact.contactUserId)}
-                  onTouchStart={() => handleLongPressStart(contact)}
-                  onTouchEnd={handleLongPressEnd}
-                  onMouseDown={() => handleLongPressStart(contact)}
-                  onMouseUp={handleLongPressEnd}
-                  onMouseLeave={handleLongPressEnd}
+                  onTouchStart={(e) => handleLongPressStart(contact, e)}
+                  onTouchEnd={(e) => handleLongPressEnd(e)}
+                  onMouseDown={(e) => handleLongPressStart(contact, e)}
+                  onMouseUp={(e) => handleLongPressEnd(e)}
+                  onMouseLeave={(e) => handleLongPressEnd(e)}
+                  onContextMenu={handleContextMenu}
                 >
                   <div className="relative">
                     <InstantAvatar
