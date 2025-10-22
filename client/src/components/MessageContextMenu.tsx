@@ -206,7 +206,7 @@ export default function MessageContextMenu({
           data-testid="button-save-message"
         >
           <Save className="w-3 h-3 mr-1 text-green-600 dark:text-green-400" />
-          저장
+          북마크
         </Button>
         
         <div className="border-t border-gray-200/70 dark:border-gray-600/70 my-1 mx-2" />
