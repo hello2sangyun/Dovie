@@ -56,5 +56,9 @@ externalPort = 3001
 localPort = 43827
 externalPort = 3000
 
+[[ports]]
+localPort = 45703
+externalPort = 3002
+
 [agent]
 integrations = ["javascript_websocket==1.0.0"]
