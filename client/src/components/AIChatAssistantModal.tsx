@@ -225,7 +225,7 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
           </div>
 
           {/* Unified Send Button - Text + Voice */}
-          <div className="flex items-center justify-end gap-2">
+          <div className="flex items-center justify-center gap-2">
             {isRecording && (
               <div className="flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-600 rounded-full text-xs font-medium">
                 <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
@@ -278,7 +278,7 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
                 }
               }}
               disabled={isLoading}
-              className={`h-12 w-12 p-3 rounded-full transition-all duration-200 select-none cursor-pointer flex items-center justify-center shadow-lg ${
+              className={`h-14 w-14 p-3 rounded-xl transition-all duration-200 select-none cursor-pointer flex items-center justify-center shadow-lg ${
                 isRecording 
                   ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
                   : question.trim() 
