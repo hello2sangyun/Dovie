@@ -4315,10 +4315,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       highlightedMessageId === msg.id && "bg-yellow-100/50 rounded-xl p-2 -mx-2"
                     )}
                   >
-                  <div className={cn(
-                    "flex flex-col items-center flex-shrink-0",
-                    !isMe && "ml-1.5"
-                  )}>
+                  <div className="flex flex-col items-center flex-shrink-0">
                     {isLocationChatRoom ? (
                       // 주변챗에서는 임시 프로필 표시
                       <div className="w-8 h-8 rounded-full border-2 border-white shadow-lg ring-2 ring-white/50 group-hover:scale-105 transition-transform duration-200">
