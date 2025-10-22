@@ -4311,7 +4311,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     ref={(el) => messageRefs.current[msg.id] = el}
                     className={cn(
                       "flex items-end mb-2 transition-all duration-500 group max-w-[85%]",
-                      isMe ? "space-x-0 flex-row-reverse space-x-reverse" : "space-x-2",
+                      isMe ? "space-x-0 flex-row-reverse space-x-reverse -mr-2" : "space-x-2",
                       highlightedMessageId === msg.id && "bg-yellow-100/50 rounded-xl p-2 -mx-2"
                     )}
                   >
@@ -4364,17 +4364,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                             ? (msg.locationProfile?.nickname || msg.sender.displayName)
                             : msg.sender.displayName
                           }
-                        </span>
-                        <span className="text-xs text-gray-400 font-medium">
-                          {formatTime(msg.createdAt)}
-                        </span>
-                      </div>
-                    )}
-                    
-                    {isMe && (
-                      <div className="flex items-center space-x-2 mb-0.5">
-                        <span className="text-xs text-gray-400 font-medium">
-                          {formatTime(msg.createdAt)}
                         </span>
                       </div>
                     )}
@@ -4535,255 +4524,303 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       )}
                       
                       {msg.messageType === "voice" ? (
-                        <div className="flex items-center space-x-3 min-w-0">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleVoicePlayback(msg.id, msg.fileUrl, msg.voiceDuration, msg.senderId);
-                            }}
-                            className={cn(
-                              "clickable w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-105 select-auto flex-shrink-0 shadow-sm",
-                              isMe ? "bg-white/20 hover:bg-white/30" : "bg-purple-100 hover:bg-purple-200"
-                            )}
-                            style={{ 
-                              userSelect: 'auto',
-                              WebkitUserSelect: 'auto',
-                              MozUserSelect: 'auto',
-                              msUserSelect: 'auto',
-                              WebkitTouchCallout: 'default'
-                            }}
-                          >
-                            {playingAudio === msg.id ? (
-                              <Pause className={cn(
-                                "h-5 w-5",
-                                isMe ? "text-white" : "text-purple-600"
-                              )} />
-                            ) : (
-                              <Play className={cn(
-                                "h-5 w-5",
-                                isMe ? "text-white" : "text-purple-600"
-                              )} />
-                            )}
-                          </button>
-                          
-                          {/* 오디오 파형 그래프 영역 */}
-                          <div className="flex-1 min-w-0 max-w-xs">
-                            {/* 음성 라벨을 우측 상단에 배치 */}
-                            <div className="flex items-center justify-end space-x-1 mb-1">
-                              <div className={cn(
-                                "px-1.5 py-0.5 rounded-full text-xs font-medium",
-                                isMe ? "bg-white/20 text-white" : "bg-purple-100 text-purple-600"
-                              )}>
-                                음성
-                              </div>
-                              {msg.voiceDuration && (
-                                <span className={cn(
-                                  "text-xs px-1.5 py-0.5 rounded-full",
-                                  isMe ? "bg-white/20 text-white/70" : "bg-gray-100 text-gray-500"
+                        <div className="flex flex-col">
+                          <div className="flex items-center space-x-3 min-w-0">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleVoicePlayback(msg.id, msg.fileUrl, msg.voiceDuration, msg.senderId);
+                              }}
+                              className={cn(
+                                "clickable w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-105 select-auto flex-shrink-0 shadow-sm",
+                                isMe ? "bg-white/20 hover:bg-white/30" : "bg-purple-100 hover:bg-purple-200"
+                              )}
+                              style={{ 
+                                userSelect: 'auto',
+                                WebkitUserSelect: 'auto',
+                                MozUserSelect: 'auto',
+                                msUserSelect: 'auto',
+                                WebkitTouchCallout: 'default'
+                              }}
+                            >
+                              {playingAudio === msg.id ? (
+                                <Pause className={cn(
+                                  "h-5 w-5",
+                                  isMe ? "text-white" : "text-purple-600"
+                                )} />
+                              ) : (
+                                <Play className={cn(
+                                  "h-5 w-5",
+                                  isMe ? "text-white" : "text-purple-600"
+                                )} />
+                              )}
+                            </button>
+                            
+                            {/* 오디오 파형 그래프 영역 */}
+                            <div className="flex-1 min-w-0 max-w-xs">
+                              {/* 음성 라벨을 우측 상단에 배치 */}
+                              <div className="flex items-center justify-end space-x-1 mb-1">
+                                <div className={cn(
+                                  "px-1.5 py-0.5 rounded-full text-xs font-medium",
+                                  isMe ? "bg-white/20 text-white" : "bg-purple-100 text-purple-600"
                                 )}>
-                                  {msg.voiceDuration}초
-                                </span>
+                                  음성
+                                </div>
+                                {msg.voiceDuration && (
+                                  <span className={cn(
+                                    "text-xs px-1.5 py-0.5 rounded-full",
+                                    isMe ? "bg-white/20 text-white/70" : "bg-gray-100 text-gray-500"
+                                  )}>
+                                    {msg.voiceDuration}초
+                                  </span>
+                                )}
+                              </div>
+                              
+                              {/* 컴팩트한 정적 오디오 파형 */}
+                              <div className="flex items-center space-x-0.5 h-2 mb-1">
+                                {(() => {
+                                  // 정적 파형 (15개 막대, 더 컴팩트)
+                                  const staticHeights = [0.3, 0.6, 0.4, 0.8, 0.3, 0.7, 0.5, 0.9, 0.4, 0.6, 0.3, 0.5, 0.7, 0.2, 0.4];
+                                  
+                                  return staticHeights.map((height, i) => (
+                                    <div
+                                      key={i}
+                                      className={cn(
+                                        "rounded-full flex-shrink-0 opacity-60",
+                                        isMe
+                                          ? "bg-white/40"
+                                          : "bg-purple-200"
+                                      )}
+                                      style={{
+                                        width: '1.5px',
+                                        height: `${height * 8}px`,
+                                        minHeight: '1.5px'
+                                      }}
+                                    />
+                                  ));
+                                })()}
+                              </div>
+                              
+                              {msg.content && (
+                                <div className={cn(
+                                  "text-sm leading-relaxed",
+                                  isMe ? "text-white/90" : "text-gray-800"
+                                )}>
+                                  {msg.content}
+                                </div>
                               )}
                             </div>
-                            
-                            {/* 컴팩트한 정적 오디오 파형 */}
-                            <div className="flex items-center space-x-0.5 h-2 mb-1">
-                              {(() => {
-                                // 정적 파형 (15개 막대, 더 컴팩트)
-                                const staticHeights = [0.3, 0.6, 0.4, 0.8, 0.3, 0.7, 0.5, 0.9, 0.4, 0.6, 0.3, 0.5, 0.7, 0.2, 0.4];
-                                
-                                return staticHeights.map((height, i) => (
-                                  <div
-                                    key={i}
-                                    className={cn(
-                                      "rounded-full flex-shrink-0 opacity-60",
-                                      isMe
-                                        ? "bg-white/40"
-                                        : "bg-purple-200"
-                                    )}
-                                    style={{
-                                      width: '1.5px',
-                                      height: `${height * 8}px`,
-                                      minHeight: '1.5px'
-                                    }}
-                                  />
-                                ));
-                              })()}
-                            </div>
-                            
-                            {msg.content && (
-                              <div className={cn(
-                                "text-sm leading-relaxed",
-                                isMe ? "text-white/90" : "text-gray-800"
-                              )}>
-                                {msg.content}
-                              </div>
-                            )}
+                          </div>
+                          <div className={cn(
+                            "text-xs opacity-60 whitespace-nowrap self-end mt-1",
+                            isMe ? "text-white/70" : "text-gray-500"
+                          )}>
+                            {formatTime(msg.createdAt)}
                           </div>
                         </div>
 
                       ) : msg.messageType === "file" ? (
-                        <div className="relative">
-                          <MediaPreview
-                            fileUrl={msg.fileUrl}
-                            fileName={msg.fileName}
-                            fileSize={msg.fileSize}
-                            messageContent={msg.content}
-                            isMe={isMe}
-                            className="mb-2"
-                          />
-                          
-                          {/* 원형 업로드 진행률 오버레이 */}
-                          {(msg as any).isUploading && (msg as any).uploadProgress < 100 && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-lg">
-                              <div className="relative flex items-center justify-center">
-                                {/* SVG 원형 진행률 */}
-                                <svg className="transform -rotate-90" width="60" height="60">
-                                  <defs>
-                                    <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                      <stop offset="0%" stopColor="#9333ea" />
-                                      <stop offset="100%" stopColor="#c026d3" />
-                                    </linearGradient>
-                                  </defs>
-                                  {/* 배경 원 */}
-                                  <circle
-                                    cx="30"
-                                    cy="30"
-                                    r="26"
-                                    stroke="rgba(255, 255, 255, 0.2)"
-                                    strokeWidth="4"
-                                    fill="none"
-                                  />
-                                  {/* 진행률 원 */}
-                                  <circle
-                                    cx="30"
-                                    cy="30"
-                                    r="26"
-                                    stroke="url(#progressGradient)"
-                                    strokeWidth="4"
-                                    fill="none"
-                                    strokeLinecap="round"
-                                    strokeDasharray={`${2 * Math.PI * 26}`}
-                                    strokeDashoffset={`${2 * Math.PI * 26 * (1 - ((msg as any).uploadProgress || 0) / 100)}`}
-                                    className="transition-all duration-300 ease-out"
-                                  />
-                                </svg>
-                                {/* 중앙 퍼센트 텍스트 */}
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                  <span className="text-white font-bold text-sm">
-                                    {(msg as any).uploadProgress || 0}%
-                                  </span>
+                        <div className="flex flex-col">
+                          <div className="relative">
+                            <MediaPreview
+                              fileUrl={msg.fileUrl}
+                              fileName={msg.fileName}
+                              fileSize={msg.fileSize}
+                              messageContent={msg.content}
+                              isMe={isMe}
+                              className="mb-2"
+                            />
+                            
+                            {/* 원형 업로드 진행률 오버레이 */}
+                            {(msg as any).isUploading && (msg as any).uploadProgress < 100 && (
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-lg">
+                                <div className="relative flex items-center justify-center">
+                                  {/* SVG 원형 진행률 */}
+                                  <svg className="transform -rotate-90" width="60" height="60">
+                                    <defs>
+                                      <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#9333ea" />
+                                        <stop offset="100%" stopColor="#c026d3" />
+                                      </linearGradient>
+                                    </defs>
+                                    {/* 배경 원 */}
+                                    <circle
+                                      cx="30"
+                                      cy="30"
+                                      r="26"
+                                      stroke="rgba(255, 255, 255, 0.2)"
+                                      strokeWidth="4"
+                                      fill="none"
+                                    />
+                                    {/* 진행률 원 */}
+                                    <circle
+                                      cx="30"
+                                      cy="30"
+                                      r="26"
+                                      stroke="url(#progressGradient)"
+                                      strokeWidth="4"
+                                      fill="none"
+                                      strokeLinecap="round"
+                                      strokeDasharray={`${2 * Math.PI * 26}`}
+                                      strokeDashoffset={`${2 * Math.PI * 26 * (1 - ((msg as any).uploadProgress || 0) / 100)}`}
+                                      className="transition-all duration-300 ease-out"
+                                    />
+                                  </svg>
+                                  {/* 중앙 퍼센트 텍스트 */}
+                                  <div className="absolute inset-0 flex items-center justify-center">
+                                    <span className="text-white font-bold text-sm">
+                                      {(msg as any).uploadProgress || 0}%
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          )}
-                          
-                          {msg.isCommandRecall && (
-                            <div className={cn(
-                              "mt-2 pt-2 border-t",
-                              msg.isLocalOnly
-                                ? isMe ? "border-white/20" : "border-teal-300"
-                                : isMe ? "border-white/20" : "border-gray-100"
-                            )}>
-                              <span className={cn(
-                                "px-2 py-1 rounded text-xs font-medium",
+                            )}
+                            
+                            {msg.isCommandRecall && (
+                              <div className={cn(
+                                "mt-2 pt-2 border-t",
                                 msg.isLocalOnly
-                                  ? isMe 
-                                    ? "bg-white/20 text-white" 
-                                    : "bg-teal-200 text-teal-800"
-                                  : isMe 
-                                    ? "bg-white/20 text-white" 
-                                    : "bg-purple-100 text-purple-700"
+                                  ? isMe ? "border-white/20" : "border-teal-300"
+                                  : isMe ? "border-white/20" : "border-gray-100"
                               )}>
-                                {msg.content}
-                              </span>
-                              <p className={cn(
-                                "text-xs mt-1",
-                                msg.isLocalOnly
-                                  ? isMe ? "text-white/70" : "text-teal-600"
-                                  : isMe ? "text-white/70" : "text-gray-500"
-                              )}>
-                                {msg.isLocalOnly ? "태그로 불러옴 (나만 보임)" : "명령어로 불러옴"}
-                              </p>
-                            </div>
-                          )}
+                                <span className={cn(
+                                  "px-2 py-1 rounded text-xs font-medium",
+                                  msg.isLocalOnly
+                                    ? isMe 
+                                      ? "bg-white/20 text-white" 
+                                      : "bg-teal-200 text-teal-800"
+                                    : isMe 
+                                      ? "bg-white/20 text-white" 
+                                      : "bg-purple-100 text-purple-700"
+                                )}>
+                                  {msg.content}
+                                </span>
+                                <p className={cn(
+                                  "text-xs mt-1",
+                                  msg.isLocalOnly
+                                    ? isMe ? "text-white/70" : "text-teal-600"
+                                    : isMe ? "text-white/70" : "text-gray-500"
+                                )}>
+                                  {msg.isLocalOnly ? "태그로 불러옴 (나만 보임)" : "명령어로 불러옴"}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                          <div className={cn(
+                            "text-xs opacity-60 whitespace-nowrap self-end mt-1",
+                            isMe ? "text-white/70" : "text-gray-500"
+                          )}>
+                            {formatTime(msg.createdAt)}
+                          </div>
                         </div>
                       ) : msg.messageType === "poll" && msg.pollData ? (
-                        <PollMessage
-                          pollData={JSON.parse(msg.pollData)}
-                          isMe={isMe}
-                          onVote={(optionIndex) => {
-                            console.log('Vote for option:', optionIndex, 'in poll:', msg.id);
-                          }}
-                        />
-                      ) : msg.messageType === "boom" ? (
-                        explodedMessages.has(msg.id) ? (
-                          // 폭발한 메시지
-                          <div className="text-center py-4">
-                            <div className="inline-flex items-center space-x-2 bg-gray-100 rounded-lg px-4 py-2 border-2 border-dashed border-gray-300">
-                              <span className="text-2xl animate-bounce">💥</span>
-                              <span className="text-sm text-gray-600 font-medium">이 메시지는 폭발했습니다</span>
-                              <span className="text-xs text-gray-400">(삭제됨)</span>
-                            </div>
+                        <div className="flex flex-col">
+                          <PollMessage
+                            pollData={JSON.parse(msg.pollData)}
+                            isMe={isMe}
+                            onVote={(optionIndex) => {
+                              console.log('Vote for option:', optionIndex, 'in poll:', msg.id);
+                            }}
+                          />
+                          <div className={cn(
+                            "text-xs opacity-60 whitespace-nowrap self-end mt-1",
+                            isMe ? "text-white/70" : "text-gray-500"
+                          )}>
+                            {formatTime(msg.createdAt)}
                           </div>
-                        ) : (
-                          // 활성 폭탄 메시지 (카운트다운)
-                          <div className="relative">
-                            <div className={cn(
-                              "flex items-center space-x-3 p-3 rounded-lg border-2",
-                              messageTimers[msg.id] <= 5 
-                                ? "border-red-500 bg-red-50 animate-pulse" 
-                                : "border-orange-500 bg-orange-50"
-                            )}>
-                              <div className={cn(
-                                "text-2xl",
-                                messageTimers[msg.id] <= 3 ? "animate-bounce" : ""
-                              )}>
-                                💣
+                        </div>
+                      ) : msg.messageType === "boom" ? (
+                        <div className="flex flex-col">
+                          {explodedMessages.has(msg.id) ? (
+                            // 폭발한 메시지
+                            <div className="text-center py-4">
+                              <div className="inline-flex items-center space-x-2 bg-gray-100 rounded-lg px-4 py-2 border-2 border-dashed border-gray-300">
+                                <span className="text-2xl animate-bounce">💥</span>
+                                <span className="text-sm text-gray-600 font-medium">이 메시지는 폭발했습니다</span>
+                                <span className="text-xs text-gray-400">(삭제됨)</span>
                               </div>
-                              <div className="flex-1">
-                                <p className="text-sm font-medium text-gray-800 mb-2">
-                                  {msg.content.replace('💣 ', '')}
-                                </p>
-                                <div className="flex items-center space-x-2">
-                                  <div className={cn(
-                                    "px-3 py-1 rounded-full text-sm font-bold min-w-[60px] text-center",
-                                    messageTimers[msg.id] <= 5 
-                                      ? "bg-red-500 text-white animate-pulse" 
-                                      : "bg-orange-500 text-white"
-                                  )}>
-                                    {messageTimers[msg.id] || 0}초
+                            </div>
+                          ) : (
+                            // 활성 폭탄 메시지 (카운트다운)
+                            <div className="relative">
+                              <div className={cn(
+                                "flex items-center space-x-3 p-3 rounded-lg border-2",
+                                messageTimers[msg.id] <= 5 
+                                  ? "border-red-500 bg-red-50 animate-pulse" 
+                                  : "border-orange-500 bg-orange-50"
+                              )}>
+                                <div className={cn(
+                                  "text-2xl",
+                                  messageTimers[msg.id] <= 3 ? "animate-bounce" : ""
+                                )}>
+                                  💣
+                                </div>
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium text-gray-800 mb-2">
+                                    {msg.content.replace('💣 ', '')}
+                                  </p>
+                                  <div className="flex items-center space-x-2">
+                                    <div className={cn(
+                                      "px-3 py-1 rounded-full text-sm font-bold min-w-[60px] text-center",
+                                      messageTimers[msg.id] <= 5 
+                                        ? "bg-red-500 text-white animate-pulse" 
+                                        : "bg-orange-500 text-white"
+                                    )}>
+                                      {messageTimers[msg.id] || 0}초
+                                    </div>
+                                    <span className="text-xs text-gray-600">후 폭발</span>
+                                    {messageTimers[msg.id] <= 3 && (
+                                      <span className="text-xs text-red-600 font-bold animate-pulse">⚠️ 위험!</span>
+                                    )}
                                   </div>
-                                  <span className="text-xs text-gray-600">후 폭발</span>
-                                  {messageTimers[msg.id] <= 3 && (
-                                    <span className="text-xs text-red-600 font-bold animate-pulse">⚠️ 위험!</span>
-                                  )}
                                 </div>
                               </div>
                             </div>
+                          )}
+                          <div className={cn(
+                            "text-xs opacity-60 whitespace-nowrap self-end mt-1",
+                            isMe ? "text-white/70" : "text-gray-500"
+                          )}>
+                            {formatTime(msg.createdAt)}
                           </div>
-                        )
+                        </div>
                       ) : msg.messageType === "sendback" ? (
                         // SendBack 메시지 (작성자에게만 보임)
-                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <span className="text-lg">↩️</span>
-                            <span className="text-xs text-yellow-700 font-medium">작성자만 볼 수 있는 피드백</span>
+                        <div className="flex flex-col">
+                          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <span className="text-lg">↩️</span>
+                              <span className="text-xs text-yellow-700 font-medium">작성자만 볼 수 있는 피드백</span>
+                            </div>
+                            <p className="text-sm text-yellow-800">
+                              {msg.content.replace('↩️ 피드백: ', '')}
+                            </p>
                           </div>
-                          <p className="text-sm text-yellow-800">
-                            {msg.content.replace('↩️ 피드백: ', '')}
-                          </p>
+                          <div className={cn(
+                            "text-xs opacity-60 whitespace-nowrap self-end mt-1",
+                            isMe ? "text-white/70" : "text-gray-500"
+                          )}>
+                            {formatTime(msg.createdAt)}
+                          </div>
                         </div>
                       ) : msg.messageType === "spotlight" ? (
                         // Spotlight 메시지
-                        <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <span className="text-lg">📌</span>
-                            <span className="text-xs text-purple-700 font-medium">주목 메시지</span>
+                        <div className="flex flex-col">
+                          <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <span className="text-lg">📌</span>
+                              <span className="text-xs text-purple-700 font-medium">주목 메시지</span>
+                            </div>
+                            <p className="text-sm text-purple-800">
+                              {msg.content}
+                            </p>
                           </div>
-                          <p className="text-sm text-purple-800">
-                            {msg.content}
-                          </p>
+                          <div className={cn(
+                            "text-xs opacity-60 whitespace-nowrap self-end mt-1",
+                            isMe ? "text-white/70" : "text-gray-500"
+                          )}>
+                            {formatTime(msg.createdAt)}
+                          </div>
                         </div>
                       ) : (
                         <div className={cn(
@@ -5037,28 +5074,33 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                                         </div>
                                       )}
                                       
-                                      <div>
-                                        {renderMessageWithLinks(msg.content)}
-                                        {/* Link Previews */}
-                                        {(() => {
-                                          const urls = detectUrls(msg.content);
-                                          return urls.map((url, index) => (
-                                            <LinkPreview 
-                                              key={index} 
-                                              url={url} 
-                                              className="mt-2"
-                                            />
-                                          ));
-                                        })()}
+                                      <div className="flex flex-col">
+                                        <div className="flex items-end gap-2">
+                                          <div className="flex-1">
+                                            {renderMessageWithLinks(msg.content)}
+                                            {/* Link Previews */}
+                                            {(() => {
+                                              const urls = detectUrls(msg.content);
+                                              return urls.map((url, index) => (
+                                                <LinkPreview 
+                                                  key={index} 
+                                                  url={url} 
+                                                  className="mt-2"
+                                                />
+                                              ));
+                                            })()}
+                                          </div>
+                                          <div className={cn(
+                                            "text-xs opacity-60 whitespace-nowrap self-end pb-0.5 flex items-center gap-1",
+                                            isMe ? "text-white/70" : "text-gray-500"
+                                          )}>
+                                            {formatTime(msg.createdAt)}
+                                            {msg.isEdited && (
+                                              <span className="italic">(편집됨)</span>
+                                            )}
+                                          </div>
+                                        </div>
                                       </div>
-                                      {msg.isEdited && (
-                                        <span className={cn(
-                                          "text-xs ml-2 opacity-70 italic",
-                                          isMe ? "text-white/60" : "text-gray-500"
-                                        )}>
-                                          (편집됨)
-                                        </span>
-                                      )}
                                     </>
                                   )}
                                 </div>
