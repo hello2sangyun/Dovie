@@ -3,9 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MessageCircle, File, Mic, Search, Trash2, Bookmark } from "lucide-react";
+import { MessageCircle, File, Mic, Search, Trash2, Bookmark, Download, Share2, Eye } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 
 interface BookmarkData {
   id: number;
@@ -29,10 +28,13 @@ interface BookmarkData {
   } | null;
 }
 
-export default function BookmarkList() {
+interface BookmarkListProps {
+  onNavigateToMessage?: (chatRoomId: number, messageId: number) => void;
+}
+
+export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
 
   // Fetch bookmarks
@@ -59,17 +61,9 @@ export default function BookmarkList() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] });
-      toast({
-        title: "북마크 삭제 완료",
-        description: "북마크가 삭제되었습니다.",
-      });
     },
     onError: (error: Error) => {
-      toast({
-        title: "북마크 삭제 실패",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error("Failed to delete bookmark:", error.message);
     },
   });
 
@@ -184,6 +178,54 @@ export default function BookmarkList() {
     return "내용 없음";
   };
 
+  // Handle preview/navigate to message
+  const handlePreview = (bookmark: BookmarkData) => {
+    if (onNavigateToMessage && bookmark.message) {
+      onNavigateToMessage(bookmark.chatRoomId, bookmark.message.id);
+    }
+  };
+
+  // Handle file download
+  const handleDownload = (bookmark: BookmarkData) => {
+    if (!bookmark.message || !bookmark.message.fileUrl) return;
+    
+    const link = document.createElement('a');
+    link.href = bookmark.message.fileUrl;
+    link.download = bookmark.message.fileName || 'file';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Handle share using Web Share API
+  const handleShare = async (bookmark: BookmarkData) => {
+    const chatRoomName = getChatRoomName(bookmark.chatRoomId);
+    const messagePreview = getMessagePreview(bookmark);
+    
+    const shareData = {
+      title: `북마크: ${chatRoomName}`,
+      text: messagePreview,
+    };
+
+    // Add URL if file exists
+    if (bookmark.message?.fileUrl) {
+      (shareData as any).url = bookmark.message.fileUrl;
+    }
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback for browsers that don't support Web Share API
+        const textToCopy = `${shareData.title}\n${shareData.text}${(shareData as any).url ? `\n${(shareData as any).url}` : ''}`;
+        await navigator.clipboard.writeText(textToCopy);
+        alert('링크가 클립보드에 복사되었습니다');
+      }
+    } catch (error) {
+      console.error('Share failed:', error);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full" data-testid="bookmark-loading">
@@ -234,11 +276,12 @@ export default function BookmarkList() {
               const chatRoomName = getChatRoomName(bookmark.chatRoomId);
               const messagePreview = getMessagePreview(bookmark);
               const formattedDate = formatDate(bookmark.createdAt);
+              const canDownload = bookmark.bookmarkType === "file" || bookmark.bookmarkType === "voice";
 
               return (
                 <div
                   key={bookmark.id}
-                  className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer"
+                  className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
                   data-testid={`bookmark-card-${bookmark.id}`}
                 >
                   {/* Header */}
@@ -260,18 +303,6 @@ export default function BookmarkList() {
                       <span className="text-xs text-gray-400" data-testid={`text-bookmark-date-${bookmark.id}`}>
                         {formattedDate}
                       </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteBookmarkMutation.mutate(bookmark.id);
-                        }}
-                        className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
-                        data-testid={`button-delete-bookmark-${bookmark.id}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
                     </div>
                   </div>
 
@@ -290,6 +321,60 @@ export default function BookmarkList() {
                       </p>
                     </div>
                   )}
+
+                  {/* Action buttons */}
+                  <div className="mt-3 flex items-center justify-between pt-3 border-t border-gray-100">
+                    <div className="flex items-center space-x-2">
+                      {/* Preview button */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handlePreview(bookmark)}
+                        className="h-8 px-3 text-xs hover:bg-purple-50 hover:text-purple-600"
+                        data-testid={`button-preview-bookmark-${bookmark.id}`}
+                      >
+                        <Eye className="h-3.5 w-3.5 mr-1" />
+                        미리보기
+                      </Button>
+
+                      {/* Download button - only for file/voice */}
+                      {canDownload && bookmark.message?.fileUrl && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDownload(bookmark)}
+                          className="h-8 px-3 text-xs hover:bg-blue-50 hover:text-blue-600"
+                          data-testid={`button-download-bookmark-${bookmark.id}`}
+                        >
+                          <Download className="h-3.5 w-3.5 mr-1" />
+                          다운로드
+                        </Button>
+                      )}
+
+                      {/* Share button */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleShare(bookmark)}
+                        className="h-8 px-3 text-xs hover:bg-green-50 hover:text-green-600"
+                        data-testid={`button-share-bookmark-${bookmark.id}`}
+                      >
+                        <Share2 className="h-3.5 w-3.5 mr-1" />
+                        공유
+                      </Button>
+                    </div>
+
+                    {/* Delete button */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deleteBookmarkMutation.mutate(bookmark.id)}
+                      className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                      data-testid={`button-delete-bookmark-${bookmark.id}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               );
             })}

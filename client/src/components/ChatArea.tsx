@@ -461,6 +461,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   const unreadAiNoticesCount = aiNoticesData?.filter((notice: any) => !notice.isRead).length || 0;
 
+  // Get voice bookmark requests for this chat room
+  const { data: voiceBookmarkRequestsData } = useQuery({
+    queryKey: ['/api/voice-bookmark-requests'],
+    enabled: !!user && !!chatRoomId && !isLocationChatRoom,
+    refetchInterval: 10000, // Poll every 10 seconds for updates
+  });
+
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
@@ -1058,6 +1065,23 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     onError: (error) => {
       console.error('❌ 파일 업로드 실패:', error);
     },
+  });
+
+  // Voice bookmark request mutations
+  const handleVoiceBookmarkRequest = useMutation({
+    mutationFn: async ({ requestId, action }: { requestId: number; action: 'approved' | 'rejected' }) => {
+      const response = await apiRequest(`/api/voice-bookmark-requests/${requestId}`, 'PATCH', { status: action });
+      return response.json();
+    },
+    onSuccess: () => {
+      // 요청 목록 새로고침
+      queryClient.invalidateQueries({ queryKey: ['/api/voice-bookmark-requests'] });
+      // 북마크 목록도 새로고침 (승인 시 자동으로 북마크가 생성됨)
+      queryClient.invalidateQueries({ queryKey: ['/api/bookmarks'] });
+    },
+    onError: (error) => {
+      console.error('음성 북마크 요청 처리 실패:', error);
+    }
   });
 
   // Handle sending voice message from preview modal
@@ -3106,16 +3130,47 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     });
   };
 
-  const handleSaveMessage = () => {
-    if (contextMenu.message) {
-      // 메시지 데이터를 MainApp으로 전달
-      const messageData = {
-        content: contextMenu.message.content,
-        senderId: contextMenu.message.senderId,
-        timestamp: contextMenu.message.createdAt,
-      };
-      onCreateCommand(null, messageData); // 파일 데이터 없이 메시지 데이터만 전달
+  const handleSaveMessage = async () => {
+    if (!contextMenu.message || !user) return;
+
+    const message = contextMenu.message;
+    
+    // 음성 메시지인지 확인
+    const isVoiceMessage = message.messageType === 'voice' || 
+                          (message.messageType === 'file' && message.fileUrl?.includes('voice_'));
+    
+    if (isVoiceMessage) {
+      // 메시지 발신자 찾기
+      const sender = currentChatRoom?.participants?.find((p: any) => p.id === message.senderId);
+      
+      // 발신자가 음성 북마크를 허용하지 않는 경우 (명시적으로 false인 경우에만)
+      if (sender?.allowVoiceBookmarks === false) {
+        // 음성 북마크 요청 생성
+        try {
+          const response = await apiRequest('/api/voice-bookmark-requests', 'POST', {
+            messageId: message.id,
+            targetUserId: message.senderId
+          });
+
+          if (response.ok) {
+            console.log(`음성 북마크 요청을 ${sender.displayName}님에게 보냈습니다.`);
+            // 요청 목록 새로고침
+            queryClient.invalidateQueries({ queryKey: ['/api/voice-bookmark-requests'] });
+          }
+        } catch (error) {
+          console.error('음성 북마크 요청 실패:', error);
+        }
+        return;
+      }
     }
+    
+    // 일반 메시지이거나 음성 북마크가 허용된 경우 바로 북마크 생성
+    const messageData = {
+      content: message.content,
+      senderId: message.senderId,
+      timestamp: message.createdAt,
+    };
+    onCreateCommand(null, messageData);
   };
 
   const handleReplyMessage = () => {
@@ -4097,6 +4152,85 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             userVote={userVote}
             onClick={() => setShowPollDetailModal(true)}
           />
+        </div>
+      )}
+
+      {/* Voice Bookmark Request Banners */}
+      {voiceBookmarkRequestsData?.requests && voiceBookmarkRequestsData.requests.length > 0 && (
+        <div className="border-b border-gray-200">
+          {voiceBookmarkRequestsData.requests
+            .filter((request: any) => {
+              // Filter requests for this chat room
+              const message = messages.find(m => m.id === request.messageId);
+              return message && message.chatRoomId === chatRoomId;
+            })
+            .map((request: any) => {
+              const isIncoming = request.targetUserId === user?.id; // 내가 받은 요청
+              const isOutgoing = request.requesterId === user?.id; // 내가 보낸 요청
+              
+              if (!isIncoming && !isOutgoing) return null;
+              
+              if (isIncoming && request.status === 'pending') {
+                // 내가 받은 보류 중인 요청
+                const requester = currentChatRoom?.participants?.find((p: any) => p.id === request.requesterId);
+                return (
+                  <div 
+                    key={request.id}
+                    className="px-4 py-3 bg-blue-50 border-b border-blue-200"
+                    data-testid="banner-voice-bookmark-request-incoming"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Bell className="w-4 h-4 text-blue-600" />
+                        <span className="text-sm text-blue-900 font-medium">
+                          {requester?.displayName || '사용자'}님이 음성 메시지를 북마크하고 싶어합니다
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="bg-white hover:bg-green-50 text-green-700 border-green-300"
+                          onClick={() => handleVoiceBookmarkRequest.mutate({ requestId: request.id, action: 'approved' })}
+                          disabled={handleVoiceBookmarkRequest.isPending}
+                          data-testid="button-approve-voice-bookmark"
+                        >
+                          승인
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="bg-white hover:bg-red-50 text-red-700 border-red-300"
+                          onClick={() => handleVoiceBookmarkRequest.mutate({ requestId: request.id, action: 'rejected' })}
+                          disabled={handleVoiceBookmarkRequest.isPending}
+                          data-testid="button-reject-voice-bookmark"
+                        >
+                          거부
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              } else if (isOutgoing && request.status === 'pending') {
+                // 내가 보낸 보류 중인 요청
+                const targetUser = currentChatRoom?.participants?.find((p: any) => p.id === request.targetUserId);
+                return (
+                  <div 
+                    key={request.id}
+                    className="px-4 py-3 bg-yellow-50 border-b border-yellow-200"
+                    data-testid="banner-voice-bookmark-request-outgoing"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                      <span className="text-sm text-yellow-900 font-medium">
+                        {targetUser?.displayName || '사용자'}님에게 음성 북마크 요청 대기 중...
+                      </span>
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            })}
         </div>
       )}
 

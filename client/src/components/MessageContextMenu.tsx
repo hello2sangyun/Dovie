@@ -213,6 +213,7 @@ export default function MessageContextMenu({
           size="sm"
           className="w-full justify-center px-2 py-1.5 h-7 text-xs hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all duration-200 rounded-lg mx-1"
           onClick={handleSaveClick}
+          data-testid="button-save-message"
         >
           <Save className="w-3 h-3 mr-1 text-green-600 dark:text-green-400" />
           저장

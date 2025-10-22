@@ -266,6 +266,28 @@ export default function MainApp() {
     refetchInterval: 5000,
   });
 
+  // Handler for navigating to a bookmarked message
+  const handleNavigateToBookmark = (chatRoomId: number, messageId: number) => {
+    // Navigate to the chat room
+    setSelectedChatRoom(chatRoomId);
+    setActiveMobileTab("chats");
+    setShowMobileChat(true);
+    
+    // Store the message ID to scroll to it in ChatArea
+    // We'll use a slight delay to ensure ChatArea is mounted
+    setTimeout(() => {
+      const messageElement = document.getElementById(`message-${messageId}`);
+      if (messageElement) {
+        messageElement.scrollIntoView({ behavior: "smooth", block: "center" });
+        // Add a highlight effect
+        messageElement.classList.add("highlight-message");
+        setTimeout(() => {
+          messageElement.classList.remove("highlight-message");
+        }, 2000);
+      }
+    }, 500);
+  };
+
   // Request permissions and register push notifications after login
   useEffect(() => {
     if (!user) return;
@@ -534,6 +556,10 @@ export default function MainApp() {
                             createOrFindChatRoom(contactUserId, contact.contactUser);
                           }
                         }}
+                        onNavigateToChat={(chatRoomId) => {
+                          setSelectedChatRoom(chatRoomId);
+                          setActiveTab("chats");
+                        }}
                       />
                     </TabsContent>
                   </div>
@@ -562,7 +588,7 @@ export default function MainApp() {
                     className="absolute inset-0"
                   >
                     <TabsContent value="bookmark" className="h-full m-0">
-                      <BookmarkList />
+                      <BookmarkList onNavigateToMessage={handleNavigateToBookmark} />
                     </TabsContent>
                   </div>
                 )}
@@ -739,7 +765,7 @@ export default function MainApp() {
                     뒤로 가기
                   </Button>
                 </div>
-                <BookmarkList />
+                <BookmarkList onNavigateToMessage={handleNavigateToBookmark} />
               </div>
             </div>
           ) : rightPanelContent === "profile" ? (
@@ -987,6 +1013,11 @@ export default function MainApp() {
                         setActiveMobileTab("chats");
                       }
                     }}
+                    onNavigateToChat={(chatRoomId) => {
+                      setSelectedChatRoom(chatRoomId);
+                      setActiveMobileTab("chats");
+                      setShowMobileChat(true);
+                    }}
                   />
                 </div>
               </div>
@@ -1070,7 +1101,7 @@ export default function MainApp() {
                 </div>
                 
                 <div className="flex-1 overflow-hidden">
-                  <BookmarkList />
+                  <BookmarkList onNavigateToMessage={handleNavigateToBookmark} />
                 </div>
               </div>
             )}

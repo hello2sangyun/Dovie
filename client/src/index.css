@@ -14,6 +14,20 @@
   animation: pulse 1s ease-in-out infinite;
 }
 
+/* Message highlight animation for bookmark navigation */
+@keyframes highlight-fade {
+  0% {
+    background-color: rgba(168, 85, 247, 0.2);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.highlight-message {
+  animation: highlight-fade 2s ease-out;
+}
+
 /* Subtle hover effects */
 .hover-lift {
   transition: all 0.2s ease-in-out;

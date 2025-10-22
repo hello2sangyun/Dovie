@@ -16,9 +16,10 @@ import VoiceMessageConfirmModal from "./VoiceMessageConfirmModal";
 interface ContactsListProps {
   onAddContact: () => void;
   onSelectContact: (contactId: number) => void;
+  onNavigateToChat?: (chatRoomId: number) => void;
 }
 
-export default function ContactsList({ onAddContact, onSelectContact }: ContactsListProps) {
+export default function ContactsList({ onAddContact, onSelectContact, onNavigateToChat }: ContactsListProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   
@@ -392,11 +393,6 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       setShowVoiceConfirmModal(true);
     } catch (error) {
       console.error('❌ 친구 음성 메시지 전송 실패:', error);
-      toast({
-        title: "음성 메시지 전송 실패",
-        description: "다시 시도해주세요.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -432,6 +428,11 @@ export default function ContactsList({ onAddContact, onSelectContact }: Contacts
       // 채팅방 목록 새로고침
       queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
       queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${voiceConfirmData.chatRoomId}/messages`] });
+      
+      // 채팅방으로 이동 (모달 닫기 전에)
+      if (onNavigateToChat) {
+        onNavigateToChat(voiceConfirmData.chatRoomId);
+      }
       
       // 모달 닫기 (성공 시에만)
       setShowVoiceConfirmModal(false);
