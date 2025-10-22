@@ -3455,17 +3455,20 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // 길게 터치 이벤트 핸들러
   const handleTouchStart = (e: React.TouchEvent, message: any) => {
+    console.log('🔵 Touch Start:', message.id);
     setIsLongPress(false);
     const timer = setTimeout(() => {
+      console.log('🟢 Long Press Detected:', message.id);
       setIsLongPress(true);
       handleMessageRightClick(e as any, message);
       navigator.vibrate?.(50); // 햅틱 피드백
-    }, 500); // 500ms 길게 터치
+    }, 800); // 800ms 길게 터치
     
     setTouchTimer(timer);
   };
 
   const handleTouchEnd = () => {
+    console.log('🔴 Touch End');
     if (touchTimer) {
       clearTimeout(touchTimer);
       setTouchTimer(null);
@@ -3474,6 +3477,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   };
 
   const handleTouchMove = () => {
+    console.log('🟡 Touch Move');
     if (touchTimer) {
       clearTimeout(touchTimer);
       setTouchTimer(null);
