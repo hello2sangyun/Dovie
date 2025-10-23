@@ -6246,12 +6246,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       />
 
       {/* Voice Message Confirm Modal */}
-      {voiceConfirmData && (
+      {voiceConfirmData && chatRoom && (
         <VoiceMessageConfirmModal
           isOpen={showVoiceConfirmModal}
           onClose={() => {
             setShowVoiceConfirmModal(false);
             setVoiceConfirmData(null);
+            setIsProcessingVoice(false);
           }}
           transcription={voiceConfirmData.transcription}
           audioUrl={voiceConfirmData.audioUrl}
@@ -6283,15 +6284,17 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               setShowVoiceConfirmModal(false);
               setVoiceConfirmData(null);
               setReplyToMessage(null);
+              setIsProcessingVoice(false);
             } catch (error) {
               console.error('❌ 음성 메시지 전송 실패:', error);
-              // 에러를 다시 throw하여 모달이 닫히지 않도록 함
+              setIsProcessingVoice(false);
               throw error;
             }
           }}
           onReRecord={() => {
             setShowVoiceConfirmModal(false);
             setVoiceConfirmData(null);
+            setIsProcessingVoice(false);
           }}
         />
       )}
