@@ -898,14 +898,14 @@ export async function correctTranscriptionWithContext(
         },
         {
           role: "user",
-          content: `최근 대화 맥락:\n${recentContext}${userStyleContext}\n\n음성 인식 텍스트:\n"${transcription}"\n\n위 텍스트를 맥락과 사용자 말투를 고려하여 보정하세요.`
+          content: `최근 대화 맥락:\n${recentContext}${userStyleContext}\n\n음성 인식 텍스트:\n${transcription}\n\n위 텍스트를 맥락과 사용자 말투를 고려하여 보정하세요.`
         }
       ],
       max_tokens: 300,
       temperature: 0.3
     });
 
-    const correctedText = response.choices[0].message.content?.trim();
+    let correctedText = response.choices[0].message.content?.trim();
     
     if (!correctedText) {
       return {
@@ -913,6 +913,9 @@ export async function correctTranscriptionWithContext(
         error: "텍스트 보정 실패"
       };
     }
+
+    // Remove surrounding quotes from AI response if present
+    correctedText = correctedText.trim().replace(/^["']+/, '').replace(/["']+$/, '').trim();
 
     console.log(`AI Voice Enhancement: Corrected "${transcription}" → "${correctedText}"`);
     
