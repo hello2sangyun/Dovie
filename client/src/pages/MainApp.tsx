@@ -5,7 +5,7 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useImagePreloader, preloadGlobalImage } from "@/hooks/useImagePreloader";
 
-import { useLocation } from "wouter";
+import { useLocation, useParams } from "wouter";
 
 import VaultLogo from "@/components/VaultLogo";
 import ContactsList from "@/components/ContactsList";
@@ -46,6 +46,7 @@ export default function MainApp() {
   const queryClient = useQueryClient();
   const { preloadImage, isLoading: imagePreloading } = useImagePreloader();
   const [location, setLocation] = useLocation();
+  const params = useParams();
   const [activeTab, setActiveTab] = useState("chats");
   const [activeMobileTab, setActiveMobileTab] = useState("chats");
   const [showSettings, setShowSettings] = useState(false);
@@ -197,8 +198,20 @@ export default function MainApp() {
     }
   }, [activeTab, activeMobileTab, selectedChatRoom, showMobileChat, showSettings, location]);
 
-  // Handle URL parameters for friend filter
+  // Handle URL parameters for chat room and friend filter
   useEffect(() => {
+    // Handle /chat-rooms/:chatRoomId route
+    if (params.chatRoomId) {
+      const roomId = parseInt(params.chatRoomId);
+      if (!isNaN(roomId)) {
+        setSelectedChatRoom(roomId);
+        setShowMobileChat(true);
+        setActiveTab("chats");
+        setActiveMobileTab("chats");
+      }
+    }
+    
+    // Handle friendFilter query parameter
     const urlParams = new URLSearchParams(window.location.search);
     const friendFilterParam = urlParams.get('friendFilter');
     
@@ -212,7 +225,7 @@ export default function MainApp() {
       const newUrl = window.location.pathname;
       window.history.replaceState({}, '', newUrl);
     }
-  }, []);
+  }, [params.chatRoomId]);
 
   // Get contacts with immediate refresh like native messaging apps
   const { data: contactsData } = useQuery({

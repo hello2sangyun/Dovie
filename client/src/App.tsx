@@ -25,6 +25,8 @@ function Router() {
       <Route path="/profile-setup" component={ProfileSetupPage} />
       <Route path="/phone-login" component={PhoneLogin} />
       <Route path="/app" component={MainApp} />
+      <Route path="/chat-rooms" component={MainApp} />
+      <Route path="/chat-rooms/:chatRoomId" component={MainApp} />
       <Route path="/admin" component={AdminPage} />
       <Route path="/friend/:userId" component={FriendProfilePage} />
       <Route component={NotFound} />

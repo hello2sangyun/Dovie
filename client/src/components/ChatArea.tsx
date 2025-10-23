@@ -377,6 +377,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const hasScrolledManually = useRef(false);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [unreadNewMessages, setUnreadNewMessages] = useState(0);
+  const hasInitialScrolledRef = useRef(false);
 
   // Get chat room details (only for regular chats, not location chats)
   const { data: chatRoomsData } = useQuery({
@@ -1257,24 +1258,48 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     };
   }, []);
 
+  // 채팅방 변경 시 초기 스크롤 플래그 리셋
+  useEffect(() => {
+    hasInitialScrolledRef.current = false;
+  }, [chatRoomId]);
+
   // 채팅방 진입 시 읽지 않은 메시지부터 표시하는 기능
   useEffect(() => {
-    if (messages && messages.length > 0 && chatScrollRef.current && !isLoading) {
-      // 즉시 스크롤하여 부드러운 애니메이션 효과 제거 (사용자 경험 개선)
-      if (firstUnreadMessageId && messageRefs.current[firstUnreadMessageId]) {
-        // 읽지 않은 메시지가 있으면 해당 위치로 즉시 스크롤
-        messageRefs.current[firstUnreadMessageId]?.scrollIntoView({
-          behavior: "instant",
-          block: "center"
-        });
-      } else {
-        // 모든 메시지를 읽었거나 읽지 않은 메시지가 없으면 최신 메시지로 즉시 스크롤
-        if (messagesEndRef.current) {
-          messagesEndRef.current.scrollIntoView({ behavior: "instant" });
-        }
+    if (messages && messages.length > 0 && chatScrollRef.current && !isLoading && !hasInitialScrolledRef.current) {
+      // firstUnreadMessageId가 있는 경우에만 처리
+      if (firstUnreadMessageId !== null) {
+        const attemptScroll = (retries = 0) => {
+          const unreadElement = messageRefs.current[firstUnreadMessageId];
+          if (unreadElement) {
+            // 읽지 않은 메시지 ref가 준비되었으면 스크롤
+            unreadElement.scrollIntoView({
+              behavior: "instant",
+              block: "center"
+            });
+            hasInitialScrolledRef.current = true;
+          } else if (retries < 10) {
+            // Ref가 아직 준비되지 않았으면 재시도 (최대 10회)
+            requestAnimationFrame(() => attemptScroll(retries + 1));
+          } else {
+            // 10회 재시도 후에도 ref가 없으면 하단으로 스크롤
+            messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
+            hasInitialScrolledRef.current = true;
+          }
+        };
+        
+        setTimeout(() => attemptScroll(), 50);
+      } else if (messages.length > 0) {
+        // firstUnreadMessageId가 null이고 메시지가 있으면 하단으로 스크롤
+        // (단, 읽지 않은 메시지 데이터를 기다리는 중일 수 있으므로 너무 빨리 플래그를 설정하지 않음)
+        setTimeout(() => {
+          if (!hasInitialScrolledRef.current && firstUnreadMessageId === null) {
+            messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
+            hasInitialScrolledRef.current = true;
+          }
+        }, 200); // 읽지 않은 메시지 데이터가 로드될 시간을 줌
       }
     }
-  }, [chatRoomId, messages.length, firstUnreadMessageId, isLoading]);
+  }, [messages, isLoading, firstUnreadMessageId]);
 
   // 읽지 않은 메시지 ID 계산
   useEffect(() => {
@@ -1312,7 +1337,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     refetchInterval: 5000, // Check every 5 seconds
   });
 
-  // Unread message detection and auto-scroll
+  // Unread message detection (updated when messages or unread data changes)
   useEffect(() => {
     if (messages.length > 0 && unreadData?.unreadCounts) {
       const currentRoomUnread = unreadData.unreadCounts.find((u: any) => u.chatRoomId === chatRoomId);
@@ -1324,21 +1349,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         
         if (firstUnreadMessage) {
           setFirstUnreadMessageId(firstUnreadMessage.id);
-          
-          // 읽지 않은 메시지로 즉시 이동 (부드러운 스크롤 제거)
-          setTimeout(() => {
-            const messageElement = messageRefs.current[firstUnreadMessage.id];
-            if (messageElement) {
-              messageElement.scrollIntoView({ behavior: 'instant', block: 'start' });
-            }
-          }, 100);
         }
       } else {
         setFirstUnreadMessageId(null);
-        // 읽지 않은 메시지가 없으면 맨 아래로 즉시 이동
-        setTimeout(() => {
-          messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
-        }, 100);
       }
     }
   }, [messages, unreadData, chatRoomId]);
