@@ -316,49 +316,52 @@ export default function VoiceMessageConfirmModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>음성 메시지 확인</DialogTitle>
+          <DialogTitle className="text-xl">음성 메시지 확인</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          {/* 음성 재생기 */}
-          <div className="flex items-center gap-2 p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg">
-            <audio 
-              src={mixedAudioUrl || audioUrl} 
-              controls 
-              className="w-full"
-              style={{ height: '40px' }}
-              key={mixedAudioUrl || audioUrl}
-            />
-          </div>
+        <div className="space-y-6 py-4">
+          {/* 컴팩트한 컨트롤 상단 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {/* 음성 재생기 */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-600 dark:text-gray-400">음성 재생</label>
+              <audio 
+                src={mixedAudioUrl || audioUrl} 
+                controls 
+                className="w-full h-10"
+                key={mixedAudioUrl || audioUrl}
+              />
+            </div>
 
-          {/* 배경음악 선택 */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-              <Music className="w-4 h-4" />
-              배경음악 선택
-            </label>
-            <Select value={selectedBgm} onValueChange={setSelectedBgm}>
-              <SelectTrigger className="w-full" data-testid="select-bgm">
-                <SelectValue placeholder="배경음악을 선택하세요" />
-              </SelectTrigger>
-              <SelectContent>
-                {BGM_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {/* 배경음악 선택 */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                <Music className="w-3 h-3" />
+                배경음악
+              </label>
+              <Select value={selectedBgm} onValueChange={setSelectedBgm}>
+                <SelectTrigger className="w-full h-10 text-sm" data-testid="select-bgm">
+                  <SelectValue placeholder="배경음악 선택" />
+                </SelectTrigger>
+                <SelectContent>
+                  {BGM_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* 배경음악 볼륨 조절 */}
           {selectedBgm !== "none" && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                <Volume2 className="w-4 h-4" />
-                배경음악 볼륨: {Math.round(bgmVolume * 100)}%
+            <div className="space-y-2 px-1">
+              <label className="text-xs font-medium text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                <Volume2 className="w-3 h-3" />
+                볼륨: {Math.round(bgmVolume * 100)}%
               </label>
               <Slider
                 value={[bgmVolume]}
@@ -372,42 +375,57 @@ export default function VoiceMessageConfirmModal({
               {isMixing && (
                 <p className="text-xs text-purple-600 dark:text-purple-400 flex items-center gap-1">
                   <Sparkles className="w-3 h-3 animate-pulse" />
-                  배경음악 믹싱 중...
+                  믹싱 중...
                 </p>
               )}
             </div>
           )}
 
-          {/* Transcription 편집 */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                인식된 텍스트 (수정 가능)
-              </label>
-              {isCorrecting && (
-                <div className="flex items-center text-xs text-purple-600 dark:text-purple-400">
-                  <Sparkles className="w-3 h-3 mr-1 animate-pulse" />
-                  AI 보정 중...
-                </div>
-              )}
-              {aiCorrectionApplied && !isCorrecting && (
-                <div className="flex items-center text-xs text-purple-600 dark:text-purple-400">
-                  <Sparkles className="w-3 h-3 mr-1" />
-                  AI 보정 완료
-                </div>
-              )}
+          {/* 메인: Transcribed Text 카드 - 시각적 집중 */}
+          <div className="relative">
+            <div className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/30 rounded-xl p-6 shadow-lg border-2 border-purple-200 dark:border-purple-800">
+              {/* AI 보정 상태 배지 */}
+              <div className="absolute -top-3 left-4 bg-white dark:bg-gray-800 px-3 py-1 rounded-full shadow-md border border-purple-200 dark:border-purple-700">
+                {isCorrecting ? (
+                  <div className="flex items-center text-xs text-purple-600 dark:text-purple-400 font-medium">
+                    <Sparkles className="w-3 h-3 mr-1 animate-pulse" />
+                    AI 보정 중...
+                  </div>
+                ) : aiCorrectionApplied ? (
+                  <div className="flex items-center text-xs text-purple-600 dark:text-purple-400 font-medium">
+                    <Sparkles className="w-3 h-3 mr-1" />
+                    AI 보정 완료
+                  </div>
+                ) : (
+                  <div className="flex items-center text-xs text-gray-600 dark:text-gray-400 font-medium">
+                    인식된 텍스트
+                  </div>
+                )}
+              </div>
+
+              {/* 텍스트 입력 영역 - 큰 사이즈, 집중 */}
+              <Textarea
+                value={editedText}
+                onChange={(e) => setEditedText(e.target.value)}
+                placeholder="음성으로 인식된 텍스트를 확인하고 수정하세요..."
+                className="min-h-[160px] resize-none text-lg leading-relaxed border-0 bg-transparent focus:ring-2 focus:ring-purple-400 dark:focus:ring-purple-600 rounded-lg p-4 shadow-inner"
+                disabled={isCorrecting}
+                data-testid="textarea-transcription"
+                style={{ fontSize: '18px', lineHeight: '1.7' }}
+              />
+              
+              {/* 메타 정보 */}
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-purple-200 dark:border-purple-800">
+                <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                  <span className="font-semibold text-purple-600 dark:text-purple-400">{duration?.toFixed(1)}초</span>
+                  <span className="text-gray-400">·</span>
+                  <span className="font-semibold text-purple-600 dark:text-purple-400">{editedText.length}자</span>
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-500">
+                  클릭하여 수정 가능
+                </p>
+              </div>
             </div>
-            <Textarea
-              value={editedText}
-              onChange={(e) => setEditedText(e.target.value)}
-              placeholder="음성으로 인식된 텍스트를 수정할 수 있습니다..."
-              className="min-h-[100px] resize-none"
-              disabled={isCorrecting}
-              data-testid="textarea-transcription"
-            />
-            <p className="text-xs text-gray-500">
-              {duration?.toFixed(1)}초 · {editedText.length}자
-            </p>
           </div>
         </div>
 
