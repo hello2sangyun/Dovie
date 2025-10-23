@@ -3876,6 +3876,20 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           </div>
         </div>
       )}
+
+      {/* Voice Processing Overlay */}
+      {isProcessingVoice && (
+        <div className="absolute inset-0 bg-white bg-opacity-95 z-50 flex items-center justify-center backdrop-blur-sm">
+          <div className="text-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-purple-500 rounded-full flex items-center justify-center animate-pulse">
+              <Mic className="h-8 w-8 text-white" />
+            </div>
+            <p className="text-lg font-medium text-purple-600">음성을 처리하고 있습니다...</p>
+            <p className="text-sm text-purple-500 mt-1">잠시만 기다려 주세요</p>
+          </div>
+        </div>
+      )}
+
       {/* Clean Chat Header */}
       <div className={cn(
         "flex-shrink-0 sticky top-0 z-10 bg-white border-b border-slate-200",
