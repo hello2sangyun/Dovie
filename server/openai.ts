@@ -391,7 +391,9 @@ export async function transcribeAudio(filePath: string): Promise<{
     };
     
     const detectedLanguage = languageNames[transcription.language] || transcription.language;
-    const transcribedText = transcription.text || "";
+    // Remove surrounding quotes from transcription if present
+    let transcribedText = transcription.text || "";
+    transcribedText = transcribedText.replace(/^["'](.*)["']$/, '$1');
     
     // Check if transcription contains meaningful content
     const isEmptyOrNoise = (text: string): boolean => {
