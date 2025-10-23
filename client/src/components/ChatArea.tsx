@@ -1263,50 +1263,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     hasInitialScrolledRef.current = false;
   }, [chatRoomId]);
 
-  // 채팅방 진입 시 읽지 않은 메시지부터 표시하는 기능 (unread 데이터가 로드된 후에만)
-  useEffect(() => {
-    if (messages && messages.length > 0 && chatScrollRef.current && !isLoading && 
-        !hasInitialScrolledRef.current && unreadSettled) {
-      // firstUnreadMessageId가 있을 때만 스크롤 시도
-      if (firstUnreadMessageId) {
-        const attemptScroll = () => {
-          const unreadElement = messageRefs.current[firstUnreadMessageId];
-          if (unreadElement) {
-            unreadElement.scrollIntoView({
-              behavior: "instant",
-              block: "center"
-            });
-            hasInitialScrolledRef.current = true;
-            return true;
-          }
-          return false;
-        };
-
-        // 재시도 로직 (최대 20회, 약 1초)
-        let retryCount = 0;
-        const maxRetries = 20;
-        const retryInterval = setInterval(() => {
-          const success = attemptScroll();
-          if (success || retryCount >= maxRetries) {
-            clearInterval(retryInterval);
-            // 최대 재시도 후에도 실패하면 하단으로 폴백
-            if (!success && retryCount >= maxRetries) {
-              messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
-              hasInitialScrolledRef.current = true;
-            }
-          }
-          retryCount++;
-        }, 50);
-
-        return () => clearInterval(retryInterval);
-      } else {
-        // unread가 로드 완료되었고 firstUnreadMessageId가 null이면 하단으로 스크롤
-        messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
-        hasInitialScrolledRef.current = true;
-      }
-    }
-  }, [messages, isLoading, firstUnreadMessageId, unreadSettled]);
-
   // 읽지 않은 메시지 ID 계산
   useEffect(() => {
     if (messages && messages.length > 0 && user?.id) {
@@ -1353,6 +1309,50 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       queryClient.refetchQueries({ queryKey: ["/api/unread-counts"] });
     }
   }, [chatRoomId, user, isLocationChatRoom]);
+
+  // 채팅방 진입 시 읽지 않은 메시지부터 표시하는 기능 (unread 데이터가 로드된 후에만)
+  useEffect(() => {
+    if (messages && messages.length > 0 && chatScrollRef.current && !isLoading && 
+        !hasInitialScrolledRef.current && unreadSettled) {
+      // firstUnreadMessageId가 있을 때만 스크롤 시도
+      if (firstUnreadMessageId) {
+        const attemptScroll = () => {
+          const unreadElement = messageRefs.current[firstUnreadMessageId];
+          if (unreadElement) {
+            unreadElement.scrollIntoView({
+              behavior: "instant",
+              block: "center"
+            });
+            hasInitialScrolledRef.current = true;
+            return true;
+          }
+          return false;
+        };
+
+        // 재시도 로직 (최대 20회, 약 1초)
+        let retryCount = 0;
+        const maxRetries = 20;
+        const retryInterval = setInterval(() => {
+          const success = attemptScroll();
+          if (success || retryCount >= maxRetries) {
+            clearInterval(retryInterval);
+            // 최대 재시도 후에도 실패하면 하단으로 폴백
+            if (!success && retryCount >= maxRetries) {
+              messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
+              hasInitialScrolledRef.current = true;
+            }
+          }
+          retryCount++;
+        }, 50);
+
+        return () => clearInterval(retryInterval);
+      } else {
+        // unread가 로드 완료되었고 firstUnreadMessageId가 null이면 하단으로 스크롤
+        messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
+        hasInitialScrolledRef.current = true;
+      }
+    }
+  }, [messages, isLoading, firstUnreadMessageId, unreadSettled]);
 
   // Unread message detection (updated when messages or unread data changes)
   useEffect(() => {
