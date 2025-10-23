@@ -3728,7 +3728,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get chat room messages for context
-      const chatMessages = await storage.getMessagesByChatRoom(chatRoomId);
+      const chatMessages = await storage.getMessages(chatRoomId);
       
       // Transform messages to the format expected by correctTranscriptionWithContext
       const messagesWithSender = chatMessages.map(msg => ({
