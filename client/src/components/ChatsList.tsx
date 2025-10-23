@@ -17,6 +17,7 @@ import { Plus, Search, Pin, Users, X, Trash2, LogOut, MoreVertical, Mic, Bell } 
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 import VoiceMessageConfirmModal from "./VoiceMessageConfirmModal";
+import LoadingScreen from "./LoadingScreen";
 
 interface ChatsListProps {
   onSelectChat: (chatId: number) => void;
@@ -54,6 +55,9 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     duration: number;
     chatRoomId: number;
   } | null>(null);
+  
+  // 음성 처리 로딩 상태
+  const [isProcessingVoice, setIsProcessingVoice] = useState(false);
 
   // Voice Confirm Modal 콜백 함수들
   const handleVoiceMessageSend = async (editedText: string) => {
@@ -261,6 +265,9 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     try {
       console.log('🎤 채팅방 간편음성메세지 - 통합 처리 시작:', getChatRoomDisplayName(chatRoom));
       
+      // 로딩 화면 표시
+      setIsProcessingVoice(true);
+      
       // FormData로 파일 업로드
       const formData = new FormData();
       formData.append('audio', audioBlob, 'voice_message.webm');
@@ -288,8 +295,12 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
       // 빈 음성 녹음 감지 시 조용히 취소
       if (result.error === "SILENT_RECORDING") {
         console.log("🔇 빈 음성 녹음 감지됨 (ChatsList), 메시지 전송 취소");
+        setIsProcessingVoice(false);
         return;
       }
+      
+      // 로딩 화면 숨김
+      setIsProcessingVoice(false);
       
       // 모달 데이터 설정 및 모달 표시
       console.log('📋 Voice Confirm Modal 표시');
@@ -307,6 +318,7 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
         stack: error instanceof Error ? error.stack : undefined,
         name: error instanceof Error ? error.name : 'Unknown'
       });
+      setIsProcessingVoice(false);
     }
   };
 
@@ -530,6 +542,11 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
         <div className="text-gray-500">채팅방을 불러오는 중...</div>
       </div>
     );
+  }
+
+  // 음성 처리 중 로딩 화면
+  if (isProcessingVoice) {
+    return <LoadingScreen message="음성을 처리하고 있습니다" />;
   }
 
   return (

@@ -12,6 +12,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { InstantAvatar } from "@/components/InstantAvatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import VoiceMessageConfirmModal from "./VoiceMessageConfirmModal";
+import LoadingScreen from "./LoadingScreen";
 
 interface ContactsListProps {
   onAddContact: () => void;
@@ -47,6 +48,9 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
     chatRoomId: number;
     contactUserId: number;
   } | null>(null);
+  
+  // 음성 처리 로딩 상태
+  const [isProcessingVoice, setIsProcessingVoice] = useState(false);
 
   // Toggle favorite mutation
   const toggleFavoriteMutation = useMutation({
@@ -360,6 +364,9 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
     try {
       console.log('🎤 친구 간편음성메세지 - 통합 처리 시작:', contact.contactUser.displayName);
       
+      // 로딩 화면 표시
+      setIsProcessingVoice(true);
+      
       // 1:1 채팅방 찾기/생성
       const chatRoomId = await findOrCreateDirectChatRoom(contact.contactUserId);
       console.log('📱 1:1 채팅방 ID:', chatRoomId);
@@ -391,8 +398,12 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
       // 빈 음성 녹음 감지 시 조용히 취소
       if (result.error === "SILENT_RECORDING") {
         console.log("🔇 빈 음성 녹음 감지됨 (ContactsList), 메시지 전송 취소");
+        setIsProcessingVoice(false);
         return;
       }
+      
+      // 로딩 화면 숨김
+      setIsProcessingVoice(false);
       
       // 모달 데이터 설정 및 모달 표시
       console.log('📋 Voice Confirm Modal 표시');
@@ -406,6 +417,7 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
       setShowVoiceConfirmModal(true);
     } catch (error) {
       console.error('❌ 친구 음성 메시지 전송 실패:', error);
+      setIsProcessingVoice(false);
     }
   };
 
@@ -501,6 +513,11 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
         <div className="text-gray-500">연락처를 불러오는 중...</div>
       </div>
     );
+  }
+
+  // 음성 처리 중 로딩 화면
+  if (isProcessingVoice) {
+    return <LoadingScreen message="음성을 처리하고 있습니다" />;
   }
 
   return (
