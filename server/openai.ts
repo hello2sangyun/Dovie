@@ -393,7 +393,8 @@ export async function transcribeAudio(filePath: string): Promise<{
     const detectedLanguage = languageNames[transcription.language] || transcription.language;
     // Remove surrounding quotes from transcription if present
     let transcribedText = transcription.text || "";
-    transcribedText = transcribedText.replace(/^["'](.*)["']$/, '$1');
+    // Remove leading and trailing quotes separately for more robust handling
+    transcribedText = transcribedText.trim().replace(/^["']+/, '').replace(/["']+$/, '').trim();
     
     // Check if transcription contains meaningful content
     const isEmptyOrNoise = (text: string): boolean => {
