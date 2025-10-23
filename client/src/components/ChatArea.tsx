@@ -1263,43 +1263,49 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     hasInitialScrolledRef.current = false;
   }, [chatRoomId]);
 
-  // 채팅방 진입 시 읽지 않은 메시지부터 표시하는 기능
+  // 채팅방 진입 시 읽지 않은 메시지부터 표시하는 기능 (unread 데이터가 로드된 후에만)
   useEffect(() => {
-    if (messages && messages.length > 0 && chatScrollRef.current && !isLoading && !hasInitialScrolledRef.current) {
-      // firstUnreadMessageId가 있는 경우에만 처리
-      if (firstUnreadMessageId !== null) {
-        const attemptScroll = (retries = 0) => {
+    if (messages && messages.length > 0 && chatScrollRef.current && !isLoading && 
+        !hasInitialScrolledRef.current && unreadSettled) {
+      // firstUnreadMessageId가 있을 때만 스크롤 시도
+      if (firstUnreadMessageId) {
+        const attemptScroll = () => {
           const unreadElement = messageRefs.current[firstUnreadMessageId];
           if (unreadElement) {
-            // 읽지 않은 메시지 ref가 준비되었으면 스크롤
             unreadElement.scrollIntoView({
               behavior: "instant",
               block: "center"
             });
             hasInitialScrolledRef.current = true;
-          } else if (retries < 10) {
-            // Ref가 아직 준비되지 않았으면 재시도 (최대 10회)
-            requestAnimationFrame(() => attemptScroll(retries + 1));
-          } else {
-            // 10회 재시도 후에도 ref가 없으면 하단으로 스크롤
-            messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
-            hasInitialScrolledRef.current = true;
+            return true;
           }
+          return false;
         };
-        
-        setTimeout(() => attemptScroll(), 50);
-      } else if (messages.length > 0) {
-        // firstUnreadMessageId가 null이고 메시지가 있으면 하단으로 스크롤
-        // (단, 읽지 않은 메시지 데이터를 기다리는 중일 수 있으므로 너무 빨리 플래그를 설정하지 않음)
-        setTimeout(() => {
-          if (!hasInitialScrolledRef.current && firstUnreadMessageId === null) {
-            messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
-            hasInitialScrolledRef.current = true;
+
+        // 재시도 로직 (최대 20회, 약 1초)
+        let retryCount = 0;
+        const maxRetries = 20;
+        const retryInterval = setInterval(() => {
+          const success = attemptScroll();
+          if (success || retryCount >= maxRetries) {
+            clearInterval(retryInterval);
+            // 최대 재시도 후에도 실패하면 하단으로 폴백
+            if (!success && retryCount >= maxRetries) {
+              messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
+              hasInitialScrolledRef.current = true;
+            }
           }
-        }, 200); // 읽지 않은 메시지 데이터가 로드될 시간을 줌
+          retryCount++;
+        }, 50);
+
+        return () => clearInterval(retryInterval);
+      } else {
+        // unread가 로드 완료되었고 firstUnreadMessageId가 null이면 하단으로 스크롤
+        messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
+        hasInitialScrolledRef.current = true;
       }
     }
-  }, [messages, isLoading, firstUnreadMessageId]);
+  }, [messages, isLoading, firstUnreadMessageId, unreadSettled]);
 
   // 읽지 않은 메시지 ID 계산
   useEffect(() => {
@@ -1331,11 +1337,22 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const contacts = contactsData?.contacts || [];
 
   // Get unread counts to detect first unread message (only for regular chats)
-  const { data: unreadData } = useQuery({
+  const { data: unreadData, status: unreadStatus, isFetching: isUnreadFetching } = useQuery({
     queryKey: ["/api/unread-counts"],
     enabled: !!user && !isLocationChatRoom,
     refetchInterval: 5000, // Check every 5 seconds
   });
+
+  // chatRoomId 변경 시 즉시 unreadData refetch
+  useEffect(() => {
+    if (chatRoomId && user && !isLocationChatRoom) {
+      queryClient.refetchQueries({ queryKey: ["/api/unread-counts"] });
+    }
+  }, [chatRoomId, user, isLocationChatRoom]);
+
+  // unread 데이터가 정착되었는지 확인 (로딩 완료 또는 에러)
+  // locationChatRoom의 경우 쿼리가 비활성화되므로 즉시 settled로 간주
+  const unreadSettled = isLocationChatRoom || unreadStatus === 'success' || (unreadStatus === 'error' && !isUnreadFetching);
 
   // Unread message detection (updated when messages or unread data changes)
   useEffect(() => {
