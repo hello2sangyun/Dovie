@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { UserAvatar } from "@/components/UserAvatar";
 import InstantAvatar from "@/components/InstantAvatar";
 import MediaPreview from "@/components/MediaPreview";
-import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause, MoreVertical, LogOut, Settings, MapPin, Sparkles, Bell } from "lucide-react";
+import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause, MoreVertical, LogOut, Settings, MapPin, Sparkles, Bell, Mic } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 import AddFriendConfirmModal from "./AddFriendConfirmModal";
@@ -1343,16 +1343,16 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     refetchInterval: 5000, // Check every 5 seconds
   });
 
+  // unread 데이터가 정착되었는지 확인 (로딩 완료 또는 에러)
+  // locationChatRoom의 경우 쿼리가 비활성화되므로 즉시 settled로 간주
+  const unreadSettled = isLocationChatRoom || unreadStatus === 'success' || (unreadStatus === 'error' && !isUnreadFetching);
+
   // chatRoomId 변경 시 즉시 unreadData refetch
   useEffect(() => {
     if (chatRoomId && user && !isLocationChatRoom) {
       queryClient.refetchQueries({ queryKey: ["/api/unread-counts"] });
     }
   }, [chatRoomId, user, isLocationChatRoom]);
-
-  // unread 데이터가 정착되었는지 확인 (로딩 완료 또는 에러)
-  // locationChatRoom의 경우 쿼리가 비활성화되므로 즉시 settled로 간주
-  const unreadSettled = isLocationChatRoom || unreadStatus === 'success' || (unreadStatus === 'error' && !isUnreadFetching);
 
   // Unread message detection (updated when messages or unread data changes)
   useEffect(() => {
@@ -6276,7 +6276,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       />
 
       {/* Voice Message Confirm Modal */}
-      {voiceConfirmData && chatRoom && (
+      {voiceConfirmData && (
         <VoiceMessageConfirmModal
           isOpen={showVoiceConfirmModal}
           onClose={() => {
@@ -6287,7 +6287,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           transcription={voiceConfirmData.transcription}
           audioUrl={voiceConfirmData.audioUrl}
           duration={voiceConfirmData.duration}
-          chatRoomId={chatRoom.id}
+          chatRoomId={chatRoomId}
           onSend={async (editedText: string) => {
             try {
               const messageData: any = {
