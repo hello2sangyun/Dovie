@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Mic, Send, X, Sparkles, Music, Volume2 } from "lucide-react";
+import { Mic, Send, X, Sparkles, Music, Play, Pause, ChevronDown, ChevronUp } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { cn } from "@/lib/utils";
 
 interface VoiceMessageConfirmModalProps {
   isOpen: boolean;
@@ -19,12 +20,12 @@ interface VoiceMessageConfirmModalProps {
 }
 
 const BGM_OPTIONS = [
-  { value: "none", label: "배경음악 없음", file: null },
-  { value: "comedy", label: "🤡 개그적인 음악", file: "/bgm/comedy.mp3" },
-  { value: "explosion", label: "💥 폭발하는 음악", file: "/bgm/explosion.mp3" },
-  { value: "epic", label: "🎻 웅장한 음악", file: "/bgm/epic.mp3" },
-  { value: "lovely", label: "💕 사랑스러운 음악", file: "/bgm/lovely.mp3" },
-  { value: "energetic", label: "🎉 신나는 음악", file: "/bgm/energetic.mp3" },
+  { value: "none", label: "없음", file: null },
+  { value: "comedy", label: "🤡 개그", file: "/bgm/comedy.mp3" },
+  { value: "explosion", label: "💥 폭발", file: "/bgm/explosion.mp3" },
+  { value: "epic", label: "🎻 웅장", file: "/bgm/epic.mp3" },
+  { value: "lovely", label: "💕 사랑", file: "/bgm/lovely.mp3" },
+  { value: "energetic", label: "🎉 신남", file: "/bgm/energetic.mp3" },
 ];
 
 export default function VoiceMessageConfirmModal({
@@ -42,20 +43,24 @@ export default function VoiceMessageConfirmModal({
   const [isCorrecting, setIsCorrecting] = useState(false);
   const [aiCorrectionApplied, setAiCorrectionApplied] = useState(false);
   
+  // 오디오 재생 관련
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  
   // 배경음악 관련 state
+  const [showBgmOptions, setShowBgmOptions] = useState(false);
   const [selectedBgm, setSelectedBgm] = useState("none");
-  const [bgmVolume, setBgmVolume] = useState(0.3); // 30% 볼륨
+  const [bgmVolume, setBgmVolume] = useState(0.3);
   const [mixedAudioUrl, setMixedAudioUrl] = useState<string | null>(null);
   const [isMixing, setIsMixing] = useState(false);
   
   const audioContextRef = useRef<AudioContext | null>(null);
 
-  // AI Voice Enhancement: Auto-correct transcription when modal opens
+  // AI Voice Enhancement
   useEffect(() => {
     if (isOpen && transcription && chatRoomId) {
       correctTranscription();
     } else {
-      // Reset state when modal closes
       setEditedText(transcription);
       setAiCorrectionApplied(false);
     }
@@ -64,31 +69,20 @@ export default function VoiceMessageConfirmModal({
   const correctTranscription = async () => {
     setIsCorrecting(true);
     try {
-      console.log("AI Voice Enhancement: Correcting transcription...");
       const response = await apiRequest(
         "/api/voice-messages/correct-transcription",
         "POST",
-        {
-          transcription,
-          chatRoomId,
-        }
+        { transcription, chatRoomId }
       );
-
       const result = await response.json();
       
       if (result.success && result.correctedText) {
-        console.log("AI Voice Enhancement: Transcription corrected", {
-          original: transcription,
-          corrected: result.correctedText
-        });
         setEditedText(result.correctedText);
         setAiCorrectionApplied(true);
       } else {
-        console.warn("AI Voice Enhancement: Correction failed, using original", result.error);
         setEditedText(transcription);
       }
     } catch (error) {
-      console.error("AI Voice Enhancement: Error correcting transcription", error);
       setEditedText(transcription);
     } finally {
       setIsCorrecting(false);
@@ -98,13 +92,9 @@ export default function VoiceMessageConfirmModal({
   const handleSend = async () => {
     setIsSending(true);
     try {
-      // 배경음악이 믹싱된 경우 새로 업로드
       if (mixedAudioUrl) {
-        // Blob URL을 Blob으로 변환
         const response = await fetch(mixedAudioUrl);
         const blob = await response.blob();
-        
-        // FormData로 업로드
         const formData = new FormData();
         formData.append("audio", blob, "mixed_voice.wav");
         
@@ -113,13 +103,9 @@ export default function VoiceMessageConfirmModal({
           body: formData,
         });
         
-        if (!uploadResponse.ok) {
-          throw new Error("Failed to upload mixed audio");
-        }
+        if (!uploadResponse.ok) throw new Error("Failed to upload mixed audio");
         
         const uploadData = await uploadResponse.json();
-        
-        // 업로드된 URL로 메시지 전송
         const messageData: any = {
           content: editedText,
           messageType: "voice",
@@ -134,12 +120,10 @@ export default function VoiceMessageConfirmModal({
         await apiRequest(`/api/chat-rooms/${chatRoomId}/messages`, "POST", messageData);
         onClose();
       } else {
-        // 배경음악 없으면 기존 방식대로
         await onSend(editedText);
       }
     } catch (error) {
       console.error("Failed to send voice message:", error);
-      // 에러 발생 시 모달 유지 (사용자가 재시도할 수 있도록)
       throw error;
     } finally {
       setIsSending(false);
@@ -151,37 +135,63 @@ export default function VoiceMessageConfirmModal({
     onReRecord();
   };
 
-  // 음성과 배경음악 믹싱
+  // 오디오 재생/일시정지
+  const togglePlayPause = async () => {
+    if (!audioRef.current) return;
+    
+    try {
+      if (isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        await audioRef.current.play();
+        setIsPlaying(true);
+      }
+    } catch (error) {
+      console.error('Audio playback error:', error);
+      setIsPlaying(false);
+    }
+  };
+
+  // 오디오 이벤트 핸들러
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleEnded = () => setIsPlaying(false);
+    const handlePause = () => setIsPlaying(false);
+    
+    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('pause', handlePause);
+    
+    return () => {
+      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('pause', handlePause);
+    };
+  }, []);
+
+  // 배경음악 믹싱 함수들 (기존 로직 유지)
   const mixAudioWithBgm = async (voiceUrl: string, bgmUrl: string, bgmGain: number): Promise<Blob> => {
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     audioContextRef.current = audioContext;
 
     try {
-      // 음성과 배경음악 로드
       const [voiceResponse, bgmResponse] = await Promise.all([
         fetch(voiceUrl),
         fetch(bgmUrl)
       ]);
-
       const [voiceArrayBuffer, bgmArrayBuffer] = await Promise.all([
         voiceResponse.arrayBuffer(),
         bgmResponse.arrayBuffer()
       ]);
-
       const [voiceBuffer, bgmBuffer] = await Promise.all([
         audioContext.decodeAudioData(voiceArrayBuffer),
         audioContext.decodeAudioData(bgmArrayBuffer)
       ]);
 
-      // 더 긴 오디오 길이에 맞춰서 출력 버퍼 생성
       const outputLength = Math.max(voiceBuffer.length, bgmBuffer.length);
-      const outputBuffer = audioContext.createBuffer(
-        2, // 스테레오
-        outputLength,
-        audioContext.sampleRate
-      );
+      const outputBuffer = audioContext.createBuffer(2, outputLength, audioContext.sampleRate);
 
-      // 각 채널 믹싱
       for (let channel = 0; channel < 2; channel++) {
         const outputData = outputBuffer.getChannelData(channel);
         const voiceData = voiceBuffer.getChannelData(Math.min(channel, voiceBuffer.numberOfChannels - 1));
@@ -190,33 +200,25 @@ export default function VoiceMessageConfirmModal({
         for (let i = 0; i < outputLength; i++) {
           const voiceSample = i < voiceBuffer.length ? voiceData[i] : 0;
           const bgmSample = i < bgmBuffer.length ? bgmData[i] * bgmGain : 0;
-          
-          // 믹싱 (음성은 100%, 배경음악은 bgmGain%)
           outputData[i] = voiceSample + bgmSample;
-          
-          // 클리핑 방지 (최대값 제한)
           if (outputData[i] > 1) outputData[i] = 1;
           if (outputData[i] < -1) outputData[i] = -1;
         }
       }
 
-      // WAV 형식으로 변환
       const wavBlob = await audioBufferToWav(outputBuffer);
       return wavBlob;
-
     } finally {
       audioContext.close();
     }
   };
 
-  // AudioBuffer를 WAV Blob으로 변환
   const audioBufferToWav = (buffer: AudioBuffer): Promise<Blob> => {
     return new Promise((resolve) => {
       const numberOfChannels = buffer.numberOfChannels;
       const sampleRate = buffer.sampleRate;
-      const format = 1; // PCM
+      const format = 1;
       const bitDepth = 16;
-
       const bytesPerSample = bitDepth / 8;
       const blockAlign = numberOfChannels * bytesPerSample;
 
@@ -225,9 +227,7 @@ export default function VoiceMessageConfirmModal({
         for (let channel = 0; channel < numberOfChannels; channel++) {
           const sample = buffer.getChannelData(channel)[i];
           const clampedSample = Math.max(-1, Math.min(1, sample));
-          const intSample = clampedSample < 0 
-            ? clampedSample * 0x8000 
-            : clampedSample * 0x7FFF;
+          const intSample = clampedSample < 0 ? clampedSample * 0x8000 : clampedSample * 0x7FFF;
           data.push(intSample);
         }
       }
@@ -243,7 +243,6 @@ export default function VoiceMessageConfirmModal({
         }
       };
 
-      // WAV 헤더
       writeString(0, 'RIFF');
       view.setUint32(4, bufferLength - 8, true);
       writeString(8, 'WAVE');
@@ -258,7 +257,6 @@ export default function VoiceMessageConfirmModal({
       writeString(36, 'data');
       view.setUint32(40, dataLength, true);
 
-      // 오디오 데이터
       let offset = 44;
       for (let i = 0; i < data.length; i++) {
         view.setInt16(offset, data[i], true);
@@ -269,12 +267,10 @@ export default function VoiceMessageConfirmModal({
     });
   };
 
-  // 배경음악 변경 시 자동 믹싱
   useEffect(() => {
     if (selectedBgm !== "none" && audioUrl) {
       handleMixPreview();
     } else {
-      // 배경음악 없으면 원본 사용
       if (mixedAudioUrl) {
         URL.revokeObjectURL(mixedAudioUrl);
       }
@@ -282,7 +278,6 @@ export default function VoiceMessageConfirmModal({
     }
   }, [selectedBgm, bgmVolume]);
 
-  // Cleanup: 모달 닫힐 때 URL 정리
   useEffect(() => {
     return () => {
       if (mixedAudioUrl) {
@@ -299,16 +294,12 @@ export default function VoiceMessageConfirmModal({
     try {
       const mixedBlob = await mixAudioWithBgm(audioUrl, bgmOption.file, bgmVolume);
       const url = URL.createObjectURL(mixedBlob);
-      
-      // 이전 URL 정리
       if (mixedAudioUrl) {
         URL.revokeObjectURL(mixedAudioUrl);
       }
-      
       setMixedAudioUrl(url);
     } catch (error) {
       console.error("Failed to mix audio:", error);
-      alert("배경음악 믹싱에 실패했습니다. 배경음악 파일을 확인해주세요.");
     } finally {
       setIsMixing(false);
     }
@@ -316,148 +307,201 @@ export default function VoiceMessageConfirmModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle className="text-xl">음성 메시지 확인</DialogTitle>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[540px] p-0 gap-0 overflow-hidden">
+        {/* 헤더 - 심플하게 */}
+        <div className="px-6 pt-6 pb-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            음성 메시지 확인
+          </h2>
+        </div>
 
-        <div className="space-y-6 py-4">
-          {/* 컴팩트한 컨트롤 상단 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {/* 음성 재생기 */}
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-gray-600 dark:text-gray-400">음성 재생</label>
-              <audio 
-                src={mixedAudioUrl || audioUrl} 
-                controls 
-                className="w-full h-10"
-                key={mixedAudioUrl || audioUrl}
-              />
-            </div>
+        <div className="px-6 pb-6 space-y-4">
+          {/* 오디오 플레이어 - 커스텀 웨이브폼 디자인 */}
+          <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4">
+            <div className="flex items-center gap-4">
+              {/* 재생 버튼 */}
+              <button
+                onClick={togglePlayPause}
+                className="flex-shrink-0 w-12 h-12 rounded-full bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center transition-colors shadow-md"
+                data-testid="button-play-pause"
+              >
+                {isPlaying ? (
+                  <Pause className="w-5 h-5" fill="currentColor" />
+                ) : (
+                  <Play className="w-5 h-5 ml-0.5" fill="currentColor" />
+                )}
+              </button>
 
-            {/* 배경음악 선택 */}
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-gray-600 dark:text-gray-400 flex items-center gap-1">
-                <Music className="w-3 h-3" />
-                배경음악
-              </label>
-              <Select value={selectedBgm} onValueChange={setSelectedBgm}>
-                <SelectTrigger className="w-full h-10 text-sm" data-testid="select-bgm">
-                  <SelectValue placeholder="배경음악 선택" />
-                </SelectTrigger>
-                <SelectContent>
-                  {BGM_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {/* 웨이브폼 비주얼 */}
+              <div className="flex-1 flex items-center gap-1 h-12">
+                {[...Array(40)].map((_, i) => {
+                  const height = Math.sin(i * 0.5) * 30 + 50;
+                  return (
+                    <div
+                      key={i}
+                      className={cn(
+                        "flex-1 rounded-full transition-all",
+                        isPlaying 
+                          ? "bg-purple-500 dark:bg-purple-400" 
+                          : "bg-gray-300 dark:bg-gray-700"
+                      )}
+                      style={{
+                        height: `${height}%`,
+                        animation: isPlaying ? `wave 1.2s ease-in-out ${i * 0.05}s infinite` : 'none'
+                      }}
+                    />
+                  );
+                })}
+              </div>
+
+              {/* 시간 표시 */}
+              <div className="flex-shrink-0 text-sm font-medium text-gray-600 dark:text-gray-400 min-w-[3rem] text-right">
+                {duration?.toFixed(1)}초
+              </div>
             </div>
           </div>
 
-          {/* 배경음악 볼륨 조절 */}
-          {selectedBgm !== "none" && (
-            <div className="space-y-2 px-1">
-              <label className="text-xs font-medium text-gray-600 dark:text-gray-400 flex items-center gap-1">
-                <Volume2 className="w-3 h-3" />
-                볼륨: {Math.round(bgmVolume * 100)}%
+          {/* 텍스트 영역 - 메인 포커스 */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                인식된 텍스트
               </label>
-              <Slider
-                value={[bgmVolume]}
-                onValueChange={(values) => setBgmVolume(values[0])}
-                max={1}
-                step={0.1}
-                className="w-full"
-                disabled={isMixing}
-                data-testid="slider-bgm-volume"
-              />
-              {isMixing && (
-                <p className="text-xs text-purple-600 dark:text-purple-400 flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 animate-pulse" />
-                  믹싱 중...
-                </p>
+              {isCorrecting && (
+                <span className="flex items-center text-xs text-purple-600 dark:text-purple-400">
+                  <Sparkles className="w-3 h-3 mr-1 animate-pulse" />
+                  AI 보정 중
+                </span>
+              )}
+              {aiCorrectionApplied && !isCorrecting && (
+                <span className="flex items-center text-xs text-purple-600 dark:text-purple-400">
+                  <Sparkles className="w-3 h-3 mr-1" />
+                  AI 보정 완료
+                </span>
               )}
             </div>
-          )}
+            
+            <Textarea
+              value={editedText}
+              onChange={(e) => setEditedText(e.target.value)}
+              placeholder="음성으로 인식된 텍스트를 확인하고 수정하세요..."
+              className="min-h-[180px] text-base leading-relaxed focus:ring-2 focus:ring-purple-500 border-gray-200 dark:border-gray-700 resize-none"
+              disabled={isCorrecting}
+              data-testid="textarea-transcription"
+            />
+            
+            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+              <span>{editedText.length}자</span>
+              <span>텍스트를 확인하고 수정하세요</span>
+            </div>
+          </div>
 
-          {/* 메인: Transcribed Text 카드 - 시각적 집중 */}
-          <div className="relative">
-            <div className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/30 rounded-xl p-6 shadow-lg border-2 border-purple-200 dark:border-purple-800">
-              {/* AI 보정 상태 배지 */}
-              <div className="absolute -top-3 left-4 bg-white dark:bg-gray-800 px-3 py-1 rounded-full shadow-md border border-purple-200 dark:border-purple-700">
-                {isCorrecting ? (
-                  <div className="flex items-center text-xs text-purple-600 dark:text-purple-400 font-medium">
-                    <Sparkles className="w-3 h-3 mr-1 animate-pulse" />
-                    AI 보정 중...
-                  </div>
-                ) : aiCorrectionApplied ? (
-                  <div className="flex items-center text-xs text-purple-600 dark:text-purple-400 font-medium">
-                    <Sparkles className="w-3 h-3 mr-1" />
-                    AI 보정 완료
-                  </div>
-                ) : (
-                  <div className="flex items-center text-xs text-gray-600 dark:text-gray-400 font-medium">
-                    인식된 텍스트
+          {/* 배경음악 - 펼치기/접기 */}
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+            <button
+              onClick={() => setShowBgmOptions(!showBgmOptions)}
+              className="flex items-center justify-between w-full text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
+              data-testid="button-toggle-bgm"
+            >
+              <span className="flex items-center gap-2">
+                <Music className="w-4 h-4" />
+                배경음악 {selectedBgm !== "none" && `(${BGM_OPTIONS.find(o => o.value === selectedBgm)?.label})`}
+              </span>
+              {showBgmOptions ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+
+            {showBgmOptions && (
+              <div className="mt-3 space-y-3 pl-6">
+                <Select value={selectedBgm} onValueChange={setSelectedBgm}>
+                  <SelectTrigger className="h-9 text-sm" data-testid="select-bgm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {BGM_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {selectedBgm !== "none" && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
+                      <span>볼륨</span>
+                      <span>{Math.round(bgmVolume * 100)}%</span>
+                    </div>
+                    <Slider
+                      value={[bgmVolume]}
+                      onValueChange={(values) => setBgmVolume(values[0])}
+                      max={1}
+                      step={0.1}
+                      className="w-full"
+                      disabled={isMixing}
+                      data-testid="slider-bgm-volume"
+                    />
+                    {isMixing && (
+                      <p className="text-xs text-purple-600 dark:text-purple-400 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 animate-pulse" />
+                        믹싱 중...
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
+            )}
+          </div>
 
-              {/* 텍스트 입력 영역 - 큰 사이즈, 집중 */}
-              <Textarea
-                value={editedText}
-                onChange={(e) => setEditedText(e.target.value)}
-                placeholder="음성으로 인식된 텍스트를 확인하고 수정하세요..."
-                className="min-h-[160px] resize-none text-lg leading-relaxed border-0 bg-transparent focus:ring-2 focus:ring-purple-400 dark:focus:ring-purple-600 rounded-lg p-4 shadow-inner"
-                disabled={isCorrecting}
-                data-testid="textarea-transcription"
-                style={{ fontSize: '18px', lineHeight: '1.7' }}
-              />
-              
-              {/* 메타 정보 */}
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-purple-200 dark:border-purple-800">
-                <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
-                  <span className="font-semibold text-purple-600 dark:text-purple-400">{duration?.toFixed(1)}초</span>
-                  <span className="text-gray-400">·</span>
-                  <span className="font-semibold text-purple-600 dark:text-purple-400">{editedText.length}자</span>
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-500">
-                  클릭하여 수정 가능
-                </p>
-              </div>
-            </div>
+          {/* 버튼들 - 심플하게 */}
+          <div className="flex gap-2 pt-2">
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className="flex-1"
+              data-testid="button-cancel"
+            >
+              <X className="w-4 h-4 mr-2" />
+              취소
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleReRecord}
+              className="flex-1"
+              data-testid="button-rerecord"
+            >
+              <Mic className="w-4 h-4 mr-2" />
+              다시 녹음
+            </Button>
+            <Button
+              onClick={handleSend}
+              disabled={isSending}
+              className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+              data-testid="button-send"
+            >
+              <Send className="w-4 h-4 mr-2" />
+              {isSending ? "전송 중..." : "보내기"}
+            </Button>
           </div>
         </div>
 
-        <DialogFooter className="flex-col sm:flex-row gap-2">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="w-full sm:w-auto"
-            data-testid="button-cancel"
-          >
-            <X className="w-4 h-4 mr-2" />
-            취소
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleReRecord}
-            className="w-full sm:w-auto"
-            data-testid="button-rerecord"
-          >
-            <Mic className="w-4 h-4 mr-2" />
-            다시 녹음
-          </Button>
-          <Button
-            onClick={handleSend}
-            disabled={isSending}
-            className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white"
-            data-testid="button-send"
-          >
-            <Send className="w-4 h-4 mr-2" />
-            {isSending ? "전송 중..." : "보내기"}
-          </Button>
-        </DialogFooter>
+        {/* 숨겨진 오디오 엘리먼트 */}
+        <audio 
+          ref={audioRef}
+          src={mixedAudioUrl || audioUrl} 
+          preload="auto"
+        />
+
+        {/* 웨이브 애니메이션 CSS */}
+        <style>{`
+          @keyframes wave {
+            0%, 100% {
+              transform: scaleY(1);
+            }
+            50% {
+              transform: scaleY(0.5);
+            }
+          }
+        `}</style>
       </DialogContent>
     </Dialog>
   );
