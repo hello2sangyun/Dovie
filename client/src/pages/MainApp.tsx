@@ -585,7 +585,10 @@ export default function MainApp() {
                   >
                     <TabsContent value="chats" className="h-full m-0">
                       <ChatsList 
-                        onSelectChat={setSelectedChatRoom}
+                        onSelectChat={(chatId) => {
+                          setSelectedChatRoom(chatId);
+                          setLocation(`/chat-rooms/${chatId}`);
+                        }}
                         selectedChatId={selectedChatRoom}
                         onCreateGroup={() => setModals({ ...modals, createGroup: true })}
                         contactFilter={contactFilter || undefined}
@@ -1057,6 +1060,7 @@ export default function MainApp() {
                     onSelectChat={(chatId) => {
                       setSelectedChatRoom(chatId);
                       setShowMobileChat(true);
+                      setLocation(`/chat-rooms/${chatId}`);
                     }}
                     selectedChatId={selectedChatRoom}
                     onCreateGroup={() => setModals({ ...modals, createGroup: true })}
