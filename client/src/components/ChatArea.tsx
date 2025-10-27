@@ -1224,10 +1224,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       
       // 초기 로드 시: 첫 메시지만 자동 스크롤 (그 이후는 사용자가 제어)
       if (isInitialLoad && messageCount > 0) {
-        setTimeout(() => {
+        // 즉시 스크롤하여 움직임이 보이지 않도록 함
+        requestAnimationFrame(() => {
           scrollToBottom('instant');
           setIsInitialLoad(false); // 초기 로드 완료
-        }, 100);
+        });
       } 
       // 일반 메시지 수신 시
       else if (messageCount > lastMessageCount) {
@@ -1237,7 +1238,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         if (!hasScrolledManually.current && shouldAutoScroll) {
           setTimeout(() => {
             scrollToBottom('smooth');
-          }, 100);
+          }, 50);
         } 
         // 위에서 스크롤 중이면 새 메시지 카운터 증가
         else if (!isAtBottom) {
@@ -2037,16 +2038,22 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const handleTranslateMessage = (message?: any) => {
     const targetMessage = message || contextMenu.message;
     if (targetMessage) {
-      // For voice messages, check if there's transcribed text content
-      if (targetMessage.messageType === "voice" && !targetMessage.content) {
-        return;
+      // 음성 메시지는 transcription 필드에서 텍스트 가져오기
+      let textToTranslate = targetMessage.content;
+      
+      if (targetMessage.messageType === "voice") {
+        textToTranslate = targetMessage.transcription || targetMessage.content;
       }
       
-      // For voice messages with content or regular text messages
-      if (targetMessage.content && targetMessage.content.trim()) {
-        setMessageToTranslate(targetMessage);
+      // 번역할 텍스트가 있는 경우에만 모달 표시
+      if (textToTranslate && textToTranslate.trim()) {
+        // transcription을 content로 임시 설정하여 번역 모달에서 사용
+        const messageForTranslation = {
+          ...targetMessage,
+          content: textToTranslate
+        };
+        setMessageToTranslate(messageForTranslation);
         setShowTranslateModal(true);
-      } else {
       }
     }
   };
@@ -5194,8 +5201,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               
               <div className="flex flex-col items-end max-w-xs lg:max-w-md">
                 <div className="bg-purple-600 text-white p-3 rounded-lg shadow-sm">
-                  <div className="flex items-center space-x-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <div className="flex items-center space-x-3">
+                    {/* 3개 점 애니메이션 - 순차적으로 커졌다 작아짐 */}
+                    <div className="flex space-x-1.5">
+                      <div className="w-2 h-2 bg-white rounded-full dot-pulse" style={{ animationDelay: '0s' }}></div>
+                      <div className="w-2 h-2 bg-white rounded-full dot-pulse" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="w-2 h-2 bg-white rounded-full dot-pulse" style={{ animationDelay: '0.4s' }}></div>
+                    </div>
                     <span className="text-sm">📎 {uploadingFile.fileName} 업로드 중...</span>
                   </div>
                 </div>
@@ -5219,6 +5231,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           animationStyle={accessibilitySettings.reducedMotion ? 'minimal' : 'enhanced'}
           showUserNames={true}
         />
+        
+        {/* 하단 여유 공간 - 맨 아래 메시지가 입력창에 가려지지 않도록 */}
+        <div className="h-24" />
         
         <div ref={messagesEndRef} />
       </div>
