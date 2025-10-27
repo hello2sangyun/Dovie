@@ -190,9 +190,11 @@ export const aiNotices = pgTable("ai_notices", {
   chatRoomId: integer("chat_room_id").references(() => chatRooms.id).notNull(),
   messageId: integer("message_id").references(() => messages.id).notNull(),
   userId: integer("user_id").references(() => users.id).notNull(), // User who should see this notice
-  noticeType: text("notice_type").notNull(), // appointment, schedule, reminder, important_info, deadline, etc.
+  noticeType: text("notice_type").notNull(), // appointment, schedule, reminder, important_info, deadline, unanswered_message
   content: text("content").notNull(), // AI-generated notice text
   metadata: jsonb("metadata"), // Additional structured data (date, time, location, participants, etc.)
+  priority: text("priority").default("medium"), // low, medium, high
+  snoozedUntil: timestamp("snoozed_until"), // When snoozed notice should reappear
   isRead: boolean("is_read").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
