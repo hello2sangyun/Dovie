@@ -58,31 +58,31 @@ export default function LoginPage() {
     usernameLoginMutation.mutate(usernameLoginData);
   };
 
-  const handleSocialLogin = async (provider: 'google' | 'apple') => {
-    try {
-      const { signInWithGoogle, signInWithApple } = await import('@/lib/firebase');
-      
-      const result = provider === 'google' 
-        ? await signInWithGoogle()
-        : await signInWithApple();
-      
-      const response = await apiRequest("/api/auth/social-login", "POST", {
-        idToken: result.idToken,
-        authProvider: provider,
-      });
-      
-      const data = await response.json();
-      setUser(data.user);
-      localStorage.setItem("userId", data.user.id.toString());
-      
-      if (!data.user.isProfileComplete) {
-        setLocation("/profile-setup");
-      } else {
-        setLocation("/app");
+  const handleSocialLogin = (provider: 'google' | 'apple') => {
+    import('@/lib/firebase').then(async ({ signInWithGoogle, signInWithApple }) => {
+      try {
+        const result = provider === 'google' 
+          ? await signInWithGoogle()
+          : await signInWithApple();
+        
+        const response = await apiRequest("/api/auth/social-login", "POST", {
+          idToken: result.idToken,
+          authProvider: provider,
+        });
+        
+        const data = await response.json();
+        setUser(data.user);
+        localStorage.setItem("userId", data.user.id.toString());
+        
+        if (!data.user.isProfileComplete) {
+          setLocation("/profile-setup");
+        } else {
+          setLocation("/app");
+        }
+      } catch (error: any) {
+        console.error(`${provider} login error:`, error);
       }
-    } catch (error: any) {
-      console.error(`${provider} login error:`, error);
-    }
+    });
   };
 
   return (

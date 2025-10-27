@@ -75,12 +75,18 @@ export default function ProfileSettingsPage({ onBack }: ProfileSettingsPageProps
   const updateProfileMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       const response = await apiRequest("/api/auth/profile", "PATCH", data);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "프로필 업데이트에 실패했습니다.");
+      }
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      alert("프로필이 성공적으로 업데이트되었습니다.");
     },
-    onError: () => {
+    onError: (error: Error) => {
+      alert(error.message || "프로필 업데이트에 실패했습니다.");
     },
   });
 
