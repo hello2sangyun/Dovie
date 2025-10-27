@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -4040,7 +4041,17 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                 )}
                 title={chatRoomDisplayName}
                 >
-                  <span className="truncate font-bold">{chatRoomDisplayName}</span>
+                  {!currentChatRoom.isGroup && currentChatRoom.participants.length === 2 ? (
+                    <Link 
+                      href={`/profile/${currentChatRoom.participants.find((p: any) => p.id !== user?.id)?.id || ''}`}
+                      className="truncate font-bold hover:text-purple-600 transition-colors cursor-pointer"
+                      data-testid="link-profile"
+                    >
+                      {chatRoomDisplayName}
+                    </Link>
+                  ) : (
+                    <span className="truncate font-bold">{chatRoomDisplayName}</span>
+                  )}
                   {isLocationChatRoom && (
                     <span className="flex-shrink-0 text-blue-600 text-lg" title="주변챗">
                       📍

@@ -13,7 +13,7 @@ import fs from "fs";
 import { encryptFileData, decryptFileData, hashFileName, decryptText } from "./crypto";
 import { processCommand } from "./openai";
 import { db } from "./db";
-import { eq, and, inArray, desc, gte, isNull } from "drizzle-orm";
+import { eq, and, inArray, desc, gte, isNull, isNotNull } from "drizzle-orm";
 import { initializeNotificationScheduler } from "./notification-scheduler";
 import { getVapidPublicKey, sendPushNotification } from "./push-notifications";
 import twilio from "twilio";
@@ -5612,7 +5612,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           phoneNumber: users.phoneNumber,
           email: users.email,
           isOnline: users.isOnline,
-          lastSeen: users.lastSeen
+          lastSeen: users.lastSeen,
+          userRole: users.userRole
         })
         .from(users)
         .where(eq(users.id, parseInt(userId)));
@@ -5625,6 +5626,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user profile:", error);
       res.status(500).json({ message: "Failed to fetch user profile" });
+    }
+  });
+
+  // Get shared media/files between current user and profile user
+  app.get("/api/shared-media/:userId", async (req, res) => {
+    const currentUserId = req.headers["x-user-id"];
+    const { userId } = req.params;
+    
+    if (!currentUserId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      // Find chat rooms where current user is a participant
+      const currentUserRooms = await db
+        .select({ chatRoomId: chatParticipants.chatRoomId })
+        .from(chatParticipants)
+        .where(eq(chatParticipants.userId, parseInt(currentUserId as string)));
+
+      if (currentUserRooms.length === 0) {
+        return res.json([]);
+      }
+
+      const currentUserRoomIds = currentUserRooms.map(r => r.chatRoomId);
+
+      // Find chat rooms where profile user is also a participant
+      const sharedRooms = await db
+        .select({ chatRoomId: chatParticipants.chatRoomId })
+        .from(chatParticipants)
+        .where(
+          and(
+            eq(chatParticipants.userId, parseInt(userId)),
+            inArray(chatParticipants.chatRoomId, currentUserRoomIds)
+          )
+        );
+
+      if (sharedRooms.length === 0) {
+        return res.json([]);
+      }
+
+      const sharedRoomIds = sharedRooms.map(r => r.chatRoomId);
+
+      // Get messages with files from these chat rooms
+      const sharedMedia = await db
+        .select({
+          id: messages.id,
+          fileUrl: messages.fileUrl,
+          messageType: messages.messageType,
+          createdAt: messages.createdAt
+        })
+        .from(messages)
+        .where(
+          and(
+            inArray(messages.chatRoomId, sharedRoomIds),
+            isNotNull(messages.fileUrl),
+            inArray(messages.messageType, ['image', 'video', 'file', 'voice', 'text'])
+          )
+        )
+        .orderBy(desc(messages.createdAt))
+        .limit(100);
+
+      res.json(sharedMedia);
+    } catch (error) {
+      console.error("Error fetching shared media:", error);
+      res.status(500).json({ message: "Failed to fetch shared media" });
     }
   });
 

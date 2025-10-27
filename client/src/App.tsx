@@ -13,6 +13,7 @@ import PhoneLogin from "@/pages/PhoneLogin";
 import MainApp from "@/pages/MainApp";
 import AdminPage from "@/pages/AdminPage";
 import FriendProfilePage from "@/pages/FriendProfilePage";
+import UserProfilePage from "@/pages/UserProfilePage";
 import NotFound from "@/pages/not-found";
 import { useEffect } from "react";
 
@@ -29,6 +30,7 @@ function Router() {
       <Route path="/chat-rooms/:chatRoomId" component={MainApp} />
       <Route path="/admin" component={AdminPage} />
       <Route path="/friend/:userId" component={FriendProfilePage} />
+      <Route path="/profile/:userId" component={UserProfilePage} />
       <Route component={NotFound} />
     </Switch>
   );
