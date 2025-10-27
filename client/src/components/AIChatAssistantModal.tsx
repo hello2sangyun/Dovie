@@ -184,21 +184,11 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
       <DialogContent className="sm:max-w-[600px] p-0 gap-0 overflow-hidden">
         {/* Header */}
         <DialogHeader className="px-6 py-4 bg-gradient-to-r from-purple-500 to-indigo-600 text-white">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <DovieWingsIcon className="text-white" />
-              <DialogTitle className="text-white text-lg font-semibold">
-                Dovie AI 어시스턴트
-              </DialogTitle>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="text-white hover:bg-white/20 h-8 w-8 p-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+          <div className="flex items-center gap-3">
+            <DovieWingsIcon className="text-white" />
+            <DialogTitle className="text-white text-lg font-semibold">
+              Dovie AI 어시스턴트
+            </DialogTitle>
           </div>
           <p className="text-sm text-white/90 mt-1">
             이 채팅방의 대화 내용을 학습한 AI에게 무엇이든 물어보세요

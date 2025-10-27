@@ -5434,13 +5434,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               intensity="moderate"
               accessibilityMode={accessibilitySettings.reducedMotion}
               hapticFeedback={accessibilitySettings.hapticEnabled}
-              className="text-purple-500 hover:text-purple-600 hover:bg-purple-50 p-2 h-9 w-9 rounded-lg transition-all duration-200 flex items-center justify-center relative group"
+              className="text-purple-500 hover:text-purple-600 hover:bg-purple-50 p-2 h-9 w-9 rounded-lg transition-all duration-200 flex items-center justify-center"
               onClick={() => setShowAIAssistantModal(true)}
               aria-label="AI 어시스턴트"
               data-testid="button-ai-assistant"
             >
-              <Sparkles className="h-4 w-4 animate-pulse" />
-              <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75 group-hover:opacity-100" />
+              <Sparkles className="h-4 w-4" />
             </InteractiveButton>
             
             <InteractiveButton
