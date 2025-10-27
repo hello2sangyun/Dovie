@@ -18,6 +18,7 @@ import { initializeNotificationScheduler } from "./notification-scheduler";
 import { getVapidPublicKey, sendPushNotification } from "./push-notifications";
 import twilio from "twilio";
 import { z } from "zod";
+import { verifyIdToken, initializeFirebaseAdmin } from "./firebase-admin";
 
 // Zod validation schemas
 const updateUserNotificationsSchema = z.object({
@@ -340,6 +341,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Logout error:", error);
       res.status(500).json({ message: "로그아웃에 실패했습니다." });
+    }
+  });
+
+  // 소셜 로그인 API (Google/Apple) - Firebase ID Token 검증
+  app.post("/api/auth/social-login", async (req, res) => {
+    try {
+      const { idToken, authProvider } = req.body;
+      
+      if (!idToken || !authProvider) {
+        return res.status(400).json({ message: "필수 정보가 누락되었습니다." });
+      }
+
+      // Firebase ID Token 검증
+      const verificationResult = await verifyIdToken(idToken);
+      
+      if (!verificationResult.success) {
+        return res.status(401).json({ 
+          message: "인증 토큰이 유효하지 않습니다.", 
+          error: verificationResult.error 
+        });
+      }
+
+      const { uid, email, name, picture } = verificationResult;
+
+      // 기존 사용자 찾기 (providerId = Firebase UID로)
+      let user = await storage.getUserByProviderId(authProvider, uid);
+      
+      if (user) {
+        // 기존 사용자 로그인 처리
+        await storage.updateUser(user.id, { isOnline: true });
+        console.log(`✅ 소셜 로그인 성공: ${authProvider} - ${user.id} (${user.username})`);
+        return res.json({ user });
+      }
+
+      // 신규 사용자 생성
+      // 임시 username 생성 (나중에 프로필 설정에서 변경)
+      const tempUsername = `${authProvider}_${uid.substring(0, 8)}`;
+      
+      // 랜덤 비밀번호 생성 (소셜 로그인 사용자는 비밀번호 사용 안 함)
+      const randomPassword = await bcrypt.hash(Math.random().toString(36), 10);
+      
+      // email은 Apple의 경우 재로그인 시 null일 수 있으므로 optional
+      // email이 없으면 tempUsername@dovie.app 같은 임시 이메일 사용
+      const userEmail = email || `${tempUsername}@dovie.app`;
+      
+      const userData = {
+        email: userEmail,
+        password: randomPassword,
+        username: tempUsername,
+        displayName: name || email?.split('@')[0] || 'User',
+        profilePicture: picture || undefined,
+        authProvider,
+        providerId: uid,
+        providerEmail: email || null, // Apple 재로그인 시 null 가능
+        isEmailVerified: true, // 소셜 로그인은 이메일 인증 완료
+        isProfileComplete: false, // 프로필 설정 페이지로 이동 필요
+      };
+
+      user = await storage.createUser(userData);
+      await storage.updateUser(user.id, { isOnline: true });
+      
+      console.log(`✅ 소셜 회원가입 성공: ${authProvider} - ${user.id} (${user.username})`);
+      res.json({ user });
+    } catch (error: any) {
+      console.error("Social login error:", error);
+      res.status(500).json({ message: "소셜 로그인에 실패했습니다.", error: error?.message || "Unknown error" });
     }
   });
 

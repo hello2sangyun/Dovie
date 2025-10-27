@@ -30,11 +30,7 @@ appleProvider.addScope('email');
 appleProvider.addScope('name');
 
 export interface SocialLoginResult {
-  providerId: string;
-  providerEmail: string;
-  displayName: string;
-  profilePicture: string | null;
-  firebaseUid: string;
+  idToken: string;
 }
 
 export async function signInWithGoogle(): Promise<SocialLoginResult> {
@@ -42,12 +38,10 @@ export async function signInWithGoogle(): Promise<SocialLoginResult> {
     const result = await signInWithPopup(auth, googleProvider);
     const user = result.user;
     
+    const idToken = await user.getIdToken();
+    
     return {
-      providerId: user.uid,
-      providerEmail: user.email || '',
-      displayName: user.displayName || user.email?.split('@')[0] || 'User',
-      profilePicture: user.photoURL,
-      firebaseUid: user.uid,
+      idToken,
     };
   } catch (error: any) {
     console.error('Google sign in error:', error);
@@ -60,12 +54,10 @@ export async function signInWithApple(): Promise<SocialLoginResult> {
     const result = await signInWithPopup(auth, appleProvider);
     const user = result.user;
     
+    const idToken = await user.getIdToken();
+    
     return {
-      providerId: user.uid,
-      providerEmail: user.email || '',
-      displayName: user.displayName || user.email?.split('@')[0] || 'User',
-      profilePicture: user.photoURL,
-      firebaseUid: user.uid,
+      idToken,
     };
   } catch (error: any) {
     console.error('Apple sign in error:', error);

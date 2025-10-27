@@ -6,6 +6,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import iosDownloadRouter from "./ios-download-final";
 import { iosDownloadNewHandler, iosFileNewHandler } from "./ios-download-new";
 import { storage } from "./storage";
+import { initializeFirebaseAdmin } from "./firebase-admin";
 
 // Global 타입 선언
 declare global {
@@ -1424,6 +1425,9 @@ app.use((req, res, next) => {
       }
     });
   });
+  
+  // Firebase Admin SDK 초기화 (소셜 로그인 지원)
+  initializeFirebaseAdmin();
   
   const server = await registerRoutes(app);
 

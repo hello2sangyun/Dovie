@@ -58,6 +58,33 @@ export default function LoginPage() {
     usernameLoginMutation.mutate(usernameLoginData);
   };
 
+  const handleSocialLogin = async (provider: 'google' | 'apple') => {
+    try {
+      const { signInWithGoogle, signInWithApple } = await import('@/lib/firebase');
+      
+      const result = provider === 'google' 
+        ? await signInWithGoogle()
+        : await signInWithApple();
+      
+      const response = await apiRequest("/api/auth/social-login", "POST", {
+        idToken: result.idToken,
+        authProvider: provider,
+      });
+      
+      const data = await response.json();
+      setUser(data.user);
+      localStorage.setItem("userId", data.user.id.toString());
+      
+      if (!data.user.isProfileComplete) {
+        setLocation("/profile-setup");
+      } else {
+        setLocation("/app");
+      }
+    } catch (error: any) {
+      console.error(`${provider} login error:`, error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -124,10 +151,45 @@ export default function LoginPage() {
                     type="submit"
                     className="w-full bg-purple-600 hover:bg-purple-700"
                     disabled={usernameLoginMutation.isPending}
+                    data-testid="button-username-login"
                   >
                     {usernameLoginMutation.isPending ? "로그인 중..." : "로그인"}
                   </Button>
                 </form>
+
+                <div className="mt-6">
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <Separator className="w-full" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-white px-2 text-gray-500">또는</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 grid grid-cols-2 gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => handleSocialLogin('google')}
+                      className="w-full"
+                      data-testid="button-google-login"
+                    >
+                      <FcGoogle className="h-5 w-5 mr-2" />
+                      Google
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => handleSocialLogin('apple')}
+                      className="w-full"
+                      data-testid="button-apple-login"
+                    >
+                      <SiApple className="h-5 w-5 mr-2" />
+                      Apple
+                    </Button>
+                  </div>
+                </div>
 
                 <div className="mt-6 text-center">
                   <p className="text-sm text-gray-600">

@@ -35,7 +35,7 @@ export const users = pgTable("users", {
   // 소셜 로그인 정보
   authProvider: text("auth_provider"), // 'google', 'apple', 'local' (기본 username/email/phone)
   providerId: text("provider_id"), // OAuth provider's unique user ID
-  providerEmail: text("provider_email"), // Email from OAuth provider
+  providerEmail: text("provider_email"), // Email from OAuth provider (Apple 재로그인 시 null 가능)
   createdAt: timestamp("created_at").defaultNow(),
 });
 

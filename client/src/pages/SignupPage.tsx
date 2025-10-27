@@ -9,7 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import { Mail, Lock, User, Eye, EyeOff, Phone } from "lucide-react";
+import { FcGoogle } from "react-icons/fc";
+import { SiApple } from "react-icons/si";
 
 export default function SignupPage() {
   const [, setLocation] = useLocation();
@@ -65,6 +68,29 @@ export default function SignupPage() {
     }
 
     signupMutation.mutate(usernameFormData);
+  };
+
+  const handleSocialSignup = async (provider: 'google' | 'apple') => {
+    try {
+      const { signInWithGoogle, signInWithApple } = await import('@/lib/firebase');
+      
+      const result = provider === 'google' 
+        ? await signInWithGoogle()
+        : await signInWithApple();
+      
+      const response = await apiRequest("/api/auth/social-login", "POST", {
+        idToken: result.idToken,
+        authProvider: provider,
+      });
+      
+      const data = await response.json();
+      setUser(data.user);
+      localStorage.setItem("userId", data.user.id.toString());
+      
+      setLocation("/profile-setup");
+    } catch (error: any) {
+      console.error(`${provider} signup error:`, error);
+    }
   };
 
   return (
@@ -201,10 +227,45 @@ export default function SignupPage() {
                     type="submit"
                     className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                     disabled={signupMutation.isPending}
+                    data-testid="button-signup"
                   >
                     {signupMutation.isPending ? "계정 생성 중..." : "계정 만들기"}
                   </Button>
                 </form>
+
+                <div className="mt-6">
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <Separator className="w-full" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-white px-2 text-gray-500">또는</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 grid grid-cols-2 gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => handleSocialSignup('google')}
+                      className="w-full"
+                      data-testid="button-google-signup"
+                    >
+                      <FcGoogle className="h-5 w-5 mr-2" />
+                      Google
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => handleSocialSignup('apple')}
+                      className="w-full"
+                      data-testid="button-apple-signup"
+                    >
+                      <SiApple className="h-5 w-5 mr-2" />
+                      Apple
+                    </Button>
+                  </div>
+                </div>
               </TabsContent>
 
               <TabsContent value="phone" className="mt-6">
