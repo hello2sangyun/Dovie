@@ -265,7 +265,7 @@ export default function InboxPage() {
     priorityFilter !== "all" ? 1 : 0,
   ].reduce((a, b) => a + b, 0);
 
-  // Render notice item
+  // Render notice item - Compact version
   const renderNoticeItem = (notice: AiNotice) => {
     const config = getNoticeIcon(notice.noticeType);
     const Icon = config.icon;
@@ -275,51 +275,36 @@ export default function InboxPage() {
         key={notice.id}
         data-testid={`notice-${notice.id}`}
         className={cn(
-          "p-4 transition-all hover:shadow-md cursor-pointer",
+          "p-2.5 transition-all hover:shadow-sm cursor-pointer",
           !notice.isRead && "bg-purple-50 border-purple-200"
         )}
       >
-        <div className="flex items-start gap-3">
-          <div className={cn("p-2 rounded-lg flex-shrink-0", config.bg)}>
-            <Icon className={cn("h-5 w-5", config.color)} />
+        <div className="flex items-start gap-2">
+          <div className={cn("p-1.5 rounded-md flex-shrink-0", config.bg)}>
+            <Icon className={cn("h-3.5 w-3.5", config.color)} />
           </div>
 
           <div className="flex-1 min-w-0" onClick={() => handleNoticeClick(notice)}>
-            <div className="flex items-center gap-2 mb-1">
-              <Badge variant="outline" className="text-xs">
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">
                 {config.label}
               </Badge>
-              {notice.priority && (
-                <Badge
-                  variant={notice.priority === "high" ? "destructive" : "secondary"}
-                  className="text-xs"
-                >
-                  {notice.priority === "high" ? "높음" : notice.priority === "medium" ? "중간" : "낮음"}
-                </Badge>
-              )}
               {!notice.isRead && (
-                <div className="w-2 h-2 bg-purple-600 rounded-full" />
+                <div className="w-1.5 h-1.5 bg-purple-600 rounded-full" />
               )}
             </div>
 
-            <p className={cn("text-sm leading-relaxed", !notice.isRead && "font-semibold")}>
+            <p className={cn("text-xs leading-snug", !notice.isRead && "font-semibold")}>
               {notice.content}
             </p>
 
-            {notice.chatRoom && (
-              <p className="text-xs text-muted-foreground mt-1">
-                {notice.chatRoom.name || "개인 채팅"}
-              </p>
-            )}
-
-            <div className="flex items-center justify-between mt-2">
-              <span className="text-xs text-muted-foreground">
+            <div className="flex items-center justify-between mt-1">
+              <span className="text-[10px] text-muted-foreground">
                 {formatDistanceToNow(new Date(notice.createdAt), {
                   addSuffix: true,
                   locale: ko,
                 })}
               </span>
-              {notice.isRead && <CheckCircle2 className="h-3 w-3 text-green-600" />}
             </div>
           </div>
 
@@ -328,11 +313,11 @@ export default function InboxPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 flex-shrink-0"
+                className="h-6 w-6 p-0 flex-shrink-0"
                 data-testid={`notice-menu-${notice.id}`}
                 onClick={(e) => e.stopPropagation()}
               >
-                <MoreVertical className="h-4 w-4" />
+                <MoreVertical className="h-3 w-3" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
@@ -540,206 +525,169 @@ export default function InboxPage() {
   };
 
   if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-muted-foreground">로그인이 필요합니다</p>
-      </div>
-    );
+    return null;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 p-4 md:p-8">
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl">
-                <InboxIcon className="h-8 w-8 text-white" />
-              </div>
-              AI 인박스
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              스마트 알림 {activeNotices.length}개
-              {snoozedNotices.length > 0 && ` · 스누즈 ${snoozedNotices.length}개`}
-            </p>
-          </div>
-
+    <div className="h-full flex flex-col bg-white">
+      {/* Compact Header */}
+      <div className="flex-shrink-0 px-3 py-2.5 border-b bg-gradient-to-r from-purple-50 to-blue-50">
+        <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
+            <h2 className="text-sm font-bold text-purple-900">Smart Inbox</h2>
+            <Badge variant="secondary" className="text-xs">
+              {activeNotices.length}
+            </Badge>
+          </div>
+          
+          <div className="flex items-center gap-1">
+            {/* View Mode Tabs - Icon Only */}
             <Button
-              variant="outline"
+              variant={viewMode === "list" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("list")}
+              className="h-7 px-2"
+              data-testid="tab-list"
+            >
+              <InboxIcon className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant={viewMode === "stats" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("stats")}
+              className="h-7 px-2"
+              data-testid="tab-stats"
+            >
+              <BarChart3 className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant={viewMode === "calendar" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("calendar")}
+              className="h-7 px-2"
+              data-testid="tab-calendar"
+            >
+              <CalendarDays className="h-3.5 w-3.5" />
+            </Button>
+            
+            <Separator orientation="vertical" className="h-4 mx-1" />
+            
+            {/* Clear All */}
+            <Button
+              variant="ghost"
               size="sm"
               onClick={() => setClearAllDialog(true)}
               disabled={activeNotices.length === 0}
+              className="h-7 px-2"
               data-testid="button-clear-all"
             >
-              <Trash2 className="h-4 w-4 mr-2" />
-              전체 삭제
+              <Trash2 className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>
+        
+        {/* Compact Search & Filters Row */}
+        {viewMode === "list" && (
+          <div className="flex items-center gap-1.5 mt-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+              <Input
+                placeholder="검색..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="h-7 pl-7 pr-2 text-xs"
+                data-testid="input-search"
+              />
+            </div>
+            
+            <Button
+              variant={showSnoozed ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowSnoozed(!showSnoozed)}
+              className="h-7 px-2"
+              data-testid="button-show-snoozed"
+            >
+              <Moon className="h-3 w-3" />
+            </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-7 px-2" data-testid="filter-type">
+                  <Filter className="h-3 w-3" />
+                  {typeFilter !== "all" && <span className="ml-1 text-xs">1</span>}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setTypeFilter("all")}>전체</DropdownMenuItem>
+                {Object.entries(NOTICE_TYPE_CONFIG).map(([type, config]) => (
+                  <DropdownMenuItem key={type} onClick={() => setTypeFilter(type as NoticeType)}>
+                    {config.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            {activeFilterCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setTypeFilter("all");
+                  setPriorityFilter("all");
+                }}
+                className="h-7 px-2"
+                data-testid="button-clear-filters"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
 
-        {/* View Tabs */}
-        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
-          <TabsList className="grid w-full max-w-md grid-cols-3">
-            <TabsTrigger value="list" data-testid="tab-list">
-              <InboxIcon className="h-4 w-4 mr-2" />
-              목록
-            </TabsTrigger>
-            <TabsTrigger value="stats" data-testid="tab-stats">
-              <BarChart3 className="h-4 w-4 mr-2" />
-              통계
-            </TabsTrigger>
-            <TabsTrigger value="calendar" data-testid="tab-calendar">
-              <CalendarDays className="h-4 w-4 mr-2" />
-              캘린더
-            </TabsTrigger>
-          </TabsList>
-
-          {/* List View */}
-          <TabsContent value="list" className="space-y-4">
-            {/* Search and Filters */}
-            <Card className="p-4">
-              <div className="space-y-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="알림 검색..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                    data-testid="input-search"
-                  />
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button
-                    variant={showSnoozed ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setShowSnoozed(!showSnoozed)}
-                    data-testid="button-show-snoozed"
-                  >
-                    <Moon className="h-4 w-4 mr-2" />
-                    스누즈
-                    {snoozedNotices.length > 0 && (
-                      <Badge variant="secondary" className="ml-2">
-                        {snoozedNotices.length}
-                      </Badge>
-                    )}
-                  </Button>
-
-                  <Separator orientation="vertical" className="h-6" />
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" data-testid="filter-type">
-                        <Filter className="h-4 w-4 mr-2" />
-                        유형
-                        {typeFilter !== "all" && (
-                          <Badge variant="secondary" className="ml-2">1</Badge>
-                        )}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem onClick={() => setTypeFilter("all")}>
-                        전체
-                      </DropdownMenuItem>
-                      {Object.entries(NOTICE_TYPE_CONFIG).map(([type, config]) => (
-                        <DropdownMenuItem key={type} onClick={() => setTypeFilter(type as NoticeType)}>
-                          {config.label}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" data-testid="filter-priority">
-                        우선순위
-                        {priorityFilter !== "all" && (
-                          <Badge variant="secondary" className="ml-2">1</Badge>
-                        )}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem onClick={() => setPriorityFilter("all")}>
-                        전체
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setPriorityFilter("high")}>
-                        높음
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setPriorityFilter("medium")}>
-                        중간
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setPriorityFilter("low")}>
-                        낮음
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  {activeFilterCount > 0 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setTypeFilter("all");
-                        setPriorityFilter("all");
-                      }}
-                      data-testid="button-clear-filters"
-                    >
-                      <X className="h-4 w-4 mr-2" />
-                      필터 초기화 ({activeFilterCount})
-                    </Button>
-                  )}
-                </div>
-
-                {searchTerm && (
-                  <p className="text-sm text-muted-foreground">
-                    검색 결과: {filteredNotices.length}개
-                  </p>
-                )}
-              </div>
-            </Card>
-
-            {/* Notices List */}
-            <ScrollArea className="h-[600px]">
+      {/* Main Content Area - Maximized */}
+      <div className="flex-1 overflow-hidden">
+        {viewMode === "list" && (
+          <ScrollArea className="h-full">
+            <div className="p-3">
               {isLoading ? (
                 <div className="flex items-center justify-center py-12">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600" />
                 </div>
               ) : filteredNotices.length === 0 ? (
-                <Card className="p-12">
-                  <div className="text-center">
-                    <div className="p-4 bg-purple-100 rounded-full w-fit mx-auto mb-4">
-                      <InboxIcon className="h-12 w-12 text-purple-600" />
-                    </div>
-                    <h3 className="font-semibold text-lg mb-2">
-                      {showSnoozed ? "스누즈된 알림이 없습니다" : "알림함이 비어있습니다"}
-                    </h3>
-                    <p className="text-muted-foreground text-sm">
-                      AI가 약속, 일정, 중요한 정보를 자동으로 감지하여<br />
-                      스마트 알림을 생성합니다
-                    </p>
-                  </div>
-                </Card>
+                <div className="text-center py-12">
+                  <InboxIcon className="h-12 w-12 mx-auto mb-3 text-purple-300" />
+                  <h3 className="font-semibold text-sm mb-1">
+                    {showSnoozed ? "스누즈된 알림이 없습니다" : "알림함이 비어있습니다"}
+                  </h3>
+                  <p className="text-muted-foreground text-xs">
+                    AI가 중요한 정보를 감지하면 알려드립니다
+                  </p>
+                </div>
               ) : (
-                <div className="space-y-3" data-testid="notices-list">
+                <div className="space-y-2" data-testid="notices-list">
                   {filteredNotices.map(renderNoticeItem)}
                 </div>
               )}
-            </ScrollArea>
-          </TabsContent>
+            </div>
+          </ScrollArea>
+        )}
 
-          {/* Stats View */}
-          <TabsContent value="stats">
-            {renderStatsView()}
-          </TabsContent>
+        {viewMode === "stats" && (
+          <ScrollArea className="h-full">
+            <div className="p-3">
+              {renderStatsView()}
+            </div>
+          </ScrollArea>
+        )}
 
-          {/* Calendar View */}
-          <TabsContent value="calendar">
-            {renderCalendarView()}
-          </TabsContent>
-        </Tabs>
+        {viewMode === "calendar" && (
+          <ScrollArea className="h-full">
+            <div className="p-3">
+              {renderCalendarView()}
+            </div>
+          </ScrollArea>
+        )}
       </div>
 
       {/* Clear All Confirmation Dialog */}
