@@ -35,6 +35,7 @@ import ModernSettingsPage from "@/components/ModernSettingsPage";
 import BlockedContactsPage from "@/components/BlockedContactsPage";
 import SimpleSpacePage from "@/pages/SimpleSpacePage";
 import LinkedInSpacePage from "@/pages/LinkedInSpacePage";
+import InboxPage from "@/pages/InboxPage";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookUser, MessageCircle, Bookmark, Settings, Search, MessageSquare, Users, Building2, Shield, UserX, Camera, QrCode, Inbox } from "lucide-react";
@@ -1127,22 +1128,7 @@ export default function MainApp() {
                 key="inbox"
                 className="absolute inset-0 flex flex-col"
               >
-                {/* Header for Inbox */}
-                <div className="flex-shrink-0 p-4 bg-gray-50 border-b border-gray-200">
-                  <div className="flex justify-between items-center">
-                    <h2 className="text-lg font-semibold text-gray-900">Inbox</h2>
-                  </div>
-                </div>
-                
-                <div className="flex-1 overflow-auto p-4">
-                  <div className="flex flex-col items-center justify-center h-full text-center">
-                    <Inbox className="h-16 w-16 text-gray-300 mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Inbox가 비어있습니다</h3>
-                    <p className="text-sm text-gray-500 max-w-sm">
-                      중요한 메시지와 알림이 여기에 표시됩니다.
-                    </p>
-                  </div>
-                </div>
+                <InboxPage />
               </div>
             )}
             {activeMobileTab === "settings" && (
@@ -1212,11 +1198,12 @@ export default function MainApp() {
               <button
                 className={cn(
                   "flex items-center justify-center w-14 h-14 rounded-full shadow-lg -mt-6 transition-all",
-                  activeMobileTab === "inbox" 
+                  location === "/inbox"
                     ? "bg-purple-600 text-white scale-110" 
                     : "bg-gradient-to-br from-purple-600 to-purple-700 text-white hover:scale-105"
                 )}
-                onClick={() => setActiveMobileTab("inbox")}
+                onClick={() => setLocation("/inbox")}
+                data-testid="button-inbox"
               >
                 <Inbox className="h-6 w-6" />
               </button>
