@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useLocation } from "wouter";
+import { useLocation, useRoute } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -40,12 +40,15 @@ interface SharedMediaFile {
 }
 
 export default function UserProfilePage() {
-  const { userId } = useParams<{ userId: string }>();
+  const [match, params] = useRoute("/profile/:userId");
+  const userId = params?.userId;
   const [, navigate] = useLocation();
   const { user: currentUser } = useAuth();
   const { toast } = useToast();
   const [showAIModal, setShowAIModal] = useState(false);
   const [activeTab, setActiveTab] = useState("media");
+
+  console.log('UserProfilePage mounted', { match, userId, currentUser });
 
   const profileUserId = parseInt(userId || "0");
   const isOwnProfile = currentUser?.id === profileUserId;
