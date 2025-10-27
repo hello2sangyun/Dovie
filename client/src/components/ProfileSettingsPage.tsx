@@ -95,7 +95,10 @@ export default function ProfileSettingsPage({ onBack }: ProfileSettingsPageProps
       }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // 즉시 캐시에 반영하여 리프레시 없이 화면에 표시
+      queryClient.setQueryData(["/api/auth/me"], { user: data.user });
+      // 그 다음 캐시 갱신으로 최신 상태 확인
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       alert("프로필이 성공적으로 업데이트되었습니다.");
     },
