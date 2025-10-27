@@ -72,6 +72,20 @@ export default function ProfileSettingsPage({ onBack }: ProfileSettingsPageProps
     }
   }, [birthYear, birthMonth, birthDay]);
 
+  // Sync formData with user data when user changes
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        username: user.username || "",
+        displayName: user.displayName || "",
+        email: user.email || "",
+        phoneNumber: user.phoneNumber || "",
+        birthday: user.birthday || "",
+      });
+      setAllowVoiceBookmarks(user.allowVoiceBookmarks ?? true);
+    }
+  }, [user]);
+
   const updateProfileMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       const response = await apiRequest("/api/auth/profile", "PATCH", data);
