@@ -1000,7 +1000,7 @@ export default function MainApp() {
         {/* Mobile Content with improved padding for Footer visibility */}
         <div className={cn(
           "flex-1 overflow-hidden relative",
-          showMobileChat ? "pt-0 pb-0" : "pt-20 pb-20"
+          showMobileChat ? "pt-0 pb-0" : activeMobileTab === "inbox" ? "pb-20" : "pt-20 pb-20"
         )}>
             {activeMobileTab === "contacts" && (
               <div
