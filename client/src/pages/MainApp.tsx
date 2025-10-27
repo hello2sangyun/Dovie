@@ -1198,11 +1198,11 @@ export default function MainApp() {
               <button
                 className={cn(
                   "flex items-center justify-center w-14 h-14 rounded-full shadow-lg -mt-6 transition-all",
-                  location === "/inbox"
+                  activeMobileTab === "inbox"
                     ? "bg-purple-600 text-white scale-110" 
                     : "bg-gradient-to-br from-purple-600 to-purple-700 text-white hover:scale-105"
                 )}
-                onClick={() => setLocation("/inbox")}
+                onClick={() => setActiveMobileTab("inbox")}
                 data-testid="button-inbox"
               >
                 <Inbox className="h-6 w-6" />
