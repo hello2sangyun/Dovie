@@ -365,17 +365,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { uid, email, name, picture } = verificationResult;
 
-      // 기존 사용자 찾기 (providerId = Firebase UID로)
+      // 1단계: providerId로 기존 소셜 로그인 사용자 찾기
       let user = await storage.getUserByProviderId(authProvider, uid);
       
       if (user) {
-        // 기존 사용자 로그인 처리
+        // 기존 소셜 로그인 사용자 로그인 처리
         await storage.updateUser(user.id, { isOnline: true });
         console.log(`✅ 소셜 로그인 성공: ${authProvider} - ${user.id} (${user.username})`);
         return res.json({ user });
       }
 
-      // 신규 사용자 생성
+      // 2단계: email로 기존 사용자 찾기 (일반 회원가입 → 소셜 로그인 전환)
+      if (email) {
+        user = await storage.getUserByEmail(email);
+        
+        if (user) {
+          // 기존 사용자를 소셜 로그인으로 연결
+          await storage.updateUser(user.id, { 
+            authProvider,
+            providerId: uid,
+            providerEmail: email,
+            isEmailVerified: true,
+            isOnline: true,
+          });
+          
+          // 업데이트된 사용자 정보 다시 가져오기
+          user = await storage.getUser(user.id);
+          
+          console.log(`✅ 기존 계정을 ${authProvider} 로그인과 연결: ${user.id} (${user.username})`);
+          return res.json({ user });
+        }
+      }
+
+      // 3단계: 신규 사용자 생성
       // 임시 username 생성 (나중에 프로필 설정에서 변경)
       const tempUsername = `${authProvider}_${uid.substring(0, 8)}`;
       
