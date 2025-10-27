@@ -117,6 +117,12 @@ export interface IStorage {
   getChatRoomAiNotices(userId: number, chatRoomId: number): Promise<AiNotice[]>;
   markAiNoticeAsRead(noticeId: number, userId: number): Promise<void>;
   getUnreadAiNoticesCount(userId: number): Promise<number>;
+  deleteAiNotice(noticeId: number, userId: number): Promise<void>;
+  deleteAllAiNotices(userId: number): Promise<void>;
+  snoozeAiNotice(noticeId: number, userId: number, snoozedUntil: Date): Promise<void>;
+  searchAiNotices(userId: number, searchTerm: string): Promise<AiNotice[]>;
+  checkUnansweredMessages(userId: number, hoursThreshold?: number): Promise<Array<{ chatRoomId: number; lastMessage: Message & { sender: User }; timeSinceMessage: number }>>;
+  createUnansweredMessageNotices(userId: number): Promise<void>;
 
   // Message reaction operations
   addMessageReaction(messageId: number, userId: number, emoji: string, emojiName: string): Promise<void>;
@@ -933,6 +939,136 @@ export class DatabaseStorage implements IStorage {
         eq(aiNotices.isRead, false)
       ));
     return result[0]?.count || 0;
+  }
+
+  async deleteAiNotice(noticeId: number, userId: number): Promise<void> {
+    await db.delete(aiNotices)
+      .where(and(
+        eq(aiNotices.id, noticeId),
+        eq(aiNotices.userId, userId)
+      ));
+  }
+
+  async deleteAllAiNotices(userId: number): Promise<void> {
+    await db.delete(aiNotices)
+      .where(eq(aiNotices.userId, userId));
+  }
+
+  async snoozeAiNotice(noticeId: number, userId: number, snoozedUntil: Date): Promise<void> {
+    await db.update(aiNotices)
+      .set({ snoozedUntil })
+      .where(and(
+        eq(aiNotices.id, noticeId),
+        eq(aiNotices.userId, userId)
+      ));
+  }
+
+  async searchAiNotices(userId: number, searchTerm: string): Promise<AiNotice[]> {
+    return await db.select().from(aiNotices)
+      .where(and(
+        eq(aiNotices.userId, userId),
+        or(
+          like(aiNotices.content, `%${searchTerm}%`),
+          like(aiNotices.noticeType, `%${searchTerm}%`)
+        )
+      ))
+      .orderBy(desc(aiNotices.createdAt));
+  }
+
+  async checkUnansweredMessages(userId: number, hoursThreshold: number = 1): Promise<Array<{ chatRoomId: number; lastMessage: Message & { sender: User }; timeSinceMessage: number }>> {
+    // Get all chat rooms where user is a participant
+    const userChatRooms = await db.select({ chatRoomId: chatParticipants.chatRoomId })
+      .from(chatParticipants)
+      .where(eq(chatParticipants.userId, userId));
+
+    const chatRoomIds = userChatRooms.map(cr => cr.chatRoomId);
+    if (chatRoomIds.length === 0) return [];
+
+    const unanswered: Array<{ chatRoomId: number; lastMessage: Message & { sender: User }; timeSinceMessage: number }> = [];
+
+    for (const chatRoomId of chatRoomIds) {
+      // Get last message in this chat room
+      const [lastMessage] = await db.select()
+        .from(messages)
+        .where(eq(messages.chatRoomId, chatRoomId))
+        .orderBy(desc(messages.createdAt))
+        .limit(1)
+        .leftJoin(users, eq(messages.senderId, users.id));
+
+      if (!lastMessage || !lastMessage.messages) continue;
+
+      const msg = lastMessage.messages;
+      const sender = lastMessage.users;
+
+      // Skip if last message is from current user
+      if (msg.senderId === userId) continue;
+
+      // Calculate time since message
+      const timeSinceMessage = (Date.now() - new Date(msg.createdAt!).getTime()) / (1000 * 60 * 60); // hours
+
+      // Skip if not enough time has passed
+      if (timeSinceMessage < hoursThreshold) continue;
+
+      // Check if user has sent any message after this one
+      const [userResponseCount] = await db.select({ count: count() })
+        .from(messages)
+        .where(and(
+          eq(messages.chatRoomId, chatRoomId),
+          eq(messages.senderId, userId),
+          gt(messages.createdAt, msg.createdAt!)
+        ));
+
+      // If user hasn't responded, add to unanswered list
+      if (userResponseCount.count === 0) {
+        unanswered.push({
+          chatRoomId,
+          lastMessage: { ...msg, sender: sender! },
+          timeSinceMessage
+        });
+      }
+    }
+
+    return unanswered;
+  }
+
+  async createUnansweredMessageNotices(userId: number): Promise<void> {
+    const unanswered = await this.checkUnansweredMessages(userId, 1); // 1 hour threshold
+
+    for (const { chatRoomId, lastMessage } of unanswered) {
+      // Check if notice already exists for this message
+      const existing = await db.select()
+        .from(aiNotices)
+        .where(and(
+          eq(aiNotices.userId, userId),
+          eq(aiNotices.messageId, lastMessage.id),
+          eq(aiNotices.noticeType, 'unanswered_message')
+        ))
+        .limit(1);
+
+      if (existing.length > 0) continue; // Already created notice for this message
+
+      // Get chat room info
+      const chatRoom = await this.getChatRoomById(chatRoomId);
+      if (!chatRoom) continue;
+
+      const senderName = lastMessage.sender.displayName || lastMessage.sender.username;
+
+      // Create notice
+      await this.createAiNotice({
+        chatRoomId,
+        messageId: lastMessage.id,
+        userId,
+        noticeType: 'unanswered_message',
+        content: `${senderName}에게 답변 잊지마 💬`,
+        metadata: {
+          senderName,
+          chatRoomName: chatRoom.name,
+          messagePreview: lastMessage.content?.substring(0, 50) || ''
+        },
+        priority: 'medium',
+        isRead: false
+      });
+    }
   }
 
   // Message reaction operations

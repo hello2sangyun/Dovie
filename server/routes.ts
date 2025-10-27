@@ -1736,6 +1736,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete individual AI notice
+  app.delete("/api/ai-notices/:noticeId", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const noticeId = Number(req.params.noticeId);
+      await storage.deleteAiNotice(noticeId, Number(userId));
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete AI notice error:", error);
+      res.status(500).json({ message: "Failed to delete notice" });
+    }
+  });
+
+  // Delete all AI notices for user
+  app.delete("/api/ai-notices", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      await storage.deleteAllAiNotices(Number(userId));
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete all AI notices error:", error);
+      res.status(500).json({ message: "Failed to delete all notices" });
+    }
+  });
+
+  // Snooze AI notice
+  app.put("/api/ai-notices/:noticeId/snooze", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const noticeId = Number(req.params.noticeId);
+      const { minutes } = req.body;
+      
+      if (!minutes || typeof minutes !== 'number') {
+        return res.status(400).json({ message: "Invalid snooze duration" });
+      }
+
+      const snoozedUntil = new Date(Date.now() + minutes * 60 * 1000);
+      await storage.snoozeAiNotice(noticeId, Number(userId), snoozedUntil);
+      res.json({ success: true, snoozedUntil });
+    } catch (error) {
+      console.error("Snooze AI notice error:", error);
+      res.status(500).json({ message: "Failed to snooze notice" });
+    }
+  });
+
+  // Search AI notices
+  app.get("/api/ai-notices/search", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const searchTerm = req.query.q as string;
+      if (!searchTerm) {
+        return res.status(400).json({ message: "Search term required" });
+      }
+
+      const notices = await storage.searchAiNotices(Number(userId), searchTerm);
+      res.json(notices);
+    } catch (error) {
+      console.error("Search AI notices error:", error);
+      res.status(500).json({ message: "Failed to search notices" });
+    }
+  });
+
+  // Check unanswered messages and create notices
+  app.post("/api/ai-notices/check-unanswered", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      await storage.createUnansweredMessageNotices(Number(userId));
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Check unanswered messages error:", error);
+      res.status(500).json({ message: "Failed to check unanswered messages" });
+    }
+  });
+
   // Chat room upload endpoint for voice messages with transcription
   app.post("/api/chat-rooms/:chatRoomId/upload", upload.single("file"), async (req, res) => {
     const userId = req.headers["x-user-id"];
