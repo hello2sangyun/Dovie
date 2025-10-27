@@ -32,6 +32,10 @@ export const users = pgTable("users", {
   allowVoicePlayback: boolean("allow_voice_playback").default(true), // 다른 사람이 내 음성을 들을 수 있는지
   autoPlayVoiceMessages: boolean("auto_play_voice_messages").default(false), // 이어폰 착용 시 자동 재생
   allowVoiceBookmarks: boolean("allow_voice_bookmarks").default(true), // 다른 사람이 내 음성을 북마크할 수 있는지
+  // 소셜 로그인 정보
+  authProvider: text("auth_provider"), // 'google', 'apple', 'local' (기본 username/email/phone)
+  providerId: text("provider_id"), // OAuth provider's unique user ID
+  providerEmail: text("provider_email"), // Email from OAuth provider
   createdAt: timestamp("created_at").defaultNow(),
 });
 
