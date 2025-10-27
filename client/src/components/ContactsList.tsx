@@ -263,7 +263,6 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
 
   // 길게 누르기 시작
   const handleLongPressStart = (contact: any, e: React.TouchEvent | React.MouseEvent) => {
-    // preventDefault를 여기서 호출하지 않음 - 일반 탭(짧은 터치) 동작을 위해
     console.log('🎯 친구 간편음성메세지 - 길게 누르기 시작:', contact.contactUser.displayName);
     
     const timer = setTimeout(() => {
@@ -275,18 +274,15 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
 
   // 길게 누르기 끝
   const handleLongPressEnd = (e: React.TouchEvent | React.MouseEvent) => {
-    // 실제로 녹음이 시작되었을 때만 기본 동작(click) 차단
-    // longPressTimer는 짧은 탭에서도 설정되므로 체크하지 않음
-    if (isRecording) {
-      e.preventDefault();
-    }
-    
     if (longPressTimer) {
       clearTimeout(longPressTimer);
       setLongPressTimer(null);
     }
     
     if (isRecording) {
+      // 녹음 중이었다면 click 이벤트 차단
+      e.preventDefault();
+      e.stopPropagation();
       stopVoiceRecording();
     }
   };
@@ -454,14 +450,16 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
       queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
       queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${voiceConfirmData.chatRoomId}/messages`] });
       
-      // 채팅방으로 이동 (모달 닫기 전에)
-      if (onNavigateToChat) {
-        onNavigateToChat(voiceConfirmData.chatRoomId);
-      }
-      
       // 모달 닫기 (성공 시에만)
       setShowVoiceConfirmModal(false);
       setVoiceConfirmData(null);
+      
+      // 채팅방으로 이동 (모달 닫기 후에)
+      setTimeout(() => {
+        if (onNavigateToChat) {
+          onNavigateToChat(voiceConfirmData.chatRoomId);
+        }
+      }, 100);
     } catch (error) {
       console.error('❌ 음성 메시지 전송 실패:', error);
       // 에러를 다시 throw하여 모달이 닫히지 않도록 함

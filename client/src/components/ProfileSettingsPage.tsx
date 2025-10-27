@@ -20,6 +20,7 @@ export default function ProfileSettingsPage({ onBack }: ProfileSettingsPageProps
   const queryClient = useQueryClient();
   
   const [formData, setFormData] = useState({
+    username: user?.username || "",
     displayName: user?.displayName || "",
     email: user?.email || "",
     phoneNumber: user?.phoneNumber || "",
@@ -138,6 +139,20 @@ export default function ProfileSettingsPage({ onBack }: ProfileSettingsPageProps
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
+                <Label htmlFor="username" className="flex items-center text-sm font-medium">
+                  <User className="h-4 w-4 mr-2 text-gray-500" />
+                  아이디 (사용자명)
+                </Label>
+                <Input
+                  id="username"
+                  value={formData.username}
+                  onChange={(e) => handleInputChange("username", e.target.value)}
+                  placeholder="아이디를 입력하세요"
+                />
+                <p className="text-xs text-gray-500">다른 사람들이 당신을 찾을 때 사용하는 고유 아이디입니다</p>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="displayName" className="flex items-center text-sm font-medium">
                   <User className="h-4 w-4 mr-2 text-gray-500" />
                   표시 이름
@@ -159,9 +174,11 @@ export default function ProfileSettingsPage({ onBack }: ProfileSettingsPageProps
                   id="email"
                   type="email"
                   value={formData.email}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
+                  disabled
+                  className="bg-gray-100 cursor-not-allowed"
                   placeholder="이메일을 입력하세요"
                 />
+                <p className="text-xs text-gray-500">보안을 위해 이메일은 변경할 수 없습니다</p>
               </div>
 
               <div className="space-y-2">
@@ -305,10 +322,6 @@ export default function ProfileSettingsPage({ onBack }: ProfileSettingsPageProps
             <CardTitle className="text-base font-semibold">계정 정보</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">사용자명</span>
-              <span className="text-sm font-medium">@{user.username}</span>
-            </div>
             <div className="flex justify-between items-center py-2 border-b border-gray-100">
               <span className="text-sm text-gray-600">가입일</span>
               <span className="text-sm font-medium">
