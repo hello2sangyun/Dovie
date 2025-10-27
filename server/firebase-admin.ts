@@ -7,19 +7,30 @@ export function initializeFirebaseAdmin() {
     return firebaseApp;
   }
 
-  const projectId = process.env.VITE_FIREBASE_PROJECT_ID;
+  const projectId = process.env.FIREBASE_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY;
   
-  if (!projectId) {
+  if (!projectId || !clientEmail || !privateKey) {
     console.warn('⚠️ Firebase Admin SDK not configured - social login will not work');
+    console.warn('   Required env vars: FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY');
     return null;
   }
 
   try {
+    // Private key 포맷 수정 (\n을 실제 줄바꿈으로 변환)
+    const formattedPrivateKey = privateKey.replace(/\\n/g, '\n');
+    
     firebaseApp = admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId,
+        clientEmail,
+        privateKey: formattedPrivateKey,
+      }),
       projectId,
     });
     
-    console.log('✅ Firebase Admin SDK initialized');
+    console.log('✅ Firebase Admin SDK initialized with service account credentials');
     return firebaseApp;
   } catch (error) {
     console.error('❌ Firebase Admin SDK initialization failed:', error);
