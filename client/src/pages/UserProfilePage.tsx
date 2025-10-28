@@ -80,16 +80,18 @@ export default function UserProfilePage() {
   });
 
   // Check if already friends
-  const { data: contacts = [] } = useQuery<any[]>({
+  const { data: contactsData } = useQuery<{ contacts: any[] }>({
     queryKey: ['/api/contacts'],
     enabled: !!currentUser,
   });
+  const contacts = contactsData?.contacts || [];
 
   // Get existing chat rooms to find the one with this user
-  const { data: chatRooms = [] } = useQuery<any[]>({
+  const { data: chatRoomsData } = useQuery<{ chatRooms: any[] }>({
     queryKey: ['/api/chat-rooms'],
     enabled: !!currentUser,
   });
+  const chatRooms = chatRoomsData?.chatRooms || [];
 
   const isContact = contacts.some(c => c.contactUserId === profileUserId);
   const blockedContact = contacts.find(c => c.contactUserId === profileUserId);
@@ -105,10 +107,9 @@ export default function UserProfilePage() {
   // Add friend mutation
   const addFriendMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest('/api/contacts', {
-        method: 'POST',
-        body: JSON.stringify({ contactUserId: profileUserId }),
-      });
+      const response = await apiRequest('/api/contacts', 'POST', { contactUserId: profileUserId });
+      if (!response.ok) throw new Error('Failed to add friend');
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
@@ -129,14 +130,13 @@ export default function UserProfilePage() {
   // Create chat mutation
   const createChatMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest('/api/chat-rooms', {
-        method: 'POST',
-        body: JSON.stringify({
-          name: "",
-          isGroup: false,
-          participantIds: [profileUserId]
-        }),
+      const response = await apiRequest('/api/chat-rooms', 'POST', {
+        name: "",
+        isGroup: false,
+        participantIds: [profileUserId]
       });
+      if (!response.ok) throw new Error('Failed to create chat');
+      return response.json();
     },
     onSuccess: (data: any) => {
       navigate(`/chat/${data.chatRoom.id}`);
@@ -149,7 +149,9 @@ export default function UserProfilePage() {
       const endpoint = isBlocked 
         ? `/api/contacts/${profileUserId}/unblock`
         : `/api/contacts/${profileUserId}/block`;
-      return await apiRequest(endpoint, { method: 'POST' });
+      const response = await apiRequest(endpoint, 'POST');
+      if (!response.ok) throw new Error('Failed to block/unblock contact');
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
