@@ -11,7 +11,7 @@ import { getInitials, getAvatarColor } from "@/lib/utils";
 
 interface AddFriendConfirmModalProps {
   open: boolean;
-  onClose: () => void;
+  onClose: (addedUserIds?: number[]) => void;
   users: Array<{
     id: number;
     username: string;
@@ -76,10 +76,9 @@ export default function AddFriendConfirmModal({ open, onClose, users }: AddFrien
       const successful = results.filter(r => r.success);
       const failed = results.filter(r => !r.success);
       
-      // 성공 시 즉시 팝업 닫기
-      setTimeout(() => {
-        onClose();
-      }, 100);
+      // 성공적으로 추가된 사용자 ID들을 전달하며 모달 닫기
+      const addedUserIds = successful.map(r => r.user.id);
+      onClose(addedUserIds);
     },
     onError: (error: any) => {
       console.error("친구 추가 실패:", error);
