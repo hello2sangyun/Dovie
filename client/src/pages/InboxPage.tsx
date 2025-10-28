@@ -59,6 +59,11 @@ interface AiNotice {
     name: string;
     isGroup: boolean;
   };
+  senderName?: string | null;
+  senderUsername?: string | null;
+  senderId?: number | null;
+  originalMessage?: string | null;
+  messageType?: string | null;
 }
 
 type ViewMode = "list" | "stats" | "calendar";
@@ -89,6 +94,13 @@ export default function InboxPage() {
   const [clearAllDialog, setClearAllDialog] = useState(false);
   const [quickReplyNotice, setQuickReplyNotice] = useState<AiNotice | null>(null);
   const [quickReplyText, setQuickReplyText] = useState("");
+  
+  // Multi-select states
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedNotices, setSelectedNotices] = useState<Set<number>>(new Set());
+  
+  // Message preview dialog
+  const [previewNotice, setPreviewNotice] = useState<AiNotice | null>(null);
 
   const debouncedSearch = useDebounce(searchTerm, 500);
 
@@ -192,6 +204,21 @@ export default function InboxPage() {
     },
   });
 
+  // Bulk delete mutation
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (noticeIds: number[]) => {
+      await Promise.all(
+        noticeIds.map(id => apiRequest(`/api/ai-notices/${id}`, "DELETE"))
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/ai-notices"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ai-notices/search"], exact: false });
+      setSelectedNotices(new Set());
+      setSelectionMode(false);
+    },
+  });
+
   // Clear all mutation
   const clearAllMutation = useMutation({
     mutationFn: async () => {
@@ -233,12 +260,40 @@ export default function InboxPage() {
   });
 
   const handleNoticeClick = (notice: AiNotice) => {
-    if (!notice.isRead) {
-      markAsReadMutation.mutate(notice.id);
+    if (selectionMode) {
+      toggleNoticeSelection(notice.id);
+    } else {
+      // Show preview dialog instead of navigating
+      if (!notice.isRead) {
+        markAsReadMutation.mutate(notice.id);
+      }
+      setPreviewNotice(notice);
     }
-    setLocation(`/chat-rooms/${notice.chatRoomId}`, {
-      state: { messageId: notice.messageId },
+  };
+
+  const toggleNoticeSelection = (noticeId: number) => {
+    setSelectedNotices(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(noticeId)) {
+        newSet.delete(noticeId);
+      } else {
+        newSet.add(noticeId);
+      }
+      return newSet;
     });
+  };
+
+  const toggleAllSelection = () => {
+    if (selectedNotices.size === filteredNotices.length) {
+      setSelectedNotices(new Set());
+    } else {
+      setSelectedNotices(new Set(filteredNotices.map(n => n.id)));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedNotices.size === 0) return;
+    bulkDeleteMutation.mutate(Array.from(selectedNotices));
   };
 
   const handleSnooze = (noticeId: number, minutes: number) => {
@@ -269,6 +324,7 @@ export default function InboxPage() {
   const renderNoticeItem = (notice: AiNotice) => {
     const config = getNoticeIcon(notice.noticeType);
     const Icon = config.icon;
+    const senderDisplayName = notice.senderName || notice.senderUsername || "알 수 없음";
 
     return (
       <Card
@@ -276,10 +332,22 @@ export default function InboxPage() {
         data-testid={`notice-${notice.id}`}
         className={cn(
           "p-2.5 transition-all hover:shadow-sm cursor-pointer",
-          !notice.isRead && "bg-purple-50 border-purple-200"
+          !notice.isRead && "bg-purple-50 border-purple-200",
+          selectedNotices.has(notice.id) && "border-purple-400 bg-purple-100"
         )}
       >
         <div className="flex items-start gap-2">
+          {selectionMode && (
+            <input
+              type="checkbox"
+              checked={selectedNotices.has(notice.id)}
+              onChange={() => toggleNoticeSelection(notice.id)}
+              onClick={(e) => e.stopPropagation()}
+              className="mt-1 h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+              data-testid={`notice-checkbox-${notice.id}`}
+            />
+          )}
+          
           <div className={cn("p-1.5 rounded-md flex-shrink-0", config.bg)}>
             <Icon className={cn("h-3.5 w-3.5", config.color)} />
           </div>
@@ -294,17 +362,22 @@ export default function InboxPage() {
               )}
             </div>
 
-            <p className={cn("text-xs leading-snug", !notice.isRead && "font-semibold")}>
+            <p className={cn("text-xs leading-snug mb-0.5", !notice.isRead && "font-semibold")}>
               {notice.content}
             </p>
 
             <div className="flex items-center justify-between mt-1">
-              <span className="text-[10px] text-muted-foreground">
-                {formatDistanceToNow(new Date(notice.createdAt), {
-                  addSuffix: true,
-                  locale: ko,
-                })}
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] text-purple-600 font-medium">
+                  {senderDisplayName}님
+                </span>
+                <span className="text-[10px] text-muted-foreground">
+                  • {formatDistanceToNow(new Date(notice.createdAt), {
+                    addSuffix: true,
+                    locale: ko,
+                  })}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -572,17 +645,51 @@ export default function InboxPage() {
             
             <Separator orientation="vertical" className="h-4 mx-1" />
             
-            {/* Clear All */}
+            {/* Selection Mode Toggle */}
             <Button
-              variant="ghost"
+              variant={selectionMode ? "default" : "ghost"}
               size="sm"
-              onClick={() => setClearAllDialog(true)}
-              disabled={activeNotices.length === 0}
+              onClick={() => {
+                setSelectionMode(!selectionMode);
+                if (selectionMode) setSelectedNotices(new Set());
+              }}
+              disabled={filteredNotices.length === 0}
               className="h-7 px-2"
-              data-testid="button-clear-all"
+              data-testid="button-selection-mode"
             >
-              <Trash2 className="h-3.5 w-3.5" />
+              <CheckCircle2 className="h-3.5 w-3.5" />
             </Button>
+
+            {/* Bulk Delete - Only show in selection mode */}
+            {selectionMode && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleBulkDelete}
+                disabled={selectedNotices.size === 0}
+                className="h-7 px-2"
+                data-testid="button-bulk-delete"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                {selectedNotices.size > 0 && (
+                  <span className="ml-1 text-xs">{selectedNotices.size}</span>
+                )}
+              </Button>
+            )}
+            
+            {/* Clear All */}
+            {!selectionMode && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setClearAllDialog(true)}
+                disabled={activeNotices.length === 0}
+                className="h-7 px-2"
+                data-testid="button-clear-all"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            )}
           </div>
         </div>
         
@@ -760,6 +867,123 @@ export default function InboxPage() {
                 >
                   <Send className="h-4 w-4 mr-2" />
                   {quickReplyMutation.isPending ? "전송 중..." : "전송"}
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Message Preview Dialog */}
+      <Dialog open={!!previewNotice} onOpenChange={() => setPreviewNotice(null)}>
+        <DialogContent className="max-w-lg" data-testid="dialog-message-preview">
+          <DialogHeader>
+            <DialogTitle>메시지 미리보기</DialogTitle>
+            <DialogDescription>
+              {previewNotice?.senderName || previewNotice?.senderUsername || "알 수 없음"}님의 메시지
+            </DialogDescription>
+          </DialogHeader>
+
+          {previewNotice && (
+            <div className="space-y-4">
+              {/* AI Notice */}
+              <Card className="p-4 bg-purple-50 border-purple-200">
+                <div className="flex items-start gap-2 mb-2">
+                  <Badge variant="outline" className="text-xs">
+                    {getNoticeIcon(previewNotice.noticeType).label}
+                  </Badge>
+                </div>
+                <p className="text-sm font-semibold">{previewNotice.content}</p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  {formatDistanceToNow(new Date(previewNotice.createdAt), {
+                    addSuffix: true,
+                    locale: ko,
+                  })}
+                </p>
+              </Card>
+
+              {/* Original Message */}
+              {previewNotice.originalMessage && (
+                <div className="space-y-2">
+                  <h4 className="text-sm font-semibold">원본 메시지</h4>
+                  <Card className="p-4 bg-muted">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-sm font-medium text-purple-600">
+                        {previewNotice.senderName || previewNotice.senderUsername}님
+                      </span>
+                      {previewNotice.messageType && (
+                        <Badge variant="secondary" className="text-xs">
+                          {previewNotice.messageType === 'voice' ? '음성' : 
+                           previewNotice.messageType === 'image' ? '이미지' : 
+                           previewNotice.messageType === 'file' ? '파일' : '텍스트'}
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-sm whitespace-pre-wrap">{previewNotice.originalMessage}</p>
+                  </Card>
+                </div>
+              )}
+
+              {/* Metadata */}
+              {previewNotice.metadata && Object.keys(previewNotice.metadata).length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-sm font-semibold">상세 정보</h4>
+                  <Card className="p-3">
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      {previewNotice.metadata.date && (
+                        <div>
+                          <span className="text-muted-foreground">날짜:</span>
+                          <span className="ml-1 font-medium">{previewNotice.metadata.date}</span>
+                        </div>
+                      )}
+                      {previewNotice.metadata.time && (
+                        <div>
+                          <span className="text-muted-foreground">시간:</span>
+                          <span className="ml-1 font-medium">{previewNotice.metadata.time}</span>
+                        </div>
+                      )}
+                      {previewNotice.metadata.location && (
+                        <div className="col-span-2">
+                          <span className="text-muted-foreground">장소:</span>
+                          <span className="ml-1 font-medium">{previewNotice.metadata.location}</span>
+                        </div>
+                      )}
+                      {previewNotice.metadata.amount && (
+                        <div>
+                          <span className="text-muted-foreground">금액:</span>
+                          <span className="ml-1 font-medium">{previewNotice.metadata.amount}</span>
+                        </div>
+                      )}
+                      {previewNotice.metadata.frequency && (
+                        <div>
+                          <span className="text-muted-foreground">반복:</span>
+                          <span className="ml-1 font-medium">{previewNotice.metadata.frequency}</span>
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                </div>
+              )}
+
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setPreviewNotice(null)}
+                  data-testid="button-close-preview"
+                >
+                  닫기
+                </Button>
+                <Button
+                  onClick={() => {
+                    setPreviewNotice(null);
+                    setLocation(`/chat-rooms/${previewNotice.chatRoomId}`, {
+                      state: { messageId: previewNotice.messageId },
+                    });
+                  }}
+                  data-testid="button-goto-chat"
+                >
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  채팅방으로 이동
                 </Button>
               </DialogFooter>
             </div>

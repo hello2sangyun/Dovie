@@ -919,9 +919,36 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserAiNotices(userId: number): Promise<AiNotice[]> {
-    return await db.select().from(aiNotices)
+    const results = await db
+      .select({
+        id: aiNotices.id,
+        chatRoomId: aiNotices.chatRoomId,
+        messageId: aiNotices.messageId,
+        userId: aiNotices.userId,
+        noticeType: aiNotices.noticeType,
+        content: aiNotices.content,
+        metadata: aiNotices.metadata,
+        isRead: aiNotices.isRead,
+        createdAt: aiNotices.createdAt,
+        priority: aiNotices.priority,
+        snoozedUntil: aiNotices.snoozedUntil,
+        senderName: users.displayName,
+        senderUsername: users.username,
+        senderId: messages.senderId,
+        originalMessage: messages.content,
+        messageType: messages.messageType,
+      })
+      .from(aiNotices)
+      .leftJoin(messages, eq(aiNotices.messageId, messages.id))
+      .leftJoin(users, eq(messages.senderId, users.id))
       .where(eq(aiNotices.userId, userId))
       .orderBy(desc(aiNotices.createdAt));
+    
+    // Decrypt original messages
+    return results.map(result => ({
+      ...result,
+      originalMessage: result.originalMessage ? decryptText(result.originalMessage) : null
+    })) as any;
   }
 
   async getChatRoomAiNotices(userId: number, chatRoomId: number): Promise<AiNotice[]> {
@@ -975,7 +1002,28 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchAiNotices(userId: number, searchTerm: string): Promise<AiNotice[]> {
-    return await db.select().from(aiNotices)
+    const results = await db
+      .select({
+        id: aiNotices.id,
+        chatRoomId: aiNotices.chatRoomId,
+        messageId: aiNotices.messageId,
+        userId: aiNotices.userId,
+        noticeType: aiNotices.noticeType,
+        content: aiNotices.content,
+        metadata: aiNotices.metadata,
+        isRead: aiNotices.isRead,
+        createdAt: aiNotices.createdAt,
+        priority: aiNotices.priority,
+        snoozedUntil: aiNotices.snoozedUntil,
+        senderName: users.displayName,
+        senderUsername: users.username,
+        senderId: messages.senderId,
+        originalMessage: messages.content,
+        messageType: messages.messageType,
+      })
+      .from(aiNotices)
+      .leftJoin(messages, eq(aiNotices.messageId, messages.id))
+      .leftJoin(users, eq(messages.senderId, users.id))
       .where(and(
         eq(aiNotices.userId, userId),
         or(
@@ -984,6 +1032,12 @@ export class DatabaseStorage implements IStorage {
         )
       ))
       .orderBy(desc(aiNotices.createdAt));
+    
+    // Decrypt original messages
+    return results.map(result => ({
+      ...result,
+      originalMessage: result.originalMessage ? decryptText(result.originalMessage) : null
+    })) as any;
   }
 
   async checkUnansweredMessages(userId: number, hoursThreshold: number = 1): Promise<Array<{ chatRoomId: number; lastMessage: Message & { sender: User }; timeSinceMessage: number }>> {
