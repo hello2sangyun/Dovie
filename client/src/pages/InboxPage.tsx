@@ -924,7 +924,7 @@ export default function InboxPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="flex flex-col items-center gap-1 h-auto py-2"
+                  className="flex flex-col items-center gap-1 h-auto py-2 border-0"
                   onClick={() => {
                     setPreviewNotice(null);
                     setLocation(`/chat-rooms/${previewNotice.chatRoomId}`, {
@@ -996,7 +996,7 @@ export default function InboxPage() {
                   data-testid="button-delete-preview"
                 >
                   <Trash2 className="h-5 w-5" />
-                  <span className="text-xs">삭제</span>
+                  <span className="text-xs">알림삭제</span>
                 </Button>
               </div>
             </>
