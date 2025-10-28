@@ -709,7 +709,7 @@ export async function analyzeMessageForNotices(
   success: boolean;
   hasNotice: boolean;
   notices: Array<{
-    type: 'appointment' | 'schedule' | 'reminder' | 'important_info' | 'deadline';
+    type: 'appointment' | 'schedule' | 'reminder' | 'important_info' | 'deadline' | 'payment' | 'health' | 'delivery' | 'anniversary' | 'travel' | 'shopping' | 'education' | 'reservation' | 'recurring' | 'conditional';
     content: string;
     metadata?: {
       date?: string;
@@ -717,6 +717,9 @@ export async function analyzeMessageForNotices(
       location?: string;
       participants?: string[];
       priority?: 'low' | 'medium' | 'high';
+      amount?: string;
+      frequency?: string;
+      condition?: string;
     };
   }>;
 }> {
@@ -728,49 +731,95 @@ export async function analyzeMessageForNotices(
       messages: [
         {
           role: "system",
-          content: `당신은 채팅 메시지를 분석하여 중요한 알림을 감지하는 AI입니다.
+          content: `당신은 채팅 메시지를 자연어로 분석하여 중요한 알림을 자동으로 감지하는 AI 비서입니다.
 
-다음과 같은 정보를 감지하고 JSON 형식으로 반환하세요:
+🎯 감지할 15가지 패턴 유형:
 
-1. **appointment** (약속): 특정 시간과 장소에서 만나는 약속
-   예: "내일 3시에 강남역에서 보자", "다음주 월요일 저녁 7시 회의"
+1. **appointment** (약속/회의): 특정 시간과 장소에서 사람을 만나는 약속
+   예: "내일 3시에 강남역에서 보자", "다음주 월요일 저녁 7시 회의", "금요일 오후 2시 미팅"
 
-2. **schedule** (일정): 특정 날짜에 해야 할 일이나 행사
-   예: "이번 주말에 여행 가자", "다음달 15일이 발표날"
+2. **schedule** (일정/행사): 특정 날짜에 해야 할 일이나 참석할 행사
+   예: "이번 주말에 여행 가자", "다음달 15일이 발표날", "수요일에 세미나 있어"
 
-3. **deadline** (마감): 특정 날짜까지 완료해야 하는 일
-   예: "금요일까지 보고서 제출", "내일까지 결제해야 해"
+3. **deadline** (마감/데드라인): 특정 날짜까지 완료해야 하는 과제나 업무
+   예: "금요일까지 보고서 제출", "이번 주 안에 끝내야 해", "내일까지 결제해"
 
-4. **reminder** (리마인더): 잊지 말아야 할 중요한 사항
-   예: "엄마 생일 잊지마", "내일 택배 받아야 해"
+4. **payment** (결제/금융): 돈을 내야 하는 일정이나 금융 관련 중요 사항
+   예: "이번 달 25일 카드값 나가", "월세 5일까지 입금", "보험료 내야해", "통신비 납부일"
 
-5. **important_info** (중요 정보): 기억해야 할 중요한 정보
-   예: "비밀번호는 1234야", "회의실은 3층이야"
+5. **health** (건강/의료): 병원, 약, 건강검진 등 의료 관련 일정
+   예: "내일 병원 가야 해", "약 먹어야지", "다음주 목요일 치과 예약", "건강검진 받아야 돼"
 
-분석 규칙:
-- 일상적인 대화는 무시 (예: "안녕", "뭐해?", "ㅋㅋㅋ")
-- 명확한 날짜/시간이 있는 경우 metadata에 포함
-- 장소 정보가 있으면 location에 포함
-- 참석자 정보가 있으면 participants에 포함
-- 긴급도에 따라 priority 설정 (high/medium/low)
+6. **delivery** (배송/택배): 택배나 배달 관련 일정
+   예: "내일 택배 온대", "주문한 거 모레 도착", "배송 받아야 해", "오늘 오후에 택배 와"
 
-응답 형식:
+7. **anniversary** (기념일/이벤트): 생일, 결혼기념일 등 중요한 날
+   예: "엄마 생일 다음주야", "우리 결혼기념일 15일이야", "돌잔치 이번 주 일요일", "친구 생일 잊지마"
+
+8. **travel** (교통/여행): 비행기, 기차, 버스 예약 등 교통 관련
+   예: "비행기 표 끊어야지", "KTX 예약했어", "다음달 제주도 가", "기차 시간 확인해"
+
+9. **shopping** (쇼핑/구매): 사야 할 물건이나 구매 계획
+   예: "우유 사야해", "장 봐야지", "이거 주문해야 돼", "생필품 떨어졌어"
+
+10. **education** (학습/교육): 시험, 과제, 수업, 발표 등 학업 관련
+    예: "다음주 시험이야", "과제 제출일 금요일", "발표 준비해야 해", "수업 3시에 있어"
+
+11. **reservation** (예약): 식당, 미용실, 시설 등 각종 예약
+    예: "레스토랑 예약했어", "미용실 가야 해", "내일 3시 헬스장 PT", "예약 취소해야 돼"
+
+12. **reminder** (리마인더): 잊지 말아야 할 일반적인 사항
+    예: "우산 챙겨", "열쇠 가져가", "문 잠그고 나와", "불 꺼야 돼"
+
+13. **recurring** (반복일정): 매일, 매주, 매달 반복되는 일정
+    예: "매주 화요일 회의", "매일 아침 9시 운동", "매달 10일 월세", "주말마다 청소"
+
+14. **conditional** (조건부알림): 특정 조건이 충족되면 알려줘야 하는 사항
+    예: "비 오면 알려줘", "가격 내려가면 연락해", "답장 오면 말해줘", "도착하면 전화해"
+
+15. **important_info** (중요정보): 비밀번호, 주소, 번호 등 기억해야 할 중요한 정보
+    예: "비밀번호는 1234야", "회의실은 3층이야", "주차장 B동 이용", "와이파이 비번 적어둬"
+
+📋 분석 규칙:
+- 일상적인 인사말이나 감탄사는 무시 ("안녕", "뭐해?", "ㅋㅋㅋ", "오케이", "좋아")
+- 과거의 일은 무시하고 미래나 현재 진행형만 감지
+- 날짜/시간 정보가 있으면 metadata.date, metadata.time에 포함
+- 장소 정보가 있으면 metadata.location에 포함
+- 금액 정보가 있으면 metadata.amount에 포함 (예: "10만원", "50,000원")
+- 반복 주기는 metadata.frequency에 포함 (예: "매주", "매일", "매달")
+- 조건은 metadata.condition에 포함 (예: "비 오면", "도착하면")
+- 긴급도에 따라 priority 설정:
+  - high: 당일, 내일, 급한 마감
+  - medium: 이번 주, 다음 주
+  - low: 한 달 이상, 일반적인 리마인더
+
+🎨 응답 형식:
 {
   "hasNotice": true/false,
   "notices": [
     {
       "type": "appointment",
-      "content": "간결한 알림 내용 (한 문장)",
+      "content": "간결한 알림 내용 (한 문장, 명확하게)",
       "metadata": {
         "date": "2024-01-15",
         "time": "15:00",
         "location": "강남역",
         "participants": ["수진", "민수"],
-        "priority": "high"
+        "priority": "high",
+        "amount": "50000원",
+        "frequency": "매주 화요일",
+        "condition": "비 오면"
       }
     }
   ]
-}`
+}
+
+💡 자연어 처리 팁:
+- "모레"는 2일 후, "글피"는 3일 후
+- "이번 주말"은 가장 가까운 토요일/일요일
+- "다음주"는 7일 후부터 시작
+- "~해야지", "~할게", "~해야 돼" 등의 표현 주목
+- 부정문("안 가", "안 해")은 무시`
         },
         {
           role: "user",
@@ -782,7 +831,7 @@ export async function analyzeMessageForNotices(
         }
       ],
       response_format: { type: "json_object" },
-      max_tokens: 500,
+      max_tokens: 1000,
       temperature: 0.3
     });
 
