@@ -19,6 +19,7 @@ Preferred communication style: Simple, everyday language.
 - **Image Loading**: Instant image loading via global Blob-based caching and preloading for zero-delay display.
 - **Chat Bubbles**: Compact, smart design with gradient backgrounds and optimized spacing for high message density.
 - **Notifications**: Top banner-style mobile notifications and a comprehensive PWA badge system that functions even when the app is closed.
+- **Unified Header Design**: All main pages (Contacts, Chat Rooms, Smart Inbox, Bookmarks) follow consistent header design with text-xl font-bold titles, h-4/h-5 icons, and pl-10 search bars for improved UX consistency.
 
 ### Technical Implementations
 - **Backend**: Node.js with Express.js (TypeScript, ES modules).
