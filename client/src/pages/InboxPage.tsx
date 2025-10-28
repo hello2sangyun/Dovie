@@ -19,6 +19,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 import {
   Calendar,
@@ -62,6 +63,7 @@ interface AiNotice {
   senderName?: string | null;
   senderUsername?: string | null;
   senderId?: number | null;
+  senderProfilePicture?: string | null;
   originalMessage?: string | null;
   messageType?: string | null;
 }
@@ -874,106 +876,55 @@ export default function InboxPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Message Preview Dialog */}
+      {/* Message Preview Dialog - Simplified */}
       <Dialog open={!!previewNotice} onOpenChange={() => setPreviewNotice(null)}>
-        <DialogContent className="max-w-lg" data-testid="dialog-message-preview">
-          <DialogHeader>
-            <DialogTitle>메시지 미리보기</DialogTitle>
-            <DialogDescription>
-              {previewNotice?.senderName || previewNotice?.senderUsername || "알 수 없음"}님의 메시지
-            </DialogDescription>
-          </DialogHeader>
-
-          {previewNotice && (
-            <div className="space-y-4">
-              {/* AI Notice */}
-              <Card className="p-4 bg-purple-50 border-purple-200">
-                <div className="flex items-start gap-2 mb-2">
-                  <Badge variant="outline" className="text-xs">
-                    {getNoticeIcon(previewNotice.noticeType).label}
-                  </Badge>
-                </div>
-                <p className="text-sm font-semibold">{previewNotice.content}</p>
-                <p className="text-xs text-muted-foreground mt-2">
-                  {formatDistanceToNow(new Date(previewNotice.createdAt), {
-                    addSuffix: true,
-                    locale: ko,
-                  })}
-                </p>
-              </Card>
-
-              {/* Original Message */}
-              {previewNotice.originalMessage && (
-                <div className="space-y-2">
-                  <h4 className="text-sm font-semibold">원본 메시지</h4>
-                  <Card className="p-4 bg-muted">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-sm font-medium text-purple-600">
-                        {previewNotice.senderName || previewNotice.senderUsername}님
-                      </span>
-                      {previewNotice.messageType && (
-                        <Badge variant="secondary" className="text-xs">
-                          {previewNotice.messageType === 'voice' ? '음성' : 
-                           previewNotice.messageType === 'image' ? '이미지' : 
-                           previewNotice.messageType === 'file' ? '파일' : '텍스트'}
-                        </Badge>
-                      )}
+        <DialogContent className="max-w-md p-0 gap-0" data-testid="dialog-message-preview">
+          {previewNotice && (() => {
+            const senderName = previewNotice.senderName || previewNotice.senderUsername || "";
+            const displayName = senderName.trim() || "알 수 없음";
+            const initial = senderName.trim() ? senderName.trim().charAt(0).toUpperCase() : "?";
+            
+            return (
+              <>
+                {/* Message Content */}
+                <div className="p-6">
+                  {/* Sender Info */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={previewNotice.senderProfilePicture || undefined} />
+                      <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold">
+                        {initial}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-base">
+                        {displayName}
+                      </h3>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(previewNotice.createdAt), {
+                          addSuffix: true,
+                          locale: ko,
+                        })}
+                      </p>
                     </div>
-                    <p className="text-sm whitespace-pre-wrap">{previewNotice.originalMessage}</p>
-                  </Card>
-                </div>
-              )}
+                  </div>
 
-              {/* Metadata */}
-              {previewNotice.metadata && Object.keys(previewNotice.metadata).length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="text-sm font-semibold">상세 정보</h4>
-                  <Card className="p-3">
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      {previewNotice.metadata.date && (
-                        <div>
-                          <span className="text-muted-foreground">날짜:</span>
-                          <span className="ml-1 font-medium">{previewNotice.metadata.date}</span>
-                        </div>
-                      )}
-                      {previewNotice.metadata.time && (
-                        <div>
-                          <span className="text-muted-foreground">시간:</span>
-                          <span className="ml-1 font-medium">{previewNotice.metadata.time}</span>
-                        </div>
-                      )}
-                      {previewNotice.metadata.location && (
-                        <div className="col-span-2">
-                          <span className="text-muted-foreground">장소:</span>
-                          <span className="ml-1 font-medium">{previewNotice.metadata.location}</span>
-                        </div>
-                      )}
-                      {previewNotice.metadata.amount && (
-                        <div>
-                          <span className="text-muted-foreground">금액:</span>
-                          <span className="ml-1 font-medium">{previewNotice.metadata.amount}</span>
-                        </div>
-                      )}
-                      {previewNotice.metadata.frequency && (
-                        <div>
-                          <span className="text-muted-foreground">반복:</span>
-                          <span className="ml-1 font-medium">{previewNotice.metadata.frequency}</span>
-                        </div>
-                      )}
-                    </div>
-                  </Card>
-                </div>
-              )}
+                {/* Message */}
+                {previewNotice.originalMessage && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                      {previewNotice.originalMessage}
+                    </p>
+                  </div>
+                )}
+              </div>
 
-              <DialogFooter>
+              {/* Action Bar */}
+              <div className="border-t bg-gray-50 px-4 py-3 flex items-center justify-around">
                 <Button
-                  variant="outline"
-                  onClick={() => setPreviewNotice(null)}
-                  data-testid="button-close-preview"
-                >
-                  닫기
-                </Button>
-                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex flex-col items-center gap-1 h-auto py-2"
                   onClick={() => {
                     setPreviewNotice(null);
                     setLocation(`/chat-rooms/${previewNotice.chatRoomId}`, {
@@ -982,12 +933,75 @@ export default function InboxPage() {
                   }}
                   data-testid="button-goto-chat"
                 >
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  채팅방으로 이동
+                  <MessageCircle className="h-5 w-5" />
+                  <span className="text-xs">채팅방</span>
                 </Button>
-              </DialogFooter>
-            </div>
-          )}
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex flex-col items-center gap-1 h-auto py-2"
+                      data-testid="button-snooze-preview"
+                    >
+                      <Clock className="h-5 w-5" />
+                      <span className="text-xs">나중에</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        handleSnooze(previewNotice.id, 30);
+                        setPreviewNotice(null);
+                      }}
+                    >
+                      30분 후
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        handleSnooze(previewNotice.id, 60);
+                        setPreviewNotice(null);
+                      }}
+                    >
+                      1시간 후
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        handleSnooze(previewNotice.id, 1440);
+                        setPreviewNotice(null);
+                      }}
+                    >
+                      내일
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        handleSnooze(previewNotice.id, 10080);
+                        setPreviewNotice(null);
+                      }}
+                    >
+                      다음주
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex flex-col items-center gap-1 h-auto py-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  onClick={() => {
+                    deleteMutation.mutate(previewNotice.id);
+                    setPreviewNotice(null);
+                  }}
+                  data-testid="button-delete-preview"
+                >
+                  <Trash2 className="h-5 w-5" />
+                  <span className="text-xs">삭제</span>
+                </Button>
+              </div>
+            </>
+            );
+          })()}
         </DialogContent>
       </Dialog>
     </div>

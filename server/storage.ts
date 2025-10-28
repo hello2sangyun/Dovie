@@ -935,6 +935,7 @@ export class DatabaseStorage implements IStorage {
         senderName: users.displayName,
         senderUsername: users.username,
         senderId: messages.senderId,
+        senderProfilePicture: users.profilePicture,
         originalMessage: messages.content,
         messageType: messages.messageType,
       })
@@ -1018,6 +1019,7 @@ export class DatabaseStorage implements IStorage {
         senderName: users.displayName,
         senderUsername: users.username,
         senderId: messages.senderId,
+        senderProfilePicture: users.profilePicture,
         originalMessage: messages.content,
         messageType: messages.messageType,
       })
