@@ -283,8 +283,27 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
 
   return (
     <div className="flex flex-col h-full bg-gray-50" data-testid="bookmark-list">
+      {/* Header */}
+      <div className="p-4 border-b border-gray-200 bg-white">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-xl font-bold text-gray-900">북마크</h3>
+        </div>
+        
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            type="text"
+            placeholder="북마크 검색..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+            data-testid="input-bookmark-search"
+          />
+        </div>
+      </div>
+      
       {/* Tab Filter */}
-      <div className="p-3 bg-white border-b border-gray-200">
+      <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
         <div className="flex gap-2">
           <Button
             variant={activeTab === 'all' ? 'default' : 'outline'}
@@ -325,21 +344,6 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
           >
             🎤 음성
           </Button>
-        </div>
-      </div>
-      
-      {/* Search bar */}
-      <div className="p-4 bg-white border-b border-gray-200">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input
-            type="text"
-            placeholder="북마크 검색..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-            data-testid="input-bookmark-search"
-          />
         </div>
       </div>
 
