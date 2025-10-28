@@ -528,32 +528,36 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
 
   return (
     <div className="h-full flex flex-col">
-      <div className="p-3 border-b border-gray-200">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold text-gray-900 text-sm">연락처</h3>
+      {/* Header */}
+      <div className="p-4 border-b border-gray-200 bg-white">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-xl font-bold text-gray-900">연락처</h3>
           <Button
             variant="ghost"
             size="sm"
-            className="text-purple-600 hover:text-purple-700 h-7 w-7 p-0"
+            className="text-purple-600 hover:text-purple-700 h-8 w-8 p-0"
             onClick={onAddContact}
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-5 w-5" />
           </Button>
         </div>
         
-        <div className="relative mb-2">
-          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-3 w-3" />
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
             type="text"
             placeholder="검색..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-7 h-7 text-xs"
+            className="pl-10"
           />
         </div>
-        
+      </div>
+      
+      {/* Sort Selector */}
+      <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
         <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="h-7 text-xs">
+          <SelectTrigger className="h-9 text-sm">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
