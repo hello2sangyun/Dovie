@@ -6042,9 +6042,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       {nonFriendUsers.length > 0 && (
         <AddFriendConfirmModal
           open={showAddFriendModal}
-          onClose={() => {
+          onClose={(addedUserIds) => {
             setShowAddFriendModal(false);
-            setNonFriendUsers([]);
+            // 추가된 사용자들을 nonFriendUsers에서 즉시 제거
+            if (addedUserIds && addedUserIds.length > 0) {
+              setNonFriendUsers(prev => prev.filter(user => !addedUserIds.includes(user.id)));
+            } else {
+              setNonFriendUsers([]);
+            }
             setFriendModalDismissed(true);
           }}
           users={nonFriendUsers}

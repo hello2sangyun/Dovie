@@ -86,7 +86,7 @@ export default function AddFriendConfirmModal({ open, onClose, users }: AddFrien
   });
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={() => onClose()}>
       <DialogContent className="sm:max-w-lg max-h-[80vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
@@ -143,7 +143,7 @@ export default function AddFriendConfirmModal({ open, onClose, users }: AddFrien
           <Button
             variant="outline"
             className="flex-1"
-            onClick={onClose}
+            onClick={() => onClose()}
             disabled={addContactsMutation.isPending}
           >
             취소
