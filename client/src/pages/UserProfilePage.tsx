@@ -127,9 +127,15 @@ export default function UserProfilePage() {
     }
   });
 
-  // Create chat mutation
+  // Create chat or navigate to existing one
   const createChatMutation = useMutation({
     mutationFn: async () => {
+      // If chat room already exists, just return it
+      if (existingChatRoom) {
+        return { chatRoom: existingChatRoom };
+      }
+      
+      // Otherwise create a new one
       const response = await apiRequest('/api/chat-rooms', 'POST', {
         name: "",
         isGroup: false,
@@ -139,7 +145,9 @@ export default function UserProfilePage() {
       return response.json();
     },
     onSuccess: (data: any) => {
-      navigate(`/chat/${data.chatRoom.id}`);
+      // Invalidate chat rooms query to update cache with new room
+      queryClient.invalidateQueries({ queryKey: ['/api/chat-rooms'] });
+      navigate(`/chat-rooms/${data.chatRoom.id}`);
     },
   });
 
@@ -187,16 +195,49 @@ export default function UserProfilePage() {
     }
   };
 
-  // Filter media by type
-  const mediaFiles = sharedMedia.filter(m => 
-    m.messageType === 'image' || m.messageType === 'video'
-  );
-  const documentFiles = sharedMedia.filter(m => 
-    m.messageType === 'file'
-  );
-  const linkFiles = sharedMedia.filter(m => 
-    m.messageType === 'text' && m.fileUrl?.startsWith('http')
-  );
+  // Helper function to check if file is an image based on extension
+  const isImageFile = (fileUrl: string) => {
+    const imageExtensions = [
+      '.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg',
+      '.heic', '.heif', '.tiff', '.tif', '.ico', '.avif'
+    ];
+    // Remove query strings and normalize to lowercase
+    const cleanUrl = fileUrl.split('?')[0].toLowerCase();
+    return imageExtensions.some(ext => cleanUrl.endsWith(ext));
+  };
+
+  // Helper function to check if file is a video based on extension
+  const isVideoFile = (fileUrl: string) => {
+    const videoExtensions = [
+      '.mp4', '.webm', '.mov', '.avi', '.mkv', '.m4v',
+      '.flv', '.wmv', '.mpg', '.mpeg', '.3gp'
+    ];
+    // Remove query strings and normalize to lowercase
+    const cleanUrl = fileUrl.split('?')[0].toLowerCase();
+    return videoExtensions.some(ext => cleanUrl.endsWith(ext));
+  };
+
+  // Filter media by type using file extensions
+  const mediaFiles = sharedMedia.filter(m => {
+    if (!m.fileUrl) return false;
+    return isImageFile(m.fileUrl) || isVideoFile(m.fileUrl);
+  });
+  
+  const documentFiles = sharedMedia.filter(m => {
+    if (!m.fileUrl) return false;
+    // Files that are not images or videos (includes both local uploads and external files)
+    const isMedia = isImageFile(m.fileUrl) || isVideoFile(m.fileUrl);
+    return !isMedia && m.messageType !== 'text';
+  });
+  
+  // Links are text messages with URLs, excluding files already classified as media or documents
+  const linkFiles = sharedMedia.filter(m => {
+    if (!m.fileUrl) return false;
+    const isMedia = isImageFile(m.fileUrl) || isVideoFile(m.fileUrl);
+    const isDocument = !isMedia && m.messageType !== 'text';
+    // Only text messages with HTTP(S) URLs that aren't already classified as media or documents
+    return m.messageType === 'text' && m.fileUrl.startsWith('http') && !isMedia && !isDocument;
+  });
 
   if (profileLoading) {
     return (
