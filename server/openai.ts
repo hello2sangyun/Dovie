@@ -793,7 +793,7 @@ export async function analyzeMessageForNotices(
   - medium: 이번 주, 다음 주
   - low: 한 달 이상, 일반적인 리마인더
 
-🎨 응답 형식:
+🎨 JSON 응답 형식:
 {
   "hasNotice": true/false,
   "notices": [
@@ -819,7 +819,9 @@ export async function analyzeMessageForNotices(
 - "이번 주말"은 가장 가까운 토요일/일요일
 - "다음주"는 7일 후부터 시작
 - "~해야지", "~할게", "~해야 돼" 등의 표현 주목
-- 부정문("안 가", "안 해")은 무시`
+- 부정문("안 가", "안 해")은 무시
+
+⚠️ 반드시 위의 JSON 형식으로만 응답하세요.`
         },
         {
           role: "user",
