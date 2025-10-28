@@ -367,9 +367,8 @@ export default function MainApp() {
     });
 
     if (existingChatRoom) {
-      // 기존 채팅방이 있으면 해당 채팅방 선택하고 필터 적용
+      // 기존 채팅방이 있으면 해당 채팅방 선택
       setSelectedChatRoom(existingChatRoom.id);
-      setContactFilter(contactUserId);
       setActiveTab("chats");
       setActiveMobileTab("chats");
       setShowMobileChat(true);
