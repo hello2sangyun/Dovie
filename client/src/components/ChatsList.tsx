@@ -551,9 +551,10 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
 
   return (
     <div className="h-full flex flex-col">
-      <div className="p-4 border-b border-gray-200">
+      {/* Header */}
+      <div className="p-4 border-b border-gray-200 bg-white">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-gray-900">채팅방</h3>
+          <h3 className="text-xl font-bold text-gray-900">채팅방</h3>
           <div className="flex items-center space-x-2">
             {isMultiSelectMode ? (
               <>
@@ -581,16 +582,16 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-gray-600 hover:text-gray-700"
+                  className="text-gray-600 hover:text-gray-700 h-8 w-8 p-0"
                   onClick={toggleMultiSelect}
                   title="채팅방 관리"
                 >
-                  <MoreVertical className="h-4 w-4" />
+                  <MoreVertical className="h-5 w-5" />
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-purple-600 hover:text-purple-700"
+                  className="text-purple-600 hover:text-purple-700 h-8 w-8 p-0"
                   onClick={onCreateGroup}
                   title="그룹 채팅 만들기"
                 >
