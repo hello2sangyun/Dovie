@@ -605,47 +605,47 @@ export default function InboxPage() {
 
   return (
     <div className="h-full flex flex-col bg-white">
-      {/* Compact Header */}
-      <div className="flex-shrink-0 px-3 py-2.5 border-b bg-gradient-to-r from-purple-50 to-blue-50">
+      {/* Header */}
+      <div className="flex-shrink-0 px-4 py-3 border-b bg-white">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <h2 className="text-sm font-bold text-purple-900">Smart Inbox</h2>
+            <h2 className="text-xl font-bold text-gray-900">Smart Inbox</h2>
             <Badge variant="secondary" className="text-xs">
               {activeNotices.length}
             </Badge>
           </div>
           
-          <div className="flex items-center gap-1">
-            {/* View Mode Tabs - Icon Only */}
+          <div className="flex items-center gap-1.5">
+            {/* View Mode Tabs */}
             <Button
               variant={viewMode === "list" ? "default" : "ghost"}
               size="sm"
               onClick={() => setViewMode("list")}
-              className="h-7 px-2"
+              className="h-8 w-8 p-0"
               data-testid="tab-list"
             >
-              <InboxIcon className="h-3.5 w-3.5" />
+              <InboxIcon className="h-4 w-4" />
             </Button>
             <Button
               variant={viewMode === "stats" ? "default" : "ghost"}
               size="sm"
               onClick={() => setViewMode("stats")}
-              className="h-7 px-2"
+              className="h-8 w-8 p-0"
               data-testid="tab-stats"
             >
-              <BarChart3 className="h-3.5 w-3.5" />
+              <BarChart3 className="h-4 w-4" />
             </Button>
             <Button
               variant={viewMode === "calendar" ? "default" : "ghost"}
               size="sm"
               onClick={() => setViewMode("calendar")}
-              className="h-7 px-2"
+              className="h-8 w-8 p-0"
               data-testid="tab-calendar"
             >
-              <CalendarDays className="h-3.5 w-3.5" />
+              <CalendarDays className="h-4 w-4" />
             </Button>
             
-            <Separator orientation="vertical" className="h-4 mx-1" />
+            <Separator orientation="vertical" className="h-5 mx-1" />
             
             {/* Selection Mode Toggle */}
             <Button
@@ -656,10 +656,10 @@ export default function InboxPage() {
                 if (selectionMode) setSelectedNotices(new Set());
               }}
               disabled={filteredNotices.length === 0}
-              className="h-7 px-2"
+              className="h-8 w-8 p-0"
               data-testid="button-selection-mode"
             >
-              <CheckCircle2 className="h-3.5 w-3.5" />
+              <CheckCircle2 className="h-4 w-4" />
             </Button>
 
             {/* Bulk Delete - Only show in selection mode */}
@@ -669,10 +669,10 @@ export default function InboxPage() {
                 size="sm"
                 onClick={handleBulkDelete}
                 disabled={selectedNotices.size === 0}
-                className="h-7 px-2"
+                className="h-8 px-2"
                 data-testid="button-bulk-delete"
               >
-                <Trash2 className="h-3.5 w-3.5" />
+                <Trash2 className="h-4 w-4" />
                 {selectedNotices.size > 0 && (
                   <span className="ml-1 text-xs">{selectedNotices.size}</span>
                 )}
@@ -686,25 +686,25 @@ export default function InboxPage() {
                 size="sm"
                 onClick={() => setClearAllDialog(true)}
                 disabled={activeNotices.length === 0}
-                className="h-7 px-2"
+                className="h-8 w-8 p-0"
                 data-testid="button-clear-all"
               >
-                <Trash2 className="h-3.5 w-3.5" />
+                <Trash2 className="h-4 w-4" />
               </Button>
             )}
           </div>
         </div>
         
-        {/* Compact Search & Filters Row */}
+        {/* Search & Filters Row */}
         {viewMode === "list" && (
-          <div className="flex items-center gap-1.5 mt-2">
+          <div className="flex items-center gap-2 mt-3">
             <div className="relative flex-1">
-              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="검색..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="h-7 pl-7 pr-2 text-xs"
+                className="pl-10"
                 data-testid="input-search"
               />
             </div>
@@ -713,17 +713,17 @@ export default function InboxPage() {
               variant={showSnoozed ? "default" : "outline"}
               size="sm"
               onClick={() => setShowSnoozed(!showSnoozed)}
-              className="h-7 px-2"
+              className="h-8 w-8 p-0"
               data-testid="button-show-snoozed"
             >
-              <Moon className="h-3 w-3" />
+              <Moon className="h-4 w-4" />
             </Button>
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-7 px-2" data-testid="filter-type">
-                  <Filter className="h-3 w-3" />
-                  {typeFilter !== "all" && <span className="ml-1 text-xs">1</span>}
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0" data-testid="filter-type">
+                  <Filter className="h-4 w-4" />
+                  {typeFilter !== "all" && <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-xs" variant="destructive">1</Badge>}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
@@ -744,10 +744,10 @@ export default function InboxPage() {
                   setTypeFilter("all");
                   setPriorityFilter("all");
                 }}
-                className="h-7 px-2"
+                className="h-8 w-8 p-0"
                 data-testid="button-clear-filters"
               >
-                <X className="h-3 w-3" />
+                <X className="h-4 w-4" />
               </Button>
             )}
           </div>
