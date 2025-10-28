@@ -1568,9 +1568,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Background AI Notice Analysis (non-blocking)
-      // Analyze text messages for appointments, schedules, and important info
-      if (messageData.messageType === 'text' && messageData.content && 
-          typeof messageData.content === 'string' && !messageData.isSystemMessage) {
+      // Analyze text and voice messages for appointments, schedules, and important info
+      if ((messageData.messageType === 'text' || messageData.messageType === 'voice') && 
+          messageData.content && typeof messageData.content === 'string' && !messageData.isSystemMessage) {
         
         // Run AI analysis in background (don't await to avoid delaying message send)
         const sender = await storage.getUser(Number(userId));
