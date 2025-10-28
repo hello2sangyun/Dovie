@@ -1,0 +1,180 @@
+ Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+ >=116
+sw.js:155 Uncaught (in promise) 
+ [Badge] Independent badge system initialized
+ 🚀 PWA Service Worker 강제 등록 시작...
+ 🔄 기존 Service Worker 해제됨
+ 🔍 디바이스 정보: Object
+ ✅ PWA Service Worker 등록 성공: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/
+ ✅ PWA Service Worker 준비 완료
+ 🔔 현재 알림 권한: default
+ [PWA] Install prompt triggered
+/app:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+ WebSocket connection to 'wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/?token=MEtJnyaKDnUV' failed: 
+setupWebSocket @ client:536
+client:536 Uncaught (in promise) 
+ 🔄 Auth context updating user: 109 profilePicture: /uploads/profile_1761602401844_h0cbedi9kaf.jpg
+ [Auth] Stored auth token in Service Worker for badge refresh
+ 🚀 Starting profile image preloading...
+ [SW] Message received: Object
+ [SW] Storing auth token for badge refresh
+ [SW] Message received: Object
+ [NotificationManager] Initializing Telegram-style activity tracking
+ 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+ 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+ [SW] Message received: Object
+ [SW] Badge system initialized - independent mode
+ [SW] Message received: Object
+ MainApp rendering with user: 109
+ 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+ ✅ PWA 배지 클리어됨 (읽지 않은 메시지 없음)
+ WebSocket connected successfully
+ Processing 0 pending messages
+ [NotificationManager] Activity status updated: online
+ 📊 실제 읽지 않은 메시지 수: 0
+ 📊 각 채팅방별 읽지 않은 메시지: Array(0)
+ 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+ ✅ PWA 배지 클리어됨 (읽지 않은 메시지 없음)
+sw.js:559 [SW] Message received: Object
+sw.js:564 [SW] Setting badge to exact database count: 0
+sw.js:339 [SW] 📱 Setting independent badge: 0
+sw.js:757 [SW] Message received: Object
+sw.js:350 [SW] ✅ Badge cleared (0 unread)
+useWebSocket.tsx:159 WebSocket message received: Object
+useWebSocket.tsx:163 WebSocket authentication successful for user: 109
+useAuth.tsx:115 📥 Found 4 profile images to preload
+useAuth.tsx:146 ✅ Preloaded profile image: /uploads/profile_1761603336729_ol7qqlpxpv.jpg
+useAuth.tsx:146 ✅ Preloaded profile image: /uploads/profile_1761144817232_rf4rde1nn4e.jpg
+useAuth.tsx:146 ✅ Preloaded profile image: /uploads/profile_1761602401844_h0cbedi9kaf.jpg
+useAuth.tsx:146 ✅ Preloaded profile image: /uploads/profile_1761606486798_jejztvnxp8j.jpg
+useAuth.tsx:154 🎉 Profile image preloading completed!
+The resource <URL> was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+The resource <URL> was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+The resource <URL> was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+The resource <URL> was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+The resource <URL> was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+The resource <URL> was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+ChatsList.tsx:180 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: Hot
+ChatArea.tsx:69 ChatArea rendered: Object
+ChatArea.tsx:69 ChatArea rendered: Object
+ChatArea.tsx:1447 🔍 Timer effect triggered, messages: 0
+ChatArea.tsx:1459 💣 Found boom messages: 0
+ChatArea.tsx:1447 🔍 Timer effect triggered, messages: 0
+ChatArea.tsx:1459 💣 Found boom messages: 0
+ChatArea.tsx:69 ChatArea rendered: Object
+ChatArea.tsx:69 ChatArea rendered: Object
+ChatArea.tsx:1510 🧹 Cleaning up timers
+ChatArea.tsx:1510 🧹 Cleaning up timers
+ChatArea.tsx:1447 🔍 Timer effect triggered, messages: 0
+ChatArea.tsx:1459 💣 Found boom messages: 0
+ChatArea.tsx:1447 🔍 Timer effect triggered, messages: 0
+ChatArea.tsx:1459 💣 Found boom messages: 0
+ChatArea.tsx:69 ChatArea rendered: Object
+ChatArea.tsx:69 ChatArea rendered: Object
+ChatArea.tsx:69 ChatArea rendered: Object
+ChatArea.tsx:69 ChatArea rendered: Object
+ChatArea.tsx:1510 🧹 Cleaning up timers
+ChatArea.tsx:1510 🧹 Cleaning up timers
+ChatArea.tsx:1447 🔍 Timer effect triggered, messages: 1
+ChatArea.tsx:1454 📧 Message 920: type=text, isBoom=false, hasExpiry=null, notExploded=true
+ChatArea.tsx:1459 💣 Found boom messages: 0
+ChatArea.tsx:1447 🔍 Timer effect triggered, messages: 1
+ChatArea.tsx:1454 📧 Message 920: type=text, isBoom=false, hasExpiry=null, notExploded=true
+ChatArea.tsx:1459 💣 Found boom messages: 0
+ChatArea.tsx:69 ChatArea rendered: Object
+ChatArea.tsx:69 ChatArea rendered: Object
+ChatArea.tsx:69 ChatArea rendered: Object
+ChatArea.tsx:69 ChatArea rendered: Object
+ChatArea.tsx:69 ChatArea rendered: Object
+ChatArea.tsx:69 ChatArea rendered: Object
+ChatArea.tsx:69 ChatArea rendered: Object
+ChatArea.tsx:69 ChatArea rendered: Object
+useMicrophonePermission.tsx:34 ✅ Microphone permission already granted, stream ready
+useMicrophonePermission.tsx:34 ✅ Microphone permission already granted, stream ready
+UserProfilePage.tsx:91 Uncaught TypeError: contacts.some is not a function
+    at UserProfilePage (UserProfilePage.tsx:91:30)
+    at renderWithHooks (chunk-RPCDYKBN.js?v=649c0e78:11548:26)
+    at mountIndeterminateComponent (chunk-RPCDYKBN.js?v=649c0e78:14926:21)
+    at beginWork (chunk-RPCDYKBN.js?v=649c0e78:15914:22)
+    at HTMLUnknownElement.callCallback2 (chunk-RPCDYKBN.js?v=649c0e78:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-RPCDYKBN.js?v=649c0e78:3699:24)
+    at invokeGuardedCallback (chunk-RPCDYKBN.js?v=649c0e78:3733:39)
+    at beginWork$1 (chunk-RPCDYKBN.js?v=649c0e78:19765:15)
+    at performUnitOfWork (chunk-RPCDYKBN.js?v=649c0e78:19198:20)
+    at workLoopSync (chunk-RPCDYKBN.js?v=649c0e78:19137:13)
+UserProfilePage.tsx:91 Uncaught TypeError: contacts.some is not a function
+    at UserProfilePage (UserProfilePage.tsx:91:30)
+    at renderWithHooks (chunk-RPCDYKBN.js?v=649c0e78:11548:26)
+    at mountIndeterminateComponent (chunk-RPCDYKBN.js?v=649c0e78:14926:21)
+    at beginWork (chunk-RPCDYKBN.js?v=649c0e78:15914:22)
+    at HTMLUnknownElement.callCallback2 (chunk-RPCDYKBN.js?v=649c0e78:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-RPCDYKBN.js?v=649c0e78:3699:24)
+    at invokeGuardedCallback (chunk-RPCDYKBN.js?v=649c0e78:3733:39)
+    at beginWork$1 (chunk-RPCDYKBN.js?v=649c0e78:19765:15)
+    at performUnitOfWork (chunk-RPCDYKBN.js?v=649c0e78:19198:20)
+    at workLoopSync (chunk-RPCDYKBN.js?v=649c0e78:19137:13)
+chunk-RPCDYKBN.js?v=649c0e78:14032 The above error occurred in the <UserProfilePage> component:
+
+    at UserProfilePage (https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/UserProfilePage.tsx:44:22)
+    at Route (https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=649c0e78:323:16)
+    at Switch (https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=649c0e78:379:17)
+    at Router
+    at AuthProvider (https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/hooks/useAuth.tsx:21:32)
+    at QueryClientProvider (https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=649c0e78:2805:3)
+    at App (https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/App.tsx?v=ZPoSeKUPr0ujqYJQVutdh:106:3)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+logCapturedError @ chunk-RPCDYKBN.js?v=649c0e78:14032
+chunk-RPCDYKBN.js?v=649c0e78:9129 Uncaught TypeError: contacts.some is not a function
+    at UserProfilePage (UserProfilePage.tsx:91:30)
+    at renderWithHooks (chunk-RPCDYKBN.js?v=649c0e78:11548:26)
+    at mountIndeterminateComponent (chunk-RPCDYKBN.js?v=649c0e78:14926:21)
+    at beginWork (chunk-RPCDYKBN.js?v=649c0e78:15914:22)
+    at beginWork$1 (chunk-RPCDYKBN.js?v=649c0e78:19753:22)
+    at performUnitOfWork (chunk-RPCDYKBN.js?v=649c0e78:19198:20)
+    at workLoopSync (chunk-RPCDYKBN.js?v=649c0e78:19137:13)
+    at renderRootSync (chunk-RPCDYKBN.js?v=649c0e78:19116:15)
+    at recoverFromConcurrentError (chunk-RPCDYKBN.js?v=649c0e78:18736:28)
+    at performSyncWorkOnRoot (chunk-RPCDYKBN.js?v=649c0e78:18879:28)
+ChatArea.tsx:1510 🧹 Cleaning up timers
+ChatArea.tsx:1510 🧹 Cleaning up timers
+chunk-RX45STYP.js?v=649c0e78:82 Uncaught (in promise) CapacitorException: "PushNotifications" plugin is not implemented on web
+    at createPluginMethod (chunk-RX45STYP.js?v=649c0e78:82:15)
+    at chunk-RX45STYP.js?v=649c0e78:89:22
+useWebSocket.tsx:246 WebSocket disconnected: 1000 Component unmounting
+TelegramStyleNotificationManager.tsx:155 [NotificationManager] Activity status updated: offline
+sw.js:559 [SW] Message received: Object
+sw.js:614 [SW] Enabling background badge refresh
+sw.js:757 [SW] Message received: Object
+sw.js:559 [SW] Message received: Object
+sw.js:585 [SW] Setting badge count: 0
+sw.js:339 [SW] 📱 Setting independent badge: 0
+sw.js:757 [SW] Message received: Object
+sw.js:350 [SW] ✅ Badge cleared (0 unread)
+sw.js:559 [SW] Message received: Object
+sw.js:585 [SW] Setting badge count: 0
+sw.js:339 [SW] 📱 Setting independent badge: 0
+sw.js:757 [SW] Message received: Object
+sw.js:350 [SW] ✅ Badge cleared (0 unread)
+sw.js:769 [SW] Syncing badge count with server
+sw.js:774 [SW] Server badge sync - total unread: 0
+sw.js:339 [SW] 📱 Setting independent badge: 0
+sw.js:350 [SW] ✅ Badge cleared (0 unread)
+sw.js:559 [SW] Message received: {type: 'ENABLE_BACKGROUND_REFRESH', interval: 300000}
+sw.js:614 [SW] Enabling background badge refresh
+sw.js:757 [SW] Message received: {type: 'ENABLE_BACKGROUND_REFRESH', interval: 300000}
+sw.js:559 [SW] Message received: {type: 'TELEGRAM_STYLE_BADGE', count: 0, source: 'app_focus_sync'}
+sw.js:585 [SW] Setting badge count: 0
+sw.js:339 [SW] 📱 Setting independent badge: 0
+sw.js:757 [SW] Message received: {type: 'TELEGRAM_STYLE_BADGE', count: 0, source: 'app_focus_sync'}
+sw.js:350 [SW] ✅ Badge cleared (0 unread)
+sw.js:559 [SW] Message received: {type: 'ENABLE_BACKGROUND_REFRESH', interval: 300000}
+sw.js:614 [SW] Enabling background badge refresh
+sw.js:757 [SW] Message received: {type: 'ENABLE_BACKGROUND_REFRESH', interval: 300000}
+sw.js:559 [SW] Message received: {type: 'TELEGRAM_STYLE_BADGE', count: 0, source: 'app_focus_sync'}
+sw.js:585 [SW] Setting badge count: 0
+sw.js:339 [SW] 📱 Setting independent badge: 0
+sw.js:757 [SW] Message received: {type: 'TELEGRAM_STYLE_BADGE', count: 0, source: 'app_focus_sync'}
+sw.js:350 [SW] ✅ Badge cleared (0 unread)
