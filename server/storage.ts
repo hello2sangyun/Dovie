@@ -86,6 +86,7 @@ export interface IStorage {
   trackFileUploadWithMessage(fileData: { userId: number; chatRoomId: number; messageId: number; fileName: string; originalName: string; fileSize: number; fileType: string; filePath: string; description?: string | null }): Promise<void>;
   trackFileDownload(fileUploadId: number, userId: number, ipAddress?: string, userAgent?: string): Promise<void>;
   getFileUploadsByChatRoom(chatRoomId: number): Promise<Array<FileUpload & { uploader: User }>>;
+  getAllFileUploads(userId: number): Promise<Array<FileUpload & { uploader: User }>>;
   
   // Business profile operations
   getBusinessProfile(userId: number): Promise<BusinessProfile | undefined>;
@@ -852,6 +853,48 @@ export class DatabaseStorage implements IStorage {
     .leftJoin(users, eq(fileUploads.userId, users.id))
     .where(and(
       eq(fileUploads.chatRoomId, chatRoomId),
+      eq(fileUploads.isDeleted, false)
+    ))
+    .orderBy(desc(fileUploads.uploadedAt));
+
+    return uploads.map(upload => ({
+      ...upload,
+      uploader: upload.uploader as User
+    })) as Array<FileUpload & { uploader: User }>;
+  }
+
+  async getAllFileUploads(userId: number): Promise<Array<FileUpload & { uploader: User }>> {
+    // Get all chat rooms where the user is a participant
+    const userChatRooms = await db
+      .select({ chatRoomId: chatParticipants.chatRoomId })
+      .from(chatParticipants)
+      .where(eq(chatParticipants.userId, userId));
+
+    const chatRoomIds = userChatRooms.map(r => r.chatRoomId);
+
+    if (chatRoomIds.length === 0) {
+      return [];
+    }
+
+    // Get all file uploads from user's chat rooms
+    const uploads = await db.select({
+      id: fileUploads.id,
+      userId: fileUploads.userId,
+      chatRoomId: fileUploads.chatRoomId,
+      fileName: fileUploads.fileName,
+      originalName: fileUploads.originalName,
+      fileSize: fileUploads.fileSize,
+      fileType: fileUploads.fileType,
+      filePath: fileUploads.filePath,
+      description: fileUploads.description,
+      uploadedAt: fileUploads.uploadedAt,
+      isDeleted: fileUploads.isDeleted,
+      uploader: users
+    })
+    .from(fileUploads)
+    .leftJoin(users, eq(fileUploads.userId, users.id))
+    .where(and(
+      inArray(fileUploads.chatRoomId, chatRoomIds),
       eq(fileUploads.isDeleted, false)
     ))
     .orderBy(desc(fileUploads.uploadedAt));

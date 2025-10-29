@@ -4036,6 +4036,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all file uploads for the current user
+  app.get("/api/files/all", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const files = await storage.getAllFileUploads(Number(userId));
+      res.json({ files });
+    } catch (error) {
+      console.error("Get all files error:", error);
+      res.status(500).json({ message: "Failed to get files" });
+    }
+  });
+
   // Admin API endpoints
   app.get("/api/admin/stats", async (req, res) => {
     const userId = req.headers["x-user-id"];
