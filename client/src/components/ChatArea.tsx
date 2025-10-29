@@ -4049,6 +4049,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     >
                       {chatRoomDisplayName}
                     </Link>
+                  ) : currentChatRoom.isGroup ? (
+                    <Link 
+                      href={`/group-info/${chatRoomId}`}
+                      className="truncate font-bold hover:text-purple-600 transition-colors cursor-pointer"
+                      data-testid="link-group-info"
+                    >
+                      {chatRoomDisplayName}
+                    </Link>
                   ) : (
                     <span className="truncate font-bold">{chatRoomDisplayName}</span>
                   )}
