@@ -43,6 +43,8 @@ import {
   InteractiveButton,
   LoadingSpinner
 } from "./MicroInteractions";
+import { uploadFileWithProgress, UploadProgress } from "@/lib/uploadUtils";
+import { FileUploadProgress } from "./FileUploadProgress";
 
 interface ChatAreaProps {
   chatRoomId: number;
@@ -311,6 +313,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [replyToMessage, setReplyToMessage] = useState<any>(null);
   const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
   const [uploadingFiles, setUploadingFiles] = useState<Array<{id: string, fileName: string}>>([]);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
   const [showChatSettings, setShowChatSettings] = useState(false);
   const chatSettingsRef = useRef<HTMLDivElement>(null);
   const [showMentions, setShowMentions] = useState(false);
@@ -1006,41 +1009,41 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     mutationFn: async (file: File) => {
       console.log('📤 파일 업로드 시작:', file.name, `크기: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
       
-      // 업로드 시작 시 로딩 메시지 추가
-      const uploadId = Date.now().toString();
-      setUploadingFiles(prev => [...prev, { id: uploadId, fileName: file.name }]);
-      
-      const formData = new FormData();
-      formData.append("file", file);
-      
       try {
-        const response = await fetch("/api/upload", {
-          method: "POST",
-          headers: {
-            "x-user-id": user?.id?.toString() || ""
-          },
-          body: formData,
+        const result = await uploadFileWithProgress(file, '/api/upload', {
+          userId: user?.id?.toString(),
+          onProgress: (progress) => {
+            console.log(`📊 Single file upload progress for ${progress.fileName}:`, progress.progress + '%', `(${progress.loaded}/${progress.total})`);
+            
+            setUploadProgress(prev => {
+              const existing = prev.find(p => p.fileId === progress.fileId);
+              const newProgress = existing
+                ? prev.map(p => p.fileId === progress.fileId ? progress : p)
+                : [...prev, progress];
+              
+              console.log('📈 Updated uploadProgress state:', newProgress.length, 'items');
+              return newProgress;
+            });
+          }
         });
         
-        console.log('📡 업로드 응답 상태:', response.status);
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('❌ 업로드 실패:', errorText);
-          throw new Error(`Upload failed: ${response.status} - ${errorText}`);
-        }
-        
-        const result = await response.json();
         console.log('✅ 파일 업로드 성공:', result);
         
-        // 업로드 완료 시 로딩 메시지 제거
-        setUploadingFiles(prev => prev.filter(f => f.id !== uploadId));
+        // 업로드 완료 후 진행률 제거 (3초 후)
+        setTimeout(() => {
+          console.log('🗑️ Removing completed upload progress for:', file.name);
+          setUploadProgress(prev => prev.filter(p => p.fileName !== file.name || p.status !== 'completed'));
+        }, 3000);
         
         return result;
       } catch (error) {
         console.error('❌ 파일 업로드 오류:', error);
-        // 에러 시 로딩 메시지 제거
-        setUploadingFiles(prev => prev.filter(f => f.id !== uploadId));
+        
+        // 에러 시 진행률 제거 (3초 후)
+        setTimeout(() => {
+          setUploadProgress(prev => prev.filter(p => p.fileName !== file.name || p.status !== 'error'));
+        }, 3000);
+        
         throw error;
       }
     },
@@ -1839,39 +1842,53 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         const tempMessageId = tempMessages[index].id;
         console.log(`📁 파일 ${index + 1} 업로드:`, file.name);
         
-        // 업로드 진행상황 업데이트
-        const updateProgress = (progress: number) => {
-          queryClient.setQueryData([`/api/chat-rooms`, chatRoomId, "messages"], (oldData: any) => {
-            if (!oldData) return oldData;
-            return {
-              ...oldData,
-              messages: oldData.messages.map((msg: any) => 
-                msg.id === tempMessageId 
-                  ? { ...msg, uploadProgress: progress }
-                  : msg
-              )
-            };
+        try {
+          const uploadResult = await uploadFileWithProgress(file, '/api/upload', {
+            userId: user?.id?.toString(),
+            onProgress: (progress) => {
+              console.log(`📊 Upload progress for ${progress.fileName}:`, progress.progress + '%', `(${progress.loaded}/${progress.total})`);
+              
+              // Update upload progress state
+              setUploadProgress(prev => {
+                const existing = prev.find(p => p.fileId === progress.fileId);
+                const newProgress = existing 
+                  ? prev.map(p => p.fileId === progress.fileId ? progress : p)
+                  : [...prev, progress];
+                
+                console.log('📈 Updated uploadProgress state:', newProgress.length, 'items');
+                return newProgress;
+              });
+              
+              // Update message progress in chat
+              queryClient.setQueryData([`/api/chat-rooms`, chatRoomId, "messages"], (oldData: any) => {
+                if (!oldData) return oldData;
+                return {
+                  ...oldData,
+                  messages: oldData.messages.map((msg: any) => 
+                    msg.id === tempMessageId 
+                      ? { ...msg, uploadProgress: progress.progress }
+                      : msg
+                  )
+                };
+              });
+            }
           });
-        };
-        
-        updateProgress(25); // 업로드 시작
-        
-        const formData = new FormData();
-        formData.append('file', file);
-        
-        const response = await fetch("/api/upload", {
-          method: "POST",
-          headers: {
-            "x-user-id": user?.id?.toString() || ""
-          },
-          body: formData,
-        });
-        
-        updateProgress(75); // 업로드 완료, 처리 중
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error(`❌ 파일 ${index + 1} 업로드 실패:`, errorText);
+          
+          console.log(`✅ 파일 ${index + 1} 업로드 성공:`, uploadResult);
+          
+          // Remove from upload progress after completion (with longer delay)
+          setTimeout(() => {
+            console.log('🗑️ Removing completed upload progress for:', file.name);
+            setUploadProgress(prev => prev.filter(p => p.fileName !== file.name || p.status !== 'completed'));
+          }, 3000);
+          
+          return {
+            ...uploadResult,
+            originalFile: file,
+            tempMessageId
+          };
+        } catch (error) {
+          console.error(`❌ 파일 ${index + 1} 업로드 실패:`, error);
           
           // 실패한 임시 메시지 제거
           queryClient.setQueryData([`/api/chat-rooms`, chatRoomId, "messages"], (oldData: any) => {
@@ -1882,19 +1899,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             };
           });
           
-          throw new Error(`파일 업로드 실패: ${file.name} - ${response.status}`);
+          // Remove from upload progress after error (with delay to show error)
+          setTimeout(() => {
+            setUploadProgress(prev => prev.filter(p => p.fileName !== file.name || p.status !== 'error'));
+          }, 3000);
+          
+          throw error;
         }
-        
-        const uploadResult = await response.json();
-        console.log(`✅ 파일 ${index + 1} 업로드 성공:`, uploadResult);
-        
-        updateProgress(100); // 업로드 완료
-        
-        return {
-          ...uploadResult,
-          originalFile: file,
-          tempMessageId
-        };
       });
       
       const uploadResults = await Promise.all(uploadPromises);
@@ -5434,6 +5445,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                 </>
               )}
             </div>
+          </div>
+        )}
+
+        {/* File Upload Progress Display */}
+        {uploadProgress.length > 0 && (
+          <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
+            <FileUploadProgress uploads={uploadProgress} />
           </div>
         )}
 
