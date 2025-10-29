@@ -116,6 +116,7 @@ export const chatRooms = pgTable("chat_rooms", {
   isGroup: boolean("is_group").default(false),
   isPinned: boolean("is_pinned").default(false),
   isLocationChat: boolean("is_location_chat").default(false), // 주변챗 구분용
+  profileImage: text("profile_image"), // 그룹 프로필 사진
 
   createdBy: integer("created_by").references(() => users.id).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
@@ -128,6 +129,18 @@ export const chatParticipants = pgTable("chat_participants", {
   userId: integer("user_id").references(() => users.id).notNull(),
   joinedAt: timestamp("joined_at").defaultNow(),
 });
+
+export const userChatSettings = pgTable("user_chat_settings", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  chatRoomId: integer("chat_room_id").references(() => chatRooms.id).notNull(),
+  isMuted: boolean("is_muted").default(false), // 무음 모드
+  isPinned: boolean("is_pinned").default(false), // 채팅방 고정
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  uniqueUserChatRoom: unique().on(table.userId, table.chatRoomId),
+}));
 
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
@@ -774,6 +787,12 @@ export const insertChatRoomSchema = createInsertSchema(chatRooms).omit({
   createdAt: true,
 });
 
+export const insertUserChatSettingsSchema = createInsertSchema(userChatSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertMessageSchema = createInsertSchema(messages).omit({
   id: true,
   createdAt: true,
@@ -870,6 +889,8 @@ export type Contact = typeof contacts.$inferSelect;
 export type InsertContact = z.infer<typeof insertContactSchema>;
 export type ChatRoom = typeof chatRooms.$inferSelect;
 export type InsertChatRoom = z.infer<typeof insertChatRoomSchema>;
+export type UserChatSettings = typeof userChatSettings.$inferSelect;
+export type InsertUserChatSettings = z.infer<typeof insertUserChatSettingsSchema>;
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type MessageRead = typeof messageReads.$inferSelect;
