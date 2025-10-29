@@ -614,7 +614,12 @@ export async function answerChatQuestion(
   "message": "소은이 관련 파일 2개를 찾았습니다."
 }
 
-**중요:** 파일 검색 질문에는 반드시 위 JSON 형식으로만 답변하고, 다른 텍스트를 추가하지 마세요.
+**중요 규칙:**
+1. 파일 검색 질문에는 반드시 위 JSON 형식으로만 답변
+2. 각 파일 객체에 "index" 필드 필수 포함 (1부터 시작하는 숫자)
+3. index는 위 파일 목록의 번호를 정확히 사용하세요
+4. 파일이 없으면 {"type": "file_search", "files": [], "message": "파일을 찾을 수 없습니다."}
+5. 다른 텍스트를 추가하지 마세요
 
 일반 질문 예시:
 질문: "수진이 생일이 언제야?"
@@ -645,41 +650,44 @@ export async function answerChatQuestion(
     // Check if response is file search JSON
     if (answer.startsWith('{') && answer.includes('"type": "file_search"')) {
       try {
-        const fileSearchResponse = JSON.parse(answer);
+        const parsed = JSON.parse(answer);
         
-        // Convert file indices to actual file data
-        const matchedFiles = fileSearchResponse.files
-          .map((match: { index: number; reason: string }) => {
-            const file = fileUploads?.[match.index - 1]; // Arrays are 0-indexed
-            if (!file) return null;
-            
-            return {
-              id: file.id,
-              fileUrl: file.filePath,
-              fileName: file.originalName,
-              description: file.description,
-              uploadedBy: file.uploader?.displayName || file.uploader?.username,
-              uploadedAt: file.uploadedAt ? new Date(file.uploadedAt).toISOString().split('T')[0] : null,
-              reason: match.reason
-            };
-          })
-          .filter(Boolean);
-
-        const result = {
-          type: "file_search",
-          files: matchedFiles,
-          message: fileSearchResponse.message
-        };
-
-        console.log("AI Chat Assistant: File search result generated");
-        
-        return {
-          success: true,
-          content: JSON.stringify(result),
-          type: 'json'
-        };
+        // Validate JSON structure
+        if (parsed.type === 'file_search' && Array.isArray(parsed.files)) {
+          // Validate each file entry has valid index
+          const validatedFiles = parsed.files
+            .filter((file: any) => {
+              if (typeof file.index !== 'number' || file.index < 1) {
+                console.warn(`Invalid file index: ${file.index}, skipping entry`);
+                return false;
+              }
+              if (!fileUploads || file.index > fileUploads.length) {
+                console.warn(`File index ${file.index} out of bounds (max: ${fileUploads?.length || 0})`);
+                return false;
+              }
+              return true;
+            })
+            .map((file: any) => ({
+              index: file.index,
+              reason: file.reason || ''
+            }));
+          
+          const validatedResponse = {
+            type: 'file_search',
+            files: validatedFiles,
+            message: parsed.message || `${validatedFiles.length}개의 파일을 찾았습니다.`
+          };
+          
+          console.log(`AI Chat Assistant: File search validated - ${validatedFiles.length}/${parsed.files.length} files valid`);
+          
+          return {
+            success: true,
+            content: JSON.stringify(validatedResponse),
+            type: 'json'
+          };
+        }
       } catch (parseError) {
-        console.error("Failed to parse file search JSON:", parseError);
+        console.error("Failed to parse/validate file search JSON:", parseError);
         // Fall through to return as text
       }
     }
