@@ -2,6 +2,7 @@ import {
   users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications,
   fileUploads, fileDownloads, businessProfiles, userPosts, locationShareRequests, locationShares, reminders,
   messageReactions, messageLikes, pushSubscriptions, iosDeviceTokens, aiNotices, bookmarks, voiceBookmarkRequests,
+  userChatSettings,
   type User, type InsertUser, type Contact, type InsertContact,
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
   type Command, type InsertCommand, type MessageRead, type InsertMessageRead,
@@ -15,7 +16,8 @@ import {
   type MessageReaction, type InsertMessageReaction,
   type AiNotice, type InsertAiNotice,
   type Bookmark, type InsertBookmark,
-  type VoiceBookmarkRequest, type InsertVoiceBookmarkRequest
+  type VoiceBookmarkRequest, type InsertVoiceBookmarkRequest,
+  type UserChatSettings, type InsertUserChatSettings
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, or, count, gt, lt, sql, inArray } from "drizzle-orm";
@@ -50,6 +52,16 @@ export interface IStorage {
   deleteChatRoom(chatRoomId: number, userId: number): Promise<void>;
   updateChatRoom(chatRoomId: number, updates: Partial<InsertChatRoom>): Promise<ChatRoom | undefined>;
   leaveChatRoom(chatRoomId: number, userId: number, saveFiles: boolean): Promise<void>;
+  updateChatRoomName(chatRoomId: number, userId: number, name: string): Promise<ChatRoom | undefined>;
+  updateChatRoomProfileImage(chatRoomId: number, userId: number, profileImage: string): Promise<ChatRoom | undefined>;
+  getChatRoomParticipants(chatRoomId: number): Promise<User[]>;
+  inviteToChatRoom(chatRoomId: number, userId: number, inviteeIds: number[]): Promise<void>;
+  
+  // User Chat Settings operations
+  getUserChatSettings(userId: number, chatRoomId: number): Promise<UserChatSettings | undefined>;
+  upsertUserChatSettings(data: InsertUserChatSettings): Promise<UserChatSettings>;
+  toggleChatMute(userId: number, chatRoomId: number, isMuted: boolean): Promise<UserChatSettings>;
+  toggleChatPin(userId: number, chatRoomId: number, isPinned: boolean): Promise<UserChatSettings>;
 
   // Message operations
   getMessages(chatRoomId: number, limit?: number): Promise<(Message & { sender: User })[]>;
@@ -439,6 +451,116 @@ export class DatabaseStorage implements IStorage {
     if (!saveFiles) {
       // File cleanup logic would go here
     }
+  }
+
+  async updateChatRoomName(chatRoomId: number, userId: number, name: string): Promise<ChatRoom | undefined> {
+    // Verify user is a participant
+    const participant = await db.select().from(chatParticipants).where(
+      and(
+        eq(chatParticipants.chatRoomId, chatRoomId),
+        eq(chatParticipants.userId, userId)
+      )
+    );
+    
+    if (participant.length === 0) {
+      throw new Error("Unauthorized: Not a participant");
+    }
+
+    const [chatRoom] = await db
+      .update(chatRooms)
+      .set({ name, updatedAt: new Date() })
+      .where(eq(chatRooms.id, chatRoomId))
+      .returning();
+    return chatRoom;
+  }
+
+  async updateChatRoomProfileImage(chatRoomId: number, userId: number, profileImage: string): Promise<ChatRoom | undefined> {
+    // Verify user is a participant
+    const participant = await db.select().from(chatParticipants).where(
+      and(
+        eq(chatParticipants.chatRoomId, chatRoomId),
+        eq(chatParticipants.userId, userId)
+      )
+    );
+    
+    if (participant.length === 0) {
+      throw new Error("Unauthorized: Not a participant");
+    }
+
+    const [chatRoom] = await db
+      .update(chatRooms)
+      .set({ profileImage, updatedAt: new Date() })
+      .where(eq(chatRooms.id, chatRoomId))
+      .returning();
+    return chatRoom;
+  }
+
+  async getChatRoomParticipants(chatRoomId: number): Promise<User[]> {
+    const rows = await db
+      .select({ user: users })
+      .from(chatParticipants)
+      .innerJoin(users, eq(chatParticipants.userId, users.id))
+      .where(eq(chatParticipants.chatRoomId, chatRoomId));
+    
+    return rows.map(row => row.user);
+  }
+
+  async inviteToChatRoom(chatRoomId: number, userId: number, inviteeIds: number[]): Promise<void> {
+    // Verify user is a participant
+    const participant = await db.select().from(chatParticipants).where(
+      and(
+        eq(chatParticipants.chatRoomId, chatRoomId),
+        eq(chatParticipants.userId, userId)
+      )
+    );
+    
+    if (participant.length === 0) {
+      throw new Error("Unauthorized: Not a participant");
+    }
+
+    // Add new participants
+    const participantValues = inviteeIds.map(inviteeId => ({
+      chatRoomId,
+      userId: inviteeId
+    }));
+    
+    if (participantValues.length > 0) {
+      await db.insert(chatParticipants).values(participantValues).onConflictDoNothing();
+    }
+  }
+
+  async getUserChatSettings(userId: number, chatRoomId: number): Promise<UserChatSettings | undefined> {
+    const [settings] = await db.select().from(userChatSettings).where(
+      and(
+        eq(userChatSettings.userId, userId),
+        eq(userChatSettings.chatRoomId, chatRoomId)
+      )
+    );
+    return settings;
+  }
+
+  async upsertUserChatSettings(data: InsertUserChatSettings): Promise<UserChatSettings> {
+    const [settings] = await db
+      .insert(userChatSettings)
+      .values(data)
+      .onConflictDoUpdate({
+        target: [userChatSettings.userId, userChatSettings.chatRoomId],
+        set: { 
+          isMuted: data.isMuted,
+          isPinned: data.isPinned,
+          updatedAt: new Date()
+        }
+      })
+      .returning();
+    return settings;
+  }
+
+  async toggleChatMute(userId: number, chatRoomId: number, isMuted: boolean): Promise<UserChatSettings> {
+    return this.upsertUserChatSettings({ userId, chatRoomId, isMuted });
+  }
+
+  async toggleChatPin(userId: number, chatRoomId: number, isPinned: boolean): Promise<UserChatSettings> {
+    return this.upsertUserChatSettings({ userId, chatRoomId, isPinned });
   }
 
   async getMessages(chatRoomId: number, limit: number = 50): Promise<(Message & { sender: User })[]> {

@@ -1221,6 +1221,143 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Group info routes
+  app.get("/api/chat-rooms/:chatRoomId/participants", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const participants = await storage.getChatRoomParticipants(Number(req.params.chatRoomId));
+      res.json({ participants });
+    } catch (error) {
+      console.error("Failed to get participants:", error);
+      res.status(500).json({ message: "Failed to get participants" });
+    }
+  });
+
+  app.put("/api/chat-rooms/:chatRoomId/name", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { name } = req.body;
+      const chatRoom = await storage.updateChatRoomName(Number(req.params.chatRoomId), Number(userId), name);
+      
+      // WebSocket으로 알림
+      broadcastToRoom(Number(req.params.chatRoomId), {
+        type: "chatRoomUpdated",
+        chatRoom,
+      });
+      
+      res.json({ chatRoom });
+    } catch (error: any) {
+      console.error("Failed to update chat room name:", error);
+      res.status(error.message?.includes("Unauthorized") ? 403 : 500).json({ message: error.message || "Failed to update chat room name" });
+    }
+  });
+
+  app.post("/api/chat-rooms/:chatRoomId/profile-image", upload.single("profileImage"), async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const profileImagePath = `/uploads/${req.file.filename}`;
+      const chatRoom = await storage.updateChatRoomProfileImage(Number(req.params.chatRoomId), Number(userId), profileImagePath);
+      
+      // WebSocket으로 알림
+      broadcastToRoom(Number(req.params.chatRoomId), {
+        type: "chatRoomUpdated",
+        chatRoom,
+      });
+      
+      res.json({ chatRoom });
+    } catch (error: any) {
+      console.error("Failed to update profile image:", error);
+      res.status(error.message?.includes("Unauthorized") ? 403 : 500).json({ message: error.message || "Failed to update profile image" });
+    }
+  });
+
+  app.post("/api/chat-rooms/:chatRoomId/invite", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { userIds } = req.body;
+      await storage.inviteToChatRoom(Number(req.params.chatRoomId), Number(userId), userIds);
+      
+      // WebSocket으로 알림
+      broadcastToRoom(Number(req.params.chatRoomId), {
+        type: "participantsUpdated",
+        chatRoomId: Number(req.params.chatRoomId),
+      });
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Failed to invite users:", error);
+      res.status(error.message?.includes("Unauthorized") ? 403 : 500).json({ message: error.message || "Failed to invite users" });
+    }
+  });
+
+  // User chat settings routes
+  app.get("/api/chat-settings/:chatRoomId", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const settings = await storage.getUserChatSettings(Number(userId), Number(req.params.chatRoomId));
+      res.json({ settings: settings || { isMuted: false, isPinned: false } });
+    } catch (error) {
+      console.error("Failed to get chat settings:", error);
+      res.status(500).json({ message: "Failed to get chat settings" });
+    }
+  });
+
+  app.post("/api/chat-settings/:chatRoomId/mute", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { isMuted } = req.body;
+      const settings = await storage.toggleChatMute(Number(userId), Number(req.params.chatRoomId), isMuted);
+      res.json({ settings });
+    } catch (error) {
+      console.error("Failed to toggle mute:", error);
+      res.status(500).json({ message: "Failed to toggle mute" });
+    }
+  });
+
+  app.post("/api/chat-settings/:chatRoomId/pin", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const { isPinned } = req.body;
+      const settings = await storage.toggleChatPin(Number(userId), Number(req.params.chatRoomId), isPinned);
+      res.json({ settings });
+    } catch (error) {
+      console.error("Failed to toggle pin:", error);
+      res.status(500).json({ message: "Failed to toggle pin" });
+    }
+  });
+
   // Message routes
   app.get("/api/chat-rooms/:chatRoomId/messages", async (req, res) => {
     try {
