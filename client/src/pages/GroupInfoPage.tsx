@@ -137,8 +137,11 @@ export default function GroupInfoPage() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate all related queries to update UI everywhere
       queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}`] });
       queryClient.invalidateQueries({ queryKey: ['/api/chat-rooms'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/participants`] });
       setIsEditingName(false);
       toast({ title: "그룹명이 변경되었습니다" });
     },
@@ -163,8 +166,11 @@ export default function GroupInfoPage() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate all related queries to update UI everywhere
       queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}`] });
       queryClient.invalidateQueries({ queryKey: ['/api/chat-rooms'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/participants`] });
       toast({ title: "프로필 사진이 변경되었습니다" });
     },
     onError: () => {
