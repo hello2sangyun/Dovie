@@ -51,9 +51,24 @@ const DovieWingsIcon = ({ className = "" }: { className?: string }) => {
   );
 };
 
+interface FileSearchResult {
+  type: 'file_search';
+  files: Array<{
+    id: number;
+    fileUrl: string;
+    fileName: string;
+    description?: string;
+    uploadedBy: string;
+    uploadedAt: string;
+    reason?: string;
+  }>;
+  message: string;
+}
+
 export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssistantModalProps) => {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
+  const [fileSearchResult, setFileSearchResult] = useState<FileSearchResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
@@ -135,6 +150,7 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
 
     setIsLoading(true);
     setAnswer("");
+    setFileSearchResult(null);
 
     try {
       const response = await apiRequest(`/api/chat-rooms/${chatRoomId}/ai-assistant`, 'POST', {
@@ -147,8 +163,17 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
 
       const data = await response.json();
       
-      if (data.success && data.answer) {
-        setAnswer(data.answer);
+      if (data.success) {
+        // Check if this is a file search response
+        if (data.type === 'file_search' && data.data) {
+          setFileSearchResult(data.data);
+          setAnswer("");
+        } else if (data.answer) {
+          setAnswer(data.answer);
+          setFileSearchResult(null);
+        } else {
+          throw new Error('No answer received');
+        }
       } else {
         throw new Error('No answer received');
       }
@@ -172,6 +197,7 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
     if (!isOpen) {
       setQuestion("");
       setAnswer("");
+      setFileSearchResult(null);
       setIsLoading(false);
       if (isRecording) {
         stopRecording();
@@ -314,6 +340,85 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
             </div>
           )}
 
+          {/* File Search Results */}
+          {fileSearchResult && (
+            <div className="space-y-3 pt-4 border-t border-gray-200">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-purple-600" />
+                  {fileSearchResult.message}
+                </label>
+                <span className="text-xs text-gray-500">{fileSearchResult.files.length}개 파일</span>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                {fileSearchResult.files.map((file) => (
+                  <div
+                    key={file.id}
+                    className="relative group bg-white rounded-lg border-2 border-purple-200 hover:border-purple-400 overflow-hidden transition-all cursor-pointer shadow-sm hover:shadow-md"
+                    data-testid={`file-card-${file.id}`}
+                  >
+                    {/* File Thumbnail or Icon */}
+                    <div className="aspect-square bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center relative overflow-hidden">
+                      {file.fileName.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                        <img 
+                          src={file.fileUrl} 
+                          alt={file.fileName}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="text-purple-500 text-4xl">📎</div>
+                      )}
+                      
+                      {/* Overlay on hover */}
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => window.open(file.fileUrl, '_blank')}
+                          className="p-2 bg-white rounded-full hover:bg-gray-100"
+                          title="미리보기"
+                          data-testid={`button-preview-${file.id}`}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        </button>
+                        <a
+                          href={file.fileUrl}
+                          download={file.fileName}
+                          className="p-2 bg-white rounded-full hover:bg-gray-100"
+                          title="다운로드"
+                          data-testid={`button-download-${file.id}`}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                          </svg>
+                        </a>
+                      </div>
+                    </div>
+
+                    {/* File Info */}
+                    <div className="p-2 space-y-1">
+                      <p className="text-xs font-medium text-gray-900 truncate" title={file.fileName}>
+                        {file.fileName}
+                      </p>
+                      {file.description && (
+                        <p className="text-xs text-gray-600 line-clamp-2" title={file.description}>
+                          {file.description}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-1 text-xs text-gray-500">
+                        <span>{file.uploadedBy}</span>
+                        <span>•</span>
+                        <span>{new Date(file.uploadedAt).toLocaleDateString('ko-KR')}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Tips */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <div className="flex items-start gap-2">
@@ -325,6 +430,7 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
                 <ul className="space-y-0.5 list-disc list-inside">
                   <li>대화 내용에서 특정 정보 찾기</li>
                   <li>약속 날짜나 시간 확인</li>
+                  <li>파일 및 사진 검색 (예: "소은이 사진 찾아줘")</li>
                   <li>누가 무슨 말을 했는지 기억하기</li>
                   <li>대화 내용 요약하기</li>
                 </ul>

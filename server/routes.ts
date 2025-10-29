@@ -1348,6 +1348,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
             originalTimestamp: new Date()
           });
           console.log(`✅ Successfully auto-saved file: ${commandName} with description: "${fileDescription}"`);
+
+          // Also save to file_uploads table for AI file search
+          const filePath = messageData.fileUrl.startsWith('/uploads/') 
+            ? messageData.fileUrl 
+            : `/uploads/${messageData.fileUrl}`;
+          const fileName = messageData.fileUrl.split('/').pop() || messageData.fileName;
+          
+          await storage.trackFileUploadWithMessage({
+            userId: Number(userId),
+            chatRoomId: Number(req.params.chatRoomId),
+            messageId: message.id,
+            fileName: fileName,
+            originalName: messageData.fileName,
+            fileSize: messageData.fileSize || 0,
+            fileType: messageData.fileUrl.endsWith('.jpg') || messageData.fileUrl.endsWith('.jpeg') ? 'image/jpeg' :
+                      messageData.fileUrl.endsWith('.png') ? 'image/png' :
+                      messageData.fileUrl.endsWith('.pdf') ? 'application/pdf' :
+                      messageData.fileUrl.endsWith('.mp4') ? 'video/mp4' : 'application/octet-stream',
+            filePath: filePath,
+            description: fileDescription || null
+          });
+          console.log(`✅ Successfully saved file to file_uploads table with description: "${fileDescription}"`);
         } catch (error) {
           console.log(`❌ Failed to auto-save file ${messageData.fileName}:`, error);
         }
@@ -1738,14 +1760,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
         messageType: msg.messageType
       }));
 
-      // Call OpenAI to answer the question based on chat context
-      const aiResponse = await answerChatQuestion(question.trim(), messagesWithSenderNames);
+      // Fetch all file uploads for this chat room
+      const fileUploads = await storage.getFileUploadsByChatRoom(chatRoomId);
+      console.log(`AI Assistant: Found ${fileUploads.length} files for chat room ${chatRoomId}`);
+
+      // Call OpenAI to answer the question based on chat context and files
+      const aiResponse = await answerChatQuestion(
+        question.trim(), 
+        messagesWithSenderNames, 
+        fileUploads
+      );
 
       if (!aiResponse.success) {
         return res.status(500).json({
           success: false,
           message: aiResponse.content
         });
+      }
+
+      // Check if response is a file search result (JSON type)
+      if (aiResponse.type === 'json') {
+        try {
+          const fileSearchResult = JSON.parse(aiResponse.content);
+          
+          // Transform AI response (with indexes) into full file metadata
+          // AI uses 1-based indexing, so subtract 1 to get array index
+          if (fileSearchResult.type === 'file_search' && Array.isArray(fileSearchResult.files)) {
+            const fullFileData = fileSearchResult.files.map((fileRef: any) => {
+              const arrayIndex = (fileRef.index || 0) - 1; // Convert 1-based to 0-based
+              
+              if (arrayIndex < 0 || arrayIndex >= fileUploads.length) {
+                console.warn(`File index ${fileRef.index} (array index ${arrayIndex}) out of bounds (0-${fileUploads.length - 1})`);
+                return null;
+              }
+              
+              const fileData = fileUploads[arrayIndex];
+              if (!fileData) {
+                console.warn(`File at array index ${arrayIndex} is null/undefined`);
+                return null;
+              }
+              
+              return {
+                id: fileData.id,
+                fileUrl: fileData.filePath.startsWith('/') ? fileData.filePath : `/uploads/${fileData.filePath}`,
+                fileName: fileData.originalName,
+                description: fileData.description || '',
+                uploadedBy: fileData.uploader?.displayName || fileData.uploader?.username || '알 수 없음',
+                uploadedAt: fileData.uploadedAt,
+                reason: fileRef.reason || ''
+              };
+            }).filter((f: any) => f !== null);
+            
+            return res.json({
+              success: true,
+              type: 'file_search',
+              data: {
+                type: 'file_search',
+                files: fullFileData,
+                message: fileSearchResult.message || `${fullFileData.length}개의 파일을 찾았습니다.`
+              }
+            });
+          }
+          
+          return res.json({
+            success: true,
+            type: 'file_search',
+            data: fileSearchResult
+          });
+        } catch (e) {
+          console.error('Failed to parse file search JSON:', e);
+        }
       }
 
       res.json({
@@ -2223,55 +2307,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // File upload route without encryption (for non-voice files)
-  app.post("/api/upload", upload.single("file"), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
-      }
-
-      // 타임스탬프 기반 파일명 생성 (암호화 없음)
-      const timestamp = Date.now();
-      const safeFileName = sanitizeFilename(req.file.originalname);
-      const newFilename = `${timestamp}_${safeFileName}`;
-      const filePath = path.join(uploadDir, newFilename);
-      
-      // 파일을 직접 저장 (암호화 없음)
-      fs.renameSync(req.file.path, filePath);
-
-      // AI 파일 요약 생성
-      let fileSummary = "파일";
-      try {
-        const { generateFileSummary } = await import("./openai");
-        fileSummary = await generateFileSummary(req.file.originalname, req.file.mimetype);
-      } catch (summaryError) {
-        console.log("File summary generation failed, using default");
-      }
-
-      // 파일명 UTF-8 보정
-      let displayFileName = req.file.originalname;
-      try {
-        // UTF-8 디코딩 시도 (이미 fileFilter에서 처리되었지만 추가 보정)
-        const buffer = Buffer.from(req.file.originalname, 'latin1');
-        const decodedFileName = buffer.toString('utf8');
-        displayFileName = decodedFileName;
-      } catch (error) {
-        // 디코딩 실패 시 원본 사용
-        console.log('Filename encoding conversion failed, using original:', req.file.originalname);
-      }
-
-      const fileUrl = `/uploads/${newFilename}`;
-      res.json({
-        fileUrl,
-        fileName: displayFileName,
-        fileSize: req.file.size,
-        summary: fileSummary,
-      });
-    } catch (error) {
-      console.error("File upload error:", error);
-      res.status(500).json({ message: "File upload failed" });
-    }
-  });
 
   // Text file creation endpoint for message saving without encryption
   app.post("/api/create-text-file", async (req, res) => {
@@ -3962,6 +3997,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
+      // Get optional description and chatRoomId from request body
+      const { description, chatRoomId } = req.body;
+
       // 파일을 암호화하지 않고 원본으로 저장 (고유한 파일명 생성)
       const timestamp = Date.now();
       const randomString = Math.random().toString(36).substring(2, 15);
@@ -3973,6 +4011,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       fs.renameSync(req.file.path, finalPath);
       
       console.log(`File saved: ${fileName} (${req.file.size} bytes)`);
+
+      // Track file upload in database with description
+      await storage.trackFileUpload({
+        userId: Number(userId),
+        chatRoomId: chatRoomId ? Number(chatRoomId) : undefined,
+        fileName: fileName,
+        originalName: req.file.originalname,
+        fileSize: req.file.size,
+        fileType: req.file.mimetype,
+        filePath: `/uploads/${fileName}`,
+        description: description || null
+      });
 
       res.json({
         fileUrl: `/uploads/${fileName}`,

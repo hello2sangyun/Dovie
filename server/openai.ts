@@ -531,10 +531,19 @@ export async function generateFileSummary(fileName: string, fileType: string, fi
 // AI Chat Assistant - Answer questions based on chat room context
 export async function answerChatQuestion(
   question: string,
-  chatMessages: Array<{ senderName: string; content: string; createdAt: string; messageType?: string }>
+  chatMessages: Array<{ senderName: string; content: string; createdAt: string; messageType?: string }>,
+  fileUploads?: Array<{ 
+    id: number; 
+    fileName: string; 
+    originalName: string; 
+    filePath: string; 
+    description: string | null; 
+    uploadedAt: Date | null;
+    uploader: { displayName: string; username: string } 
+  }>
 ): Promise<CommandResponse> {
   try {
-    console.log(`AI Chat Assistant: Answering question with ${chatMessages.length} messages as context`);
+    console.log(`AI Chat Assistant: Answering question with ${chatMessages.length} messages and ${fileUploads?.length || 0} files as context`);
     
     // Prepare chat context from messages
     const chatContext = chatMessages
@@ -564,12 +573,26 @@ export async function answerChatQuestion(
       };
     }
 
+    // Prepare file context
+    let fileContext = '';
+    if (fileUploads && fileUploads.length > 0) {
+      fileContext = '\n\n업로드된 파일 목록:\n' + fileUploads.map((file, index) => {
+        const uploaderName = file.uploader?.displayName || file.uploader?.username || '알 수 없음';
+        const uploadDate = file.uploadedAt ? new Date(file.uploadedAt).toLocaleString('ko-KR') : '날짜 없음';
+        const description = file.description || '설명 없음';
+        return `${index + 1}. ${file.originalName} (업로더: ${uploaderName}, 날짜: ${uploadDate}, 설명: ${description})`;
+      }).join('\n');
+    }
+
+    // Detect if this is a file search query
+    const isFileSearchQuery = /찾아|검색|파일|사진|이미지|문서|보여줘|있어|어디/.test(question);
+
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: `당신은 Dovie Messenger의 AI 어시스턴트입니다. 채팅방의 대화 내용을 분석하여 사용자의 질문에 정확하고 친절하게 답변하세요.
+          content: `당신은 Dovie Messenger의 AI 어시스턴트입니다. 채팅방의 대화 내용과 파일 정보를 분석하여 사용자의 질문에 정확하고 친절하게 답변하세요.
 
 답변 가이드라인:
 1. 채팅 기록에 명확한 정보가 있으면 정확히 인용하여 답변하세요
@@ -578,22 +601,34 @@ export async function answerChatQuestion(
 4. 친근하고 자연스러운 한국어로 대화하세요
 5. 답변은 간결하고 명확하게 작성하세요 (3-4 문장 이내)
 
-예시:
+**파일 검색 기능:**
+사용자가 파일을 찾는 질문("소은이 사진 찾아줘", "계약서 어디 있어?", "지난주 올린 문서 보여줘" 등)을 하면, 
+업로드된 파일 목록에서 관련 파일을 찾아 다음 JSON 형식으로만 응답하세요:
+
+{
+  "type": "file_search",
+  "files": [
+    {"index": 1, "reason": "파일 이름에 '소은'이 포함됨"},
+    {"index": 3, "reason": "설명에 '생일 파티'가 언급됨"}
+  ],
+  "message": "소은이 관련 파일 2개를 찾았습니다."
+}
+
+**중요:** 파일 검색 질문에는 반드시 위 JSON 형식으로만 답변하고, 다른 텍스트를 추가하지 마세요.
+
+일반 질문 예시:
 질문: "수진이 생일이 언제야?"
 답변: "채팅 기록을 보니 1월 15일에 수진님이 '내일이 내 생일이야'라고 하셨어요. 그러니까 수진님 생일은 1월 16일입니다!"
 
 질문: "내일 뭐한다고 했지?"
-답변: "어제 대화에서 '내일 저녁 7시에 강남역에서 만나자'고 약속하셨네요. 잊지 마세요!"
-
-질문: "지난주에 무슨 영화 봤어?"
-답변: "죄송하지만 채팅 기록에 영화에 대한 대화가 없어서 확인할 수 없습니다."`
+답변: "어제 대화에서 '내일 저녁 7시에 강남역에서 만나자'고 약속하셨네요. 잊지 마세요!"`
         },
         {
           role: "user",
-          content: `채팅 기록:\n${chatContext}\n\n질문: ${question}`
+          content: `채팅 기록:\n${chatContext}${fileContext}\n\n질문: ${question}`
         }
       ],
-      max_tokens: 500,
+      max_tokens: 1000,
       temperature: 0.7
     });
 
@@ -605,6 +640,48 @@ export async function answerChatQuestion(
         content: "답변을 생성하지 못했습니다. 다시 시도해주세요.",
         type: 'text'
       };
+    }
+
+    // Check if response is file search JSON
+    if (answer.startsWith('{') && answer.includes('"type": "file_search"')) {
+      try {
+        const fileSearchResponse = JSON.parse(answer);
+        
+        // Convert file indices to actual file data
+        const matchedFiles = fileSearchResponse.files
+          .map((match: { index: number; reason: string }) => {
+            const file = fileUploads?.[match.index - 1]; // Arrays are 0-indexed
+            if (!file) return null;
+            
+            return {
+              id: file.id,
+              fileUrl: file.filePath,
+              fileName: file.originalName,
+              description: file.description,
+              uploadedBy: file.uploader?.displayName || file.uploader?.username,
+              uploadedAt: file.uploadedAt ? new Date(file.uploadedAt).toISOString().split('T')[0] : null,
+              reason: match.reason
+            };
+          })
+          .filter(Boolean);
+
+        const result = {
+          type: "file_search",
+          files: matchedFiles,
+          message: fileSearchResponse.message
+        };
+
+        console.log("AI Chat Assistant: File search result generated");
+        
+        return {
+          success: true,
+          content: JSON.stringify(result),
+          type: 'json'
+        };
+      } catch (parseError) {
+        console.error("Failed to parse file search JSON:", parseError);
+        // Fall through to return as text
+      }
     }
 
     console.log("AI Chat Assistant: Answer generated successfully");

@@ -82,8 +82,10 @@ export interface IStorage {
 
   // File storage analytics operations
   getStorageAnalytics(userId: number, timeRange: string): Promise<any>;
-  trackFileUpload(fileData: { userId: number; chatRoomId?: number; fileName: string; originalName: string; fileSize: number; fileType: string; filePath: string }): Promise<void>;
+  trackFileUpload(fileData: { userId: number; chatRoomId?: number; fileName: string; originalName: string; fileSize: number; fileType: string; filePath: string; description?: string | null }): Promise<void>;
+  trackFileUploadWithMessage(fileData: { userId: number; chatRoomId: number; messageId: number; fileName: string; originalName: string; fileSize: number; fileType: string; filePath: string; description?: string | null }): Promise<void>;
   trackFileDownload(fileUploadId: number, userId: number, ipAddress?: string, userAgent?: string): Promise<void>;
+  getFileUploadsByChatRoom(chatRoomId: number): Promise<Array<FileUpload & { uploader: User }>>;
   
   // Business profile operations
   getBusinessProfile(userId: number): Promise<BusinessProfile | undefined>;
@@ -790,12 +792,74 @@ export class DatabaseStorage implements IStorage {
     return { totalSize: 0, typeBreakdown: {}, chatRoomBreakdown: [], recentDownloads: [] };
   }
 
-  async trackFileUpload(fileData: { userId: number; chatRoomId?: number; fileName: string; originalName: string; fileSize: number; fileType: string; filePath: string }): Promise<void> {
-    // Stub implementation
+  async trackFileUpload(fileData: { userId: number; chatRoomId?: number; fileName: string; originalName: string; fileSize: number; fileType: string; filePath: string; description?: string | null }): Promise<void> {
+    await db.insert(fileUploads).values({
+      userId: fileData.userId,
+      chatRoomId: fileData.chatRoomId || null,
+      fileName: fileData.fileName,
+      originalName: fileData.originalName,
+      fileSize: fileData.fileSize,
+      fileType: fileData.fileType,
+      filePath: fileData.filePath,
+      description: fileData.description || null
+    });
+  }
+
+  async trackFileUploadWithMessage(fileData: { userId: number; chatRoomId: number; messageId: number; fileName: string; originalName: string; fileSize: number; fileType: string; filePath: string; description?: string | null }): Promise<void> {
+    // Check if file upload already exists for this message
+    const existingUpload = await db.select()
+      .from(fileUploads)
+      .where(and(
+        eq(fileUploads.chatRoomId, fileData.chatRoomId),
+        eq(fileUploads.fileName, fileData.fileName)
+      ))
+      .limit(1);
+
+    if (existingUpload.length === 0) {
+      await db.insert(fileUploads).values({
+        userId: fileData.userId,
+        chatRoomId: fileData.chatRoomId,
+        fileName: fileData.fileName,
+        originalName: fileData.originalName,
+        fileSize: fileData.fileSize,
+        fileType: fileData.fileType,
+        filePath: fileData.filePath,
+        description: fileData.description || null
+      });
+    }
   }
 
   async trackFileDownload(fileUploadId: number, userId: number, ipAddress?: string, userAgent?: string): Promise<void> {
-    // Stub implementation
+    // Stub implementation for tracking downloads
+  }
+
+  async getFileUploadsByChatRoom(chatRoomId: number): Promise<Array<FileUpload & { uploader: User }>> {
+    const uploads = await db.select({
+      id: fileUploads.id,
+      userId: fileUploads.userId,
+      chatRoomId: fileUploads.chatRoomId,
+      fileName: fileUploads.fileName,
+      originalName: fileUploads.originalName,
+      fileSize: fileUploads.fileSize,
+      fileType: fileUploads.fileType,
+      filePath: fileUploads.filePath,
+      description: fileUploads.description,
+      uploadedAt: fileUploads.uploadedAt,
+      isDeleted: fileUploads.isDeleted,
+      uploader: users
+    })
+    .from(fileUploads)
+    .leftJoin(users, eq(fileUploads.userId, users.id))
+    .where(and(
+      eq(fileUploads.chatRoomId, chatRoomId),
+      eq(fileUploads.isDeleted, false)
+    ))
+    .orderBy(desc(fileUploads.uploadedAt));
+
+    return uploads.map(upload => ({
+      ...upload,
+      uploader: upload.uploader as User
+    })) as Array<FileUpload & { uploader: User }>;
   }
 
   async getBusinessProfile(userId: number): Promise<BusinessProfile | undefined> {

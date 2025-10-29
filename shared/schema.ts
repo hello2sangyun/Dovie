@@ -244,6 +244,7 @@ export const fileUploads = pgTable("file_uploads", {
   fileSize: integer("file_size").notNull(),
   fileType: text("file_type").notNull(),
   filePath: text("file_path").notNull(),
+  description: text("description"),
   uploadedAt: timestamp("uploaded_at").defaultNow(),
   isDeleted: boolean("is_deleted").default(false)
 });
