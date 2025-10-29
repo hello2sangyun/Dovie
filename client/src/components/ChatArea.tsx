@@ -4745,13 +4745,63 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                               })()}
                             </div>
                             
-                            {msg.content && (
-                              <div className={cn(
-                                "text-sm leading-relaxed",
-                                isMe ? "text-white/90" : "text-gray-800"
-                              )}>
-                                {msg.content}
+                            {/* 번역 상태에 따른 전사 텍스트 표시 */}
+                            {translatedMessages[msg.id] ? (
+                              // 번역된 음성 메시지 표시
+                              <div className="animate-in fade-in-0 zoom-in-95 duration-300">
+                                <button
+                                  onClick={() => {
+                                    setShowOriginal(prev => {
+                                      const newSet = new Set(prev);
+                                      if (newSet.has(msg.id)) {
+                                        newSet.delete(msg.id);
+                                      } else {
+                                        newSet.add(msg.id);
+                                      }
+                                      return newSet;
+                                    });
+                                  }}
+                                  className={cn(
+                                    "mb-2 px-2 py-1 text-xs rounded-md transition-all duration-200 hover:scale-105 flex items-center space-x-1",
+                                    isMe 
+                                      ? "bg-white/20 hover:bg-white/30 text-white" 
+                                      : "bg-purple-100 hover:bg-purple-200 text-purple-700"
+                                  )}
+                                  data-testid={`toggle-translation-${msg.id}`}
+                                >
+                                  <Languages className="h-3 w-3" />
+                                  <span>{showOriginal.has(msg.id) ? '번역 보기' : '원문 보기'}</span>
+                                </button>
+                                
+                                <div className="transition-all duration-300 ease-in-out">
+                                  <div className={cn(
+                                    "text-sm leading-relaxed mb-2",
+                                    isMe ? "text-white/90" : "text-gray-800"
+                                  )}>
+                                    {showOriginal.has(msg.id) 
+                                      ? (msg.transcription || msg.content)
+                                      : translatedMessages[msg.id].text
+                                    }
+                                  </div>
+                                  <div className={cn(
+                                    "text-xs opacity-70 flex items-center space-x-1",
+                                    isMe ? "text-white/70" : "text-gray-600"
+                                  )}>
+                                    <Languages className="h-3 w-3" />
+                                    <span>ChatGPT 번역완료</span>
+                                  </div>
+                                </div>
                               </div>
+                            ) : (
+                              // 원본 전사 텍스트 표시
+                              (msg.transcription || msg.content) && (
+                                <div className={cn(
+                                  "text-sm leading-relaxed",
+                                  isMe ? "text-white/90" : "text-gray-800"
+                                )}>
+                                  {msg.transcription || msg.content}
+                                </div>
+                              )
                             )}
                           </div>
                         </div>
@@ -5048,7 +5098,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                                     <div className="transition-all duration-300 ease-in-out">
                                       <div className="mb-2">
                                         {showOriginal.has(msg.id) 
-                                          ? renderMessageWithLinks(msg.content)
+                                          ? renderMessageWithLinks(msg.messageType === 'voice' ? (msg.transcription || msg.content) : msg.content)
                                           : renderMessageWithLinks(translatedMessages[msg.id].text)
                                         }
                                       </div>
