@@ -913,53 +913,43 @@ function ChatRoomItem({
           />
         )}
         {chatRoom.isGroup ? (
-          chatRoom.profileImage ? (
-            <InstantAvatar
-              src={chatRoom.profileImage}
-              fallbackText={displayName}
-              size="lg"
-              className="flex-shrink-0"
-              data-testid="avatar-group-chat-list"
-            />
-          ) : (
-            <div className="relative w-12 h-12 flex items-center justify-center">
-              {chatRoom.participants.slice(0, 2).map((participant: any, index: number) => {
-                // 깔끔한 수평 겹침 배치 (2명만 표시)
-                const horizontalPositions = [
-                  { top: '50%', left: '0px', transform: 'translateY(-50%)' },
-                  { top: '50%', right: '0px', transform: 'translateY(-50%)' }
-                ];
-                
-                const position = horizontalPositions[index];
-                
-                return (
-                  <div
-                    key={participant.id}
-                    className="absolute border-2 border-white dark:border-gray-800 rounded-full shadow-md"
-                    style={{
-                      ...position,
-                      zIndex: 2 - index
-                    }}
-                  >
-                    <InstantAvatar 
-                      src={participant?.profilePicture}
-                      fallbackText={participant?.displayName || participant?.username}
-                      size="sm" 
-                      className="purple-gradient"
-                    />
-                  </div>
-                );
-              })}
-              {chatRoom.participants.length > 2 && (
-                <div 
-                  className="absolute bottom-0 right-0 bg-purple-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-md border-2 border-white dark:border-gray-800"
-                  style={{ zIndex: 3 }}
+          <div className="relative w-12 h-12 flex items-center justify-center">
+            {chatRoom.participants.slice(0, 2).map((participant: any, index: number) => {
+              // 깔끔한 수평 겹침 배치 (2명만 표시)
+              const horizontalPositions = [
+                { top: '50%', left: '0px', transform: 'translateY(-50%)' },
+                { top: '50%', right: '0px', transform: 'translateY(-50%)' }
+              ];
+              
+              const position = horizontalPositions[index];
+              
+              return (
+                <div
+                  key={participant.id}
+                  className="absolute border-2 border-white dark:border-gray-800 rounded-full shadow-md"
+                  style={{
+                    ...position,
+                    zIndex: 2 - index
+                  }}
                 >
-                  +{chatRoom.participants.length - 2}
+                  <InstantAvatar 
+                    src={participant?.profilePicture}
+                    fallbackText={participant?.displayName || participant?.username}
+                    size="sm" 
+                    className="purple-gradient"
+                  />
                 </div>
-              )}
-            </div>
-          )
+              );
+            })}
+            {chatRoom.participants.length > 2 && (
+              <div 
+                className="absolute bottom-0 right-0 bg-purple-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-md border-2 border-white dark:border-gray-800"
+                style={{ zIndex: 3 }}
+              >
+                +{chatRoom.participants.length - 2}
+              </div>
+            )}
+          </div>
         ) : (
           <InstantAvatar 
             src={getOtherParticipant(chatRoom)?.profilePicture}
