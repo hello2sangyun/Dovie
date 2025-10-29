@@ -2,8 +2,9 @@ import { useState, useRef, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { X, Mic, Send, Sparkles } from "lucide-react";
+import { X, Mic, Send, Sparkles, Download, Share2 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface AIChatAssistantModalProps {
   isOpen: boolean;
@@ -69,11 +70,13 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [fileSearchResult, setFileSearchResult] = useState<FileSearchResult | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<Set<number>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { toast } = useToast();
 
   // Start voice recording
   const startRecording = async () => {
@@ -151,6 +154,7 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
     setIsLoading(true);
     setAnswer("");
     setFileSearchResult(null);
+    setSelectedFiles(new Set()); // Clear previous selections
 
     try {
       const response = await apiRequest(`/api/chat-rooms/${chatRoomId}/ai-assistant`, 'POST', {
@@ -192,12 +196,129 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
     }
   };
 
+  // Toggle file selection
+  const toggleFileSelection = (fileId: number) => {
+    setSelectedFiles((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(fileId)) {
+        newSet.delete(fileId);
+      } else {
+        newSet.add(fileId);
+      }
+      return newSet;
+    });
+  };
+
+  // Select all files
+  const selectAllFiles = () => {
+    if (!fileSearchResult) return;
+    setSelectedFiles(new Set(fileSearchResult.files.map(f => f.id)));
+  };
+
+  // Deselect all files
+  const deselectAllFiles = () => {
+    setSelectedFiles(new Set());
+  };
+
+  // Download selected files
+  const downloadSelectedFiles = async () => {
+    if (selectedFiles.size === 0) return;
+    
+    const filesToDownload = fileSearchResult?.files.filter(f => selectedFiles.has(f.id)) || [];
+    
+    for (const file of filesToDownload) {
+      try {
+        const response = await fetch(file.fileUrl);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = file.fileName;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } catch (error) {
+        console.error(`Failed to download ${file.fileName}:`, error);
+      }
+    }
+    
+    toast({
+      title: "다운로드 완료",
+      description: `${filesToDownload.length}개 파일 다운로드를 시작했습니다.`,
+    });
+  };
+
+  // Share selected files using Web Share API
+  const shareSelectedFiles = async () => {
+    if (selectedFiles.size === 0) return;
+    
+    const filesToShare = fileSearchResult?.files.filter(f => selectedFiles.has(f.id)) || [];
+    
+    if (filesToShare.length === 0) return;
+
+    // Use Web Share API if available
+    if (navigator.share && filesToShare.length === 1) {
+      try {
+        const file = filesToShare[0];
+        const response = await fetch(file.fileUrl);
+        const blob = await response.blob();
+        const shareFile = new File([blob], file.fileName, { type: blob.type });
+        
+        await navigator.share({
+          title: file.fileName,
+          text: file.description || '',
+          files: [shareFile]
+        });
+        
+        toast({
+          title: "공유 완료",
+          description: "파일을 공유했습니다.",
+        });
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          console.error('Share failed:', error);
+          fallbackShare(filesToShare);
+        }
+      }
+    } else {
+      // Fallback: copy file URLs to clipboard
+      fallbackShare(filesToShare);
+    }
+  };
+
+  // Fallback share method: copy file URLs
+  const fallbackShare = (files: Array<{
+    id: number;
+    fileUrl: string;
+    fileName: string;
+    description?: string;
+    uploadedBy: string;
+    uploadedAt: string;
+    reason?: string;
+  }>) => {
+    const fileUrls = files.map(f => `${window.location.origin}${f.fileUrl}`).join('\n');
+    navigator.clipboard.writeText(fileUrls).then(() => {
+      toast({
+        title: "링크 복사 완료",
+        description: `${files.length}개 파일 링크가 클립보드에 복사되었습니다.`,
+      });
+    }).catch(() => {
+      toast({
+        title: "공유 실패",
+        description: "파일 공유에 실패했습니다.",
+        variant: "destructive"
+      });
+    });
+  };
+
   // Reset state when modal closes
   useEffect(() => {
     if (!isOpen) {
       setQuestion("");
       setAnswer("");
       setFileSearchResult(null);
+      setSelectedFiles(new Set());
       setIsLoading(false);
       if (isRecording) {
         stopRecording();
@@ -221,8 +342,8 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
           </p>
         </DialogHeader>
 
-        {/* Content */}
-        <div className="p-6 space-y-4">
+        {/* Content - Scrollable */}
+        <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
           {/* Question Input */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">질문</label>
@@ -351,15 +472,82 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
                 <span className="text-xs text-gray-500">{fileSearchResult.files.length}개 파일</span>
               </div>
               
-              <div className="grid grid-cols-2 gap-3">
+              {/* Action buttons */}
+              <div className="flex items-center gap-2 flex-wrap">
+                {selectedFiles.size === 0 ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={selectAllFiles}
+                    className="text-xs"
+                    data-testid="button-select-all"
+                  >
+                    전체 선택
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={deselectAllFiles}
+                      className="text-xs"
+                      data-testid="button-deselect-all"
+                    >
+                      선택 해제
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="default"
+                      onClick={downloadSelectedFiles}
+                      className="text-xs bg-blue-600 hover:bg-blue-700"
+                      data-testid="button-download-selected"
+                    >
+                      <Download className="h-3 w-3 mr-1" />
+                      다운로드 ({selectedFiles.size})
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="default"
+                      onClick={shareSelectedFiles}
+                      className="text-xs bg-purple-600 hover:bg-purple-700"
+                      data-testid="button-share-selected"
+                    >
+                      <Share2 className="h-3 w-3 mr-1" />
+                      공유 ({selectedFiles.size})
+                    </Button>
+                  </>
+                )}
+              </div>
+              
+              {/* Scrollable file grid */}
+              <div className="grid grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-1">
                 {fileSearchResult.files.map((file) => (
                   <div
                     key={file.id}
-                    className="relative group bg-white rounded-lg border-2 border-purple-200 hover:border-purple-400 overflow-hidden transition-all cursor-pointer shadow-sm hover:shadow-md"
+                    className={`relative group bg-white rounded-lg border-2 overflow-hidden transition-all cursor-pointer shadow-sm hover:shadow-md ${
+                      selectedFiles.has(file.id) 
+                        ? 'border-purple-500 ring-2 ring-purple-300' 
+                        : 'border-purple-200 hover:border-purple-400'
+                    }`}
                     data-testid={`file-card-${file.id}`}
                   >
+                    {/* Checkbox */}
+                    <div className="absolute top-2 left-2 z-10">
+                      <input
+                        type="checkbox"
+                        checked={selectedFiles.has(file.id)}
+                        onChange={() => toggleFileSelection(file.id)}
+                        className="h-5 w-5 rounded border-2 border-white shadow-lg cursor-pointer accent-purple-600"
+                        data-testid={`checkbox-file-${file.id}`}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
+
                     {/* File Thumbnail or Icon */}
-                    <div className="aspect-square bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center relative overflow-hidden">
+                    <div 
+                      className="aspect-square bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center relative overflow-hidden"
+                      onClick={() => toggleFileSelection(file.id)}
+                    >
                       {file.fileName.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
                         <img 
                           src={file.fileUrl} 
@@ -373,7 +561,10 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
                       {/* Overlay on hover */}
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                         <button
-                          onClick={() => window.open(file.fileUrl, '_blank')}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(file.fileUrl, '_blank');
+                          }}
                           className="p-2 bg-white rounded-full hover:bg-gray-100"
                           title="미리보기"
                           data-testid={`button-preview-${file.id}`}
@@ -386,6 +577,7 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
                         <a
                           href={file.fileUrl}
                           download={file.fileName}
+                          onClick={(e) => e.stopPropagation()}
                           className="p-2 bg-white rounded-full hover:bg-gray-100"
                           title="다운로드"
                           data-testid={`button-download-${file.id}`}
@@ -398,13 +590,18 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
                     </div>
 
                     {/* File Info */}
-                    <div className="p-2 space-y-1">
+                    <div className="p-2 space-y-1" onClick={() => toggleFileSelection(file.id)}>
                       <p className="text-xs font-medium text-gray-900 truncate" title={file.fileName}>
                         {file.fileName}
                       </p>
                       {file.description && (
                         <p className="text-xs text-gray-600 line-clamp-2" title={file.description}>
                           {file.description}
+                        </p>
+                      )}
+                      {file.reason && (
+                        <p className="text-xs text-purple-600 line-clamp-2 font-medium" title={file.reason}>
+                          💡 {file.reason}
                         </p>
                       )}
                       <div className="flex items-center gap-1 text-xs text-gray-500">
