@@ -73,6 +73,7 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
   const [selectedFiles, setSelectedFiles] = useState<Set<number>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [showInput, setShowInput] = useState(true);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -172,9 +173,11 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
         if (data.type === 'file_search' && data.data) {
           setFileSearchResult(data.data);
           setAnswer("");
+          setShowInput(false); // Hide input when showing results
         } else if (data.answer) {
           setAnswer(data.answer);
           setFileSearchResult(null);
+          setShowInput(false); // Hide input when showing answer
         } else {
           throw new Error('No answer received');
         }
@@ -312,6 +315,16 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
     });
   };
 
+  // Reset to new question
+  const resetToNewQuestion = () => {
+    setAnswer("");
+    setFileSearchResult(null);
+    setSelectedFiles(new Set());
+    setQuestion("");
+    setShowInput(true);
+    setTimeout(() => textareaRef.current?.focus(), 100);
+  };
+
   // Reset state when modal closes
   useEffect(() => {
     if (!isOpen) {
@@ -319,6 +332,7 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
       setAnswer("");
       setFileSearchResult(null);
       setSelectedFiles(new Set());
+      setShowInput(true);
       setIsLoading(false);
       if (isRecording) {
         stopRecording();
@@ -344,112 +358,130 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
 
         {/* Content - Scrollable */}
         <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
-          {/* Question Input */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">질문</label>
-            <div className="relative">
-              <Textarea
-                ref={textareaRef}
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="예: 수진이 생일이 언제야? 내일 뭐한다고 했지?"
-                className="min-h-[80px] pr-12 resize-none focus:ring-2 focus:ring-purple-500"
-                disabled={isLoading || isRecording}
-                data-testid="input-ai-question"
-              />
-            </div>
-          </div>
-
-          {/* Unified Send Button - Text + Voice */}
-          <div className="flex items-center justify-center gap-2">
-            {isRecording && (
-              <div className="flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-600 rounded-full text-xs font-medium">
-                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                녹음 중
+          {/* Question Input - Show only when no answer/results */}
+          {showInput && (
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-gray-700">질문</label>
+              <div className="flex items-end gap-2">
+                <Textarea
+                  ref={textareaRef}
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="예: 수진이 생일이 언제야? Fanni 사진 찾아줘"
+                  className="flex-1 min-h-[80px] resize-none focus:ring-2 focus:ring-purple-500"
+                  disabled={isLoading || isRecording}
+                  data-testid="input-ai-question"
+                />
+                
+                {/* Unified Send Button - Right side */}
+                <button
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    if (isLoading) return;
+                    
+                    if (question.trim()) {
+                      handleSubmit();
+                    } else {
+                      if (!isRecording) {
+                        startRecording();
+                      }
+                    }
+                  }}
+                  onMouseUp={(e) => {
+                    e.preventDefault();
+                    if (isRecording) {
+                      stopRecording();
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (isRecording) {
+                      stopRecording();
+                    }
+                  }}
+                  onTouchStart={(e) => {
+                    e.preventDefault();
+                    if (isLoading) return;
+                    
+                    if (question.trim()) {
+                      handleSubmit();
+                    } else {
+                      if (!isRecording) {
+                        startRecording();
+                      }
+                    }
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    if (isRecording) {
+                      stopRecording();
+                    }
+                  }}
+                  disabled={isLoading}
+                  className={`h-[80px] w-16 flex-shrink-0 rounded-xl transition-all duration-200 select-none cursor-pointer flex flex-col items-center justify-center gap-1 shadow-lg ${
+                    isRecording 
+                      ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
+                      : question.trim() 
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                        : 'bg-purple-500 hover:bg-purple-600 text-white'
+                  } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  aria-label={
+                    isRecording 
+                      ? '녹음 중지' 
+                      : question.trim() 
+                        ? '질문 전송' 
+                        : '누르면 음성 입력'
+                  }
+                  data-testid="button-unified-send"
+                >
+                  {isLoading ? (
+                    <div className="animate-spin h-6 w-6 border-2 border-white border-t-transparent rounded-full" />
+                  ) : isRecording ? (
+                    <>
+                      <Mic className="h-6 w-6 animate-pulse" />
+                      <span className="text-xs">중지</span>
+                    </>
+                  ) : question.trim() ? (
+                    <>
+                      <Send className="h-6 w-6" />
+                      <span className="text-xs">전송</span>
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="h-6 w-6" />
+                      <span className="text-xs">음성</span>
+                    </>
+                  )}
+                </button>
               </div>
-            )}
-            
-            <button
-              onMouseDown={(e) => {
-                e.preventDefault();
-                if (isLoading) return;
-                
-                // 텍스트가 있으면 즉시 전송
-                if (question.trim()) {
-                  handleSubmit();
-                } else {
-                  // 텍스트가 없으면 녹음 시작
-                  if (!isRecording) {
-                    startRecording();
-                  }
-                }
-              }}
-              onMouseUp={(e) => {
-                e.preventDefault();
-                if (isRecording) {
-                  stopRecording();
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (isRecording) {
-                  stopRecording();
-                }
-              }}
-              onTouchStart={(e) => {
-                e.preventDefault();
-                if (isLoading) return;
-                
-                if (question.trim()) {
-                  handleSubmit();
-                } else {
-                  if (!isRecording) {
-                    startRecording();
-                  }
-                }
-              }}
-              onTouchEnd={(e) => {
-                e.preventDefault();
-                if (isRecording) {
-                  stopRecording();
-                }
-              }}
-              disabled={isLoading}
-              className={`h-14 w-14 p-3 rounded-xl transition-all duration-200 select-none cursor-pointer flex items-center justify-center shadow-lg ${
-                isRecording 
-                  ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
-                  : question.trim() 
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                    : 'bg-purple-500 hover:bg-purple-600 text-white'
-              } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-              aria-label={
-                isRecording 
-                  ? '녹음 중지' 
-                  : question.trim() 
-                    ? '질문 전송' 
-                    : '누르면 음성 입력'
-              }
-              data-testid="button-unified-send"
-            >
-              {isLoading ? (
-                <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
-              ) : isRecording ? (
-                <Mic className="h-5 w-5 animate-pulse" />
-              ) : question.trim() ? (
-                <Send className="h-5 w-5" />
-              ) : (
-                <Mic className="h-5 w-5" />
+              
+              {isRecording && (
+                <div className="flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-600 rounded-full text-xs font-medium w-fit">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                  녹음 중 - 버튼에서 손을 떼면 전송됩니다
+                </div>
               )}
-            </button>
-          </div>
+            </div>
+          )}
 
           {/* Answer Display */}
           {answer && (
-            <div className="space-y-2 pt-4 border-t border-gray-200">
-              <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-purple-600" />
-                AI 답변
-              </label>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-purple-600" />
+                  AI 답변
+                </label>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={resetToNewQuestion}
+                  className="text-xs"
+                  data-testid="button-new-question"
+                >
+                  새 질문하기
+                </Button>
+              </div>
               <div 
                 className="p-4 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg border border-purple-200"
                 data-testid="text-ai-answer"
@@ -463,13 +495,24 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
 
           {/* File Search Results */}
           {fileSearchResult && (
-            <div className="space-y-3 pt-4 border-t border-gray-200">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-purple-600" />
                   {fileSearchResult.message}
                 </label>
-                <span className="text-xs text-gray-500">{fileSearchResult.files.length}개 파일</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">{fileSearchResult.files.length}개 파일</span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={resetToNewQuestion}
+                    className="text-xs"
+                    data-testid="button-new-question-files"
+                  >
+                    새 질문하기
+                  </Button>
+                </div>
               </div>
               
               {/* Action buttons */}
@@ -616,24 +659,26 @@ export const AIChatAssistantModal = ({ isOpen, onClose, chatRoomId }: AIChatAssi
             </div>
           )}
 
-          {/* Tips */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <div className="flex items-start gap-2">
-              <div className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-blue-600 text-xs font-bold">💡</span>
-              </div>
-              <div className="text-xs text-blue-700">
-                <p className="font-medium mb-1">AI가 도와드릴 수 있는 것들:</p>
-                <ul className="space-y-0.5 list-disc list-inside">
-                  <li>대화 내용에서 특정 정보 찾기</li>
-                  <li>약속 날짜나 시간 확인</li>
-                  <li>파일 및 사진 검색 (예: "소은이 사진 찾아줘")</li>
-                  <li>누가 무슨 말을 했는지 기억하기</li>
-                  <li>대화 내용 요약하기</li>
-                </ul>
+          {/* Tips - Only show when input is visible */}
+          {showInput && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <div className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-blue-600 text-xs font-bold">💡</span>
+                </div>
+                <div className="text-xs text-blue-700">
+                  <p className="font-medium mb-1">AI가 도와드릴 수 있는 것들:</p>
+                  <ul className="space-y-0.5 list-disc list-inside">
+                    <li>대화 내용에서 특정 정보 찾기</li>
+                    <li>약속 날짜나 시간 확인</li>
+                    <li>파일 및 사진 검색 (예: "소은이 사진 찾아줘")</li>
+                    <li>누가 무슨 말을 했는지 기억하기</li>
+                    <li>대화 내용 요약하기</li>
+                  </ul>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
