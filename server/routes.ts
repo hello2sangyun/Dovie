@@ -2387,17 +2387,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { filename } = req.params;
       
-      // 보안 검증: 이미지 파일 확장자만 허용
-      const allowedExtensions = /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i;
+      // 보안 검증: profile_ 접두사가 있거나 암호화된 해시 파일명 허용
+      const isProfileFile = filename.startsWith('profile_');
+      const isEncryptedFile = /^[a-f0-9]+\.(jpg|jpeg|png|gif|webp)$/i.test(filename);
       
-      if (!allowedExtensions.test(filename)) {
-        console.log('Access denied for file:', filename, '- invalid extension');
-        return res.status(403).json({ message: "Access denied" });
-      }
-      
-      // 경로 탐색 공격 방지
-      if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
-        console.log('Access denied for file:', filename, '- path traversal attempt');
+      if (!isProfileFile && !isEncryptedFile) {
+        console.log('Access denied for file:', filename, 'isProfile:', isProfileFile, 'isEncrypted:', isEncryptedFile);
         return res.status(403).json({ message: "Access denied" });
       }
       

@@ -3969,81 +3969,66 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               </Button>
             )}
             {currentChatRoom.isGroup ? (
-              // 그룹 프로필 이미지가 있으면 그것을 표시, 없으면 참가자 모음 표시
-              (currentChatRoom as any).profileImage ? (
-                <InstantAvatar
-                  src={(currentChatRoom as any).profileImage}
-                  alt={chatRoomDisplayName}
-                  fallbackText={chatRoomDisplayName}
-                  size={showMobileHeader ? "sm" : "md"}
-                  className={cn(
-                    "flex-shrink-0",
-                    showMobileHeader ? "w-8 h-8" : "w-10 h-10"
-                  )}
-                  data-testid="avatar-group-profile"
-                />
-              ) : (
-                <div className={cn(
-                  "relative flex items-center justify-center flex-shrink-0",
-                  showMobileHeader ? "w-8 h-8" : "w-10 h-10"
-                )}>
-                  {currentChatRoom.participants.slice(0, Math.min(5, currentChatRoom.participants.length)).map((participant: any, index: number) => {
-                    const totalAvatars = Math.min(5, currentChatRoom.participants.length);
-                    const isStackLayout = totalAvatars <= 3;
-                    const avatarSize = showMobileHeader ? "w-6 h-6" : "w-7 h-7";
+              <div className={cn(
+                "relative flex items-center justify-center flex-shrink-0",
+                showMobileHeader ? "w-8 h-8" : "w-10 h-10"
+              )}>
+                {currentChatRoom.participants.slice(0, Math.min(5, currentChatRoom.participants.length)).map((participant: any, index: number) => {
+                  const totalAvatars = Math.min(5, currentChatRoom.participants.length);
+                  const isStackLayout = totalAvatars <= 3;
+                  const avatarSize = showMobileHeader ? "w-6 h-6" : "w-7 h-7";
+                  
+                  if (isStackLayout) {
+                    return (
+                      <div
+                        key={participant.id}
+                        className={cn(
+                          "rounded-full border-2 border-white shadow-sm bg-slate-500 flex items-center justify-center text-white font-medium",
+                          avatarSize,
+                          showMobileHeader ? "text-[10px]" : "text-xs",
+                          index > 0 ? "-ml-1" : ""
+                        )}
+                        style={{ zIndex: totalAvatars - index }}
+                      >
+                        <InstantAvatar 
+                          src={participant.profilePicture}
+                          alt={participant.displayName}
+                          fallbackText={participant.displayName}
+                          size="sm"
+                          className="w-full h-full"
+                        />
+                      </div>
+                    );
+                  } else {
+                    const positions = [
+                      'top-0 left-0',
+                      'top-0 right-0', 
+                      'bottom-0 left-0',
+                      'bottom-0 right-0',
+                      'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10'
+                    ];
                     
-                    if (isStackLayout) {
-                      return (
-                        <div
-                          key={participant.id}
-                          className={cn(
-                            "rounded-full border-2 border-white shadow-sm bg-slate-500 flex items-center justify-center text-white font-medium",
-                            avatarSize,
-                            showMobileHeader ? "text-[10px]" : "text-xs",
-                            index > 0 ? "-ml-1" : ""
-                          )}
-                          style={{ zIndex: totalAvatars - index }}
-                        >
-                          <InstantAvatar 
-                            src={participant.profilePicture}
-                            alt={participant.displayName}
-                            fallbackText={participant.displayName}
-                            size="sm"
-                            className="w-full h-full"
-                          />
-                        </div>
-                      );
-                    } else {
-                      const positions = [
-                        'top-0 left-0',
-                        'top-0 right-0', 
-                        'bottom-0 left-0',
-                        'bottom-0 right-0',
-                        'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10'
-                      ];
-                      
-                      return (
-                        <div
-                          key={participant.id}
-                          className={cn(
-                            "absolute rounded-full border border-white shadow-sm purple-gradient flex items-center justify-center text-white font-semibold text-[8px]",
-                            showMobileHeader ? "w-4 h-4" : "w-5 h-5",
-                            positions[index]
-                          )}
-                        >
-                          <InstantAvatar 
-                            src={participant.profilePicture}
-                            alt={participant.displayName}
-                            fallbackText={participant.displayName}
-                            size="sm"
-                            className="w-full h-full"
-                          />
-                        </div>
-                      );
-                    }
-                  })}
-                </div>
-              )
+                    return (
+                      <div
+                        key={participant.id}
+                        className={cn(
+                          "absolute rounded-full border border-white shadow-sm purple-gradient flex items-center justify-center text-white font-semibold text-[8px]",
+                          showMobileHeader ? "w-4 h-4" : "w-5 h-5",
+                          positions[index]
+                        )}
+                      >
+                        <InstantAvatar 
+                          src={participant.profilePicture}
+                          alt={participant.displayName}
+                          fallbackText={participant.displayName}
+                          size="sm"
+                          className="w-full h-full"
+                        />
+                      </div>
+                    );
+                  }
+                })}
+              </div>
             ) : (
               <InstantAvatar
                 src={currentChatRoom.participants?.find((p: any) => p.id !== user?.id)?.profilePicture}

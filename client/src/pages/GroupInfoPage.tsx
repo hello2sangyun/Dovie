@@ -250,14 +250,7 @@ export default function GroupInfoPage() {
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-bold text-gray-900 truncate" data-testid="header-group-name">
-              {chatRoom?.name || "그룹 정보"}
-            </h1>
-            <p className="text-xs text-gray-500">
-              {participants.length}명의 멤버
-            </p>
-          </div>
+          <h1 className="text-lg font-semibold text-gray-900">그룹 정보</h1>
         </div>
       </div>
 
