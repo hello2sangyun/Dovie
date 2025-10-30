@@ -5292,6 +5292,65 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       )}
                     </div>
                     </GestureQuickReply>
+                    
+                    {/* Emoji Reactions */}
+                    {msg.reactions && msg.reactions.length > 0 && (
+                      <div className={cn(
+                        "flex flex-wrap gap-1 mt-1",
+                        isMe ? "justify-end" : "justify-start"
+                      )}>
+                        {(() => {
+                          // Group reactions by emoji
+                          const reactionGroups = msg.reactions.reduce((acc: any, reaction: any) => {
+                            if (!acc[reaction.emoji]) {
+                              acc[reaction.emoji] = {
+                                emoji: reaction.emoji,
+                                count: 0,
+                                users: [],
+                                hasCurrentUser: false
+                              };
+                            }
+                            acc[reaction.emoji].count++;
+                            acc[reaction.emoji].users.push(reaction.userId);
+                            if (reaction.userId === user?.id) {
+                              acc[reaction.emoji].hasCurrentUser = true;
+                            }
+                            return acc;
+                          }, {});
+
+                          return Object.values(reactionGroups).map((group: any) => (
+                            <button
+                              key={group.emoji}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                addReactionMutation.mutate({ 
+                                  messageId: msg.id, 
+                                  emoji: group.emoji, 
+                                  emojiName: group.emoji 
+                                });
+                              }}
+                              className={cn(
+                                "flex items-center gap-1 px-2 py-0.5 rounded-full text-xs transition-all hover:scale-110",
+                                group.hasCurrentUser
+                                  ? "bg-purple-100 border-2 border-purple-400 dark:bg-purple-900/30 dark:border-purple-600"
+                                  : "bg-gray-100 border border-gray-300 dark:bg-gray-800 dark:border-gray-600"
+                              )}
+                              data-testid={`reaction-${group.emoji}-${msg.id}`}
+                            >
+                              <span className="text-base">{group.emoji}</span>
+                              <span className={cn(
+                                "font-medium",
+                                group.hasCurrentUser
+                                  ? "text-purple-700 dark:text-purple-400"
+                                  : "text-gray-600 dark:text-gray-300"
+                              )}>
+                                {group.count}
+                              </span>
+                            </button>
+                          ));
+                        })()}
+                      </div>
+                    )}
                   </div>
                 </div>
                 </div>
