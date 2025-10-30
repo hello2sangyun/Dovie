@@ -230,6 +230,16 @@ export function useWebSocket(userId?: number) {
               }
               break;
             
+            case "reaction_updated":
+              // Handle emoji reaction updates
+              if (data.data?.chatRoomId) {
+                // Invalidate the specific chat room's messages query to refresh reactions
+                queryClient.invalidateQueries({ 
+                  queryKey: ["/api/chat-rooms", data.data.chatRoomId, "messages"] 
+                });
+              }
+              break;
+            
             case "error":
               console.error("WebSocket server error:", data.message);
               break;

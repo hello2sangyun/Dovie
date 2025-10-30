@@ -369,11 +369,27 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
-    // Combine chat rooms with their last messages
-    return chatRoomsList.map(room => ({
-      ...room,
-      lastMessage: lastMessageByRoom.get(room.id)
-    }));
+    // Combine chat rooms with their last messages and handle 1:1 chat display
+    return chatRoomsList.map(room => {
+      // For 1:1 chats (exactly 2 participants), use opponent's info
+      if (room.participants.length === 2) {
+        const opponent = room.participants.find(p => p.id !== userId);
+        if (opponent) {
+          return {
+            ...room,
+            name: opponent.displayName,
+            profileImage: opponent.profilePicture,
+            lastMessage: lastMessageByRoom.get(room.id)
+          };
+        }
+      }
+      
+      // For group chats or other cases, return as is
+      return {
+        ...room,
+        lastMessage: lastMessageByRoom.get(room.id)
+      };
+    });
   }
 
   async getChatRoomById(chatRoomId: number): Promise<(ChatRoom & { participants: User[] }) | undefined> {

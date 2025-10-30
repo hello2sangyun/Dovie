@@ -1922,6 +1922,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Emoji and emoji name required" });
       }
 
+      // Get message to find chat room ID
+      const [message] = await db
+        .select()
+        .from(messages)
+        .where(eq(messages.id, messageId));
+
+      if (!message) {
+        return res.status(404).json({ message: "Message not found" });
+      }
+
       // Check if reaction already exists
       const [existingReaction] = await db
         .select()
@@ -1934,27 +1944,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
           )
         );
 
+      let removed = false;
+      let reaction;
+
       if (existingReaction) {
         // Remove reaction if it already exists (toggle behavior)
         await db
           .delete(messageReactions)
           .where(eq(messageReactions.id, existingReaction.id));
 
-        return res.json({ removed: true, reaction: existingReaction });
+        removed = true;
+        reaction = existingReaction;
+      } else {
+        // Add new reaction
+        const [newReaction] = await db
+          .insert(messageReactions)
+          .values({
+            messageId,
+            userId: Number(userId),
+            emoji,
+            emojiName,
+          })
+          .returning();
+
+        removed = false;
+        reaction = newReaction;
       }
 
-      // Add new reaction
-      const [newReaction] = await db
-        .insert(messageReactions)
-        .values({
-          messageId,
-          userId: Number(userId),
-          emoji,
-          emojiName,
-        })
-        .returning();
+      // Broadcast reaction update to all participants via WebSocket
+      const room = await storage.getChatRoomById(message.chatRoomId);
+      if (room) {
+        room.participants.forEach((participant: any) => {
+          const connection = connections.get(participant.id);
+          if (connection && connection.readyState === WebSocket.OPEN) {
+            connection.send(JSON.stringify({
+              type: 'reaction_updated',
+              data: {
+                messageId,
+                chatRoomId: message.chatRoomId,
+                reaction,
+                removed,
+                userId: Number(userId)
+              }
+            }));
+          }
+        });
+      }
 
-      res.json({ removed: false, reaction: newReaction });
+      res.json({ removed, reaction });
     } catch (error) {
       console.error("Reaction error:", error);
       res.status(500).json({ message: "Failed to add reaction" });
