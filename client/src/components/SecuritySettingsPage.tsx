@@ -106,7 +106,7 @@ export default function SecuritySettingsPage({ onBack }: SecuritySettingsPagePro
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-6" style={{ maxHeight: 'calc(100vh - 120px)' }}>
+      <div className="flex-1 overflow-y-auto p-4 pb-24 space-y-6">
         {/* Password Change */}
         <Card>
           <CardHeader>
