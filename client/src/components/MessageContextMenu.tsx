@@ -12,9 +12,9 @@ interface MessageContextMenuProps {
   onEditMessage?: () => void;
   onCopyText?: () => void;
   onDeleteMessage?: () => void;
-  onStarMessage?: () => void;
+  onStarMessage?: (isStarred: boolean) => void;
   onForwardMessage?: () => void;
-  onReaction?: (emoji: string) => void;
+  onReaction?: (emoji: string, emojiName: string) => void;
   canEdit?: boolean;
   canDelete?: boolean;
   isStarred?: boolean;
@@ -171,7 +171,7 @@ export default function MessageContextMenu({
 
   const handleStarClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onStarMessage?.();
+    onStarMessage?.(!isStarred);
     onClose();
   };
 
@@ -181,9 +181,9 @@ export default function MessageContextMenu({
     onClose();
   };
 
-  const handleReactionClick = (emoji: string) => (e: React.MouseEvent) => {
+  const handleReactionClick = (emoji: string, emojiName: string) => (e: React.MouseEvent) => {
     e.stopPropagation();
-    onReaction?.(emoji);
+    onReaction?.(emoji, emojiName);
     onClose();
   };
 
@@ -218,7 +218,7 @@ export default function MessageContextMenu({
               {reactions.map((reaction) => (
                 <button
                   key={reaction.name}
-                  onClick={handleReactionClick(reaction.emoji)}
+                  onClick={handleReactionClick(reaction.emoji, reaction.name)}
                   className="group relative flex items-center justify-center w-9 h-9 rounded-full hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all duration-200 hover:scale-125 active:scale-95"
                   title={reaction.name}
                 >

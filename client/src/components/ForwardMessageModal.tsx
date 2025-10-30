@@ -34,14 +34,15 @@ export function ForwardMessageModal({
   const [searchQuery, setSearchQuery] = useState("");
   const [isForwarding, setIsForwarding] = useState(false);
 
-  const { data: chatRooms } = useQuery<ChatRoom[]>({
+  const { data: chatRoomsResponse } = useQuery<{ chatRooms: ChatRoom[] }>({
     queryKey: ['/api/chat-rooms'],
     enabled: isOpen,
   });
 
-  const filteredChatRooms = chatRooms?.filter((room) =>
+  const chatRooms = chatRoomsResponse?.chatRooms || [];
+  const filteredChatRooms = chatRooms.filter((room) =>
     room.name.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
+  );
 
   const handleToggleChatRoom = (chatRoomId: number) => {
     setSelectedChatRooms((prev) => {

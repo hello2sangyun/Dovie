@@ -37,6 +37,7 @@ import GestureQuickReply from "./GestureQuickReply";
 import { HashtagSuggestion } from "./HashtagSuggestion";
 import { AIChatAssistantModal } from "./AIChatAssistantModal";
 import AiNoticesModal from "./AiNoticesModal";
+import { ForwardMessageModal } from "./ForwardMessageModal";
 
 import TypingIndicator, { useTypingIndicator } from "./TypingIndicator";
 import { 
@@ -371,6 +372,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [showUnreadButton, setShowUnreadButton] = useState(false);
   const [firstUnreadMessageId, setFirstUnreadMessageId] = useState<number | null>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
+
+  // Forward message modal state
+  const [showForwardModal, setShowForwardModal] = useState(false);
+  const [forwardMessageId, setForwardMessageId] = useState<number | null>(null);
   
   // Intelligent auto-scroll state
   const [isUserScrolling, setIsUserScrolling] = useState(false);
@@ -662,6 +667,42 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       setEditContent("");
     },
     onError: () => {
+    },
+  });
+
+  // Star/Unstar message mutation
+  const starMessageMutation = useMutation({
+    mutationFn: async ({ messageId, isStarred }: { messageId: number; isStarred: boolean }) => {
+      const response = await apiRequest(`/api/messages/${messageId}/star`, "PATCH", { isStarred });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] });
+    },
+  });
+
+  // Forward message mutation
+  const forwardMessageMutation = useMutation({
+    mutationFn: async ({ messageId, chatRoomIds }: { messageId: number; chatRoomIds: number[] }) => {
+      const response = await apiRequest(`/api/messages/${messageId}/forward`, "POST", { chatRoomIds });
+      return response.json();
+    },
+    onSuccess: () => {
+      setShowForwardModal(false);
+      setForwardMessageId(null);
+      // Show success toast
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+    },
+  });
+
+  // Add emoji reaction mutation
+  const addReactionMutation = useMutation({
+    mutationFn: async ({ messageId, emoji, emojiName }: { messageId: number; emoji: string; emojiName: string }) => {
+      const response = await apiRequest(`/api/messages/${messageId}/reactions`, "POST", { emoji, emojiName });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] });
     },
   });
 
@@ -6164,6 +6205,26 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           }
           setContextMenu({ ...contextMenu, visible: false });
         }}
+        onStarMessage={(isStarred) => {
+          if (contextMenu.message) {
+            starMessageMutation.mutate({ messageId: contextMenu.message.id, isStarred });
+            setContextMenu({ ...contextMenu, visible: false });
+          }
+        }}
+        onForwardMessage={() => {
+          if (contextMenu.message) {
+            setForwardMessageId(contextMenu.message.id);
+            setShowForwardModal(true);
+            setContextMenu({ ...contextMenu, visible: false });
+          }
+        }}
+        onReaction={(emoji, emojiName) => {
+          if (contextMenu.message) {
+            addReactionMutation.mutate({ messageId: contextMenu.message.id, emoji, emojiName });
+            setContextMenu({ ...contextMenu, visible: false });
+          }
+        }}
+        isStarred={contextMenu.message?.isStarred || false}
       />
 
       {/* 욕설 방지 모달 */}
@@ -6314,7 +6375,46 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         onTranslateMessage={() => handleTranslateMessage()}
         onEditMessage={contextMenu.message?.senderId === user?.id ? () => handleEditMessage(contextMenu.message) : undefined}
         onCopyText={handleCopyText}
+        onStarMessage={(isStarred) => {
+          if (contextMenu.message) {
+            starMessageMutation.mutate({ messageId: contextMenu.message.id, isStarred });
+            setContextMenu({ visible: false, x: 0, y: 0, message: null });
+          }
+        }}
+        onForwardMessage={() => {
+          if (contextMenu.message) {
+            setForwardMessageId(contextMenu.message.id);
+            setShowForwardModal(true);
+            setContextMenu({ visible: false, x: 0, y: 0, message: null });
+          }
+        }}
+        onReaction={(emoji, emojiName) => {
+          if (contextMenu.message) {
+            addReactionMutation.mutate({ messageId: contextMenu.message.id, emoji, emojiName });
+            setContextMenu({ visible: false, x: 0, y: 0, message: null });
+          }
+        }}
+        isStarred={contextMenu.message?.isStarred || false}
         canEdit={contextMenu.message?.senderId === user?.id}
+      />
+
+      {/* Forward Message Modal */}
+      <ForwardMessageModal
+        isOpen={showForwardModal}
+        onClose={() => {
+          setShowForwardModal(false);
+          setForwardMessageId(null);
+        }}
+        onForward={async (chatRoomIds) => {
+          if (forwardMessageId) {
+            await forwardMessageMutation.mutateAsync({ messageId: forwardMessageId, chatRoomIds });
+          }
+        }}
+        messagePreview={
+          forwardMessageId
+            ? messages?.find((m: any) => m.id === forwardMessageId)?.content || ""
+            : ""
+        }
       />
 
       {/* File Upload Modal with Hashtag Support */}
