@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Save, Reply, Edit3, Globe, Copy, Star, Share2, Trash2 } from "lucide-react";
+import { Save, Reply, Edit3, Globe, Copy, Share2, Trash2 } from "lucide-react";
 
 interface MessageContextMenuProps {
   x: number;
@@ -12,12 +12,10 @@ interface MessageContextMenuProps {
   onEditMessage?: () => void;
   onCopyText?: () => void;
   onDeleteMessage?: () => void;
-  onStarMessage?: (isStarred: boolean) => void;
   onForwardMessage?: () => void;
   onReaction?: (emoji: string, emojiName: string) => void;
   canEdit?: boolean;
   canDelete?: boolean;
-  isStarred?: boolean;
   visible: boolean;
 }
 
@@ -31,12 +29,10 @@ export default function MessageContextMenu({
   onEditMessage,
   onCopyText,
   onDeleteMessage,
-  onStarMessage,
   onForwardMessage,
   onReaction,
   canEdit = false,
   canDelete = false,
-  isStarred = false,
   visible 
 }: MessageContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
@@ -169,12 +165,6 @@ export default function MessageContextMenu({
     onClose();
   };
 
-  const handleStarClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onStarMessage?.(!isStarred);
-    onClose();
-  };
-
   const handleForwardClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onForwardMessage?.();
@@ -266,17 +256,6 @@ export default function MessageContextMenu({
 
         {/* 추가 기능 섹션 */}
         <div className="border-t border-gray-100 dark:border-gray-800 py-1.5">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start px-4 py-2.5 h-auto text-sm font-medium hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-colors rounded-none"
-            onClick={handleStarClick}
-            data-testid="button-star-message"
-          >
-            <Star className={`w-4 h-4 mr-3 ${isStarred ? 'fill-yellow-500 text-yellow-500' : 'text-yellow-600 dark:text-yellow-400'}`} />
-            <span>{isStarred ? '별표 해제' : '중요 표시'}</span>
-          </Button>
-
           <Button
             variant="ghost"
             size="sm"

@@ -671,16 +671,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   });
 
   // Star/Unstar message mutation
-  const starMessageMutation = useMutation({
-    mutationFn: async ({ messageId, isStarred }: { messageId: number; isStarred: boolean }) => {
-      const response = await apiRequest(`/api/messages/${messageId}/star`, "PATCH", { isStarred });
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] });
-    },
-  });
-
   // Forward message mutation
   const forwardMessageMutation = useMutation({
     mutationFn: async ({ messageId, chatRoomIds }: { messageId: number; chatRoomIds: number[] }) => {
@@ -6205,12 +6195,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           }
           setContextMenu({ ...contextMenu, visible: false });
         }}
-        onStarMessage={(isStarred) => {
-          if (contextMenu.message) {
-            starMessageMutation.mutate({ messageId: contextMenu.message.id, isStarred });
-            setContextMenu({ ...contextMenu, visible: false });
-          }
-        }}
         onForwardMessage={() => {
           if (contextMenu.message) {
             setForwardMessageId(contextMenu.message.id);
@@ -6224,7 +6208,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             setContextMenu({ ...contextMenu, visible: false });
           }
         }}
-        isStarred={contextMenu.message?.isStarred || false}
       />
 
       {/* 욕설 방지 모달 */}
@@ -6375,12 +6358,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         onTranslateMessage={() => handleTranslateMessage()}
         onEditMessage={contextMenu.message?.senderId === user?.id ? () => handleEditMessage(contextMenu.message) : undefined}
         onCopyText={handleCopyText}
-        onStarMessage={(isStarred) => {
-          if (contextMenu.message) {
-            starMessageMutation.mutate({ messageId: contextMenu.message.id, isStarred });
-            setContextMenu({ visible: false, x: 0, y: 0, message: null });
-          }
-        }}
         onForwardMessage={() => {
           if (contextMenu.message) {
             setForwardMessageId(contextMenu.message.id);
@@ -6394,7 +6371,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             setContextMenu({ visible: false, x: 0, y: 0, message: null });
           }
         }}
-        isStarred={contextMenu.message?.isStarred || false}
         canEdit={contextMenu.message?.senderId === user?.id}
       />
 

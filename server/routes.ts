@@ -1843,36 +1843,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Star/Unstar message route
-  app.patch("/api/messages/:messageId/star", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      const messageId = Number(req.params.messageId);
-      const { isStarred } = req.body;
-
-      // Get the message
-      const message = await storage.getMessageById(messageId);
-      if (!message) {
-        return res.status(404).json({ message: "Message not found" });
-      }
-
-      // Update star status
-      const updatedMessage = await storage.updateMessage(messageId, {
-        isStarred: isStarred === true,
-        starredAt: isStarred ? new Date() : null
-      });
-
-      res.json({ message: updatedMessage });
-    } catch (error) {
-      console.error("Star message error:", error);
-      res.status(500).json({ message: "Failed to star message" });
-    }
-  });
-
   // Forward message route
   app.post("/api/messages/:messageId/forward", async (req, res) => {
     const userId = req.headers["x-user-id"];
@@ -1913,7 +1883,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (room && room.participants) {
           const messageWithSender = {
             ...newMessage,
-            sender: await storage.getUserById(Number(userId))
+            sender: await storage.getUser(Number(userId))
           };
 
           room.participants.forEach((participant: any) => {
