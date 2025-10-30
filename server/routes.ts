@@ -1973,9 +1973,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Broadcast reaction update to all participants via WebSocket
       const room = await storage.getChatRoomById(message.chatRoomId);
+      console.log(`📨 Broadcasting reaction update for message ${messageId} in chat room ${message.chatRoomId}`);
+      console.log(`   Room found: ${!!room}, Participants: ${room?.participants.length || 0}`);
+      
       if (room) {
+        let sentCount = 0;
         room.participants.forEach((participant: any) => {
           const connection = connections.get(participant.id);
+          console.log(`   Participant ${participant.id}: connection ${connection ? 'exists' : 'missing'}, state: ${connection?.readyState}`);
+          
           if (connection && connection.readyState === WebSocket.OPEN) {
             connection.send(JSON.stringify({
               type: 'reaction_updated',
@@ -1987,8 +1993,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 userId: Number(userId)
               }
             }));
+            sentCount++;
           }
         });
+        console.log(`   ✅ Sent reaction update to ${sentCount} participants`);
+      } else {
+        console.log(`   ❌ Chat room ${message.chatRoomId} not found`);
       }
 
       res.json({ removed, reaction });

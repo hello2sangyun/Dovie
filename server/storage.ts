@@ -579,7 +579,7 @@ export class DatabaseStorage implements IStorage {
     return this.upsertUserChatSettings({ userId, chatRoomId, isPinned });
   }
 
-  async getMessages(chatRoomId: number, limit: number = 50): Promise<(Message & { sender: User })[]> {
+  async getMessages(chatRoomId: number, limit: number = 50): Promise<(Message & { sender: User, reactions?: any[] })[]> {
     const rows = await db
       .select({
         messages: messages,
@@ -591,11 +591,39 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(messages.createdAt))
       .limit(limit);
 
-    return rows.map(row => ({
+    const messageList = rows.map(row => ({
       ...row.messages,
       content: (row.messages.content && row.messages.content.trim()) ? decryptText(row.messages.content) : null,
       sender: row.users
     })).reverse();
+
+    // Get message IDs for fetching reactions
+    const messageIds = messageList.map(msg => msg.id);
+
+    if (messageIds.length === 0) {
+      return messageList;
+    }
+
+    // Fetch all reactions for these messages
+    const reactionsData = await db
+      .select()
+      .from(messageReactions)
+      .where(inArray(messageReactions.messageId, messageIds));
+
+    // Group reactions by message ID
+    const reactionsByMessage = new Map<number, any[]>();
+    reactionsData.forEach(reaction => {
+      if (!reactionsByMessage.has(reaction.messageId)) {
+        reactionsByMessage.set(reaction.messageId, []);
+      }
+      reactionsByMessage.get(reaction.messageId)!.push(reaction);
+    });
+
+    // Attach reactions to each message
+    return messageList.map(msg => ({
+      ...msg,
+      reactions: reactionsByMessage.get(msg.id) || []
+    }));
   }
 
   async createMessage(message: InsertMessage): Promise<Message> {
