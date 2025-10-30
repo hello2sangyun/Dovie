@@ -42,7 +42,7 @@ export default function HelpSupportPage({ onBack }: HelpSupportPageProps) {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+      <div className="flex-1 overflow-y-auto p-4 pb-24 space-y-6">
         {/* Help Resources */}
         <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-md">
           <CardHeader>
