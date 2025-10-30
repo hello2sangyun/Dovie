@@ -49,67 +49,35 @@ export default function ModernSettingsPage({ isMobile = false, onQRCodeClick }: 
 
 
   if (activeView === 'blocked-contacts') {
-    return (
-      <div className="flex-1 overflow-hidden">
-        <BlockedContactsPage onBack={() => setActiveView('main')} />
-      </div>
-    );
+    return <BlockedContactsPage onBack={() => setActiveView('main')} />;
   }
 
   if (activeView === 'profile') {
-    return (
-      <div className="flex-1 overflow-hidden">
-        <ProfileSettingsPage onBack={() => setActiveView('main')} />
-      </div>
-    );
+    return <ProfileSettingsPage onBack={() => setActiveView('main')} />;
   }
 
   if (activeView === 'notifications') {
-    return (
-      <div className="flex-1 overflow-y-auto">
-        <NotificationSettingsPage onBack={() => setActiveView('main')} />
-      </div>
-    );
+    return <NotificationSettingsPage onBack={() => setActiveView('main')} />;
   }
 
   if (activeView === 'security') {
-    return (
-      <div className="flex-1 overflow-hidden">
-        <SecuritySettingsPage onBack={() => setActiveView('main')} />
-      </div>
-    );
+    return <SecuritySettingsPage onBack={() => setActiveView('main')} />;
   }
 
   if (activeView === 'account-management') {
-    return (
-      <div className="flex-1 overflow-hidden">
-        <AccountManagementPage onBack={() => setActiveView('main')} />
-      </div>
-    );
+    return <AccountManagementPage onBack={() => setActiveView('main')} />;
   }
 
   if (activeView === 'ai-settings') {
-    return (
-      <div className="flex-1 overflow-hidden">
-        <AISettingsPage onBack={() => setActiveView('main')} />
-      </div>
-    );
+    return <AISettingsPage onBack={() => setActiveView('main')} />;
   }
 
   if (activeView === 'language') {
-    return (
-      <div className="flex-1 overflow-hidden">
-        <LanguageSettingsPage onBack={() => setActiveView('main')} />
-      </div>
-    );
+    return <LanguageSettingsPage onBack={() => setActiveView('main')} />;
   }
 
   if (activeView === 'help-support') {
-    return (
-      <div className="flex-1 overflow-hidden">
-        <HelpSupportPage onBack={() => setActiveView('main')} />
-      </div>
-    );
+    return <HelpSupportPage onBack={() => setActiveView('main')} />;
   }
 
   return (
