@@ -3,7 +3,7 @@ import express from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, insertUserPostSchema, insertPostLikeSchema, insertPostCommentSchema, insertCompanyChannelSchema, insertCompanyProfileSchema, insertLocationShareRequestSchema, insertLocationShareSchema, insertBookmarkSchema, insertVoiceBookmarkRequestSchema, chatRooms, chatParticipants, userPosts, postLikes, postComments, companyChannels, companyChannelFollowers, companyChannelAdmins, users, businessProfiles, contacts, businessPostReads, businessPosts, businessPostLikes, companyProfiles, messages, messageLikes, linkPreviews, locationShares, bookmarks, voiceBookmarkRequests } from "@shared/schema";
+import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, insertUserPostSchema, insertPostLikeSchema, insertPostCommentSchema, insertCompanyChannelSchema, insertCompanyProfileSchema, insertLocationShareRequestSchema, insertLocationShareSchema, insertBookmarkSchema, insertVoiceBookmarkRequestSchema, chatRooms, chatParticipants, userPosts, postLikes, postComments, companyChannels, companyChannelFollowers, companyChannelAdmins, users, businessProfiles, contacts, businessPostReads, businessPosts, businessPostLikes, companyProfiles, messages, messageLikes, messageReactions, linkPreviews, locationShares, bookmarks, voiceBookmarkRequests } from "@shared/schema";
 import { sql } from "drizzle-orm";
 import { translateText, transcribeAudio, answerChatQuestion, analyzeMessageForNotices, correctTranscriptionWithContext } from "./openai";
 import bcrypt from "bcryptjs";
@@ -1840,6 +1840,171 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Message edit error:", error);
       res.status(500).json({ message: "Failed to edit message" });
+    }
+  });
+
+  // Star/Unstar message route
+  app.patch("/api/messages/:messageId/star", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const messageId = Number(req.params.messageId);
+      const { isStarred } = req.body;
+
+      // Get the message
+      const message = await storage.getMessageById(messageId);
+      if (!message) {
+        return res.status(404).json({ message: "Message not found" });
+      }
+
+      // Update star status
+      const updatedMessage = await storage.updateMessage(messageId, {
+        isStarred: isStarred === true,
+        starredAt: isStarred ? new Date() : null
+      });
+
+      res.json({ message: updatedMessage });
+    } catch (error) {
+      console.error("Star message error:", error);
+      res.status(500).json({ message: "Failed to star message" });
+    }
+  });
+
+  // Forward message route
+  app.post("/api/messages/:messageId/forward", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const messageId = Number(req.params.messageId);
+      const { chatRoomIds } = req.body;
+
+      if (!Array.isArray(chatRoomIds) || chatRoomIds.length === 0) {
+        return res.status(400).json({ message: "Chat room IDs required" });
+      }
+
+      // Get the original message
+      const originalMessage = await storage.getMessageById(messageId);
+      if (!originalMessage) {
+        return res.status(404).json({ message: "Message not found" });
+      }
+
+      // Forward to each chat room
+      const forwardedMessages = [];
+      for (const chatRoomId of chatRoomIds) {
+        const newMessage = await storage.createMessage({
+          chatRoomId: Number(chatRoomId),
+          senderId: Number(userId),
+          content: originalMessage.content || "",
+          messageType: originalMessage.messageType,
+          fileUrl: originalMessage.fileUrl || undefined,
+          fileName: originalMessage.fileName || undefined,
+          fileSize: originalMessage.fileSize || undefined,
+          voiceDuration: originalMessage.voiceDuration || undefined,
+        });
+
+        // Notify WebSocket clients
+        const room = await storage.getChatRoomById(Number(chatRoomId));
+        if (room && room.participants) {
+          const messageWithSender = {
+            ...newMessage,
+            sender: await storage.getUserById(Number(userId))
+          };
+
+          room.participants.forEach((participant: any) => {
+            const connection = connections.get(participant.id);
+            if (connection && connection.readyState === WebSocket.OPEN) {
+              connection.send(JSON.stringify({
+                type: 'new_message',
+                data: messageWithSender
+              }));
+            }
+          });
+        }
+
+        forwardedMessages.push(newMessage);
+      }
+
+      res.json({ messages: forwardedMessages });
+    } catch (error) {
+      console.error("Forward message error:", error);
+      res.status(500).json({ message: "Failed to forward message" });
+    }
+  });
+
+  // Add emoji reaction to message
+  app.post("/api/messages/:messageId/reactions", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const messageId = Number(req.params.messageId);
+      const { emoji, emojiName } = req.body;
+
+      if (!emoji || !emojiName) {
+        return res.status(400).json({ message: "Emoji and emoji name required" });
+      }
+
+      // Check if reaction already exists
+      const [existingReaction] = await db
+        .select()
+        .from(messageReactions)
+        .where(
+          and(
+            eq(messageReactions.messageId, messageId),
+            eq(messageReactions.userId, Number(userId)),
+            eq(messageReactions.emoji, emoji)
+          )
+        );
+
+      if (existingReaction) {
+        // Remove reaction if it already exists (toggle behavior)
+        await db
+          .delete(messageReactions)
+          .where(eq(messageReactions.id, existingReaction.id));
+
+        return res.json({ removed: true, reaction: existingReaction });
+      }
+
+      // Add new reaction
+      const [newReaction] = await db
+        .insert(messageReactions)
+        .values({
+          messageId,
+          userId: Number(userId),
+          emoji,
+          emojiName,
+        })
+        .returning();
+
+      res.json({ removed: false, reaction: newReaction });
+    } catch (error) {
+      console.error("Reaction error:", error);
+      res.status(500).json({ message: "Failed to add reaction" });
+    }
+  });
+
+  // Get reactions for a message
+  app.get("/api/messages/:messageId/reactions", async (req, res) => {
+    try {
+      const messageId = Number(req.params.messageId);
+
+      const reactions = await db
+        .select()
+        .from(messageReactions)
+        .where(eq(messageReactions.messageId, messageId));
+
+      res.json({ reactions });
+    } catch (error) {
+      console.error("Get reactions error:", error);
+      res.status(500).json({ message: "Failed to get reactions" });
     }
   });
 

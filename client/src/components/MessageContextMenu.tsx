@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Save, Reply, Edit3, Globe, Copy } from "lucide-react";
+import { Save, Reply, Edit3, Globe, Copy, Star, Share2, Trash2 } from "lucide-react";
 
 interface MessageContextMenuProps {
   x: number;
@@ -11,7 +11,13 @@ interface MessageContextMenuProps {
   onTranslateMessage: () => void;
   onEditMessage?: () => void;
   onCopyText?: () => void;
+  onDeleteMessage?: () => void;
+  onStarMessage?: () => void;
+  onForwardMessage?: () => void;
+  onReaction?: (emoji: string) => void;
   canEdit?: boolean;
+  canDelete?: boolean;
+  isStarred?: boolean;
   visible: boolean;
 }
 
@@ -24,7 +30,13 @@ export default function MessageContextMenu({
   onTranslateMessage,
   onEditMessage,
   onCopyText,
+  onDeleteMessage,
+  onStarMessage,
+  onForwardMessage,
+  onReaction,
   canEdit = false,
+  canDelete = false,
+  isStarred = false,
   visible 
 }: MessageContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
@@ -151,6 +163,39 @@ export default function MessageContextMenu({
     onClose();
   };
 
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDeleteMessage?.();
+    onClose();
+  };
+
+  const handleStarClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onStarMessage?.();
+    onClose();
+  };
+
+  const handleForwardClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onForwardMessage?.();
+    onClose();
+  };
+
+  const handleReactionClick = (emoji: string) => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onReaction?.(emoji);
+    onClose();
+  };
+
+  const reactions = [
+    { emoji: "❤️", name: "heart" },
+    { emoji: "👍", name: "thumbs_up" },
+    { emoji: "😂", name: "laugh" },
+    { emoji: "😮", name: "surprised" },
+    { emoji: "😢", name: "sad" },
+    { emoji: "🎉", name: "party" },
+  ];
+
   return (
     <>
       {/* Backdrop */}
@@ -159,67 +204,127 @@ export default function MessageContextMenu({
         onClick={onClose}
       />
       
-      {/* Context Menu - Compact and Clean Design */}
+      {/* Context Menu - Modern Clean Design */}
       <div
         ref={menuRef}
-        className="context-menu fixed z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-xl shadow-xl shadow-black/10 py-1 min-w-[90px] max-w-[120px]"
+        className="context-menu fixed z-50 bg-white dark:bg-gray-900 backdrop-blur-xl border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl overflow-hidden min-w-[220px]"
         style={{ left: menuPosition.x, top: menuPosition.y }}
         onClick={(e) => e.stopPropagation()}
       >
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full justify-center px-2 py-1.5 h-7 text-xs hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all duration-200 rounded-lg mx-1"
-          onClick={handleReplyClick}
-        >
-          <Reply className="w-3 h-3 mr-1 text-blue-600 dark:text-blue-400" />
-          답장
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full justify-center px-2 py-1.5 h-7 text-xs hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all duration-200 rounded-lg mx-1"
-          onClick={handleCopyClick}
-        >
-          <Copy className="w-3 h-3 mr-1 text-gray-600 dark:text-gray-400" />
-          복사
-        </Button>
+        {/* 이모지 반응 섹션 - 상단 */}
+        {onReaction && (
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 px-3 py-2.5 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-around gap-1">
+              {reactions.map((reaction) => (
+                <button
+                  key={reaction.name}
+                  onClick={handleReactionClick(reaction.emoji)}
+                  className="group relative flex items-center justify-center w-9 h-9 rounded-full hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all duration-200 hover:scale-125 active:scale-95"
+                  title={reaction.name}
+                >
+                  <span className="text-xl">{reaction.emoji}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         
-        {canEdit && (
+        {/* 메인 액션 섹션 */}
+        <div className="py-1.5">
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-center px-2 py-1.5 h-7 text-xs hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all duration-200 rounded-lg mx-1"
-            onClick={handleEditClick}
+            className="w-full justify-start px-4 py-2.5 h-auto text-sm font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors rounded-none"
+            onClick={handleReplyClick}
           >
-            <Edit3 className="w-3 h-3 mr-1 text-orange-600 dark:text-orange-400" />
-            수정
+            <Reply className="w-4 h-4 mr-3 text-blue-600 dark:text-blue-400" />
+            <span>답장</span>
           </Button>
-        )}
-        
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full justify-center px-2 py-1.5 h-7 text-xs hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all duration-200 rounded-lg mx-1"
-          onClick={handleSaveClick}
-          data-testid="button-save-message"
-        >
-          <Save className="w-3 h-3 mr-1 text-green-600 dark:text-green-400" />
-          북마크
-        </Button>
-        
-        <div className="border-t border-gray-200/70 dark:border-gray-600/70 my-1 mx-2" />
-        
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full justify-center px-2 py-1.5 h-7 text-xs hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all duration-200 rounded-lg mx-1"
-          onClick={handleTranslateClick}
-        >
-          <Globe className="w-3 h-3 mr-1 text-purple-600 dark:text-purple-400" />
-          번역
-        </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start px-4 py-2.5 h-auto text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors rounded-none"
+            onClick={handleCopyClick}
+          >
+            <Copy className="w-4 h-4 mr-3 text-gray-600 dark:text-gray-400" />
+            <span>복사</span>
+          </Button>
+          
+          {canEdit && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start px-4 py-2.5 h-auto text-sm font-medium hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors rounded-none"
+              onClick={handleEditClick}
+            >
+              <Edit3 className="w-4 h-4 mr-3 text-orange-600 dark:text-orange-400" />
+              <span>수정</span>
+            </Button>
+          )}
+        </div>
+
+        {/* 추가 기능 섹션 */}
+        <div className="border-t border-gray-100 dark:border-gray-800 py-1.5">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start px-4 py-2.5 h-auto text-sm font-medium hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-colors rounded-none"
+            onClick={handleStarClick}
+            data-testid="button-star-message"
+          >
+            <Star className={`w-4 h-4 mr-3 ${isStarred ? 'fill-yellow-500 text-yellow-500' : 'text-yellow-600 dark:text-yellow-400'}`} />
+            <span>{isStarred ? '별표 해제' : '중요 표시'}</span>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start px-4 py-2.5 h-auto text-sm font-medium hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors rounded-none"
+            onClick={handleSaveClick}
+            data-testid="button-save-message"
+          >
+            <Save className="w-4 h-4 mr-3 text-green-600 dark:text-green-400" />
+            <span>북마크</span>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start px-4 py-2.5 h-auto text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors rounded-none"
+            onClick={handleForwardClick}
+            data-testid="button-forward-message"
+          >
+            <Share2 className="w-4 h-4 mr-3 text-indigo-600 dark:text-indigo-400" />
+            <span>전달하기</span>
+          </Button>
+        </div>
+
+        {/* 번역 & 삭제 섹션 */}
+        <div className="border-t border-gray-100 dark:border-gray-800 py-1.5">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start px-4 py-2.5 h-auto text-sm font-medium hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors rounded-none"
+            onClick={handleTranslateClick}
+          >
+            <Globe className="w-4 h-4 mr-3 text-purple-600 dark:text-purple-400" />
+            <span>번역</span>
+          </Button>
+
+          {canDelete && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start px-4 py-2.5 h-auto text-sm font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors rounded-none"
+              onClick={handleDeleteClick}
+              data-testid="button-delete-message"
+            >
+              <Trash2 className="w-4 h-4 mr-3 text-red-600 dark:text-red-400" />
+              <span>삭제</span>
+            </Button>
+          )}
+        </div>
       </div>
     </>
   );
