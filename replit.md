@@ -39,7 +39,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Feature Specifications
 - **Authentication**: Email/password, phone number verification (Twilio), profile setup flow, role-based access.
-- **Chat System**: Real-time messaging, group/direct chats, encrypted file sharing, reactions, replies, archive.
+- **Chat System**: Real-time messaging, group/direct chats, encrypted file sharing, emoji reactions (toggle add/remove, real-time updates), replies, archive.
 - **Business Features**: Business profiles, professional networking space (LinkedIn-style), company channels (partially removed/streamlined).
 - **Location Features**: Location-based chat rooms, nearby user discovery, location sharing.
 - **Admin Panel**: Monitoring, user management, performance metrics.
@@ -47,6 +47,12 @@ Preferred communication style: Simple, everyday language.
 - **Hashtag System**: Single hashtag per file for simplified organization, auto-extraction from messages, and enhanced search.
 - **Voice Messages**: Quick voice messages from contacts with confirmation modal for reviewing/editing transcriptions before sending, voice transcription, smart suggestion integration, and retry capability on send failures. Voice messages accessible via 800ms long-press on chat list and contact list items.
 - **YouTube Integration**: Search, preview, and sharing of YouTube videos within chat.
+- **Settings**: Comprehensive settings system with multiple sections:
+  - **Account Management**: Account deletion with password confirmation and warnings
+  - **AI Settings**: Smart Inbox filter toggles for 15+ categories (연락처, 주소, 날짜/시간, 금액, etc.)
+  - **Language Settings**: Language selection (한국어, English, 日本語)
+  - **Help & Support**: Help center, contact forms, FAQ sections
+  - All settings pages use gradient card UI design with icons and smooth navigation
 
 ## External Dependencies
 - **Database**: `@neondatabase/serverless`, `drizzle-orm`.

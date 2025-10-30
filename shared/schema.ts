@@ -36,6 +36,8 @@ export const users = pgTable("users", {
   authProvider: text("auth_provider"), // 'google', 'apple', 'local' (기본 username/email/phone)
   providerId: text("provider_id"), // OAuth provider's unique user ID
   providerEmail: text("provider_email"), // Email from OAuth provider (Apple 재로그인 시 null 가능)
+  // AI 설정
+  aiPreferences: jsonb("ai_preferences"), // Smart Inbox 필터 등 AI 관련 설정
   createdAt: timestamp("created_at").defaultNow(),
 });
 

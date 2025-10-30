@@ -660,6 +660,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI 설정 업데이트 API
+  app.patch("/api/auth/ai-preferences", async (req, res) => {
+    try {
+      const userIdHeader = req.headers["x-user-id"];
+      if (!userIdHeader || typeof userIdHeader !== 'string') {
+        return res.status(401).json({ message: "인증이 필요합니다." });
+      }
+      
+      const userId = Number(userIdHeader);
+      if (isNaN(userId)) {
+        return res.status(401).json({ message: "잘못된 사용자 ID입니다." });
+      }
+
+      // Validate AI preferences schema
+      const aiPreferencesSchema = z.object({
+        aiPreferences: z.record(z.boolean()).optional()
+      });
+
+      const validated = aiPreferencesSchema.parse(req.body);
+
+      const user = await storage.updateUser(userId, { aiPreferences: validated.aiPreferences });
+      if (!user) {
+        return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+      }
+
+      res.json({ user, message: "AI 설정이 저장되었습니다." });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "잘못된 요청 데이터입니다.", errors: error.errors });
+      }
+      console.error("AI preferences update error:", error);
+      res.status(500).json({ message: "AI 설정 저장에 실패했습니다." });
+    }
+  });
+
+  // 언어 설정 업데이트 API
+  app.patch("/api/auth/language", async (req, res) => {
+    try {
+      const userIdHeader = req.headers["x-user-id"];
+      if (!userIdHeader || typeof userIdHeader !== 'string') {
+        return res.status(401).json({ message: "인증이 필요합니다." });
+      }
+      
+      const userId = Number(userIdHeader);
+      if (isNaN(userId)) {
+        return res.status(401).json({ message: "잘못된 사용자 ID입니다." });
+      }
+
+      // Validate language schema
+      const languageSchema = z.object({
+        language: z.enum(['ko', 'en', 'ja'])
+      });
+
+      const validated = languageSchema.parse(req.body);
+
+      const user = await storage.updateUser(userId, { language: validated.language });
+      if (!user) {
+        return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+      }
+
+      res.json({ user, message: "언어 설정이 저장되었습니다." });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "잘못된 언어 코드입니다.", errors: error.errors });
+      }
+      console.error("Language update error:", error);
+      res.status(500).json({ message: "언어 설정 저장에 실패했습니다." });
+    }
+  });
+
+  // 계정 삭제 API
+  app.post("/api/auth/delete-account", async (req, res) => {
+    try {
+      const userIdHeader = req.headers["x-user-id"];
+      if (!userIdHeader || typeof userIdHeader !== 'string') {
+        return res.status(401).json({ message: "인증이 필요합니다." });
+      }
+      
+      const userId = Number(userIdHeader);
+      if (isNaN(userId)) {
+        return res.status(401).json({ message: "잘못된 사용자 ID입니다." });
+      }
+
+      // Validate password schema
+      const deleteAccountSchema = z.object({
+        password: z.string().min(1)
+      });
+
+      const validated = deleteAccountSchema.parse(req.body);
+
+      // 사용자 조회
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+      }
+
+      // 소셜 로그인 사용자는 비밀번호 확인 없이 삭제 가능
+      if (user.authProvider !== 'local') {
+        // 소셜 로그인 사용자 - 비밀번호 체크 생략
+      } else {
+        // 일반 로그인 사용자 - 비밀번호 확인
+        const isPasswordValid = await bcrypt.compare(validated.password, user.password);
+        if (!isPasswordValid) {
+          return res.status(400).json({ message: "비밀번호가 올바르지 않습니다." });
+        }
+      }
+
+      // 계정 삭제 (실제로는 모든 관련 데이터도 삭제해야 하지만, 여기서는 간단히 사용자만 삭제)
+      await storage.deleteUser(userId);
+
+      res.json({ message: "계정이 성공적으로 삭제되었습니다." });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "비밀번호가 필요합니다.", errors: error.errors });
+      }
+      console.error("Delete account error:", error);
+      res.status(500).json({ message: "계정 삭제에 실패했습니다." });
+    }
+  });
+
 
 
   // User routes

@@ -17,7 +17,11 @@ import {
   Edit3,
   Sparkles,
   UserX,
-  QrCode
+  QrCode,
+  Globe,
+  HelpCircle,
+  Brain,
+  Trash2
 } from "lucide-react";
 import { getInitials, getAvatarColor } from "@/lib/utils";
 import BlockedContactsPage from "./BlockedContactsPage";
@@ -25,6 +29,10 @@ import ProfileSettingsPage from "./ProfileSettingsPage";
 import NotificationSettingsPage from "./NotificationSettingsPage";
 import SecuritySettingsPage from "./SecuritySettingsPage";
 import ProfilePhotoUpload from "./ProfilePhotoUpload";
+import AccountManagementPage from "./AccountManagementPage";
+import AISettingsPage from "./AISettingsPage";
+import LanguageSettingsPage from "./LanguageSettingsPage";
+import HelpSupportPage from "./HelpSupportPage";
 
 interface ModernSettingsPageProps {
   isMobile?: boolean;
@@ -33,7 +41,7 @@ interface ModernSettingsPageProps {
 
 export default function ModernSettingsPage({ isMobile = false, onQRCodeClick }: ModernSettingsPageProps) {
   const { user, logout } = useAuth();
-  const [activeView, setActiveView] = useState<'main' | 'blocked-contacts' | 'profile' | 'notifications' | 'security'>('main');
+  const [activeView, setActiveView] = useState<'main' | 'blocked-contacts' | 'profile' | 'notifications' | 'security' | 'account-management' | 'ai-settings' | 'language' | 'help-support'>('main');
   const [showProfilePhotoUpload, setShowProfilePhotoUpload] = useState(false);
 
   if (!user) return null;
@@ -72,6 +80,38 @@ export default function ModernSettingsPage({ isMobile = false, onQRCodeClick }: 
     );
   }
 
+  if (activeView === 'account-management') {
+    return (
+      <div className="flex-1 overflow-hidden">
+        <AccountManagementPage onBack={() => setActiveView('main')} />
+      </div>
+    );
+  }
+
+  if (activeView === 'ai-settings') {
+    return (
+      <div className="flex-1 overflow-hidden">
+        <AISettingsPage onBack={() => setActiveView('main')} />
+      </div>
+    );
+  }
+
+  if (activeView === 'language') {
+    return (
+      <div className="flex-1 overflow-hidden">
+        <LanguageSettingsPage onBack={() => setActiveView('main')} />
+      </div>
+    );
+  }
+
+  if (activeView === 'help-support') {
+    return (
+      <div className="flex-1 overflow-hidden">
+        <HelpSupportPage onBack={() => setActiveView('main')} />
+      </div>
+    );
+  }
+
   return (
     <div className="h-full flex flex-col overflow-hidden">
       <div className="flex-1 overflow-y-auto scrollbar-thin bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
@@ -84,7 +124,7 @@ export default function ModernSettingsPage({ isMobile = false, onQRCodeClick }: 
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">설정</h1>
-                <p className="text-sm text-gray-500">계정 및 프로필 관리</p>
+                <p className="text-sm text-gray-500">계정 및 앱 설정 관리</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
@@ -204,6 +244,93 @@ export default function ModernSettingsPage({ isMobile = false, onQRCodeClick }: 
                   <div className="flex-1">
                     <h5 className="font-semibold text-gray-900">차단된 연락처</h5>
                     <p className="text-xs text-gray-500">차단된 사용자 관리</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card 
+              className="bg-white/80 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group"
+              onClick={() => setActiveView('account-management')}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-red-600 to-red-700 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Trash2 className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h5 className="font-semibold text-gray-900">계정 관리</h5>
+                    <p className="text-xs text-gray-500">계정 삭제 및 관리</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* AI 기능 섹션 */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-semibold text-gray-700 px-2">AI 기능</h4>
+            
+            <Card 
+              className="bg-white/80 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group"
+              onClick={() => setActiveView('ai-settings')}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Brain className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h5 className="font-semibold text-gray-900">Smart Inbox 설정</h5>
+                    <p className="text-xs text-gray-500">AI 필터 및 자동 분석 조정</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* 일반 설정 섹션 */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-semibold text-gray-700 px-2">일반</h4>
+            
+            <Card 
+              className="bg-white/80 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group"
+              onClick={() => setActiveView('language')}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Globe className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h5 className="font-semibold text-gray-900">언어 설정</h5>
+                    <p className="text-xs text-gray-500">메인 언어 선택</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* 지원 섹션 */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-semibold text-gray-700 px-2">지원</h4>
+            
+            <Card 
+              className="bg-white/80 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group"
+              onClick={() => setActiveView('help-support')}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <HelpCircle className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h5 className="font-semibold text-gray-900">도움말 & 문의</h5>
+                    <p className="text-xs text-gray-500">가이드, 문의, 약관</p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
                 </div>
