@@ -172,6 +172,8 @@ export const messages = pgTable("messages", {
   mentionAll: boolean("mention_all").default(false), // Whether this message mentions all users
   youtubePreview: jsonb("youtube_preview"), // YouTube video preview data
   isSystemMessage: boolean("is_system_message").default(false), // For system-generated messages like reminders
+  isStarred: boolean("is_starred").default(false), // Star/important message marker
+  starredAt: timestamp("starred_at"), // When the message was starred
   createdAt: timestamp("created_at").defaultNow(),
 });
 
