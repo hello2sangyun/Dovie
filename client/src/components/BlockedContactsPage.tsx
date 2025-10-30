@@ -105,9 +105,8 @@ export default function BlockedContactsPage({ onBack }: BlockedContactsPageProps
                   <div className="flex items-center space-x-4">
                     <InstantAvatar 
                       src={contact.contactUser.profilePicture}
-                      name={contact.contactUser.displayName}
+                      fallbackText={contact.contactUser.displayName}
                       className="w-12 h-12"
-                      fallbackClassName="text-sm"
                     />
                     <div>
                       <h3 className="font-semibold text-gray-900">

@@ -348,7 +348,7 @@ export default function ProfileSettingsPage({ onBack }: ProfileSettingsPageProps
             <div className="flex justify-between items-center py-2 border-b border-gray-100">
               <span className="text-sm text-gray-600">가입일</span>
               <span className="text-sm font-medium">
-                {new Date(user.createdAt).toLocaleDateString('ko-KR')}
+                {user.createdAt ? new Date(user.createdAt).toLocaleDateString('ko-KR') : '정보 없음'}
               </span>
             </div>
             <div className="flex justify-between items-center py-2">

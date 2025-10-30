@@ -144,12 +144,7 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
       </div>
 
       {/* Content - 모바일 Footer 하단 여백 확보 */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-6" style={{ 
-        paddingBottom: '150px',
-        overflowY: 'auto',
-        WebkitOverflowScrolling: 'touch',
-        maxHeight: '100%'
-      }}>
+      <div className="flex-1 overflow-y-auto p-4 pb-24 space-y-6">
         {/* Save Status Message */}
         {saveStatus !== 'idle' && (
           <div className={`flex items-center gap-2 p-3 rounded-lg ${
