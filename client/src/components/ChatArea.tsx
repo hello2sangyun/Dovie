@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,6 +64,7 @@ const detectUrls = (text: string | null | undefined): string[] => {
 
 export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader, onBackClick, isLocationChat }: ChatAreaProps) {
   const { user } = useAuth();
+  const [, navigate] = useLocation();
   
   // Use the isLocationChat prop directly
   const isLocationChatRoom = isLocationChat || false;
@@ -4092,13 +4093,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                       {chatRoomDisplayName}
                     </Link>
                   ) : currentChatRoom.isGroup ? (
-                    <Link 
-                      href={`/group-info/${chatRoomId}`}
+                    <span 
+                      onClick={() => navigate(`/group-info/${chatRoomId}`)}
                       className="truncate font-bold hover:text-purple-600 transition-colors cursor-pointer"
                       data-testid="link-group-info"
                     >
                       {chatRoomDisplayName}
-                    </Link>
+                    </span>
                   ) : (
                     <span className="truncate font-bold">{chatRoomDisplayName}</span>
                   )}

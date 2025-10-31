@@ -465,7 +465,7 @@ export default function GroupInfoPage() {
                 variant="ghost"
                 size="sm"
                 className="text-purple-600"
-                onClick={() => navigate(`/contacts?invite=${chatRoomId}`)}
+                onClick={() => navigate(`/app?tab=contacts&invite=${chatRoomId}`)}
                 data-testid="button-invite-members"
               >
                 <UserPlus className="h-4 w-4 mr-1" />

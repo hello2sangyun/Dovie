@@ -212,9 +212,28 @@ export default function MainApp() {
       }
     }
     
-    // Handle friendFilter query parameter
+    // Handle URL query parameters
     const urlParams = new URLSearchParams(window.location.search);
     const friendFilterParam = urlParams.get('friendFilter');
+    const tabParam = urlParams.get('tab');
+    const inviteParam = urlParams.get('invite');
+    
+    // Handle tab switching from URL
+    if (tabParam) {
+      setActiveTab(tabParam);
+      setActiveMobileTab(tabParam);
+    }
+    
+    // Handle invite parameter - switch to contacts tab for group invite
+    if (inviteParam) {
+      const chatRoomId = parseInt(inviteParam);
+      if (!isNaN(chatRoomId)) {
+        // Store the invite chatRoomId for ContactsList to handle
+        (window as any).__inviteChatRoomId = chatRoomId;
+        setActiveTab("contacts");
+        setActiveMobileTab("contacts");
+      }
+    }
     
     if (friendFilterParam) {
       const friendId = parseInt(friendFilterParam);
