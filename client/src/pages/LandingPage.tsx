@@ -1,9 +1,11 @@
 import { useEffect } from "react";
 import { useLocation } from "wouter";
 import VaultLogo from "@/components/VaultLogo";
+import { useToast } from "@/hooks/use-toast";
 
 export default function LandingPage() {
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
 
   useEffect(() => {
     // Check if user is already stored
@@ -23,7 +25,20 @@ export default function LandingPage() {
             const data = await response.json();
             // Redirect admin to /admin, others to /app
             if (data.user.email === "master@master.com") {
-              setLocation("/admin");
+              // 관리자 계정 - 모바일 체크
+              const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+              if (isMobile) {
+                // 모바일에서는 토스트 메시지 표시 후 로그아웃하고 로그인 페이지로
+                toast({
+                  title: "접근 불가",
+                  description: "관리자 페이지는 PC에서만 접속 가능합니다.",
+                  variant: "destructive",
+                });
+                localStorage.removeItem("userId");
+                setTimeout(() => setLocation("/login"), 100); // 토스트가 표시될 시간 확보
+              } else {
+                setLocation("/admin");
+              }
             } else {
               setLocation("/app");
             }

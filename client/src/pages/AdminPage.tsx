@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
 
 import { queryClient } from "@/lib/queryClient";
 import { 
@@ -54,16 +55,25 @@ interface AdminStats {
 export default function AdminPage() {
   const [, setLocation] = useLocation();
   const { user, setUser } = useAuth();
+  const { toast } = useToast();
   const [refreshInterval, setRefreshInterval] = useState(30000); // 30초
 
   // PC 환경 체크
   useEffect(() => {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     if (isMobile) {
-      setLocation("/app");
+      toast({
+        title: "접근 불가",
+        description: "관리자 페이지는 PC에서만 접속 가능합니다.",
+        variant: "destructive",
+      });
+      // 로그아웃하고 로그인 페이지로 이동
+      setUser(null);
+      localStorage.removeItem("userId");
+      setLocation("/login");
       return;
     }
-  }, [setLocation]);
+  }, [setLocation, toast, setUser]);
 
   // 관리자 권한 체크
   useEffect(() => {
