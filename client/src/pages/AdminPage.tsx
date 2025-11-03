@@ -142,7 +142,6 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <ScrollIndicator />
       {/* 헤더 */}
       <div className="bg-white border-b px-6 py-4">
         <div className="flex items-center justify-between">
