@@ -243,7 +243,7 @@ export default function SignupPage() {
                     </div>
                   </div>
 
-                  <div className="mt-6 grid grid-cols-2 gap-3">
+                  <div className="mt-6">
                     <Button
                       type="button"
                       variant="outline"
@@ -252,17 +252,7 @@ export default function SignupPage() {
                       data-testid="button-google-signup"
                     >
                       <FcGoogle className="h-5 w-5 mr-2" />
-                      Google
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => handleSocialSignup('apple')}
-                      className="w-full"
-                      data-testid="button-apple-signup"
-                    >
-                      <SiApple className="h-5 w-5 mr-2" />
-                      Apple
+                      Google로 계속하기
                     </Button>
                   </div>
                 </div>
