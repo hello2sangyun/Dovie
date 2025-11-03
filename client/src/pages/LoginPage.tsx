@@ -40,6 +40,8 @@ export default function LoginPage() {
       
       if (!data.user.isProfileComplete) {
         setLocation("/profile-setup");
+      } else if (data.user.email === "master@master.com") {
+        setLocation("/admin");
       } else {
         setLocation("/app");
       }
@@ -76,6 +78,8 @@ export default function LoginPage() {
         
         if (!data.user.isProfileComplete) {
           setLocation("/profile-setup");
+        } else if (data.user.email === "master@master.com") {
+          setLocation("/admin");
         } else {
           setLocation("/app");
         }
