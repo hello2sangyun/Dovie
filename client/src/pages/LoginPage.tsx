@@ -171,7 +171,7 @@ export default function LoginPage() {
                     </div>
                   </div>
 
-                  <div className="mt-6 grid grid-cols-2 gap-3">
+                  <div className="mt-6">
                     <Button
                       type="button"
                       variant="outline"
@@ -180,17 +180,7 @@ export default function LoginPage() {
                       data-testid="button-google-login"
                     >
                       <FcGoogle className="h-5 w-5 mr-2" />
-                      Google
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => handleSocialLogin('apple')}
-                      className="w-full"
-                      data-testid="button-apple-login"
-                    >
-                      <SiApple className="h-5 w-5 mr-2" />
-                      Apple
+                      Google로 로그인
                     </Button>
                   </div>
                 </div>
