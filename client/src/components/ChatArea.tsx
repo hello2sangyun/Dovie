@@ -3607,6 +3607,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // 길게 터치 이벤트 핸들러
   const handleTouchStart = (e: React.TouchEvent, message: any) => {
+    // iOS에서 길게 누르기가 작동하도록 preventDefault 추가
+    e.preventDefault();
     setIsLongPress(false);
     
     // 터치 시작 시점에 element의 위치 정보를 미리 저장
@@ -3635,7 +3637,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     setTouchTimer(timer);
   };
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    // iOS에서 길게 누르기가 작동하도록 preventDefault 추가
+    e.preventDefault();
     if (touchTimer) {
       clearTimeout(touchTimer);
       setTouchTimer(null);
@@ -3644,7 +3648,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     setTimeout(() => setIsLongPress(false), 100);
   };
 
-  const handleTouchMove = () => {
+  const handleTouchMove = (e: React.TouchEvent) => {
+    // iOS에서 길게 누르기가 작동하도록 preventDefault 추가
+    e.preventDefault();
     if (touchTimer) {
       clearTimeout(touchTimer);
       setTouchTimer(null);
@@ -4566,7 +4572,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           WebkitUserSelect: 'none',
                           MozUserSelect: 'none',
                           msUserSelect: 'none',
-                        WebkitTouchCallout: 'none'
+                        WebkitTouchCallout: 'none',
+                        touchAction: 'none'
                       }}
                       onContextMenu={(e) => handleMessageRightClick(e, msg)}
                       onTouchStart={(e) => {
@@ -4587,10 +4594,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           return;
                         }
                         
-                        handleTouchEnd();
+                        handleTouchEnd(e);
                       }}
                       onTouchMove={(e) => {
-                        handleTouchMove();
+                        handleTouchMove(e);
                       }}
                       onClick={(e) => {
                         e.stopPropagation();

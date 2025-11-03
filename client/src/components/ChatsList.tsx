@@ -176,7 +176,11 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
   };
 
   // 길게 누르기 시작
-  const handleLongPressStart = (chatRoom: any) => {
+  const handleLongPressStart = (chatRoom: any, e?: React.TouchEvent | React.MouseEvent) => {
+    // iOS에서 길게 누르기가 작동하도록 preventDefault 추가
+    if (e) {
+      e.preventDefault();
+    }
     console.log('🎯 채팅방 간편음성메세지 - 길게 누르기 시작:', getChatRoomDisplayName(chatRoom));
     
     const timer = setTimeout(() => {
@@ -187,7 +191,12 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
   };
 
   // 길게 누르기 끝
-  const handleLongPressEnd = () => {
+  const handleLongPressEnd = (e?: React.TouchEvent | React.MouseEvent) => {
+    // iOS에서 길게 누르기가 작동하도록 preventDefault 추가
+    if (e) {
+      e.preventDefault();
+    }
+    
     if (longPressTimer) {
       clearTimeout(longPressTimer);
       setLongPressTimer(null);
@@ -793,8 +802,8 @@ function ChatRoomItem({
   draftPreview?: string;
   isMultiSelectMode?: boolean;
   isChecked?: boolean;
-  onLongPressStart?: (chatRoom: any) => void;
-  onLongPressEnd?: () => void;
+  onLongPressStart?: (chatRoom: any, e?: React.TouchEvent | React.MouseEvent) => void;
+  onLongPressEnd?: (e?: React.TouchEvent | React.MouseEvent) => void;
   isRecording?: boolean;
 }) {
   const { user } = useAuth();
@@ -861,33 +870,34 @@ function ChatRoomItem({
         userSelect: 'none',
         WebkitUserSelect: 'none',
         msUserSelect: 'none',
-        WebkitTouchCallout: 'none'
+        WebkitTouchCallout: 'none',
+        touchAction: 'none'
       }}
       onClick={onClick}
       onMouseEnter={handleMouseEnter}
       onMouseDown={(e) => {
         if (!isMultiSelectMode && onLongPressStart) {
-          onLongPressStart(chatRoom);
+          onLongPressStart(chatRoom, e);
         }
       }}
-      onMouseUp={() => {
+      onMouseUp={(e) => {
         if (!isMultiSelectMode && onLongPressEnd) {
-          onLongPressEnd();
+          onLongPressEnd(e);
         }
       }}
-      onMouseLeave={() => {
+      onMouseLeave={(e) => {
         if (!isMultiSelectMode && onLongPressEnd) {
-          onLongPressEnd();
+          onLongPressEnd(e);
         }
       }}
       onTouchStart={(e) => {
         if (!isMultiSelectMode && onLongPressStart) {
-          onLongPressStart(chatRoom);
+          onLongPressStart(chatRoom, e);
         }
       }}
-      onTouchEnd={() => {
+      onTouchEnd={(e) => {
         if (!isMultiSelectMode && onLongPressEnd) {
-          onLongPressEnd();
+          onLongPressEnd(e);
         }
       }}
     >

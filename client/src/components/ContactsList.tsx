@@ -263,6 +263,8 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
 
   // 길게 누르기 시작
   const handleLongPressStart = (contact: any, e: React.TouchEvent | React.MouseEvent) => {
+    // iOS에서 길게 누르기가 작동하도록 preventDefault 추가
+    e.preventDefault();
     console.log('🎯 친구 간편음성메세지 - 길게 누르기 시작:', contact.contactUser.displayName);
     
     const timer = setTimeout(() => {
@@ -275,6 +277,8 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
 
   // 길게 누르기 끝
   const handleLongPressEnd = (e: React.TouchEvent | React.MouseEvent, contactUserId: number) => {
+    // iOS에서 길게 누르기가 작동하도록 preventDefault 추가
+    e.preventDefault();
     const wasShortPress = longPressTimer !== null;
     
     if (longPressTimer) {
@@ -284,7 +288,6 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
     
     if (isRecording) {
       // 녹음 중이었다면 click 이벤트 차단하고 녹음 중지
-      e.preventDefault();
       e.stopPropagation();
       stopVoiceRecording();
     } else if (wasShortPress) {
@@ -589,6 +592,7 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
                       "relative cursor-pointer select-none",
                       isRecordingThisContact && "animate-pulse"
                     )}
+                    style={{ touchAction: 'none' }}
                     onTouchStart={(e) => handleLongPressStart(contact, e)}
                     onTouchEnd={(e) => handleLongPressEnd(e, contact.contactUserId)}
                     onMouseDown={(e) => handleLongPressStart(contact, e)}
@@ -652,6 +656,7 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
               <div className="flex items-center justify-between">
                 <div 
                   className="cursor-pointer flex-1 flex items-center space-x-2 select-none"
+                  style={{ touchAction: 'none' }}
                   onTouchStart={(e) => handleLongPressStart(contact, e)}
                   onTouchEnd={(e) => handleLongPressEnd(e, contact.contactUserId)}
                   onMouseDown={(e) => handleLongPressStart(contact, e)}
