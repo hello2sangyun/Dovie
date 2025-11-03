@@ -1,0 +1,52 @@
+Last login: Mon Nov  3 16:13:08 on ttys000
+stanlee@Stans-MacBook-Air ~ % git config --global user.name Lee Sang Yun
+error: no action specified
+stanlee@Stans-MacBook-Air ~ % git config --global user.LeeSangYun       
+stanlee@Stans-MacBook-Air ~ % git config --global user.hello2sangyun@gmail.com
+stanlee@Stans-MacBook-Air ~ % cd /Users/stanlee/Downloads/Dovie
+
+stanlee@Stans-MacBook-Air Dovie % git remote add origin https://github.com/hello2sangyun/Dovie.git
+stanlee@Stans-MacBook-Air Dovie % git remote -v
+gitsafe-backup	git://gitsafe:5418/backup.git (fetch)
+gitsafe-backup	git://gitsafe:5418/backup.git (push)
+origin	https://github.com/hello2sangyun/Dovie.git (fetch)
+origin	https://github.com/hello2sangyun/Dovie.git (push)
+stanlee@Stans-MacBook-Air Dovie % git pull origin main
+
+error: cannot pull with rebase: You have unstaged changes.
+error: Please commit or stash them.
+stanlee@Stans-MacBook-Air Dovie % git pull origin main --allow-unrelated-histories
+
+
+error: cannot pull with rebase: You have unstaged changes.
+error: Please commit or stash them.
+stanlee@Stans-MacBook-Air Dovie % git status
+
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   package-lock.json
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	.config/
+	.local/
+	ios/App/
+
+no changes added to commit (use "git add" and/or "git commit -a")
+stanlee@Stans-MacBook-Air Dovie % git add .
+
+stanlee@Stans-MacBook-Air Dovie % git push origin main
+Username for 'https://github.com': hello2sangyun@gmail.com
+Password for 'https://hello2sangyun%40gmail.com@github.com': 
+remote: Invalid username or token. Password authentication is not supported for Git operations.
+fatal: Authentication failed for 'https://github.com/hello2sangyun/Dovie.git/'
+stanlee@Stans-MacBook-Air Dovie % cd /Users/stanlee/Downloads/Dovie
+
+stanlee@Stans-MacBook-Air Dovie % git pull origin main
+
+
+error: cannot pull with rebase: Your index contains uncommitted changes.
+error: Please commit or stash them.
+stanlee@Stans-MacBook-Air Dovie % 
