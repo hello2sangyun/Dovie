@@ -1,0 +1,213 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/6BFB8E5E-9341-46F1-B302-696254715E8C/App.app'
+⚡️  Loading app at https://dovie-hello2sangyun.replit.app...
+Networking process (0x113054190) took 6.008516 seconds to launch
+GPU process (0x11312c1e0) took 3.766650 seconds to launch
+WebContent process (0x1130f4100) took 4.430733 seconds to launch
+0x1130f4100 - [PID=49025] WebProcessProxy::didBecomeUnresponsive:
+0x1263a4718 - [pageProxyID=7, webPageID=8, PID=49025] WebPageProxy::processDidBecomeUnresponsive:
+WebContent[49025] Unable to hide query parameters from script (missing data)
+⚡️  WebView loaded
+⚡️  [log] - 🔄 Auth context updating user: 121 profilePicture: /uploads/profile_1761144817232_rf4rde1nn4e.jpg
+⚡️  [log] - 🚀 Starting profile image preloading...
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://dovie-hello2sangyun.replit.app/ws
+⚡️  [log] -    Protocol: wss:, Host: dovie-hello2sangyun.replit.app
+⚡️  [log] - 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+⚡️  [log] - [Badge] Service Worker not supported
+⚡️  [log] - MainApp rendering with user: 121
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  To Native ->  PushNotifications requestPermissions 82246423
+⚡️  TO JS {"receive":"granted"}
+⚡️  To Native ->  PushNotifications register 82246424
+⚡️  TO JS undefined
+⚡️  To Native ->  PushNotifications addListener 82246425
+⚡️  [log] - 📱 iOS 네이티브 푸시 알림 등록 성공
+⚡️  To Native ->  PushNotifications addListener 82246426
+⚡️  To Native ->  PushNotifications addListener 82246427
+⚡️  To Native ->  PushNotifications addListener 82246428
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - 📥 Found 7 profile images to preload
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":121}
+⚡️  [log] - WebSocket authentication successful for user: 121
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761070087497_tdjrs8unfmn.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761602401844_h0cbedi9kaf.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761070023452_fvup6od4hy.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761606486798_jejztvnxp8j.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761603336729_ol7qqlpxpv.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761144817232_rf4rde1nn4e.jpg
+⚡️  [log] - 🎉 Profile image preloading completed!
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 4
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: [{"chatRoomId":118,"unreadCount":4}]
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 4
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 4
+⚡️  [log] - 📱 Badge update: 0 → 4
+⚡️  [log] - 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: 이상윤
+⚡️  [log] - 🎤 채팅방 음성 녹음 시작: 이상윤
+⚡️  [error] - ❌ Voice recording failed: {}
+⚡️  [log] - 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: 이상윤
+⚡️  [log] - 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: 이상윤
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🔍 Timer effect triggered, messages: 4
+⚡️  [log] - 📧 Message 957: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 958: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 959: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 960: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 4
+⚡️  [log] - 📧 Message 957: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 958: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 959: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 960: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🔍 Timer effect triggered, messages: 4
+⚡️  [log] - 📧 Message 957: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 958: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 959: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 960: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 4
+⚡️  [log] - 📧 Message 957: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 958: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 959: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 960: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🎤 Requesting microphone permission...
+⚡️  [error] - ❌ Microphone permission denied: {}
+⚡️  [error] - Microphone permission denied
+<0x12621e940> Gesture: System gesture gate timed out.
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🎯 친구 간편음성메세지 - 길게 누르기 시작: Lee Sang Yun
+⚡️  [log] - 🎤 친구 음성 녹음 시작: Lee Sang Yun
+⚡️  [error] - ❌ Voice recording failed: {}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🔍 Timer effect triggered, messages: 3
+⚡️  [log] - 📧 Message 914: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 916: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 917: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 3
+⚡️  [log] - 📧 Message 914: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 916: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 917: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":109,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
