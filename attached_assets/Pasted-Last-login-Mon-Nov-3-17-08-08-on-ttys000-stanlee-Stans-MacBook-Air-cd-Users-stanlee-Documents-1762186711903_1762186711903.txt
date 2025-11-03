@@ -1,0 +1,65 @@
+Last login: Mon Nov  3 17:08:08 on ttys000
+stanlee@Stans-MacBook-Air ~ % cd /Users/stanlee/Documents/Dovie
+stanlee@Stans-MacBook-Air Dovie % git pull origin main
+
+
+From https://github.com/hello2sangyun/Dovie
+ * branch            main       -> FETCH_HEAD
+Already up to date.
+stanlee@Stans-MacBook-Air Dovie % npm install
+
+
+npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+
+added 1002 packages, and audited 1003 packages in 9s
+
+98 packages are looking for funding
+  run `npm fund` for details
+
+13 vulnerabilities (3 low, 7 moderate, 2 high, 1 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+stanlee@Stans-MacBook-Air Dovie % npx cap sync ios
+
+
+[warn] Cannot copy web assets from dist to ios/App/App/public
+       Web asset directory specified by webDir does not exist. This is not an
+       error because server.url is set in config.
+✖ Creating capacitor.config.json in ios/App/App - failed!
+✖ copy ios - failed!
+[error] Error: ENOENT: no such file or directory, open
+        '/Users/stanlee/Documents/Dovie/ios/App/App/capacitor.config.json'
+✔ Updating iOS plugins in 6.62ms
+[warn] Cannot copy web assets from dist to ios/App/App/public
+       Web asset directory specified by webDir does not exist. This is not an
+       error because server.url is set in config.
+✖ Creating capacitor.config.json in ios/App/App - failed!
+✖ copy ios - failed!
+✖ update ios - failed!
+[error] Error: ENOENT: no such file or directory, open
+        '/Users/stanlee/Documents/Dovie/ios/App/App/capacitor.config.json'
+stanlee@Stans-MacBook-Air Dovie % npx cap open ios
+
+
+✔ Opening the Xcode workspace... in 3.01s
+stanlee@Stans-MacBook-Air Dovie % open /Users/stanlee/Documents/Dovie/ios/App/App.xcworkspace
+
+
+The file /Users/stanlee/Documents/Dovie/ios/App/App.xcworkspace does not exist.
+stanlee@Stans-MacBook-Air Dovie % cd /Users/stanlee/Documents/Dovie
+stanlee@Stans-MacBook-Air Dovie % npx cap add ios
+
+
+[error] ios platform already exists.
+        To re-add this platform, first remove ./ios, then run this command
+        again.
+        WARNING: Your native project will be completely removed.
+stanlee@Stans-MacBook-Air Dovie % 
