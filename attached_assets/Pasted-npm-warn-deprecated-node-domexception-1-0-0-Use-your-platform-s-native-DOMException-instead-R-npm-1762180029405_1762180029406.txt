@@ -1,0 +1,107 @@
+npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+⠇^R
+npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+⠧^R
+⠏^R
+
+added 1002 packages, and audited 1003 packages in 12s
+
+98 packages are looking for funding
+  run `npm fund` for details
+
+13 vulnerabilities (3 low, 7 moderate, 2 high, 1 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+npm notice
+npm notice New patch version of npm available! 11.6.1 -> 11.6.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+npm notice To update run: npm install -g npm@11.6.2
+npm notice
+stanlee@Stans-MacBook-Air Dovie % npm run build
+
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+vite v5.4.14 building for production...
+transforming (2) ../vite/modulepreload-polyfill.jsBrowserslist: browsers data (caniuse-lite) is 13 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+✓ 3539 modules transformed.
+../dist/public/index.html                                      6.19 kB │ gzip:   2.27 kB
+../dist/public/assets/dovie_logo_transparent-DP75By51.png    266.37 kB
+../dist/public/assets/index-BPrnIivj.css                     134.10 kB │ gzip:  21.01 kB
+../dist/public/assets/web-CbrscaBI.js                          0.28 kB │ gzip:   0.23 kB
+../dist/public/assets/qr-scanner-worker.min-D85Z9gVD.js       43.95 kB │ gzip:  10.46 kB
+../dist/public/assets/firebase-Ddk7EPke.js                   158.61 kB │ gzip:  33.60 kB
+../dist/public/assets/index-C8lkdF-H.js                    1,440.85 kB │ gzip: 405.88 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 3.15s
+▲ [WARNING] Using direct eval with a bundler is not recommended and may cause problems [direct-eval]
+
+    server/openai.ts:91:19:
+      91 │     const result = eval(sanitizedExpression);
+         ╵                    ~~~~
+
+  You can read more about direct eval and bundling here:
+  https://esbuild.github.io/link/direct-eval
+
+1 warning
+
+  dist/index.js  444.4kb
+
+⚡ Done in 12ms
+stanlee@Stans-MacBook-Air Dovie % npx cap add ios
+[error] ios platform already exists.
+        To re-add this platform, first remove ./ios, then run this command
+        again.
+        WARNING: Your native project will be completely removed.
+stanlee@Stans-MacBook-Air Dovie % npx cap sync ios
+✔ Copying web assets from dist to ios/App/App/public in 1.66ms
+✔ Creating capacitor.config.json in ios/App/App in 307.13μs
+✔ copy ios in 39.13ms
+✔ Updating iOS plugins in 5.94ms
+✖ Updating iOS native dependencies with pod install - failed!
+✖ update ios - failed!
+[error] Error: ENOENT: no such file or directory, open
+        '/Users/stanlee/Downloads/Dovie/ios/App/Podfile'
+stanlee@Stans-MacBook-Air Dovie % npx cap open ios
+✔ Opening the Xcode workspace... in 3.00s
+
+Thank you for helping improve Capacitor by sharing anonymous usage data! 💖
+Information about the data we collect is available on our website: https://capacitorjs.com/docs/next/cli/telemetry
+You can disable telemetry at any time by using the npx cap telemetry off commandstanlee@Stans-MacBook-Air Dovie % npx cap open ios
+
+
+✔ Opening the Xcode workspace... in 3.00s
+stanlee@Stans-MacBook-Air Dovie % npx cap open ios
+
+✔ Opening the Xcode workspace... in 3.00s
+stanlee@Stans-MacBook-Air Dovie % 
+stanlee@Stans-MacBook-Air Dovie % 
+stanlee@Stans-MacBook-Air Dovie % npm install
+
+up to date, audited 1003 packages in 1s
+
+98 packages are looking for funding
+  run `npm fund` for details
+
+13 vulnerabilities (3 low, 7 moderate, 2 high, 1 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
