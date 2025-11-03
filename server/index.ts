@@ -22,18 +22,6 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-User-Id, X-Capacitor-Platform');
   res.header('Access-Control-Allow-Credentials', 'true');
   
-  // iOS 앱 전용 자동 인증 시스템
-  const userAgent = req.headers['user-agent'] || '';
-  const referer = req.headers['referer'] || '';
-  
-  // 모든 iOS 관련 요청에 대해 자동 인증 적용
-  if (!req.headers['x-user-id']) {
-    req.headers['x-user-id'] = '117'; // HOLY 사용자로 강제 자동 로그인
-    if (req.url.includes('/api/')) {
-      console.log('🔓 자동 인증 적용:', req.url);
-    }
-  }
-  
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
   } else {

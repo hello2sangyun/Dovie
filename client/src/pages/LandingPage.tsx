@@ -10,8 +10,35 @@ export default function LandingPage() {
     const storedUserId = localStorage.getItem("userId");
     
     if (storedUserId) {
-      // User exists, go to app
-      setLocation("/app");
+      // Check if user is admin
+      const checkUserAndRedirect = async () => {
+        try {
+          const response = await fetch("/api/auth/me", {
+            headers: {
+              "x-user-id": storedUserId,
+            },
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            // Redirect admin to /admin, others to /app
+            if (data.user.email === "master@master.com") {
+              setLocation("/admin");
+            } else {
+              setLocation("/app");
+            }
+          } else {
+            // If auth fails, go to login
+            localStorage.removeItem("userId");
+            setLocation("/login");
+          }
+        } catch (error) {
+          console.error("User check failed:", error);
+          setLocation("/login");
+        }
+      };
+      
+      checkUserAndRedirect();
     } else {
       // Deploy 환경에서 데모 계정 자동 로그인
       const autoLoginDemo = async () => {
