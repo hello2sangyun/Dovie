@@ -1,0 +1,14 @@
+<!-- 
+  iOS Info.plist에 추가할 마이크 권한 설정
+  
+  사용 방법 (Mac Xcode에서):
+  1. Xcode에서 App > Info.plist 파일 열기
+  2. 아무 항목이나 우클릭 > Add Row
+  3. Key: Privacy - Microphone Usage Description
+  4. Value: 음성 메시지를 녹음하고 전송하기 위해 마이크 권한이 필요합니다
+  
+  또는 아래 XML 코드를 Info.plist 파일의 <dict> 태그 안에 복사-붙여넣기:
+-->
+
+<key>NSMicrophoneUsageDescription</key>
+<string>음성 메시지를 녹음하고 전송하기 위해 마이크 권한이 필요합니다</string>
