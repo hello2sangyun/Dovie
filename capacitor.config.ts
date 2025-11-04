@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'Dovie Messenger',
   webDir: 'client/dist',
   server: {
-    url: 'https://dovie-hello2sangyun.replit.app',
+    url: 'https://dovie-hello2sangyun.replit.dev',
     cleartext: false,
     androidScheme: 'https'
   },
