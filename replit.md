@@ -113,7 +113,24 @@ For iOS push notifications to work in production, APNS credentials must be confi
 
 ## Recent Updates
 - **2024-11-04**: 
-  - **Battery Optimization System**: Implemented comprehensive background lifecycle management to maximize iOS battery life
+  - **Native Badge Manager**: Direct integration with Capacitor `PushNotifications.setBadgeCount()` for real-time app badge updates on iOS
+    - WebSocket-driven badge sync: Instant badge updates when messages are read
+    - Replaces inefficient polling with event-driven architecture
+  - **Notification Settings System**: Comprehensive user notification preferences
+    - Database: `notification_settings` table with notification sound, preview toggle, quiet hours, and mute all settings
+    - Storage API: `getNotificationSettings`, `upsertNotificationSettings` for persistence
+    - REST API: `GET/POST /api/notification-settings` endpoints
+    - UI Integration: Full notification settings page with real-time backend sync
+  - **Advanced Push Notification Filtering**: User-controlled notification behavior
+    - Mute All Notifications: Complete notification silence when enabled
+    - Quiet Hours: Time-based do-not-disturb with midnight wraparound support
+    - Activity-Based Filtering: Telegram/WhatsApp-style intelligent suppression for active users
+  - **APNS Rich Notifications**: Enhanced iOS push notification experience
+    - Rich Media Support: Image, video, and audio attachments in notifications (`mutable-content: 1`)
+    - Action Buttons: Interactive notifications with reply/mark-read actions (`category: MESSAGE_CATEGORY`)
+    - Notification Grouping: Chat-based thread IDs for organized notification stacks (`thread-id: chat-{chatRoomId}`)
+    - Automatic Media Inclusion: Server automatically includes media URLs based on message type
+  - **Battery Optimization System**: Comprehensive background lifecycle management to maximize iOS battery life
     - WebSocket: Auto-disconnect when backgrounded, auto-reconnect when foregrounded (handles all edge cases including network loss)
     - Microphone: Voice recording stops immediately when app goes to background
     - Badge Polling: Suspended in background, resumed in foreground (5s interval)
@@ -122,4 +139,3 @@ For iOS push notifications to work in production, APNS credentials must be confi
   - Fixed ChatsList touch detection (short tap vs long press) to match ContactsList behavior
   - Applied iOS Safe Area support across all pages to prevent content overlap with notch/Dynamic Island
   - Unified settings page design with neutral color scheme (purple icons, white/gray backgrounds)
-  - Enabled Telegram/WhatsApp-style intelligent push filtering (no notifications when user is active)
