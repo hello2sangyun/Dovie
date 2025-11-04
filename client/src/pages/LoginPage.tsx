@@ -20,7 +20,6 @@ export default function LoginPage() {
   const [, setLocation] = useLocation();
   const { setUser } = useAuth();
   const { toast } = useToast();
-  const [checkingRedirect, setCheckingRedirect] = useState(false);
   
   // Username/Password login state
   const [usernameLoginData, setUsernameLoginData] = useState({
@@ -32,65 +31,6 @@ export default function LoginPage() {
   const handlePhoneLogin = () => {
     setLocation("/phone-login");
   };
-
-  // Check for redirect result on mount (for native platforms)
-  useEffect(() => {
-    const handleRedirectResult = async () => {
-      if (!Capacitor.isNativePlatform()) {
-        return;
-      }
-
-      setCheckingRedirect(true);
-      
-      try {
-        const { checkRedirectResult } = await import('@/lib/firebase');
-        const result = await checkRedirectResult();
-        
-        if (result) {
-          console.log('📱 Processing redirect result');
-          
-          // Determine provider from result (Google or Apple)
-          const authProvider = 'google'; // Default to Google for now
-          
-          const response = await apiRequest("/api/auth/social-login", "POST", {
-            idToken: result.idToken,
-            authProvider,
-          });
-          
-          const data = await response.json();
-          setUser(data.user);
-          localStorage.setItem("userId", data.user.id.toString());
-          
-          if (!data.user.isProfileComplete) {
-            setLocation("/profile-setup");
-          } else if (data.user.email === "master@master.com") {
-            // 관리자 계정 - 모바일 체크
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            if (isMobile) {
-              toast({
-                title: "접근 불가",
-                description: "관리자 페이지는 PC에서만 접속 가능합니다.",
-                variant: "destructive",
-              });
-              // 로그아웃
-              setUser(null);
-              localStorage.removeItem("userId");
-            } else {
-              setLocation("/admin");
-            }
-          } else {
-            setLocation("/app");
-          }
-        }
-      } catch (error: any) {
-        console.error('Redirect result processing error:', error);
-      } finally {
-        setCheckingRedirect(false);
-      }
-    };
-
-    handleRedirectResult();
-  }, [setUser, setLocation, toast]);
 
   const usernameLoginMutation = useMutation({
     mutationFn: async (data: typeof usernameLoginData) => {

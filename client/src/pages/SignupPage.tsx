@@ -20,7 +20,6 @@ export default function SignupPage() {
   const [, setLocation] = useLocation();
   const { setUser } = useAuth();
   const { toast } = useToast();
-  const [checkingRedirect, setCheckingRedirect] = useState(false);
   
   const [usernameFormData, setUsernameFormData] = useState({
     username: "",
@@ -36,46 +35,6 @@ export default function SignupPage() {
   const handlePhoneSignup = () => {
     setLocation("/phone-login");
   };
-
-  // Check for redirect result on mount (for native platforms)
-  useEffect(() => {
-    const handleRedirectResult = async () => {
-      if (!Capacitor.isNativePlatform()) {
-        return;
-      }
-
-      setCheckingRedirect(true);
-      
-      try {
-        const { checkRedirectResult } = await import('@/lib/firebase');
-        const result = await checkRedirectResult();
-        
-        if (result) {
-          console.log('📱 Processing redirect result');
-          
-          // Determine provider from result (Google or Apple)
-          const authProvider = 'google'; // Default to Google for now
-          
-          const response = await apiRequest("/api/auth/social-login", "POST", {
-            idToken: result.idToken,
-            authProvider,
-          });
-          
-          const data = await response.json();
-          setUser(data.user);
-          localStorage.setItem("userId", data.user.id.toString());
-          
-          setLocation("/profile-setup");
-        }
-      } catch (error: any) {
-        console.error('Redirect result processing error:', error);
-      } finally {
-        setCheckingRedirect(false);
-      }
-    };
-
-    handleRedirectResult();
-  }, [setUser, setLocation]);
 
   const signupMutation = useMutation({
     mutationFn: async (data: typeof usernameFormData) => {
