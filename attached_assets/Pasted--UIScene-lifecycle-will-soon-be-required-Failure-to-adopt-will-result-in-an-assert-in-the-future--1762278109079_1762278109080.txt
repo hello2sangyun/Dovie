@@ -1,0 +1,1284 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/A627E8CB-37F5-4ECF-9CFE-B52BF5B19871/App.app'
+⚡️  Loading app at https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev...
+Updated list with error: DownloadFailed
+Updated list with error: DownloadFailed
+Updated list with error: DownloadFailed
+Networking process (0x112064190) took 10.561386 seconds to launch
+GPU process (0x1121181e0) took 4.076418 seconds to launch
+WebContent process (0x1120f0100) took 5.040351 seconds to launch
+0x1120f0100 - [PID=57192] WebProcessProxy::didBecomeUnresponsive:
+0x128374718 - [pageProxyID=7, webPageID=8, PID=57192] WebPageProxy::processDidBecomeUnresponsive:
+Updated list with error: DownloadFailed
+WebContent[57192] Unable to hide query parameters from script (missing data)
+Updated list with error: DownloadFailed
+Updated list with error: DownloadFailed
+⚡️  [debug] - [vite] connecting...
+⚡️  WebView loaded
+⚡️  [log] - 🔄 Auth context updating user: 121 profilePicture: /uploads/profile_1761144817232_rf4rde1nn4e.jpg
+⚡️  [log] - 🚀 Starting profile image preloading...
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+⚡️  [log] -    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+⚡️  [log] - 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+⚡️  [log] - [Badge] Service Worker not supported
+⚡️  [log] - MainApp rendering with user: 121
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  To Native ->  App addListener 131024414
+⚡️  To Native ->  App addListener 131024415
+⚡️  To Native ->  PushNotifications requestPermissions 131024416
+⚡️  TO JS {"receive":"granted"}
+⚡️  To Native ->  PushNotifications register 131024417
+⚡️  TO JS undefined
+⚡️  To Native ->  ⚡️  [log] - 📱 iOS 네이티브 푸시 알림 등록 성공
+PushNotifications addListener 131024418
+⚡️  To Native ->  PushNotifications addListener 131024419
+⚡️  To Native ->  PushNotifications addListener 131024420
+⚡️  To Native ->  PushNotifications addListener 131024421
+⚡️  [log] - 📥 Found 7 profile images to preload
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761070087497_tdjrs8unfmn.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761070023452_fvup6od4hy.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761602401844_h0cbedi9kaf.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761603336729_ol7qqlpxpv.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761606486798_jejztvnxp8j.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761144817232_rf4rde1nn4e.jpg
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - 🎉 Profile image preloading completed!
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 0
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: []
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":121}
+⚡️  [log] - WebSocket authentication successful for user: 121
+⚡️  [log] - 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: 이상윤
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🔍 Timer effect triggered, messages: 12
+⚡️  [log] - 📧 Message 957: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 958: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 959: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 960: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 963: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+DeviceIdHashSaltStorage: The length of the hash salt (47) is different to the length of the hash salts defined in WebKit (48)
+⚡️  [log] - 📧 Message 964: type=file, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 965: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 966: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 967: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 973: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 986: type=file, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 987: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 12
+⚡️  [log] - 📧 Message 957: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 958: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 959: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 960: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 963: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 964: type=file, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 965: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 966: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 967: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 973: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 986: type=file, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 987: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  To Native ->  App addListener 131024422
+⚡️  To Native ->  App addListener 131024423
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - Image loaded successfully: /uploads/file_1762262191781_x7k9r98of4m.jpg
+⚡️  [log] - Image loaded successfully: /uploads/file_1762262191781_x7k9r98of4m.jpg
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ✅ Microphone permission already granted, stream ready
+⚡️  [log] - ✅ Microphone permission already granted, stream ready
+⚡️  [error] - Image load error for /uploads/file_1762197697040_jxc91vhgwgo.png: 
+⚡️  [error] - Image load error for /uploads/file_1762197697040_jxc91vhgwgo.png: 
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":120,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  To Native ->  App removeListener 131024424
+⚡️  To Native ->  App removeListener 131024425
+⚡️  [error] - `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+⚡️  [warn] - Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+⚡️  [error] - `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+⚡️  [warn] - Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+⚡️  [log] - 🎯 친구 간편음성메세지 - 길게 누르기 시작: Hot
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🔍 Timer effect triggered, messages: 2
+⚡️  [log] - 📧 Message 985: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 989: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 2
+⚡️  [log] - 📧 Message 985: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  To Native ->  ⚡️  [log] - 📧 Message 989: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+App addListener 131024426
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  To Native ->  App addListener 131024427
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ✅ Microphone permission already granted, stream ready
+⚡️  [log] - ✅ Microphone permission already granted, stream ready
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  To Native ->  App removeListener 131024428
+⚡️  To Native ->  App removeListener 131024429
+XPC connection interrupted
+Reporter disconnected. { function=sendMessage, reporterID=245590524952577 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952577 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952577 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952577 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952577 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952577 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952577 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952577 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952577 }
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+	(Note: If you're seeing NSAutoresizingMaskLayoutConstraints that you don't understand, refer to the documentation for the UIView property translatesAutoresizingMaskIntoConstraints) 
+(
+    "<NSAutoresizingMaskLayoutConstraint:0x13264edf0 h=-&- v=-&- _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x132606800.minX == 0   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x1324fb480 )>",
+    "<NSAutoresizingMaskLayoutConstraint:0x13264ee40 h=-&- v=-&- H:[_TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x132606800]-(0)-|   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x1324fb480 )>",
+    "<NSLayoutConstraint:0x13264e5d0 _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x132606800.width == _UIButtonBarButton:0x1324fb200.width   (active)>",
+    "<NSLayoutConstraint:0x13264ecb0 '_UITemporaryLayoutWidth' _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x1324fb480.width == 0   (active)>",
+    "<NSLayoutConstraint:0x13264e710 'IB_Leading_Leading' H:|-(8)-[_UIModernBarButton:0x1326a0a80]   (active, names: '|':_UIButtonBarButton:0x1324fb200 )>",
+    "<NSLayoutConstraint:0x13264e760 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x1326a0a80]-(8)-|   (active, names: '|':_UIButtonBarButton:0x1324fb200 )>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x13264e760 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x1326a0a80]-(8)-|   (active, names: '|':_UIButtonBarButton:0x1324fb200 )>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+	(Note: If you're seeing NSAutoresizingMaskLayoutConstraints that you don't understand, refer to the documentation for the UIView property translatesAutoresizingMaskIntoConstraints) 
+(
+    "<NSAutoresizingMaskLayoutConstraint:0x12824efd0 h=-&- v=-&- _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x132606c00.minX == 0   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x1324f8c80 )>",
+    "<NSAutoresizingMaskLayoutConstraint:0x12824f2a0 h=-&- v=-&- H:[_TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x132606c00]-(0)-|   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x1324f8c80 )>",
+    "<NSLayoutConstraint:0x13264fd40 _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x132606c00.width == _UIButtonBarButton:0x1324fb700.width   (active)>",
+    "<NSLayoutConstraint:0x128f3ff20 '_UITemporaryLayoutWidth' _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x1324f8c80.width == 0   (active)>",
+    "<NSLayoutConstraint:0x13264fe80 'IB_Leading_Leading' H:|-(8)-[_UIModernBarButton:0x1326a0e00]   (active, names: '|':_UIButtonBarButton:0x1324fb700 )>",
+    "<NSLayoutConstraint:0x13264fed0 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x1326a0e00]-(8)-|   (active, names: '|':_UIButtonBarButton:0x1324fb700 )>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x13264fed0 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x1326a0e00]-(8)-|   (active, names: '|':_UIButtonBarButton:0x1324fb700 )>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+	(Note: If you're seeing NSAutoresizingMaskLayoutConstraints that you don't understand, refer to the documentation for the UIView property translatesAutoresizingMaskIntoConstraints) 
+(
+    "<NSAutoresizingMaskLayoutConstraint:0x1327715e0 h=-&- v=-&- _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x132607000.minX == 0   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x1324fbc00 )>",
+    "<NSAutoresizingMaskLayoutConstraint:0x132771630 h=-&- v=-&- H:[_TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x132607000]-(0)-|   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x1324fbc00 )>",
+    "<NSLayoutConstraint:0x132770eb0 _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x132607000.width == _UIButtonBarButton:0x1324fb980.width   (active)>",
+    "<NSLayoutConstraint:0x1327714a0 '_UITemporaryLayoutWidth' _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x1324fbc00.width == 0   (active)>",
+    "<NSLayoutConstraint:0x132770fa0 'IB_Leading_Leading' H:|-(8)-[_UIModernBarButton:0x1326a1180]   (active, names: '|':_UIButtonBarButton:0x1324fb980 )>",
+    "<NSLayoutConstraint:0x132770ff0 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x1326a1180]-(8)-|   (active, names: '|':_UIButtonBarButton:0x1324fb980 )>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x132770ff0 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x1326a1180]-(8)-|   (active, names: '|':_UIButtonBarButton:0x1324fb980 )>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 85ED88FF-6686-4B21-91F1-29C99C21A6D0
+<0x1281e2940> Gesture: System gesture gate timed out.
+containerToPush is nil, will not push anything to candidate receiver for request token: 8FA676F7
+Could not find cached accumulator for token=672457A7 type:0 in -[TUIKeyboardCandidateMultiplexer receiveExternalAutocorrectionUpdate:requestToken:]_block_invoke
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+⚡️  [log] - [NotificationManager] Window blurred
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  Can only perform input operation for an active session. sessionID = 85ED88FF-6686-4B21-91F1-29C99C21A6D0
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 85ED88FF-6686-4B21-91F1-29C99C21A6D0
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+View <(null):0x0> does not conform to UITextInput protocol
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  Can only perform input operation for an active session. sessionID = E9FC51C9-3E39-4DF5-A62E-962B2D74FA47
+⚡️  [log] - WebSocket disconnected: 1000 App backgrounded
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+Reporter disconnected. { function=sendMessage, reporterID=245590524952578 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952578 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952578 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952578 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952578 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952578 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952578 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952578 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952578 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 2A04F64B-7330-466A-9A35-0CF06BFBE816
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - [NotificationManager] App visible - suppressing notifications
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 📱 앱이 활성화됨 - 배지 상태 새로고침
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🔄 PWA app opened - syncing messages immediately
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App foregrounded - reconnecting WebSocket
+View <(null):0x0> does not conform to UITextInput protocol
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - 📱 Calling connect() after foreground transition
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+⚡️  [log] -    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":121}
+⚡️  [log] - WebSocket authentication successful for user: 121
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+SessionCore_NotificationHandlers.mm:73    Server returned an error:. Error Domain=NSOSStatusErrorDomain Code=-50 "Session lookup failed" UserInfo={NSLocalizedDescription=Session lookup failed}
+⚡️  [log] - 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: Lee Sang Yun
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1125:34
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=7688a0dc
+⚡️  chunk-RPCDYKBN.js?v=7688a0dc:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1125:34
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=7688a0dc
+⚡️  chunk-RPCDYKBN.js?v=7688a0dc:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  [error] - {}
+⚡️  ChatsList.tsx:1125:34
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=7688a0dc
+⚡️  chunk-RPCDYKBN.js?v=7688a0dc:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1125:34
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=7688a0dc
+⚡️  chunk-RPCDYKBN.js?v=7688a0dc:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1125:34
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=7688a0dc
+⚡️  chunk-RPCDYKBN.js?v=7688a0dc:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+⚡️  [error] - {}
+⚡️  [log] - 📜 스크롤 감지 - 터치 동작 취소
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1125:34
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  [error] - {}
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=7688a0dc
+⚡️  chunk-RPCDYKBN.js?v=7688a0dc:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1125:34
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=7688a0dc
+⚡️  chunk-RPCDYKBN.js?v=7688a0dc:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1125:34
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=7688a0dc
+⚡️  chunk-RPCDYKBN.js?v=7688a0dc:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1125:34
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=7688a0dc
+⚡️  chunk-RPCDYKBN.js?v=7688a0dc:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1125:34
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=7688a0dc
+⚡️  chunk-RPCDYKBN.js?v=7688a0dc:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1125:34
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=7688a0dc
+⚡️  chunk-RPCDYKBN.js?v=7688a0dc:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1125:34
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=7688a0dc
+⚡️  chunk-RPCDYKBN.js?v=7688a0dc:3750:25
+⚡️  [error] - {}
+
+⚡️  See above for help with debugging blank-screen issues
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+Reporter disconnected. { function=sendMessage, reporterID=245590524952579 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952579 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952579 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952579 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952579 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952579 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952579 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952579 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952579 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 2A04F64B-7330-466A-9A35-0CF06BFBE816
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+        AVHapticClient.mm:1235  -[AVHapticClient getAsyncDelegateForMethod:errorHandler:]_block_invoke: ERROR: Async XPC call for 'stopRunning:' (client ID 0x0) failed: Couldn’t communicate with a helper application.
+        CHHapticEngine.mm:1386  -[CHHapticEngine doStopWithCompletionHandler:]_block_invoke: ERROR: Lower-level player stop failed: Couldn’t communicate with a helper application.
+<_UIKBFeedbackGenerator: 0x1328fa700>: Error stopping CHHapticEngine: Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service with pid 39254 named com.apple.audio.hapticd was invalidated from this process." UserInfo={NSDebugDescription=The connection to service with pid 39254 named com.apple.audio.hapticd was invalidated from this process.}
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+Reporter disconnected. { function=sendMessage, reporterID=245590524952580 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952580 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952580 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952580 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952580 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952580 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952580 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952580 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952580 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 2A04F64B-7330-466A-9A35-0CF06BFBE816
+⚡️  [log] - 🎯 친구 간편음성메세지 - 길게 누르기 시작: Hot
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🔍 Timer effect triggered, messages: 2
+⚡️  [log] - 📧 Message 985: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 989: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 2
+⚡️  [log] - 📧 Message 985: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 989: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  To Native ->  App addListener 131024430
+⚡️  To Native ->  App addListener 131024431
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+        AVHapticClient.mm:1235  -[AVHapticClient getAsyncDelegateForMethod:errorHandler:]_block_invoke: ERROR: Async XPC call for 'stopRunning:' (client ID 0x0) failed: Couldn’t communicate with a helper application.
+        CHHapticEngine.mm:1386  -[CHHapticEngine doStopWithCompletionHandler:]_block_invoke: ERROR: Lower-level player stop failed: Couldn’t communicate with a helper application.
+<_UIKBFeedbackGenerator: 0x1328fa700>: Error stopping CHHapticEngine: Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service with pid 39254 named com.apple.audio.hapticd was invalidated from this process." UserInfo={NSDebugDescription=The connection to service with pid 39254 named com.apple.audio.hapticd was invalidated from this process.}
+⚡️  [log] - ✅ Microphone permission already granted, stream ready
+⚡️  [log] - ✅ Microphone permission already granted, stream ready
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🔍 Timer effect triggered, messages: 2
+⚡️  [log] - 📧 Message 985: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 989: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 2
+⚡️  [log] - 📧 Message 985: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 989: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🎤 Getting microphone stream...
+⚡️  [log] - 🎤 Using existing active stream
+⚡️  [log] - 🎤 Creating MediaRecorder with: {"mimeType":"audio/webm;codecs=opus","isIPhonePWA":false,"options":{"mimeType":"audio/webm;codecs=opus"}}
+⚡️  [log] - 🎤 Recording started with MediaRecorder state: recording
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+WebContent[57192] AudioComponentPluginMgr.mm:590   reg server remote proxy error Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service named com.apple.audio.AudioComponentRegistrar was invalidated: Connection init failed at lookup with error 1 - Operation no
+WebContent[57192] AudioComponentPluginMgr.mm:590   reg server remote proxy error Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service named com.apple.audio.AudioComponentRegistrar was invalidated: Connection init failed at lookup with error 1 - Operation no
+WebContent[57192] AudioComponentPluginMgr.mm:590   reg server remote proxy error Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service named com.apple.audio.AudioComponentRegistrar was invalidated: Connection init failed at lookup with error 1 - Operation no
+WebContent[57192] AudioSampleBufferConverter getting kAudioCodecPropertyDelayMode failed with 1886547824
+<0x1281e2940> Gesture: System gesture gate timed out.
+⚡️  [log] - 📊 Audio data chunk received: 27904 bytes
+⚡️  [log] - 📊 Audio data chunk received: 27367 bytes
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 📊 Audio data chunk received: 27744 bytes
+⚡️  [log] - 📊 Audio data chunk received: 30447 bytes
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 📊 Audio data chunk received: 30017 bytes
+⚡️  [log] - 📊 Audio data chunk received: 28072 bytes
+⚡️  [log] - 📊 Audio data chunk received: 30304 bytes
+⚡️  [log] - 📊 Audio data chunk received: 2337 bytes
+⚡️  [log] - 🎤 Recording stopped: {"audioBlobSize":204192,"duration":7,"chunksCount":8,"mimeType":"audio/webm;codecs=opus"}
+⚡️  [log] - 📤 통합 음성 처리 API 호출 중...
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🔍 Timer effect triggered, messages: 2
+⚡️  [log] - 📧 Message 985: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 989: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 2
+⚡️  [log] - 📧 Message 985: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 989: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 📡 통합 처리 응답 상태: 200
+⚡️  [log] - ✅ 통합 음성 처리 성공: {"success":true,"transcription":"내가 한 30분 후에 자료를 가지러 그쪽으로 갈게. 조금만 기다려주세요.","duration":7.46999979019165,"detectedLanguage":"korean","confidence":0.9,"audioUrl":"/uploads/voice_1762277948355.webm","smartSuggestions":[]}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [error] - `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+⚡️  [warn] - Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - WebSocket message received: {"type":"new_message","message":{"id":993,"chatRoomId":119,"senderId":121,"content":"내가 한 30분 후에 자료를 가지러 그쪽으로 갈게. 조금만 기다려줘.","messageType":"voice","fileUrl":"/uploads/voice_1762277948355.webm","fileName":"voice_message.webm","fileSize":0,"voiceDuration":"7.00","detectedLanguage":"korean","confidence":"0.90","isCommandRecall":false,"isTranslated":false,"isCalculated":false,"pollData":null,"originalMessageId":null,"replyToMessageId":null,"boomTimer":null,"expiresAt":null,"targetUserId":null,"spotlightMessageId":null,"spotlightDuration":null,"isEdited":false,"editedAt":null,"mentionedUserIds":null,"mentionAll":false,"youtubePreview":null,"isSystemMessage":false,"isStarred":false,"starredAt":null,"createdAt":"2025-11-04T17:39:10.340Z","sender":{"id":121,"username":"yonggari","displayName":"real","email":"22@gmail.com","password":"$2b$10$95x/pkuKiWXzaJl7se1rIeFtecn1aj5YRazUTCBySzzgyfjqfzNiW","phoneNumber":null,"birthday":null,"profilePicture":"/uploads/profile_1761144817232_rf4rde1nn4e.jpg","qrCode":null,"qrToken":"037677a18e54ce3e44904364a4b3f960973fa1b7284496ae3180a4162efca878","qrTokenExpiry":"2025-11-05T13:10:23.572Z","isOnline":true,"lastSeen":"2025-11-04T17:39:05.569Z","language":"ko","notificationsEnabled":true,"notificationSound":"default","isEmailVerified":true,"isProfileComplete":true,"userRole":"user","businessName":null,"businessAddress":null,"businessLatitude":null,"businessLongitude":null,"isBusinessVerified":false,"allowVoicePlayback":true,"autoPlayVoiceMessages":false,"allowVoiceBookmarks":true,"authProvider":null,"providerId":null,"providerEmail":null,"aiPreferences":null,"createdAt":"2025-10-21T18:11:59.655Z"}}}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🔍 Timer effect triggered, messages: 3
+⚡️  [log] - 📧 Message 985: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 989: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 993: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 3
+⚡️  [log] - 📧 Message 985: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 989: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 993: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  To Native ->  App removeListener 131024432
+⚡️  To Native ->  App removeListener 131024433
+⚡️  [log] - 로그아웃 완료 - 자동 로그인 설정 해제됨
+⚡️  [log] - 🔄 Auth context updating user: 121 profilePicture: /uploads/profile_1761144817232_rf4rde1nn4e.jpg
+⚡️  [log] - 🚀 Starting profile image preloading...
+⚡️  [log] - ⚠️ Profile image preloading timed out or failed, proceeding anyway
+⚡️  [error] - [NotificationManager] Activity status update failed: {}
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+⚡️  [log] -    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+⚡️  [log] - MainApp rendering with user: 121
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [error] - [NotificationManager] Activity status update failed: {}
+⚡️  [log] - WebSocket disconnected: 1000 Component unmounting
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+⚡️  [debug] - [vite] connecting...
+⚡️  WebView loaded
+⚡️  [log] - 📱 No stored user, initializing as logged out
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+Reporter disconnected. { function=sendMessage, reporterID=245590524952583 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952583 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952583 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952583 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952583 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952583 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952583 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952583 }
+Reporter disconnected. { function=sendMessage, reporterID=245590524952583 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 2A04F64B-7330-466A-9A35-0CF06BFBE816
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 2A04F64B-7330-466A-9A35-0CF06BFBE816
+Reporter disconnected or already stopped. { func=stop, reporterID=245590524952583 }
+⚡️  [log] - [Badge] Service Worker not supported
+⚡️  To Native ->  App addListener 82592806
+⚡️  To Native ->  App addListener 82592807
+⚡️  To Native ->  PushNotifications requestPermissions 82592808
+⚡️  TO JS {"receive":"granted"}
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+⚡️  [log] -    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+⚡️  [log] - 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  To Native ->  PushNotifications register 82592809
+⚡️  TO JS undefined
+⚡️  [log] - 📱 iOS 네이티브 푸시 알림 등록 성공
+⚡️  To Native ->  PushNotifications addListener 82592810
+⚡️  To Native ->  PushNotifications addListener 82592811
+⚡️  To Native ->  PushNotifications addListener 82592812
+⚡️  To Native ->  PushNotifications addListener 82592813
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 1
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: [{"chatRoomId":119,"unreadCount":1}]
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 1
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 1
+⚡️  [log] - 📱 Badge update: 0 → 1
+⚡️  [error] - `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+⚡️  [warn] - Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🔍 Timer effect triggered, messages: 3
+⚡️  [log] - 📧 Message 985: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 989: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 993: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 3
+⚡️  [log] - 📧 Message 985: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 989: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 993: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  To Native ->  App addListener 82592814
+⚡️  To Native ->  App addListener 82592815
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ✅ Microphone permission already granted, stream ready
+⚡️  [log] - ✅ Microphone permission already granted, stream ready
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 0
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: []
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 📱 Badge update: 1 → 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":119,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  To Native ->  App removeListener 82592816
+⚡️  To Native ->  App removeListener 82592817
+⚡️  [error] - `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+⚡️  [warn] - Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+⚡️  [error] - `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+⚡️  [warn] - Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+⚡️  [error] - `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+⚡️  [warn] - Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+⚡️  [error] - `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+⚡️  [warn] - Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+⚡️  [log] - 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: 이소은 테스트
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 0
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  To Native ->  App addListener 82592818
+⚡️  To Native ->  App addListener 82592819
+⚡️  [log] - 🔍 Timer effect triggered, messages: 8
+⚡️  [log] - 📧 Message 955: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 980: type=file, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 981: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 982: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 988: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 990: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 991: type=file, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 992: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 8
+⚡️  [log] - 📧 Message 955: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 980: type=file, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 981: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 982: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 988: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 990: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 991: type=file, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 992: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ✅ Microphone permission already granted, stream ready
+⚡️  [log] - ✅ Microphone permission already granted, stream ready
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [error] - Image load error for /uploads/file_1762258902021_5v8wk89j7dl.png: 
+⚡️  [error] - Image load error for /uploads/file_1762258902021_5v8wk89j7dl.png: 
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+WebContent[57192] <<<< CMPhotoJFIFUtilities >>>> signalled err=-17102 at <>:1776
+WebContent[57192] The sandbox in this process does not allow access to RunningBoard.
+WebContent[57192] Handshake aborted as the connection has been invalidated
+WebContent[57192] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - Image loaded successfully: /uploads/file_1762276004379_m2p8aswwoqm.jpeg
+⚡️  [log] - Image loaded successfully: /uploads/file_1762276004379_m2p8aswwoqm.jpeg
+WebContent[57192] +[HDRImage getPixelType:YCCMatrixString:chromaSubsampling:componentRange:bitDepth:isFloat:forBuffer:]:1050: *** Missing YCC matrix, falling back to ITU_R_601_4
+WebContent[57192] +[HDRImage getPixelType:YCCMatrixString:chromaSubsampling:componentRange:bitDepth:isFloat:forBuffer:]:1050: *** Missing YCC matrix, falling back to ITU_R_601_4
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🧹 Cleaning up timers
+⚡️  [log] - 🔍 Timer effect triggered, messages: 8
+⚡️  [log] - 📧 Message 955: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 980: type=file, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 981: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 982: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 988: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 990: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 991: type=file, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 992: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - 🔍 Timer effect triggered, messages: 8
+⚡️  [log] - 📧 Message 955: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 980: type=file, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 981: type=text, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 982: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 988: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 990: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 991: type=file, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 📧 Message 992: type=voice, isBoom=false, hasExpiry=null, notExploded=true
+⚡️  [log] - 💣 Found boom messages: 0
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChat":false,"isLocationChatRoom":false}
+⚡️  [log] - ChatArea rendered: {"chatRoomId":116,"isLocationChatRoom":false,"showMobileHeader":true}
