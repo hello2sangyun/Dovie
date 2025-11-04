@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, unique, decimal } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, unique, decimal, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -116,14 +116,11 @@ export const iosDeviceTokens = pgTable("ios_device_tokens", {
 export const notificationSettings = pgTable("notification_settings", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull().unique(),
-  pushEnabled: boolean("push_enabled").default(true),
-  soundEnabled: boolean("sound_enabled").default(true),
-  previewEnabled: boolean("preview_enabled").default(true),
-  vibrationEnabled: boolean("vibration_enabled").default(true),
-  groupNotificationsEnabled: boolean("group_notifications_enabled").default(true),
-  directNotificationsEnabled: boolean("direct_notifications_enabled").default(true),
-  mentionsOnly: boolean("mentions_only").default(false),
-  notificationSound: text("notification_sound").default("default"),
+  notificationSound: varchar("notification_sound", { length: 50 }).default("default"),
+  showPreview: boolean("show_preview").default(true),
+  quietHoursStart: varchar("quiet_hours_start", { length: 5 }),
+  quietHoursEnd: varchar("quiet_hours_end", { length: 5 }),
+  muteAllNotifications: boolean("mute_all_notifications").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
