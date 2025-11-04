@@ -111,7 +111,7 @@ export default function SecuritySettingsPage({ onBack }: SecuritySettingsPagePro
         <Card>
           <CardHeader>
             <CardTitle className="text-base font-semibold flex items-center">
-              <Lock className="h-5 w-5 mr-2 text-red-600" />
+              <Lock className="h-5 w-5 mr-2 text-purple-600" />
               비밀번호 변경
             </CardTitle>
           </CardHeader>
@@ -201,7 +201,7 @@ export default function SecuritySettingsPage({ onBack }: SecuritySettingsPagePro
         <Card>
           <CardHeader>
             <CardTitle className="text-base font-semibold flex items-center">
-              <Key className="h-5 w-5 mr-2 text-blue-600" />
+              <Key className="h-5 w-5 mr-2 text-purple-600" />
               2단계 인증
             </CardTitle>
           </CardHeader>
@@ -245,7 +245,7 @@ export default function SecuritySettingsPage({ onBack }: SecuritySettingsPagePro
         <Card>
           <CardHeader>
             <CardTitle className="text-base font-semibold flex items-center">
-              <Smartphone className="h-5 w-5 mr-2 text-green-600" />
+              <Smartphone className="h-5 w-5 mr-2 text-purple-600" />
               세션 및 로그인 보안
             </CardTitle>
           </CardHeader>

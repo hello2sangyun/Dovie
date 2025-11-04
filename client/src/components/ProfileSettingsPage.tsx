@@ -163,7 +163,7 @@ export default function ProfileSettingsPage({ onBack }: ProfileSettingsPageProps
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="username" className="flex items-center text-sm font-medium">
-                  <User className="h-4 w-4 mr-2 text-gray-500" />
+                  <User className="h-4 w-4 mr-2 text-purple-600" />
                   아이디 (사용자명)
                 </Label>
                 <Input
@@ -177,7 +177,7 @@ export default function ProfileSettingsPage({ onBack }: ProfileSettingsPageProps
 
               <div className="space-y-2">
                 <Label htmlFor="displayName" className="flex items-center text-sm font-medium">
-                  <User className="h-4 w-4 mr-2 text-gray-500" />
+                  <User className="h-4 w-4 mr-2 text-purple-600" />
                   표시 이름
                 </Label>
                 <Input
@@ -190,7 +190,7 @@ export default function ProfileSettingsPage({ onBack }: ProfileSettingsPageProps
 
               <div className="space-y-2">
                 <Label htmlFor="email" className="flex items-center text-sm font-medium">
-                  <Mail className="h-4 w-4 mr-2 text-gray-500" />
+                  <Mail className="h-4 w-4 mr-2 text-purple-600" />
                   이메일
                 </Label>
                 <Input
@@ -206,7 +206,7 @@ export default function ProfileSettingsPage({ onBack }: ProfileSettingsPageProps
 
               <div className="space-y-2">
                 <Label htmlFor="phoneNumber" className="flex items-center text-sm font-medium">
-                  <Phone className="h-4 w-4 mr-2 text-gray-500" />
+                  <Phone className="h-4 w-4 mr-2 text-purple-600" />
                   전화번호
                 </Label>
                 <Input
@@ -219,7 +219,7 @@ export default function ProfileSettingsPage({ onBack }: ProfileSettingsPageProps
 
               <div className="space-y-3">
                 <Label className="flex items-center text-sm font-medium">
-                  <Calendar className="h-4 w-4 mr-2 text-gray-500" />
+                  <Calendar className="h-4 w-4 mr-2 text-purple-600" />
                   생년월일
                 </Label>
                 <p className="text-xs text-gray-500">생년월일을 선택해주세요</p>
@@ -315,7 +315,7 @@ export default function ProfileSettingsPage({ onBack }: ProfileSettingsPageProps
         <Card>
           <CardHeader>
             <CardTitle className="text-base font-semibold flex items-center">
-              <Mic className="h-4 w-4 mr-2 text-gray-500" />
+              <Mic className="h-4 w-4 mr-2 text-purple-600" />
               음성 메시지 설정
             </CardTitle>
           </CardHeader>

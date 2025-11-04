@@ -103,9 +103,9 @@ export default function AISettingsPage({ onBack }: AISettingsPageProps) {
   if (!user) return null;
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="flex flex-col h-full bg-gray-50">
       {/* Header */}
-      <div className="flex items-center px-4 py-3 pt-[calc(0.75rem+var(--safe-area-inset-top))] bg-white/80 backdrop-blur-sm border-b border-gray-200 flex-shrink-0">
+      <div className="flex items-center px-4 py-3 pt-[calc(0.75rem+var(--safe-area-inset-top))] bg-white border-b border-gray-200 flex-shrink-0">
         <Button
           variant="ghost"
           size="sm"
@@ -118,9 +118,9 @@ export default function AISettingsPage({ onBack }: AISettingsPageProps) {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 pb-24 space-y-6">
+      <div className="flex-1 overflow-y-auto p-4 pb-24 space-y-4">
         {/* Smart Inbox Toggle */}
-        <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-md">
+        <Card className="bg-white border border-gray-200">
           <CardHeader>
             <CardTitle className="text-base font-semibold flex items-center">
               <Sparkles className="h-5 w-5 mr-2 text-purple-600" />
@@ -148,10 +148,10 @@ export default function AISettingsPage({ onBack }: AISettingsPageProps) {
 
         {/* Analysis Level */}
         {preferences.smartInboxEnabled && (
-          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-md">
+          <Card className="bg-white border border-gray-200">
             <CardHeader>
               <CardTitle className="text-base font-semibold flex items-center">
-                <Brain className="h-5 w-5 mr-2 text-blue-600" />
+                <Brain className="h-5 w-5 mr-2 text-purple-600" />
                 AI 분석 레벨
               </CardTitle>
               <CardDescription>
@@ -180,10 +180,10 @@ export default function AISettingsPage({ onBack }: AISettingsPageProps) {
 
         {/* Category Filters */}
         {preferences.smartInboxEnabled && (
-          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-md">
+          <Card className="bg-white border border-gray-200">
             <CardHeader>
               <CardTitle className="text-base font-semibold flex items-center">
-                <Filter className="h-5 w-5 mr-2 text-green-600" />
+                <Filter className="h-5 w-5 mr-2 text-purple-600" />
                 필터 카테고리
               </CardTitle>
               <CardDescription>
@@ -224,13 +224,13 @@ export default function AISettingsPage({ onBack }: AISettingsPageProps) {
         )}
 
         {/* Performance Tip */}
-        <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200 shadow-md">
+        <Card className="bg-white border border-gray-200">
           <CardContent className="p-4">
             <div className="flex items-start space-x-3">
               <Zap className="h-5 w-5 text-purple-600 mt-0.5 flex-shrink-0" />
               <div>
-                <h4 className="font-semibold text-purple-900 mb-1">팁</h4>
-                <p className="text-sm text-purple-700">
+                <h4 className="font-semibold text-gray-900 mb-1">팁</h4>
+                <p className="text-sm text-gray-600">
                   필요한 카테고리만 활성화하면 더 빠르고 정확한 분석이 가능합니다.
                   표준 레벨은 대부분의 사용자에게 가장 적합합니다.
                 </p>

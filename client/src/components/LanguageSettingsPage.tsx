@@ -57,9 +57,9 @@ export default function LanguageSettingsPage({ onBack }: LanguageSettingsPagePro
   if (!user) return null;
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="flex flex-col h-full bg-gray-50">
       {/* Header */}
-      <div className="flex items-center px-4 py-3 pt-[calc(0.75rem+var(--safe-area-inset-top))] bg-white/80 backdrop-blur-sm border-b border-gray-200 flex-shrink-0">
+      <div className="flex items-center px-4 py-3 pt-[calc(0.75rem+var(--safe-area-inset-top))] bg-white border-b border-gray-200 flex-shrink-0">
         <Button
           variant="ghost"
           size="sm"
@@ -72,11 +72,11 @@ export default function LanguageSettingsPage({ onBack }: LanguageSettingsPagePro
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 pb-24 space-y-6">
-        <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-md">
+      <div className="flex-1 overflow-y-auto p-4 pb-24 space-y-4">
+        <Card className="bg-white border border-gray-200">
           <CardHeader>
             <CardTitle className="text-base font-semibold flex items-center">
-              <Globe className="h-5 w-5 mr-2 text-blue-600" />
+              <Globe className="h-5 w-5 mr-2 text-purple-600" />
               메인 언어 선택
             </CardTitle>
             <CardDescription>
@@ -116,13 +116,13 @@ export default function LanguageSettingsPage({ onBack }: LanguageSettingsPagePro
         </Card>
 
         {/* Info Card */}
-        <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 shadow-md">
+        <Card className="bg-white border border-gray-200">
           <CardContent className="p-4">
             <div className="flex items-start space-x-3">
-              <Globe className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <Globe className="h-5 w-5 text-purple-600 mt-0.5 flex-shrink-0" />
               <div>
-                <h4 className="font-semibold text-blue-900 mb-1">언어 변경 안내</h4>
-                <p className="text-sm text-blue-700">
+                <h4 className="font-semibold text-gray-900 mb-1">언어 변경 안내</h4>
+                <p className="text-sm text-gray-600">
                   언어를 변경하면 앱의 메뉴, 버튼, 메시지 등이 선택한 언어로 표시됩니다.
                   사용자가 보낸 메시지는 영향을 받지 않습니다.
                 </p>

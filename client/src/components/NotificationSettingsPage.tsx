@@ -170,7 +170,7 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
         <Card>
           <CardHeader>
             <CardTitle className="text-base font-semibold flex items-center">
-              <Bell className="h-5 w-5 mr-2 text-orange-600" />
+              <Bell className="h-5 w-5 mr-2 text-purple-600" />
               일반 알림
             </CardTitle>
           </CardHeader>
@@ -189,7 +189,7 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
 
             <div className="space-y-2">
               <Label className="text-sm font-medium flex items-center">
-                <Volume2 className="h-4 w-4 mr-2 text-gray-500" />
+                <Volume2 className="h-4 w-4 mr-2 text-purple-600" />
                 알림 소리
               </Label>
               <Select
@@ -216,7 +216,7 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
         <Card>
           <CardHeader>
             <CardTitle className="text-base font-semibold flex items-center">
-              <MessageSquare className="h-5 w-5 mr-2 text-blue-600" />
+              <MessageSquare className="h-5 w-5 mr-2 text-purple-600" />
               메시지 알림
             </CardTitle>
           </CardHeader>
@@ -292,7 +292,7 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
         <Card>
           <CardHeader>
             <CardTitle className="text-base font-semibold flex items-center">
-              <Smartphone className="h-5 w-5 mr-2 text-green-600" />
+              <Smartphone className="h-5 w-5 mr-2 text-purple-600" />
               앱 동작
             </CardTitle>
           </CardHeader>
@@ -367,7 +367,7 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
         <Card>
           <CardHeader>
             <CardTitle className="text-base font-semibold flex items-center">
-              <Bell className="h-5 w-5 mr-2 text-blue-600" />
+              <Bell className="h-5 w-5 mr-2 text-purple-600" />
               푸시 알림 관리
             </CardTitle>
           </CardHeader>
