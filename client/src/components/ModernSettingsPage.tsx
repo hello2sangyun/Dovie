@@ -83,7 +83,7 @@ export default function ModernSettingsPage({ isMobile = false, onQRCodeClick }: 
   return (
     <div className="h-full flex flex-col overflow-hidden">
       <div className="flex-1 overflow-y-auto scrollbar-thin bg-gray-50">
-        <div className="max-w-2xl mx-auto p-4 space-y-4 min-h-full pb-24">
+        <div className="max-w-2xl mx-auto p-4 pt-[calc(6rem+env(safe-area-inset-top))] space-y-4 min-h-full pb-24">
           {/* 헤더 */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">

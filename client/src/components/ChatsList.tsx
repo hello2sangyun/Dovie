@@ -213,8 +213,8 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     if (!isScrollingRef.current && touchStartYRef.current > 0) {
       const moveY = Math.abs(e.touches[0].clientY - touchStartYRef.current);
       
-      // 10px 이상 세로로 움직이면 스크롤로 간주 (동기적)
-      if (moveY > 10) {
+      // 7px 이상 세로로 움직이면 스크롤로 간주 (자연스러운 터치 허용, 의도적인 스크롤 감지)
+      if (moveY > 7) {
         isScrollingRef.current = true;
         
         // 스크롤 중이면 타이머 즉시 취소 (동기적)
