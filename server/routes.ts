@@ -1808,20 +1808,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
               
               console.log(`📱 Sending Telegram-style notification to ${recipient.id}: "${notificationTitle}" - "${notificationBody}"`);
               
+              // Prepare notification data with media URL for rich notifications
+              const notificationData: any = {
+                type: 'message',
+                chatRoomId: Number(req.params.chatRoomId),
+                messageType: messageData.messageType || 'text',
+                senderId: Number(userId),
+                senderName: sender.displayName,
+                unreadCount: totalUnreadCount,
+                url: `/?chat=${req.params.chatRoomId}`
+              };
+
+              // Add media URL for rich APNS notifications (images, videos, audio)
+              if (messageData.fileUrl) {
+                switch (messageData.messageType) {
+                  case 'image':
+                    notificationData.imageUrl = messageData.fileUrl;
+                    console.log(`📸 Including image URL in notification: ${messageData.fileUrl.substring(0, 50)}...`);
+                    break;
+                  case 'video':
+                    notificationData.videoUrl = messageData.fileUrl;
+                    console.log(`🎥 Including video URL in notification: ${messageData.fileUrl.substring(0, 50)}...`);
+                    break;
+                  case 'voice':
+                    notificationData.audioUrl = messageData.fileUrl;
+                    console.log(`🎤 Including audio URL in notification: ${messageData.fileUrl.substring(0, 50)}...`);
+                    break;
+                }
+              }
+
               await sendPushNotification(recipient.id, {
                 title: notificationTitle,
                 body: notificationBody,
                 icon: '/icons/icon-192x192.png',
                 badge: `/icons/icon-72x72.png`,
-                data: {
-                  type: 'message',
-                  chatRoomId: Number(req.params.chatRoomId),
-                  messageType: messageData.messageType || 'text',
-                  senderId: Number(userId),
-                  senderName: sender.displayName,
-                  unreadCount: totalUnreadCount,
-                  url: `/?chat=${req.params.chatRoomId}`
-                },
+                data: notificationData,
                 tag: notificationTag,
                 requireInteraction: false,
                 silent: false,

@@ -214,18 +214,25 @@ async function sendIOSPushNotifications(
     try {
       const deviceToken = tokenInfo.device_token;
       
-      // iOS APNS 페이로드 구성
-      const apnsPayload = {
+      // iOS APNS 페이로드 구성 (Rich Notifications with images, action buttons, grouping)
+      const apnsPayload: any = {
         aps: {
           alert: {
             title: payload.title || "새 메시지",
-            body: payload.body || "새 메시지가 도착했습니다"
+            body: payload.body || "새 메시지가 도착했습니다",
+            // Optional subtitle for additional context
+            ...(payload.data?.subtitle && { subtitle: payload.data.subtitle })
           },
           badge: payload.data?.unreadCount || 1,
-          sound: "default",
+          sound: payload.sound || "default",
+          // Enable rich notifications (images, videos, audio)
           "mutable-content": 1,
+          // Enable background updates
           "content-available": 1,
-          category: "MESSAGE_CATEGORY"
+          // Category for action buttons (reply, mark read, etc.)
+          category: "MESSAGE_CATEGORY",
+          // Thread ID for notification grouping (group by chat room)
+          "thread-id": `chat-${payload.data?.chatRoomId || 'default'}`
         },
         custom: {
           type: payload.data?.type || 'message',
@@ -233,7 +240,11 @@ async function sendIOSPushNotifications(
           messageId: payload.data?.messageId,
           senderId: payload.data?.senderId,
           senderName: payload.data?.senderName,
-          url: payload.data?.url || '/'
+          url: payload.data?.url || '/',
+          // Image/media attachment URL for rich notifications
+          ...(payload.data?.imageUrl && { imageUrl: payload.data.imageUrl }),
+          ...(payload.data?.videoUrl && { videoUrl: payload.data.videoUrl }),
+          ...(payload.data?.audioUrl && { audioUrl: payload.data.audioUrl })
         }
       };
 
@@ -337,7 +348,8 @@ export async function sendMessageNotification(
   senderName: string,
   messageContent: string,
   chatRoomId: number,
-  messageType: string = 'text'
+  messageType: string = 'text',
+  mediaUrl?: string  // Optional: Image, video, or audio URL for rich notifications
 ): Promise<void> {
   try {
     // Get total unread count across all chat rooms for app badge
@@ -385,15 +397,37 @@ export async function sendMessageNotification(
 
     console.log(`Sending push notification to user ${recipientUserId}: ${senderName} - ${notificationBody}`);
 
+    // Prepare data payload with media URL for rich notifications
+    const notificationData: any = {
+      chatRoomId,
+      messageType,
+      senderId: recipientUserId,
+      url: `/?chat=${chatRoomId}`,
+      unreadCount: totalUnreadCount
+    };
+
+    // Add media URL based on message type for APNS rich notifications
+    if (mediaUrl) {
+      switch (messageType) {
+        case 'image':
+          notificationData.imageUrl = mediaUrl;
+          console.log(`📸 Including image URL in notification: ${mediaUrl.substring(0, 50)}...`);
+          break;
+        case 'video':
+          notificationData.videoUrl = mediaUrl;
+          console.log(`🎥 Including video URL in notification: ${mediaUrl.substring(0, 50)}...`);
+          break;
+        case 'voice':
+          notificationData.audioUrl = mediaUrl;
+          console.log(`🎤 Including audio URL in notification: ${mediaUrl.substring(0, 50)}...`);
+          break;
+      }
+    }
+
     await sendPushNotification(recipientUserId, {
       title: senderName,
       body: notificationBody,
-      data: {
-        chatRoomId,
-        messageType,
-        senderId: recipientUserId,
-        url: `/?chat=${chatRoomId}`
-      },
+      data: notificationData,
       tag: `dovie-chat-${chatRoomId}`,
       requireInteraction: false,
       silent: false,
