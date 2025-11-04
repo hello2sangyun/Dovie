@@ -112,6 +112,22 @@ export const iosDeviceTokens = pgTable("ios_device_tokens", {
   uniqueUserToken: unique().on(table.userId, table.deviceToken),
 }));
 
+// 알림 설정 테이블
+export const notificationSettings = pgTable("notification_settings", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull().unique(),
+  pushEnabled: boolean("push_enabled").default(true),
+  soundEnabled: boolean("sound_enabled").default(true),
+  previewEnabled: boolean("preview_enabled").default(true),
+  vibrationEnabled: boolean("vibration_enabled").default(true),
+  groupNotificationsEnabled: boolean("group_notifications_enabled").default(true),
+  directNotificationsEnabled: boolean("direct_notifications_enabled").default(true),
+  mentionsOnly: boolean("mentions_only").default(false),
+  notificationSound: text("notification_sound").default("default"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const chatRooms = pgTable("chat_rooms", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -940,9 +956,17 @@ export const insertMessageReactionSchema = createInsertSchema(messageReactions).
 export const insertMessageLikeSchema = createInsertSchema(messageLikes);
 export const insertLinkPreviewSchema = createInsertSchema(linkPreviews);
 
+export const insertNotificationSettingsSchema = createInsertSchema(notificationSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type MessageReaction = typeof messageReactions.$inferSelect;
 export type InsertMessageReaction = z.infer<typeof insertMessageReactionSchema>;
 export type MessageLike = typeof messageLikes.$inferSelect;
 export type InsertMessageLike = z.infer<typeof insertMessageLikeSchema>;
 export type LinkPreview = typeof linkPreviews.$inferSelect;
 export type InsertLinkPreview = z.infer<typeof insertLinkPreviewSchema>;
+export type NotificationSettings = typeof notificationSettings.$inferSelect;
+export type InsertNotificationSettings = z.infer<typeof insertNotificationSettingsSchema>;

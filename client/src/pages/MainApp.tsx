@@ -20,6 +20,7 @@ import ZeroDelayAvatar from "@/components/ZeroDelayAvatar";
 
 import { usePWABadge } from "@/hooks/usePWABadge";
 import { usePWABadgeManager } from "@/hooks/usePWABadgeManager";
+import { useNativeBadgeManager } from "@/hooks/useNativeBadgeManager";
 import { useIndependentBadge } from "@/hooks/useIndependentBadge";
 import QRCodeModal from "@/components/QRCodeModal";
 import InstantAvatar from "@/components/InstantAvatar";
@@ -73,6 +74,9 @@ export default function MainApp() {
   
   // Comprehensive PWA badge manager for accurate total count
   const { currentBadgeCount, totalUnread } = usePWABadgeManager();
+  
+  // Native iOS badge manager - uses Capacitor PushNotifications.setBadgeCount
+  const { currentBadgeCount: nativeBadgeCount, setBadgeCount: setNativeBadge, clearBadge: clearNativeBadge } = useNativeBadgeManager();
   
   // Independent badge system - works without app execution
   const { forceBadgeRefresh, clearBadge: clearIndependentBadge } = useIndependentBadge();

@@ -631,9 +631,32 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     mutationFn: async (lastMessageId: number) => {
       return apiRequest(`/api/chat-rooms/${chatRoomId}/mark-read`, "POST", { lastMessageId });
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ["/api/unread-counts"] });
       queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      
+      // Fetch updated unread count and dispatch to native badge manager
+      try {
+        const unreadResponse = await fetch('/api/unread-counts', {
+          headers: {
+            'x-user-id': localStorage.getItem('userId') || '',
+          }
+        });
+        if (unreadResponse.ok) {
+          const unreadData = await unreadResponse.json();
+          const totalUnread = unreadData.unreadCounts?.reduce(
+            (total: number, count: { unreadCount: number }) => total + count.unreadCount,
+            0
+          ) || 0;
+          
+          // Dispatch custom event for immediate badge update
+          window.dispatchEvent(new CustomEvent('native-badge-sync', { 
+            detail: { totalUnread } 
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to sync badge after marking as read:', error);
+      }
     },
   });
 

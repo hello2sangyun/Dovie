@@ -2,7 +2,7 @@ import {
   users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications,
   fileUploads, fileDownloads, businessProfiles, userPosts, locationShareRequests, locationShares, reminders,
   messageReactions, messageLikes, pushSubscriptions, iosDeviceTokens, aiNotices, bookmarks, voiceBookmarkRequests,
-  userChatSettings,
+  userChatSettings, notificationSettings,
   type User, type InsertUser, type Contact, type InsertContact,
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
   type Command, type InsertCommand, type MessageRead, type InsertMessageRead,
@@ -17,7 +17,8 @@ import {
   type AiNotice, type InsertAiNotice,
   type Bookmark, type InsertBookmark,
   type VoiceBookmarkRequest, type InsertVoiceBookmarkRequest,
-  type UserChatSettings, type InsertUserChatSettings
+  type UserChatSettings, type InsertUserChatSettings,
+  type NotificationSettings, type InsertNotificationSettings
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, or, count, gt, lt, sql, inArray } from "drizzle-orm";
@@ -158,6 +159,11 @@ export interface IStorage {
   removeIOSDeviceToken(userId: number): Promise<void>;
   getIOSDeviceTokens(userId: number): Promise<{ deviceToken: string, platform: string }[]>;
   getIOSDeviceTokensCount(): Promise<number>;
+  deleteIOSDeviceToken(userId: number, deviceToken: string): Promise<void>;
+
+  // Notification Settings operations
+  getNotificationSettings(userId: number): Promise<NotificationSettings | undefined>;
+  upsertNotificationSettings(userId: number, settings: Partial<InsertNotificationSettings>): Promise<NotificationSettings>;
 
   // QR Code System
   generateQRToken(userId: number): Promise<string>;
@@ -1772,6 +1778,62 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('iOS 디바이스 토큰 조회 오류:', error);
       return [];
+    }
+  }
+
+  async deleteIOSDeviceToken(userId: number, deviceToken: string): Promise<void> {
+    try {
+      await db.delete(iosDeviceTokens)
+        .where(and(
+          eq(iosDeviceTokens.userId, userId),
+          eq(iosDeviceTokens.deviceToken, deviceToken)
+        ));
+      console.log(`📱 iOS 토큰 삭제 완료: user ${userId}`);
+    } catch (error) {
+      console.error('iOS 디바이스 토큰 삭제 오류:', error);
+      throw error;
+    }
+  }
+
+  async getNotificationSettings(userId: number): Promise<NotificationSettings | undefined> {
+    try {
+      const settings = await db.query.notificationSettings.findFirst({
+        where: eq(notificationSettings.userId, userId)
+      });
+      
+      if (!settings) {
+        const defaultSettings = await this.upsertNotificationSettings(userId, {});
+        return defaultSettings;
+      }
+      
+      return settings;
+    } catch (error) {
+      console.error('알림 설정 조회 오류:', error);
+      return undefined;
+    }
+  }
+
+  async upsertNotificationSettings(userId: number, settings: Partial<InsertNotificationSettings>): Promise<NotificationSettings> {
+    try {
+      const existing = await db.query.notificationSettings.findFirst({
+        where: eq(notificationSettings.userId, userId)
+      });
+      
+      if (existing) {
+        const [updated] = await db.update(notificationSettings)
+          .set({ ...settings, updatedAt: new Date() })
+          .where(eq(notificationSettings.userId, userId))
+          .returning();
+        return updated;
+      } else {
+        const [created] = await db.insert(notificationSettings)
+          .values({ userId, ...settings })
+          .returning();
+        return created;
+      }
+    } catch (error) {
+      console.error('알림 설정 저장 오류:', error);
+      throw error;
     }
   }
 
