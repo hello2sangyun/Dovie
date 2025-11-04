@@ -973,151 +973,152 @@ function ChatRoomItem({
         </div>
       )}
       
-      <div 
-        className="flex items-center space-x-3 cursor-pointer select-none"
-        style={{ 
-          userSelect: 'none',
-          WebkitUserSelect: 'none',
-          msUserSelect: 'none',
-          WebkitTouchCallout: 'none'
-        }}
-        onMouseDown={(e) => {
-          if (!isMultiSelectMode && onLongPressStart) {
-            onLongPressStart(chatRoom, e);
-          }
-        }}
-        onMouseUp={(e) => {
-          if (!isMultiSelectMode && onLongPressEnd) {
-            onLongPressEnd(e, chatRoom.id);
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (!isMultiSelectMode && onLongPressEnd) {
-            onLongPressEnd(e, chatRoom.id);
-          }
-        }}
-        onTouchStart={(e) => {
-          if (!isMultiSelectMode && onLongPressStart) {
-            onLongPressStart(chatRoom, e);
-          }
-        }}
-        onTouchMove={(e) => {
-          if (!isMultiSelectMode) {
-            handleTouchMove(e);
-          }
-        }}
-        onTouchCancel={() => {
-          if (!isMultiSelectMode) {
-            handleTouchCancel();
-          }
-        }}
-        onTouchEnd={(e) => {
-          if (!isMultiSelectMode && onLongPressEnd) {
-            onLongPressEnd(e, chatRoom.id);
-          }
-        }}
-      >
-        {isMultiSelectMode && (
-          <Checkbox
-            checked={isChecked}
-            onCheckedChange={() => onClick()}
-            className="flex-shrink-0"
-          />
-        )}
-        {chatRoom.isGroup ? (
-          <div className="relative w-12 h-12 flex items-center justify-center">
-            {chatRoom.participants.slice(0, 2).map((participant: any, index: number) => {
-              // 깔끔한 수평 겹침 배치 (2명만 표시)
-              const horizontalPositions = [
-                { top: '50%', left: '0px', transform: 'translateY(-50%)' },
-                { top: '50%', right: '0px', transform: 'translateY(-50%)' }
-              ];
-              
-              const position = horizontalPositions[index];
-              
-              return (
-                <div
-                  key={participant.id}
-                  className="absolute border-2 border-white dark:border-gray-800 rounded-full shadow-md"
-                  style={{
-                    ...position,
-                    zIndex: 2 - index
-                  }}
+      <div className="flex items-center justify-between">
+        <div 
+          className="cursor-pointer flex-1 flex items-center space-x-3 select-none min-w-0"
+          style={{ 
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            msUserSelect: 'none',
+            WebkitTouchCallout: 'none'
+          }}
+          onMouseDown={(e) => {
+            if (!isMultiSelectMode && onLongPressStart) {
+              onLongPressStart(chatRoom, e);
+            }
+          }}
+          onMouseUp={(e) => {
+            if (!isMultiSelectMode && onLongPressEnd) {
+              onLongPressEnd(e, chatRoom.id);
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isMultiSelectMode && onLongPressEnd) {
+              onLongPressEnd(e, chatRoom.id);
+            }
+          }}
+          onTouchStart={(e) => {
+            if (!isMultiSelectMode && onLongPressStart) {
+              onLongPressStart(chatRoom, e);
+            }
+          }}
+          onTouchMove={(e) => {
+            if (!isMultiSelectMode) {
+              handleTouchMove(e);
+            }
+          }}
+          onTouchCancel={() => {
+            if (!isMultiSelectMode) {
+              handleTouchCancel();
+            }
+          }}
+          onTouchEnd={(e) => {
+            if (!isMultiSelectMode && onLongPressEnd) {
+              onLongPressEnd(e, chatRoom.id);
+            }
+          }}
+        >
+          {isMultiSelectMode && (
+            <Checkbox
+              checked={isChecked}
+              onCheckedChange={() => onClick()}
+              className="flex-shrink-0"
+            />
+          )}
+          {chatRoom.isGroup ? (
+            <div className="relative w-12 h-12 flex items-center justify-center flex-shrink-0">
+              {chatRoom.participants.slice(0, 2).map((participant: any, index: number) => {
+                // 깔끔한 수평 겹침 배치 (2명만 표시)
+                const horizontalPositions = [
+                  { top: '50%', left: '0px', transform: 'translateY(-50%)' },
+                  { top: '50%', right: '0px', transform: 'translateY(-50%)' }
+                ];
+                
+                const position = horizontalPositions[index];
+                
+                return (
+                  <div
+                    key={participant.id}
+                    className="absolute border-2 border-white dark:border-gray-800 rounded-full shadow-md"
+                    style={{
+                      ...position,
+                      zIndex: 2 - index
+                    }}
+                  >
+                    <InstantAvatar 
+                      src={participant?.profilePicture}
+                      fallbackText={participant?.displayName || participant?.username}
+                      size="sm" 
+                      className="purple-gradient"
+                    />
+                  </div>
+                );
+              })}
+              {chatRoom.participants.length > 2 && (
+                <div 
+                  className="absolute bottom-0 right-0 bg-purple-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-md border-2 border-white dark:border-gray-800"
+                  style={{ zIndex: 3 }}
                 >
-                  <InstantAvatar 
-                    src={participant?.profilePicture}
-                    fallbackText={participant?.displayName || participant?.username}
-                    size="sm" 
-                    className="purple-gradient"
-                  />
+                  +{chatRoom.participants.length - 2}
                 </div>
-              );
-            })}
-            {chatRoom.participants.length > 2 && (
-              <div 
-                className="absolute bottom-0 right-0 bg-purple-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-md border-2 border-white dark:border-gray-800"
-                style={{ zIndex: 3 }}
-              >
-                +{chatRoom.participants.length - 2}
-              </div>
-            )}
-          </div>
-        ) : (
-          <InstantAvatar 
-            src={getOtherParticipant(chatRoom)?.profilePicture}
-            fallbackText={displayName}
-            size="lg" 
-            className={`bg-gradient-to-br ${getAvatarColor(displayName)}`}
-          />
-        )}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-1 flex-1 min-w-0">
+              )}
+            </div>
+          ) : (
+            <InstantAvatar 
+              src={getOtherParticipant(chatRoom)?.profilePicture}
+              fallbackText={displayName}
+              size="lg" 
+              className={`bg-gradient-to-br ${getAvatarColor(displayName)} flex-shrink-0`}
+            />
+          )}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center space-x-1">
               {chatRoom.isGroup && (
                 <Users className="h-4 w-4 text-purple-500 flex-shrink-0" />
               )}
               <p className="font-medium text-gray-900 dark:text-gray-100 truncate">{displayName}</p>
             </div>
-            <div className="flex items-center space-x-2">
-              {chatRoom.lastMessage && (
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {formatTime(chatRoom.lastMessage.createdAt)}
+            <p className="text-sm text-gray-600 dark:text-gray-300 truncate">
+              {hasDraft ? (
+                <span className="text-orange-600 dark:text-orange-400 font-medium">
+                  📝 임시저장: {draftPreview}
                 </span>
+              ) : (
+                getLastMessagePreview(chatRoom.lastMessage)
               )}
-              {hasDraft && (
-                <Badge variant="outline" className="bg-orange-50 text-orange-600 border-orange-200 text-xs px-2 py-0.5">
-                  ✏️ 임시저장
-                </Badge>
-              )}
-              {unreadCount > 0 && (
-                <Badge variant="default" className="bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 min-w-[20px] h-5 flex items-center justify-center rounded-full" data-testid={`badge-unread-${chatRoom.id}`}>
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </Badge>
-              )}
-              {aiNoticeCount > 0 && (
-                <Badge variant="default" className="bg-purple-500 hover:bg-purple-600 text-white text-xs px-2 py-1 min-w-[20px] h-5 flex items-center justify-center rounded-full" data-testid={`badge-ai-notice-${chatRoom.id}`}>
-                  <Bell className="h-3 w-3 mr-0.5" />
-                  {aiNoticeCount}
-                </Badge>
-              )}
-            </div>
-          </div>
-          <p className="text-sm text-gray-600 dark:text-gray-300 truncate">
-            {hasDraft ? (
-              <span className="text-orange-600 dark:text-orange-400 font-medium">
-                📝 임시저장: {draftPreview}
-              </span>
-            ) : (
-              getLastMessagePreview(chatRoom.lastMessage)
-            )}
-          </p>
-          {chatRoom.isGroup && (
-            <div className="flex items-center justify-between mt-1">
+            </p>
+            {chatRoom.isGroup && (
               <span className="text-xs text-gray-400 dark:text-gray-500">
                 참여자 {chatRoom.participants.length}명
               </span>
-            </div>
+            )}
+          </div>
+        </div>
+        
+        <div className="flex flex-col items-end space-y-1 ml-2 flex-shrink-0">
+          {chatRoom.lastMessage && (
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {formatTime(chatRoom.lastMessage.createdAt)}
+            </span>
           )}
+          <div className="flex items-center space-x-1">
+            {hasDraft && (
+              <Badge variant="outline" className="bg-orange-50 text-orange-600 border-orange-200 text-xs px-2 py-0.5">
+                ✏️
+              </Badge>
+            )}
+            {unreadCount > 0 && (
+              <Badge variant="default" className="bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 min-w-[20px] h-5 flex items-center justify-center rounded-full" data-testid={`badge-unread-${chatRoom.id}`}>
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </Badge>
+            )}
+            {aiNoticeCount > 0 && (
+              <Badge variant="default" className="bg-purple-500 hover:bg-purple-600 text-white text-xs px-2 py-1 min-w-[20px] h-5 flex items-center justify-center rounded-full" data-testid={`badge-ai-notice-${chatRoom.id}`}>
+                <Bell className="h-3 w-3 mr-0.5" />
+                {aiNoticeCount}
+              </Badge>
+            )}
+          </div>
         </div>
       </div>
     </div>
