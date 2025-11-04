@@ -1357,7 +1357,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             clearInterval(retryInterval);
             // Fallback to bottom if scroll to unread fails
             if (!success && retryCount >= maxRetries) {
-              messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
+              messagesEndRef.current?.scrollIntoView({ behavior: "instant", block: "end" });
               hasInitialScrolledRef.current = true;
               setIsAtBottom(true);
             }
@@ -1369,7 +1369,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       } else {
         // No unread messages - scroll to bottom immediately (default behavior)
         requestAnimationFrame(() => {
-          messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
+          messagesEndRef.current?.scrollIntoView({ behavior: "instant", block: "end" });
           hasInitialScrolledRef.current = true;
           setIsAtBottom(true);
         });
