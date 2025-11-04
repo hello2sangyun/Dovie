@@ -391,6 +391,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   // Simplified auto-scroll state
   const [lastScrollTop, setLastScrollTop] = useState(0);
   const [isAtBottom, setIsAtBottom] = useState(true);
+  const isAtBottomRef = useRef(true); // Ref to track latest isAtBottom for observers
   const [unreadNewMessages, setUnreadNewMessages] = useState(0);
   const hasInitialScrolledRef = useRef(false);
   const [, forceRender] = useState({});
@@ -540,9 +541,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
       // 메시지 전송 후 맨 아래로 즉시 이동
       setTimeout(() => {
-        if (messagesEndRef.current) {
-          messagesEndRef.current.scrollIntoView({ behavior: "instant" });
-        }
+        scrollToBottom('instant');
       }, 50);
     },
     onError: (error) => {
@@ -1206,11 +1205,18 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // Intelligent auto-scroll function with smooth transitions
   const scrollToBottom = (behavior: 'smooth' | 'instant' = 'smooth') => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ 
-        behavior,
-        block: 'end'
-      });
+    if (chatScrollRef.current) {
+      const container = chatScrollRef.current;
+      if (behavior === 'instant') {
+        // 즉시 스크롤 - scrollTop 직접 조작으로 정확히 맨 아래로
+        container.scrollTop = container.scrollHeight;
+      } else {
+        // 부드러운 스크롤
+        container.scrollTo({
+          top: container.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
     }
   };
 
@@ -1357,7 +1363,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             clearInterval(retryInterval);
             // Fallback to bottom if scroll to unread fails
             if (!success && retryCount >= maxRetries) {
-              messagesEndRef.current?.scrollIntoView({ behavior: "instant", block: "end" });
+              scrollToBottom('instant');
               hasInitialScrolledRef.current = true;
               setIsAtBottom(true);
             }
@@ -1369,7 +1375,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       } else {
         // No unread messages - scroll to bottom immediately (default behavior)
         requestAnimationFrame(() => {
-          messagesEndRef.current?.scrollIntoView({ behavior: "instant", block: "end" });
+          scrollToBottom('instant');
           hasInitialScrolledRef.current = true;
           setIsAtBottom(true);
         });
@@ -1421,6 +1427,35 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       return () => scrollContainer.removeEventListener('scroll', handleScroll);
     }
   }, [firstUnreadMessageId]);
+
+  // isAtBottom state를 ref에 동기화 (ResizeObserver에서 최신 값 사용)
+  useEffect(() => {
+    isAtBottomRef.current = isAtBottom;
+  }, [isAtBottom]);
+
+  // 이미지/파일 로드로 인한 레이아웃 변경 감지 및 자동 스크롤 재조정
+  useEffect(() => {
+    const scrollContainer = chatScrollRef.current;
+    if (!scrollContainer) return;
+
+    // ResizeObserver로 스크롤 컨테이너의 높이 변경 감지 (이미지 로드 등)
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        // Ref를 사용해서 최신 isAtBottom 값 확인 (클로저 문제 방지)
+        if (isAtBottomRef.current && hasInitialScrolledRef.current) {
+          requestAnimationFrame(() => {
+            scrollToBottom('instant');
+          });
+        }
+      }
+    });
+
+    resizeObserver.observe(scrollContainer);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []); // 의존성 배열 비워서 한 번만 생성
 
   // 활성 투표 감지
   useEffect(() => {

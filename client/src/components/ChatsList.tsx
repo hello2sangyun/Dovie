@@ -537,6 +537,29 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
   const unreadCounts = unreadCountsData?.unreadCounts || [];
   const aiNotices = aiNoticesData || [];
 
+  // 채팅방 목록 로드 시 상위 채팅방의 메시지를 백그라운드로 미리 로드
+  // 이렇게 하면 채팅방 클릭 시 로딩 없이 즉시 표시됨
+  useEffect(() => {
+    if (!user || chatRooms.length === 0) return;
+
+    // 상위 5개 채팅방의 메시지를 백그라운드로 prefetch
+    const topChatRooms = chatRooms.slice(0, 5);
+    
+    topChatRooms.forEach((chatRoom: any) => {
+      queryClient.prefetchQuery({
+        queryKey: [`/api/chat-rooms/${chatRoom.id}/messages`],
+        queryFn: async () => {
+          const response = await fetch(`/api/chat-rooms/${chatRoom.id}/messages`, {
+            headers: { 'x-user-id': user.id.toString() }
+          });
+          if (!response.ok) throw new Error('Failed to fetch messages');
+          return response.json();
+        },
+        staleTime: 60 * 1000, // 1분간 신선한 상태로 유지
+      });
+    });
+  }, [chatRooms, user, queryClient]);
+
   // 특정 채팅방의 읽지 않은 메시지 수 가져오기
   const getUnreadCount = (chatRoomId: number) => {
     const unreadData = unreadCounts.find((item: any) => item.chatRoomId === chatRoomId);

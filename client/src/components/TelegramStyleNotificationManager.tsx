@@ -19,12 +19,11 @@ export function TelegramStyleNotificationManager({ className }: TelegramStyleNot
     console.log('[NotificationManager] Initializing Telegram-style activity tracking');
 
     // Track user activity like Telegram/WhatsApp
+    // Only updates local timestamp - actual heartbeat sent by interval
     const updateActivity = () => {
       lastActivityRef.current = Date.now();
       isActiveRef.current = true;
-      
-      // Send activity heartbeat to server (like WhatsApp online status)
-      sendActivityHeartbeat();
+      // Note: Heartbeat sent via 15-second interval, not on every activity
     };
 
     // Activity event listeners
