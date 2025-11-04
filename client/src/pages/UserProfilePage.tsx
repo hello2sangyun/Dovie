@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { InstantAvatar } from "@/components/InstantAvatar";
 import { AIChatAssistantModal } from "@/components/AIChatAssistantModal";
+import { ImageViewerModal } from "@/components/ImageViewerModal";
+import { FilePreviewModal } from "@/components/FilePreviewModal";
 import { 
   ArrowLeft, 
   UserPlus, 
@@ -16,12 +18,18 @@ import {
   Image as ImageIcon,
   FileText,
   Link as LinkIcon,
-  Check
+  Check,
+  File,
+  FileCode,
+  FileImage,
+  FileVideo,
+  FileAudio
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { isImageFile, isVideoFile, getFileType, getFileName, type FileType } from "@/lib/fileUtils";
 
 interface UserProfile {
   id: number;
@@ -47,6 +55,9 @@ export default function UserProfilePage() {
   const { toast } = useToast();
   const [showAIModal, setShowAIModal] = useState(false);
   const [activeTab, setActiveTab] = useState("media");
+  
+  const [selectedImage, setSelectedImage] = useState<{ url: string; name: string } | null>(null);
+  const [selectedFile, setSelectedFile] = useState<{ url: string; name: string; size?: number } | null>(null);
 
   console.log('UserProfilePage mounted', { match, userId, currentUser });
 
@@ -195,26 +206,32 @@ export default function UserProfilePage() {
     }
   };
 
-  // Helper function to check if file is an image based on extension
-  const isImageFile = (fileUrl: string) => {
-    const imageExtensions = [
-      '.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg',
-      '.heic', '.heif', '.tiff', '.tif', '.ico', '.avif'
-    ];
-    // Remove query strings and normalize to lowercase
-    const cleanUrl = fileUrl.split('?')[0].toLowerCase();
-    return imageExtensions.some(ext => cleanUrl.endsWith(ext));
-  };
-
-  // Helper function to check if file is a video based on extension
-  const isVideoFile = (fileUrl: string) => {
-    const videoExtensions = [
-      '.mp4', '.webm', '.mov', '.avi', '.mkv', '.m4v',
-      '.flv', '.wmv', '.mpg', '.mpeg', '.3gp'
-    ];
-    // Remove query strings and normalize to lowercase
-    const cleanUrl = fileUrl.split('?')[0].toLowerCase();
-    return videoExtensions.some(ext => cleanUrl.endsWith(ext));
+  // Get file icon based on file type
+  const getFileIcon = (fileType: FileType, className: string = "h-8 w-8") => {
+    switch (fileType) {
+      case 'image':
+        return <FileImage className={cn(className, "text-purple-600")} />;
+      case 'video':
+        return <FileVideo className={cn(className, "text-purple-600")} />;
+      case 'audio':
+        return <FileAudio className={cn(className, "text-purple-600")} />;
+      case 'pdf':
+        return <FileText className={cn(className, "text-red-600")} />;
+      case 'document':
+        return <FileText className={cn(className, "text-blue-600")} />;
+      case 'spreadsheet':
+        return <FileText className={cn(className, "text-green-600")} />;
+      case 'presentation':
+        return <FileText className={cn(className, "text-orange-600")} />;
+      case 'archive':
+        return <File className={cn(className, "text-purple-600")} />;
+      case 'code':
+        return <FileCode className={cn(className, "text-gray-600")} />;
+      case 'text':
+        return <FileText className={cn(className, "text-gray-600")} />;
+      default:
+        return <File className={cn(className, "text-gray-600")} />;
+    }
   };
 
   // Filter media by type using file extensions
@@ -458,19 +475,33 @@ export default function UserProfilePage() {
               <TabsContent value="media" className="p-4">
                 {mediaFiles.length > 0 ? (
                   <div className="grid grid-cols-3 gap-2">
-                    {mediaFiles.map((file) => (
-                      <div
-                        key={file.id}
-                        className="aspect-square bg-gray-100 rounded-lg overflow-hidden"
-                        data-testid={`media-item-${file.id}`}
-                      >
-                        <img
-                          src={file.fileUrl}
-                          alt="Shared media"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    ))}
+                    {mediaFiles.map((file) => {
+                      const isImage = isImageFile(file.fileUrl);
+                      return (
+                        <div
+                          key={file.id}
+                          className="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                          data-testid={`media-item-${file.id}`}
+                          onClick={() => {
+                            if (isImage) {
+                              setSelectedImage({ url: file.fileUrl, name: getFileName(file.fileUrl) });
+                            }
+                          }}
+                        >
+                          {isImage ? (
+                            <img
+                              src={file.fileUrl}
+                              alt="Shared media"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-purple-50">
+                              <FileVideo className="h-12 w-12 text-purple-600" />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="text-center py-12">
@@ -483,23 +514,36 @@ export default function UserProfilePage() {
               <TabsContent value="files" className="p-4">
                 {documentFiles.length > 0 ? (
                   <div className="space-y-2">
-                    {documentFiles.map((file) => (
-                      <div
-                        key={file.id}
-                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                        data-testid={`file-item-${file.id}`}
-                      >
-                        <FileText className="h-8 w-8 text-purple-600" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
-                            {file.fileUrl.split('/').pop()}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {new Date(file.createdAt).toLocaleDateString()}
-                          </p>
+                    {documentFiles.map((file) => {
+                      const fileType = getFileType(file.fileUrl);
+                      const fileName = getFileName(file.fileUrl);
+                      const canPreview = ['pdf', 'document', 'spreadsheet', 'presentation', 'text', 'code'].includes(fileType);
+                      
+                      return (
+                        <div
+                          key={file.id}
+                          className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                          data-testid={`file-item-${file.id}`}
+                          onClick={() => {
+                            if (canPreview) {
+                              setSelectedFile({ url: file.fileUrl, name: fileName });
+                            } else {
+                              window.open(file.fileUrl, '_blank');
+                            }
+                          }}
+                        >
+                          {getFileIcon(fileType)}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {fileName}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(file.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="text-center py-12">
@@ -568,6 +612,27 @@ export default function UserProfilePage() {
             </Button>
           </div>
         </div>
+      )}
+
+      {/* Image Viewer Modal */}
+      {selectedImage && (
+        <ImageViewerModal
+          isOpen={true}
+          onClose={() => setSelectedImage(null)}
+          imageUrl={selectedImage.url}
+          fileName={selectedImage.name}
+        />
+      )}
+
+      {/* File Preview Modal */}
+      {selectedFile && (
+        <FilePreviewModal
+          isOpen={true}
+          onClose={() => setSelectedFile(null)}
+          fileUrl={selectedFile.url}
+          fileName={selectedFile.name}
+          fileSize={selectedFile.size}
+        />
       )}
     </div>
   );
