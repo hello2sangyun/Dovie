@@ -532,7 +532,7 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 bg-white">
+      <div className="p-4 pt-[calc(1rem+var(--safe-area-inset-top))] border-b border-gray-200 bg-white">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-xl font-bold text-gray-900">연락처</h3>
           <Button

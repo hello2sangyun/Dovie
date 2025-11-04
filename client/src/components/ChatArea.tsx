@@ -3980,7 +3980,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       {/* Clean Chat Header */}
       <div className={cn(
         "flex-shrink-0 sticky top-0 z-10 bg-white border-b border-slate-200",
-        showMobileHeader ? "px-4 py-3" : "px-6 py-4"
+        showMobileHeader ? "px-4 py-3 pt-[calc(0.75rem+var(--safe-area-inset-top))]" : "px-6 py-4 pt-[calc(1rem+var(--safe-area-inset-top))]"
       )}>
         <div className="flex items-center justify-between min-h-0">
           <div className="flex items-center flex-1 min-w-0 space-x-2">

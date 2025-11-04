@@ -93,7 +93,7 @@ export default function SecuritySettingsPage({ onBack }: SecuritySettingsPagePro
   return (
     <div className="flex flex-col h-full bg-white">
       {/* Header */}
-      <div className="flex items-center px-4 py-3 border-b border-gray-200 flex-shrink-0">
+      <div className="flex items-center px-4 py-3 pt-[calc(0.75rem+var(--safe-area-inset-top))] border-b border-gray-200 flex-shrink-0">
         <Button
           variant="ghost"
           size="sm"

@@ -59,7 +59,7 @@ export default function LanguageSettingsPage({ onBack }: LanguageSettingsPagePro
   return (
     <div className="flex flex-col h-full bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       {/* Header */}
-      <div className="flex items-center px-4 py-3 bg-white/80 backdrop-blur-sm border-b border-gray-200 flex-shrink-0">
+      <div className="flex items-center px-4 py-3 pt-[calc(0.75rem+var(--safe-area-inset-top))] bg-white/80 backdrop-blur-sm border-b border-gray-200 flex-shrink-0">
         <Button
           variant="ghost"
           size="sm"

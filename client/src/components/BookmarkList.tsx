@@ -277,7 +277,7 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
   return (
     <div className="flex flex-col h-full bg-white" data-testid="file-explorer">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 bg-white">
+      <div className="p-4 pt-[calc(1rem+var(--safe-area-inset-top))] border-b border-gray-200 bg-white">
         <div className="flex items-center justify-between mb-3">
           {selectedFolderId ? (
             <div className="flex items-center gap-2">
