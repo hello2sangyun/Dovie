@@ -26,7 +26,7 @@ Preferred communication style: Simple, everyday language.
 - **Database**: PostgreSQL with Drizzle ORM.
 - **Authentication**: Custom email/password/phone authentication with bcrypt hashing.
 - **File Handling**: Multer for uploads, AES-256 encryption for storage.
-- **Real-time**: WebSocket server.
+- **Real-time**: WebSocket server with intelligent background/foreground management.
 - **AI Integration**: OpenAI API for commands, translation, transcription, and smart suggestions (focused on YouTube).
 - **Voice Messages**: Real-time transcription, waveform visualization, and silence detection.
 - **Smart Suggestions**: Unified system across all message types, primarily for YouTube video search and sharing.
@@ -36,6 +36,7 @@ Preferred communication style: Simple, everyday language.
 - **Auto-Login**: Persistent user sessions across refreshes and restarts.
 - **Message Retry**: Intelligent WebSocket connection management with exponential backoff and pending message queue.
 - **File Organization**: PC-style folder structure in the archive, automatically organizing files by chat room and supporting single hashtags per file.
+- **Battery Optimization**: Comprehensive background lifecycle management - WebSocket auto-disconnection, microphone teardown, and polling suspension when app is backgrounded to maximize battery life.
 
 ### Feature Specifications
 - **Authentication**: Email/password, phone number verification (Twilio), profile setup flow, role-based access.
@@ -112,6 +113,11 @@ For iOS push notifications to work in production, APNS credentials must be confi
 
 ## Recent Updates
 - **2024-11-04**: 
+  - **Battery Optimization System**: Implemented comprehensive background lifecycle management to maximize iOS battery life
+    - WebSocket: Auto-disconnect when backgrounded, auto-reconnect when foregrounded (handles all edge cases including network loss)
+    - Microphone: Voice recording stops immediately when app goes to background
+    - Badge Polling: Suspended in background, resumed in foreground (5s interval)
+    - All features use APNS for background notifications (OS-managed, battery-efficient)
   - Implemented production-ready push notification system with APNS JWT authentication
   - Fixed ChatsList touch detection (short tap vs long press) to match ContactsList behavior
   - Applied iOS Safe Area support across all pages to prevent content overlap with notch/Dynamic Island
