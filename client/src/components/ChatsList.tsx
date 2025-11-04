@@ -95,7 +95,7 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
         console.log('✅ 음성 메시지 전송 성공!');
         
         // 캐시 무효화
-        queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${voiceConfirmData.chatRoomId}/messages`] });
+        queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms", voiceConfirmData.chatRoomId, "messages"] });
         queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
         
         // 해당 채팅방으로 자동 이동
@@ -420,7 +420,7 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
   // 메시지 미리 로딩 함수
   const prefetchMessages = async (chatRoomId: number) => {
     await queryClient.prefetchQuery({
-      queryKey: [`/api/chat-rooms/${chatRoomId}/messages`],
+      queryKey: ["/api/chat-rooms", chatRoomId, "messages"],
       queryFn: async () => {
         const response = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages`);
         return response.json();
@@ -536,6 +536,25 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
   const contacts = contactsData?.contacts || [];
   const unreadCounts = unreadCountsData?.unreadCounts || [];
   const aiNotices = aiNoticesData || [];
+
+  // 채팅방 메시지 prefetch - 즉시 진입 위해 백그라운드 로드
+  useEffect(() => {
+    if (chatRooms && chatRooms.length > 0 && user) {
+      chatRooms.forEach((room: any) => {
+        queryClient.prefetchQuery({
+          queryKey: ["/api/chat-rooms", room.id, "messages"],
+          queryFn: async () => {
+            const response = await fetch(`/api/chat-rooms/${room.id}/messages`, {
+              headers: { "x-user-id": user.id.toString() },
+            });
+            if (!response.ok) throw new Error("Failed to prefetch messages");
+            return response.json();
+          },
+          staleTime: 30000, // 30초 동안 캐시 유지
+        });
+      });
+    }
+  }, [chatRooms, user, queryClient]);
 
   // 특정 채팅방의 읽지 않은 메시지 수 가져오기
   const getUnreadCount = (chatRoomId: number) => {
@@ -899,7 +918,7 @@ function ChatRoomItem({
   const handleMouseEnter = async () => {
     try {
       await queryClient.prefetchQuery({
-        queryKey: [`/api/chat-rooms/${chatRoom.id}/messages`],
+        queryKey: ["/api/chat-rooms", chatRoom.id, "messages"],
         queryFn: async () => {
           const response = await apiRequest(`/api/chat-rooms/${chatRoom.id}/messages`);
           return response.json();

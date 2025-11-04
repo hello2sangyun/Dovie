@@ -36,7 +36,7 @@ export const MessageLikeButton: React.FC<MessageLikeButtonProps> = ({
     onSuccess: () => {
       // Invalidate messages to get updated like status
       queryClient.invalidateQueries({ 
-        queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] 
+        queryKey: ["/api/chat-rooms", chatRoomId, "messages"] 
       });
     },
     onError: () => {
