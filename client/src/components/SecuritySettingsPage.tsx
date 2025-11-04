@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { ArrowLeft, Shield, Lock, Eye, EyeOff, Key, Smartphone } from "lucide-react";
+import { useSwipeBack } from "@/hooks/useSwipeBack";
 
 interface SecuritySettingsPageProps {
   onBack: () => void;
@@ -16,6 +17,9 @@ interface SecuritySettingsPageProps {
 export default function SecuritySettingsPage({ onBack }: SecuritySettingsPageProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  // 스와이프로 뒤로가기
+  useSwipeBack({ onBack });
   
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);

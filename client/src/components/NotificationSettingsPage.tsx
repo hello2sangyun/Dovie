@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Bell, Volume2, Smartphone, MessageSquare, CheckCircle2, XCircle } from "lucide-react";
 import { PushNotificationManager } from "./PushNotificationManager";
 import { PushNotificationTester } from "./PushNotificationTester";
+import { useSwipeBack } from "@/hooks/useSwipeBack";
 
 interface NotificationSettingsPageProps {
   onBack: () => void;
@@ -33,6 +34,9 @@ interface LocalStorageSettings {
 export default function NotificationSettingsPage({ onBack }: NotificationSettingsPageProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  // 스와이프로 뒤로가기
+  useSwipeBack({ onBack });
   
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [settings, setSettings] = useState({

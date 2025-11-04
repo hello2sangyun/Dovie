@@ -1,12 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ArrowLeft, HelpCircle, Mail, MessageCircle, FileText, Info, ExternalLink, BookOpen, Shield } from "lucide-react";
+import { useSwipeBack } from "@/hooks/useSwipeBack";
 
 interface HelpSupportPageProps {
   onBack: () => void;
 }
 
 export default function HelpSupportPage({ onBack }: HelpSupportPageProps) {
+  // 스와이프로 뒤로가기
+  useSwipeBack({ onBack });
+
   const appVersion = "1.0.0";
   const buildDate = new Date().toLocaleDateString('ko-KR');
 

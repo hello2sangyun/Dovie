@@ -46,6 +46,7 @@ import {
 } from "./MicroInteractions";
 import { uploadFileWithProgress, UploadProgress } from "@/lib/uploadUtils";
 import { FileUploadProgress } from "./FileUploadProgress";
+import { useSwipeBack } from "@/hooks/useSwipeBack";
 
 interface ChatAreaProps {
   chatRoomId: number;
@@ -94,6 +95,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
   };
 
+  // 스와이프로 뒤로가기 (모바일 환경에서만)
+  useSwipeBack({
+    onBack: () => {
+      if (onBackClick) {
+        onBackClick();
+      }
+    },
+    enabled: !!onBackClick && showMobileHeader === true,
+  });
 
   const queryClient = useQueryClient();
   const [message, setMessage] = useState("");

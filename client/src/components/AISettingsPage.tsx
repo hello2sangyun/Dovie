@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Sparkles, Brain, Filter, Zap } from "lucide-react";
+import { useSwipeBack } from "@/hooks/useSwipeBack";
 
 interface AISettingsPageProps {
   onBack: () => void;
@@ -46,6 +47,9 @@ const defaultPreferences: AIPreferences = {
 export default function AISettingsPage({ onBack }: AISettingsPageProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  // 스와이프로 뒤로가기
+  useSwipeBack({ onBack });
   
   const [preferences, setPreferences] = useState<AIPreferences>(defaultPreferences);
 

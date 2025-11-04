@@ -320,8 +320,8 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
     if (!isScrollingRef.current && touchStartYRef.current > 0) {
       const moveY = Math.abs(e.touches[0].clientY - touchStartYRef.current);
       
-      // 7px 이상 세로로 움직이면 스크롤로 간주 (자연스러운 터치 허용, 의도적인 스크롤 감지)
-      if (moveY > 7) {
+      // 3px 이상 세로로 움직이면 스크롤로 간주 (iOS에서 빠른 스크롤 감지)
+      if (moveY > 3) {
         isScrollingRef.current = true;
         
         // 스크롤 중이면 타이머 즉시 취소 (동기적)

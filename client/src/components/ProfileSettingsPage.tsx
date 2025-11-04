@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Upload, User, Mail, Phone, Calendar, Mic } from "lucide-react";
+import { useSwipeBack } from "@/hooks/useSwipeBack";
 
 interface ProfileSettingsPageProps {
   onBack: () => void;
@@ -18,6 +19,9 @@ interface ProfileSettingsPageProps {
 export default function ProfileSettingsPage({ onBack }: ProfileSettingsPageProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  // 스와이프로 뒤로가기
+  useSwipeBack({ onBack });
   
   const [formData, setFormData] = useState({
     username: user?.username || "",

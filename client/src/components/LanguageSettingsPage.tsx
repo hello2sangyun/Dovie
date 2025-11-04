@@ -5,6 +5,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ArrowLeft, Globe, Check } from "lucide-react";
+import { useSwipeBack } from "@/hooks/useSwipeBack";
 
 interface LanguageSettingsPageProps {
   onBack: () => void;
@@ -22,6 +23,10 @@ const LANGUAGES = [
 export default function LanguageSettingsPage({ onBack }: LanguageSettingsPageProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  // 스와이프로 뒤로가기
+  useSwipeBack({ onBack });
+  
   const [selectedLanguage, setSelectedLanguage] = useState(user?.language || 'ko');
 
   useEffect(() => {

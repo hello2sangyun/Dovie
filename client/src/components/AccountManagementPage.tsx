@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, UserX, AlertTriangle, Trash2 } from "lucide-react";
 import { useLocation } from "wouter";
+import { useSwipeBack } from "@/hooks/useSwipeBack";
 
 interface AccountManagementPageProps {
   onBack: () => void;
@@ -17,6 +18,9 @@ interface AccountManagementPageProps {
 export default function AccountManagementPage({ onBack }: AccountManagementPageProps) {
   const { user, logout } = useAuth();
   const [, setLocation] = useLocation();
+
+  // 스와이프로 뒤로가기
+  useSwipeBack({ onBack });
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const [password, setPassword] = useState("");

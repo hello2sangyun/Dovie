@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { InstantAvatar } from "@/components/InstantAvatar";
 import { UserX, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSwipeBack } from "@/hooks/useSwipeBack";
 
 interface BlockedContactsPageProps {
   onBack: () => void;
@@ -14,6 +15,9 @@ interface BlockedContactsPageProps {
 export default function BlockedContactsPage({ onBack }: BlockedContactsPageProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  // 스와이프로 뒤로가기
+  useSwipeBack({ onBack });
 
   // Fetch blocked contacts
   const { data: blockedContactsData, isLoading } = useQuery({
