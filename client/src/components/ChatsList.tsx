@@ -40,12 +40,16 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
   const [saveFiles, setSaveFiles] = useState(true);
   
   // 음성 메시지 관련 상태
-  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingChatRoom, setRecordingChatRoom] = useState<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const [recordingStartTime, setRecordingStartTime] = useState(0);
+  
+  // 스크롤 감지 - useRef로 동기적 업데이트
+  const touchStartYRef = useRef<number>(0);
+  const isScrollingRef = useRef<boolean>(false);
   
   // Voice Confirm Modal 상태
   const [showVoiceConfirmModal, setShowVoiceConfirmModal] = useState(false);
@@ -180,37 +184,75 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     // iOS에서 길게 누르기가 작동하도록 preventDefault 추가
     if (e) {
       e.preventDefault();
+      
+      // 터치 이벤트일 경우 시작 Y 좌표 저장 (동기적)
+      if ('touches' in e) {
+        touchStartYRef.current = e.touches[0].clientY;
+      }
     }
+    
     console.log('🎯 채팅방 간편음성메세지 - 길게 누르기 시작:', getChatRoomDisplayName(chatRoom));
     
+    // 스크롤 감지 초기화 (동기적)
+    isScrollingRef.current = false;
+    
     const timer = setTimeout(() => {
-      startVoiceRecording(chatRoom);
+      // 스크롤 중이 아닐 때만 음성 녹음 시작 (ref.current로 최신 값 확인)
+      if (!isScrollingRef.current) {
+        startVoiceRecording(chatRoom);
+      } else {
+        console.log('🚫 스크롤 중이므로 음성 녹음 취소');
+      }
     }, 800); // 800ms 후 음성 녹음 시작
     
-    setLongPressTimer(timer);
+    longPressTimerRef.current = timer;
+  };
+
+  // 터치 이동 감지 (스크롤 감지) - useRef로 동기적 처리
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isScrollingRef.current && touchStartYRef.current > 0) {
+      const moveY = Math.abs(e.touches[0].clientY - touchStartYRef.current);
+      
+      // 10px 이상 세로로 움직이면 스크롤로 간주 (동기적)
+      if (moveY > 10) {
+        isScrollingRef.current = true;
+        
+        // 스크롤 중이면 타이머 즉시 취소 (동기적)
+        if (longPressTimerRef.current) {
+          clearTimeout(longPressTimerRef.current);
+          longPressTimerRef.current = null;
+          console.log('🚫 스크롤 감지 - 음성 녹음 타이머 취소');
+        }
+      }
+    }
   };
 
   // 길게 누르기 끝
   const handleLongPressEnd = (e: React.TouchEvent | React.MouseEvent, chatRoomId: number) => {
     // iOS에서 길게 누르기가 작동하도록 preventDefault 추가
     e.preventDefault();
-    const wasShortPress = longPressTimer !== null;
+    const wasShortPress = longPressTimerRef.current !== null;
     
-    if (longPressTimer) {
-      clearTimeout(longPressTimer);
-      setLongPressTimer(null);
+    // 타이머 취소 (동기적)
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
     }
     
     if (isRecording) {
       // 녹음 중이었다면 click 이벤트 차단하고 녹음 중지
       e.stopPropagation();
       stopVoiceRecording();
-    } else if (wasShortPress) {
-      // 짧게 클릭한 경우 (800ms 이내) - 채팅방으로 이동
+    } else if (wasShortPress && !isScrollingRef.current) {
+      // 짧게 클릭한 경우 (800ms 이내) AND 스크롤이 아닐 때만 - 채팅방으로 이동
       onSelectChat(chatRoomId);
     }
     
     setRecordingChatRoom(null);
+    
+    // 스크롤 감지 초기화 (동기적)
+    isScrollingRef.current = false;
+    touchStartYRef.current = 0;
   };
 
   // 음성 녹음 시작
@@ -903,6 +945,11 @@ function ChatRoomItem({
       onTouchStart={(e) => {
         if (!isMultiSelectMode && onLongPressStart) {
           onLongPressStart(chatRoom, e);
+        }
+      }}
+      onTouchMove={(e) => {
+        if (!isMultiSelectMode) {
+          handleTouchMove(e);
         }
       }}
       onTouchEnd={(e) => {
