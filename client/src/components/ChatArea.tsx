@@ -393,6 +393,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [unreadNewMessages, setUnreadNewMessages] = useState(0);
   const hasInitialScrolledRef = useRef(false);
+  const [, forceRender] = useState({});
 
   // Get chat room details (only for regular chats, not location chats)
   const { data: chatRoomsData } = useQuery({
@@ -1262,9 +1263,21 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   }, [messages, lastMessageCount, isAtBottom]);
 
 
-  // 채팅방 변경 시 초기 스크롤 플래그 리셋
+  // 채팅방 변경 시 초기 스크롤 플래그 리셋 + 2초 타임아웃 설정
   useEffect(() => {
     hasInitialScrolledRef.current = false;
+    
+    // 2초 후에도 스크롤이 안 됐으면 강제로 완료 처리 (네트워크 지연 대응)
+    const fallbackTimer = setTimeout(() => {
+      if (!hasInitialScrolledRef.current) {
+        console.log('⏰ 2초 타임아웃: 로딩 오버레이 강제 제거');
+        hasInitialScrolledRef.current = true;
+        // 강제로 리렌더링하여 오버레이 제거
+        forceRender({});
+      }
+    }, 2000);
+    
+    return () => clearTimeout(fallbackTimer);
   }, [chatRoomId]);
 
   // 읽지 않은 메시지 ID 계산
