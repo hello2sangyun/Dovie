@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -13,10 +13,14 @@ import { Separator } from "@/components/ui/separator";
 import { Mail, Lock, User, Eye, EyeOff, Phone } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { SiApple } from "react-icons/si";
+import { Capacitor } from "@capacitor/core";
+import { useToast } from "@/hooks/use-toast";
 
 export default function SignupPage() {
   const [, setLocation] = useLocation();
   const { setUser } = useAuth();
+  const { toast } = useToast();
+  const [checkingRedirect, setCheckingRedirect] = useState(false);
   
   const [usernameFormData, setUsernameFormData] = useState({
     username: "",
@@ -32,6 +36,46 @@ export default function SignupPage() {
   const handlePhoneSignup = () => {
     setLocation("/phone-login");
   };
+
+  // Check for redirect result on mount (for native platforms)
+  useEffect(() => {
+    const handleRedirectResult = async () => {
+      if (!Capacitor.isNativePlatform()) {
+        return;
+      }
+
+      setCheckingRedirect(true);
+      
+      try {
+        const { checkRedirectResult } = await import('@/lib/firebase');
+        const result = await checkRedirectResult();
+        
+        if (result) {
+          console.log('📱 Processing redirect result');
+          
+          // Determine provider from result (Google or Apple)
+          const authProvider = 'google'; // Default to Google for now
+          
+          const response = await apiRequest("/api/auth/social-login", "POST", {
+            idToken: result.idToken,
+            authProvider,
+          });
+          
+          const data = await response.json();
+          setUser(data.user);
+          localStorage.setItem("userId", data.user.id.toString());
+          
+          setLocation("/profile-setup");
+        }
+      } catch (error: any) {
+        console.error('Redirect result processing error:', error);
+      } finally {
+        setCheckingRedirect(false);
+      }
+    };
+
+    handleRedirectResult();
+  }, [setUser, setLocation]);
 
   const signupMutation = useMutation({
     mutationFn: async (data: typeof usernameFormData) => {
@@ -89,7 +133,17 @@ export default function SignupPage() {
       
       setLocation("/profile-setup");
     } catch (error: any) {
+      if (error.message === 'REDIRECT_IN_PROGRESS') {
+        // Redirect initiated - result will be handled on app resume
+        console.log('📱 Redirect initiated, waiting for callback...');
+        return;
+      }
       console.error(`${provider} signup error:`, error);
+      toast({
+        title: "회원가입 실패",
+        description: error.message || "회원가입 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
     }
   };
 
