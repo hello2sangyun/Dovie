@@ -947,17 +947,11 @@ function ChatRoomItem({
   return (
     <div
       className={cn(
-        "p-4 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer border-b border-slate-200 dark:border-slate-700 transition-colors relative select-none",
+        "p-4 hover:bg-slate-50 dark:hover:bg-slate-800 border-b border-slate-200 dark:border-slate-700 transition-colors relative",
         isSelected && !isMultiSelectMode && "bg-slate-50 dark:bg-slate-800",
         isMultiSelectMode && isChecked && "bg-blue-50 dark:bg-blue-900",
         isRecording && "bg-red-50 dark:bg-red-900 border-red-200 dark:border-red-700"
       )}
-      style={{ 
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
-        msUserSelect: 'none',
-        WebkitTouchCallout: 'none'
-      }}
       onClick={(e) => {
         // 다중 선택 모드일 때만 onClick 사용
         if (isMultiSelectMode) {
@@ -965,48 +959,13 @@ function ChatRoomItem({
         }
       }}
       onMouseEnter={handleMouseEnter}
-      onMouseDown={(e) => {
-        if (!isMultiSelectMode && onLongPressStart) {
-          onLongPressStart(chatRoom, e);
-        }
-      }}
-      onMouseUp={(e) => {
-        if (!isMultiSelectMode && onLongPressEnd) {
-          onLongPressEnd(e, chatRoom.id);
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!isMultiSelectMode && onLongPressEnd) {
-          onLongPressEnd(e, chatRoom.id);
-        }
-      }}
-      onTouchStart={(e) => {
-        if (!isMultiSelectMode && onLongPressStart) {
-          onLongPressStart(chatRoom, e);
-        }
-      }}
-      onTouchMove={(e) => {
-        if (!isMultiSelectMode) {
-          handleTouchMove(e);
-        }
-      }}
-      onTouchCancel={() => {
-        if (!isMultiSelectMode) {
-          handleTouchCancel();
-        }
-      }}
-      onTouchEnd={(e) => {
-        if (!isMultiSelectMode && onLongPressEnd) {
-          onLongPressEnd(e, chatRoom.id);
-        }
-      }}
     >
       {isPinned && !isMultiSelectMode && (
         <Pin className="absolute top-2 right-2 text-purple-500 h-3 w-3" />
       )}
       
       {isRecording && (
-        <div className="absolute inset-0 bg-red-500/10 border-2 border-red-500 rounded-lg flex items-center justify-center">
+        <div className="absolute inset-0 bg-red-500/10 border-2 border-red-500 rounded-lg flex items-center justify-center pointer-events-none">
           <div className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-2">
             <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
             <span>음성 녹음 중...</span>
@@ -1014,7 +973,50 @@ function ChatRoomItem({
         </div>
       )}
       
-      <div className="flex items-center space-x-3">
+      <div 
+        className="flex items-center space-x-3 cursor-pointer select-none"
+        style={{ 
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          msUserSelect: 'none',
+          WebkitTouchCallout: 'none'
+        }}
+        onMouseDown={(e) => {
+          if (!isMultiSelectMode && onLongPressStart) {
+            onLongPressStart(chatRoom, e);
+          }
+        }}
+        onMouseUp={(e) => {
+          if (!isMultiSelectMode && onLongPressEnd) {
+            onLongPressEnd(e, chatRoom.id);
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!isMultiSelectMode && onLongPressEnd) {
+            onLongPressEnd(e, chatRoom.id);
+          }
+        }}
+        onTouchStart={(e) => {
+          if (!isMultiSelectMode && onLongPressStart) {
+            onLongPressStart(chatRoom, e);
+          }
+        }}
+        onTouchMove={(e) => {
+          if (!isMultiSelectMode) {
+            handleTouchMove(e);
+          }
+        }}
+        onTouchCancel={() => {
+          if (!isMultiSelectMode) {
+            handleTouchCancel();
+          }
+        }}
+        onTouchEnd={(e) => {
+          if (!isMultiSelectMode && onLongPressEnd) {
+            onLongPressEnd(e, chatRoom.id);
+          }
+        }}
+      >
         {isMultiSelectMode && (
           <Checkbox
             checked={isChecked}
