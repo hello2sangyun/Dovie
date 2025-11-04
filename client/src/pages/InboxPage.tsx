@@ -606,7 +606,7 @@ export default function InboxPage() {
   return (
     <div className="h-full flex flex-col bg-white">
       {/* Header */}
-      <div className="flex-shrink-0 px-4 py-3 border-b bg-white">
+      <div className="flex-shrink-0 px-4 pt-[calc(1.7rem+env(safe-area-inset-top))] pb-3 border-b bg-white">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-bold text-gray-900">Smart Inbox</h2>
