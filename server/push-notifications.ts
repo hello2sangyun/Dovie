@@ -1,4 +1,5 @@
 import webpush from 'web-push';
+import jwt from 'jsonwebtoken';
 import { storage } from './storage';
 
 // VAPID keys for web push
@@ -31,22 +32,19 @@ export async function sendPushNotification(
   payload: PushNotificationPayload
 ): Promise<void> {
   try {
-    // 🧪 TESTING MODE: Activity filtering temporarily disabled for push notification testing
     // Telegram/WhatsApp-style intelligent filtering: Don't send to active users
-    // const userActivity = await storage.getUserActivity(userId);
-    // if (userActivity?.isOnline) {
-    //   console.log(`🚫 Skipping push notification for user ${userId}: currently active/online`);
-    //   return;
-    // }
+    const userActivity = await storage.getUserActivity(userId);
+    if (userActivity?.isOnline) {
+      console.log(`🚫 Skipping push notification for user ${userId}: currently active/online`);
+      return;
+    }
 
     // Check if user was active in the last 2 minutes (like WhatsApp)
-    // const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
-    // if (userActivity?.lastSeen && userActivity.lastSeen > twoMinutesAgo) {
-    //   console.log(`🚫 Skipping push notification for user ${userId}: recently active (${userActivity.lastSeen})`);
-    //   return;
-    // }
-    
-    console.log(`🧪 TEST MODE: Sending push notification to user ${userId} (activity filtering disabled)`);
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+    if (userActivity?.lastSeen && userActivity.lastSeen > twoMinutesAgo) {
+      console.log(`🚫 Skipping push notification for user ${userId}: recently active (${userActivity.lastSeen})`);
+      return;
+    }
 
     // Get user's push subscriptions (PWA)
     const subscriptions = await storage.getUserPushSubscriptions(userId);
@@ -216,8 +214,14 @@ async function sendIOSPushNotifications(
       // APNS HTTP/2 요청 구성
       const postData = JSON.stringify(apnsPayload);
       
+      // Use production APNS server by default, development if NODE_ENV is development
+      const isProduction = process.env.NODE_ENV !== 'development';
+      const apnsHostname = isProduction 
+        ? 'api.push.apple.com' 
+        : 'api.development.push.apple.com';
+      
       const options = {
-        hostname: 'api.development.push.apple.com', // 개발용 (프로덕션: api.push.apple.com)
+        hostname: apnsHostname,
         port: 443,
         path: `/3/device/${deviceToken}`,
         method: 'POST',
@@ -231,6 +235,8 @@ async function sendIOSPushNotifications(
           'content-length': Buffer.byteLength(postData)
         }
       };
+      
+      console.log(`📱 Using APNS server: ${apnsHostname} (${isProduction ? 'production' : 'development'})`)
 
       console.log(`📱 iOS APNS 알림 발송: ${deviceToken.substring(0, 20)}...`);
 
@@ -262,11 +268,42 @@ async function sendIOSPushNotifications(
   }
 }
 
-// APNS JWT 토큰 생성 (실제 환경에서는 팀 ID, 키 ID, 개인키 필요)
+// APNS JWT 토큰 생성
 function getAPNSJWT(): string {
-  // 개발용 임시 토큰 (실제로는 Apple Developer 계정의 키 사용)
-  // 실제 구현시 jwt 라이브러리와 Apple 개인키 필요
-  return "임시_개발용_토큰";
+  const keyId = process.env.APNS_KEY_ID;
+  const teamId = process.env.APNS_TEAM_ID;
+  const privateKey = process.env.APNS_PRIVATE_KEY;
+
+  // 환경 변수가 없으면 경고하고 임시 토큰 반환 (개발 모드)
+  if (!keyId || !teamId || !privateKey) {
+    console.warn('⚠️  APNS credentials not configured. Push notifications will not work.');
+    console.warn('   Please set: APNS_KEY_ID, APNS_TEAM_ID, APNS_PRIVATE_KEY');
+    return "temporary_dev_token";
+  }
+
+  try {
+    // APNS JWT 토큰 생성 (1시간 유효)
+    const token = jwt.sign(
+      {
+        iss: teamId,
+        iat: Math.floor(Date.now() / 1000)
+      },
+      privateKey.replace(/\\n/g, '\n'), // 환경 변수에서 \n을 실제 줄바꿈으로 변환
+      {
+        algorithm: 'ES256',
+        header: {
+          alg: 'ES256',
+          kid: keyId
+        },
+        expiresIn: '1h'
+      }
+    );
+    
+    return token;
+  } catch (error) {
+    console.error('❌ Failed to generate APNS JWT:', error);
+    return "temporary_dev_token";
+  }
 }
 
 export async function sendMessageNotification(

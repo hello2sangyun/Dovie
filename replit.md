@@ -56,7 +56,7 @@ Preferred communication style: Simple, everyday language.
 
 ## External Dependencies
 - **Database**: `@neondatabase/serverless`, `drizzle-orm`.
-- **Authentication/Security**: `bcryptjs`, `crypto-js`.
+- **Authentication/Security**: `bcryptjs`, `crypto-js`, `jsonwebtoken`.
 - **File Uploads**: `multer`.
 - **Real-time**: `ws` (WebSocket).
 - **AI**: `openai`.
@@ -69,4 +69,51 @@ Preferred communication style: Simple, everyday language.
 - **Geolocation**: ipapi.co service, browser geolocation API.
 - **Maps**: Google Maps integration.
 - **Native App Conversion**: Capacitor framework (`@capacitor/push-notifications`).
-- **iOS Push Notifications**: Apple Push Notification service (APNS).
+- **iOS Push Notifications**: Apple Push Notification service (APNS) with JWT authentication.
+- **Push Notifications**: `web-push` for PWA notifications, APNS for iOS native.
+
+## Environment Variables
+
+### Required for Production
+- **APNS_KEY_ID**: Apple Push Notification Auth Key ID (from Apple Developer Console)
+- **APNS_TEAM_ID**: Apple Developer Team ID
+- **APNS_PRIVATE_KEY**: APNs Auth Key (.p8 file content with `\n` for line breaks)
+- **FIREBASE_PROJECT_ID**: Firebase project identifier
+- **FIREBASE_PRIVATE_KEY**: Firebase service account private key
+- **FIREBASE_CLIENT_EMAIL**: Firebase service account email
+- **OPENAI_API_KEY**: OpenAI API key for AI features
+- **VAPID_PUBLIC_KEY**: VAPID public key for PWA push notifications
+- **VAPID_PRIVATE_KEY**: VAPID private key for PWA push notifications
+
+### Optional
+- **NODE_ENV**: Set to `development` for testing mode (default: production)
+- **VAPID_EMAIL**: Contact email for VAPID (default: `mailto:admin@dovie.com`)
+- **TWILIO_ACCOUNT_SID**: Twilio account SID for SMS verification
+- **TWILIO_AUTH_TOKEN**: Twilio auth token
+- **TWILIO_PHONE_NUMBER**: Twilio phone number
+
+### Auto-Provided by Replit
+- **DATABASE_URL**: PostgreSQL connection string (automatically set)
+
+## Production Deployment
+
+### iOS Push Notifications Setup
+For iOS push notifications to work in production, APNS credentials must be configured. See `APNS_SETUP_GUIDE.md` for detailed setup instructions.
+
+**Quick Setup:**
+1. Generate APNs Auth Key in Apple Developer Console
+2. Add `APNS_KEY_ID`, `APNS_TEAM_ID`, and `APNS_PRIVATE_KEY` to Replit Secrets
+3. Restart workflows
+4. Verify in server logs: `📱 Using APNS server: api.push.apple.com (production)`
+
+### Production vs Development Mode
+- **Production** (default): Uses `api.push.apple.com`, activity filtering enabled
+- **Development**: Set `NODE_ENV=development` to use `api.development.push.apple.com`, all push notifications sent for testing
+
+## Recent Updates
+- **2024-11-04**: 
+  - Implemented production-ready push notification system with APNS JWT authentication
+  - Fixed ChatsList touch detection (short tap vs long press) to match ContactsList behavior
+  - Applied iOS Safe Area support across all pages to prevent content overlap with notch/Dynamic Island
+  - Unified settings page design with neutral color scheme (purple icons, white/gray backgrounds)
+  - Enabled Telegram/WhatsApp-style intelligent push filtering (no notifications when user is active)
