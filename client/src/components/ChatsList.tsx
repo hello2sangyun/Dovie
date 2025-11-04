@@ -876,10 +876,14 @@ function ChatRoomItem({
         userSelect: 'none',
         WebkitUserSelect: 'none',
         msUserSelect: 'none',
-        WebkitTouchCallout: 'none',
-        touchAction: 'none'
+        WebkitTouchCallout: 'none'
       }}
-      onClick={onClick}
+      onClick={(e) => {
+        // 다중 선택 모드일 때만 onClick 사용
+        if (isMultiSelectMode) {
+          onClick();
+        }
+      }}
       onMouseEnter={handleMouseEnter}
       onMouseDown={(e) => {
         if (!isMultiSelectMode && onLongPressStart) {

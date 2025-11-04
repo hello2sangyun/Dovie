@@ -15,6 +15,7 @@ const API_CACHE_PATTERNS = [
   /\/api\/auth\/me/,
   /\/api\/contacts/,
   /\/api\/chat-rooms/,
+  /\/api\/unread-counts/,
   /\/api\/profile-images\//
 ];
 
@@ -105,6 +106,7 @@ async function handleApiRequest(request) {
     // Network failed, try cache
     const cachedResponse = await caches.match(request);
     if (cachedResponse) {
+      console.log('[SW] Returning cached response for:', url.pathname);
       return cachedResponse;
     }
     
@@ -451,31 +453,78 @@ async function refreshBadgeFromServer() {
     }
     
     // Fetch unread count from server using user ID header
-    const response = await fetch('/api/unread-counts', {
-      headers: {
-        'x-user-id': userId,
-        'Content-Type': 'application/json'
+    try {
+      const requestUrl = '/api/unread-counts';
+      const requestOptions = {
+        headers: {
+          'x-user-id': userId,
+          'Content-Type': 'application/json'
+        }
+      };
+      
+      const response = await fetch(requestUrl, requestOptions);
+      
+      if (response.ok) {
+        // Clone response BEFORE consuming it
+        const responseClone = response.clone();
+        const data = await response.json();
+        
+        const totalUnread = data.unreadCounts ? 
+          data.unreadCounts.reduce((sum, room) => sum + (room.unreadCount || 0), 0) : 0;
+        
+        console.log('[SW] Server badge refresh - total unread:', totalUnread);
+        await setTelegramStyleBadge(totalUnread);
+        
+        // Cache the cloned response for offline use
+        try {
+          const cache = await caches.open(DYNAMIC_CACHE_NAME);
+          const cacheRequest = new Request(requestUrl, requestOptions);
+          await cache.put(cacheRequest, responseClone);
+          console.log('[SW] Cached unread counts for offline use');
+        } catch (cacheError) {
+          console.error('[SW] Failed to cache unread counts:', cacheError);
+        }
+        
+        // Schedule next refresh
+        setTimeout(() => refreshBadgeFromServer(), 600000); // 10분 후 재시도
+      } else {
+        console.log('[SW] Badge refresh failed - status:', response.status);
+        // 실패시 더 긴 간격으로 재시도
+        setTimeout(() => refreshBadgeFromServer(), 1800000); // 30분 후 재시도
       }
-    });
-    
-    if (response.ok) {
-      const data = await response.json();
-      const totalUnread = data.unreadCounts ? 
-        data.unreadCounts.reduce((sum, room) => sum + (room.unreadCount || 0), 0) : 0;
+    } catch (networkError) {
+      console.log('[SW] Network failed, trying cached unread counts');
       
-      console.log('[SW] Server badge refresh - total unread:', totalUnread);
-      await setTelegramStyleBadge(totalUnread);
+      // Network failed, try to use cached data
+      try {
+        const cache = await caches.open(DYNAMIC_CACHE_NAME);
+        const cacheRequest = new Request('/api/unread-counts', {
+          headers: {
+            'x-user-id': userId,
+            'Content-Type': 'application/json'
+          }
+        });
+        const cachedResponse = await cache.match(cacheRequest);
+        
+        if (cachedResponse) {
+          const data = await cachedResponse.json();
+          const totalUnread = data.unreadCounts ? 
+            data.unreadCounts.reduce((sum, room) => sum + (room.unreadCount || 0), 0) : 0;
+          
+          console.log('[SW] Using cached badge count (offline):', totalUnread);
+          await setTelegramStyleBadge(totalUnread);
+        } else {
+          console.log('[SW] No cached unread counts available');
+        }
+      } catch (cacheError) {
+        console.error('[SW] Failed to retrieve cached unread counts:', cacheError);
+      }
       
-      // Schedule next refresh
-      setTimeout(() => refreshBadgeFromServer(), 600000); // 10분 후 재시도
-    } else {
-      console.log('[SW] Badge refresh failed - status:', response.status);
-      // 실패시 더 긴 간격으로 재시도
-      setTimeout(() => refreshBadgeFromServer(), 1800000); // 30분 후 재시도
+      // 네트워크 오류시 재시도
+      setTimeout(() => refreshBadgeFromServer(), 900000); // 15분 후 재시도
     }
   } catch (error) {
     console.error('[SW] Badge refresh from server failed:', error);
-    // 네트워크 오류시 재시도
     setTimeout(() => refreshBadgeFromServer(), 900000); // 15분 후 재시도
   }
 }

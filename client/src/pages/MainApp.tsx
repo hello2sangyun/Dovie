@@ -500,7 +500,7 @@ export default function MainApp() {
         {/* Sidebar */}
         <div className="w-96 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col">
           {/* Header */}
-          <div className="p-4 pt-[calc(1rem+env(safe-area-inset-top))] border-b border-gray-200 dark:border-gray-700 purple-gradient">
+          <div className="p-4 pt-[calc(3.5rem+env(safe-area-inset-top))] border-b border-gray-200 dark:border-gray-700 purple-gradient">
             <div className="flex items-center justify-center space-x-3">
               <VaultLogo size="sm" />
               <h1 className="text-xl font-bold text-white">Dovie Messenger</h1>
@@ -1002,7 +1002,7 @@ export default function MainApp() {
       <div className="lg:hidden h-full flex flex-col">
         {/* Fixed Mobile Header - Hide when viewing chat */}
         {!showMobileChat && (
-          <div className="flex-shrink-0 purple-gradient p-4 pt-[calc(1rem+env(safe-area-inset-top))] text-white fixed top-0 left-0 right-0 z-50 lg:hidden">
+          <div className="flex-shrink-0 purple-gradient p-4 pt-[calc(3.5rem+env(safe-area-inset-top))] text-white fixed top-0 left-0 right-0 z-50 lg:hidden">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <VaultLogo size="sm" className="brightness-0 invert" />
@@ -1018,7 +1018,7 @@ export default function MainApp() {
         {/* Mobile Content with improved padding for Footer visibility */}
         <div className={cn(
           "flex-1 overflow-hidden relative",
-          showMobileChat ? "pt-0 pb-0" : "pt-20 pb-20"
+          showMobileChat ? "pt-0 pb-0" : "pt-28 pb-20"
         )}>
             {activeMobileTab === "contacts" && (
               <div
