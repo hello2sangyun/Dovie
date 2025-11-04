@@ -32,7 +32,7 @@ export default function AiNoticesModal({ open, onOpenChange, chatRoomId, onNotic
   const queryClient = useQueryClient();
 
   const { data: notices = [], isLoading } = useQuery<AiNotice[]>({
-    queryKey: ["/api/chat-rooms", chatRoomId, "ai-notices"],
+    queryKey: [`/api/chat-rooms/${chatRoomId}/ai-notices`],
     enabled: open && !!user,
   });
 
@@ -41,7 +41,7 @@ export default function AiNoticesModal({ open, onOpenChange, chatRoomId, onNotic
       await apiRequest(`/api/ai-notices/${noticeId}/read`, "POST");
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms", chatRoomId, "ai-notices"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/ai-notices`] });
       queryClient.invalidateQueries({ queryKey: ["/api/ai-notices/unread-count"] });
     },
   });

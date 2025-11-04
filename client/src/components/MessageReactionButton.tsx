@@ -46,13 +46,13 @@ export const MessageReactionButton: React.FC<MessageReactionButtonProps> = ({
 
   // Fetch existing reactions for this message
   const { data: reactionsData } = useQuery({
-    queryKey: ["/api/messages", messageId, "reactions"],
+    queryKey: [`/api/messages/${messageId}/reactions`],
     enabled: true,
   });
 
   // Fetch AI-powered emoji suggestions
-  const { data: suggestionsData} = useQuery({
-    queryKey: ["/api/messages", messageId, "reaction-suggestions"],
+  const { data: suggestionsData } = useQuery({
+    queryKey: [`/api/messages/${messageId}/reaction-suggestions`],
     enabled: showReactions,
   });
 
@@ -83,10 +83,10 @@ export const MessageReactionButton: React.FC<MessageReactionButtonProps> = ({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ 
-        queryKey: ["/api/messages", messageId, "reactions"] 
+        queryKey: [`/api/messages/${messageId}/reactions`] 
       });
       queryClient.invalidateQueries({ 
-        queryKey: ["/api/chat-rooms", chatRoomId, "messages"] 
+        queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] 
       });
     }
   });
@@ -101,10 +101,10 @@ export const MessageReactionButton: React.FC<MessageReactionButtonProps> = ({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ 
-        queryKey: ["/api/messages", messageId, "reactions"] 
+        queryKey: [`/api/messages/${messageId}/reactions`] 
       });
       queryClient.invalidateQueries({ 
-        queryKey: ["/api/chat-rooms", chatRoomId, "messages"] 
+        queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] 
       });
     }
   });

@@ -69,13 +69,13 @@ export default function GroupInfoPage() {
 
   // Fetch chat room info
   const { data: chatRoom } = useQuery({
-    queryKey: ["/api/chat-rooms", Number(chatRoomId)],
+    queryKey: [`/api/chat-rooms/${chatRoomId}`],
     enabled: !!chatRoomId,
   }) as { data?: ChatRoom };
 
   // Fetch participants
   const { data: participantsData } = useQuery({
-    queryKey: ["/api/chat-rooms", Number(chatRoomId), "participants"],
+    queryKey: [`/api/chat-rooms/${chatRoomId}/participants`],
     enabled: !!chatRoomId,
   }) as { data?: { participants: User[] } };
 
@@ -83,7 +83,7 @@ export default function GroupInfoPage() {
 
   // Fetch messages for shared content
   const { data: messagesData } = useQuery({
-    queryKey: ["/api/chat-rooms", Number(chatRoomId), "messages"],
+    queryKey: [`/api/chat-rooms/${chatRoomId}/messages`],
     enabled: !!chatRoomId,
   }) as { data?: { messages: Message[] } };
 
@@ -91,7 +91,7 @@ export default function GroupInfoPage() {
 
   // Fetch chat settings
   const { data: settingsData } = useQuery({
-    queryKey: ["/api/chat-settings", Number(chatRoomId)],
+    queryKey: [`/api/chat-settings/${chatRoomId}`],
     enabled: !!chatRoomId,
   }) as { data?: { settings: ChatSettings } };
 
@@ -137,7 +137,7 @@ export default function GroupInfoPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms", Number(chatRoomId)] });
+      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}`] });
       queryClient.invalidateQueries({ queryKey: ['/api/chat-rooms'] });
       setIsEditingName(false);
       toast({ title: "그룹명이 변경되었습니다" });
@@ -163,7 +163,7 @@ export default function GroupInfoPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms", Number(chatRoomId)] });
+      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}`] });
       queryClient.invalidateQueries({ queryKey: ['/api/chat-rooms'] });
       toast({ title: "프로필 사진이 변경되었습니다" });
     },
@@ -180,7 +180,7 @@ export default function GroupInfoPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/chat-settings", Number(chatRoomId)] });
+      queryClient.invalidateQueries({ queryKey: [`/api/chat-settings/${chatRoomId}`] });
       toast({ title: settings.isMuted ? "알림 켜짐" : "알림 꺼짐" });
     },
   });
@@ -193,7 +193,7 @@ export default function GroupInfoPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/chat-settings", Number(chatRoomId)] });
+      queryClient.invalidateQueries({ queryKey: [`/api/chat-settings/${chatRoomId}`] });
       queryClient.invalidateQueries({ queryKey: ['/api/chat-rooms'] });
       toast({ title: settings.isPinned ? "고정 해제됨" : "고정됨" });
     },

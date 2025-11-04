@@ -403,7 +403,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // Get location chat profile if this is a location chat
   const { data: locationChatProfile } = useQuery({
-    queryKey: ["/api/location/chat-rooms", chatRoomId, "profile"],
+    queryKey: [`/api/location/chat-rooms/${chatRoomId}/profile`],
     enabled: !!user && isLocationChatRoom,
     retry: false,
   });
@@ -476,7 +476,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // Get unread AI notices count for this chat room
   const { data: aiNoticesData } = useQuery({
-    queryKey: ["/api/chat-rooms", chatRoomId, "ai-notices"],
+    queryKey: [`/api/chat-rooms/${chatRoomId}/ai-notices`],
     enabled: !!user && !!chatRoomId && !isLocationChatRoom,
     refetchInterval: 30000, // Refresh every 30 seconds
   });
@@ -666,7 +666,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     },
     onSuccess: (data) => {
       // 즉시 메시지 목록을 다시 불러오기
-      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms", chatRoomId, "messages"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] });
       // 채팅방 목록도 업데이트 (마지막 메시지 변경될 수 있음)
       queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
       
@@ -699,7 +699,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms", chatRoomId, "messages"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] });
     },
   });
 
@@ -1357,9 +1357,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             clearInterval(retryInterval);
             // Fallback to bottom if scroll to unread fails
             if (!success && retryCount >= maxRetries) {
-              if (chatScrollRef.current) {
-                chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
-              }
+              messagesEndRef.current?.scrollIntoView({ behavior: "instant", block: "end" });
               hasInitialScrolledRef.current = true;
               setIsAtBottom(true);
             }
@@ -1371,18 +1369,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       } else {
         // No unread messages - scroll to bottom immediately (default behavior)
         requestAnimationFrame(() => {
-          if (chatScrollRef.current) {
-            chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
-          }
-          
-          // 이미지 로드로 인한 레이아웃 변경 대응: 100ms 후 재조정
-          setTimeout(() => {
-            if (chatScrollRef.current && !hasInitialScrolledRef.current) {
-              chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
-            }
-            hasInitialScrolledRef.current = true;
-            setIsAtBottom(true);
-          }, 100);
+          messagesEndRef.current?.scrollIntoView({ behavior: "instant", block: "end" });
+          hasInitialScrolledRef.current = true;
+          setIsAtBottom(true);
         });
       }
     }
@@ -5063,16 +5052,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                                   src={(msg as any).youtubePreview.thumbnailUrl || (msg as any).youtubePreview.thumbnail}
                                   alt={(msg as any).youtubePreview.title}
                                   className="w-full h-48 object-cover"
-                                  onLoad={() => {
-                                    // 이미지 로드 완료 시 초기 스크롤 중이면 재조정
-                                    if (!hasInitialScrolledRef.current && isAtBottom && chatScrollRef.current) {
-                                      requestAnimationFrame(() => {
-                                        if (chatScrollRef.current) {
-                                          chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
-                                        }
-                                      });
-                                    }
-                                  }}
                                   onError={(e) => {
                                     e.currentTarget.src = `https://img.youtube.com/vi/${(msg as any).youtubePreview.videoId}/hqdefault.jpg`;
                                   }}

@@ -541,7 +541,7 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
       
       // 채팅방 목록 새로고침
       queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms", voiceConfirmData.chatRoomId, "messages"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${voiceConfirmData.chatRoomId}/messages`] });
       
       // 모달 닫기 (성공 시에만)
       setShowVoiceConfirmModal(false);
