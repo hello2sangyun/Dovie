@@ -134,11 +134,24 @@ For Google authentication to work on iOS, URL schemes must be configured. See `I
 
 ## Recent Updates
 - **2024-11-04**: 
-  - **iOS Native Google Login**: Implemented redirect-based Firebase authentication for iOS
-    - Platform detection: `signInWithPopup()` for web, `signInWithRedirect()` for native
-    - Automatic redirect result handling on app resume
-    - URL scheme configuration required in Xcode (see `IOS_GOOGLE_LOGIN_SETUP.md`)
-    - Fixes "cross-origin redirect" errors on iOS
+  - **iOS Native Google Login**: Implemented server-side OAuth flow using Capacitor Browser for iOS/Android
+    - **Authentication Method**:
+      - Web: Firebase `signInWithPopup()` (popup flow)
+      - iOS/Android: Capacitor Browser opens Safari → server OAuth → custom URL scheme callback
+    - **Server OAuth Implementation**:
+      - `/api/auth/google/start`: Generates OAuth URL with CSRF state parameter
+      - `/api/auth/google/callback`: Validates state, exchanges code for ID token, redirects to app
+      - State parameter stored in-memory Map with 10-minute expiry and automatic cleanup
+    - **Security Features**:
+      - CSRF protection via OAuth state parameter (single-use, 10-minute expiry)
+      - User-friendly error handling with Korean toast messages
+      - Detailed error logging for debugging
+    - **Environment Variables Required**:
+      - `GOOGLE_CLIENT_ID`: Google OAuth 2.0 Client ID
+      - `GOOGLE_CLIENT_SECRET`: Google OAuth 2.0 Client Secret
+      - `VITE_API_URL`: Production server URL for native platforms (e.g., https://your-app.replit.dev)
+    - **URL Scheme**: `dovie://auth` configured in Xcode for OAuth callback
+    - **Error Codes**: user_cancelled, invalid_state, server_config, token_exchange_failed, no_id_token, server_error
   - **Native Badge Manager**: Direct integration with Capacitor `PushNotifications.setBadgeCount()` for real-time app badge updates on iOS
     - WebSocket-driven badge sync: Instant badge updates when messages are read
     - Replaces inefficient polling with event-driven architecture
