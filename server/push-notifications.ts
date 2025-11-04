@@ -32,6 +32,32 @@ export async function sendPushNotification(
   payload: PushNotificationPayload
 ): Promise<void> {
   try {
+    const notificationSettings = await storage.getNotificationSettings(userId);
+    
+    if (notificationSettings?.muteAllNotifications) {
+      console.log(`🚫 Skipping push notification for user ${userId}: all notifications muted`);
+      return;
+    }
+
+    const quietHoursStart = notificationSettings?.quietHoursStart;
+    const quietHoursEnd = notificationSettings?.quietHoursEnd;
+    if (quietHoursStart && quietHoursEnd) {
+      const now = new Date();
+      const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      
+      if (quietHoursStart <= quietHoursEnd) {
+        if (currentTime >= quietHoursStart && currentTime < quietHoursEnd) {
+          console.log(`🚫 Skipping push notification for user ${userId}: quiet hours (${quietHoursStart} - ${quietHoursEnd})`);
+          return;
+        }
+      } else {
+        if (currentTime >= quietHoursStart || currentTime < quietHoursEnd) {
+          console.log(`🚫 Skipping push notification for user ${userId}: quiet hours (${quietHoursStart} - ${quietHoursEnd})`);
+          return;
+        }
+      }
+    }
+
     // Telegram/WhatsApp-style intelligent filtering: Don't send to active users
     const userActivity = await storage.getUserActivity(userId);
     if (userActivity?.isOnline) {
