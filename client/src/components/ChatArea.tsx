@@ -388,13 +388,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [forwardMessageId, setForwardMessageId] = useState<number | null>(null);
   
-  // Intelligent auto-scroll state
-  const [isUserScrolling, setIsUserScrolling] = useState(false);
-  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+  // Simplified auto-scroll state
   const [lastScrollTop, setLastScrollTop] = useState(0);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const hasScrolledManually = useRef(false);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [unreadNewMessages, setUnreadNewMessages] = useState(0);
   const hasInitialScrolledRef = useRef(false);
@@ -1218,7 +1213,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
   };
 
-  // Scroll event handler to detect user scrolling
+  // Scroll event handler to detect user position (non-blocking)
   const handleScroll = () => {
     if (!chatScrollRef.current) return;
     
@@ -1230,80 +1225,42 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     // Check if user is near the bottom (within 100px)
     const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
     
-    // Update isAtBottom state
+    // Update isAtBottom state (used for auto-scroll decision on new messages)
     setIsAtBottom(isNearBottom);
     
-    // Detect if user is manually scrolling
-    const isScrollingUp = scrollTop < lastScrollTop;
-    
-    // 사용자가 수동으로 위로 스크롤하면
-    if (isScrollingUp && !isNearBottom) {
-      hasScrolledManually.current = true;
-      setIsUserScrolling(true);
-      setShouldAutoScroll(false);
-      setIsInitialLoad(false); // 초기 로드 완료로 표시
-    } else if (isNearBottom) {
-      // 맨 아래 근처로 돌아오면 자동 스크롤 재활성화 및 새 메시지 카운터 초기화
-      hasScrolledManually.current = false; // 수동 스크롤 플래그 리셋
-      setIsUserScrolling(false);
-      setShouldAutoScroll(true);
-      setUnreadNewMessages(0); // 새 메시지 카운터 초기화
+    // Reset unread counter when user scrolls to bottom
+    if (isNearBottom) {
+      setUnreadNewMessages(0);
     }
     
     setLastScrollTop(scrollTop);
-    
-    // Clear the scroll timeout
-    if (scrollTimeoutRef.current) {
-      clearTimeout(scrollTimeoutRef.current);
-    }
-    
-    // Set a timeout to reset user scrolling state
-    scrollTimeoutRef.current = setTimeout(() => {
-      setIsUserScrolling(false);
-    }, 1000);
   };
 
-  // Auto-scroll on new messages
+  // Auto-scroll on new messages (only when user is at bottom)
   useEffect(() => {
     if (messages && messages.length > 0) {
       const messageCount = messages.length;
       
-      // 초기 로드 시: 첫 메시지만 자동 스크롤 (그 이후는 사용자가 제어)
-      if (isInitialLoad && messageCount > 0) {
-        // 즉시 스크롤하여 움직임이 보이지 않도록 함
-        requestAnimationFrame(() => {
-          scrollToBottom('instant');
-          setIsInitialLoad(false); // 초기 로드 완료
-        });
-      } 
-      // 일반 메시지 수신 시
-      else if (messageCount > lastMessageCount) {
+      // New messages received
+      if (messageCount > lastMessageCount) {
         const newMessageCount = messageCount - lastMessageCount;
         
-        // 맨 아래에 있으면 자동 스크롤
-        if (!hasScrolledManually.current && shouldAutoScroll) {
+        // Only auto-scroll if user is already at bottom
+        if (isAtBottom) {
           setTimeout(() => {
             scrollToBottom('smooth');
           }, 50);
         } 
-        // 위에서 스크롤 중이면 새 메시지 카운터 증가
-        else if (!isAtBottom) {
+        // Otherwise, just increment unread counter
+        else {
           setUnreadNewMessages(prev => prev + newMessageCount);
         }
       }
       
       setLastMessageCount(messageCount);
     }
-  }, [messages, shouldAutoScroll, lastMessageCount, isInitialLoad, isAtBottom]);
+  }, [messages, lastMessageCount, isAtBottom]);
 
-  // Cleanup scroll timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
-    };
-  }, []);
 
   // 채팅방 변경 시 초기 스크롤 플래그 리셋
   useEffect(() => {
@@ -1357,11 +1314,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
   }, [chatRoomId, user, isLocationChatRoom]);
 
-  // 채팅방 진입 시 읽지 않은 메시지부터 표시하는 기능 (unread 데이터가 로드된 후에만)
+  // Initial scroll on chat room entry
   useEffect(() => {
     if (messages && messages.length > 0 && chatScrollRef.current && !isLoading && 
         !hasInitialScrolledRef.current && unreadSettled) {
-      // firstUnreadMessageId가 있을 때만 스크롤 시도
+      
+      // Scroll to first unread message if it exists
       if (firstUnreadMessageId) {
         const attemptScroll = () => {
           const unreadElement = messageRefs.current[firstUnreadMessageId];
@@ -1371,22 +1329,24 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               block: "center"
             });
             hasInitialScrolledRef.current = true;
+            setIsAtBottom(false); // User is viewing unread, not at bottom
             return true;
           }
           return false;
         };
 
-        // 재시도 로직 (최대 20회, 약 1초)
+        // Retry logic (max 10 attempts)
         let retryCount = 0;
-        const maxRetries = 20;
+        const maxRetries = 10;
         const retryInterval = setInterval(() => {
           const success = attemptScroll();
           if (success || retryCount >= maxRetries) {
             clearInterval(retryInterval);
-            // 최대 재시도 후에도 실패하면 하단으로 폴백
+            // Fallback to bottom if scroll to unread fails
             if (!success && retryCount >= maxRetries) {
               messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
               hasInitialScrolledRef.current = true;
+              setIsAtBottom(true);
             }
           }
           retryCount++;
@@ -1394,9 +1354,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
         return () => clearInterval(retryInterval);
       } else {
-        // unread가 로드 완료되었고 firstUnreadMessageId가 null이면 하단으로 스크롤
-        messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
-        hasInitialScrolledRef.current = true;
+        // No unread messages - scroll to bottom (default behavior)
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
+          hasInitialScrolledRef.current = true;
+          setIsAtBottom(true);
+        }, 100);
       }
     }
   }, [messages, isLoading, firstUnreadMessageId, unreadSettled]);
@@ -1591,16 +1554,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
 
 
-  // 채팅방 변경 시 임시 메시지 복원
+  // 채팅방 변경 시 임시 메시지 복원 및 상태 초기화
   useEffect(() => {
     // 새 채팅방의 임시 메시지 불러오기
     const draftMessage = loadDraftMessage(chatRoomId);
     setMessage(draftMessage);
     
-    // 채팅방 변경 시 초기 로드 플래그 리셋
-    setIsInitialLoad(true);
-    hasScrolledManually.current = false;
-    setShouldAutoScroll(true);
+    // 상태 초기화
+    setIsAtBottom(true);
+    setUnreadNewMessages(0);
   }, [chatRoomId]);
 
   const handleSendMessage = () => {
@@ -5432,7 +5394,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           className="absolute bottom-32 left-1/2 transform -translate-x-1/2 z-40 cursor-pointer"
           onClick={() => {
             setUnreadNewMessages(0);
-            setShouldAutoScroll(true);
             setIsAtBottom(true);
             scrollToBottom('smooth');
           }}
@@ -5450,10 +5411,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       )}
 
       {/* Floating Scroll to Bottom Button */}
-      {!shouldAutoScroll && unreadNewMessages === 0 && (
+      {!isAtBottom && unreadNewMessages === 0 && (
         <button
           onClick={() => {
-            setShouldAutoScroll(true);
             scrollToBottom('smooth');
           }}
           className="fixed bottom-24 right-6 z-40 bg-purple-500 hover:bg-purple-600 text-white rounded-full p-3 shadow-lg transition-all duration-200 transform hover:scale-105"
