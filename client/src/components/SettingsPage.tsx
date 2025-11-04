@@ -10,12 +10,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
 import { ImageCropper } from "@/components/ImageCropper";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Camera, User, LogOut, Building2, Moon, Sun, Check, X, Loader2, CreditCard, Plus, Edit, Trash2, Briefcase, Share2, Volume2, Headphones } from "lucide-react";
+import { Camera, User, LogOut, Building2, Moon, Sun, Check, X, Loader2, CreditCard, Plus, Edit, Trash2, Briefcase, Share2, Volume2, Headphones, HardDrive, Trash } from "lucide-react";
 import BusinessCard from "./BusinessCard";
 import BusinessProfile from "./BusinessProfile";
 import { Switch } from "@/components/ui/switch";
 import { getInitials } from "@/lib/utils";
 import VaultLogo from "./VaultLogo";
+import { useFileCache, formatBytes } from "@/hooks/useFileCache";
 
 interface SettingsPageProps {
   isMobile?: boolean;
@@ -24,6 +25,7 @@ interface SettingsPageProps {
 export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
   const { user, setUser } = useAuth();
   const queryClient = useQueryClient();
+  const { stats, refreshStats, clearCache } = useFileCache();
   const [displayName, setDisplayName] = useState(user?.displayName || "");
   const [username, setUsername] = useState(user?.username || "");
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
@@ -598,6 +600,53 @@ export default function SettingsPage({ isMobile = false }: SettingsPageProps) {
                 className="data-[state=checked]:bg-green-600 transition-all duration-200 hover:scale-110 active:scale-95"
                 disabled={updateVoiceSettingsMutation.isPending || !hasEarphones}
               />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Storage & Cache Management */}
+        <Card className="w-full transition-all duration-200 hover:shadow-md active:scale-[0.98]">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center space-x-2 text-sm">
+              <HardDrive className="h-4 w-4 text-orange-600" />
+              <span>저장공간 관리</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <Label className="text-sm font-medium">캐시된 파일</Label>
+                <span className="text-sm font-semibold text-orange-600">
+                  {formatBytes(stats.totalSize)}
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                음성 메시지, 이미지 {stats.fileCount}개가 기기에 저장되어 있습니다
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  onClick={refreshStats}
+                  variant="outline"
+                  className="flex-1 h-8 text-xs"
+                  size="sm"
+                >
+                  <HardDrive className="h-3 w-3 mr-1" />
+                  새로고침
+                </Button>
+                <Button
+                  onClick={async () => {
+                    if (confirm('모든 캐시된 파일을 삭제하시겠습니까? 다시 다운로드하게 됩니다.')) {
+                      await clearCache();
+                    }
+                  }}
+                  variant="outline"
+                  className="flex-1 h-8 text-xs text-red-600 border-red-200"
+                  size="sm"
+                >
+                  <Trash className="h-3 w-3 mr-1" />
+                  캐시 정리
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

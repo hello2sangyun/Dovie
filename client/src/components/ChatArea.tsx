@@ -47,6 +47,7 @@ import {
 import { uploadFileWithProgress, UploadProgress } from "@/lib/uploadUtils";
 import { FileUploadProgress } from "./FileUploadProgress";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
+import { useFileCache } from "@/hooks/useFileCache";
 
 interface ChatAreaProps {
   chatRoomId: number;
@@ -69,14 +70,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   
   // Use the isLocationChat prop directly
   const isLocationChatRoom = isLocationChat || false;
-  
-  // Debug logging
-  console.log('ChatArea rendered:', {
-    chatRoomId,
-    isLocationChat,
-    isLocationChatRoom,
-    showMobileHeader
-  });
 
   // 모바일 키보드 숨기기 유틸리티 함수
   const hideMobileKeyboard = () => {
@@ -107,6 +100,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   const queryClient = useQueryClient();
   const [message, setMessage] = useState("");
+  
+  // 파일 캐싱 훅
+  const { getFile } = useFileCache();
   
   // Typing indicator and accessibility
   const { typingUsers, addTypingUser, removeTypingUser, clearAllTyping } = useTypingIndicator();
@@ -1498,21 +1494,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
   }, [messages]);
 
-  // 폭탄 메시지 타이머 관리 - 디버깅 버전
+  // 폭탄 메시지 타이머 관리
   useEffect(() => {
-    console.log("🔍 Timer effect triggered, messages:", messages.length);
-    
     const boomMessages = messages.filter((msg: any) => {
-      const isBoom = msg.messageType === "boom";
-      const hasExpiry = msg.expiresAt;
-      const notExploded = !explodedMessages.has(msg.id);
-      
-      console.log(`📧 Message ${msg.id}: type=${msg.messageType}, isBoom=${isBoom}, hasExpiry=${hasExpiry}, notExploded=${notExploded}`);
-      
-      return isBoom && hasExpiry && notExploded;
+      return msg.messageType === "boom" && msg.expiresAt && !explodedMessages.has(msg.id);
     });
-
-    console.log("💣 Found boom messages:", boomMessages.length);
 
     const timers: {[key: number]: NodeJS.Timeout} = {};
 
@@ -1521,28 +1507,19 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       const now = Date.now();
       const timeLeft = Math.max(0, Math.ceil((expiresAt - now) / 1000));
 
-      console.log(`⏰ Message ${msg.id}: expiresAt=${msg.expiresAt}, now=${new Date().toISOString()}, timeLeft=${timeLeft}s`);
-
       if (timeLeft > 0) {
         // 즉시 타이머 상태 설정
-        setMessageTimers(prev => {
-          console.log(`🔄 Setting timer for message ${msg.id}: ${timeLeft}s`);
-          return { ...prev, [msg.id]: timeLeft };
-        });
+        setMessageTimers(prev => ({ ...prev, [msg.id]: timeLeft }));
         
         // 1초마다 타이머 업데이트
         timers[msg.id] = setInterval(() => {
           setMessageTimers(prev => {
             const currentTime = Math.max(0, (prev[msg.id] || 0) - 1);
             
-            console.log(`⏱️ Timer update for message ${msg.id}: ${currentTime}s remaining`);
-            
             if (currentTime <= 0) {
-              console.log(`💥 BOOM! Message ${msg.id} exploded!`);
               // 폭발!
               setExplodedMessages(prevExploded => {
                 const newExploded = [...Array.from(prevExploded), msg.id];
-                console.log(`💥 Updated exploded messages:`, newExploded);
                 return new Set(newExploded);
               });
               clearInterval(timers[msg.id]);
@@ -1553,7 +1530,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           });
         }, 1000);
       } else {
-        console.log(`💥 Message ${msg.id} already expired, marking as exploded`);
         // 이미 만료된 메시지
         setExplodedMessages(prev => {
           const newExploded = [...Array.from(prev), msg.id];
@@ -1563,7 +1539,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     });
 
     return () => {
-      console.log("🧹 Cleaning up timers");
       Object.values(timers).forEach(timer => clearInterval(timer));
     };
   }, [messages, explodedMessages]);
@@ -2195,7 +2170,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         
         // 실제 음성 파일이 있으면 재생
         if (audioUrl) {
-          const audio = new Audio(audioUrl);
+          // 캐시에서 파일 가져오기 (없으면 다운로드 후 캐시)
+          const cachedUrl = await getFile(audioUrl);
+          
+          const audio = new Audio(cachedUrl);
           audioRef.current = audio;
           
           audio.onended = () => {
