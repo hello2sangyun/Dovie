@@ -191,11 +191,10 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
   };
 
   // 길게 누르기 끝
-  const handleLongPressEnd = (e?: React.TouchEvent | React.MouseEvent) => {
+  const handleLongPressEnd = (e: React.TouchEvent | React.MouseEvent, chatRoomId: number) => {
     // iOS에서 길게 누르기가 작동하도록 preventDefault 추가
-    if (e) {
-      e.preventDefault();
-    }
+    e.preventDefault();
+    const wasShortPress = longPressTimer !== null;
     
     if (longPressTimer) {
       clearTimeout(longPressTimer);
@@ -203,8 +202,15 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     }
     
     if (isRecording) {
+      // 녹음 중이었다면 click 이벤트 차단하고 녹음 중지
+      e.stopPropagation();
       stopVoiceRecording();
+    } else if (wasShortPress) {
+      // 짧게 클릭한 경우 (800ms 이내) - 채팅방으로 이동
+      onSelectChat(chatRoomId);
     }
+    
+    setRecordingChatRoom(null);
   };
 
   // 음성 녹음 시작
@@ -882,12 +888,12 @@ function ChatRoomItem({
       }}
       onMouseUp={(e) => {
         if (!isMultiSelectMode && onLongPressEnd) {
-          onLongPressEnd(e);
+          onLongPressEnd(e, chatRoom.id);
         }
       }}
       onMouseLeave={(e) => {
         if (!isMultiSelectMode && onLongPressEnd) {
-          onLongPressEnd(e);
+          onLongPressEnd(e, chatRoom.id);
         }
       }}
       onTouchStart={(e) => {
@@ -897,7 +903,7 @@ function ChatRoomItem({
       }}
       onTouchEnd={(e) => {
         if (!isMultiSelectMode && onLongPressEnd) {
-          onLongPressEnd(e);
+          onLongPressEnd(e, chatRoom.id);
         }
       }}
     >
