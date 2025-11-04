@@ -2897,6 +2897,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Notification Settings API
+  app.get("/api/notification-settings", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const settings = await storage.getNotificationSettings(Number(userId));
+      res.json(settings || {});
+    } catch (error) {
+      console.error("Failed to get notification settings:", error);
+      res.status(500).json({ message: "Failed to get notification settings" });
+    }
+  });
+
+  app.post("/api/notification-settings", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const settings = await storage.upsertNotificationSettings(Number(userId), req.body);
+      res.json({ success: true, settings, message: "알림 설정이 저장되었습니다." });
+    } catch (error) {
+      console.error("Failed to save notification settings:", error);
+      res.status(500).json({ message: "Failed to save notification settings" });
+    }
+  });
+
   // Bulk delete commands endpoint
   app.post("/api/commands/bulk-delete", async (req, res) => {
     try {
