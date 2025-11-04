@@ -49,7 +49,12 @@ export function useNativeBadgeManager() {
           console.log(`✅ Native badge count set to ${totalUnread}`);
         })
         .catch((error) => {
-          console.error('❌ Failed to set native badge count:', error);
+          // UNIMPLEMENTED means the API isn't available - this is OK, APNS will handle badges
+          if (error?.code === 'UNIMPLEMENTED') {
+            console.log('ℹ️  Badge API not implemented - relying on APNS for badge management');
+          } else {
+            console.error('❌ Failed to set native badge count:', error);
+          }
         });
     }
   }, [user, unreadData, isNativePlatform]);
@@ -61,7 +66,11 @@ export function useNativeBadgeManager() {
       lastBadgeCountRef.current = 0;
       
       PushNotifications.setBadgeCount({ count: 0 })
-        .catch(console.error);
+        .catch((error) => {
+          if (error?.code !== 'UNIMPLEMENTED') {
+            console.error('❌ Failed to clear badge on logout:', error);
+          }
+        });
     }
   }, [user, isNativePlatform]);
 
@@ -78,7 +87,11 @@ export function useNativeBadgeManager() {
         lastBadgeCountRef.current = totalUnread;
         
         PushNotifications.setBadgeCount({ count: totalUnread })
-          .catch(console.error);
+          .catch((error) => {
+            if (error?.code !== 'UNIMPLEMENTED') {
+              console.error('❌ Failed to sync badge on foreground:', error);
+            }
+          });
       }
     }
   }, [appState, unreadData, isNativePlatform]);
@@ -93,7 +106,11 @@ export function useNativeBadgeManager() {
       
       lastBadgeCountRef.current = totalUnread;
       PushNotifications.setBadgeCount({ count: totalUnread })
-        .catch(console.error);
+        .catch((error) => {
+          if (error?.code !== 'UNIMPLEMENTED') {
+            console.error('❌ Failed to sync badge via event:', error);
+          }
+        });
     };
 
     window.addEventListener('native-badge-sync' as any, handleBadgeSync);
@@ -118,8 +135,10 @@ export function useNativeBadgeManager() {
         await PushNotifications.setBadgeCount({ count });
         lastBadgeCountRef.current = count;
         console.log(`✅ Badge manually set to ${count}`);
-      } catch (error) {
-        console.error('❌ Failed to manually set badge:', error);
+      } catch (error: any) {
+        if (error?.code !== 'UNIMPLEMENTED') {
+          console.error('❌ Failed to manually set badge:', error);
+        }
       }
     },
     clearBadge: async () => {
@@ -129,8 +148,10 @@ export function useNativeBadgeManager() {
         await PushNotifications.setBadgeCount({ count: 0 });
         lastBadgeCountRef.current = 0;
         console.log('✅ Badge cleared');
-      } catch (error) {
-        console.error('❌ Failed to clear badge:', error);
+      } catch (error: any) {
+        if (error?.code !== 'UNIMPLEMENTED') {
+          console.error('❌ Failed to clear badge:', error);
+        }
       }
     }
   };
