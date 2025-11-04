@@ -22,15 +22,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [initialized, setInitialized] = useState(false);
   const [profileImagesLoaded, setProfileImagesLoaded] = useState(false);
   const [isPreloadingImages, setIsPreloadingImages] = useState(false);
+  const [storedUserId, setStoredUserId] = useState(() => localStorage.getItem("userId"));
 
   // PWAPushManager가 처리하므로 간소화됨
   const autoEnablePushNotifications = async (userId?: number) => {
     console.log('PWAPushManager가 푸시 알림을 처리합니다.');
     return;
   };
-
-  // Try to get user from localStorage on app start
-  const storedUserId = localStorage.getItem("userId");
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["/api/auth/me"],
@@ -202,6 +200,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       localStorage.removeItem("userId");
       localStorage.removeItem("rememberLogin");
+      setStoredUserId(null);
       setInitialized(true);
       setProfileImagesLoaded(true);
       setIsPreloadingImages(false);
@@ -245,6 +244,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("userId", data.user.id.toString());
     localStorage.setItem("rememberLogin", "true");
     localStorage.setItem("lastLoginTime", Date.now().toString());
+    setStoredUserId(data.user.id.toString());
     
     console.log("✅ 자동 로그인이 설정되었습니다");
     
@@ -276,6 +276,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("userId", data.user.id.toString());
     localStorage.setItem("rememberLogin", "true");
     localStorage.setItem("lastLoginTime", Date.now().toString());
+    setStoredUserId(data.user.id.toString());
     
     console.log("✅ 자동 로그인이 설정되었습니다");
     
@@ -301,6 +302,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem("rememberLogin");
       localStorage.removeItem("lastLoginTime");
       setUser(null);
+      setStoredUserId(null);
       setInitialized(false);
       setProfileImagesLoaded(false);
       setIsPreloadingImages(false);
