@@ -1354,12 +1354,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
         return () => clearInterval(retryInterval);
       } else {
-        // No unread messages - scroll to bottom (default behavior)
-        setTimeout(() => {
+        // No unread messages - scroll to bottom immediately (default behavior)
+        requestAnimationFrame(() => {
           messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
           hasInitialScrolledRef.current = true;
           setIsAtBottom(true);
-        }, 100);
+        });
       }
     }
   }, [messages, isLoading, firstUnreadMessageId, unreadSettled]);
