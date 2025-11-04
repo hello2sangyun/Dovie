@@ -3949,6 +3949,19 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         </div>
       )}
 
+      {/* Initial Loading Overlay - Covers flicker during scroll */}
+      {!hasInitialScrolledRef.current && messages.length > 0 && (
+        <div className="absolute inset-0 bg-white dark:bg-gray-900 z-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-12 h-12 mx-auto mb-3 relative">
+              <div className="absolute inset-0 border-4 border-purple-200 dark:border-purple-800 rounded-full"></div>
+              <div className="absolute inset-0 border-4 border-purple-500 dark:border-purple-400 rounded-full border-t-transparent animate-spin"></div>
+            </div>
+            <p className="text-base font-medium text-gray-700 dark:text-gray-200">대화 내용 불러오는 중...</p>
+          </div>
+        </div>
+      )}
+
       {/* Clean Chat Header */}
       <div className={cn(
         "flex-shrink-0 sticky top-0 z-10 bg-white border-b border-slate-200",
