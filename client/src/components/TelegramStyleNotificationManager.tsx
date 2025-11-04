@@ -22,7 +22,9 @@ export function TelegramStyleNotificationManager({ className }: TelegramStyleNot
     const updateActivity = () => {
       lastActivityRef.current = Date.now();
       isActiveRef.current = true;
-      // Heartbeat is sent by the interval timer, not on every activity event
+      
+      // Send activity heartbeat to server (like WhatsApp online status)
+      sendActivityHeartbeat();
     };
 
     // Activity event listeners
