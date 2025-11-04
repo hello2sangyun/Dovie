@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -42,6 +42,7 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
   // 스크롤 감지 - useRef로 동기적 처리
   const touchStartYRef = useRef<number>(0);
   const isScrollingRef = useRef<boolean>(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   
   // Voice Confirm Modal 상태
   const [showVoiceConfirmModal, setShowVoiceConfirmModal] = useState(false);
@@ -265,16 +266,35 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
     }
   };
 
+  // 스크롤 컨테이너에서 scroll 이벤트 감지
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    
+    const handleScroll = () => {
+      // 스크롤이 시작되면 즉시 모든 터치 동작 취소
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+        console.log('📜 스크롤 감지 - 터치 동작 취소');
+      }
+      isScrollingRef.current = true;
+    };
+    
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
+
   // 길게 누르기 시작
   const handleLongPressStart = (contact: any, e: React.TouchEvent | React.MouseEvent) => {
-    // iOS에서 길게 누르기가 작동하도록 preventDefault 추가
-    if (e) {
+    // 녹음 중이 아닐 때는 preventDefault 하지 않음 (네이티브 스크롤 허용)
+    if (e && isRecording) {
       e.preventDefault();
-      
-      // 터치 이벤트일 경우 시작 Y 좌표 저장 (동기적)
-      if ('touches' in e) {
-        touchStartYRef.current = e.touches[0].clientY;
-      }
+    }
+    
+    // 터치 이벤트일 경우 시작 Y 좌표 저장 (동기적)
+    if (e && 'touches' in e) {
+      touchStartYRef.current = e.touches[0].clientY;
     }
     
     console.log('🎯 친구 간편음성메세지 - 길게 누르기 시작:', contact.contactUser.displayName);
@@ -314,10 +334,26 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
     }
   };
 
+  // 터치 취소 감지 (브라우저가 스크롤을 시작할 때 호출됨)
+  const handleTouchCancel = () => {
+    console.log('🚫 touchcancel - 터치 동작 취소');
+    
+    // 타이머 즉시 취소
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    
+    isScrollingRef.current = true;
+  };
+
   // 길게 누르기 끝
   const handleLongPressEnd = (e: React.TouchEvent | React.MouseEvent, contactUserId: number) => {
-    // iOS에서 길게 누르기가 작동하도록 preventDefault 추가
-    e.preventDefault();
+    // 녹음 중일 때만 preventDefault (스크롤 허용)
+    if (isRecording && e) {
+      e.preventDefault();
+    }
+    
     const wasShortPress = longPressTimerRef.current !== null;
     
     // 타이머 취소 (동기적)
@@ -328,7 +364,7 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
     
     if (isRecording) {
       // 녹음 중이었다면 click 이벤트 차단하고 녹음 중지
-      e.stopPropagation();
+      if (e) e.stopPropagation();
       stopVoiceRecording();
     } else if (wasShortPress && !isScrollingRef.current) {
       // 짧게 클릭한 경우 (800ms 이내) AND 스크롤이 아닐 때만 - 채팅방으로 이동
@@ -337,9 +373,11 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
     
     setRecordingContact(null);
     
-    // 스크롤 감지 초기화 (동기적)
-    isScrollingRef.current = false;
-    touchStartYRef.current = 0;
+    // 스크롤 감지 초기화 (동기적) - 약간의 지연으로 스크롤 상태 유지
+    setTimeout(() => {
+      isScrollingRef.current = false;
+      touchStartYRef.current = 0;
+    }, 100);
   };
 
   // 컨텍스트 메뉴 차단 (길게 누르기 시 나타나는 이미지 확대 메뉴)
@@ -638,6 +676,7 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
                     )}
                     onTouchStart={(e) => handleLongPressStart(contact, e)}
                     onTouchMove={(e) => handleTouchMove(e)}
+                    onTouchCancel={() => handleTouchCancel()}
                     onTouchEnd={(e) => handleLongPressEnd(e, contact.contactUserId)}
                     onMouseDown={(e) => handleLongPressStart(contact, e)}
                     onMouseUp={(e) => handleLongPressEnd(e, contact.contactUserId)}
@@ -680,7 +719,7 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto max-h-[calc(100vh-240px)] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 pb-20">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto max-h-[calc(100vh-240px)] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 pb-20">
         {filteredAndSortedContacts.length === 0 ? (
           <div className="p-3 text-center text-gray-500 text-sm">
             {searchTerm ? "검색 결과가 없습니다" : "연락처가 없습니다"}
@@ -702,6 +741,7 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
                   className="cursor-pointer flex-1 flex items-center space-x-2 select-none"
                   onTouchStart={(e) => handleLongPressStart(contact, e)}
                   onTouchMove={(e) => handleTouchMove(e)}
+                  onTouchCancel={() => handleTouchCancel()}
                   onTouchEnd={(e) => handleLongPressEnd(e, contact.contactUserId)}
                   onMouseDown={(e) => handleLongPressStart(contact, e)}
                   onMouseUp={(e) => handleLongPressEnd(e, contact.contactUserId)}

@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -50,6 +50,7 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
   // 스크롤 감지 - useRef로 동기적 업데이트
   const touchStartYRef = useRef<number>(0);
   const isScrollingRef = useRef<boolean>(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   
   // Voice Confirm Modal 상태
   const [showVoiceConfirmModal, setShowVoiceConfirmModal] = useState(false);
@@ -179,16 +180,35 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     setSelectedRoomIds([]);
   };
 
+  // 스크롤 컨테이너에서 scroll 이벤트 감지
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    
+    const handleScroll = () => {
+      // 스크롤이 시작되면 즉시 모든 터치 동작 취소
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+        console.log('📜 스크롤 감지 - 터치 동작 취소');
+      }
+      isScrollingRef.current = true;
+    };
+    
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
+
   // 길게 누르기 시작
   const handleLongPressStart = (chatRoom: any, e?: React.TouchEvent | React.MouseEvent) => {
-    // iOS에서 길게 누르기가 작동하도록 preventDefault 추가
-    if (e) {
+    // 녹음 중이 아닐 때는 preventDefault 하지 않음 (네이티브 스크롤 허용)
+    if (e && isRecording) {
       e.preventDefault();
-      
-      // 터치 이벤트일 경우 시작 Y 좌표 저장 (동기적)
-      if ('touches' in e) {
-        touchStartYRef.current = e.touches[0].clientY;
-      }
+    }
+    
+    // 터치 이벤트일 경우 시작 Y 좌표 저장 (동기적)
+    if (e && 'touches' in e) {
+      touchStartYRef.current = e.touches[0].clientY;
     }
     
     console.log('🎯 채팅방 간편음성메세지 - 길게 누르기 시작:', getChatRoomDisplayName(chatRoom));
@@ -227,10 +247,26 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     }
   };
 
+  // 터치 취소 감지 (브라우저가 스크롤을 시작할 때 호출됨)
+  const handleTouchCancel = () => {
+    console.log('🚫 touchcancel - 터치 동작 취소');
+    
+    // 타이머 즉시 취소
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    
+    isScrollingRef.current = true;
+  };
+
   // 길게 누르기 끝
   const handleLongPressEnd = (e: React.TouchEvent | React.MouseEvent, chatRoomId: number) => {
-    // iOS에서 길게 누르기가 작동하도록 preventDefault 추가
-    e.preventDefault();
+    // 녹음 중일 때만 preventDefault (스크롤 허용)
+    if (isRecording && e) {
+      e.preventDefault();
+    }
+    
     const wasShortPress = longPressTimerRef.current !== null;
     
     // 타이머 취소 (동기적)
@@ -241,7 +277,7 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     
     if (isRecording) {
       // 녹음 중이었다면 click 이벤트 차단하고 녹음 중지
-      e.stopPropagation();
+      if (e) e.stopPropagation();
       stopVoiceRecording();
     } else if (wasShortPress && !isScrollingRef.current) {
       // 짧게 클릭한 경우 (800ms 이내) AND 스크롤이 아닐 때만 - 채팅방으로 이동
@@ -250,9 +286,11 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     
     setRecordingChatRoom(null);
     
-    // 스크롤 감지 초기화 (동기적)
-    isScrollingRef.current = false;
-    touchStartYRef.current = 0;
+    // 스크롤 감지 초기화 (동기적) - 약간의 지연으로 스크롤 상태 유지
+    setTimeout(() => {
+      isScrollingRef.current = false;
+      touchStartYRef.current = 0;
+    }, 100);
   };
 
   // 음성 녹음 시작
@@ -705,7 +743,7 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto max-h-[calc(100vh-280px)] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto max-h-[calc(100vh-280px)] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
         {pinnedChats.length > 0 && (
           <>
             <div className="p-3 bg-gray-50">
@@ -950,6 +988,11 @@ function ChatRoomItem({
       onTouchMove={(e) => {
         if (!isMultiSelectMode) {
           handleTouchMove(e);
+        }
+      }}
+      onTouchCancel={() => {
+        if (!isMultiSelectMode) {
+          handleTouchCancel();
         }
       }}
       onTouchEnd={(e) => {
