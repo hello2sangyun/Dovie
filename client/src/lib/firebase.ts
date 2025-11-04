@@ -4,12 +4,13 @@ import {
   GoogleAuthProvider, 
   OAuthProvider,
   signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
+  signInWithCredential,
+  GoogleAuthProvider as GoogleAuthProviderClass,
   signOut as firebaseSignOut,
   type User as FirebaseUser
 } from 'firebase/auth';
 import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -36,17 +37,54 @@ export interface SocialLoginResult {
   idToken: string;
 }
 
+// Store pending auth callback for Capacitor Browser flow
+let pendingAuthCallback: ((result: SocialLoginResult | null) => void) | null = null;
+
+// Called by App.tsx when auth callback URL is received
+export function handleAuthCallback(idToken: string | null) {
+  if (pendingAuthCallback) {
+    if (idToken) {
+      pendingAuthCallback({ idToken });
+    } else {
+      pendingAuthCallback(null);
+    }
+    pendingAuthCallback = null;
+  }
+}
+
 export async function signInWithGoogle(): Promise<SocialLoginResult> {
   try {
     const isNative = Capacitor.isNativePlatform();
     
     if (isNative) {
-      // iOS/Android: Use redirect flow
-      console.log('📱 Using signInWithRedirect for native platform');
-      await signInWithRedirect(auth, googleProvider);
+      // iOS/Android: Open Google OAuth in actual Safari browser
+      console.log('📱 Using Capacitor Browser for native Google OAuth');
       
-      // Redirect happens here, result will be handled on app resume
-      throw new Error('REDIRECT_IN_PROGRESS');
+      // Open server OAuth endpoint in Safari
+      const baseUrl = window.location.origin;
+      const authUrl = `${baseUrl}/api/auth/google/start`;
+      
+      await Browser.open({ url: authUrl });
+      
+      // Return a promise that will be resolved by the callback handler
+      return new Promise((resolve, reject) => {
+        pendingAuthCallback = (result) => {
+          if (result) {
+            console.log('✅ Google auth callback received');
+            resolve(result);
+          } else {
+            reject(new Error('Google 로그인이 취소되었습니다.'));
+          }
+        };
+        
+        // Timeout after 5 minutes
+        setTimeout(() => {
+          if (pendingAuthCallback) {
+            pendingAuthCallback = null;
+            reject(new Error('Google 로그인 시간이 초과되었습니다.'));
+          }
+        }, 5 * 60 * 1000);
+      });
     } else {
       // Web: Use popup flow
       console.log('🌐 Using signInWithPopup for web platform');
@@ -60,32 +98,8 @@ export async function signInWithGoogle(): Promise<SocialLoginResult> {
       };
     }
   } catch (error: any) {
-    if (error.message === 'REDIRECT_IN_PROGRESS') {
-      throw error;
-    }
     console.error('Google sign in error:', error);
     throw new Error(error.message || 'Google 로그인에 실패했습니다.');
-  }
-}
-
-// Check for redirect result when app resumes
-export async function checkRedirectResult(): Promise<SocialLoginResult | null> {
-  try {
-    const result = await getRedirectResult(auth);
-    
-    if (result && result.user) {
-      console.log('✅ Redirect result found:', result.user.email);
-      const idToken = await result.user.getIdToken();
-      
-      return {
-        idToken,
-      };
-    }
-    
-    return null;
-  } catch (error: any) {
-    console.error('Redirect result error:', error);
-    return null;
   }
 }
 
@@ -94,12 +108,34 @@ export async function signInWithApple(): Promise<SocialLoginResult> {
     const isNative = Capacitor.isNativePlatform();
     
     if (isNative) {
-      // iOS/Android: Use redirect flow
-      console.log('📱 Using signInWithRedirect for native platform');
-      await signInWithRedirect(auth, appleProvider);
+      // iOS/Android: Open Apple OAuth in actual Safari browser
+      console.log('📱 Using Capacitor Browser for native Apple OAuth');
       
-      // Redirect happens here, result will be handled on app resume
-      throw new Error('REDIRECT_IN_PROGRESS');
+      // Open server OAuth endpoint in Safari
+      const baseUrl = window.location.origin;
+      const authUrl = `${baseUrl}/api/auth/apple/start`;
+      
+      await Browser.open({ url: authUrl });
+      
+      // Return a promise that will be resolved by the callback handler
+      return new Promise((resolve, reject) => {
+        pendingAuthCallback = (result) => {
+          if (result) {
+            console.log('✅ Apple auth callback received');
+            resolve(result);
+          } else {
+            reject(new Error('Apple 로그인이 취소되었습니다.'));
+          }
+        };
+        
+        // Timeout after 5 minutes
+        setTimeout(() => {
+          if (pendingAuthCallback) {
+            pendingAuthCallback = null;
+            reject(new Error('Apple 로그인 시간이 초과되었습니다.'));
+          }
+        }, 5 * 60 * 1000);
+      });
     } else {
       // Web: Use popup flow
       console.log('🌐 Using signInWithPopup for web platform');
@@ -113,9 +149,6 @@ export async function signInWithApple(): Promise<SocialLoginResult> {
       };
     }
   } catch (error: any) {
-    if (error.message === 'REDIRECT_IN_PROGRESS') {
-      throw error;
-    }
     console.error('Apple sign in error:', error);
     throw new Error(error.message || 'Apple 로그인에 실패했습니다.');
   }
