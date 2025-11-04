@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMobileNotification } from "./useMobileNotification";
 import { useAuth } from "./useAuth";
+import { useAppState } from "./useAppState";
 
 interface PendingMessage {
   id: string;
@@ -26,6 +27,8 @@ export function useWebSocket(userId?: number) {
   const pendingMessages = useRef<Map<string, PendingMessage>>(new Map());
   const { showNotification } = useMobileNotification();
   const { user } = useAuth();
+  const appState = useAppState();
+  const shouldBeConnectedRef = useRef(true);
   
   const [connectionState, setConnectionState] = useState<ConnectionState>({
     isConnected: false,
@@ -102,10 +105,18 @@ export function useWebSocket(userId?: number) {
     }
   };
 
+  // Background-aware connection management - store connect function in ref
+  const connectRef = useRef<(() => void) | null>(null);
+
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || !shouldBeConnectedRef.current) return;
 
     const connect = () => {
+      if (!shouldBeConnectedRef.current) {
+        console.log('📱 Skipping connection - app in background');
+        return;
+      }
+
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
       // Always use window.location.host for Replit cloud environment
       const wsUrl = `${protocol}//${window.location.host}/ws`;
@@ -262,6 +273,12 @@ export function useWebSocket(userId?: number) {
           isReconnecting: false
         }));
         
+        // Don't reconnect if app is in background or connection closed intentionally
+        if (!shouldBeConnectedRef.current) {
+          console.log('📱 Not reconnecting - app in background or intentionally closed');
+          return;
+        }
+        
         // Attempt to reconnect after a delay if the connection wasn't closed intentionally
         if (event.code !== 1000 && userId) {
           const currentAttempts = connectionState.reconnectAttempts + 1;
@@ -286,7 +303,7 @@ export function useWebSocket(userId?: number) {
           }
           
           reconnectTimeoutRef.current = setTimeout(() => {
-            if (userId) {
+            if (userId && shouldBeConnectedRef.current) {
               console.log(`Attempting to reconnect WebSocket (attempt ${currentAttempts})...`);
               connect();
             }
@@ -313,6 +330,9 @@ export function useWebSocket(userId?: number) {
       };
     };
 
+    // Store connect function in ref for background/foreground handling
+    connectRef.current = connect;
+
     connect();
 
     // Cleanup function
@@ -326,6 +346,44 @@ export function useWebSocket(userId?: number) {
       }
     };
   }, [userId, queryClient]);
+
+  // Handle app background/foreground transitions
+  useEffect(() => {
+    if (appState === 'background') {
+      console.log('📱 App backgrounded - closing WebSocket to save battery');
+      
+      // Always mark as should-not-connect regardless of current socket state
+      shouldBeConnectedRef.current = false;
+      
+      // Close socket if it exists in any active state
+      if (wsRef.current) {
+        const state = wsRef.current.readyState;
+        if (state === WebSocket.OPEN || state === WebSocket.CONNECTING) {
+          wsRef.current.close(1000, 'App backgrounded');
+        }
+      }
+      
+      // Clear any pending reconnect timers
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = undefined;
+      }
+    } else if (appState === 'active' && userId) {
+      // Always attempt to reconnect on foreground if user is logged in
+      if (!shouldBeConnectedRef.current) {
+        console.log('📱 App foregrounded - reconnecting WebSocket');
+        shouldBeConnectedRef.current = true;
+        
+        // Small delay to ensure app is fully active
+        setTimeout(() => {
+          if (shouldBeConnectedRef.current && appState === 'active' && connectRef.current) {
+            console.log('📱 Calling connect() after foreground transition');
+            connectRef.current();
+          }
+        }, 100);
+      }
+    }
+  }, [appState, userId]);
 
   // Smart message sending with retry mechanism
   const sendMessage = (message: any, options: { maxRetries?: number, priority?: 'high' | 'normal' | 'low' } = {}) => {

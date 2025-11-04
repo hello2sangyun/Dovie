@@ -1,7 +1,8 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Send, Mic, Square } from 'lucide-react';
 import { InteractiveButton, PulseNotification } from './MicroInteractions';
 import { useMicrophonePermission } from '../hooks/useMicrophonePermission';
+import { useAppState } from '../hooks/useAppState';
 
 interface UnifiedSendButtonProps {
   onSendMessage: () => void;
@@ -32,6 +33,15 @@ export function UnifiedSendButton({
   const isLongPressRef = useRef(false);
   
   const { hasPermission, requestPermission, getStream } = useMicrophonePermission();
+  const appState = useAppState();
+
+  // Auto-stop recording when app goes to background
+  useEffect(() => {
+    if (appState === 'background' && isRecording) {
+      console.log('📱 App backgrounded - stopping voice recording to save battery');
+      stopRecording();
+    }
+  }, [appState, isRecording]);
 
   // 녹음 시작
   const startRecording = useCallback(async () => {
