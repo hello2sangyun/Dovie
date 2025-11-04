@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,44 +52,54 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
     quietHours: false,
     quietStart: "22:00",
     quietEnd: "08:00",
+    muteAllNotifications: false,
   });
 
-  // Load settings from localStorage on mount
+  const { data: backendSettings, isLoading } = useQuery({
+    queryKey: ["/api/notification-settings"],
+    enabled: !!user,
+  });
+
   useEffect(() => {
-    if (user) {
-      const savedSettings = localStorage.getItem(LOCALSTORAGE_KEY);
-      if (savedSettings) {
+    if (user && backendSettings) {
+      setSettings(prev => ({
+        ...prev,
+        notificationsEnabled: user.notificationsEnabled ?? true,
+        notificationSound: backendSettings.notificationSound || user.notificationSound || "default",
+        showPreview: backendSettings.showPreview ?? true,
+        quietStart: backendSettings.quietHoursStart || "22:00",
+        quietEnd: backendSettings.quietHoursEnd || "08:00",
+        quietHours: !!(backendSettings.quietHoursStart && backendSettings.quietHoursEnd),
+        muteAllNotifications: backendSettings.muteAllNotifications ?? false,
+      }));
+      
+      const savedLocalSettings = localStorage.getItem(LOCALSTORAGE_KEY);
+      if (savedLocalSettings) {
         try {
-          const parsed: LocalStorageSettings = JSON.parse(savedSettings);
-          setSettings(prev => ({
-            ...prev,
-            notificationsEnabled: user.notificationsEnabled ?? true,
-            notificationSound: user.notificationSound ?? "default",
-            ...parsed,
-          }));
+          const parsed: LocalStorageSettings = JSON.parse(savedLocalSettings);
+          setSettings(prev => ({ ...prev, ...parsed }));
         } catch (error) {
-          console.error("Failed to parse notification settings from localStorage:", error);
+          console.error("Failed to parse local settings:", error);
         }
-      } else {
-        // Initialize with user data from backend
-        setSettings(prev => ({
-          ...prev,
-          notificationsEnabled: user.notificationsEnabled ?? true,
-          notificationSound: user.notificationSound ?? "default",
-        }));
       }
     }
-  }, [user]);
+  }, [user, backendSettings]);
 
   const updateNotificationsMutation = useMutation({
     mutationFn: async (data: typeof settings) => {
-      // Save backend-supported settings
-      const response = await apiRequest("/api/auth/notifications", "PATCH", {
+      await apiRequest("/api/auth/notifications", "PATCH", {
         notificationsEnabled: data.notificationsEnabled,
         notificationSound: data.notificationSound,
       });
       
-      // Save localStorage settings
+      const response = await apiRequest("/api/notification-settings", "POST", {
+        notificationSound: data.notificationSound,
+        showPreview: data.showPreview,
+        quietHoursStart: data.quietHours ? data.quietStart : null,
+        quietHoursEnd: data.quietHours ? data.quietEnd : null,
+        muteAllNotifications: data.muteAllNotifications,
+      });
+      
       const localSettings: LocalStorageSettings = {
         messageNotifications: data.messageNotifications,
         groupNotifications: data.groupNotifications,
@@ -108,6 +118,7 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/notification-settings"] });
       setSaveStatus('success');
       setTimeout(() => setSaveStatus('idle'), 3000);
     },
@@ -191,6 +202,18 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
               />
             </div>
 
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-sm font-medium">모든 알림 음소거</Label>
+                <p className="text-xs text-gray-500">모든 푸시 알림을 완전히 끄기</p>
+              </div>
+              <Switch
+                checked={settings.muteAllNotifications}
+                onCheckedChange={(checked) => handleToggle("muteAllNotifications", checked)}
+                data-testid="switch-mute-all-notifications"
+              />
+            </div>
+
             <div className="space-y-2">
               <Label className="text-sm font-medium flex items-center">
                 <Volume2 className="h-4 w-4 mr-2 text-purple-600" />
@@ -199,7 +222,7 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
               <Select
                 value={settings.notificationSound}
                 onValueChange={(value) => handleSelectChange("notificationSound", value)}
-                disabled={!settings.notificationsEnabled}
+                disabled={!settings.notificationsEnabled || settings.muteAllNotifications}
               >
                 <SelectTrigger data-testid="select-notification-sound">
                   <SelectValue placeholder="알림 소리 선택" />
