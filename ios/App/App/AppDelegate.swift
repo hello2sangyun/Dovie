@@ -1,24 +1,13 @@
 import UIKit
 import Capacitor
 import FirebaseCore
-import GoogleSignIn
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
-    var window: UIWindow?
-
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Firebase 초기화
         FirebaseApp.configure()
-        
-        // Window 연결 (UIScene이 초기화된 후 실행)
-        // FirebaseAuthentication이 rootViewController에 접근하기 위해 필요
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            if self?.window == nil, let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                self?.window = windowScene.windows.first { $0.isKeyWindow }
-            }
-        }
         
         return true
     }
@@ -46,11 +35,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-        // Handle Google Sign-In callback
-        if GIDSignIn.sharedInstance.handle(url) {
-            return true
-        }
-        
         // Called when the app was launched with a url. Feel free to add additional processing here,
         // but if you want the App API to support tracking app url opens, make sure to keep this call
         return ApplicationDelegateProxy.shared.application(app, open: url, options: options)
