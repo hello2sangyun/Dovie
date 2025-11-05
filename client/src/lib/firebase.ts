@@ -60,12 +60,9 @@ export async function signInWithGoogle(): Promise<SocialLoginResult> {
       // iOS/Android: Open Google OAuth in actual Safari browser
       console.log('📱 Using Capacitor Browser for native Google OAuth');
       
-      // Use actual server URL for native platforms
-      // Capacitor apps resolve window.location.origin to capacitor://localhost
-      const baseUrl = import.meta.env.VITE_API_URL || window.location.origin;
+      // Open server OAuth endpoint in Safari
+      const baseUrl = window.location.origin;
       const authUrl = `${baseUrl}/api/auth/google/start`;
-      
-      console.log('📱 Opening OAuth URL:', authUrl);
       
       await Browser.open({ url: authUrl });
       
@@ -114,11 +111,9 @@ export async function signInWithApple(): Promise<SocialLoginResult> {
       // iOS/Android: Open Apple OAuth in actual Safari browser
       console.log('📱 Using Capacitor Browser for native Apple OAuth');
       
-      // Use actual server URL for native platforms
-      const baseUrl = import.meta.env.VITE_API_URL || window.location.origin;
+      // Open server OAuth endpoint in Safari
+      const baseUrl = window.location.origin;
       const authUrl = `${baseUrl}/api/auth/apple/start`;
-      
-      console.log('📱 Opening OAuth URL:', authUrl);
       
       await Browser.open({ url: authUrl });
       

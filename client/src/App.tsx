@@ -20,7 +20,6 @@ import { useEffect } from "react";
 import { App as CapacitorApp } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
 import { handleAuthCallback } from "@/lib/firebase";
-import { useToast } from "@/hooks/use-toast";
 
 function Router() {
   return (
@@ -43,8 +42,6 @@ function Router() {
 }
 
 function App() {
-  const { toast } = useToast();
-
   // Dark mode initialization
   useEffect(() => {
     const savedDarkMode = localStorage.getItem('darkMode');
@@ -71,48 +68,21 @@ function App() {
         console.log('📱 App opened with URL:', event.url);
         
         // Check if this is an auth callback URL
-        // Expected format: dovie://auth?token=FIREBASE_ID_TOKEN or dovie://auth?error=ERROR_CODE
+        // Expected format: dovie://auth?token=FIREBASE_ID_TOKEN
         if (event.url.includes('auth')) {
           try {
             const url = new URL(event.url);
             const token = url.searchParams.get('token');
-            const error = url.searchParams.get('error');
             
-            if (error) {
-              console.error('❌ OAuth error:', error);
-              
-              // Show user-friendly error messages
-              const errorMessages: Record<string, string> = {
-                user_cancelled: '로그인이 취소되었습니다.',
-                invalid_state: '보안 검증 실패. 다시 시도해주세요.',
-                no_code: '인증 코드를 받지 못했습니다.',
-                server_config: '서버 설정 오류. 관리자에게 문의하세요.',
-                token_exchange_failed: 'Google 인증 실패. 다시 시도해주세요.',
-                no_id_token: 'ID 토큰을 받지 못했습니다.',
-                server_error: '서버 오류가 발생했습니다.'
-              };
-              
-              toast({
-                title: "로그인 실패",
-                description: errorMessages[error] || `오류: ${error}`,
-                variant: "destructive",
-              });
-              
-              handleAuthCallback(null);
-            } else if (token) {
+            if (token) {
               console.log('✅ Auth token received from callback');
               handleAuthCallback(token);
             } else {
-              console.log('❌ No token or error in callback URL');
+              console.log('❌ No token in callback URL');
               handleAuthCallback(null);
             }
           } catch (error) {
             console.error('Error parsing auth callback URL:', error);
-            toast({
-              title: "로그인 실패",
-              description: "인증 콜백 처리 중 오류가 발생했습니다.",
-              variant: "destructive",
-            });
             handleAuthCallback(null);
           }
         }
@@ -129,7 +99,7 @@ function App() {
         listenerHandle.remove();
       }
     };
-  }, [toast]);
+  }, []);
 
   // 브라우저 뒤로 가기 버튼 처리 - 로그아웃 대신 페이지 히스토리 기반 네비게이션
   useEffect(() => {

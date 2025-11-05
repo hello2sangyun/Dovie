@@ -10,7 +10,6 @@ import bcrypt from "bcryptjs";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import crypto from "crypto";
 import { encryptFileData, decryptFileData, hashFileName, decryptText } from "./crypto";
 import { processCommand } from "./openai";
 import { db } from "./db";
@@ -20,20 +19,6 @@ import { getVapidPublicKey, sendPushNotification } from "./push-notifications";
 import twilio from "twilio";
 import { z } from "zod";
 import { verifyIdToken, initializeFirebaseAdmin } from "./firebase-admin";
-
-// OAuth state storage (in-memory, expires after 10 minutes)
-const oauthStates = new Map<string, { timestamp: number }>();
-
-// Clean up expired states every 5 minutes
-setInterval(() => {
-  const now = Date.now();
-  const expiry = 10 * 60 * 1000; // 10 minutes
-  for (const [state, data] of oauthStates.entries()) {
-    if (now - data.timestamp > expiry) {
-      oauthStates.delete(state);
-    }
-  }
-}, 5 * 60 * 1000);
 
 // Zod validation schemas
 const updateUserNotificationsSchema = z.object({
@@ -473,121 +458,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Get current user error:", error);
       res.status(500).json({ message: "사용자 정보 조회에 실패했습니다." });
-    }
-  });
-
-  // Google OAuth - 시작 (iOS/Android 네이티브 앱용)
-  app.get("/api/auth/google/start", async (req, res) => {
-    try {
-      const clientId = process.env.GOOGLE_CLIENT_ID;
-      const redirectUri = `${req.protocol}://${req.get('host')}/api/auth/google/callback`;
-      
-      if (!clientId) {
-        return res.status(500).json({ 
-          message: "Google OAuth가 설정되지 않았습니다. GOOGLE_CLIENT_ID 환경 변수를 추가하세요." 
-        });
-      }
-
-      // Generate CSRF state token
-      const state = crypto.randomBytes(32).toString('hex');
-      oauthStates.set(state, { timestamp: Date.now() });
-
-      // Google OAuth authorization URL 생성
-      const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-      authUrl.searchParams.set('client_id', clientId);
-      authUrl.searchParams.set('redirect_uri', redirectUri);
-      authUrl.searchParams.set('response_type', 'code');
-      authUrl.searchParams.set('scope', 'openid email profile');
-      authUrl.searchParams.set('access_type', 'online');
-      authUrl.searchParams.set('prompt', 'select_account');
-      authUrl.searchParams.set('state', state);
-
-      console.log('🔐 Google OAuth 시작:', authUrl.toString());
-      
-      // Google 로그인 페이지로 리다이렉트
-      res.redirect(authUrl.toString());
-    } catch (error) {
-      console.error("Google OAuth start error:", error);
-      res.status(500).json({ message: "Google 인증 시작에 실패했습니다." });
-    }
-  });
-
-  // Google OAuth - 콜백
-  app.get("/api/auth/google/callback", async (req, res) => {
-    try {
-      const { code, error, state } = req.query;
-
-      if (error) {
-        console.error('Google OAuth error:', error);
-        const errorMessage = error === 'access_denied' ? 'user_cancelled' : error as string;
-        return res.redirect(`dovie://auth?error=${encodeURIComponent(errorMessage)}`);
-      }
-
-      // Validate CSRF state
-      if (!state || typeof state !== 'string') {
-        console.error('Missing OAuth state parameter');
-        return res.redirect('dovie://auth?error=invalid_state');
-      }
-
-      const stateData = oauthStates.get(state);
-      if (!stateData) {
-        console.error('Invalid or expired OAuth state:', state);
-        return res.redirect('dovie://auth?error=invalid_state');
-      }
-
-      // Delete state after validation (single-use)
-      oauthStates.delete(state);
-
-      if (!code) {
-        return res.redirect('dovie://auth?error=no_code');
-      }
-
-      const clientId = process.env.GOOGLE_CLIENT_ID;
-      const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-      const redirectUri = `${req.protocol}://${req.get('host')}/api/auth/google/callback`;
-
-      if (!clientId || !clientSecret) {
-        console.error('Missing Google OAuth credentials');
-        return res.redirect('dovie://auth?error=server_config');
-      }
-
-      // Authorization code를 access token으로 교환
-      const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          code: code as string,
-          client_id: clientId,
-          client_secret: clientSecret,
-          redirect_uri: redirectUri,
-          grant_type: 'authorization_code',
-        }),
-      });
-
-      if (!tokenResponse.ok) {
-        const errorData = await tokenResponse.text();
-        console.error('Google token exchange error:', errorData);
-        return res.redirect('dovie://auth?error=token_exchange_failed');
-      }
-
-      const tokenData = await tokenResponse.json();
-      const { id_token } = tokenData;
-
-      if (!id_token) {
-        console.error('No ID token in Google response');
-        return res.redirect('dovie://auth?error=no_id_token');
-      }
-
-      console.log('✅ Google ID token received');
-      
-      // 앱으로 ID token과 함께 리다이렉트
-      // 앱에서 이 token을 /api/auth/social-login으로 전송
-      res.redirect(`dovie://auth?token=${encodeURIComponent(id_token)}`);
-    } catch (error) {
-      console.error("Google OAuth callback error:", error);
-      res.redirect('dovie://auth?error=server_error');
     }
   });
 
