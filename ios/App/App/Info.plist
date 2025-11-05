@@ -51,6 +51,16 @@
                         <key>CFBundleTypeRole</key>
                         <string>Editor</string>
                         <key>CFBundleURLName</key>
+                        <string>com.dovie.messenger</string>
+                        <key>CFBundleURLSchemes</key>
+                        <array>
+                                <string>com.dovie.messenger</string>
+                        </array>
+                </dict>
+                <dict>
+                        <key>CFBundleTypeRole</key>
+                        <string>Editor</string>
+                        <key>CFBundleURLName</key>
                         <string>GoogleSignIn</string>
                         <key>CFBundleURLSchemes</key>
                         <array>
