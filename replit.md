@@ -70,9 +70,10 @@ Preferred communication style: Simple, everyday language.
 - **SMS/Phone Verification**: Twilio SMS API.
 - **Geolocation**: ipapi.co service, browser geolocation API.
 - **Maps**: Google Maps integration.
-- **Native App Conversion**: Capacitor framework (`@capacitor/core`, `@capacitor/push-notifications`, `@capacitor-firebase/authentication`).
+- **Native App Conversion**: Capacitor framework (`@capacitor/core`, `@capacitor/push-notifications`).
 - **iOS Push Notifications**: Apple Push Notification service (APNS) with JWT authentication.
 - **Push Notifications**: `web-push` for PWA notifications, APNS for iOS native.
+- **Firebase Authentication**: Firebase Web SDK with Safari redirect flow for iOS native app, popup for web browsers.
 
 ## Environment Variables
 
@@ -114,13 +115,13 @@ For iOS push notifications to work in production, APNS credentials must be confi
 
 ## Recent Updates
 - **2025-11-05**:
-  - **iOS Native Google Login**: In-app popup authentication (no Safari redirects)
-    - Implemented `@capacitor-firebase/authentication` plugin for native iOS Google Sign-In
-    - Downgraded Firebase from 12.x to 11.x to resolve peer dependency conflicts with Capacitor plugin
-    - Platform detection: Native in-app popups on iOS, web-based authentication on browsers
-    - Automatic authentication flow switching via `Capacitor.isNativePlatform()`
-    - Created comprehensive setup guide (FIREBASE_IOS_SETUP.md) for GoogleService-Info.plist configuration
-    - Benefits: Better UX (no external Safari), faster login flow, more secure authentication
+  - **Firebase Authentication via Safari Redirect**: Simplified iOS authentication flow
+    - Removed `@capacitor-firebase/authentication` plugin due to persistent RuntimeError (window/rootViewController access issues)
+    - Implemented Firebase Web SDK's `signInWithRedirect` for iOS native app (Safari-based authentication)
+    - Platform detection: Safari redirect on iOS, popup authentication on web browsers
+    - Cleaned up iOS dependencies: Removed Firebase/Auth, GoogleSignIn, and CapacitorFirebaseAuthentication pods
+    - Simplified AppDelegate.swift: Removed window management and GoogleSignIn handling code
+    - Benefits: Stable authentication without native plugin complexity, better compatibility with Capacitor lifecycle
   - **Smart Inbox Enhanced Visual Effects**: Premium glow & ring animations
     - Dynamic icon switching: Empty inbox (`Inbox`) ↔ Full inbox (`Archive`) based on unread count
     - Multi-layered glow animation with purple shadow (3 layers, breathing effect)
