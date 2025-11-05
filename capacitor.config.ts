@@ -19,11 +19,11 @@ const config: CapacitorConfig = {
       sound: 'beep.wav'
     },
     SplashScreen: {
-      launchShowDuration: 3000,
-      backgroundColor: '#8B5CF6',
+      launchShowDuration: 1000,
+      backgroundColor: '#FFFFFF',
       androidScaleType: 'CENTER_CROP',
-      showSpinner: true,
-      spinnerColor: '#ffffff'
+      showSpinner: false,
+      spinnerColor: '#8B5CF6'
     },
     StatusBar: {
       style: 'dark'
