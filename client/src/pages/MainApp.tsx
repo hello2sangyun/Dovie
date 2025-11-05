@@ -303,6 +303,22 @@ export default function MainApp() {
     refetchInterval: 5000,
   });
 
+  // Get Smart Inbox unread count
+  const { data: inboxNoticesData } = useQuery({
+    queryKey: ["/api/ai-notices"],
+    enabled: !!user,
+    refetchInterval: 30000, // 30초마다 업데이트
+  });
+  
+  const inboxUnreadCount = useMemo(() => {
+    if (!inboxNoticesData) return 0;
+    const now = new Date();
+    const activeNotices = (inboxNoticesData as any[]).filter(
+      n => !n.snoozedUntil || new Date(n.snoozedUntil) <= now
+    );
+    return activeNotices.length;
+  }, [inboxNoticesData]);
+
   // Handler for navigating to a bookmarked message
   const handleNavigateToBookmark = (chatRoomId: number, messageId: number) => {
     // Navigate to the chat room
@@ -1219,15 +1235,23 @@ export default function MainApp() {
               {/* Central Inbox FAB Button */}
               <button
                 className={cn(
-                  "flex items-center justify-center w-14 h-14 rounded-full shadow-lg -mt-6 transition-all",
+                  "flex items-center justify-center w-14 h-14 rounded-full shadow-lg -mt-6 transition-all relative",
                   activeMobileTab === "inbox"
                     ? "bg-purple-600 text-white scale-110" 
-                    : "bg-gradient-to-br from-purple-600 to-purple-700 text-white hover:scale-105"
+                    : "bg-gradient-to-br from-purple-600 to-purple-700 text-white hover:scale-105",
+                  // Subtle glow animation when there are unread items
+                  inboxUnreadCount > 0 && activeMobileTab !== "inbox" && "animate-pulse"
                 )}
                 onClick={() => setActiveMobileTab("inbox")}
                 data-testid="button-inbox"
               >
                 <Inbox className="h-6 w-6" />
+                {/* Unread count badge */}
+                {inboxUnreadCount > 0 && (
+                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-medium shadow-md">
+                    {inboxUnreadCount > 9 ? '9+' : inboxUnreadCount}
+                  </div>
+                )}
               </button>
 
               <Button
