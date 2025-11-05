@@ -1,0 +1,51 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/2D9DB38C-EA92-457C-9F73-421D24170719/App.app'
+⚡️  Loading app at https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev...
+Networking process (0x113054190) took 10.458069 seconds to launch
+GPU process (0x11311c1e0) took 2.382558 seconds to launch
+WebContent process (0x1130f0100) took 3.547709 seconds to launch
+0x1130f0100 - [PID=62025] WebProcessProxy::didBecomeUnresponsive:
+0x1223ac718 - [pageProxyID=7, webPageID=8, PID=62025] WebPageProxy::processDidBecomeUnresponsive:
+WebContent[62025] Unable to hide query parameters from script (missing data)
+⚡️  [debug] - [vite] connecting...
+⚡️  WebView loaded
+⚡️  [log] - [Badge] Service Worker not supported
+⚡️  To Native ->  App addListener 107993784
+⚡️  To Native ->  App addListener 107993785
+⚡️  To Native ->  App addListener 107993786
+⚡️  To Native ->  PushNotifications requestPermissions 107993787
+⚡️  [log] - 🔄 Auth context updating user: 126 profilePicture: /uploads/profile_1761606486798_jejztvnxp8j.jpg
+⚡️  TO JS {"receive":"granted"}
+⚡️  [log] - 🚀 Starting profile image preloading...
+⚡️  To Native ->  PushNotifications register 107993788
+⚡️  TO JS undefined
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+⚡️  [log] -    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+⚡️  [log] - 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  To Native ->  ⚡️  [log] - 📱 iOS 네이티브 푸시 알림 등록 성공
+PushNotifications addListener 107993789
+⚡️  To Native ->  PushNotifications addListener 107993790
+⚡️  To Native ->  PushNotifications addListener 107993791
+⚡️  To Native ->  PushNotifications addListener 107993792
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+⚡️  [log] - 📥 Found 5 profile images to preload
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761144817232_rf4rde1nn4e.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761603336729_ol7qqlpxpv.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761602401844_h0cbedi9kaf.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761070087497_tdjrs8unfmn.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761606486798_jejztvnxp8j.jpg
+⚡️  [log] - 🎉 Profile image preloading completed!
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 0
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: []
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - [NotificationManager] User inactive - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline
