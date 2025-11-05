@@ -58,6 +58,7 @@ Preferred communication style: Simple, everyday language.
 ## External Dependencies
 - **Database**: `@neondatabase/serverless`, `drizzle-orm`.
 - **Authentication/Security**: `bcryptjs`, `crypto-js`, `jsonwebtoken`.
+- **Firebase**: `firebase@11.x` (client), `firebase-admin` (server) - Authentication only, NOT for file storage.
 - **File Uploads**: `multer`.
 - **Real-time**: `ws` (WebSocket).
 - **AI**: `openai`.
@@ -69,7 +70,7 @@ Preferred communication style: Simple, everyday language.
 - **SMS/Phone Verification**: Twilio SMS API.
 - **Geolocation**: ipapi.co service, browser geolocation API.
 - **Maps**: Google Maps integration.
-- **Native App Conversion**: Capacitor framework (`@capacitor/push-notifications`).
+- **Native App Conversion**: Capacitor framework (`@capacitor/core`, `@capacitor/push-notifications`, `@capacitor-firebase/authentication`).
 - **iOS Push Notifications**: Apple Push Notification service (APNS) with JWT authentication.
 - **Push Notifications**: `web-push` for PWA notifications, APNS for iOS native.
 
@@ -113,6 +114,13 @@ For iOS push notifications to work in production, APNS credentials must be confi
 
 ## Recent Updates
 - **2025-11-05**:
+  - **iOS Native Google Login**: In-app popup authentication (no Safari redirects)
+    - Implemented `@capacitor-firebase/authentication` plugin for native iOS Google Sign-In
+    - Downgraded Firebase from 12.x to 11.x to resolve peer dependency conflicts with Capacitor plugin
+    - Platform detection: Native in-app popups on iOS, web-based authentication on browsers
+    - Automatic authentication flow switching via `Capacitor.isNativePlatform()`
+    - Created comprehensive setup guide (FIREBASE_IOS_SETUP.md) for GoogleService-Info.plist configuration
+    - Benefits: Better UX (no external Safari), faster login flow, more secure authentication
   - **Smart Inbox Enhanced Visual Effects**: Premium glow & ring animations
     - Dynamic icon switching: Empty inbox (`Inbox`) ↔ Full inbox (`Archive`) based on unread count
     - Multi-layered glow animation with purple shadow (3 layers, breathing effect)

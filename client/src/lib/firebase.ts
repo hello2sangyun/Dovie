@@ -4,6 +4,7 @@ import {
   GoogleAuthProvider, 
   OAuthProvider,
   signInWithPopup,
+  signInWithCredential,
   signOut as firebaseSignOut,
   type User as FirebaseUser
 } from 'firebase/auth';
@@ -48,6 +49,13 @@ export async function signInWithGoogle(): Promise<SocialLoginResult> {
         throw new Error('ID token not received from native auth');
       }
       
+      // 네이티브 로그인 후 Web SDK에도 로그인 (onAuthStateChanged 트리거)
+      const credential = GoogleAuthProvider.credential(
+        result.credential.idToken,
+        result.credential.accessToken
+      );
+      await signInWithCredential(auth, credential);
+      
       return {
         idToken: result.credential.idToken,
       };
@@ -82,6 +90,13 @@ export async function signInWithApple(): Promise<SocialLoginResult> {
         throw new Error('ID token not received from native auth');
       }
       
+      // 네이티브 로그인 후 Web SDK에도 로그인 (onAuthStateChanged 트리거)
+      const credential = OAuthProvider.credential({
+        idToken: result.credential.idToken,
+        accessToken: result.credential.accessToken,
+      });
+      await signInWithCredential(auth, credential);
+      
       return {
         idToken: result.credential.idToken,
       };
@@ -105,7 +120,15 @@ export async function signInWithApple(): Promise<SocialLoginResult> {
 
 export async function signOutFirebase() {
   try {
+    const isNative = Capacitor.isNativePlatform();
+    
+    // Web SDK 로그아웃
     await firebaseSignOut(auth);
+    
+    // 네이티브 플랫폼에서는 네이티브 세션도 로그아웃
+    if (isNative) {
+      await FirebaseAuthentication.signOut();
+    }
   } catch (error) {
     console.error('Firebase sign out error:', error);
   }
