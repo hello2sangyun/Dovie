@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -14,13 +14,11 @@ import { User, Lock, Phone } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { SiApple } from "react-icons/si";
 import { useToast } from "@/hooks/use-toast";
-import { Capacitor } from "@capacitor/core";
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
   const { setUser } = useAuth();
   const { toast } = useToast();
-  const [checkingRedirect, setCheckingRedirect] = useState(false);
   
   // Username/Password login state
   const [usernameLoginData, setUsernameLoginData] = useState({
@@ -32,65 +30,6 @@ export default function LoginPage() {
   const handlePhoneLogin = () => {
     setLocation("/phone-login");
   };
-
-  // Check for redirect result on mount (for native platforms)
-  useEffect(() => {
-    const handleRedirectResult = async () => {
-      if (!Capacitor.isNativePlatform()) {
-        return;
-      }
-
-      setCheckingRedirect(true);
-      
-      try {
-        const { checkRedirectResult } = await import('@/lib/firebase');
-        const result = await checkRedirectResult();
-        
-        if (result) {
-          console.log('📱 Processing redirect result');
-          
-          // Determine provider from result (Google or Apple)
-          const authProvider = 'google'; // Default to Google for now
-          
-          const response = await apiRequest("/api/auth/social-login", "POST", {
-            idToken: result.idToken,
-            authProvider,
-          });
-          
-          const data = await response.json();
-          setUser(data.user);
-          localStorage.setItem("userId", data.user.id.toString());
-          
-          if (!data.user.isProfileComplete) {
-            setLocation("/profile-setup");
-          } else if (data.user.email === "master@master.com") {
-            // 관리자 계정 - 모바일 체크
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            if (isMobile) {
-              toast({
-                title: "접근 불가",
-                description: "관리자 페이지는 PC에서만 접속 가능합니다.",
-                variant: "destructive",
-              });
-              // 로그아웃
-              setUser(null);
-              localStorage.removeItem("userId");
-            } else {
-              setLocation("/admin");
-            }
-          } else {
-            setLocation("/app");
-          }
-        }
-      } catch (error: any) {
-        console.error('Redirect result processing error:', error);
-      } finally {
-        setCheckingRedirect(false);
-      }
-    };
-
-    handleRedirectResult();
-  }, [setUser, setLocation, toast]);
 
   const usernameLoginMutation = useMutation({
     mutationFn: async (data: typeof usernameLoginData) => {
@@ -173,17 +112,7 @@ export default function LoginPage() {
           setLocation("/app");
         }
       } catch (error: any) {
-        if (error.message === 'REDIRECT_IN_PROGRESS') {
-          // Redirect initiated - result will be handled on app resume
-          console.log('📱 Redirect initiated, waiting for callback...');
-          return;
-        }
         console.error(`${provider} login error:`, error);
-        toast({
-          title: "로그인 실패",
-          description: error.message || "로그인 중 오류가 발생했습니다.",
-          variant: "destructive",
-        });
       }
     });
   };

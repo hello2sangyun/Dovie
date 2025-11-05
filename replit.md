@@ -24,11 +24,7 @@ Preferred communication style: Simple, everyday language.
 ### Technical Implementations
 - **Backend**: Node.js with Express.js (TypeScript, ES modules).
 - **Database**: PostgreSQL with Drizzle ORM.
-- **Authentication**: 
-  - Custom email/password/phone authentication with bcrypt hashing
-  - Firebase Google Sign-In with redirect-based flow for iOS native apps
-  - Server-side Firebase ID token verification
-  - Platform-specific authentication: popup for web, redirect for native
+- **Authentication**: Custom email/password/phone authentication with bcrypt hashing.
 - **File Handling**: Multer for uploads, AES-256 encryption for storage.
 - **Real-time**: WebSocket server with intelligent background/foreground management.
 - **AI Integration**: OpenAI API for commands, translation, transcription, and smart suggestions (focused on YouTube).
@@ -43,10 +39,7 @@ Preferred communication style: Simple, everyday language.
 - **Battery Optimization**: Comprehensive background lifecycle management - WebSocket auto-disconnection, microphone teardown, and polling suspension when app is backgrounded to maximize battery life.
 
 ### Feature Specifications
-- **Authentication**: 
-  - Email/password, phone number verification (Twilio), profile setup flow, role-based access
-  - Google Sign-In via Firebase (redirect-based for iOS, popup for web)
-  - Automatic redirect result handling on app resume
+- **Authentication**: Email/password, phone number verification (Twilio), profile setup flow, role-based access.
 - **Chat System**: Real-time messaging, group/direct chats, encrypted file sharing, emoji reactions (toggle add/remove, real-time updates), replies, archive.
 - **Business Features**: Business profiles, professional networking space (LinkedIn-style), company channels (partially removed/streamlined).
 - **Location Features**: Location-based chat rooms, nearby user discovery, location sharing.
@@ -114,35 +107,15 @@ For iOS push notifications to work in production, APNS credentials must be confi
 3. Restart workflows
 4. Verify in server logs: `📱 Using APNS server: api.push.apple.com (production)`
 
-### iOS Google Login Setup
-For Google authentication to work on iOS, URL schemes must be configured. See `IOS_GOOGLE_LOGIN_SETUP.md` for detailed setup instructions.
-
-**Quick Setup:**
-1. Add Firebase `REVERSED_CLIENT_ID` to Xcode URL Types
-2. Configure `GoogleService-Info.plist` in iOS project
-3. Update AppDelegate.swift to handle OAuth redirects
-4. Test redirect flow on iOS device
-
-**How It Works:**
-- **Web**: Uses `signInWithPopup()` - opens Google login in popup window
-- **iOS**: Uses `signInWithRedirect()` - opens Safari, redirects back via URL scheme
-- App automatically checks for redirect result on resume
-
 ### Production vs Development Mode
 - **Production** (default): Uses `api.push.apple.com`, activity filtering enabled
 - **Development**: Set `NODE_ENV=development` to use `api.development.push.apple.com`, all push notifications sent for testing
 
 ## Recent Updates
 - **2024-11-04**: 
-  - **iOS Native Google Login**: Implemented redirect-based Firebase authentication for iOS
-    - Platform detection: `signInWithPopup()` for web, `signInWithRedirect()` for native
-    - Automatic redirect result handling on app resume
-    - URL scheme configuration required in Xcode (see `IOS_GOOGLE_LOGIN_SETUP.md`)
-    - Fixes "cross-origin redirect" errors on iOS
   - **Native Badge Manager**: Direct integration with Capacitor `PushNotifications.setBadgeCount()` for real-time app badge updates on iOS
     - WebSocket-driven badge sync: Instant badge updates when messages are read
     - Replaces inefficient polling with event-driven architecture
-    - Graceful handling of UNIMPLEMENTED errors (relies on APNS for badge management)
   - **Notification Settings System**: Comprehensive user notification preferences
     - Database: `notification_settings` table with notification sound, preview toggle, quiet hours, and mute all settings
     - Storage API: `getNotificationSettings`, `upsertNotificationSettings` for persistence

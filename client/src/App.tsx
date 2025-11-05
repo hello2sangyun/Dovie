@@ -17,9 +17,6 @@ import UserProfilePage from "@/pages/UserProfilePage";
 import GroupInfoPage from "@/pages/GroupInfoPage";
 import NotFound from "@/pages/not-found";
 import { useEffect } from "react";
-import { App as CapacitorApp } from "@capacitor/app";
-import { Capacitor } from "@capacitor/core";
-import { handleAuthCallback } from "@/lib/firebase";
 
 function Router() {
   return (
@@ -53,52 +50,6 @@ function App() {
     } else {
       document.documentElement.classList.remove('dark');
     }
-  }, []);
-
-  // Handle OAuth callback from Capacitor Browser (iOS/Android)
-  useEffect(() => {
-    if (!Capacitor.isNativePlatform()) {
-      return;
-    }
-
-    let listenerHandle: any = null;
-
-    const setupListener = async () => {
-      const handleUrlOpen = (event: { url: string }) => {
-        console.log('📱 App opened with URL:', event.url);
-        
-        // Check if this is an auth callback URL
-        // Expected format: dovie://auth?token=FIREBASE_ID_TOKEN
-        if (event.url.includes('auth')) {
-          try {
-            const url = new URL(event.url);
-            const token = url.searchParams.get('token');
-            
-            if (token) {
-              console.log('✅ Auth token received from callback');
-              handleAuthCallback(token);
-            } else {
-              console.log('❌ No token in callback URL');
-              handleAuthCallback(null);
-            }
-          } catch (error) {
-            console.error('Error parsing auth callback URL:', error);
-            handleAuthCallback(null);
-          }
-        }
-      };
-
-      // Listen for app URL open events
-      listenerHandle = await CapacitorApp.addListener('appUrlOpen', handleUrlOpen);
-    };
-
-    setupListener();
-
-    return () => {
-      if (listenerHandle) {
-        listenerHandle.remove();
-      }
-    };
   }, []);
 
   // 브라우저 뒤로 가기 버튼 처리 - 로그아웃 대신 페이지 히스토리 기반 네비게이션
