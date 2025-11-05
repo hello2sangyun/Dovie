@@ -1,0 +1,518 @@
+Last login: Wed Nov  5 11:07:19 on ttys000
+stanlee@Stans-MacBook-Air ~ % cd /Users/stanlee/Downloads/Dovie
+stanlee@Stans-MacBook-Air Dovie % npx cap sync ios
+[warn] Cannot copy web assets from dist to ios/App/App/public
+       Web asset directory specified by webDir does not exist. This is not an
+       error because server.url is set in config.
+✔ Creating capacitor.config.json in ios/App/App in 1.09ms
+✔ copy ios in 40.43ms
+✔ Updating iOS plugins in 7.88ms
+✖ Updating iOS native dependencies with pod install - failed!
+✖ update ios - failed!
+[error] xcode-select: error: tool 'xcodebuild' requires Xcode, but active
+        developer directory '/Library/Developer/CommandLineTools' is a command
+        line tools instance
+        
+stanlee@Stans-MacBook-Air Dovie % cd ios/App
+stanlee@Stans-MacBook-Air App % pod install
+Analyzing dependencies
+Downloading dependencies
+Generating Pods project
+Integrating client project
+Pod installation complete! There are 9 dependencies from the Podfile and 10 total pods installed.
+stanlee@Stans-MacBook-Air App % cd..               
+zsh: command not found: cd..
+stanlee@Stans-MacBook-Air App % /Users/stanlee/Downloads/Dovie
+zsh: permission denied: /Users/stanlee/Downloads/Dovie
+stanlee@Stans-MacBook-Air App % cd /Users/stanlee/Downloads/Dovie
+stanlee@Stans-MacBook-Air Dovie % git stash
+Saved working directory and index state WIP on main: 49b7b89 Add a clean and simple splash screen to the application
+stanlee@Stans-MacBook-Air Dovie % git pull
+Already up to date.
+stanlee@Stans-MacBook-Air Dovie % npm install             
+
+
+up to date, audited 1003 packages in 1s
+
+98 packages are looking for funding
+  run `npm fund` for details
+
+13 vulnerabilities (3 low, 7 moderate, 2 high, 1 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+stanlee@Stans-MacBook-Air Dovie % npx cap sync ios
+
+[warn] Cannot copy web assets from dist to ios/App/App/public
+       Web asset directory specified by webDir does not exist. This is not an
+       error because server.url is set in config.
+✔ Creating capacitor.config.json in ios/App/App in 495.17μs
+✔ copy ios in 41.64ms
+✔ Updating iOS plugins in 6.64ms
+✖ Updating iOS native dependencies with pod install - failed!
+✖ update ios - failed!
+[error] xcode-select: error: tool 'xcodebuild' requires Xcode, but active
+        developer directory '/Library/Developer/CommandLineTools' is a command
+        line tools instance
+        
+stanlee@Stans-MacBook-Air Dovie % npx cap open ios
+
+✔ Opening the Xcode workspace... in 3.01s
+stanlee@Stans-MacBook-Air Dovie % npx cap sync ios
+
+
+[warn] Cannot copy web assets from dist to ios/App/App/public
+       Web asset directory specified by webDir does not exist. This is not an
+       error because server.url is set in config.
+✔ Creating capacitor.config.json in ios/App/App in 524.25μs
+✔ copy ios in 37.11ms
+✔ Updating iOS plugins in 6.43ms
+✖ Updating iOS native dependencies with pod install - failed!
+✖ update ios - failed!
+[error] xcode-select: error: tool 'xcodebuild' requires Xcode, but active
+        developer directory '/Library/Developer/CommandLineTools' is a command
+        line tools instance
+        
+stanlee@Stans-MacBook-Air Dovie % cd ios/App
+stanlee@Stans-MacBook-Air App % pod install
+
+
+Analyzing dependencies
+Downloading dependencies
+Generating Pods project
+Integrating client project
+Pod installation complete! There are 9 dependencies from the Podfile and 10 total pods installed.
+stanlee@Stans-MacBook-Air App % npx cap open ios
+
+[error] ios platform has not been added yet.
+        See the docs for adding the ios platform:
+        https://capacitorjs.com/docs/ios#adding-the-ios-platform
+stanlee@Stans-MacBook-Air App % cd /Users/stanlee/Downloads/Dovie
+stanlee@Stans-MacBook-Air Dovie % npx cap open ios
+
+✔ Opening the Xcode workspace... in 3.00s
+stanlee@Stans-MacBook-Air Dovie % npx cap sync ios
+
+[warn] Cannot copy web assets from dist to ios/App/App/public
+       Web asset directory specified by webDir does not exist. This is not an
+       error because server.url is set in config.
+✔ Creating capacitor.config.json in ios/App/App in 1.16ms
+✔ copy ios in 44.00ms
+✔ Updating iOS plugins in 6.37ms
+✖ Updating iOS native dependencies with pod install - failed!
+✖ update ios - failed!
+[error] xcode-select: error: tool 'xcodebuild' requires Xcode, but active
+        developer directory '/Library/Developer/CommandLineTools' is a command
+        line tools instance
+        
+stanlee@Stans-MacBook-Air Dovie % cd ios/App
+
+stanlee@Stans-MacBook-Air App % pod install
+
+
+Analyzing dependencies
+Downloading dependencies
+Generating Pods project
+Integrating client project
+Pod installation complete! There are 9 dependencies from the Podfile and 10 total pods installed.
+stanlee@Stans-MacBook-Air App % cd /Users/stanlee/Downloads/Dovie
+stanlee@Stans-MacBook-Air Dovie % git stash
+Saved working directory and index state WIP on main: 49b7b89 Add a clean and simple splash screen to the application
+stanlee@Stans-MacBook-Air Dovie % git pull
+remote: Enumerating objects: 119, done.
+remote: Counting objects: 100% (119/119), done.
+remote: Compressing objects: 100% (42/42), done.
+remote: Total 104 (delta 63), reused 98 (delta 60), pack-reused 0 (from 0)
+Receiving objects: 100% (104/104), 2.94 MiB | 7.67 MiB/s, done.
+Resolving deltas: 100% (63/63), completed with 13 local objects.
+From https://github.com/hello2sangyun/Dovie
+   49b7b89..94b7613  main       -> origin/main
+Updating 49b7b89..94b7613
+error: The following untracked working tree files would be overwritten by merge:
+	ios/App/App.xcodeproj/project.pbxproj
+	ios/App/App.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+	ios/App/App/AppDelegate.swift
+	ios/App/App/Base.lproj/LaunchScreen.storyboard
+	ios/App/App/Base.lproj/Main.storyboard
+	ios/App/App/Info.plist
+	ios/App/Podfile
+Please move or remove them before you merge.
+Aborting
+stanlee@Stans-MacBook-Air Dovie % npm install
+
+
+up to date, audited 1003 packages in 2s
+
+98 packages are looking for funding
+  run `npm fund` for details
+
+13 vulnerabilities (3 low, 7 moderate, 2 high, 1 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+stanlee@Stans-MacBook-Air Dovie % npx cap sync ios
+
+[warn] Cannot copy web assets from dist to ios/App/App/public
+       Web asset directory specified by webDir does not exist. This is not an
+       error because server.url is set in config.
+✔ Creating capacitor.config.json in ios/App/App in 651.54μs
+✔ copy ios in 41.46ms
+✔ Updating iOS plugins in 6.24ms
+✖ Updating iOS native dependencies with pod install - failed!
+✖ update ios - failed!
+[error] xcode-select: error: tool 'xcodebuild' requires Xcode, but active
+        developer directory '/Library/Developer/CommandLineTools' is a command
+        line tools instance
+        
+stanlee@Stans-MacBook-Air Dovie % npx cap open ios
+
+✔ Opening the Xcode workspace... in 3.00s
+stanlee@Stans-MacBook-Air Dovie % npx cap open ios
+
+✔ Opening the Xcode workspace... in 3.00s
+stanlee@Stans-MacBook-Air Dovie % npx cap open ios
+
+✔ Opening the Xcode workspace... in 3.00s
+stanlee@Stans-MacBook-Air Dovie % git stash
+Saved working directory and index state WIP on main: 49b7b89 Add a clean and simple splash screen to the application
+stanlee@Stans-MacBook-Air Dovie % git pull
+remote: Enumerating objects: 6, done.
+remote: Counting objects: 100% (6/6), done.
+remote: Compressing objects: 100% (2/2), done.
+remote: Total 4 (delta 2), reused 4 (delta 2), pack-reused 0 (from 0)
+Unpacking objects: 100% (4/4), 68.63 KiB | 1.56 MiB/s, done.
+From https://github.com/hello2sangyun/Dovie
+   94b7613..cb9b836  main       -> origin/main
+Updating 49b7b89..cb9b836
+error: The following untracked working tree files would be overwritten by merge:
+	ios/App/App.xcodeproj/project.pbxproj
+	ios/App/App.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+	ios/App/App/AppDelegate.swift
+	ios/App/App/Base.lproj/LaunchScreen.storyboard
+	ios/App/App/Base.lproj/Main.storyboard
+	ios/App/App/Info.plist
+	ios/App/Podfile
+Please move or remove them before you merge.
+Aborting
+stanlee@Stans-MacBook-Air Dovie % npm install
+
+
+up to date, audited 1003 packages in 2s
+
+98 packages are looking for funding
+  run `npm fund` for details
+
+13 vulnerabilities (3 low, 7 moderate, 2 high, 1 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+stanlee@Stans-MacBook-Air Dovie % npx cap sync ios
+
+[warn] Cannot copy web assets from dist to ios/App/App/public
+       Web asset directory specified by webDir does not exist. This is not an
+       error because server.url is set in config.
+✔ Creating capacitor.config.json in ios/App/App in 717.83μs
+✔ copy ios in 39.43ms
+✔ Updating iOS plugins in 6.25ms
+✖ Updating iOS native dependencies with pod install - failed!
+✖ update ios - failed!
+[error] xcode-select: error: tool 'xcodebuild' requires Xcode, but active
+        developer directory '/Library/Developer/CommandLineTools' is a command
+        line tools instance
+        
+stanlee@Stans-MacBook-Air Dovie % cd ios/App
+
+stanlee@Stans-MacBook-Air App % pod install
+Analyzing dependencies
+Downloading dependencies
+Generating Pods project
+Integrating client project
+Pod installation complete! There are 9 dependencies from the Podfile and 10 total pods installed.
+stanlee@Stans-MacBook-Air App % cd /Users/stanlee/Downloads/Dovie
+stanlee@Stans-MacBook-Air Dovie % git stash
+Saved working directory and index state WIP on main: 49b7b89 Add a clean and simple splash screen to the application
+stanlee@Stans-MacBook-Air Dovie % git pull
+remote: Enumerating objects: 6, done.
+remote: Counting objects: 100% (6/6), done.
+remote: Compressing objects: 100% (2/2), done.
+remote: Total 4 (delta 2), reused 4 (delta 2), pack-reused 0 (from 0)
+Unpacking objects: 100% (4/4), 59.76 KiB | 2.99 MiB/s, done.
+From https://github.com/hello2sangyun/Dovie
+   cb9b836..f69df29  main       -> origin/main
+Updating 49b7b89..f69df29
+error: The following untracked working tree files would be overwritten by merge:
+	ios/App/App.xcodeproj/project.pbxproj
+	ios/App/App.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+	ios/App/App/AppDelegate.swift
+	ios/App/App/Base.lproj/LaunchScreen.storyboard
+	ios/App/App/Base.lproj/Main.storyboard
+	ios/App/App/Info.plist
+	ios/App/Podfile
+Please move or remove them before you merge.
+Aborting
+stanlee@Stans-MacBook-Air Dovie % npm install
+
+
+up to date, audited 1003 packages in 954ms
+
+98 packages are looking for funding
+  run `npm fund` for details
+
+13 vulnerabilities (3 low, 7 moderate, 2 high, 1 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+stanlee@Stans-MacBook-Air Dovie % npx cap sync ios
+
+[warn] Cannot copy web assets from dist to ios/App/App/public
+       Web asset directory specified by webDir does not exist. This is not an
+       error because server.url is set in config.
+✔ Creating capacitor.config.json in ios/App/App in 704.67μs
+✔ copy ios in 41.94ms
+✔ Updating iOS plugins in 6.22ms
+✖ Updating iOS native dependencies with pod install - failed!
+✖ update ios - failed!
+[error] xcode-select: error: tool 'xcodebuild' requires Xcode, but active
+        developer directory '/Library/Developer/CommandLineTools' is a command
+        line tools instance
+        
+stanlee@Stans-MacBook-Air Dovie % npx cap open ios
+
+✔ Opening the Xcode workspace... in 3.02s
+stanlee@Stans-MacBook-Air Dovie % cd /Users/stanlee/Downloads/Dovie
+
+stanlee@Stans-MacBook-Air Dovie % git status
+
+On branch main
+Your branch is behind 'origin/main' by 21 commits, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	new file:   ios/App/App/Assets.xcassets/AppIcon.appiconset/Contents.json
+	new file:   ios/App/App/Assets.xcassets/AppIcon.appiconset/app_icon3.png
+	new file:   ios/App/App/Assets.xcassets/Contents.json
+	new file:   ios/App/App/GoogleService-Info.plist
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   package-lock.json
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	GoogleService-Info.plist
+	ios/App/App.xcodeproj/
+	ios/App/App.xcworkspace/
+	ios/App/App/AppDelegate.swift
+	ios/App/App/Base.lproj/
+	ios/App/App/Info.plist
+	ios/App/Podfile
+	ios/App/Podfile.lock
+
+stanlee@Stans-MacBook-Air Dovie % git add .
+
+stanlee@Stans-MacBook-Air Dovie % git commit -m "Fix: Add AppIcon assets to Xcode project"
+
+[main 5330fd1] Fix: Add AppIcon assets to Xcode project
+ 15 files changed, 833 insertions(+), 26 deletions(-)
+ create mode 100644 GoogleService-Info.plist
+ create mode 100644 ios/App/App.xcodeproj/project.pbxproj
+ create mode 100644 ios/App/App.xcworkspace/contents.xcworkspacedata
+ create mode 100644 ios/App/App.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+ create mode 100644 ios/App/App/AppDelegate.swift
+ create mode 100644 ios/App/App/Assets.xcassets/AppIcon.appiconset/Contents.json
+ create mode 100644 ios/App/App/Assets.xcassets/AppIcon.appiconset/app_icon3.png
+ create mode 100644 ios/App/App/Assets.xcassets/Contents.json
+ create mode 100644 ios/App/App/Base.lproj/LaunchScreen.storyboard
+ create mode 100644 ios/App/App/Base.lproj/Main.storyboard
+ create mode 100644 ios/App/App/GoogleService-Info.plist
+ create mode 100644 ios/App/App/Info.plist
+ create mode 100644 ios/App/Podfile
+ create mode 100644 ios/App/Podfile.lock
+stanlee@Stans-MacBook-Air Dovie % git push origin main
+
+
+Username for 'https://github.com': hello2sangyun
+Password for 'https://hello2sangyun@github.com': 
+remote: Invalid username or token. Password authentication is not supported for Git operations.
+fatal: Authentication failed for 'https://github.com/hello2sangyun/Dovie.git/'
+stanlee@Stans-MacBook-Air Dovie % git push origin main
+
+
+Username for 'https://github.com': hello2sangyunhello2sangyun
+Password for 'https://hello2sangyunhello2sangyun@github.com': 
+remote: Invalid username or token. Password authentication is not supported for Git operations.
+fatal: Authentication failed for 'https://github.com/hello2sangyun/Dovie.git/'
+stanlee@Stans-MacBook-Air Dovie % git push origin main
+Username for 'https://github.com': hello2sangyun
+Password for 'https://hello2sangyun@github.com': 
+remote: Invalid username or token. Password authentication is not supported for Git operations.
+fatal: Authentication failed for 'https://github.com/hello2sangyun/Dovie.git/'
+stanlee@Stans-MacBook-Air Dovie % git push origin main
+Username for 'https://github.com': hello2sangyun
+Password for 'https://hello2sangyun@github.com': 
+To https://github.com/hello2sangyun/Dovie.git
+ ! [rejected]        main -> main (non-fast-forward)
+error: failed to push some refs to 'https://github.com/hello2sangyun/Dovie.git'
+hint: Updates were rejected because the tip of your current branch is behind
+hint: its remote counterpart. If you want to integrate the remote changes,
+hint: use 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+stanlee@Stans-MacBook-Air Dovie % git push origin main --force
+
+
+Enumerating objects: 28, done.
+Counting objects: 100% (28/28), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (24/24), done.
+Writing objects: 100% (25/25), 160.60 KiB | 32.12 MiB/s, done.
+Total 25 (delta 3), reused 4 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (3/3), completed with 2 local objects.
+To https://github.com/hello2sangyun/Dovie.git
+ + f69df29...5330fd1 main -> main (forced update)
+stanlee@Stans-MacBook-Air Dovie % git stash
+No local changes to save
+stanlee@Stans-MacBook-Air Dovie % git pull
+Already up to date.
+stanlee@Stans-MacBook-Air Dovie % git stash
+No local changes to save
+stanlee@Stans-MacBook-Air Dovie % npm install
+
+
+up to date, audited 1003 packages in 2s
+
+98 packages are looking for funding
+  run `npm fund` for details
+
+13 vulnerabilities (3 low, 7 moderate, 2 high, 1 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+stanlee@Stans-MacBook-Air Dovie % npx cap sync ios
+
+[warn] Cannot copy web assets from dist to ios/App/App/public
+       Web asset directory specified by webDir does not exist. This is not an
+       error because server.url is set in config.
+✔ Creating capacitor.config.json in ios/App/App in 749.75μs
+✔ copy ios in 41.68ms
+✔ Updating iOS plugins in 6.03ms
+✖ Updating iOS native dependencies with pod install - failed!
+✖ update ios - failed!
+[error] xcode-select: error: tool 'xcodebuild' requires Xcode, but active
+        developer directory '/Library/Developer/CommandLineTools' is a command
+        line tools instance
+        
+stanlee@Stans-MacBook-Air Dovie % npx cap open ios
+
+✔ Opening the Xcode workspace... in 3.00s
+stanlee@Stans-MacBook-Air Dovie % npx cap open ios
+
+✔ Opening the Xcode workspace... in 3.00s
+stanlee@Stans-MacBook-Air Dovie % cd /Users/stanlee/Downloads/Dovie/ios/App
+
+stanlee@Stans-MacBook-Air App % pod install
+
+Analyzing dependencies
+Downloading dependencies
+Generating Pods project
+Integrating client project
+Pod installation complete! There are 9 dependencies from the Podfile and 10 total pods installed.
+stanlee@Stans-MacBook-Air App % cd /Users/stanlee/Downloads/Dovie        
+stanlee@Stans-MacBook-Air Dovie % git pull origin main
+
+From https://github.com/hello2sangyun/Dovie
+ * branch            main       -> FETCH_HEAD
+Already up to date.
+stanlee@Stans-MacBook-Air Dovie % cd ios/App
+
+stanlee@Stans-MacBook-Air App % pod install
+
+Analyzing dependencies
+Downloading dependencies
+Generating Pods project
+Integrating client project
+Pod installation complete! There are 9 dependencies from the Podfile and 10 total pods installed.
+stanlee@Stans-MacBook-Air App % cd /Users/stanlee/Downloads/Dovie/ios/App
+
+stanlee@Stans-MacBook-Air App % ls -la Pods/
+
+total 24
+drwxr-xr-x   9 stanlee  staff   288 Nov  5 15:25 .
+drwxr-xr-x   9 stanlee  staff   288 Nov  5 15:01 ..
+-rw-r--r--@  1 stanlee  staff  6148 Nov  5 15:25 .DS_Store
+drwxr-xr-x   2 stanlee  staff    64 Nov  5 14:12 Headers
+drwxr-xr-x   4 stanlee  staff   128 Nov  5 14:12 IONFilesystemLib
+drwxr-xr-x  11 stanlee  staff   352 Nov  5 14:12 Local Podspecs
+-rw-r--r--   1 stanlee  staff  2533 Nov  5 14:12 Manifest.lock
+drwxr-xr-x@  4 stanlee  staff   128 Nov  5 17:33 Pods.xcodeproj
+drwxr-xr-x  13 stanlee  staff   416 Nov  5 14:12 Target Support Files
+stanlee@Stans-MacBook-Air App % ls Pods/ | grep -i firebase
+
+stanlee@Stans-MacBook-Air App % cd /Users/stanlee/Downloads/Dovie
+
+stanlee@Stans-MacBook-Air Dovie % rm -rf ios/App/App.xcodeproj
+
+stanlee@Stans-MacBook-Air Dovie % rm -rf ios/App/App.xcworkspace
+
+stanlee@Stans-MacBook-Air Dovie % rm ios/App/App/AppDelegate.swift
+
+stanlee@Stans-MacBook-Air Dovie % rm ios/App/App/Info.plist
+
+stanlee@Stans-MacBook-Air Dovie % rm ios/App/Podfile
+
+stanlee@Stans-MacBook-Air Dovie % git stash drop
+
+Dropped refs/stash@{0} (30ff019941daaf7c7ba366ef8810048d6fa138ad)
+stanlee@Stans-MacBook-Air Dovie % git pull origin main
+
+error: cannot pull with rebase: You have unstaged changes.
+error: Please commit or stash them.
+stanlee@Stans-MacBook-Air Dovie % git stash
+Saved working directory and index state WIP on main: 5330fd1 Fix: Add AppIcon assets to Xcode project
+stanlee@Stans-MacBook-Air Dovie % git pull origin main
+
+From https://github.com/hello2sangyun/Dovie
+ * branch            main       -> FETCH_HEAD
+Already up to date.
+stanlee@Stans-MacBook-Air Dovie % cd ios/App
+
+stanlee@Stans-MacBook-Air App % pod install
+
+Analyzing dependencies
+Downloading dependencies
+Generating Pods project
+Integrating client project
+Pod installation complete! There are 9 dependencies from the Podfile and 10 total pods installed.
+stanlee@Stans-MacBook-Air App % cd /Users/stanlee/Downloads/Dovie
+
+stanlee@Stans-MacBook-Air Dovie % npx cap open ios
+
+
+✔ Opening the Xcode workspace... in 3.00s
+stanlee@Stans-MacBook-Air Dovie % 
