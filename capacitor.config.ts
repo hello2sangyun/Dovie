@@ -27,6 +27,10 @@ const config: CapacitorConfig = {
     },
     StatusBar: {
       style: 'dark'
+    },
+    FirebaseAuthentication: {
+      skipNativeAuth: false,
+      providers: ['google.com', 'apple.com']
     }
   }
 };
