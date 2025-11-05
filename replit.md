@@ -113,11 +113,14 @@ For iOS push notifications to work in production, APNS credentials must be confi
 
 ## Recent Updates
 - **2025-11-05**:
-  - **Smart Inbox Visual Notification Indicator**: Subtle pulse animation on bottom tab
+  - **Smart Inbox Enhanced Visual Effects**: Premium glow & ring animations
+    - Dynamic icon switching: Empty inbox (`Inbox`) ↔ Full inbox (`Archive`) based on unread count
+    - Multi-layered glow animation with purple shadow (3 layers, breathing effect)
+    - Expanding ring animation for attention-grabbing notification
+    - Badge bounce animation for active notifications
     - Real-time unread count tracking via `/api/ai-notices` endpoint (30s refresh)
     - Red badge showing unread item count (1-9 or "9+")
-    - Pulse animation (`animate-pulse`) when unread items exist and tab inactive
-    - Non-intrusive visual feedback matching Telegram/WhatsApp notification style
+    - Premium visual feedback matching high-end messaging apps
   - **iOS Splash Screen Optimization**: App launch speed improvement
     - Reduced splash screen duration: 3 seconds → 1 second (67% faster startup)
     - Changed background color to clean white (#FFFFFF) for better visual consistency

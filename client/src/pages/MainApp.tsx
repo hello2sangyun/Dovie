@@ -39,7 +39,7 @@ import LinkedInSpacePage from "@/pages/LinkedInSpacePage";
 import InboxPage from "@/pages/InboxPage";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookUser, MessageCircle, Bookmark, Settings, Search, MessageSquare, Users, Building2, Shield, UserX, Camera, QrCode, Inbox } from "lucide-react";
+import { BookUser, MessageCircle, Bookmark, Settings, Search, MessageSquare, Users, Building2, Shield, UserX, Camera, QrCode, Inbox, Archive } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
@@ -1232,23 +1232,31 @@ export default function MainApp() {
                 <span className="text-xs mt-0.5">채팅방</span>
               </Button>
 
-              {/* Central Inbox FAB Button */}
+              {/* Central Inbox FAB Button - 화려한 효과 */}
               <button
                 className={cn(
                   "flex items-center justify-center w-14 h-14 rounded-full shadow-lg -mt-6 transition-all relative",
                   activeMobileTab === "inbox"
                     ? "bg-purple-600 text-white scale-110" 
                     : "bg-gradient-to-br from-purple-600 to-purple-700 text-white hover:scale-105",
-                  // Subtle glow animation when there are unread items
-                  inboxUnreadCount > 0 && activeMobileTab !== "inbox" && "animate-pulse"
+                  // 화려한 glow & ring 애니메이션
+                  inboxUnreadCount > 0 && activeMobileTab !== "inbox" && "inbox-glow-active inbox-ring-active"
                 )}
                 onClick={() => setActiveMobileTab("inbox")}
                 data-testid="button-inbox"
               >
-                <Inbox className="h-6 w-6" />
-                {/* Unread count badge */}
+                {/* 읽지 않은 항목이 있을 때 꽉찬 인박스 아이콘 */}
+                {inboxUnreadCount > 0 ? (
+                  <Archive className="h-6 w-6" />
+                ) : (
+                  <Inbox className="h-6 w-6" />
+                )}
+                {/* Unread count badge with bounce animation */}
                 {inboxUnreadCount > 0 && (
-                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-medium shadow-md">
+                  <div className={cn(
+                    "absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-medium shadow-md",
+                    activeMobileTab !== "inbox" && "badge-bounce-active"
+                  )}>
                     {inboxUnreadCount > 9 ? '9+' : inboxUnreadCount}
                   </div>
                 )}

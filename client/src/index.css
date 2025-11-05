@@ -44,6 +44,63 @@
   animation: highlight-fade 2s ease-out;
 }
 
+/* Smart Inbox FAB 화려한 glow 애니메이션 */
+@keyframes inbox-glow {
+  0%, 100% {
+    box-shadow: 
+      0 0 20px rgba(168, 85, 247, 0.4),
+      0 0 40px rgba(168, 85, 247, 0.2),
+      0 0 60px rgba(168, 85, 247, 0.1);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 
+      0 0 30px rgba(168, 85, 247, 0.6),
+      0 0 60px rgba(168, 85, 247, 0.4),
+      0 0 90px rgba(168, 85, 247, 0.2);
+    transform: scale(1.05);
+  }
+}
+
+@keyframes inbox-ring {
+  0% {
+    box-shadow: 
+      0 0 0 0 rgba(168, 85, 247, 0.7),
+      0 0 20px rgba(168, 85, 247, 0.4);
+  }
+  50% {
+    box-shadow: 
+      0 0 0 8px rgba(168, 85, 247, 0),
+      0 0 30px rgba(168, 85, 247, 0.6);
+  }
+  100% {
+    box-shadow: 
+      0 0 0 0 rgba(168, 85, 247, 0),
+      0 0 20px rgba(168, 85, 247, 0.4);
+  }
+}
+
+@keyframes badge-bounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+.inbox-glow-active {
+  animation: inbox-glow 2s ease-in-out infinite;
+}
+
+.inbox-ring-active {
+  animation: inbox-ring 2s ease-in-out infinite;
+}
+
+.badge-bounce-active {
+  animation: badge-bounce 1.5s ease-in-out infinite;
+}
+
 /* Subtle hover effects */
 .hover-lift {
   transition: all 0.2s ease-in-out;
