@@ -5,6 +5,13 @@ const config: CapacitorConfig = {
   appName: 'Dovie Messenger',
   webDir: 'client/dist',
   plugins: {
+    CapacitorHttp: {
+      enabled: true
+    },
+    FirebaseAuthentication: {
+      skipNativeAuth: false,
+      providers: ['google.com', 'apple.com']
+    },
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert']
     },

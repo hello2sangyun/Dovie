@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import type { User } from "@shared/schema";
 import { useInstantImageCache } from "./useInstantImageCache";
 import { usePermissions } from "./usePermissions";
-import { checkRedirectResult } from "@/lib/firebase";
 
 interface AuthContextType {
   user: User | null;
@@ -182,39 +181,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('[Auth] Failed to store auth token in SW:', error);
     }
   };
-
-  // 앱 시작 시 Firebase 리다이렉트 결과 확인
-  useEffect(() => {
-    const handleRedirectResult = async () => {
-      const result = await checkRedirectResult();
-      if (result && result.idToken) {
-        console.log("✅ Firebase 리다이렉트 로그인 성공, 서버에 전송 중...");
-        // 서버에 Firebase ID 토큰 전송하여 로그인 처리
-        try {
-          const response = await fetch("/api/auth/firebase-login", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ idToken: result.idToken }),
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            setUser(data.user);
-            localStorage.setItem("userId", data.user.id.toString());
-            localStorage.setItem("rememberLogin", "true");
-            localStorage.setItem("lastLoginTime", Date.now().toString());
-            console.log("✅ 서버 로그인 완료");
-          }
-        } catch (error) {
-          console.error("Firebase 리다이렉트 로그인 실패:", error);
-        }
-      }
-    };
-    
-    handleRedirectResult();
-  }, []); // 앱 시작 시 한 번만 실행
 
   useEffect(() => {
     if (data?.user && !initialized) {
