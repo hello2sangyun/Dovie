@@ -113,6 +113,11 @@ For iOS push notifications to work in production, APNS credentials must be confi
 
 ## Recent Updates
 - **2025-11-05**:
+  - **Smart Inbox Visual Notification Indicator**: Subtle pulse animation on bottom tab
+    - Real-time unread count tracking via `/api/ai-notices` endpoint (30s refresh)
+    - Red badge showing unread item count (1-9 or "9+")
+    - Pulse animation (`animate-pulse`) when unread items exist and tab inactive
+    - Non-intrusive visual feedback matching Telegram/WhatsApp notification style
   - **iOS Splash Screen Optimization**: App launch speed improvement
     - Reduced splash screen duration: 3 seconds → 1 second (67% faster startup)
     - Changed background color to clean white (#FFFFFF) for better visual consistency
