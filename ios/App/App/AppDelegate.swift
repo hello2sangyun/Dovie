@@ -11,17 +11,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Firebase 초기화
         FirebaseApp.configure()
+        
+        // Window 연결 (UIScene이 초기화된 후 실행)
+        // FirebaseAuthentication이 rootViewController에 접근하기 위해 필요
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            if self?.window == nil, let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                self?.window = windowScene.windows.first { $0.isKeyWindow }
+            }
+        }
+        
         return true
     }
     
     func applicationDidBecomeActive(_ application: UIApplication) {
-        // Capacitor의 실제 window를 AppDelegate.window에 연결
-        // FirebaseAuthentication이 rootViewController에 접근하기 위해 필요
-        if window == nil {
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                window = windowScene.windows.first { $0.isKeyWindow }
-            }
-        }
+        // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
