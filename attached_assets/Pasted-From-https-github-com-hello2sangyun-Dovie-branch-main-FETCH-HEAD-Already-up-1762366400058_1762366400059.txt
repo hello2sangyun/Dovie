@@ -1,0 +1,73 @@
+From https://github.com/hello2sangyun/Dovie
+ * branch            main       -> FETCH_HEAD
+Already up to date.
+stanlee@Stans-MacBook-Air Dovie % 
+stanlee@Stans-MacBook-Air Dovie % cd ios/App
+
+stanlee@Stans-MacBook-Air App % pod install
+
+
+Analyzing dependencies
+Downloading dependencies
+Generating Pods project
+Integrating client project
+Pod installation complete! There are 12 dependencies from the Podfile and 26 total pods installed.
+stanlee@Stans-MacBook-Air App % cd /Users/stanlee/Downloads/Dovie
+
+stanlee@Stans-MacBook-Air Dovie % npx cap open ios
+
+
+✔ Opening the Xcode workspace... in 3.01s
+stanlee@Stans-MacBook-Air Dovie % cd /Users/stanlee/Downloads/Dovie/ios/App
+
+stanlee@Stans-MacBook-Air App % cat Podfile.lock | grep -A 2 "Firebase/Auth"
+
+  - Firebase/Auth (11.7.0):
+    - Firebase/CoreOnly
+    - FirebaseAuth (~> 11.7.0)
+--
+  - Firebase/Auth
+  - GoogleSignIn
+
+stanlee@Stans-MacBook-Air App % cat Podfile.lock | grep -A 2 "GoogleSignIn"
+
+
+  - GoogleSignIn (9.0.0):
+    - AppAuth (~> 2.0)
+    - AppCheckCore (~> 11.0)
+--
+  - GoogleSignIn
+
+SPEC REPOS:
+--
+    - GoogleSignIn
+    - GoogleUtilities
+    - GTMAppAuth
+--
+  GoogleSignIn: c7f09cfbc85a1abf69187be091997c317cc33b77
+  GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
+  GTMAppAuth: 217a876b249c3c585a54fd6f73e6b58c4f5c4238
+stanlee@Stans-MacBook-Air App % ls -la /Users/stanlee/Downloads/Dovie/ios/App/App/GoogleService-Info.plist
+-rw-r--r--@ 1 stanlee  staff  1091 Nov  5 19:07 /Users/stanlee/Downloads/Dovie/ios/App/App/GoogleService-Info.plist
+stanlee@Stans-MacBook-Air App % cat /Users/stanlee/Downloads/Dovie/ios/App/App/GoogleService-Info.plist | head -20
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>376823453378-g12pilchfo71ie2rlkntn8k9ui4846od.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.376823453378-g12pilchfo71ie2rlkntn8k9ui4846od</string>
+	<key>API_KEY</key>
+	<string>AIzaSyAYa3JlBm9IeSTH6oS65pjt5A0UoFErbfo</string>
+	<key>GCM_SENDER_ID</key>
+	<string>376823453378</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.dovie.messenger</string>
+	<key>PROJECT_ID</key>
+	<string>dovie-technologies</string>
+	<key>STORAGE_BUCKET</key>
+	<string>dovie-technologies.firebasestorage.app</string>
+stanlee@Stans-MacBook-Air App % 

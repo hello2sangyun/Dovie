@@ -1,0 +1,65 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/CB5416B9-34C3-4BD8-9A51-057341CEB1B6/App.app'
+⚡️  Loading app at https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev...
+[ FirebaseAuthentication ]  <CapacitorFirebaseAuthentication.RuntimeError: 0x138d04ea0>
+GPU process (0x1141041e0) took 2.670419 seconds to launch
+Networking process (0x114060190) took 6.392901 seconds to launch
+WebContent process (0x1140e0100) took 2.691856 seconds to launch
+0x1140e0100 - [PID=64938] WebProcessProxy::didBecomeUnresponsive:
+0x138398718 - [pageProxyID=7, webPageID=8, PID=64938] WebPageProxy::processDidBecomeUnresponsive:
+WebContent[64938] Unable to hide query parameters from script (missing data)
+⚡️  [debug] - [vite] connecting...
+⚡️  WebView loaded
+⚡️  [log] - [Badge] Service Worker not supported
+⚡️  To Native ->  App addListener 74732798
+⚡️  To Native ->  App addListener 74732799
+⚡️  To Native ->  App addListener 74732800
+⚡️  To Native ->  PushNotifications requestPermissions 74732801
+⚡️  TO JS {"receive":"granted"}
+⚡️  To Native ->  PushNotifications register 74732802
+⚡️  TO JS undefined
+⚡️  To Native ->  PushNotifications addListener 74732803
+⚡️  [log] - 📱 iOS 네이티브 푸시 알림 등록 성공
+⚡️  To Native ->  PushNotifications addListener 74732804
+⚡️  To Native ->  PushNotifications addListener 74732805
+⚡️  To Native ->  PushNotifications addListener 74732806
+⚡️  [log] - 🔄 Auth context updating user: 129 profilePicture: null
+⚡️  [log] - 🚀 Starting profile image preloading...
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+⚡️  [log] -    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+⚡️  [log] - 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+⚡️  [log] - MainApp rendering with user: 129
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 0
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: []
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 📥 Found 0 profile images to preload
+⚡️  [log] - 🎉 Profile image preloading completed!
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":129}
+⚡️  [log] - WebSocket authentication successful for user: 129
+⚡️  [log] - 로그아웃 완료 - 자동 로그인 설정 해제됨
+⚡️  [log] - 🔄 Auth context updating user: 129 profilePicture: null
+⚡️  [log] - 🚀 Starting profile image preloading...
+⚡️  [log] - ⚠️ Profile image preloading timed out or failed, proceeding anyway
+⚡️  [error] - [NotificationManager] Activity status update failed: {}
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+⚡️  [log] -    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+⚡️  [log] - MainApp rendering with user: 129
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [error] - [NotificationManager] Activity status update failed: {}
+⚡️  [log] - WebSocket disconnected: 1000 Component unmounting
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [debug] - [vite] connecting...
+⚡️  WebView loaded
+⚡️  [log] - 📱 No stored user, initializing as logged out
+⚡️  To Native ->  FirebaseAuthentication signInWithGoogle 101998964
+⚡️  [log] - 📱 Using native Google Sign-In
