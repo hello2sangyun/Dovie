@@ -112,6 +112,12 @@ For iOS push notifications to work in production, APNS credentials must be confi
 - **Development**: Set `NODE_ENV=development` to use `api.development.push.apple.com`, all push notifications sent for testing
 
 ## Recent Updates
+- **2025-11-05**:
+  - **iOS Splash Screen Optimization**: App launch speed improvement
+    - Reduced splash screen duration: 3 seconds → 1 second (67% faster startup)
+    - Changed background color to clean white (#FFFFFF) for better visual consistency
+    - Removed loading spinner for cleaner, more professional appearance
+    - Created comprehensive setup guide (IOS_SPLASH_SCREEN_SETUP.md) for Xcode splash image configuration
 - **2024-11-04**: 
   - **Native Badge Manager**: Direct integration with Capacitor `PushNotifications.setBadgeCount()` for real-time app badge updates on iOS
     - WebSocket-driven badge sync: Instant badge updates when messages are read
