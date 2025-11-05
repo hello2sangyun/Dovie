@@ -1,15 +1,19 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApp } from 'firebase/app';
 import { 
   getAuth, 
+  initializeAuth,
+  indexedDBLocalPersistence,
   GoogleAuthProvider, 
   OAuthProvider,
   signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
+  signInWithCredential,
+  GoogleAuthProvider as GoogleAuthProviderClass,
+  OAuthProvider as OAuthProviderClass,
   signOut as firebaseSignOut,
   type User as FirebaseUser
 } from 'firebase/auth';
 import { Capacitor } from '@capacitor/core';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -21,7 +25,13 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+
+// iOS용 indexedDBLocalPersistence 사용 (중요!)
+export const auth = Capacitor.isNativePlatform()
+  ? initializeAuth(getApp(), { 
+      persistence: indexedDBLocalPersistence 
+    })
+  : getAuth(app);
 
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
@@ -41,12 +51,24 @@ export async function signInWithGoogle(): Promise<SocialLoginResult> {
     const isNative = Capacitor.isNativePlatform();
     
     if (isNative) {
-      // iOS/Android 네이티브 앱 - Safari 리다이렉트 사용
-      console.log('📱 Using Safari redirect for Google Sign-In');
-      await signInWithRedirect(auth, googleProvider);
-      // Safari로 이동하므로 여기서는 반환하지 않음
-      // 앱으로 돌아오면 getRedirectResult로 처리
-      return { idToken: '' }; // 임시, 실제로는 redirect 후 처리
+      // iOS/Android 네이티브 앱 - 네이티브 플러그인 사용
+      console.log('📱 Using native Google Sign-In');
+      const result = await FirebaseAuthentication.signInWithGoogle();
+      
+      if (!result.credential?.idToken) {
+        throw new Error('ID token not received from native auth');
+      }
+      
+      // 네이티브 로그인 후 Web SDK에도 로그인 (onAuthStateChanged 트리거)
+      const credential = GoogleAuthProviderClass.credential(
+        result.credential.idToken,
+        result.credential.accessToken
+      );
+      await signInWithCredential(auth, credential);
+      
+      return {
+        idToken: result.credential.idToken,
+      };
     } else {
       // 웹 브라우저 - Firebase Web SDK 팝업 사용
       console.log('🌐 Using web Google Sign-In popup');
@@ -70,12 +92,25 @@ export async function signInWithApple(): Promise<SocialLoginResult> {
     const isNative = Capacitor.isNativePlatform();
     
     if (isNative) {
-      // iOS/Android 네이티브 앱 - Safari 리다이렉트 사용
-      console.log('📱 Using Safari redirect for Apple Sign-In');
-      await signInWithRedirect(auth, appleProvider);
-      // Safari로 이동하므로 여기서는 반환하지 않음
-      // 앱으로 돌아오면 getRedirectResult로 처리
-      return { idToken: '' }; // 임시, 실제로는 redirect 후 처리
+      // iOS/Android 네이티브 앱 - 네이티브 플러그인 사용
+      console.log('📱 Using native Apple Sign-In');
+      const result = await FirebaseAuthentication.signInWithApple();
+      
+      if (!result.credential?.idToken) {
+        throw new Error('ID token not received from native auth');
+      }
+      
+      // 네이티브 로그인 후 Web SDK에도 로그인 (onAuthStateChanged 트리거)
+      const provider = new OAuthProviderClass('apple.com');
+      const credential = provider.credential({
+        idToken: result.credential.idToken,
+        accessToken: result.credential.accessToken,
+      });
+      await signInWithCredential(auth, credential);
+      
+      return {
+        idToken: result.credential.idToken,
+      };
     } else {
       // 웹 브라우저 - Firebase Web SDK 팝업 사용
       console.log('🌐 Using web Apple Sign-In popup');
@@ -96,24 +131,16 @@ export async function signInWithApple(): Promise<SocialLoginResult> {
 
 export async function signOutFirebase() {
   try {
-    // Web SDK 로그아웃 (네이티브/웹 모두 동일)
+    const isNative = Capacitor.isNativePlatform();
+    
+    // Web SDK 로그아웃
     await firebaseSignOut(auth);
+    
+    // 네이티브 플랫폼에서는 네이티브 세션도 로그아웃
+    if (isNative) {
+      await FirebaseAuthentication.signOut();
+    }
   } catch (error) {
     console.error('Firebase sign out error:', error);
-  }
-}
-
-// 리다이렉트 결과 확인 (앱 시작 시 호출)
-export async function checkRedirectResult(): Promise<SocialLoginResult | null> {
-  try {
-    const result = await getRedirectResult(auth);
-    if (result && result.user) {
-      const idToken = await result.user.getIdToken();
-      return { idToken };
-    }
-    return null;
-  } catch (error: any) {
-    console.error('Redirect result error:', error);
-    return null;
   }
 }
