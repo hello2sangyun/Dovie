@@ -91,7 +91,8 @@ export async function signInWithApple(): Promise<SocialLoginResult> {
       }
       
       // 네이티브 로그인 후 Web SDK에도 로그인 (onAuthStateChanged 트리거)
-      const credential = OAuthProvider.credential({
+      const provider = new OAuthProvider('apple.com');
+      const credential = provider.credential({
         idToken: result.credential.idToken,
         accessToken: result.credential.accessToken,
       });
