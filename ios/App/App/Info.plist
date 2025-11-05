@@ -58,5 +58,15 @@
                         </array>
                 </dict>
         </array>
+        <key>LSApplicationQueriesSchemes</key>
+        <array>
+                <string>google</string>
+                <string>googlechrome</string>
+                <string>googlechromes</string>
+                <string>com.google.GoogleSignIn</string>
+                <string>com.google.chrome.ios</string>
+                <string>com.google.chrome.xcallback</string>
+                <string>com.googleusercontent.apps.376823453378-g12pilchfo71ie2rlkntn8k9ui4846od</string>
+        </array>
 </dict>
 </plist>
