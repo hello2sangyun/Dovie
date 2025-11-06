@@ -1,0 +1,127 @@
+46:27 PM [express] GET /api/unread-counts 304 in 727ms :: {"unreadCounts":[{"chatRoomId":107,"unre…
+4:46:28 PM [express] GET /api/unread-counts 304 in 759ms :: {"unreadCounts":[{"chatRoomId":107,"unre…
+4:46:29 PM [express] GET /api/unread-counts 304 in 752ms :: {"unreadCounts":[{"chatRoomId":107,"unre…
+4:46:30 PM [express] GET /api/unread-counts 304 in 728ms :: {"unreadCounts":[{"chatRoomId":107,"unre…
+4:46:31 PM [express] GET /api/unread-counts 304 in 786ms :: {"unreadCounts":[{"chatRoomId":107,"unre…
+4:46:32 PM [express] GET /api/unread-counts 304 in 763ms :: {"unreadCounts":[{"chatRoomId":107,"unre…
+4:46:33 PM [express] GET /api/unread-counts 304 in 870ms :: {"unreadCounts":[{"chatRoomId":107,"unre…
+4:46:33 PM [express] GET /api/profile-images/profile_1756389360674_d1cpdu9x37f.jpg 404 in 1ms :: {"m…
+4:46:34 PM [express] GET /api/unread-counts 304 in 767ms :: {"unreadCounts":[{"chatRoomId":107,"unre…
+4:46:35 PM [express] GET /api/unread-counts 304 in 719ms :: {"unreadCounts":[{"chatRoomId":107,"unre…
+4:46:36 PM [express] GET /api/unread-counts 304 in 750ms :: {"unreadCounts":[{"chatRoomId":107,"unre…
+4:46:36 PM [express] GET /api/unread-counts 304 in 722ms :: {"unreadCounts":[{"chatRoomId":107,"unre…
+4:46:36 PM [express] GET /api/chat-rooms 304 in 157ms :: {"chatRooms":[{"id":124,"name":"이상윤","isGro…
+4:46:36 PM [express] GET /api/ai-notices 304 in 158ms :: []
+4:46:37 PM [express] GET /api/contacts 304 in 187ms :: {"contacts":[{"id":117,"userId":120,"contactU…
+4:46:37 PM [express] GET /api/profile-images/profile_1756389360674_d1cpdu9x37f.jpg 404 in 1ms :: {"m…
+4:46:37 PM [express] GET /api/unread-counts 401 in 0ms :: {"message":"Not authenticated"}
+4:46:37 PM [express] GET /api/unread-counts 304 in 685ms :: {"unreadCounts":[{"chatRoomId":107,"unre…
+4:46:37 PM [express] GET /api/chat-rooms/99/messages 200 in 138ms :: {"messages":[{"id":847,"chatRoo…
+4:46:37 PM [express] GET /api/chat-rooms/116/messages 304 in 129ms :: {"messages":[{"id":955,"chatRo…
+💓 Heartbeat from user 120: active
+4:46:39 PM [express] POST /api/user/heartbeat 200 in 38ms :: {"success":true}
+4:46:41 PM [express] GET /api/unread-counts 304 in 710ms :: {"unreadCounts":[{"chatRoomId":107,"unre…
+4:46:42 PM [express] GET /api/chat-rooms/97/messages 200 in 167ms :: {"messages":[{"id":840,"chatRoo…
+4:46:45 PM [express] GET /api/unread-counts 304 in 843ms :: {"unreadCounts":[{"chatRoomId":107,"unre…
+4:46:49 PM [express] GET /api/unread-counts 304 in 958ms :: {"unreadCounts":[{"chatRoomId":107,"unre…
+4:46:52 PM [express] GET /api/chat-rooms 200 in 171ms :: {"chatRooms":[{"id":124,"name":"이상윤","isGro…
+4:46:52 PM [express] GET /api/chat-rooms/124/messages 200 in 176ms :: {"messages":[{"id":1004,"chatR…
+4:46:52 PM [express] GET /api/chat-rooms/125/messages 304 in 113ms :: {"messages":[{"id":1013,"chatR…
+4:46:53 PM [express] GET /api/chat-rooms/107/messages 200 in 403ms :: {"messages":[{"id":863,"chatRo…
+4:46:53 PM [express] GET /api/chat-rooms/123/messages 200 in 289ms :: {"messages":[{"id":1003,"chatR…
+4:46:53 PM [express] GET /api/unread-counts 304 in 959ms :: {"unreadCounts":[{"chatRoomId":107,"unre…
+💓 Heartbeat from user 120: active
+4:46:54 PM [express] POST /api/user/heartbeat 200 in 45ms :: {"success":true}
+4:46:57 PM [express] GET /api/unread-counts 304 in 968ms :: {"unreadCounts":[{"chatRoomId":107,"unre…
+WebSocket connection closed for user: 120
+4:47:02 PM [express] GET /api/unread-counts 304 in 1190ms :: {"unreadCounts":[{"chatRoomId":107,"unr…
+4:47:02 PM [express] GET /api/unread-counts 401 in 1ms :: {"message":"Not authenticated"}
+4:47:31 PM [express] GET /api/unread-counts 401 in 1ms :: {"message":"Not authenticated"}
+✅ 자동 로그인 성공: 사용자 120 (dinggo)
+4:50:23 PM [express] GET /api/auth/me 200 in 188ms :: {"user":{"id":120,"username":"dinggo","display…
+4:50:23 PM [express] GET /api/contacts 304 in 39ms :: {"contacts":[{"id":117,"userId":120,"contactUs…
+4:50:23 PM [express] GET /api/chat-rooms 200 in 153ms :: {"chatRooms":[{"id":124,"name":"이상윤","isGro…
+❌ File not found: profile_1756389360674_d1cpdu9x37f.jpg
+Twilio SMS 전송 오류: RestException [Error]: 'From' +14782217983 is not a Twilio phone number or Short Code country mismatch
+    at success (/home/runner/workspace/node_modules/twilio/lib/base/Version.js:79:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:223:25) {
+  status: 400,
+  code: 21659,
+  moreInfo: 'https://www.twilio.com/docs/errors/21659',
+  details: undefined
+}
+🔧 개발 모드: SMS 전송 실패하였지만 테스트를 위해 성공으로 처리
+📱 인증 코드: 691311 (+36703566634)
+4:50:39 PM [express] POST /api/auth/send-verification-code 200 in 305ms :: {"success":true,"message"…
+4:50:52 PM [express] GET /api/unread-counts 401 in 0ms :: {"message":"Not authenticated"}
+4:50:57 PM [express] POST /api/auth/verify-phone-code 200 in 176ms :: {"success":true,"message":"인증에…
+PayloadTooLargeError: request entity too large
+    at readStream (/home/runner/workspace/node_modules/raw-body/index.js:163:17)
+    at getRawBody (/home/runner/workspace/node_modules/raw-body/index.js:116:12)
+    at read (/home/runner/workspace/node_modules/body-parser/lib/read.js:79:3)
+    at jsonParser (/home/runner/workspace/node_modules/body-parser/lib/types/json.js:138:5)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+    at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+    at <anonymous> (/home/runner/workspace/server/index.ts:28:5)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+    at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+    at expressInit (/home/runner/workspace/node_modules/express/lib/middleware/init.js:40:5)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+    at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+    at query (/home/runner/workspace/node_modules/express/lib/middleware/query.js:45:5)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+    at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+    at Function.handle (/home/runner/workspace/node_modules/express/lib/router/index.js:175:3)
+    at Function.handle (/home/runner/workspace/node_modules/express/lib/application.js:181:10)
+    at Server.app (/home/runner/workspace/node_modules/express/lib/express.js:39:9)
+    at Server.emit (node:events:524:28)
+    at parserOnIncoming (node:_http_server:1141:12)
+    at HTTPParser.parserOnHeadersComplete (node:_http_common:118:17)
+PayloadTooLargeError: request entity too large
+    at readStream (/home/runner/workspace/node_modules/raw-body/index.js:163:17)
+    at getRawBody (/home/runner/workspace/node_modules/raw-body/index.js:116:12)
+    at read (/home/runner/workspace/node_modules/body-parser/lib/read.js:79:3)
+    at jsonParser (/home/runner/workspace/node_modules/body-parser/lib/types/json.js:138:5)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+    at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+    at <anonymous> (/home/runner/workspace/server/index.ts:28:5)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+    at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+    at expressInit (/home/runner/workspace/node_modules/express/lib/middleware/init.js:40:5)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+    at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+    at query (/home/runner/workspace/node_modules/express/lib/middleware/query.js:45:5)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+    at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+    at Function.handle (/home/runner/workspace/node_modules/express/lib/router/index.js:175:3)
+    at Function.handle (/home/runner/workspace/node_modules/express/lib/application.js:181:10)
+    at Server.app (/home/runner/workspace/node_modules/express/lib/express.js:39:9)
+    at Server.emit (node:events:524:28)
+    at parserOnIncoming (node:_http_server:1141:12)
+    at HTTPParser.parserOnHeadersComplete (node:_http_common:118:17)
+4:51:23 PM [express] GET /api/unread-counts 401 in 0ms :: {"message":"Not authenticated"}
