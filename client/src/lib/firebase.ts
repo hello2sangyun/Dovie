@@ -6,14 +6,12 @@ import {
   GoogleAuthProvider, 
   OAuthProvider,
   signInWithPopup,
-  signInWithCredential,
-  GoogleAuthProvider as GoogleAuthProviderClass,
-  OAuthProvider as OAuthProviderClass,
+  signInWithCustomToken,
   signOut as firebaseSignOut,
   type User as FirebaseUser
 } from 'firebase/auth';
 import { Capacitor } from '@capacitor/core';
-import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
+import GoogleSignIn from '@/plugins/GoogleSignIn';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -51,23 +49,35 @@ export async function signInWithGoogle(): Promise<SocialLoginResult> {
     const isNative = Capacitor.isNativePlatform();
     
     if (isNative) {
-      // iOS/Android 네이티브 앱 - 네이티브 플러그인 사용
-      console.log('📱 Using native Google Sign-In');
-      const result = await FirebaseAuthentication.signInWithGoogle();
+      // iOS/Android 네이티브 앱 - Google Sign-In SDK 직접 사용
+      console.log('📱 Using native Google Sign-In SDK');
       
-      if (!result.credential?.idToken) {
-        throw new Error('ID token not received from native auth');
+      // 1. Google Sign-In으로 ID Token 받기
+      const googleResult = await GoogleSignIn.signIn();
+      console.log('✅ Native Google Sign-In Success');
+      
+      // 2. 서버에 Google ID Token 전송 → Firebase Custom Token 받기
+      const response = await fetch('/api/auth/google-native', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ idToken: googleResult.idToken }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('서버 인증 실패');
       }
       
-      // 네이티브 로그인 후 Web SDK에도 로그인 (onAuthStateChanged 트리거)
-      const credential = GoogleAuthProviderClass.credential(
-        result.credential.idToken,
-        result.credential.accessToken
-      );
-      await signInWithCredential(auth, credential);
+      const data = await response.json();
+      console.log('✅ Firebase Custom Token received');
+      
+      // 3. Custom Token으로 Firebase 인증
+      await signInWithCustomToken(auth, data.customToken);
+      console.log('✅ Firebase authenticated with custom token');
       
       return {
-        idToken: result.credential.idToken,
+        idToken: googleResult.idToken,
       };
     } else {
       // 웹 브라우저 - Firebase Web SDK 팝업 사용
@@ -92,25 +102,9 @@ export async function signInWithApple(): Promise<SocialLoginResult> {
     const isNative = Capacitor.isNativePlatform();
     
     if (isNative) {
-      // iOS/Android 네이티브 앱 - 네이티브 플러그인 사용
-      console.log('📱 Using native Apple Sign-In');
-      const result = await FirebaseAuthentication.signInWithApple();
-      
-      if (!result.credential?.idToken) {
-        throw new Error('ID token not received from native auth');
-      }
-      
-      // 네이티브 로그인 후 Web SDK에도 로그인 (onAuthStateChanged 트리거)
-      const provider = new OAuthProviderClass('apple.com');
-      const credential = provider.credential({
-        idToken: result.credential.idToken,
-        accessToken: result.credential.accessToken,
-      });
-      await signInWithCredential(auth, credential);
-      
-      return {
-        idToken: result.credential.idToken,
-      };
+      // TODO: Apple Sign-In SDK 구현 (현재는 웹 방식 사용)
+      console.log('📱 Apple Sign-In - 아직 미구현');
+      throw new Error('Apple 로그인은 아직 지원되지 않습니다.');
     } else {
       // 웹 브라우저 - Firebase Web SDK 팝업 사용
       console.log('🌐 Using web Apple Sign-In popup');
@@ -131,15 +125,8 @@ export async function signInWithApple(): Promise<SocialLoginResult> {
 
 export async function signOutFirebase() {
   try {
-    const isNative = Capacitor.isNativePlatform();
-    
     // Web SDK 로그아웃
     await firebaseSignOut(auth);
-    
-    // 네이티브 플랫폼에서는 네이티브 세션도 로그아웃
-    if (isNative) {
-      await FirebaseAuthentication.signOut();
-    }
   } catch (error) {
     console.error('Firebase sign out error:', error);
   }

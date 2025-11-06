@@ -11,7 +11,6 @@ install! 'cocoapods', :disable_input_output_paths => true
 def capacitor_pods
   pod 'Capacitor', :path => '../../node_modules/@capacitor/ios'
   pod 'CapacitorCordova', :path => '../../node_modules/@capacitor/ios'
-  pod 'CapacitorFirebaseAuthentication', :path => '../../node_modules/@capacitor-firebase/authentication'
   pod 'CapacitorApp', :path => '../../node_modules/@capacitor/app'
   pod 'CapacitorCamera', :path => '../../node_modules/@capacitor/camera'
   pod 'CapacitorFilesystem', :path => '../../node_modules/@capacitor/filesystem'
@@ -23,8 +22,7 @@ end
 
 target 'App' do
   capacitor_pods
-  # Add your Pods here
-  pod 'Firebase/Auth'
+  # Google Sign-In SDK (네이티브)
   pod 'GoogleSignIn'
 end
 

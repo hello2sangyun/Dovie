@@ -1,7 +1,7 @@
 import UIKit
 import Capacitor
 import FirebaseCore
-import FirebaseAuth
+import GoogleSignIn
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -38,8 +38,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-        // Firebase Auth URL 처리 (중요!)
-        if Auth.auth().canHandle(url) {
+        // Google Sign-In URL 처리 (중요!)
+        if GIDSignIn.sharedInstance.handle(url) {
             return true
         }
         
