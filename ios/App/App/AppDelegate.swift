@@ -12,6 +12,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Firebase 초기화
         FirebaseApp.configure()
         
+        // GoogleSignInPlugin 수동 등록 (Capacitor 7)
+        CAPBridge.registerPlugin(GoogleSignInPlugin.self)
+        
         return true
     }
     
