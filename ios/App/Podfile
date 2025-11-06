@@ -23,11 +23,9 @@ end
 
 target 'App' do
   capacitor_pods
-  # Firebase SDK (Custom Token 인증용)
+  # Firebase SDK (Web SDK 인증용)
   pod 'FirebaseCore'
   pod 'FirebaseAuth'
-  # Google Sign-In SDK (네이티브)
-  pod 'GoogleSignIn'
 end
 
 post_install do |installer|
