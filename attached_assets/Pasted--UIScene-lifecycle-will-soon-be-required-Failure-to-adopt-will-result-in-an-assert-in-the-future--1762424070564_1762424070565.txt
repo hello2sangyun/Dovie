@@ -1,0 +1,236 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/75CFE9B8-17AE-48C4-9A1D-6CE5D7989C43/App.app'
+⚡️  Loading app at capacitor://localhost...
+Networking process (0x11305c190) took 5.997238 seconds to launch
+GPU process (0x11310c1e0) took 2.603613 seconds to launch
+WebContent process (0x1130e0100) took 2.619765 seconds to launch
+0x1130e0100 - [PID=69340] WebProcessProxy::didBecomeUnresponsive:
+0x15434c718 - [pageProxyID=7, webPageID=8, PID=69340] WebPageProxy::processDidBecomeUnresponsive:
+WebContent[69340] Unable to hide query parameters from script (missing data)
+⚡️  WebView loaded
+⚡️  [log] - 📱 No stored user, initializing as logged out
+⚡️  [error] - Auto login failed: {}
+XPC connection interrupted
+Reporter disconnected. { function=sendMessage, reporterID=297761492697089 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697089 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697089 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697089 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697089 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697089 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697089 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697089 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697089 }
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+	(Note: If you're seeing NSAutoresizingMaskLayoutConstraints that you don't understand, refer to the documentation for the UIView property translatesAutoresizingMaskIntoConstraints) 
+(
+    "<NSAutoresizingMaskLayoutConstraint:0x1551fda40 h=-&- v=-&- _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x155132200.minX == 0   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x155028a00 )>",
+    "<NSAutoresizingMaskLayoutConstraint:0x1551fda90 h=-&- v=-&- H:[_TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x155132200]-(0)-|   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x155028a00 )>",
+    "<NSLayoutConstraint:0x1551fd450 _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x155132200.width == _UIButtonBarButton:0x155028c80.width   (active)>",
+    "<NSLayoutConstraint:0x1551fd4f0 '_UITemporaryLayoutWidth' _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x155028a00.width == 0   (active)>",
+    "<NSLayoutConstraint:0x1551fd400 'IB_Leading_Leading' H:|-(8)-[_UIModernBarButton:0x155220a80]   (active, names: '|':_UIButtonBarButton:0x155028c80 )>",
+    "<NSLayoutConstraint:0x1551fd220 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x155220a80]-(8)-|   (active, names: '|':_UIButtonBarButton:0x155028c80 )>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x1551fd220 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x155220a80]-(8)-|   (active, names: '|':_UIButtonBarButton:0x155028c80 )>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+	(Note: If you're seeing NSAutoresizingMaskLayoutConstraints that you don't understand, refer to the documentation for the UIView property translatesAutoresizingMaskIntoConstraints) 
+(
+    "<NSAutoresizingMaskLayoutConstraint:0x1551ff110 h=-&- v=-&- _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x155132600.minX == 0   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x155028500 )>",
+    "<NSAutoresizingMaskLayoutConstraint:0x1551ff160 h=-&- v=-&- H:[_TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x155132600]-(0)-|   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x155028500 )>",
+    "<NSLayoutConstraint:0x1551fe990 _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x155132600.width == _UIButtonBarButton:0x155028780.width   (active)>",
+    "<NSLayoutConstraint:0x1551fefd0 '_UITemporaryLayoutWidth' _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x155028500.width == 0   (active)>",
+    "<NSLayoutConstraint:0x1551fead0 'IB_Leading_Leading' H:|-(8)-[_UIModernBarButton:0x155220e00]   (active, names: '|':_UIButtonBarButton:0x155028780 )>",
+    "<NSLayoutConstraint:0x1551feb20 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x155220e00]-(8)-|   (active, names: '|':_UIButtonBarButton:0x155028780 )>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x1551feb20 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x155220e00]-(8)-|   (active, names: '|':_UIButtonBarButton:0x155028780 )>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+	(Note: If you're seeing NSAutoresizingMaskLayoutConstraints that you don't understand, refer to the documentation for the UIView property translatesAutoresizingMaskIntoConstraints) 
+(
+    "<NSAutoresizingMaskLayoutConstraint:0x1553100a0 h=-&- v=-&- _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x155132a00.minX == 0   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x15502a080 )>",
+    "<NSAutoresizingMaskLayoutConstraint:0x1553100f0 h=-&- v=-&- H:[_TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x155132a00]-(0)-|   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x15502a080 )>",
+    "<NSLayoutConstraint:0x155020050 _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x155132a00.width == _UIButtonBarButton:0x155028280.width   (active)>",
+    "<NSLayoutConstraint:0x1551a36b0 '_UITemporaryLayoutWidth' _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x15502a080.width == 0   (active)>",
+    "<NSLayoutConstraint:0x1550208c0 'IB_Leading_Leading' H:|-(8)-[_UIModernBarButton:0x155221180]   (active, names: '|':_UIButtonBarButton:0x155028280 )>",
+    "<NSLayoutConstraint:0x154d40280 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x155221180]-(8)-|   (active, names: '|':_UIButtonBarButton:0x155028280 )>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x154d40280 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x155221180]-(8)-|   (active, names: '|':_UIButtonBarButton:0x155028280 )>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 5646E533-B4C8-44F3-9F5E-65553D1EED33
+<0x1541ba440> Gesture: System gesture gate timed out.
+Result accumulator timeout: 3.000000, exceeded.
+Result accumulator timeout: 3.000000, exceeded.
+Result accumulator timeout: 3.000000, exceeded.
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+Reporter disconnected. { function=sendMessage, reporterID=297761492697090 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697090 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697090 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697090 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697090 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697090 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697090 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697090 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697090 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 5646E533-B4C8-44F3-9F5E-65553D1EED33
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 5646E533-B4C8-44F3-9F5E-65553D1EED33
+⚡️  To Native ->  CapacitorHttp request 115393218
+⚡️  TO JS {"status":401,"data":{"message":"사용자명 또는 비밀번호가 올바르지 않습니다."},"url":"https:\/\/85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev\/api\/auth\/username-login","headers":{"access-control-allow-headers":"Origin, X-Requested-With, Content-Type
+⚡️  To Native ->  CapacitorHttp request 115393219
+⚡️  TO JS {"status":401,"data":{"message":"사용자명 또는 비밀번호가 올바르지 않습니다."},"url":"https:\/\/85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev\/api\/auth\/username-login","headers":{"content-length":"76","access-control-allow-methods":"GET, POST, PUT, 
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+Snapshotting a view (0x154cff400, UIKeyboardImpl) that is not in a visible window requires afterScreenUpdates:YES.
+⚡️  To Native ->  CapacitorHttp request 115393220
+⚡️  TO JS {"url":"https:\/\/85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev\/api\/auth\/username-login","status":401,"data":{"message":"사용자명 또는 비밀번호가 올바르지 않습니다."},"headers":{"x-powered-by":"Express","x-robots-tag":"none, noindex, noarchive, nof
+⚡️  To Native ->  CapacitorHttp request 115393221
+⚡️  TO JS {"url":"https:\/\/85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev\/api\/auth\/username-login","status":401,"data":{"message":"사용자명 또는 비밀번호가 올바르지 않습니다."},"headers":{"x-powered-by":"Express","x-robots-tag":"none, noindex, noarchive, nof
+Snapshotting a view (0x154e78000, UIKeyboardImpl) that has not been rendered at least once requires afterScreenUpdates:YES.
+WebContent[69340] 0x10a068100 - [sessionID=1] WebProcess::markAllLayersVolatile: Failed to mark layers as volatile for webPageID=8
+Snapshotting a view (0x154e79000, UIKeyboardImpl) that has not been rendered at least once requires afterScreenUpdates:YES.
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+(
+    "<NSLayoutConstraint:0x154fc2210 V:|-(7)-[TUIKeyboardContentView:0x15511d180]   (active, names: '|':TUIKeyplaneView:0x154e79000 )>",
+    "<NSLayoutConstraint:0x154fc1a90 V:[TUIKeyboardContentView:0x15511d180]-(10)-|   (active, names: '|':TUIKeyplaneView:0x154e79000 )>",
+    "<NSLayoutConstraint:0x154fc10e0 V:|-(0)-[TUIKeyplaneView:0x154e79000]   (active, names: UIKeyboardLayoutStar Prev...:0x154344000, '|':UIKeyboardLayoutStar Prev...:0x154344000 )>",
+    "<NSLayoutConstraint:0x154fc2d00 V:[TUIKeyplaneView:0x154e79000]-(0)-|   (active, names: UIKeyboardLayoutStar Prev...:0x154344000, '|':UIKeyboardLayoutStar Prev...:0x154344000 )>",
+    "<NSLayoutConstraint:0x154fc2530 V:|-(0)-[UIKeyboardLayoutStar Prev...]   (active, names: UIKeyboardLayoutStar Prev...:0x154344000, '|':UIKeyboardImpl:0x154e78000 )>",
+    "<NSLayoutConstraint:0x154fc04b0 V:[UIKeyboardLayoutStar Prev...]-(0)-|   (active, names: UIKeyboardLayoutStar Prev...:0x154344000, '|':UIKeyboardImpl:0x154e78000 )>",
+    "<NSLayoutConstraint:0x154fc23f0 '_UITemporaryLayoutHeight' UIKeyboardImpl:0x154e78000.height == 250   (active)>",
+    "<NSLayoutConstraint:0x154fc0be0 'TUIKeyplane.height' TUIKeyboardContentView:0x15511d180.height == 216   (active)>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x154fc0be0 'TUIKeyplane.height' TUIKeyboardContentView:0x15511d180.height == 216   (active)>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+(
+    "<NSLayoutConstraint:0x154fc2210 V:|-(7)-[TUIKeyboardContentView:0x15511d180]   (active, names: '|':TUIKeyplaneView:0x154e79000 )>",
+    "<NSLayoutConstraint:0x154fc1a90 V:[TUIKeyboardContentView:0x15511d180]-(10)-|   (active, names: '|':TUIKeyplaneView:0x154e79000 )>",
+    "<NSLayoutConstraint:0x154fc10e0 V:|-(0)-[TUIKeyplaneView:0x154e79000]   (active, names: UIKeyboardLayoutStar Prev...:0x154344000, '|':UIKeyboardLayoutStar Prev...:0x154344000 )>",
+    "<NSLayoutConstraint:0x154fc2d00 V:[TUIKeyplaneView:0x154e79000]-(0)-|   (active, names: UIKeyboardLayoutStar Prev...:0x154344000, '|':UIKeyboardLayoutStar Prev...:0x154344000 )>",
+    "<NSLayoutConstraint:0x154fc2530 V:|-(0)-[UIKeyboardLayoutStar Prev...]   (active, names: UIKeyboardLayoutStar Prev...:0x154344000, '|':UIKeyboardImpl:0x154e78000 )>",
+    "<NSLayoutConstraint:0x154fc04b0 V:[UIKeyboardLayoutStar Prev...]-(0)-|   (active, names: UIKeyboardLayoutStar Prev...:0x154344000, '|':UIKeyboardImpl:0x154e78000 )>",
+    "<NSLayoutConstraint:0x1553a4d70 '_UITemporaryLayoutHeight' UIKeyboardImpl:0x154e78000.height == 250   (active)>",
+    "<NSLayoutConstraint:0x154fc0be0 'TUIKeyplane.height' TUIKeyboardContentView:0x15511d180.height == 216   (active)>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x154fc0be0 'TUIKeyplane.height' TUIKeyboardContentView:0x15511d180.height == 216   (active)>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+Reporter disconnected. { function=sendMessage, reporterID=297761492697091 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697091 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697091 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697091 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697091 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697091 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697091 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697091 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697091 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 910230CA-A0A1-4461-9339-5CD20BA301FF
+⚡️  To Native ->  CapacitorHttp request 115393222
+Reporter disconnected or already stopped. { func=stop, reporterID=297761492697091 }
+⚡️  TO JS {"url":"https:\/\/85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev\/api\/auth\/username-login","data":{"user":{"createdAt":"2025-10-21T18:05:20.869Z","autoPlayVoiceMessages":false,"username":"dinggo","language":"ko","phoneNumber":"","b
+⚡️  [log] - [Badge] Service Worker not supported
+⚡️  To Native ->  App addListener 115393223
+⚡️  To Native ->  App addListener 115393224
+⚡️  To Native ->  App addListener 115393225
+⚡️  To Native ->  PushNotifications requestPermissions 115393226
+⚡️  TO JS {"receive":"granted"}
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 🔌 Connecting to WebSocket: ws://localhost/ws
+⚡️  [log] -    Protocol: ws:, Host: localhost
+⚡️  [log] - 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+⚡️  [log] - MainApp rendering with user: 120
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  To Native ->  PushNotifications register 115393227
+⚡️  TO JS undefined
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - 📱 iOS 네이티브 푸시 알림 등록 성공
+⚡️  To Native ->  PushNotifications addListener 115393228
+⚡️  To Native ->  PushNotifications addListener 115393229
+⚡️  To Native ->  PushNotifications addListener 115393230
+⚡️  To Native ->  PushNotifications addListener 115393231
+⚡️  [log] - ❌ Authentication failed, clearing user data
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+⚡️  WebView loaded
+⚡️  [log] - 📱 No stored user, initializing as logged out
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 910230CA-A0A1-4461-9339-5CD20BA301FF
+Reporter disconnected. { function=sendMessage, reporterID=297761492697092 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697092 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697092 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697092 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697092 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697092 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697092 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697092 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697092 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  Can only perform input operation for an active session. sessionID = C852C43C-775A-422E-97F8-1146D586D188
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  Can only perform input operation for an active session. sessionID = C852C43C-775A-422E-97F8-1146D586D188
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  Can only perform input operation for an active session. sessionID = C852C43C-775A-422E-97F8-1146D586D188
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+Reporter disconnected. { function=sendMessage, reporterID=297761492697093 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697093 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697093 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697093 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697093 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697093 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697093 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697093 }
+Reporter disconnected. { function=sendMessage, reporterID=297761492697093 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = C75244D4-6E4C-49F1-B15A-46BB266D4AE6
+(501) Invalidation handler invoked, clearing connection
+(501) personaAttributesForPersonaType for type:0 failed with error Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service named com.apple.mobile.usermanagerd.xpc was invalidated from this process." UserInfo={NSDebugDescription=The connection to service named com.apple.mobile.usermanagerd.xpc was invalidated from this process.}
+Received port for identifier response: <(null)> with error:Error Domain=RBSServiceErrorDomain Code=1 "Client not entitled" UserInfo={RBSEntitlement=com.apple.runningboard.process-state, NSLocalizedFailureReason=Client not entitled, RBSPermanent=false}
+elapsedCPUTimeForFrontBoard couldn't generate a task port
+Reporter disconnected or already stopped. { func=stop, reporterID=297761492697093 }
+Received port for identifier response: <(null)> with error:Error Domain=RBSServiceErrorDomain Code=1 "Client not entitled" UserInfo={RBSEntitlement=com.apple.runningboard.process-state, NSLocalizedFailureReason=Client not entitled, RBSPermanent=false}
+elapsedCPUTimeForFrontBoard couldn't generate a task port
+Received port for identifier response: <(null)> with error:Error Domain=RBSServiceErrorDomain Code=1 "Client not entitled" UserInfo={RBSEntitlement=com.apple.runningboard.process-state, NSLocalizedFailureReason=Client not entitled, RBSPermanent=false}
+elapsedCPUTimeForFrontBoard couldn't generate a task port
+Received port for identifier response: <(null)> with error:Error Domain=RBSServiceErrorDomain Code=1 "Client not entitled" UserInfo={RBSEntitlement=com.apple.runningboard.process-state, NSLocalizedFailureReason=Client not entitled, RBSPermanent=false}
+elapsedCPUTimeForFrontBoard couldn't generate a task port
