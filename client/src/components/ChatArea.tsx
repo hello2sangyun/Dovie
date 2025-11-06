@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { UserAvatar } from "@/components/UserAvatar";
 import InstantAvatar from "@/components/InstantAvatar";
 import MediaPreview from "@/components/MediaPreview";
-import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause, MoreVertical, LogOut, Settings, MapPin, Sparkles, Bell, Mic } from "lucide-react";
+import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause, MoreVertical, LogOut, Settings, MapPin, Sparkles, Bell, Mic, Bookmark } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 import AddFriendConfirmModal from "./AddFriendConfirmModal";
@@ -486,6 +486,17 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     enabled: !!user && !!chatRoomId && !isLocationChatRoom,
     refetchInterval: 10000, // Poll every 10 seconds for updates
   });
+
+  // Get bookmarks for this user
+  const { data: bookmarksData } = useQuery({
+    queryKey: ['/api/bookmarks'],
+    enabled: !!user,
+  });
+
+  // Create a Set of bookmarked message IDs for fast lookup
+  const bookmarkedMessageIds = new Set(
+    bookmarksData?.bookmarks?.map((b: any) => b.messageId) || []
+  );
 
   // Send message mutation
   const sendMessageMutation = useMutation({
@@ -4588,7 +4599,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     >
                       <div 
                         className={cn(
-                          "rounded-2xl px-3 py-2 w-fit break-words cursor-pointer select-none relative overflow-hidden",
+                          "rounded-2xl px-3 py-2 w-fit break-words cursor-pointer select-none relative overflow-visible",
                           // Enhanced shadows and modern design
                           // 시스템 메시지 (리마인더)는 해시태그 회상과 같은 스타일 적용
                           msg.isSystemMessage
@@ -4599,7 +4610,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                                 : "bg-gradient-to-br from-teal-50 to-cyan-50 text-teal-900 shadow-md border border-teal-200/50 rounded-tl-md backdrop-blur-sm"
                               : isMe 
                                 ? "bg-gradient-to-br from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/25 rounded-tr-md backdrop-blur-sm hover:shadow-xl hover:shadow-purple-500/30 transition-all duration-300" 
-                                : "bg-gradient-to-br from-white to-gray-50 text-gray-900 shadow-md shadow-gray-200/50 border border-gray-200/80 rounded-tl-md backdrop-blur-sm hover:shadow-lg hover:shadow-gray-300/40 transition-all duration-300"
+                                : "bg-gradient-to-br from-white to-gray-50 text-gray-900 shadow-md shadow-gray-200/50 border border-gray-200/80 rounded-tl-md backdrop-blur-sm hover:shadow-lg hover:shadow-gray-300/40 transition-all duration-300",
+                          bookmarkedMessageIds.has(msg.id) && "ring-2 ring-yellow-400 ring-offset-2"
                         )}
                         style={{ 
                           userSelect: 'none',
@@ -4641,6 +4653,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                         }
                       }}
                     >
+                      {/* Bookmark indicator for bookmarked messages */}
+                      {bookmarkedMessageIds.has(msg.id) && (
+                        <div className="absolute -top-2 -right-2 z-10">
+                          <div className="w-6 h-6 rounded-full bg-yellow-400 flex items-center justify-center shadow-lg border-2 border-white">
+                            <Bookmark className="h-3 w-3 text-yellow-900 fill-yellow-900" />
+                          </div>
+                        </div>
+                      )}
+                      
                       {/* 회신 메시지 표시 - 개선된 UI */}
                       {msg.replyToMessageId && (
                         <div 
