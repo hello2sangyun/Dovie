@@ -17,6 +17,9 @@ import UserProfilePage from "@/pages/UserProfilePage";
 import GroupInfoPage from "@/pages/GroupInfoPage";
 import NotFound from "@/pages/not-found";
 import { useEffect } from "react";
+import { Capacitor } from '@capacitor/core';
+import { handleRedirectResult } from '@/lib/firebase';
+import { apiRequest } from "@/lib/queryClient";
 
 function Router() {
   return (
@@ -39,6 +42,8 @@ function Router() {
 }
 
 function App() {
+  const [, setLocation] = useLocation();
+  
   // Dark mode initialization
   useEffect(() => {
     const savedDarkMode = localStorage.getItem('darkMode');
@@ -51,6 +56,41 @@ function App() {
       document.documentElement.classList.remove('dark');
     }
   }, []);
+  
+  // Firebase 리디렉트 결과 처리 (네이티브 앱에서만)
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    
+    const checkRedirectResult = async () => {
+      try {
+        console.log('🔍 Checking Firebase redirect result on app start...');
+        const result = await handleRedirectResult();
+        
+        if (result && result.idToken) {
+          console.log('✅ Redirect login successful, processing...');
+          
+          // 서버에 토큰 전송하여 사용자 정보 가져오기
+          const response = await apiRequest("/api/auth/social-login", "POST", {
+            idToken: result.idToken,
+            authProvider: 'google',
+          });
+          
+          const data = await response.json();
+          localStorage.setItem("userId", data.user.id.toString());
+          
+          if (!data.user.isProfileComplete) {
+            setLocation("/profile-setup");
+          } else {
+            setLocation("/app");
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error processing redirect result:', error);
+      }
+    };
+    
+    checkRedirectResult();
+  }, [setLocation]);
 
   // 브라우저 뒤로 가기 버튼 처리 - 로그아웃 대신 페이지 히스토리 기반 네비게이션
   useEffect(() => {
