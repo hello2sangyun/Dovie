@@ -112,6 +112,18 @@ For iOS push notifications to work in production, APNS credentials must be confi
 - **Development**: Set `NODE_ENV=development` to use `api.development.push.apple.com`, all push notifications sent for testing
 
 ## Recent Updates
+- **2024-11-06**:
+  - **Phone Number-Based Signup Flow**: Completely redesigned signup system with SMS verification
+    - Database: `verification_codes` table with 6-digit codes, 5-minute TTL, and single-use enforcement
+    - Storage API: `createVerificationCode`, `getVerificationCode`, `markVerificationCodeAsUsed` for SMS code lifecycle management
+    - REST API: Three-step signup process
+      - `POST /api/auth/send-verification-code`: Sends SMS verification code via Twilio
+      - `POST /api/auth/verify-phone-code`: Validates SMS code without creating user
+      - `POST /api/auth/signup-phone`: Completes signup with username, password, displayName, and optional profile photo
+    - UI: Three-step wizard flow (phone input → SMS code → user details → auto-login to /app)
+    - Security: Phone number uniqueness check, username validation (English + special chars only), bcrypt password hashing
+    - Development Mode: SMS codes logged to console when Twilio SMS fails (trial account limitations)
+    - Architect-reviewed and E2E tested via Playwright
 - **2024-11-04**: 
   - **Native Badge Manager**: Direct integration with Capacitor `PushNotifications.setBadgeCount()` for real-time app badge updates on iOS
     - WebSocket-driven badge sync: Instant badge updates when messages are read
