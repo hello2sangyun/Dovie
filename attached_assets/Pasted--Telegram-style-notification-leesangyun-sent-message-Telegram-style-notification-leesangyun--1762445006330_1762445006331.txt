@@ -1,0 +1,73 @@
+
+📱 Telegram-style notification: leesangyun sent message
+📱 Telegram-style notification: leesangyun sent message
+📱 User 120 has no push subscriptions - skipping
+📱 User 120 has no push subscriptions - skipping
+간편음성메세지 브로드캐스트 시작: 125 참가자: 2
+메시지 전송 성공: 132
+WebSocket 연결 없음 또는 닫힘: 120
+간편음성메세지 브로드캐스트 시작: 125 참가자: 2
+메시지 전송 성공: 132
+WebSocket 연결 없음 또는 닫힘: 120
+🤖 AI Notice Analysis: Analyzing message from leesangyun
+Analyzing message for notices: "테스트합니다"
+4:03:03 PM [express] POST /api/chat-rooms/125/messages 200 in 328ms :: {"message":{"id":1013,"chatRo…
+🤖 AI Notice Analysis: Analyzing message from leesangyun
+Analyzing message for notices: "테스트합니다"
+4:03:03 PM [express] POST /api/chat-rooms/125/messages 200 in 323ms :: {"message":{"id":1014,"chatRo…
+4:03:04 PM [express] GET /api/chat-rooms 200 in 107ms :: {"chatRooms":[{"id":125,"name":"이소은 테스트","i…
+4:03:04 PM [express] GET /api/chat-rooms/125/messages 200 in 108ms :: {"messages":[{"id":1013,"chatR…
+4:03:04 PM [express] GET /api/chat-rooms/125/messages 200 in 97ms :: {"messages":[{"id":1013,"chatRo…
+4:03:04 PM [express] GET /api/chat-rooms/125/messages 200 in 94ms :: {"messages":[{"id":1013,"chatRo…
+4:03:04 PM [express] GET /api/chat-rooms/125/messages 304 in 82ms :: {"messages":[{"id":1013,"chatRo…
+4:03:04 PM [express] GET /api/chat-rooms 304 in 82ms :: {"chatRooms":[{"id":125,"name":"이소은 테스트","is…
+4:03:04 PM [express] GET /api/chat-rooms/125/messages 304 in 79ms :: {"messages":[{"id":1013,"chatRo…
+4:03:04 PM [express] GET /api/chat-rooms/125/messages 304 in 77ms :: {"messages":[{"id":1013,"chatRo…
+Mark read request: userId=132, chatRoomId=125, lastMessageId=1014
+Mark read request: userId=132, chatRoomId=125, lastMessageId=1014
+4:03:04 PM [express] GET /api/chat-rooms/125/messages 304 in 77ms :: {"messages":[{"id":1013,"chatRo…
+4:03:04 PM [express] GET /api/chat-rooms 304 in 77ms :: {"chatRooms":[{"id":125,"name":"이소은 테스트","is…
+4:03:04 PM [express] POST /api/chat-rooms/125/mark-read 200 in 41ms :: {"success":true}
+4:03:04 PM [express] POST /api/chat-rooms/125/mark-read 200 in 40ms :: {"success":true}
+4:03:04 PM [express] GET /api/chat-rooms/125/messages 304 in 78ms :: {"messages":[{"id":1013,"chatRo…
+4:03:04 PM [express] GET /api/chat-rooms 304 in 86ms :: {"chatRooms":[{"id":125,"name":"이소은 테스트","is…
+4:03:04 PM [express] GET /api/unread-counts 304 in 113ms :: {"unreadCounts":[]}
+4:03:04 PM [express] GET /api/chat-rooms/125/messages 304 in 77ms :: {"messages":[{"id":1013,"chatRo…
+4:03:04 PM [express] GET /api/chat-rooms 304 in 80ms :: {"chatRooms":[{"id":125,"name":"이소은 테스트","is…
+4:03:04 PM [express] GET /api/chat-rooms/125/messages 304 in 83ms :: {"messages":[{"id":1013,"chatRo…
+4:03:04 PM [express] GET /api/unread-counts 304 in 114ms :: {"unreadCounts":[]}
+💓 Heartbeat from user 132: active
+4:03:05 PM [express] POST /api/user/heartbeat 200 in 39ms :: {"success":true}
+4:03:05 PM [express] GET /api/chat-rooms 200 in 79ms :: {"chatRooms":[{"id":125,"name":"이소은 테스트","is…
+4:03:05 PM [express] GET /api/unread-counts 304 in 112ms :: {"unreadCounts":[]}
+4:03:05 PM [express] GET /api/unread-counts 304 in 110ms :: {"unreadCounts":[]}
+4:03:05 PM [express] GET /api/unread-counts 304 in 112ms :: {"unreadCounts":[]}
+AI Notice Analysis Result: { hasNotice: false, notices: [] }
+🤖 AI Notice Analysis: No important notices detected
+AI Notice Analysis Result: { hasNotice: false, notices: [] }
+🤖 AI Notice Analysis: No important notices detected
+4:03:08 PM [express] GET /api/unread-counts 304 in 122ms :: {"unreadCounts":[]}
+4:03:09 PM [express] GET /api/voice-bookmark-requests 200 in 18ms
+4:03:10 PM [express] GET /api/voice-bookmark-requests 200 in 8ms
+4:03:11 PM [express] GET /api/unread-counts 304 in 115ms :: {"unreadCounts":[]}
+4:03:15 PM [express] GET /api/chat-rooms/125/messages 200 in 119ms :: {"messages":[{"id":1013,"chatR…
+4:03:15 PM [express] GET /api/unread-counts 304 in 122ms :: {"unreadCounts":[]}
+Mark read request: userId=132, chatRoomId=125, lastMessageId=1014
+Mark read request: userId=132, chatRoomId=125, lastMessageId=1014
+4:03:15 PM [express] POST /api/chat-rooms/125/mark-read 200 in 39ms :: {"success":true}
+4:03:15 PM [express] POST /api/chat-rooms/125/mark-read 200 in 38ms :: {"success":true}
+4:03:15 PM [express] GET /api/chat-rooms/125/messages 304 in 145ms :: {"messages":[{"id":1013,"chatR…
+4:03:15 PM [express] GET /api/chat-rooms 304 in 183ms :: {"chatRooms":[{"id":125,"name":"이소은 테스트","i…
+4:03:15 PM [express] GET /api/unread-counts 304 in 332ms :: {"unreadCounts":[]}
+4:03:15 PM [express] GET /api/chat-rooms/125/messages 304 in 81ms :: {"messages":[{"id":1013,"chatRo…
+4:03:15 PM [express] GET /api/chat-rooms 304 in 84ms :: {"chatRooms":[{"id":125,"name":"이소은 테스트","is…
+4:03:16 PM [express] GET /api/unread-counts 304 in 117ms :: {"unreadCounts":[]}
+4:03:16 PM [express] GET /api/unread-counts 304 in 128ms :: {"unreadCounts":[]}
+4:03:16 PM [express] GET /api/unread-counts 304 in 114ms :: {"unreadCounts":[]}
+4:03:18 PM [express] GET /api/unread-counts 401 in 0ms :: {"message":"Not authenticated"}
+4:03:19 PM [express] GET /api/unread-counts 304 in 116ms :: {"unreadCounts":[]}
+💓 Heartbeat from user 132: active
+4:03:20 PM [express] POST /api/user/heartbeat 200 in 41ms :: {"success":true}
+4:03:21 PM [express] GET /api/voice-bookmark-requests 200 in 27ms
+4:03:22 PM [express] GET /api/voice-bookmark-requests 200 in 8ms
+4:03:22 PM [express] GET /api/unread-counts 304 in 127ms :: {"unreadCounts":[]}
