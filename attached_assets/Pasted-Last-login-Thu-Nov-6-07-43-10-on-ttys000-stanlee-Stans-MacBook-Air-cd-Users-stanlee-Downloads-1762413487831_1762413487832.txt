@@ -1,0 +1,122 @@
+Last login: Thu Nov  6 07:43:10 on ttys000
+stanlee@Stans-MacBook-Air ~ % cd /Users/stanlee/Downloads/Dovie            
+stanlee@Stans-MacBook-Air Dovie % open /Users/stanlee/Downloads/Dovie/ios/App/App.xcworkspace
+
+
+stanlee@Stans-MacBook-Air Dovie % npx cap sync ios
+
+
+[error] Could not find the web assets directory: ./client/dist.
+        Please create it and make sure it has an index.html file. You can change
+        the path of this directory in capacitor.config.ts (webDir option). You
+        may need to compile the web assets for your app (typically npm run
+        build). More info:
+        https://capacitorjs.com/docs/basics/workflow#sync-your-project
+stanlee@Stans-MacBook-Air Dovie % rm -rf ~/Library/Developer/Xcode/DerivedData
+
+
+stanlee@Stans-MacBook-Air Dovie % open /Users/stanlee/Downloads/Dovie/ios/App/App.xcworkspace
+
+
+stanlee@Stans-MacBook-Air Dovie % open /Users/stanlee/Downloads/Dovie/ios/App/App.xcworkspace
+
+
+stanlee@Stans-MacBook-Air Dovie % cd /Users/stanlee/Downloads/Dovie
+
+stanlee@Stans-MacBook-Air Dovie % npx cap sync ios
+
+
+[error] Could not find the web assets directory: ./client/dist.
+        Please create it and make sure it has an index.html file. You can change the path of this
+        directory in capacitor.config.ts (webDir option). You may need to compile the web assets for
+        your app (typically npm run build). More info:
+        https://capacitorjs.com/docs/basics/workflow#sync-your-project
+stanlee@Stans-MacBook-Air Dovie % cd /Users/stanlee/Downloads/Dovie
+
+stanlee@Stans-MacBook-Air Dovie % npm run build
+
+
+
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+vite v5.4.14 building for production...
+transforming (3) src/main.tsxBrowserslist: browsers data (caniuse-lite) is 13 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+✓ 3558 modules transformed.
+../dist/public/index.html                                      6.19 kB │ gzip:   2.27 kB
+../dist/public/assets/dovie_logo_transparent-DP75By51.png    266.37 kB
+../dist/public/assets/index-D_DNXkZG.css                     134.84 kB │ gzip:  21.23 kB
+../dist/public/assets/web-DBldv70b.js                          0.19 kB │ gzip:   0.17 kB
+../dist/public/assets/web-CTC30aBs.js                          0.28 kB │ gzip:   0.23 kB
+../dist/public/assets/web-CeTV2JvZ.js                          0.67 kB │ gzip:   0.33 kB
+../dist/public/assets/web-Tay53AbI.js                          8.73 kB │ gzip:   2.97 kB
+../dist/public/assets/qr-scanner-worker.min-D85Z9gVD.js       43.95 kB │ gzip:  10.46 kB
+../dist/public/assets/firebase-DbP1tCYy.js                   172.60 kB │ gzip:  36.97 kB
+../dist/public/assets/index-DGu_JnL9.js                    1,461.48 kB │ gzip: 411.36 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 4.29s
+▲ [WARNING] Using direct eval with a bundler is not recommended and may cause problems [direct-eval]
+
+    server/openai.ts:91:19:
+      91 │     const result = eval(sanitizedExpression);
+         ╵                    ~~~~
+
+  You can read more about direct eval and bundling here: https://esbuild.github.io/link/direct-eval
+
+1 warning
+
+  dist/index.js  456.2kb
+
+⚡ Done in 20ms
+stanlee@Stans-MacBook-Air Dovie % npx cap sync ios
+
+
+[error] Could not find the web assets directory: ./client/dist.
+        Please create it and make sure it has an index.html file. You can change the path of this
+        directory in capacitor.config.ts (webDir option). You may need to compile the web assets for
+        your app (typically npm run build). More info:
+        https://capacitorjs.com/docs/basics/workflow#sync-your-project
+stanlee@Stans-MacBook-Air Dovie % cd /Users/stanlee/Downloads/Dovie
+
+stanlee@Stans-MacBook-Air Dovie % cat capacitor.config.ts
+
+
+import type { CapacitorConfig } from '@capacitor/cli';
+
+const config: CapacitorConfig = {
+  appId: 'com.dovie.messenger',
+  appName: 'Dovie Messenger',
+  webDir: 'client/dist',
+  plugins: {
+    CapacitorHttp: {
+      enabled: true
+    },
+    PushNotifications: {
+      presentationOptions: ['badge', 'sound', 'alert']
+    },
+    LocalNotifications: {
+      smallIcon: 'ic_stat_icon_config_sample',
+      iconColor: '#8B5CF6',
+      sound: 'beep.wav'
+    },
+    SplashScreen: {
+      launchShowDuration: 1000,
+      backgroundColor: '#FFFFFF',
+      androidScaleType: 'CENTER_CROP',
+      showSpinner: false,
+      spinnerColor: '#8B5CF6'
+    },
+    StatusBar: {
+      style: 'dark'
+    }
+  }
+};
+
+export default config;
+stanlee@Stans-MacBook-Air Dovie % 
