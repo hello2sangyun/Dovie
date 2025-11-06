@@ -592,7 +592,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 사용자명 로그인 API
+  // 사용자명 또는 이메일 로그인 API
   app.post("/api/auth/username-login", async (req, res) => {
     try {
       const { username, password } = req.body;
@@ -604,8 +604,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 사용자명을 소문자로 변환 (대소문자 구분 안 함)
       const normalizedUsername = username.toLowerCase();
 
-      // 사용자명으로 사용자 찾기
-      const user = await storage.getUserByUsername(normalizedUsername);
+      // 사용자명 또는 이메일로 사용자 찾기
+      let user = await storage.getUserByUsername(normalizedUsername);
+      
+      // 사용자명으로 못 찾으면 이메일로 시도
+      if (!user) {
+        user = await storage.getUserByEmail(normalizedUsername);
+      }
+      
       if (!user) {
         return res.status(401).json({ message: "사용자명 또는 비밀번호가 올바르지 않습니다." });
       }

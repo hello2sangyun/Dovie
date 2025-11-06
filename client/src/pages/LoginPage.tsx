@@ -40,20 +40,8 @@ export default function LoginPage() {
       if (!data.user.isProfileComplete) {
         setLocation("/profile-setup");
       } else if (data.user.email === "master@master.com") {
-        // 관리자 계정 - 모바일 체크
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        if (isMobile) {
-          toast({
-            title: "접근 불가",
-            description: "관리자 페이지는 PC에서만 접속 가능합니다.",
-            variant: "destructive",
-          });
-          // 로그아웃
-          setUser(null);
-          localStorage.removeItem("userId");
-        } else {
-          setLocation("/admin");
-        }
+        // 관리자 계정 - 바로 관리자 페이지로 이동
+        setLocation("/admin");
       } else {
         setLocation("/app");
       }
