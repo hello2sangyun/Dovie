@@ -84,7 +84,7 @@ export default function SignupPage() {
     onSuccess: (data) => {
       setUser(data.user);
       localStorage.setItem("userId", data.user.id.toString());
-      setLocation("/contacts");
+      setLocation("/app");
     },
     onError: (error: any) => {
       console.error("Signup error:", error);
@@ -155,7 +155,7 @@ export default function SignupPage() {
       setUser(data.user);
       localStorage.setItem("userId", data.user.id.toString());
       
-      setLocation("/contacts");
+      setLocation("/app");
     } catch (error: any) {
       console.error(`${provider} signup error:`, error);
     }
