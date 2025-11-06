@@ -38,9 +38,9 @@ public class GoogleSignInPlugin: CAPPlugin, CAPBridgedPlugin {
                     return
                 }
                 
+                // Custom Token 인증에는 idToken만 필요함
                 call.resolve([
-                    "idToken": idToken,
-                    "serverAuthCode": user.serverAuthCode ?? ""
+                    "idToken": idToken
                 ])
             }
         }
