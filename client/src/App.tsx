@@ -8,6 +8,7 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import LandingPage from "@/pages/LandingPage";
 import LoginPage from "@/pages/LoginPage";
 import SignupPage from "@/pages/SignupPage";
+import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
 import ProfileSetupPage from "@/pages/ProfileSetupPage";
 import PhoneLogin from "@/pages/PhoneLogin";
 import MainApp from "@/pages/MainApp";
@@ -24,6 +25,7 @@ function Router() {
       <Route path="/" component={LandingPage} />
       <Route path="/login" component={LoginPage} />
       <Route path="/signup" component={SignupPage} />
+      <Route path="/forgot-password" component={ForgotPasswordPage} />
       <Route path="/profile-setup" component={ProfileSetupPage} />
       <Route path="/phone-login" component={PhoneLogin} />
       <Route path="/app" component={MainApp} />

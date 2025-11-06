@@ -6,13 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import VaultLogo from "@/components/VaultLogo";
 import { User, Lock, Phone } from "lucide-react";
-import { FcGoogle } from "react-icons/fc";
-import { SiApple } from "react-icons/si";
 import { useToast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
@@ -75,58 +72,19 @@ export default function LoginPage() {
     usernameLoginMutation.mutate(usernameLoginData);
   };
 
-  const handleSocialLogin = (provider: 'google' | 'apple') => {
-    import('@/lib/firebase').then(async ({ signInWithGoogle, signInWithApple }) => {
-      try {
-        const result = provider === 'google' 
-          ? await signInWithGoogle()
-          : await signInWithApple();
-        
-        const response = await apiRequest("/api/auth/social-login", "POST", {
-          idToken: result.idToken,
-          authProvider: provider,
-        });
-        
-        const data = await response.json();
-        setUser(data.user);
-        localStorage.setItem("userId", data.user.id.toString());
-        
-        if (!data.user.isProfileComplete) {
-          setLocation("/profile-setup");
-        } else if (data.user.email === "master@master.com") {
-          // 관리자 계정 - 모바일 체크
-          const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-          if (isMobile) {
-            toast({
-              title: "접근 불가",
-              description: "관리자 페이지는 PC에서만 접속 가능합니다.",
-              variant: "destructive",
-            });
-            // 로그아웃
-            setUser(null);
-            localStorage.removeItem("userId");
-          } else {
-            setLocation("/admin");
-          }
-        } else {
-          setLocation("/app");
-        }
-      } catch (error: any) {
-        console.error(`${provider} login error:`, error);
-      }
-    });
-  };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <VaultLogo size="lg" className="mx-auto mb-4" />
+          <div className="transform scale-150 mb-8">
+            <VaultLogo size="lg" className="mx-auto" />
+          </div>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Dovie 메신저</h2>
           <p className="text-gray-600">안전하고 스마트한 메신저</p>
         </div>
 
-        <Card className="border-0 shadow-xl">
+        <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="text-center text-xl">로그인</CardTitle>
           </CardHeader>
@@ -187,36 +145,22 @@ export default function LoginPage() {
                   >
                     {usernameLoginMutation.isPending ? "로그인 중..." : "로그인"}
                   </Button>
-                </form>
 
-                <div className="mt-6">
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <Separator className="w-full" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-white px-2 text-gray-500">또는</span>
-                    </div>
-                  </div>
-
-                  <div className="mt-6">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => handleSocialLogin('google')}
-                      className="w-full"
-                      data-testid="button-google-login"
+                  <div className="flex items-center justify-between text-sm">
+                    <Button 
+                      variant="link" 
+                      className="p-0 h-auto text-purple-600 hover:text-purple-700"
+                      onClick={() => setLocation("/forgot-password")}
                     >
-                      <FcGoogle className="h-5 w-5 mr-2" />
-                      Google로 로그인
+                      비밀번호를 잊으셨나요?
                     </Button>
                   </div>
-                </div>
+                </form>
 
                 <div className="mt-6 text-center">
                   <p className="text-sm text-gray-600">
                     계정이 없으신가요?{" "}
-                    <Button variant="link" className="p-0" onClick={() => setLocation("/signup")}>
+                    <Button variant="link" className="p-0 text-purple-600 hover:text-purple-700" onClick={() => setLocation("/signup")}>
                       회원가입
                     </Button>
                   </p>
@@ -234,10 +178,19 @@ export default function LoginPage() {
                     
                     <Button
                       onClick={handlePhoneLogin}
-                      className="w-full bg-green-600 hover:bg-green-700"
+                      className="w-full bg-purple-600 hover:bg-purple-700"
                     >
                       전화번호 인증 시작하기
                     </Button>
+                  </div>
+
+                  <div className="mt-6 text-center">
+                    <p className="text-sm text-gray-600">
+                      계정이 없으신가요?{" "}
+                      <Button variant="link" className="p-0 text-purple-600 hover:text-purple-700" onClick={() => setLocation("/signup")}>
+                        회원가입
+                      </Button>
+                    </p>
                   </div>
                 </div>
               </TabsContent>

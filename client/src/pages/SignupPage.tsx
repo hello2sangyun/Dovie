@@ -8,14 +8,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Lock, User, Eye, EyeOff, Phone, Check, Image as ImageIcon } from "lucide-react";
-import { FcGoogle } from "react-icons/fc";
-import { SiApple } from "react-icons/si";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Lock, User, Eye, EyeOff, Phone, Check, Camera, AlertCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function SignupPage() {
   const [, setLocation] = useLocation();
   const { setUser } = useAuth();
+  const { toast } = useToast();
   
   // Multi-step form state
   const [step, setStep] = useState<'phone' | 'verify' | 'details'>('phone');
@@ -26,9 +32,17 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const [profilePreview, setProfilePreview] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Error modal state
+  const [errorModal, setErrorModal] = useState<{open: boolean, title: string, message: string}>({
+    open: false,
+    title: "",
+    message: ""
+  });
 
   // Step 1: Send verification code
   const sendCodeMutation = useMutation({
@@ -79,6 +93,12 @@ export default function SignupPage() {
         password,
         profilePicture,
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "회원가입에 실패했습니다.");
+      }
+      
       return response.json();
     },
     onSuccess: (data) => {
@@ -87,7 +107,27 @@ export default function SignupPage() {
       setLocation("/app");
     },
     onError: (error: any) => {
-      console.error("Signup error:", error);
+      const message = error.message || "회원가입에 실패했습니다.";
+      
+      if (message.includes("이미 사용 중인 사용자명")) {
+        setErrorModal({
+          open: true,
+          title: "중복된 사용자명",
+          message: "이 사용자명은 이미 다른 사용자가 사용중입니다. 다른 사용자명을 선택해주세요."
+        });
+      } else if (message.includes("이미 사용 중인 전화번호")) {
+        setErrorModal({
+          open: true,
+          title: "중복된 전화번호",
+          message: "이 전화번호는 이미 등록되어 있습니다. 로그인하시거나 다른 전화번호를 사용해주세요."
+        });
+      } else {
+        setErrorModal({
+          open: true,
+          title: "회원가입 오류",
+          message
+        });
+      }
     },
   });
 
@@ -123,6 +163,13 @@ export default function SignupPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // 즉시 미리보기 생성
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setProfilePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
     const formData = new FormData();
     formData.append("profilePicture", file);
 
@@ -133,33 +180,21 @@ export default function SignupPage() {
       });
       const data = await response.json();
       setProfilePicture(data.profilePicture);
+      toast({
+        title: "프로필 사진 업로드 완료",
+        description: "프로필 사진이 성공적으로 업로드되었습니다.",
+      });
     } catch (error) {
       console.error("Profile picture upload error:", error);
+      toast({
+        title: "업로드 실패",
+        description: "프로필 사진 업로드에 실패했습니다.",
+        variant: "destructive",
+      });
+      setProfilePreview(null);
     }
   };
 
-  const handleSocialSignup = async (provider: 'google' | 'apple') => {
-    try {
-      const { signInWithGoogle, signInWithApple } = await import('@/lib/firebase');
-      
-      const result = provider === 'google' 
-        ? await signInWithGoogle()
-        : await signInWithApple();
-      
-      const response = await apiRequest("/api/auth/social-login", "POST", {
-        idToken: result.idToken,
-        authProvider: provider,
-      });
-      
-      const data = await response.json();
-      setUser(data.user);
-      localStorage.setItem("userId", data.user.id.toString());
-      
-      setLocation("/app");
-    } catch (error: any) {
-      console.error(`${provider} signup error:`, error);
-    }
-  };
 
   return (
     <div className="fixed inset-0 bg-gray-50 flex items-center justify-center">
@@ -209,28 +244,13 @@ export default function SignupPage() {
                   {sendCodeMutation.isPending ? "전송 중..." : "인증 코드 받기"}
                 </Button>
 
-                <div className="mt-6">
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <Separator className="w-full" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-white px-2 text-gray-500">또는</span>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 space-y-3">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => handleSocialSignup('google')}
-                      className="w-full"
-                      data-testid="button-google-signup"
-                    >
-                      <FcGoogle className="h-5 w-5 mr-2" />
-                      Google로 계속하기
+                <div className="mt-6 text-center">
+                  <p className="text-sm text-gray-600">
+                    이미 계정이 있으신가요?{" "}
+                    <Button variant="link" className="p-0 text-purple-600 hover:text-purple-700" onClick={() => setLocation("/login")}>
+                      로그인
                     </Button>
-                  </div>
+                  </p>
                 </div>
               </form>
             )}
@@ -281,6 +301,40 @@ export default function SignupPage() {
             {/* Step 3: Details */}
             {step === 'details' && (
               <form onSubmit={handleSignup} className="space-y-4">
+                {/* Profile Picture - Top Center */}
+                <div className="flex flex-col items-center space-y-2 mb-4">
+                  <div 
+                    className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity border-2 border-purple-200"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {profilePreview || profilePicture ? (
+                      <img 
+                        src={profilePreview || profilePicture!} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover" 
+                      />
+                    ) : (
+                      <Camera className="h-10 w-10 text-purple-400" />
+                    )}
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleProfilePictureUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="text-purple-600 hover:text-purple-700"
+                  >
+                    프로필 사진 업로드
+                  </Button>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="username">사용자명 (ID)</Label>
                   <div className="relative">
@@ -288,11 +342,11 @@ export default function SignupPage() {
                     <Input
                       id="username"
                       type="text"
-                      placeholder="영문과 특수문자만 사용 가능"
+                      placeholder="영문, 숫자, 특수문자 사용 가능"
                       value={username}
                       onChange={(e) => {
                         const value = e.target.value;
-                        const regex = /^[a-zA-Z!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]*$/;
+                        const regex = /^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]*$/;
                         if (regex.test(value) || value === '') {
                           setUsername(value);
                         }
@@ -302,7 +356,7 @@ export default function SignupPage() {
                       data-testid="input-username"
                     />
                   </div>
-                  <p className="text-xs text-gray-500">영문과 특수문자만 사용 가능 (대소문자 구분 안 함)</p>
+                  <p className="text-xs text-gray-500">영문, 숫자, 특수문자 사용 가능 (대소문자 구분 안 함)</p>
                 </div>
 
                 <div className="space-y-2">
@@ -312,7 +366,7 @@ export default function SignupPage() {
                     <Input
                       id="displayName"
                       type="text"
-                      placeholder="실명을 입력해주세요"
+                      placeholder="상대방에게 보여지는 나의 이름"
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
                       className="pl-10"
@@ -320,6 +374,7 @@ export default function SignupPage() {
                       data-testid="input-displayname"
                     />
                   </div>
+                  <p className="text-xs text-gray-400">추후 변경할 수 있습니다</p>
                 </div>
 
                 <div className="space-y-2">
@@ -370,37 +425,6 @@ export default function SignupPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>프로필 사진 (선택)</Label>
-                  <div className="flex items-center gap-4">
-                    {profilePicture ? (
-                      <div className="relative w-20 h-20 rounded-full overflow-hidden">
-                        <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" />
-                      </div>
-                    ) : (
-                      <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center">
-                        <ImageIcon className="h-8 w-8 text-gray-400" />
-                      </div>
-                    )}
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleProfilePictureUpload}
-                      className="hidden"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="flex-1"
-                      data-testid="button-upload-profile-pic"
-                    >
-                      {profilePicture ? "사진 변경" : "사진 업로드"}
-                    </Button>
-                  </div>
-                </div>
-
                 <div className="flex gap-2">
                   <Button
                     type="button"
@@ -422,19 +446,46 @@ export default function SignupPage() {
               </form>
             )}
 
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
-                이미 계정이 있나요?{" "}
-                <button
-                  onClick={() => setLocation("/login")}
-                  className="text-purple-600 hover:text-purple-700 font-medium"
-                >
-                  로그인하기
-                </button>
-              </p>
-            </div>
+            {step !== 'phone' && (
+              <div className="mt-6 text-center">
+                <p className="text-sm text-gray-600">
+                  이미 계정이 있나요?{" "}
+                  <button
+                    onClick={() => setLocation("/login")}
+                    className="text-purple-600 hover:text-purple-700 font-medium"
+                  >
+                    로그인하기
+                  </button>
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
+
+        {/* Error Modal */}
+        <Dialog open={errorModal.open} onOpenChange={(open) => setErrorModal({ ...errorModal, open })}>
+          <DialogContent>
+            <DialogHeader>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                  <AlertCircle className="h-6 w-6 text-red-600" />
+                </div>
+                <DialogTitle className="text-lg">{errorModal.title}</DialogTitle>
+              </div>
+              <DialogDescription className="text-base">
+                {errorModal.message}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end mt-4">
+              <Button
+                onClick={() => setErrorModal({ open: false, title: "", message: "" })}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                확인
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

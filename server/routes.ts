@@ -284,6 +284,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 비밀번호 찾기: 전화번호로 비밀번호 재설정
+  app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const { phoneNumber, code, newPassword } = req.body;
+      
+      if (!phoneNumber || !code || !newPassword) {
+        return res.status(400).json({ message: "모든 필드를 입력해주세요." });
+      }
+
+      // 인증 코드 확인
+      const verification = await storage.getVerificationCode(phoneNumber, code);
+      
+      if (!verification) {
+        return res.status(400).json({ message: "잘못된 인증 코드이거나 만료되었습니다." });
+      }
+
+      // 전화번호로 사용자 찾기
+      const user = await storage.getUserByPhoneNumber(phoneNumber);
+      
+      if (!user) {
+        return res.status(404).json({ message: "해당 전화번호로 등록된 사용자를 찾을 수 없습니다." });
+      }
+
+      // 새 비밀번호 해싱
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // 비밀번호 업데이트
+      await storage.updateUser(user.id, { password: hashedPassword });
+
+      // 인증 코드를 사용됨으로 표시
+      await storage.markVerificationCodeAsUsed(verification.id);
+
+      res.json({ success: true, message: "비밀번호가 성공적으로 재설정되었습니다." });
+    } catch (error) {
+      console.error("Password reset error:", error);
+      res.status(500).json({ message: "비밀번호 재설정에 실패했습니다." });
+    }
+  });
+
   // Step 3: 전화번호 기반 회원가입
   app.post("/api/auth/signup-phone", async (req, res) => {
     try {
@@ -300,10 +339,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "잘못된 인증 코드이거나 만료되었습니다." });
       }
 
-      // 사용자명 검증: 영문 + 특수문자만 허용
-      const usernameRegex = /^[a-zA-Z!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+$/;
+      // 사용자명 검증: 영문 + 숫자 + 특수문자 허용
+      const usernameRegex = /^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+$/;
       if (!usernameRegex.test(username)) {
-        return res.status(400).json({ message: "사용자명은 영문과 특수문자만 사용할 수 있습니다." });
+        return res.status(400).json({ message: "사용자명은 영문, 숫자, 특수문자만 사용할 수 있습니다." });
       }
 
       // 사용자명을 소문자로 변환
