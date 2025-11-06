@@ -1,16 +1,4 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
-import { Capacitor } from "@capacitor/core";
-
-// API 베이스 URL 설정 (네이티브 플랫폼용)
-const getApiUrl = (path: string): string => {
-  // 네이티브 플랫폼에서는 절대 URL 사용
-  if (Capacitor.isNativePlatform()) {
-    const baseUrl = import.meta.env.VITE_API_URL || 'https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev';
-    return path.startsWith('http') ? path : `${baseUrl}${path}`;
-  }
-  // 웹에서는 상대 경로 사용
-  return path;
-};
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -30,7 +18,7 @@ export async function apiRequest(
     ...(userId ? { "x-user-id": userId } : {})
   };
 
-  const res = await fetch(getApiUrl(url), {
+  const res = await fetch(url, {
     method,
     headers,
     body: data ? JSON.stringify(data) : undefined,
@@ -52,7 +40,7 @@ export const getQueryFn: <T>(options: {
       ...(userId ? { "x-user-id": userId } : {})
     };
 
-    const res = await fetch(getApiUrl(queryKey[0] as string), {
+    const res = await fetch(queryKey[0] as string, {
       headers,
       credentials: "include",
     });

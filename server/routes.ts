@@ -18,8 +18,7 @@ import { initializeNotificationScheduler } from "./notification-scheduler";
 import { getVapidPublicKey, sendPushNotification } from "./push-notifications";
 import twilio from "twilio";
 import { z } from "zod";
-import { verifyIdToken, initializeFirebaseAdmin, createCustomToken } from "./firebase-admin";
-import { OAuth2Client } from 'google-auth-library';
+import { verifyIdToken, initializeFirebaseAdmin } from "./firebase-admin";
 
 // Zod validation schemas
 const updateUserNotificationsSchema = z.object({
@@ -342,130 +341,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Logout error:", error);
       res.status(500).json({ message: "로그아웃에 실패했습니다." });
-    }
-  });
-
-  // Google 네이티브 로그인 API - Google ID Token → Firebase Custom Token
-  app.post("/api/auth/google-native", async (req, res) => {
-    try {
-      const { idToken } = req.body;
-      
-      if (!idToken) {
-        return res.status(400).json({ message: "ID Token이 필요합니다." });
-      }
-
-      console.log('📱 Google Native 로그인 시작 - ID Token 검증 중...');
-
-      // Google ID Token 검증 (Google Auth Library 사용)
-      // iOS 앱의 실제 Google OAuth Client ID 사용
-      const googleClientId = '376823453378-g12pilchfo71ie2rlkntn8k9ui4846od.apps.googleusercontent.com';
-      
-      const client = new OAuth2Client(googleClientId);
-      
-      let ticket;
-      try {
-        ticket = await client.verifyIdToken({
-          idToken: idToken,
-          audience: googleClientId,
-        });
-      } catch (error: any) {
-        console.error('❌ Google ID Token 검증 실패:', error.message);
-        return res.status(401).json({ 
-          message: "Google ID Token이 유효하지 않습니다.", 
-          error: error.message 
-        });
-      }
-      
-      const payload = ticket.getPayload();
-      if (!payload) {
-        return res.status(401).json({ message: "ID Token payload가 비어있습니다." });
-      }
-      
-      const uid = payload['sub'];
-      const email = payload['email'];
-      const name = payload['name'];
-      const picture = payload['picture'];
-      
-      console.log(`✅ Google ID Token 검증 성공 - UID: ${uid}, Email: ${email}`);
-
-      // Firebase Custom Token 생성
-      const customTokenResult = await createCustomToken(uid);
-      
-      if (!customTokenResult.success || !customTokenResult.customToken) {
-        return res.status(500).json({ 
-          message: "Firebase Custom Token 생성 실패", 
-          error: customTokenResult.error 
-        });
-      }
-
-      console.log(`✅ Firebase Custom Token 생성 완료`);
-
-      // 사용자 정보 처리 (기존 소셜 로그인과 동일)
-      const authProvider = 'google.com';
-      
-      // 1단계: providerId로 기존 사용자 찾기
-      let user = await storage.getUserByProviderId(authProvider, uid);
-      
-      if (user) {
-        await storage.updateUser(user.id, { isOnline: true });
-        console.log(`✅ 기존 Google 사용자 로그인: ${user.id} (${user.username})`);
-        return res.json({ 
-          customToken: customTokenResult.customToken,
-          user 
-        });
-      }
-
-      // 2단계: email로 기존 사용자 찾기
-      if (email) {
-        user = await storage.getUserByEmail(email);
-        
-        if (user) {
-          await storage.updateUser(user.id, { 
-            authProvider,
-            providerId: uid,
-            providerEmail: email,
-            isEmailVerified: true,
-            isOnline: true,
-          });
-          
-          user = await storage.getUser(user.id);
-          console.log(`✅ 기존 계정을 Google과 연결: ${user.id} (${user.username})`);
-          return res.json({ 
-            customToken: customTokenResult.customToken,
-            user 
-          });
-        }
-      }
-
-      // 3단계: 신규 사용자 생성
-      const tempUsername = `google_${uid.substring(0, 8)}`;
-      const randomPassword = await bcrypt.hash(Math.random().toString(36), 10);
-      const userEmail = email || `${tempUsername}@dovie.app`;
-      
-      const userData = {
-        email: userEmail,
-        password: randomPassword,
-        username: tempUsername,
-        displayName: name || email?.split('@')[0] || 'User',
-        profilePicture: picture || undefined,
-        authProvider,
-        providerId: uid,
-        providerEmail: email || null,
-        isEmailVerified: true,
-        isProfileComplete: false,
-      };
-
-      user = await storage.createUser(userData);
-      await storage.updateUser(user.id, { isOnline: true });
-      
-      console.log(`✅ Google 신규 회원가입: ${user.id} (${user.username})`);
-      res.json({ 
-        customToken: customTokenResult.customToken,
-        user 
-      });
-    } catch (error: any) {
-      console.error("Google Native login error:", error);
-      res.status(500).json({ message: "Google 로그인에 실패했습니다.", error: error?.message || "Unknown error" });
     }
   });
 

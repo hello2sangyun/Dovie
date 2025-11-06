@@ -58,7 +58,6 @@ Preferred communication style: Simple, everyday language.
 ## External Dependencies
 - **Database**: `@neondatabase/serverless`, `drizzle-orm`.
 - **Authentication/Security**: `bcryptjs`, `crypto-js`, `jsonwebtoken`.
-- **Firebase**: `firebase@11.x` (client), `firebase-admin` (server) - Authentication only, NOT for file storage.
 - **File Uploads**: `multer`.
 - **Real-time**: `ws` (WebSocket).
 - **AI**: `openai`.
@@ -70,10 +69,9 @@ Preferred communication style: Simple, everyday language.
 - **SMS/Phone Verification**: Twilio SMS API.
 - **Geolocation**: ipapi.co service, browser geolocation API.
 - **Maps**: Google Maps integration.
-- **Native App Conversion**: Capacitor framework (`@capacitor/core`, `@capacitor/push-notifications`).
+- **Native App Conversion**: Capacitor framework (`@capacitor/push-notifications`).
 - **iOS Push Notifications**: Apple Push Notification service (APNS) with JWT authentication.
 - **Push Notifications**: `web-push` for PWA notifications, APNS for iOS native.
-- **Firebase Authentication**: Firebase Web SDK with Safari redirect flow for iOS native app, popup for web browsers.
 
 ## Environment Variables
 
@@ -114,27 +112,6 @@ For iOS push notifications to work in production, APNS credentials must be confi
 - **Development**: Set `NODE_ENV=development` to use `api.development.push.apple.com`, all push notifications sent for testing
 
 ## Recent Updates
-- **2025-11-05**:
-  - **Firebase Authentication via Safari Redirect**: Simplified iOS authentication flow
-    - Removed `@capacitor-firebase/authentication` plugin due to persistent RuntimeError (window/rootViewController access issues)
-    - Implemented Firebase Web SDK's `signInWithRedirect` for iOS native app (Safari-based authentication)
-    - Platform detection: Safari redirect on iOS, popup authentication on web browsers
-    - Cleaned up iOS dependencies: Removed Firebase/Auth, GoogleSignIn, and CapacitorFirebaseAuthentication pods
-    - Simplified AppDelegate.swift: Removed window management and GoogleSignIn handling code
-    - Benefits: Stable authentication without native plugin complexity, better compatibility with Capacitor lifecycle
-  - **Smart Inbox Enhanced Visual Effects**: Premium glow & ring animations
-    - Dynamic icon switching: Empty inbox (`Inbox`) ↔ Full inbox (`Archive`) based on unread count
-    - Multi-layered glow animation with purple shadow (3 layers, breathing effect)
-    - Expanding ring animation for attention-grabbing notification
-    - Badge bounce animation for active notifications
-    - Real-time unread count tracking via `/api/ai-notices` endpoint (30s refresh)
-    - Red badge showing unread item count (1-9 or "9+")
-    - Premium visual feedback matching high-end messaging apps
-  - **iOS Splash Screen Optimization**: App launch speed improvement
-    - Reduced splash screen duration: 3 seconds → 1 second (67% faster startup)
-    - Changed background color to clean white (#FFFFFF) for better visual consistency
-    - Removed loading spinner for cleaner, more professional appearance
-    - Created comprehensive setup guide (IOS_SPLASH_SCREEN_SETUP.md) for Xcode splash image configuration
 - **2024-11-04**: 
   - **Native Badge Manager**: Direct integration with Capacitor `PushNotifications.setBadgeCount()` for real-time app badge updates on iOS
     - WebSocket-driven badge sync: Instant badge updates when messages are read

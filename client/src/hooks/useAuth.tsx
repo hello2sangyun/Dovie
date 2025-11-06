@@ -3,35 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import type { User } from "@shared/schema";
 import { useInstantImageCache } from "./useInstantImageCache";
 import { usePermissions } from "./usePermissions";
-import { Capacitor } from '@capacitor/core';
-import { Preferences } from '@capacitor/preferences';
-
-// 통합 스토리지 API (iOS/Android = Preferences, Web = localStorage)
-const storage = {
-  async getItem(key: string): Promise<string | null> {
-    if (Capacitor.isNativePlatform()) {
-      const { value } = await Preferences.get({ key });
-      return value;
-    }
-    return localStorage.getItem(key);
-  },
-  
-  async setItem(key: string, value: string): Promise<void> {
-    if (Capacitor.isNativePlatform()) {
-      await Preferences.set({ key, value });
-    } else {
-      localStorage.setItem(key, value);
-    }
-  },
-  
-  async removeItem(key: string): Promise<void> {
-    if (Capacitor.isNativePlatform()) {
-      await Preferences.remove({ key });
-    } else {
-      localStorage.removeItem(key);
-    }
-  }
-};
 
 interface AuthContextType {
   user: User | null;
@@ -51,7 +22,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [initialized, setInitialized] = useState(false);
   const [profileImagesLoaded, setProfileImagesLoaded] = useState(false);
   const [isPreloadingImages, setIsPreloadingImages] = useState(false);
-  const [storedUserId, setStoredUserId] = useState<string | null>(null);
 
   // PWAPushManager가 처리하므로 간소화됨
   const autoEnablePushNotifications = async (userId?: number) => {
@@ -59,14 +29,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return;
   };
 
-  // Initialize stored userId from Preferences/localStorage
-  useEffect(() => {
-    const loadStoredUserId = async () => {
-      const userId = await storage.getItem("userId");
-      setStoredUserId(userId);
-    };
-    loadStoredUserId();
-  }, []);
+  // Try to get user from localStorage on app start
+  const storedUserId = localStorage.getItem("userId");
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["/api/auth/me"],
@@ -83,8 +47,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (!response.ok) {
         // 인증 실패 시 저장된 사용자 ID 제거
-        await storage.removeItem("userId");
-        await storage.removeItem("rememberLogin"); // 자동 로그인 해제
+        localStorage.removeItem("userId");
+        localStorage.removeItem("rememberLogin"); // 자동 로그인 해제
         throw new Error("Authentication failed");
       }
       
@@ -236,8 +200,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Clear user data if authentication fails for stored user
       console.log("❌ Authentication failed, clearing user data");
       setUser(null);
-      storage.removeItem("userId");
-      storage.removeItem("rememberLogin");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("rememberLogin");
       setInitialized(true);
       setProfileImagesLoaded(true);
       setIsPreloadingImages(false);
@@ -255,8 +219,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const handleSetUser = (newUser: User | null) => {
     setUser(newUser);
     if (!newUser) {
-      storage.removeItem("userId");
-      setStoredUserId(null);
+      localStorage.removeItem("userId");
     }
   };
 
@@ -278,13 +241,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const data = await response.json();
     setUser(data.user);
     
-    // 자동 로그인 정보 저장 (Preferences API)
-    await storage.setItem("userId", data.user.id.toString());
-    await storage.setItem("rememberLogin", "true");
-    await storage.setItem("lastLoginTime", Date.now().toString());
-    setStoredUserId(data.user.id.toString());
+    // 자동 로그인 정보 저장
+    localStorage.setItem("userId", data.user.id.toString());
+    localStorage.setItem("rememberLogin", "true");
+    localStorage.setItem("lastLoginTime", Date.now().toString());
     
-    console.log("✅ 자동 로그인이 설정되었습니다 (Preferences)");
+    console.log("✅ 자동 로그인이 설정되었습니다");
     
     // 로그인 후 즉시 푸시 알림 자동 활성화 (2초 후)
     setTimeout(() => autoEnablePushNotifications(data.user.id), 2000);
@@ -310,13 +272,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const data = await response.json();
     setUser(data.user);
     
-    // 자동 로그인 정보 저장 (Preferences API)
-    await storage.setItem("userId", data.user.id.toString());
-    await storage.setItem("rememberLogin", "true");
-    await storage.setItem("lastLoginTime", Date.now().toString());
-    setStoredUserId(data.user.id.toString());
+    // 자동 로그인 정보 저장
+    localStorage.setItem("userId", data.user.id.toString());
+    localStorage.setItem("rememberLogin", "true");
+    localStorage.setItem("lastLoginTime", Date.now().toString());
     
-    console.log("✅ 자동 로그인이 설정되었습니다 (Preferences)");
+    console.log("✅ 자동 로그인이 설정되었습니다");
     
     // 로그인 후 즉시 푸시 알림 자동 활성화 (2초 후)
     setTimeout(() => autoEnablePushNotifications(data.user.id), 2000);
@@ -335,12 +296,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("Logout API call failed:", error);
     } finally {
-      // Clear all auto-login related storage (Preferences API)
-      await storage.removeItem("userId");
-      await storage.removeItem("rememberLogin");
-      await storage.removeItem("lastLoginTime");
+      // Clear all auto-login related storage
+      localStorage.removeItem("userId");
+      localStorage.removeItem("rememberLogin");
+      localStorage.removeItem("lastLoginTime");
       setUser(null);
-      setStoredUserId(null);
       setInitialized(false);
       setProfileImagesLoaded(false);
       setIsPreloadingImages(false);
@@ -350,7 +310,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         (window as any).globalImageCache.clear();
       }
 
-      console.log("로그아웃 완료 - 자동 로그인 설정 해제됨 (Preferences)");
+      console.log("로그아웃 완료 - 자동 로그인 설정 해제됨");
       
       // 강제 리디렉션을 원하는 경우에만 로그인 페이지로 이동
       if (forceRedirect) {

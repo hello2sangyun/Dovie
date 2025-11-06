@@ -38,8 +38,7 @@ export default function LoginPage() {
     },
     onSuccess: (data) => {
       setUser(data.user);
-      
-      // useAuth hook에서 Preferences API로 userId 저장 처리
+      localStorage.setItem("userId", data.user.id.toString());
       
       if (!data.user.isProfileComplete) {
         setLocation("/profile-setup");
@@ -54,6 +53,7 @@ export default function LoginPage() {
           });
           // 로그아웃
           setUser(null);
+          localStorage.removeItem("userId");
         } else {
           setLocation("/admin");
         }
@@ -89,8 +89,7 @@ export default function LoginPage() {
         
         const data = await response.json();
         setUser(data.user);
-        
-        // useAuth hook에서 Preferences API로 userId 저장 처리
+        localStorage.setItem("userId", data.user.id.toString());
         
         if (!data.user.isProfileComplete) {
           setLocation("/profile-setup");
@@ -105,6 +104,7 @@ export default function LoginPage() {
             });
             // 로그아웃
             setUser(null);
+            localStorage.removeItem("userId");
           } else {
             setLocation("/admin");
           }

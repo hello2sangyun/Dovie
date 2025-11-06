@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -39,7 +39,7 @@ import LinkedInSpacePage from "@/pages/LinkedInSpacePage";
 import InboxPage from "@/pages/InboxPage";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookUser, MessageCircle, Bookmark, Settings, Search, MessageSquare, Users, Building2, Shield, UserX, Camera, QrCode, Inbox, Archive } from "lucide-react";
+import { BookUser, MessageCircle, Bookmark, Settings, Search, MessageSquare, Users, Building2, Shield, UserX, Camera, QrCode, Inbox } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
@@ -302,22 +302,6 @@ export default function MainApp() {
     enabled: !!user,
     refetchInterval: 5000,
   });
-
-  // Get Smart Inbox unread count
-  const { data: inboxNoticesData } = useQuery({
-    queryKey: ["/api/ai-notices"],
-    enabled: !!user,
-    refetchInterval: 30000, // 30초마다 업데이트
-  });
-  
-  const inboxUnreadCount = useMemo(() => {
-    if (!inboxNoticesData) return 0;
-    const now = new Date();
-    const activeNotices = (inboxNoticesData as any[]).filter(
-      n => !n.snoozedUntil || new Date(n.snoozedUntil) <= now
-    );
-    return activeNotices.length;
-  }, [inboxNoticesData]);
 
   // Handler for navigating to a bookmarked message
   const handleNavigateToBookmark = (chatRoomId: number, messageId: number) => {
@@ -1232,34 +1216,18 @@ export default function MainApp() {
                 <span className="text-xs mt-0.5">채팅방</span>
               </Button>
 
-              {/* Central Inbox FAB Button - 화려한 효과 */}
+              {/* Central Inbox FAB Button */}
               <button
                 className={cn(
-                  "flex items-center justify-center w-14 h-14 rounded-full shadow-lg -mt-6 transition-all relative",
+                  "flex items-center justify-center w-14 h-14 rounded-full shadow-lg -mt-6 transition-all",
                   activeMobileTab === "inbox"
                     ? "bg-purple-600 text-white scale-110" 
-                    : "bg-gradient-to-br from-purple-600 to-purple-700 text-white hover:scale-105",
-                  // 화려한 glow & ring 애니메이션
-                  inboxUnreadCount > 0 && activeMobileTab !== "inbox" && "inbox-glow-active inbox-ring-active"
+                    : "bg-gradient-to-br from-purple-600 to-purple-700 text-white hover:scale-105"
                 )}
                 onClick={() => setActiveMobileTab("inbox")}
                 data-testid="button-inbox"
               >
-                {/* 읽지 않은 항목이 있을 때 꽉찬 인박스 아이콘 */}
-                {inboxUnreadCount > 0 ? (
-                  <Archive className="h-6 w-6" />
-                ) : (
-                  <Inbox className="h-6 w-6" />
-                )}
-                {/* Unread count badge with bounce animation */}
-                {inboxUnreadCount > 0 && (
-                  <div className={cn(
-                    "absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-medium shadow-md",
-                    activeMobileTab !== "inbox" && "badge-bounce-active"
-                  )}>
-                    {inboxUnreadCount > 9 ? '9+' : inboxUnreadCount}
-                  </div>
-                )}
+                <Inbox className="h-6 w-6" />
               </button>
 
               <Button

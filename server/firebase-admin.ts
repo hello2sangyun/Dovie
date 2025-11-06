@@ -71,22 +71,3 @@ export async function verifyIdToken(idToken: string) {
     };
   }
 }
-
-export async function createCustomToken(uid: string, additionalClaims?: object) {
-  const auth = getFirebaseAuth();
-  
-  try {
-    const customToken = await auth.createCustomToken(uid, additionalClaims);
-    console.log(`✅ Custom token created for UID: ${uid}`);
-    return {
-      success: true,
-      customToken,
-    };
-  } catch (error: any) {
-    console.error('❌ Custom token creation failed:', error.message);
-    return {
-      success: false,
-      error: error.message || 'Failed to create custom token',
-    };
-  }
-}
