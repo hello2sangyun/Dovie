@@ -34,7 +34,7 @@ export default function SecuritySettingsPage({ onBack }: SecuritySettingsPagePro
   const [securitySettings, setSecuritySettings] = useState({
     twoFactorAuth: false,
     biometricAuth: false,
-    sessionTimeout: "30",
+    sessionTimeout: "0",
     loginNotifications: true,
     suspiciousActivityAlerts: true,
   });

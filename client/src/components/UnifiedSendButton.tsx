@@ -31,6 +31,7 @@ export function UnifiedSendButton({
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const longPressTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isLongPressRef = useRef(false);
+  const lastTouchTimeRef = useRef<number>(0);
   
   const { hasPermission, requestPermission, getStream } = useMicrophonePermission();
   const appState = useAppState();
@@ -153,6 +154,13 @@ export function UnifiedSendButton({
   const handleMouseDown = useCallback(() => {
     if (disabled) return;
     
+    // 터치 이벤트 후 500ms 이내에 발생한 마우스 이벤트는 무시 (중복 방지)
+    const timeSinceLastTouch = Date.now() - lastTouchTimeRef.current;
+    if (timeSinceLastTouch < 500) {
+      console.log('🚫 Ignoring mouse event after recent touch');
+      return;
+    }
+    
     isLongPressRef.current = false;
     
     // 텍스트가 있으면 바로 전송, 없으면 장기 누르기 감지 시작
@@ -188,8 +196,26 @@ export function UnifiedSendButton({
   // 터치 이벤트 (모바일용)
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
-    handleMouseDown();
-  }, [handleMouseDown]);
+    
+    // 터치 시간 기록 (마우스 이벤트 중복 방지용)
+    lastTouchTimeRef.current = Date.now();
+    
+    if (disabled) return;
+    
+    isLongPressRef.current = false;
+    
+    // 텍스트가 있으면 바로 전송, 없으면 장기 누르기 감지 시작
+    if (message.trim()) {
+      onSendMessage();
+      return;
+    }
+    
+    // 장기 누르기 감지 (500ms)
+    longPressTimeoutRef.current = setTimeout(() => {
+      isLongPressRef.current = true;
+      startRecording();
+    }, 500);
+  }, [disabled, message, onSendMessage, startRecording]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     e.preventDefault();

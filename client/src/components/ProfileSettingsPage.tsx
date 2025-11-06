@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ArrowLeft, Upload, User, Mail, Phone, Calendar, Mic } from "lucide-react";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 
@@ -193,22 +194,6 @@ export default function ProfileSettingsPage({ onBack }: ProfileSettingsPageProps
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="flex items-center text-sm font-medium">
-                  <Mail className="h-4 w-4 mr-2 text-purple-600" />
-                  이메일
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  disabled
-                  className="bg-gray-100 cursor-not-allowed"
-                  placeholder="이메일을 입력하세요"
-                />
-                <p className="text-xs text-gray-500">보안을 위해 이메일은 변경할 수 없습니다</p>
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="phoneNumber" className="flex items-center text-sm font-medium">
                   <Phone className="h-4 w-4 mr-2 text-purple-600" />
                   전화번호
@@ -216,90 +201,20 @@ export default function ProfileSettingsPage({ onBack }: ProfileSettingsPageProps
                 <Input
                   id="phoneNumber"
                   value={formData.phoneNumber}
-                  onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
+                  disabled
+                  className="bg-gray-100 cursor-not-allowed"
                   placeholder="전화번호를 입력하세요"
                 />
-              </div>
-
-              <div className="space-y-3">
-                <Label className="flex items-center text-sm font-medium">
-                  <Calendar className="h-4 w-4 mr-2 text-purple-600" />
-                  생년월일
-                </Label>
-                <p className="text-xs text-gray-500">생년월일을 선택해주세요</p>
-                <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                  {/* Year Select */}
-                  <div className="space-y-1">
-                    <Label htmlFor="birth-year" className="text-xs text-gray-600">년도</Label>
-                    <Select value={birthYear} onValueChange={setBirthYear}>
-                      <SelectTrigger 
-                        id="birth-year" 
-                        className="h-12 text-base"
-                        data-testid="select-birth-year"
-                      >
-                        <SelectValue placeholder="년" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60">
-                        {Array.from({ length: 100 }, (_, i) => {
-                          const year = new Date().getFullYear() - i;
-                          return (
-                            <SelectItem key={year} value={year.toString()}>
-                              {year}년
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Month Select */}
-                  <div className="space-y-1">
-                    <Label htmlFor="birth-month" className="text-xs text-gray-600">월</Label>
-                    <Select value={birthMonth} onValueChange={setBirthMonth}>
-                      <SelectTrigger 
-                        id="birth-month" 
-                        className="h-12 text-base"
-                        data-testid="select-birth-month"
-                      >
-                        <SelectValue placeholder="월" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60">
-                        {Array.from({ length: 12 }, (_, i) => {
-                          const month = (i + 1).toString().padStart(2, '0');
-                          return (
-                            <SelectItem key={month} value={month}>
-                              {i + 1}월
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Day Select */}
-                  <div className="space-y-1">
-                    <Label htmlFor="birth-day" className="text-xs text-gray-600">일</Label>
-                    <Select value={birthDay} onValueChange={setBirthDay}>
-                      <SelectTrigger 
-                        id="birth-day" 
-                        className="h-12 text-base"
-                        data-testid="select-birth-day"
-                      >
-                        <SelectValue placeholder="일" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60">
-                        {Array.from({ length: maxDays }, (_, i) => {
-                          const day = (i + 1).toString().padStart(2, '0');
-                          return (
-                            <SelectItem key={day} value={day}>
-                              {i + 1}일
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+                <button 
+                  type="button"
+                  className="text-sm text-purple-600 hover:text-purple-700 font-medium"
+                  onClick={() => {
+                    // TODO: 전화번호 변경 모달 열기
+                    alert("전화번호 변경 기능은 곧 추가됩니다");
+                  }}
+                >
+                  전화번호 변경
+                </button>
               </div>
 
               <div className="pt-4">

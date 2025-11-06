@@ -323,6 +323,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 전화번호 변경
+  app.post("/api/user/change-phone", async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "인증이 필요합니다." });
+      }
+
+      const { oldPhoneNumber, oldCode, newPhoneNumber, newCode } = req.body;
+      
+      if (!oldPhoneNumber || !oldCode || !newPhoneNumber || !newCode) {
+        return res.status(400).json({ message: "모든 필드를 입력해주세요." });
+      }
+
+      // 현재 로그인된 사용자 정보 가져오기
+      const currentUser = await storage.getUser(userId);
+      
+      if (!currentUser) {
+        return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+      }
+
+      // 현재 로그인된 사용자의 전화번호와 기존 전화번호가 일치하는지 확인
+      if (currentUser.phoneNumber !== oldPhoneNumber) {
+        return res.status(400).json({ message: "기존 전화번호가 일치하지 않습니다." });
+      }
+
+      // 기존 전화번호 인증 코드 확인
+      const oldVerification = await storage.getVerificationCode(oldPhoneNumber, oldCode);
+      
+      if (!oldVerification) {
+        return res.status(400).json({ message: "기존 전화번호의 인증 코드가 잘못되었거나 만료되었습니다." });
+      }
+
+      // 새 전화번호 인증 코드 확인
+      const newVerification = await storage.getVerificationCode(newPhoneNumber, newCode);
+      
+      if (!newVerification) {
+        return res.status(400).json({ message: "새 전화번호의 인증 코드가 잘못되었거나 만료되었습니다." });
+      }
+
+      // 새 전화번호 중복 확인
+      const existingUser = await storage.getUserByPhoneNumber(newPhoneNumber);
+      if (existingUser && existingUser.id !== currentUser.id) {
+        return res.status(400).json({ message: "이미 사용 중인 전화번호입니다." });
+      }
+
+      // 전화번호 업데이트
+      await storage.updateUser(currentUser.id, { phoneNumber: newPhoneNumber });
+
+      // 두 인증 코드 모두 사용됨으로 표시
+      await storage.markVerificationCodeAsUsed(oldVerification.id);
+      await storage.markVerificationCodeAsUsed(newVerification.id);
+
+      // 업데이트된 사용자 정보 가져오기
+      const updatedUser = await storage.getUser(currentUser.id);
+
+      res.json({ 
+        success: true, 
+        message: "전화번호가 성공적으로 변경되었습니다.",
+        user: updatedUser
+      });
+    } catch (error) {
+      console.error("Phone change error:", error);
+      res.status(500).json({ message: "전화번호 변경에 실패했습니다." });
+    }
+  });
+
   // Step 3: 전화번호 기반 회원가입
   app.post("/api/auth/signup-phone", async (req, res) => {
     try {

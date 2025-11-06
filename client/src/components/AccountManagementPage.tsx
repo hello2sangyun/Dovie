@@ -92,8 +92,8 @@ export default function AccountManagementPage({ onBack }: AccountManagementPageP
               <span className="text-sm font-medium text-gray-900">@{user.username}</span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">이메일</span>
-              <span className="text-sm font-medium text-gray-900">{user.email}</span>
+              <span className="text-sm text-gray-600">전화번호</span>
+              <span className="text-sm font-medium text-gray-900">{user.phoneNumber}</span>
             </div>
             <div className="flex justify-between items-center py-2">
               <span className="text-sm text-gray-600">가입일</span>
