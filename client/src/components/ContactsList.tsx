@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { cn } from "@/lib/utils";
 import { Plus, Search, Star, MoreVertical, Users, Mic } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useAppState } from "@/hooks/useAppState";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { InstantAvatar } from "@/components/InstantAvatar";
@@ -23,6 +24,7 @@ interface ContactsListProps {
 export default function ContactsList({ onAddContact, onSelectContact, onNavigateToChat }: ContactsListProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const appState = useAppState();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("nickname");
@@ -56,6 +58,37 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
   
   // 음성 처리 로딩 상태
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
+
+  // Pause recording when app goes to background (prevents mic sound and battery drain)
+  // Resume when app comes back to foreground
+  useEffect(() => {
+    if (appState === 'background' && isRecording && mediaRecorderRef.current) {
+      console.log('📱 App backgrounded - pausing contact voice recording (no mic sound)');
+      // Pause instead of stop - prevents microphone "띠딩" sound
+      // Feature detection for iOS WebView compatibility
+      if (mediaRecorderRef.current.state === 'recording') {
+        if (typeof mediaRecorderRef.current.pause === 'function') {
+          try {
+            mediaRecorderRef.current.pause();
+          } catch (error) {
+            console.warn('📱 MediaRecorder.pause() not supported, recording continues');
+          }
+        }
+      }
+    } else if (appState === 'active' && isRecording && mediaRecorderRef.current) {
+      console.log('📱 App foregrounded - resuming contact voice recording');
+      // Resume recording when app comes back
+      if (mediaRecorderRef.current.state === 'paused') {
+        if (typeof mediaRecorderRef.current.resume === 'function') {
+          try {
+            mediaRecorderRef.current.resume();
+          } catch (error) {
+            console.warn('📱 MediaRecorder.resume() not supported');
+          }
+        }
+      }
+    }
+  }, [appState, isRecording]);
 
   // Toggle favorite mutation
   const toggleFavoriteMutation = useMutation({

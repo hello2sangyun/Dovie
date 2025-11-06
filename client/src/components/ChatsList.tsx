@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { useAppState } from "@/hooks/useAppState";
 import { useToast } from "@/hooks/use-toast";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useVirtualization } from "@/hooks/useVirtualization";
@@ -32,6 +33,7 @@ interface ChatsListProps {
 export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup, contactFilter, onClearFilter, friendFilter, onClearFriendFilter }: ChatsListProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const appState = useAppState();
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
@@ -63,6 +65,37 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
   
   // 음성 처리 로딩 상태
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
+
+  // Pause recording when app goes to background (prevents mic sound and battery drain)
+  // Resume when app comes back to foreground
+  useEffect(() => {
+    if (appState === 'background' && isRecording && mediaRecorderRef.current) {
+      console.log('📱 App backgrounded - pausing chat voice recording (no mic sound)');
+      // Pause instead of stop - prevents microphone "띠딩" sound
+      // Feature detection for iOS WebView compatibility
+      if (mediaRecorderRef.current.state === 'recording') {
+        if (typeof mediaRecorderRef.current.pause === 'function') {
+          try {
+            mediaRecorderRef.current.pause();
+          } catch (error) {
+            console.warn('📱 MediaRecorder.pause() not supported, recording continues');
+          }
+        }
+      }
+    } else if (appState === 'active' && isRecording && mediaRecorderRef.current) {
+      console.log('📱 App foregrounded - resuming chat voice recording');
+      // Resume recording when app comes back
+      if (mediaRecorderRef.current.state === 'paused') {
+        if (typeof mediaRecorderRef.current.resume === 'function') {
+          try {
+            mediaRecorderRef.current.resume();
+          } catch (error) {
+            console.warn('📱 MediaRecorder.resume() not supported');
+          }
+        }
+      }
+    }
+  }, [appState, isRecording]);
 
   // Voice Confirm Modal 콜백 함수들
   const handleVoiceMessageSend = async (editedText: string) => {

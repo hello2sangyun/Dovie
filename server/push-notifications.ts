@@ -25,6 +25,7 @@ interface PushNotificationPayload {
   silent?: boolean;
   sound?: string;
   unreadCount?: number;
+  badgeCount?: number;  // Explicit iOS badge count
 }
 
 export async function sendPushNotification(
@@ -32,6 +33,17 @@ export async function sendPushNotification(
   payload: PushNotificationPayload
 ): Promise<void> {
   try {
+    // Auto-calculate badge count if not provided (for backward compatibility)
+    // This ensures both PWA and iOS receive accurate badge counts
+    if (payload.badgeCount === undefined) {
+      console.log(`⚠️  Badge count not provided, calculating from unread counts for user ${userId}`);
+      const unreadCounts = await storage.getUnreadCounts(userId);
+      const totalUnread = unreadCounts.reduce((total, count) => total + count.unreadCount, 0);
+      const unreadAiNotices = await storage.getUnreadAiNoticesCount(userId);
+      payload.badgeCount = totalUnread + unreadAiNotices;
+      console.log(`📊 Auto-calculated badge count: ${payload.badgeCount} (${totalUnread} messages + ${unreadAiNotices} AI notices)`);
+    }
+    
     const notificationSettings = await storage.getNotificationSettings(userId);
     
     if (notificationSettings?.muteAllNotifications) {
@@ -105,7 +117,8 @@ export async function sendPushNotification(
         messageId: payload.data?.messageId,
         senderId: payload.data?.senderId,
         senderName: payload.data?.senderName,
-        unreadCount: payload.data?.unreadCount || 0,
+        unreadCount: payload.data?.unreadCount ?? 0,  // Use ?? to preserve legitimate 0 values
+        badgeCount: payload.badgeCount ?? payload.data?.badgeCount ?? 0,  // For PWA badge API
         // Telegram-style actions
         actions: [
           {
@@ -215,6 +228,7 @@ async function sendIOSPushNotifications(
       const deviceToken = tokenInfo.device_token;
       
       // iOS APNS 페이로드 구성 (Rich Notifications with images, action buttons, grouping)
+      // Note: badgeCount is now auto-calculated earlier in sendPushNotification
       const apnsPayload: any = {
         aps: {
           alert: {
@@ -223,7 +237,9 @@ async function sendIOSPushNotifications(
             // Optional subtitle for additional context
             ...(payload.data?.subtitle && { subtitle: payload.data.subtitle })
           },
-          badge: payload.data?.unreadCount || 1,
+          // Use nullish coalescing to preserve zero values (allows badge to clear)
+          // badgeCount is auto-calculated earlier if not provided
+          badge: payload.badgeCount ?? 0,
           sound: payload.sound || "default",
           // Enable rich notifications (images, videos, audio)
           "mutable-content": 1,
@@ -352,13 +368,22 @@ export async function sendMessageNotification(
   mediaUrl?: string  // Optional: Image, video, or audio URL for rich notifications
 ): Promise<void> {
   try {
-    // Get total unread count across all chat rooms for app badge
+    // Get total unread count across all chat rooms AND AI notices for app badge
+    // Note: The new message being sent will be marked as unread by storage layer,
+    // so we don't need to add +1 here (it would cause double-counting)
     const unreadCounts = await storage.getUnreadCounts(recipientUserId);
-    // Calculate total including the new message being sent
     const currentTotalUnread = unreadCounts.reduce((total, count) => total + count.unreadCount, 0);
-    const totalUnreadCount = currentTotalUnread + 1;
     
-    console.log(`📊 Badge count for user ${recipientUserId}: ${currentTotalUnread} + 1 new = ${totalUnreadCount} total unread`);
+    // Get AI notices count
+    const unreadAiNotices = await storage.getUnreadAiNoticesCount(recipientUserId);
+    
+    // Calculate total badge count: messages + AI notices (no +1 to avoid double-counting)
+    const totalBadgeCount = currentTotalUnread + unreadAiNotices;
+    
+    console.log(`📊 Badge count for user ${recipientUserId}:`);
+    console.log(`   - Total unread messages: ${currentTotalUnread}`);
+    console.log(`   - Unread AI notices: ${unreadAiNotices}`);
+    console.log(`   - TOTAL BADGE: ${totalBadgeCount}`);
     console.log(`📊 Unread counts breakdown:`, unreadCounts.map(c => `Chat ${c.chatRoomId}: ${c.unreadCount}`).join(', '));
     
     let notificationBody = messageContent;
@@ -403,7 +428,8 @@ export async function sendMessageNotification(
       messageType,
       senderId: recipientUserId,
       url: `/?chat=${chatRoomId}`,
-      unreadCount: totalUnreadCount
+      unreadCount: totalBadgeCount,  // For PWA clients
+      badgeCount: totalBadgeCount    // For APNS badge (read from payload.data?.badgeCount)
     };
 
     // Add media URL based on message type for APNS rich notifications
@@ -432,7 +458,7 @@ export async function sendMessageNotification(
       requireInteraction: false,
       silent: false,
       sound: '/notification-sound.mp3',
-      unreadCount: totalUnreadCount
+      badgeCount: totalBadgeCount  // Badge count for iOS APNS
     });
   } catch (error) {
     console.error(`Failed to send message notification to user ${recipientUserId}:`, error);
