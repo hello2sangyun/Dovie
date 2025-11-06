@@ -22,6 +22,9 @@ end
 
 target 'App' do
   capacitor_pods
+  # Firebase SDK (Custom Token 인증용)
+  pod 'FirebaseCore'
+  pod 'FirebaseAuth'
   # Google Sign-In SDK (네이티브)
   pod 'GoogleSignIn'
 end
