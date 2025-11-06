@@ -46,7 +46,7 @@ Preferred communication style: Simple, everyday language.
 - **Admin Panel**: Monitoring, user management, performance metrics.
 - **Push Notifications**: Telegram/WhatsApp-style intelligent notification filtering based on user activity, grouped notifications, and comprehensive iOS PWA/Native app support with sound and app badges.
 - **Hashtag System**: Single hashtag per file for simplified organization, auto-extraction from messages, and enhanced search.
-- **Voice Messages**: Quick voice messages from contacts with confirmation modal for reviewing/editing transcriptions before sending, voice transcription, smart suggestion integration, and retry capability on send failures. Voice messages accessible via 800ms long-press on chat list and contact list items.
+- **Voice Messages**: Quick voice messages from contacts with confirmation modal for reviewing/editing transcriptions before sending, voice transcription, smart suggestion integration, and retry capability on send failures. Voice messages accessible via 640ms long-press on chat list and contact list items.
 - **YouTube Integration**: Search, preview, and sharing of YouTube videos within chat.
 - **Settings**: Comprehensive settings system with multiple sections:
   - **Account Management**: Account deletion with password confirmation and warnings

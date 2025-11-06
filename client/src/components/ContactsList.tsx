@@ -309,7 +309,7 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
       } else {
         console.log('🚫 스크롤 중이므로 음성 녹음 취소');
       }
-    }, 800); // 800ms 후 음성 녹음 시작
+    }, 640); // 640ms 후 음성 녹음 시작 (20% 단축)
     
     longPressTimerRef.current = timer;
     setRecordingContact(contact); // 어떤 연락처인지 저장
@@ -367,7 +367,7 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
       if (e) e.stopPropagation();
       stopVoiceRecording();
     } else if (wasShortPress && !isScrollingRef.current) {
-      // 짧게 클릭한 경우 (800ms 이내) AND 스크롤이 아닐 때만 - 채팅방으로 이동
+      // 짧게 클릭한 경우 (640ms 이내) AND 스크롤이 아닐 때만 - 채팅방으로 이동
       onSelectContact(contactUserId);
     }
     

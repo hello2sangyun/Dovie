@@ -267,7 +267,7 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
           ref={fileInputRef}
           type="file"
           multiple
-          accept="*/*"
+          accept="image/*,video/*,audio/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/*"
           onChange={(e) => handleFileSelect(e.target.files)}
           className="hidden"
         />
