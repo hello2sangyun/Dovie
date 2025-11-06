@@ -113,6 +113,19 @@ For iOS push notifications to work in production, APNS credentials must be confi
 
 ## Recent Updates
 - **2024-11-06**:
+  - **Login/Signup UI Improvements**:
+    - **Login Page**: Removed Google login button, increased logo size to 1.5x, cleaner gradient design
+    - **Password Recovery**: Three-step password reset flow (phone → SMS code → new password) using existing verification system
+    - **Signup Page Enhancements**:
+      - Username validation updated: now accepts English letters, numbers, and special characters (previously letters + special only)
+      - DisplayName placeholder: "상대방에게 보여지는 나의 이름" with "추후 변경할 수 있습니다" note
+      - Profile photo moved to top center with instant preview (click-to-upload, FileReader-based preview)
+      - Clear error modals for duplicate username/phone with user-friendly Korean messages
+  - **Bookmarked Message Visual Distinction**: 
+    - Bookmarked messages now display with yellow ring accent (ring-2 ring-yellow-400)
+    - Yellow bookmark icon badge in top-right corner of message bubble
+    - Efficient O(1) lookup using Set of bookmarked message IDs
+    - Fetches bookmarks via `GET /api/bookmarks` query
   - **Phone Number-Based Signup Flow**: Completely redesigned signup system with SMS verification
     - Database: `verification_codes` table with 6-digit codes, 5-minute TTL, and single-use enforcement
     - Storage API: `createVerificationCode`, `getVerificationCode`, `markVerificationCodeAsUsed` for SMS code lifecycle management
@@ -120,8 +133,9 @@ For iOS push notifications to work in production, APNS credentials must be confi
       - `POST /api/auth/send-verification-code`: Sends SMS verification code via Twilio
       - `POST /api/auth/verify-phone-code`: Validates SMS code without creating user
       - `POST /api/auth/signup-phone`: Completes signup with username, password, displayName, and optional profile photo
+      - `POST /api/auth/reset-password`: Password reset using phone verification
     - UI: Three-step wizard flow (phone input → SMS code → user details → auto-login to /app)
-    - Security: Phone number uniqueness check, username validation (English + special chars only), bcrypt password hashing
+    - Security: Phone number uniqueness check, username validation (English + numbers + special chars), bcrypt password hashing
     - Development Mode: SMS codes logged to console when Twilio SMS fails (trial account limitations)
     - Architect-reviewed and E2E tested via Playwright
 - **2024-11-04**: 
