@@ -125,6 +125,16 @@ export const notificationSettings = pgTable("notification_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// SMS 인증 코드 테이블
+export const verificationCodes = pgTable("verification_codes", {
+  id: serial("id").primaryKey(),
+  phoneNumber: text("phone_number").notNull(),
+  code: text("code").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  isUsed: boolean("is_used").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const chatRooms = pgTable("chat_rooms", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -959,6 +969,11 @@ export const insertNotificationSettingsSchema = createInsertSchema(notificationS
   updatedAt: true,
 });
 
+export const insertVerificationCodeSchema = createInsertSchema(verificationCodes).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type MessageReaction = typeof messageReactions.$inferSelect;
 export type InsertMessageReaction = z.infer<typeof insertMessageReactionSchema>;
 export type MessageLike = typeof messageLikes.$inferSelect;
@@ -967,3 +982,5 @@ export type LinkPreview = typeof linkPreviews.$inferSelect;
 export type InsertLinkPreview = z.infer<typeof insertLinkPreviewSchema>;
 export type NotificationSettings = typeof notificationSettings.$inferSelect;
 export type InsertNotificationSettings = z.infer<typeof insertNotificationSettingsSchema>;
+export type VerificationCode = typeof verificationCodes.$inferSelect;
+export type InsertVerificationCode = z.infer<typeof insertVerificationCodeSchema>;
