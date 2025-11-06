@@ -1,0 +1,25 @@
+
+> rest-express@1.0.0 dev
+OpenAI API key is configurederver/index.ts
+✅ Firebase Admin SDK initialized with service account credentials
+🔔 Notification scheduler initialized and started
+5:21:52 PM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 13 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+5:21:56 PM [express] POST /api/auth/login 400 in 2ms :: {"message":"이메일과 비밀번호를 입력해주세요."}
+The file does not exist at "/home/runner/workspace/node_modules/.vite/deps/chunk-HG7P5XMB.js?v=bee7ec8f" which is in the optimize deps directory. The dependency might be incompatible with the dep optimizer. Try adding it to `optimizeDeps.exclude`.
+The file does not exist at "/home/runner/workspace/node_modules/.vite/deps/chunk-V4SDQJCY.js?v=bee7ec8f" which is in the optimize deps directory. The dependency might be incompatible with the dep optimizer. Try adding it to `optimizeDeps.exclude`.
+The file does not exist at "/home/runner/workspace/node_modules/.vite/deps/chunk-V4SDQJCY.js?v=bee7ec8f" which is in the optimize deps directory. The dependency might be incompatible with the dep optimizer. Try adding it to `optimizeDeps.exclude`. (x2)
+The file does not exist at "/home/runner/workspace/node_modules/.vite/deps/chunk-ERTHDMDP.js?v=bee7ec8f" which is in the optimize deps directory. The dependency might be incompatible with the dep optimizer. Try adding it to `optimizeDeps.exclude`.
+5:22:22 PM [express] GET /api/unread-counts 401 in 1ms :: {"message":"Not authenticated"}
+5:22:30 PM [express] GET /api/unread-counts 401 in 1ms :: {"message":"Not authenticated"}
+5:23:00 PM [express] GET /api/unread-counts 401 in 2ms :: {"message":"Not authenticated"}
+5:23:30 PM [express] GET /api/unread-counts 401 in 1ms :: {"message":"Not authenticated"}
+5:24:00 PM [express] GET /api/unread-counts 401 in 1ms :: {"message":"Not authenticated"}
+5:24:30 PM [express] GET /api/unread-counts 401 in 1ms :: {"message":"Not authenticated"}
+5:25:00 PM [express] GET /api/unread-counts 401 in 1ms :: {"message":"Not authenticated"}
+5:25:30 PM [express] GET /api/unread-counts 401 in 1ms :: {"message":"Not authenticated"}
+5:26:00 PM [express] GET /api/unread-counts 401 in 1ms :: {"message":"Not authenticated"}
+5:26:30 PM [express] GET /api/unread-counts 401 in 1ms :: {"message":"Not authenticated"}
+5:28:12 PM [express] POST /api/auth/login 400 in 1ms :: {"message":"이메일과 비밀번호를 입력해주세요."}
