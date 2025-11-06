@@ -19,6 +19,7 @@ import { getVapidPublicKey, sendPushNotification } from "./push-notifications";
 import twilio from "twilio";
 import { z } from "zod";
 import { verifyIdToken, initializeFirebaseAdmin, createCustomToken } from "./firebase-admin";
+import { OAuth2Client } from 'google-auth-library';
 
 // Zod validation schemas
 const updateUserNotificationsSchema = z.object({
@@ -355,17 +356,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('📱 Google Native 로그인 시작 - ID Token 검증 중...');
 
-      // Google ID Token 검증 (Firebase Admin SDK 사용)
-      const verificationResult = await verifyIdToken(idToken);
+      // Google ID Token 검증 (Google Auth Library 사용)
+      // iOS 앱의 실제 Google OAuth Client ID 사용
+      const googleClientId = '376823453378-g12pilchfo71ie2rlkntn8k9ui4846od.apps.googleusercontent.com';
       
-      if (!verificationResult.success) {
+      const client = new OAuth2Client(googleClientId);
+      
+      let ticket;
+      try {
+        ticket = await client.verifyIdToken({
+          idToken: idToken,
+          audience: googleClientId,
+        });
+      } catch (error: any) {
+        console.error('❌ Google ID Token 검증 실패:', error.message);
         return res.status(401).json({ 
           message: "Google ID Token이 유효하지 않습니다.", 
-          error: verificationResult.error 
+          error: error.message 
         });
       }
-
-      const { uid, email, name, picture } = verificationResult;
+      
+      const payload = ticket.getPayload();
+      if (!payload) {
+        return res.status(401).json({ message: "ID Token payload가 비어있습니다." });
+      }
+      
+      const uid = payload['sub'];
+      const email = payload['email'];
+      const name = payload['name'];
+      const picture = payload['picture'];
+      
       console.log(`✅ Google ID Token 검증 성공 - UID: ${uid}, Email: ${email}`);
 
       // Firebase Custom Token 생성
