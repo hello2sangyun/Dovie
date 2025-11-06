@@ -431,6 +431,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 비밀번호 해싱
       const hashedPassword = await bcrypt.hash(password, 10);
 
+      // 프로필 사진 처리 (base64인 경우 파일로 저장)
+      let profilePictureUrl = null;
+      if (profilePicture && profilePicture.startsWith('data:image/')) {
+        try {
+          // base64에서 데이터 추출
+          const matches = profilePicture.match(/^data:image\/([a-zA-Z+]+);base64,(.+)$/);
+          if (matches && matches.length === 3) {
+            const imageType = matches[1];
+            const base64Data = matches[2];
+            const buffer = Buffer.from(base64Data, 'base64');
+
+            // 파일명 생성
+            const timestamp = Date.now();
+            const randomString = Math.random().toString(36).substring(2, 15);
+            const extension = imageType === 'svg+xml' ? 'svg' : imageType;
+            const profileFileName = `profile_${timestamp}_${randomString}.${extension}`;
+            const finalPath = path.join(uploadDir, profileFileName);
+
+            // 파일 저장
+            fs.writeFileSync(finalPath, buffer);
+            profilePictureUrl = `/uploads/${profileFileName}`;
+            console.log('Profile picture saved:', profilePictureUrl);
+          }
+        } catch (error) {
+          console.error('Failed to save profile picture:', error);
+          // 프로필 사진 저장 실패해도 회원가입은 계속 진행
+        }
+      }
+
       // 사용자 생성 데이터 준비
       const cleanPhoneNumber = phoneNumber.replace(/[^\d]/g, '');
       const userData = {
@@ -439,7 +468,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         displayName,
         email: `${cleanPhoneNumber}@phone.local`, // 임시 이메일
         password: hashedPassword,
-        profilePicture: profilePicture || null,
+        profilePicture: profilePictureUrl,
         isEmailVerified: true, // 전화번호로 인증했으므로 true
         isProfileComplete: true, // 프로필 설정 완료
       };

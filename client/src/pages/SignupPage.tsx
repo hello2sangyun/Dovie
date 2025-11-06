@@ -159,40 +159,49 @@ export default function SignupPage() {
     signupMutation.mutate();
   };
 
-  const handleProfilePictureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleProfilePictureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // 즉시 미리보기 생성
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setProfilePreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-
-    const formData = new FormData();
-    formData.append("profilePicture", file);
-
-    try {
-      const response = await fetch("/api/upload/profile-picture", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await response.json();
-      setProfilePicture(data.profilePicture);
+    // 파일 크기 제한 (5MB)
+    if (file.size > 5 * 1024 * 1024) {
       toast({
-        title: "프로필 사진 업로드 완료",
-        description: "프로필 사진이 성공적으로 업로드되었습니다.",
-      });
-    } catch (error) {
-      console.error("Profile picture upload error:", error);
-      toast({
-        title: "업로드 실패",
-        description: "프로필 사진 업로드에 실패했습니다.",
+        title: "파일 크기 초과",
+        description: "프로필 사진은 5MB 이하여야 합니다.",
         variant: "destructive",
       });
-      setProfilePreview(null);
+      return;
     }
+
+    // 이미지 파일만 허용
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "잘못된 파일 형식",
+        description: "이미지 파일만 업로드할 수 있습니다.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // base64로 변환하여 저장
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setProfilePreview(base64String);
+      setProfilePicture(base64String);
+      toast({
+        title: "프로필 사진 선택 완료",
+        description: "회원가입 시 프로필 사진이 저장됩니다.",
+      });
+    };
+    reader.onerror = () => {
+      toast({
+        title: "파일 읽기 실패",
+        description: "프로필 사진을 읽을 수 없습니다.",
+        variant: "destructive",
+      });
+    };
+    reader.readAsDataURL(file);
   };
 
 
