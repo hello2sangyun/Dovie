@@ -3714,6 +3714,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Total unread badge count (messages + AI notices)
+  app.get("/api/total-unread-badge", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      // Get unread message counts
+      const unreadCounts = await storage.getUnreadCounts(Number(userId));
+      const totalUnreadMessages = unreadCounts.reduce((sum, count) => sum + count.unreadCount, 0);
+      
+      // Get unread AI notices count
+      const unreadAiNotices = await storage.getUnreadAiNoticesCount(Number(userId));
+      
+      // Calculate total badge count
+      const totalBadgeCount = totalUnreadMessages + unreadAiNotices;
+      
+      console.log(`📱 Total badge count for user ${userId}: ${totalBadgeCount} (messages: ${totalUnreadMessages}, AI notices: ${unreadAiNotices})`);
+      
+      res.json({ 
+        totalBadgeCount,
+        unreadMessages: totalUnreadMessages,
+        unreadAiNotices
+      });
+    } catch (error) {
+      console.error("Get total badge count error:", error);
+      res.status(500).json({ message: "Failed to get total badge count" });
+    }
+  });
+
   // Command routes
   app.get("/api/commands", async (req, res) => {
     const userId = req.headers["x-user-id"];

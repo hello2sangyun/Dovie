@@ -1,17 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { PushNotifications } from '@capacitor/push-notifications';
+import { Badge } from '@capawesome/capacitor-badge';
 import { Capacitor } from '@capacitor/core';
 import { useAuth } from './useAuth';
 import { useAppState } from './useAppState';
 
-interface UnreadCount {
-  chatRoomId: number;
-  unreadCount: number;
-}
-
-interface UnreadData {
-  unreadCounts: UnreadCount[];
+interface TotalBadgeData {
+  totalBadgeCount: number;
+  unreadMessages: number;
+  unreadAiNotices: number;
 }
 
 export function useNativeBadgeManager() {
@@ -20,44 +17,36 @@ export function useNativeBadgeManager() {
   const lastBadgeCountRef = useRef<number>(0);
   const isNativePlatform = Capacitor.isNativePlatform();
 
-  // Fetch unread counts - only poll when app is active to save battery
-  const { data: unreadData } = useQuery<UnreadData>({
-    queryKey: ['/api/unread-counts'],
+  // Fetch total badge count (messages + AI notices) - only poll when app is active to save battery
+  const { data: badgeData } = useQuery<TotalBadgeData>({
+    queryKey: ['/api/total-unread-badge'],
     enabled: !!user && isNativePlatform,
     refetchInterval: appState === 'active' ? 5000 : false, // Only poll when active
     staleTime: 0, // Always fresh data
     gcTime: 0, // Don't cache old data
   });
 
-  // Update native badge when unread count changes
+  // Update native badge when badge count changes
   useEffect(() => {
-    if (!user || !unreadData || !Array.isArray(unreadData.unreadCounts) || !isNativePlatform) return;
+    if (!user || !badgeData || !isNativePlatform) return;
 
-    const totalUnread = unreadData.unreadCounts.reduce(
-      (total: number, count: { unreadCount: number }) => total + count.unreadCount,
-      0
-    );
+    const totalBadgeCount = badgeData.totalBadgeCount;
 
     // Only update if count actually changed to avoid unnecessary updates
-    if (totalUnread !== lastBadgeCountRef.current) {
-      console.log(`📱 Native Badge update: ${lastBadgeCountRef.current} → ${totalUnread}`);
-      lastBadgeCountRef.current = totalUnread;
+    if (totalBadgeCount !== lastBadgeCountRef.current) {
+      console.log(`📱 Native Badge update: ${lastBadgeCountRef.current} → ${totalBadgeCount} (messages: ${badgeData.unreadMessages}, AI: ${badgeData.unreadAiNotices})`);
+      lastBadgeCountRef.current = totalBadgeCount;
       
-      // Use Capacitor PushNotifications API to set badge count
-      PushNotifications.setBadgeCount({ count: totalUnread })
+      // Use Capacitor Badge plugin to set badge count
+      Badge.set({ count: totalBadgeCount })
         .then(() => {
-          console.log(`✅ Native badge count set to ${totalUnread}`);
+          console.log(`✅ Native badge count set to ${totalBadgeCount}`);
         })
         .catch((error) => {
-          // UNIMPLEMENTED means the API isn't available - this is OK, APNS will handle badges
-          if (error?.code === 'UNIMPLEMENTED') {
-            console.log('ℹ️  Badge API not implemented - relying on APNS for badge management');
-          } else {
-            console.error('❌ Failed to set native badge count:', error);
-          }
+          console.error('❌ Failed to set native badge count:', error);
         });
     }
-  }, [user, unreadData, isNativePlatform]);
+  }, [user, badgeData, isNativePlatform]);
 
   // Clear badge when user logs out
   useEffect(() => {
@@ -65,36 +54,29 @@ export function useNativeBadgeManager() {
       console.log('📱 User logged out - clearing native badge');
       lastBadgeCountRef.current = 0;
       
-      PushNotifications.setBadgeCount({ count: 0 })
+      Badge.clear()
         .catch((error) => {
-          if (error?.code !== 'UNIMPLEMENTED') {
-            console.error('❌ Failed to clear badge on logout:', error);
-          }
+          console.error('❌ Failed to clear badge on logout:', error);
         });
     }
   }, [user, isNativePlatform]);
 
   // Update badge immediately when app comes to foreground
   useEffect(() => {
-    if (appState === 'active' && isNativePlatform && unreadData) {
-      const totalUnread = unreadData.unreadCounts?.reduce(
-        (total: number, count: { unreadCount: number }) => total + count.unreadCount,
-        0
-      ) || 0;
+    if (appState === 'active' && isNativePlatform && badgeData) {
+      const totalBadgeCount = badgeData.totalBadgeCount;
       
-      if (totalUnread !== lastBadgeCountRef.current) {
-        console.log(`📱 App foregrounded - syncing badge to ${totalUnread}`);
-        lastBadgeCountRef.current = totalUnread;
+      if (totalBadgeCount !== lastBadgeCountRef.current) {
+        console.log(`📱 App foregrounded - syncing badge to ${totalBadgeCount}`);
+        lastBadgeCountRef.current = totalBadgeCount;
         
-        PushNotifications.setBadgeCount({ count: totalUnread })
+        Badge.set({ count: totalBadgeCount })
           .catch((error) => {
-            if (error?.code !== 'UNIMPLEMENTED') {
-              console.error('❌ Failed to sync badge on foreground:', error);
-            }
+            console.error('❌ Failed to sync badge on foreground:', error);
           });
       }
     }
-  }, [appState, unreadData, isNativePlatform]);
+  }, [appState, badgeData, isNativePlatform]);
 
   // Real-time badge sync via custom event (triggered by message read, etc.)
   useEffect(() => {
@@ -105,11 +87,9 @@ export function useNativeBadgeManager() {
       console.log(`📱 Real-time badge sync event: ${totalUnread}`);
       
       lastBadgeCountRef.current = totalUnread;
-      PushNotifications.setBadgeCount({ count: totalUnread })
+      Badge.set({ count: totalUnread })
         .catch((error) => {
-          if (error?.code !== 'UNIMPLEMENTED') {
-            console.error('❌ Failed to sync badge via event:', error);
-          }
+          console.error('❌ Failed to sync badge via event:', error);
         });
     };
 
@@ -122,36 +102,27 @@ export function useNativeBadgeManager() {
 
   return {
     currentBadgeCount: lastBadgeCountRef.current,
-    totalUnread: (unreadData && Array.isArray(unreadData.unreadCounts)) 
-      ? unreadData.unreadCounts.reduce(
-          (total: number, count: { unreadCount: number }) => total + count.unreadCount,
-          0
-        )
-      : 0,
+    totalUnread: badgeData?.totalBadgeCount || 0,
     setBadgeCount: async (count: number) => {
       if (!isNativePlatform) return;
       
       try {
-        await PushNotifications.setBadgeCount({ count });
+        await Badge.set({ count });
         lastBadgeCountRef.current = count;
         console.log(`✅ Badge manually set to ${count}`);
       } catch (error: any) {
-        if (error?.code !== 'UNIMPLEMENTED') {
-          console.error('❌ Failed to manually set badge:', error);
-        }
+        console.error('❌ Failed to manually set badge:', error);
       }
     },
     clearBadge: async () => {
       if (!isNativePlatform) return;
       
       try {
-        await PushNotifications.setBadgeCount({ count: 0 });
+        await Badge.clear();
         lastBadgeCountRef.current = 0;
         console.log('✅ Badge cleared');
       } catch (error: any) {
-        if (error?.code !== 'UNIMPLEMENTED') {
-          console.error('❌ Failed to clear badge:', error);
-        }
+        console.error('❌ Failed to clear badge:', error);
       }
     }
   };
