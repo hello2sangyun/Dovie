@@ -2,7 +2,7 @@ import {
   users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications,
   fileUploads, fileDownloads, businessProfiles, userPosts, locationShareRequests, locationShares, reminders,
   messageReactions, messageLikes, pushSubscriptions, iosDeviceTokens, aiNotices, bookmarks, voiceBookmarkRequests,
-  userChatSettings, notificationSettings,
+  userChatSettings, notificationSettings, verificationCodes,
   type User, type InsertUser, type Contact, type InsertContact,
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
   type Command, type InsertCommand, type MessageRead, type InsertMessageRead,
@@ -18,7 +18,8 @@ import {
   type Bookmark, type InsertBookmark,
   type VoiceBookmarkRequest, type InsertVoiceBookmarkRequest,
   type UserChatSettings, type InsertUserChatSettings,
-  type NotificationSettings, type InsertNotificationSettings
+  type NotificationSettings, type InsertNotificationSettings,
+  type VerificationCode, type InsertVerificationCode
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, or, count, gt, lt, sql, inArray } from "drizzle-orm";
@@ -188,6 +189,11 @@ export interface IStorage {
   getPendingVoiceBookmarkRequestsForUser(targetUserId: number): Promise<VoiceBookmarkRequest[]>;
   updateVoiceBookmarkRequestStatus(id: number, status: string): Promise<void>;
   getVoiceBookmarkRequestById(id: number): Promise<VoiceBookmarkRequest | undefined>;
+
+  // Verification Code operations
+  createVerificationCode(data: InsertVerificationCode): Promise<VerificationCode>;
+  getVerificationCode(phoneNumber: string, code: string): Promise<VerificationCode | undefined>;
+  markVerificationCodeAsUsed(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1963,6 +1969,46 @@ export class DatabaseStorage implements IStorage {
       return request;
     } catch (error) {
       console.error('음성 북마크 요청 조회 오류:', error);
+      throw error;
+    }
+  }
+
+  async createVerificationCode(data: InsertVerificationCode): Promise<VerificationCode> {
+    try {
+      const [code] = await db.insert(verificationCodes).values(data).returning();
+      return code;
+    } catch (error) {
+      console.error('인증 코드 생성 오류:', error);
+      throw error;
+    }
+  }
+
+  async getVerificationCode(phoneNumber: string, code: string): Promise<VerificationCode | undefined> {
+    try {
+      const [verification] = await db.select()
+        .from(verificationCodes)
+        .where(
+          and(
+            eq(verificationCodes.phoneNumber, phoneNumber),
+            eq(verificationCodes.code, code),
+            eq(verificationCodes.isUsed, false),
+            gt(verificationCodes.expiresAt, new Date())
+          )
+        );
+      return verification;
+    } catch (error) {
+      console.error('인증 코드 조회 오류:', error);
+      throw error;
+    }
+  }
+
+  async markVerificationCodeAsUsed(id: number): Promise<void> {
+    try {
+      await db.update(verificationCodes)
+        .set({ isUsed: true })
+        .where(eq(verificationCodes.id, id));
+    } catch (error) {
+      console.error('인증 코드 사용 처리 오류:', error);
       throw error;
     }
   }

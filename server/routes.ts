@@ -191,6 +191,168 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 새로운 전화번호 기반 회원가입 플로우
+  // Step 1: 인증 코드 발송
+  app.post("/api/auth/send-verification-code", async (req, res) => {
+    try {
+      const { phoneNumber } = req.body;
+      
+      if (!phoneNumber) {
+        return res.status(400).json({ message: "전화번호가 필요합니다." });
+      }
+
+      // 6자리 인증 코드 생성
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // 만료 시간 설정 (5분)
+      const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+      // 새 인증 코드 저장
+      await storage.createVerificationCode({
+        phoneNumber,
+        code,
+        expiresAt,
+        isUsed: false,
+      });
+
+      // Twilio 클라이언트 초기화
+      const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+
+      try {
+        // 실제 SMS 전송 시도
+        const message = await client.messages.create({
+          body: `Dovie Messenger 인증 코드: ${code}`,
+          from: process.env.TWILIO_PHONE_NUMBER,
+          to: phoneNumber
+        });
+
+        console.log(`SMS 전송 성공: ${message.sid} (${phoneNumber})`);
+
+        res.json({ 
+          success: true, 
+          message: "인증 코드를 전송했습니다.",
+          messageSid: message.sid
+        });
+      } catch (smsError: any) {
+        console.error("Twilio SMS 전송 오류:", smsError);
+        
+        // Trial 계정 제한이나 기타 SMS 전송 실패 시 개발 모드에서는 성공으로 처리
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`🔧 개발 모드: SMS 전송 실패하였지만 테스트를 위해 성공으로 처리`);
+          console.log(`📱 인증 코드: ${code} (${phoneNumber})`);
+          
+          res.json({ 
+            success: true, 
+            message: "개발 모드: 인증 코드가 콘솔에 표시되었습니다.",
+            developmentMode: true,
+            verificationCode: code // 개발용으로만 포함
+          });
+        } else {
+          throw new Error("SMS 전송에 실패했습니다. Twilio 계정을 확인해주세요.");
+        }
+      }
+    } catch (error) {
+      console.error("SMS send error:", error);
+      res.status(500).json({ message: "인증 코드 전송에 실패했습니다." });
+    }
+  });
+
+  // Step 2: 인증 코드 검증 (사용자 생성 안 함)
+  app.post("/api/auth/verify-phone-code", async (req, res) => {
+    try {
+      const { phoneNumber, code } = req.body;
+      
+      if (!phoneNumber || !code) {
+        return res.status(400).json({ message: "전화번호와 인증 코드가 필요합니다." });
+      }
+
+      // 인증 코드 확인
+      const verification = await storage.getVerificationCode(phoneNumber, code);
+      
+      if (!verification) {
+        return res.status(400).json({ message: "잘못된 인증 코드이거나 만료되었습니다." });
+      }
+
+      res.json({ 
+        success: true, 
+        message: "인증에 성공했습니다.",
+        verificationId: verification.id
+      });
+    } catch (error) {
+      console.error("Phone verification error:", error);
+      res.status(500).json({ message: "인증에 실패했습니다." });
+    }
+  });
+
+  // Step 3: 전화번호 기반 회원가입
+  app.post("/api/auth/signup-phone", async (req, res) => {
+    try {
+      const { phoneNumber, code, username, displayName, password, profilePicture } = req.body;
+      
+      if (!phoneNumber || !code || !username || !displayName || !password) {
+        return res.status(400).json({ message: "모든 필드를 입력해주세요." });
+      }
+
+      // 인증 코드 재확인
+      const verification = await storage.getVerificationCode(phoneNumber, code);
+      
+      if (!verification) {
+        return res.status(400).json({ message: "잘못된 인증 코드이거나 만료되었습니다." });
+      }
+
+      // 사용자명 검증: 영문 + 특수문자만 허용
+      const usernameRegex = /^[a-zA-Z!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+$/;
+      if (!usernameRegex.test(username)) {
+        return res.status(400).json({ message: "사용자명은 영문과 특수문자만 사용할 수 있습니다." });
+      }
+
+      // 사용자명을 소문자로 변환
+      const normalizedUsername = username.toLowerCase();
+
+      // 전화번호 중복 확인
+      const existingUserByPhone = await storage.getUserByPhoneNumber(phoneNumber);
+      if (existingUserByPhone) {
+        return res.status(400).json({ message: "이미 사용 중인 전화번호입니다." });
+      }
+
+      // 사용자명 중복 확인
+      const existingUserByUsername = await storage.getUserByUsername(normalizedUsername);
+      if (existingUserByUsername) {
+        return res.status(400).json({ message: "이미 사용 중인 사용자명입니다." });
+      }
+
+      // 비밀번호 해싱
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // 사용자 생성 데이터 준비
+      const cleanPhoneNumber = phoneNumber.replace(/[^\d]/g, '');
+      const userData = {
+        phoneNumber,
+        username: normalizedUsername,
+        displayName,
+        email: `${cleanPhoneNumber}@phone.local`, // 임시 이메일
+        password: hashedPassword,
+        profilePicture: profilePicture || null,
+        isEmailVerified: true, // 전화번호로 인증했으므로 true
+        isProfileComplete: true, // 프로필 설정 완료
+      };
+
+      const validatedData = insertUserSchema.parse(userData);
+      const user = await storage.createUser(validatedData);
+
+      // 사용자 온라인 상태 업데이트
+      await storage.updateUser(user.id, { isOnline: true });
+
+      // 인증 코드를 사용됨으로 표시
+      await storage.markVerificationCodeAsUsed(verification.id);
+
+      res.json({ user });
+    } catch (error: any) {
+      console.error("Phone signup error:", error);
+      res.status(500).json({ message: "회원가입에 실패했습니다.", error: error?.message });
+    }
+  });
+
   // 회원가입 API
   app.post("/api/auth/signup", async (req, res) => {
     try {
