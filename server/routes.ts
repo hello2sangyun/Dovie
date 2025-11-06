@@ -113,9 +113,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       } catch (smsError: any) {
         console.error("Twilio SMS 전송 오류:", smsError);
+        console.error("오류 코드:", smsError.code);
+        console.error("오류 메시지:", smsError.message);
         
-        // Trial 계정 제한이나 기타 SMS 전송 실패 시 개발 모드에서는 성공으로 처리
-        if (process.env.NODE_ENV === 'development') {
+        // SMS_PRODUCTION_MODE 환경 변수로 프로덕션 모드 명시적으로 제어
+        // 설정되어 있으면 실제 SMS 전송만 시도하고, 실패 시 명확한 에러 반환
+        const isSmsProductionMode = process.env.SMS_PRODUCTION_MODE === 'true';
+        
+        if (isSmsProductionMode) {
+          // 프로덕션 모드: 실제 Twilio 에러를 사용자에게 전달
+          console.error(`❌ SMS 프로덕션 모드: 실제 전송 실패`);
+          const errorMessage = smsError.message || 'SMS 전송에 실패했습니다';
+          const errorCode = smsError.code || 'UNKNOWN';
+          res.status(400).json({ 
+            message: `SMS 전송 실패: ${errorMessage} (코드: ${errorCode})`,
+            errorCode,
+            twilioError: errorMessage
+          });
+        } else if (process.env.NODE_ENV === 'development') {
+          // 개발 모드: Trial 계정 제한이나 기타 SMS 전송 실패 시 성공으로 처리
           console.log(`🔧 개발 모드: SMS 전송 실패하였지만 테스트를 위해 성공으로 처리`);
           console.log(`📱 인증 코드: ${verificationCode} (${fullPhoneNumber})`);
           console.log(`💡 실제 운영환경에서는 Twilio 계정을 업그레이드하거나 번호를 검증해주세요.`);
@@ -127,7 +143,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             verificationCode: verificationCode // 개발용으로만 포함
           });
         } else {
-          // 운영 환경에서는 실제 오류 반환
+          // 기본값: 운영 환경에서는 실제 오류 반환
           throw new Error("SMS 전송에 실패했습니다. Twilio 계정을 확인해주세요.");
         }
       }
@@ -235,9 +251,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       } catch (smsError: any) {
         console.error("Twilio SMS 전송 오류:", smsError);
+        console.error("오류 코드:", smsError.code);
+        console.error("오류 메시지:", smsError.message);
         
-        // Trial 계정 제한이나 기타 SMS 전송 실패 시 개발 모드에서는 성공으로 처리
-        if (process.env.NODE_ENV === 'development') {
+        // SMS_PRODUCTION_MODE 환경 변수로 프로덕션 모드 명시적으로 제어
+        // 설정되어 있으면 실제 SMS 전송만 시도하고, 실패 시 명확한 에러 반환
+        const isSmsProductionMode = process.env.SMS_PRODUCTION_MODE === 'true';
+        
+        if (isSmsProductionMode) {
+          // 프로덕션 모드: 실제 Twilio 에러를 사용자에게 전달
+          console.error(`❌ SMS 프로덕션 모드: 실제 전송 실패`);
+          const errorMessage = smsError.message || 'SMS 전송에 실패했습니다';
+          const errorCode = smsError.code || 'UNKNOWN';
+          res.status(400).json({ 
+            message: `SMS 전송 실패: ${errorMessage} (코드: ${errorCode})`,
+            errorCode,
+            twilioError: errorMessage
+          });
+        } else if (process.env.NODE_ENV === 'development') {
+          // 개발 모드: Trial 계정 제한이나 기타 SMS 전송 실패 시 성공으로 처리
           console.log(`🔧 개발 모드: SMS 전송 실패하였지만 테스트를 위해 성공으로 처리`);
           console.log(`📱 인증 코드: ${code} (${phoneNumber})`);
           
