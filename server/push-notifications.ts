@@ -250,11 +250,12 @@ async function sendIOSPushNotifications(
 ): Promise<void> {
   for (const tokenInfo of iosTokens) {
     try {
-      const deviceToken = tokenInfo.device_token;
+      // Drizzle ORM은 camelCase로 변환하므로 deviceToken 사용
+      const deviceToken = tokenInfo.deviceToken;
       
       // 디바이스 토큰 검증
       if (!deviceToken || typeof deviceToken !== 'string') {
-        console.warn(`⚠️ Skipping invalid device token for user ${userId}`);
+        console.warn(`⚠️ Skipping invalid device token for user ${userId}:`, tokenInfo);
         continue;
       }
       
@@ -354,8 +355,8 @@ async function sendIOSPushNotifications(
       req.end();
 
     } catch (error) {
-      const tokenPreview = tokenInfo.device_token 
-        ? tokenInfo.device_token.substring(0, 20) + '...' 
+      const tokenPreview = tokenInfo.deviceToken 
+        ? tokenInfo.deviceToken.substring(0, 20) + '...' 
         : 'unknown';
       console.error(`❌ iOS 토큰 ${tokenPreview} 발송 실패 (user ${userId}):`, error);
     }
