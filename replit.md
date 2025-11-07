@@ -112,6 +112,14 @@ For iOS push notifications to work in production, APNS credentials must be confi
 - **Development**: Set `NODE_ENV=development` to use `api.development.push.apple.com`, all push notifications sent for testing
 
 ## Recent Updates
+- **2024-11-07**:
+  - **iOS APNS Push Token Registration Fix**: Resolved critical issue where iOS device tokens were not being forwarded to Capacitor
+    - Root Cause: AppDelegate.swift was missing essential APNS delegate methods
+    - Added `didRegisterForRemoteNotificationsWithDeviceToken` to forward successful token registration to Capacitor's NotificationCenter
+    - Added `didFailToRegisterForRemoteNotificationsWithError` to handle registration failures
+    - Added `didReceiveRemoteNotification` for background push notification handling
+    - Integration: All methods properly post notifications to Capacitor's NotificationCenter for seamless iOS-to-JS communication
+    - Expected Result: `⚡️ TO JS {token: "hex_string"}` should now appear in Xcode console when app launches
 - **2024-11-06**:
   - **Login/Signup UI Improvements**:
     - **Login Page**: Removed Google login button, increased logo size to 1.5x, cleaner gradient design
