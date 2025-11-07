@@ -1,0 +1,86 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/0620313C-8556-4D61-86E9-198FE894C9F5/App.app'
+⚡️  Loading app at https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev...
+Networking process (0x11405c190) took 37.510892 seconds to launch
+GPU process (0x1141181e0) took 6.212656 seconds to launch
+WebContent process (0x1140f4100) took 9.436388 seconds to launch
+0x1140f4100 - [PID=80438] WebProcessProxy::didBecomeUnresponsive:
+0x158384718 - [pageProxyID=7, webPageID=8, PID=80438] WebPageProxy::processDidBecomeUnresponsive:
+WebContent[80438] Unable to hide query parameters from script (missing data)
+⚡️  [debug] - [vite] connecting...
+⚡️  WebView loaded
+⚡️  [log] - [Badge] Service Worker not supported
+⚡️  To Native ->  App addListener 90049122
+⚡️  To Native ->  App addListener 90049123
+⚡️  To Native ->  App addListener 90049124
+⚡️  To Native ->  PushNotifications addListener 90049125
+⚡️  To Native ->  PushNotifications addListener 90049126
+⚡️  To Native ->  PushNotifications addListener 90049127
+⚡️  To Native ->  PushNotifications addListener 90049128
+⚡️  To Native ->  PushNotifications requestPermissions 90049129
+⚡️  [log] - 🔄 Auth context updating user: 126 profilePicture: /uploads/profile_1761606486798_jejztvnxp8j.jpg
+⚡️  [log] - 🚀 Starting profile image preloading...
+⚡️  TO JS {"receive":"granted"}
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+⚡️  [log] -    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+⚡️  [log] - 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  To Native ->  App addListener 90049130
+⚡️  To Native ->  App addListener 90049131
+⚡️  To Native ->  PushNotifications register 90049132
+⚡️  TO JS undefined
+⚡️  [log] - 📱 iOS 네이티브 푸시 알림 등록 성공 (리스너 대기 중)
+⚡️  TO JS {"value":"E1CD3277117957908E023483C05BCA120F85996C8320E57F77B1F57E66246722"}
+📱 [AppDelegate] APNS 토큰 등록 성공
+⚡️  [log] - 📱 iOS 푸시 토큰 획득: E1CD3277117957908E023483C05BCA120F85996C8320E57F77B1F57E66246722
+⚡️  [log] - 📱 서버로 iOS 토큰 전송 시작: E1CD3277117957908E02...
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+⚡️  [log] - ✅ iOS 푸시 토큰이 서버에 저장되었습니다: {"success":true,"message":"iOS push token registered successfully","userId":126,"tokenPreview":"E1CD3277117957908E02..."}
+⚡️  [log] - 📥 Found 5 profile images to preload
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761144817232_rf4rde1nn4e.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761603336729_ol7qqlpxpv.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761602401844_h0cbedi9kaf.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761070087497_tdjrs8unfmn.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761606486798_jejztvnxp8j.jpg
+⚡️  [log] - 🎉 Profile image preloading completed!
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 0
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: []
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - [NotificationManager] User inactive - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - 📱 PWA Badge update: 0 → 2 (messages: 2, AI: 0)
+⚡️  To Native ->  Badge set 90049133
+⚡️  [log] - 📱 Native Badge update: 0 → 2 (messages: 2, AI: 0)
+⚡️  TO JS undefined
+⚡️  [log] - ✅ Native badge count set to 2
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 2
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: [{"chatRoomId":116,"unreadCount":2}]
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 2
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 2
+⚡️  [log] - WebSocket message received: {"type":"new_message","message":{"id":1140,"chatRoomId":116,"senderId":120,"content":"하이","messageType":"text","fileUrl":null,"fileName":null,"fileSize":null,"voiceDuration":null,"detectedLanguage":null,"confidence":null,"isCommandRecall":false,"isTranslated":false,"isCalculated":false,"pollData":null,"originalMessageId":null,"replyToMessageId":null,"boomTimer":null,"expiresAt":null,"targetUserId":null,"spotlightMessageId":null,"spotlightDuration":null,"isEdited":false,"editedAt":null,"mentionedUserIds":null,"mentionAll":false,"youtubePreview":null,"isSystemMessage":false,"isStarred":false,"starredAt":null,"createdAt":"2025-11-07T18:59:04.998Z","sender":{"id":120,"username":"dinggo","displayName":"이소은 테스트","email":"2224@gmail.com","password":"$2b$10$U1wo1Jk3UHBj2Mxc7mCnTuagZjdkpGItGbTCzBM/2zy6I8m.tX3qG","phoneNumber":"","birthday":"2020-10-22","profilePicture":"/uploads/profile_1761070087497_tdjrs8unfmn.jpg","qrCode":null,"qrToken":"96036276ceb5c12815d3930caf788ac1c707d0d131dcb183e9bdf275d0987d3e","qrTokenExpiry":"2025-10-22T22:58:48.166Z","isOnline":true,"lastSeen":"2025-11-07T18:59:04.001Z","language":"ko","notificationsEnabled":true,"notificationSound":"default","isEmailVerified":true,"isProfileComplete":true,"userRole":"user","businessName":null,"businessAddress":null,"businessLatitude":null,"businessLongitude":null,"isBusinessVerified":false,"allowVoicePlayback":true,"autoPlayVoiceMessages":false,"allowVoiceBookmarks":true,"authProvider":null,"providerId":null,"providerEmail":null,"aiPreferences":null,"createdAt":"2025-10-21T18:05:20.869Z"}}}
+⚡️  [log] - WebSocket message received: {"type":"new_message","message":{"id":1141,"chatRoomId":116,"senderId":120,"content":"하이","messageType":"text","fileUrl":null,"fileName":null,"fileSize":null,"voiceDuration":null,"detectedLanguage":null,"confidence":null,"isCommandRecall":false,"isTranslated":false,"isCalculated":false,"pollData":null,"originalMessageId":null,"replyToMessageId":null,"boomTimer":null,"expiresAt":null,"targetUserId":null,"spotlightMessageId":null,"spotlightDuration":null,"isEdited":false,"editedAt":null,"mentionedUserIds":null,"mentionAll":false,"youtubePreview":null,"isSystemMessage":false,"isStarred":false,"starredAt":null,"createdAt":"2025-11-07T18:59:05.002Z","sender":{"id":120,"username":"dinggo","displayName":"이소은 테스트","email":"2224@gmail.com","password":"$2b$10$U1wo1Jk3UHBj2Mxc7mCnTuagZjdkpGItGbTCzBM/2zy6I8m.tX3qG","phoneNumber":"","birthday":"2020-10-22","profilePicture":"/uploads/profile_1761070087497_tdjrs8unfmn.jpg","qrCode":null,"qrToken":"96036276ceb5c12815d3930caf788ac1c707d0d131dcb183e9bdf275d0987d3e","qrTokenExpiry":"2025-10-22T22:58:48.166Z","isOnline":true,"lastSeen":"2025-11-07T18:59:04.001Z","language":"ko","notificationsEnabled":true,"notificationSound":"default","isEmailVerified":true,"isProfileComplete":true,"userRole":"user","businessName":null,"businessAddress":null,"businessLatitude":null,"businessLongitude":null,"isBusinessVerified":false,"allowVoicePlayback":true,"autoPlayVoiceMessages":false,"allowVoiceBookmarks":true,"authProvider":null,"providerId":null,"providerEmail":null,"aiPreferences":null,"createdAt":"2025-10-21T18:05:20.869Z"}}}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [log] - WebSocket disconnected: 1000 App backgrounded
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+WebContent[80438] 0x10d068100 - [sessionID=1] WebProcess::markAllLayersVolatile: Failed to mark layers as volatile for webPageID=8
