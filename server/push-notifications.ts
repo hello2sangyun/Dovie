@@ -367,13 +367,28 @@ function getAPNSJWT(): string {
   }
 
   try {
+    // APNS Private Key 처리: \n 이스케이프 문자를 실제 줄바꿈으로 변환
+    // Replit Secrets에서는 "\n"이 문자열 그대로 저장될 수 있으므로 자동 변환 필요
+    let formattedKey = privateKey
+      .replace(/\\n/g, '\n')  // \n 이스케이프를 실제 줄바꿈으로 변환
+      .trim();                 // 앞뒤 공백 제거
+    
+    // PEM 형식 검증
+    if (!formattedKey.includes('-----BEGIN PRIVATE KEY-----')) {
+      console.error('❌ APNS_PRIVATE_KEY missing PEM header. Expected format:');
+      console.error('   -----BEGIN PRIVATE KEY-----');
+      console.error('   (key content)');
+      console.error('   -----END PRIVATE KEY-----');
+      return "temporary_dev_token";
+    }
+
     // APNS JWT 토큰 생성 (1시간 유효)
     const token = jwt.sign(
       {
         iss: teamId,
         iat: Math.floor(Date.now() / 1000)
       },
-      privateKey.replace(/\\n/g, '\n'), // 환경 변수에서 \n을 실제 줄바꿈으로 변환
+      formattedKey,
       {
         algorithm: 'ES256',
         header: {
