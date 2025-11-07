@@ -252,6 +252,12 @@ async function sendIOSPushNotifications(
     try {
       const deviceToken = tokenInfo.device_token;
       
+      // 디바이스 토큰 검증
+      if (!deviceToken || typeof deviceToken !== 'string') {
+        console.warn(`⚠️ Skipping invalid device token for user ${userId}`);
+        continue;
+      }
+      
       // iOS APNS 페이로드 구성
       const apnsPayload: any = {
         aps: {
@@ -348,7 +354,10 @@ async function sendIOSPushNotifications(
       req.end();
 
     } catch (error) {
-      console.error(`❌ iOS 토큰 ${tokenInfo.device_token?.substring(0, 20)}... 발송 실패:`, error);
+      const tokenPreview = tokenInfo.device_token 
+        ? tokenInfo.device_token.substring(0, 20) + '...' 
+        : 'unknown';
+      console.error(`❌ iOS 토큰 ${tokenPreview} 발송 실패 (user ${userId}):`, error);
     }
   }
 }
