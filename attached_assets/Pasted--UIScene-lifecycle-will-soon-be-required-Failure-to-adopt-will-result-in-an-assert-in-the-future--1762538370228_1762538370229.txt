@@ -1,0 +1,445 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/89C5A398-EA34-4735-9CD2-A1EF52E22D60/App.app'
+⚡️  Loading app at https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev...
+Networking process (0x11206c190) took 10.189233 seconds to launch
+GPU process (0x1121181e0) took 2.432554 seconds to launch
+WebContent process (0x1120f4100) took 3.413046 seconds to launch
+0x1120f4100 - [PID=79639] WebProcessProxy::didBecomeUnresponsive:
+0x106f84718 - [pageProxyID=7, webPageID=8, PID=79639] WebPageProxy::processDidBecomeUnresponsive:
+WebContent[79639] Unable to hide query parameters from script (missing data)
+⚡️  [debug] - [vite] connecting...
+⚡️  WebView loaded
+⚡️  [log] - 🔄 Auth context updating user: 126 profilePicture: /uploads/profile_1761606486798_jejztvnxp8j.jpg
+⚡️  [log] - 🚀 Starting profile image preloading...
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+⚡️  [log] -    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+⚡️  [log] - 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+⚡️  [log] - [Badge] Service Worker not supported
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  To Native ->  App addListener 13538739
+⚡️  To Native ->  App addListener 13538740
+⚡️  To Native ->  App addListener 13538741
+⚡️  To Native ->  App addListener 13538742
+⚡️  To Native ->  App addListener 13538743
+⚡️  To Native ->  PushNotifications addListener 13538744
+⚡️  To Native ->  PushNotifications addListener 13538745
+⚡️  To Native ->  PushNotifications addListener 13538746
+⚡️  To Native ->  PushNotifications addListener 13538747
+⚡️  To Native ->  PushNotifications requestPermissions 13538748
+⚡️  TO JS {"receive":"granted"}
+⚡️  To Native ->  PushNotifications register 13538749
+⚡️  TO JS undefined
+⚡️  [log] - 📱 iOS 네이티브 푸시 알림 등록 성공 (리스너 대기 중)
+⚡️  TO JS {"value":"E17D4BC28563FAF5776B7E8CFC64A2E1F28D0419FC5EC557287EAF9550E11937"}
+📱 [AppDelegate] APNS 토큰 등록 성공
+⚡️  [log] - 📱 iOS 푸시 토큰 획득: E17D4BC28563FAF5776B7E8CFC64A2E1F28D0419FC5EC557287EAF9550E11937
+⚡️  [log] - 📱 서버로 iOS 토큰 전송 시작: E17D4BC28563FAF5776B...
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - ✅ iOS 푸시 토큰이 서버에 저장되었습니다: {"success":true,"message":"iOS push token registered successfully","userId":126,"tokenPreview":"E17D4BC28563FAF5776B..."}
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 6
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: [{"chatRoomId":116,"unreadCount":6}]
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 6
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 6
+⚡️  [log] - 📥 Found 5 profile images to preload
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761144817232_rf4rde1nn4e.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761603336729_ol7qqlpxpv.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761070087497_tdjrs8unfmn.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761606486798_jejztvnxp8j.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761602401844_h0cbedi9kaf.jpg
+⚡️  [log] - 🎉 Profile image preloading completed!
+⚡️  [log] - 📱 PWA Badge update: 0 → 6 (messages: 6, AI: 0)
+⚡️  To Native ->  Badge set 13538750
+⚡️  [log] - 📱 Native Badge update: 0 → 6 (messages: 6, AI: 0)
+⚡️  TO JS undefined
+⚡️  [log] - ✅ Native badge count set to 6
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [log] - WebSocket disconnected: 1000 App backgrounded
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - [NotificationManager] App visible - suppressing notifications
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 📱 앱이 활성화됨 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app opened - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App foregrounded - reconnecting WebSocket
+⚡️  [log] - 📱 Calling connect() after foreground transition
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+⚡️  [log] -    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 7
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: [{"chatRoomId":116,"unreadCount":7}]
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 7
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 7
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [log] - WebSocket disconnected: 1000 App backgrounded
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - [NotificationManager] App visible - suppressing notifications
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 📱 앱이 활성화됨 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app opened - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App foregrounded - reconnecting WebSocket
+⚡️  [log] - 📱 Calling connect() after foreground transition
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+⚡️  [log] -    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 8
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: [{"chatRoomId":116,"unreadCount":8}]
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 8
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 8
+        CHHapticEngine.mm:1252  -[CHHapticEngine doStartWithCompletionHandler:]_block_invoke: ERROR: Player start failed: The operation couldn’t be completed. (com.apple.CoreHaptics error 2003329396.)
+failed to start core haptics engine for <_UIFeedbackCoreHapticsEngine: 0x117decd80>: Error Domain=com.apple.CoreHaptics Code=2003329396 "(null)"
+Reporter disconnected or already stopped. { func=stop, reporterID=342025425649665 }
+    AVAudioSession_iOS.mm:794   Server returned an error from destroySession:. Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service with pid 74226 named com.apple.audio.AudioSession was invalidated from this process." UserInfo={NSDebugDescription=The connection to service with pid 74226 named com.apple.audio.AudioSession was invalidated from this process.}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  [log] - 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: 집잔 테스트
+⚡️  ReferenceError: Can't find variable: handleTouchCancel
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  [error] - {}
+⚡️  ChatsList.tsx:1157:36
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchCancel
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=a5df4ff5
+⚡️  chunk-RPCDYKBN.js?v=a5df4ff5:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  [log] - 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: 집잔 테스트
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  [error] - {}
+⚡️  ChatsList.tsx:1152:34
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=a5df4ff5
+⚡️  chunk-RPCDYKBN.js?v=a5df4ff5:3750:25
+⚡️  [error] - {}
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1152:34
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=a5df4ff5
+⚡️  [error] - {}
+⚡️  chunk-RPCDYKBN.js?v=a5df4ff5:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  To Native ->  Filesystem mkdir 13538751
+⚡️  To Native ->  Filesystem mkdir 13538752
+⚡️  To Native ->  App removeListener 13538753
+ERROR MESSAGE:  {"errorMessage":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/C245A176-54DE-4740-B089-279A17321A3F\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010","message":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/C245A176-54DE-4740-B089-279A17321A3F\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten."}
+⚡️  [log] - 📱 App state changed: background
+ERROR MESSAGE:  {"code":"OS-PLUG-FILE-0010","errorMessage":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/C245A176-54DE-4740-B089-279A17321A3F\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","message":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/C245A176-54DE-4740-B089-279A17321A3F\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten."}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  To Native ->  Filesystem ⚡️  [error] - {"errorMessage":"Directory at 'file:///var/mobile/Containers/Data/Application/C245A176-54DE-4740-B089-279A17321A3F/Library/Caches/file_cache/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010","message":"Directory at 'file:///var/mobile/Containers/Data/Application/C245A176-54DE-4740-B089-279A17321A3F/Library/Caches/file_cache/'  already exists, cannot be overwritten."}
+readFile 13538754
+⚡️  To Native ->  Filesystem readFile 13538755
+⚡️  [error] - {"code":"OS-PLUG-FILE-0010","errorMessage":"Directory at 'file:///var/mobile/Containers/Data/Application/C245A176-54DE-4740-B089-279A17321A3F/Library/Caches/file_cache/'  already exists, cannot be overwritten.","message":"Directory at 'file:///var/mobile/Containers/Data/Application/C245A176-54DE-4740-B089-279A17321A3F/Library/Caches/file_cache/'  already exists, cannot be overwritten."}
+ERROR MESSAGE:  {"code":"OS-PLUG-FILE-0013","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [log] - WebSocket disconnected: 1000 App backgrounded
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+ERROR MESSAGE:  {"code":"OS-PLUG-FILE-0013","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [error] - {"code":"OS-PLUG-FILE-0013","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [log] - [FileCache] No existing cache index, starting fresh
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  [error] - {"code":"OS-PLUG-FILE-0013","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [log] - [FileCache] No existing cache index, starting fresh
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  [log] - 🎤 채팅방 음성 녹음 시작: 집잔 테스트
+⚡️  To Native ->  Badge set 13538756
+⚡️  [log] - 📱 PWA Badge update: 6 → 8 (messages: 8, AI: 0)
+⚡️  [log] - 📱 Native Badge update: 6 → 8 (messages: 8, AI: 0)
+⚡️  TO JS undefined
+⚡️  [log] - ✅ Native badge count set to 8
+⚡️  To Native ->  App addListener 13538757
+⚡️  To Native ->  App addListener 13538758
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - ⏰ 2초 타임아웃: 로딩 오버레이 강제 제거
+⚡️  [log] - ⏰ 2초 타임아웃: 로딩 오버레이 강제 제거
+⚡️  To Native ->  Badge set 13538759
+⚡️  [log] - 📱 Real-time badge sync event: 8
+⚡️  TO JS undefined
+⚡️  To Native ->  Badge ⚡️  [log] - 📱 Real-time badge sync event: 8
+set 13538760
+⚡️  TO JS undefined
+⚡️  To Native ->  Badge set 13538761
+⚡️  [log] - 📱 Real-time badge sync event: 8
+⚡️  TO JS undefined
+⚡️  To Native ->  Badge set 13538762
+⚡️  [log] - 📱 Real-time badge sync event: 8
+⚡️  TO JS undefined
+⚡️  [log] - Image loaded successfully: /uploads/file_1761757198525_jbnnwwq6o6.jpeg
+⚡️  [log] - Image loaded successfully: /uploads/file_1761757198525_jbnnwwq6o6.jpeg
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - [NotificationManager] App visible - suppressing notifications
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 📱 앱이 활성화됨 - 배지 상태 새로고침
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🔄 PWA app opened - syncing messages immediately
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App foregrounded - reconnecting WebSocket
+⚡️  [log] - 📱 Calling connect() after foreground transition
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+⚡️  [log] -    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [error] - WebSocket error: {"isTrusted":true}
+⚡️  [error] - WebSocket error event: {"type":"error","target":{},"timeStamp":173484}
+⚡️  [log] - WebSocket disconnected: 1006 
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 🎤 음성 녹음 시작: 집잔 테스트
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App foregrounded - reconnecting WebSocket
+WebContent[79639] AudioComponentPluginMgr.mm:590   reg server remote proxy error Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service named com.apple.audio.AudioComponentRegistrar was invalidated: Connection init failed at lookup with error 1 - Operation no
+WebContent[79639] AudioComponentPluginMgr.mm:590   reg server remote proxy error Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service named com.apple.audio.AudioComponentRegistrar was invalidated: Connection init failed at lookup with error 1 - Operation no
+WebContent[79639] AudioComponentPluginMgr.mm:590   reg server remote proxy error Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service named com.apple.audio.AudioComponentRegistrar was invalidated: Connection init failed at lookup with error 1 - Operation no
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 9
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: [{"chatRoomId":116,"unreadCount":9}]
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 9
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 9
+WebContent[79639] AudioSampleBufferConverter getting kAudioCodecPropertyDelayMode failed with 1886547824
+⚡️  [log] - 📱 Calling connect() after foreground transition
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+⚡️  [log] -    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+⚡️  To Native ->  App addListener 13538763
+⚡️  To Native ->  App removeListener 13538764
+⚡️  To Native ->  App removeListener 13538765
+⚡️  To Native ->  Badge set 13538766
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+⚡️  [log] - 📱 Real-time badge sync event: 9
+⚡️  [log] - 📱 Real-time badge sync event: 9
+⚡️  To Native ->  Badge set 13538767
+⚡️  TO JS undefined
+⚡️  TO JS undefined
+⚡️  [log] - 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: 이소은 테스트
+⚡️  To Native ->  App removeListener 13538768
+⚡️  To Native ->  App addListener 13538769
+⚡️  To Native ->  App addListener 13538770
+WebContent[79639] The sandbox in this process does not allow access to RunningBoard.
+WebContent[79639] Handshake aborted as the connection has been invalidated
+WebContent[79639] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+⚡️  [log] - Image loaded successfully: /uploads/file_1762276004379_m2p8aswwoqm.jpeg
+⚡️  [log] - Image loaded successfully: /uploads/file_1762276004379_m2p8aswwoqm.jpeg
+WebContent[79639] +[HDRImage getPixelType:YCCMatrixString:chromaSubsampling:componentRange:bitDepth:isFloat:forBuffer:]:1050: *** Missing YCC matrix, falling back to ITU_R_601_4
+WebContent[79639] +[HDRImage getPixelType:YCCMatrixString:chromaSubsampling:componentRange:bitDepth:isFloat:forBuffer:]:1050: *** Missing YCC matrix, falling back to ITU_R_601_4
+WebContent[79639] IOSurface creation failed. IOSurface service not present
+⚡️  [log] - ✅ Microphone permission detected via Permissions API
+⚡️  [log] - ✅ Microphone permission detected via Permissions API
+WebContent[79639] AudioComponentPluginMgr.mm:590   reg server remote proxy error Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service named com.apple.audio.AudioComponentRegistrar was invalidated: Connection init failed at lookup with error 1 - Operation no
+WebContent[79639] AudioComponentPluginMgr.mm:590   reg server remote proxy error Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service named com.apple.audio.AudioComponentRegistrar was invalidated: Connection init failed at lookup with error 1 - Operation no
+WebContent[79639] AudioSampleBufferConverter getting kAudioCodecPropertyDelayMode failed with 1886547824
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 0
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: []
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  To Native ->  Badge set 13538771
+⚡️  TO JS undefined
+⚡️  To Native ->  Badge set 13538772
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  [log] - 📱 PWA Badge update: 8 → 0 (messages: 0, AI: 0)
+⚡️  To Native ->  App addListener 13538773
+⚡️  To Native ->  App removeListener 13538774
+⚡️  To Native ->  App removeListener 13538775
+⚡️  To Native ->  Badge set 13538776
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  To Native ->  Badge set 13538777
+⚡️  TO JS undefined
+⚡️  [log] - WebSocket disconnected: 1000 App backgrounded
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - [NotificationManager] Activity status updated: offline

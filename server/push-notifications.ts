@@ -1,5 +1,6 @@
 import webpush from 'web-push';
 import jwt from 'jsonwebtoken';
+import https from 'https';
 import { storage } from './storage';
 
 // APNS Environment Detection
@@ -239,8 +240,6 @@ async function sendIOSPushNotifications(
   userId: number,
   isSilent: boolean = false
 ): Promise<void> {
-  const https = require('https');
-  
   for (const tokenInfo of iosTokens) {
     try {
       const deviceToken = tokenInfo.device_token;
