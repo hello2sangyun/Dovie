@@ -1,0 +1,821 @@
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:45:39 PM [express] GET /api/total-unread-badge 304 in 917ms :: {"totalBadgeCount":0,"unreadMessage…
+1:45:40 PM [express] GET /api/unread-counts 304 in 787ms :: {"unreadCounts":[]}
+1:45:40 PM [express] GET /api/voice-bookmark-requests 200 in 4ms
+1:45:42 PM [express] GET /api/voice-bookmark-requests 200 in 4ms
+1:45:44 PM [express] GET /api/unread-counts 304 in 742ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:45:45 PM [express] GET /api/total-unread-badge 304 in 879ms :: {"totalBadgeCount":0,"unreadMessage…
+1:45:46 PM [express] GET /api/chat-rooms 304 in 190ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:45:46 PM [express] GET /api/chat-rooms/116/messages 304 in 105ms :: {"messages":[{"id":955,"chatRo…
+1:45:47 PM [express] GET /api/unread-counts 304 in 943ms :: {"unreadCounts":[]}
+1:45:47 PM [express] GET /api/contacts 304 in 77ms :: {"contacts":[{"id":117,"userId":120,"contactUs…
+1:45:48 PM [express] GET /api/unread-counts 304 in 807ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:45:51 PM [express] GET /api/total-unread-badge 304 in 907ms :: {"totalBadgeCount":0,"unreadMessage…
+1:45:52 PM [express] GET /api/unread-counts 304 in 776ms :: {"unreadCounts":[]}
+1:45:52 PM [express] GET /api/voice-bookmark-requests 200 in 13ms
+1:45:53 PM [express] GET /api/voice-bookmark-requests 200 in 6ms
+1:45:54 PM [express] GET /api/chat-rooms/116/ai-notices 304 in 43ms :: []
+1:45:56 PM [express] GET /api/unread-counts 304 in 794ms :: {"unreadCounts":[]}
+1:45:56 PM [express] GET /api/chat-rooms/116/messages 304 in 136ms :: {"messages":[{"id":955,"chatRo…
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:45:57 PM [express] GET /api/total-unread-badge 304 in 812ms :: {"totalBadgeCount":0,"unreadMessage…
+1:46:00 PM [express] GET /api/unread-counts 304 in 760ms :: {"unreadCounts":[]}
+1:46:01 PM [express] GET /api/chat-rooms 304 in 201ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:46:02 PM [express] GET /api/unread-counts 401 in 1ms :: {"message":"Not authenticated"}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:46:03 PM [express] GET /api/total-unread-badge 304 in 782ms :: {"totalBadgeCount":0,"unreadMessage…
+💓 Heartbeat from user 120: active
+1:46:03 PM [express] POST /api/user/heartbeat 200 in 41ms :: {"success":true}
+1:46:04 PM [express] GET /api/unread-counts 304 in 890ms :: {"unreadCounts":[]}
+1:46:04 PM [express] GET /api/voice-bookmark-requests 200 in 10ms
+1:46:05 PM [express] GET /api/voice-bookmark-requests 200 in 8ms
+1:46:06 PM [express] GET /api/unread-counts 304 in 762ms :: {"unreadCounts":[]}
+1:46:06 PM [express] GET /api/chat-rooms/116/messages 200 in 124ms :: {"messages":[{"id":955,"chatRo…
+Mark read request: userId=120, chatRoomId=116, lastMessageId=1076
+Mark read request: userId=120, chatRoomId=116, lastMessageId=1076
+1:46:07 PM [express] POST /api/chat-rooms/116/mark-read 200 in 43ms :: {"success":true}
+1:46:07 PM [express] POST /api/chat-rooms/116/mark-read 200 in 43ms :: {"success":true}
+1:46:07 PM [express] GET /api/chat-rooms 200 in 203ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:46:07 PM [express] GET /api/chat-rooms/116/messages 304 in 253ms :: {"messages":[{"id":955,"chatRo…
+1:46:07 PM [express] GET /api/chat-rooms/116/messages 304 in 93ms :: {"messages":[{"id":955,"chatRoo…
+1:46:07 PM [express] GET /api/chat-rooms 304 in 202ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:46:08 PM [express] GET /api/ai-notices 304 in 40ms :: []
+1:46:08 PM [express] GET /api/unread-counts 304 in 759ms :: {"unreadCounts":[]}
+1:46:08 PM [express] GET /api/chat-rooms/122/messages 200 in 85ms :: {"messages":[{"id":1020,"chatRo…
+1:46:08 PM [express] GET /api/chat-rooms/116/messages 304 in 87ms :: {"messages":[{"id":955,"chatRoo…
+1:46:08 PM [express] GET /api/chat-rooms/124/messages 200 in 82ms :: {"messages":[{"id":1004,"chatRo…
+1:46:08 PM [express] GET /api/chat-rooms/125/messages 304 in 110ms :: {"messages":[{"id":1013,"chatR…
+1:46:08 PM [express] GET /api/chat-rooms/107/messages 200 in 339ms :: {"messages":[{"id":881,"chatRo…
+1:46:08 PM [express] GET /api/unread-counts 304 in 755ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:46:09 PM [express] GET /api/total-unread-badge 304 in 752ms :: {"totalBadgeCount":0,"unreadMessage…
+1:46:09 PM [express] GET /api/unread-counts 304 in 739ms :: {"unreadCounts":[]}
+1:46:10 PM [express] GET /api/unread-counts 304 in 739ms :: {"unreadCounts":[]}
+1:46:11 PM [express] GET /api/unread-counts 304 in 710ms :: {"unreadCounts":[]}
+1:46:14 PM [express] GET /api/unread-counts 304 in 711ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:46:15 PM [express] GET /api/total-unread-badge 304 in 788ms :: {"totalBadgeCount":0,"unreadMessage…
+1:46:16 PM [express] GET /api/voice-bookmark-requests 200 in 12ms
+1:46:17 PM [express] GET /api/voice-bookmark-requests 200 in 7ms
+1:46:17 PM [express] GET /api/contacts 304 in 79ms :: {"contacts":[{"id":117,"userId":120,"contactUs…
+1:46:18 PM [express] GET /api/chat-rooms/116/messages 304 in 123ms :: {"messages":[{"id":955,"chatRo…
+1:46:18 PM [express] GET /api/unread-counts 304 in 721ms :: {"unreadCounts":[]}
+💓 Heartbeat from user 120: active
+1:46:18 PM [express] POST /api/user/heartbeat 200 in 38ms :: {"success":true}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:46:21 PM [express] GET /api/total-unread-badge 304 in 784ms :: {"totalBadgeCount":0,"unreadMessage…
+1:46:22 PM [express] GET /api/unread-counts 304 in 692ms :: {"unreadCounts":[]}
+1:46:23 PM [express] GET /api/chat-rooms 200 in 194ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:46:25 PM [express] GET /api/chat-rooms/116/ai-notices 304 in 39ms :: []
+1:46:26 PM [express] GET /api/unread-counts 304 in 758ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:46:27 PM [express] GET /api/total-unread-badge 304 in 740ms :: {"totalBadgeCount":0,"unreadMessage…
+1:46:27 PM [express] GET /api/voice-bookmark-requests 200 in 5ms
+1:46:28 PM [express] GET /api/chat-rooms/116/messages 200 in 130ms :: {"messages":[{"id":955,"chatRo…
+Mark read request: userId=120, chatRoomId=116, lastMessageId=1076
+Mark read request: userId=120, chatRoomId=116, lastMessageId=1076
+1:46:28 PM [express] POST /api/chat-rooms/116/mark-read 200 in 39ms :: {"success":true}
+1:46:28 PM [express] POST /api/chat-rooms/116/mark-read 200 in 157ms :: {"success":true}
+1:46:28 PM [express] GET /api/chat-rooms/116/messages 304 in 124ms :: {"messages":[{"id":955,"chatRo…
+1:46:29 PM [express] GET /api/chat-rooms/116/messages 304 in 112ms :: {"messages":[{"id":955,"chatRo…
+1:46:29 PM [express] GET /api/chat-rooms 304 in 363ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:46:29 PM [express] GET /api/voice-bookmark-requests 200 in 5ms
+1:46:29 PM [express] GET /api/chat-rooms 304 in 136ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:46:29 PM [express] GET /api/unread-counts 304 in 729ms :: {"unreadCounts":[]}
+1:46:30 PM [express] GET /api/unread-counts 304 in 692ms :: {"unreadCounts":[]}
+1:46:31 PM [express] GET /api/unread-counts 304 in 702ms :: {"unreadCounts":[]}
+1:46:31 PM [express] GET /api/unread-counts 304 in 715ms :: {"unreadCounts":[]}
+1:46:32 PM [express] GET /api/unread-counts 401 in 1ms :: {"message":"Not authenticated"}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:46:33 PM [express] GET /api/total-unread-badge 304 in 736ms :: {"totalBadgeCount":0,"unreadMessage…
+📡 Activity status for user 120: offline
+1:46:33 PM [express] POST /api/user/activity-status 200 in 48ms :: {"success":true}
+1:46:34 PM [express] GET /api/unread-counts 304 in 702ms :: {"unreadCounts":[]}
+1:46:38 PM [express] GET /api/ai-notices 304 in 37ms :: []
+1:46:38 PM [express] GET /api/unread-counts 304 in 728ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:46:38 PM [express] GET /api/total-unread-badge 304 in 792ms :: {"totalBadgeCount":0,"unreadMessage…
+1:46:39 PM [express] GET /api/chat-rooms/116/messages 200 in 115ms :: {"messages":[{"id":955,"chatRo…
+Mark read request: userId=120, chatRoomId=116, lastMessageId=1076
+Mark read request: userId=120, chatRoomId=116, lastMessageId=1076
+1:46:39 PM [express] GET /api/voice-bookmark-requests 200 in 7ms
+1:46:39 PM [express] POST /api/chat-rooms/116/mark-read 200 in 38ms :: {"success":true}
+1:46:39 PM [express] POST /api/chat-rooms/116/mark-read 200 in 38ms :: {"success":true}
+1:46:39 PM [express] GET /api/chat-rooms/116/messages 304 in 122ms :: {"messages":[{"id":955,"chatRo…
+1:46:39 PM [express] GET /api/chat-rooms 200 in 163ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:46:40 PM [express] GET /api/chat-rooms/116/messages 304 in 84ms :: {"messages":[{"id":955,"chatRoo…
+1:46:40 PM [express] GET /api/chat-rooms 304 in 183ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:46:40 PM [express] GET /api/chat-rooms/116/messages 304 in 82ms :: {"messages":[{"id":955,"chatRoo…
+1:46:40 PM [express] GET /api/unread-counts 304 in 708ms :: {"unreadCounts":[]}
+1:46:40 PM [express] GET /api/chat-rooms/107/messages 200 in 122ms :: {"messages":[{"id":881,"chatRo…
+1:46:40 PM [express] GET /api/chat-rooms/122/messages 200 in 76ms :: {"messages":[{"id":1020,"chatRo…
+1:46:40 PM [express] GET /api/chat-rooms/124/messages 200 in 77ms :: {"messages":[{"id":1004,"chatRo…
+1:46:40 PM [express] GET /api/chat-rooms/125/messages 304 in 75ms :: {"messages":[{"id":1013,"chatRo…
+1:46:40 PM [express] GET /api/voice-bookmark-requests 200 in 7ms
+1:46:41 PM [express] GET /api/unread-counts 304 in 698ms :: {"unreadCounts":[]}
+1:46:42 PM [express] GET /api/unread-counts 304 in 688ms :: {"unreadCounts":[]}
+1:46:42 PM [express] GET /api/unread-counts 304 in 707ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:46:44 PM [express] GET /api/total-unread-badge 304 in 746ms :: {"totalBadgeCount":0,"unreadMessage…
+1:46:45 PM [express] GET /api/unread-counts 304 in 751ms :: {"unreadCounts":[]}
+1:46:47 PM [express] GET /api/contacts 304 in 72ms :: {"contacts":[{"id":117,"userId":120,"contactUs…
+1:46:49 PM [express] GET /api/unread-counts 304 in 688ms :: {"unreadCounts":[]}
+1:46:50 PM [express] GET /api/chat-rooms/116/messages 304 in 117ms :: {"messages":[{"id":955,"chatRo…
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:46:50 PM [express] GET /api/total-unread-badge 304 in 784ms :: {"totalBadgeCount":0,"unreadMessage…
+1:46:51 PM [express] GET /api/voice-bookmark-requests 200 in 6ms
+1:46:52 PM [express] GET /api/voice-bookmark-requests 200 in 70ms
+1:46:53 PM [express] GET /api/unread-counts 304 in 724ms :: {"unreadCounts":[]}
+1:46:55 PM [express] GET /api/chat-rooms/116/ai-notices 304 in 38ms :: []
+1:46:55 PM [express] GET /api/chat-rooms 304 in 202ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:46:56 PM [express] GET /api/total-unread-badge 304 in 717ms :: {"totalBadgeCount":0,"unreadMessage…
+1:46:57 PM [express] GET /api/unread-counts 304 in 685ms :: {"unreadCounts":[]}
+1:47:00 PM [express] GET /api/chat-rooms/116/messages 304 in 115ms :: {"messages":[{"id":955,"chatRo…
+1:47:01 PM [express] GET /api/unread-counts 304 in 773ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:47:02 PM [express] GET /api/total-unread-badge 304 in 738ms :: {"totalBadgeCount":0,"unreadMessage…
+1:47:02 PM [express] GET /api/unread-counts 401 in 1ms :: {"message":"Not authenticated"}
+1:47:02 PM [express] GET /api/voice-bookmark-requests 200 in 5ms
+1:47:04 PM [express] GET /api/voice-bookmark-requests 200 in 4ms
+1:47:05 PM [express] GET /api/unread-counts 304 in 747ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:47:08 PM [express] GET /api/total-unread-badge 304 in 729ms :: {"totalBadgeCount":0,"unreadMessage…
+1:47:08 PM [express] GET /api/ai-notices 304 in 38ms :: []
+1:47:09 PM [express] GET /api/unread-counts 304 in 692ms :: {"unreadCounts":[]}
+1:47:10 PM [express] GET /api/chat-rooms/116/messages 304 in 135ms :: {"messages":[{"id":955,"chatRo…
+1:47:10 PM [express] GET /api/chat-rooms 304 in 186ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:47:12 PM [express] GET /api/unread-counts 304 in 748ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:47:14 PM [express] GET /api/total-unread-badge 304 in 803ms :: {"totalBadgeCount":0,"unreadMessage…
+1:47:14 PM [express] GET /api/voice-bookmark-requests 200 in 9ms
+1:47:16 PM [express] GET /api/voice-bookmark-requests 200 in 9ms
+1:47:16 PM [express] GET /api/unread-counts 304 in 697ms :: {"unreadCounts":[]}
+1:47:18 PM [express] GET /api/contacts 304 in 71ms :: {"contacts":[{"id":117,"userId":120,"contactUs…
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:47:20 PM [express] GET /api/total-unread-badge 304 in 760ms :: {"totalBadgeCount":0,"unreadMessage…
+1:47:20 PM [express] GET /api/unread-counts 304 in 787ms :: {"unreadCounts":[]}
+1:47:21 PM [express] GET /api/chat-rooms/116/messages 304 in 130ms :: {"messages":[{"id":955,"chatRo…
+1:47:24 PM [express] GET /api/unread-counts 304 in 776ms :: {"unreadCounts":[]}
+1:47:25 PM [express] GET /api/chat-rooms/116/ai-notices 304 in 37ms :: []
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:47:26 PM [express] GET /api/total-unread-badge 304 in 790ms :: {"totalBadgeCount":0,"unreadMessage…
+1:47:26 PM [express] GET /api/chat-rooms 304 in 186ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:47:26 PM [express] GET /api/voice-bookmark-requests 200 in 11ms
+1:47:27 PM [express] GET /api/voice-bookmark-requests 200 in 7ms
+1:47:28 PM [express] GET /api/unread-counts 304 in 693ms :: {"unreadCounts":[]}
+1:47:31 PM [express] GET /api/chat-rooms/116/messages 304 in 127ms :: {"messages":[{"id":955,"chatRo…
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:47:31 PM [express] GET /api/total-unread-badge 304 in 780ms :: {"totalBadgeCount":0,"unreadMessage…
+1:47:32 PM [express] GET /api/unread-counts 304 in 737ms :: {"unreadCounts":[]}
+1:47:32 PM [express] GET /api/unread-counts 401 in 1ms :: {"message":"Not authenticated"}
+1:47:36 PM [express] GET /api/unread-counts 304 in 778ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:47:37 PM [express] GET /api/total-unread-badge 304 in 778ms :: {"totalBadgeCount":0,"unreadMessage…
+1:47:38 PM [express] GET /api/voice-bookmark-requests 200 in 5ms
+1:47:38 PM [express] GET /api/ai-notices 304 in 41ms :: []
+1:47:39 PM [express] GET /api/voice-bookmark-requests 200 in 8ms
+1:47:40 PM [express] GET /api/unread-counts 304 in 744ms :: {"unreadCounts":[]}
+1:47:41 PM [express] GET /api/chat-rooms 304 in 203ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:47:41 PM [express] GET /api/chat-rooms/116/messages 304 in 111ms :: {"messages":[{"id":955,"chatRo…
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:47:43 PM [express] GET /api/total-unread-badge 304 in 767ms :: {"totalBadgeCount":0,"unreadMessage…
+1:47:44 PM [express] GET /api/unread-counts 304 in 738ms :: {"unreadCounts":[]}
+1:47:47 PM [express] GET /api/unread-counts 304 in 721ms :: {"unreadCounts":[]}
+1:47:48 PM [express] GET /api/contacts 304 in 74ms :: {"contacts":[{"id":117,"userId":120,"contactUs…
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:47:49 PM [express] GET /api/total-unread-badge 304 in 762ms :: {"totalBadgeCount":0,"unreadMessage…
+1:47:49 PM [express] GET /api/voice-bookmark-requests 200 in 5ms
+1:47:51 PM [express] GET /api/voice-bookmark-requests 200 in 8ms
+1:47:51 PM [express] GET /api/chat-rooms/116/messages 304 in 112ms :: {"messages":[{"id":955,"chatRo…
+1:47:51 PM [express] GET /api/unread-counts 304 in 856ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:47:55 PM [express] GET /api/total-unread-badge 304 in 760ms :: {"totalBadgeCount":0,"unreadMessage…
+1:47:55 PM [express] GET /api/unread-counts 304 in 682ms :: {"unreadCounts":[]}
+1:47:55 PM [express] GET /api/chat-rooms/116/ai-notices 304 in 236ms :: []
+1:47:56 PM [express] GET /api/chat-rooms 304 in 189ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:47:59 PM [express] GET /api/unread-counts 304 in 701ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:48:01 PM [express] GET /api/total-unread-badge 304 in 729ms :: {"totalBadgeCount":0,"unreadMessage…
+1:48:01 PM [express] GET /api/voice-bookmark-requests 200 in 6ms
+1:48:02 PM [express] GET /api/chat-rooms/116/messages 304 in 117ms :: {"messages":[{"id":955,"chatRo…
+1:48:02 PM [express] GET /api/unread-counts 401 in 0ms :: {"message":"Not authenticated"}
+1:48:03 PM [express] GET /api/voice-bookmark-requests 200 in 5ms
+1:48:03 PM [express] GET /api/unread-counts 304 in 689ms :: {"unreadCounts":[]}
+1:48:07 PM [express] GET /api/unread-counts 304 in 699ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:48:07 PM [express] GET /api/total-unread-badge 304 in 855ms :: {"totalBadgeCount":0,"unreadMessage…
+1:48:08 PM [express] GET /api/ai-notices 304 in 38ms :: []
+1:48:11 PM [express] GET /api/unread-counts 304 in 695ms :: {"unreadCounts":[]}
+1:48:12 PM [express] GET /api/chat-rooms 304 in 219ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:48:12 PM [express] GET /api/chat-rooms/116/messages 304 in 86ms :: {"messages":[{"id":955,"chatRoo…
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:48:13 PM [express] GET /api/total-unread-badge 304 in 765ms :: {"totalBadgeCount":0,"unreadMessage…
+1:48:13 PM [express] GET /api/voice-bookmark-requests 200 in 14ms
+1:48:14 PM [express] GET /api/voice-bookmark-requests 200 in 19ms
+1:48:14 PM [express] GET /api/unread-counts 304 in 785ms :: {"unreadCounts":[]}
+1:48:18 PM [express] GET /api/contacts 304 in 207ms :: {"contacts":[{"id":117,"userId":120,"contactU…
+1:48:18 PM [express] GET /api/unread-counts 304 in 718ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:48:19 PM [express] GET /api/total-unread-badge 304 in 900ms :: {"totalBadgeCount":0,"unreadMessage…
+1:48:22 PM [express] GET /api/chat-rooms/116/messages 304 in 119ms :: {"messages":[{"id":955,"chatRo…
+1:48:22 PM [express] GET /api/unread-counts 304 in 746ms :: {"unreadCounts":[]}
+1:48:25 PM [express] GET /api/voice-bookmark-requests 200 in 12ms
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:48:25 PM [express] GET /api/total-unread-badge 304 in 764ms :: {"totalBadgeCount":0,"unreadMessage…
+1:48:25 PM [express] GET /api/chat-rooms/116/ai-notices 304 in 37ms :: []
+1:48:26 PM [express] GET /api/unread-counts 304 in 741ms :: {"unreadCounts":[]}
+1:48:26 PM [express] GET /api/voice-bookmark-requests 200 in 13ms
+1:48:27 PM [express] GET /api/chat-rooms 304 in 192ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:48:30 PM [express] GET /api/unread-counts 304 in 730ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:48:31 PM [express] GET /api/total-unread-badge 304 in 740ms :: {"totalBadgeCount":0,"unreadMessage…
+1:48:32 PM [express] GET /api/unread-counts 401 in 2ms :: {"message":"Not authenticated"}
+1:48:32 PM [express] GET /api/chat-rooms/116/messages 304 in 118ms :: {"messages":[{"id":955,"chatRo…
+1:48:34 PM [express] GET /api/unread-counts 304 in 866ms :: {"unreadCounts":[]}
+1:48:36 PM [express] GET /api/voice-bookmark-requests 200 in 9ms
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:48:37 PM [express] GET /api/total-unread-badge 304 in 734ms :: {"totalBadgeCount":0,"unreadMessage…
+1:48:38 PM [express] GET /api/unread-counts 304 in 687ms :: {"unreadCounts":[]}
+1:48:38 PM [express] GET /api/voice-bookmark-requests 200 in 6ms
+1:48:38 PM [express] GET /api/ai-notices 304 in 37ms :: []
+1:48:42 PM [express] GET /api/unread-counts 304 in 701ms :: {"unreadCounts":[]}
+1:48:42 PM [express] GET /api/chat-rooms 304 in 187ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:48:42 PM [express] GET /api/total-unread-badge 304 in 740ms :: {"totalBadgeCount":0,"unreadMessage…
+1:48:43 PM [express] GET /api/chat-rooms/116/messages 304 in 115ms :: {"messages":[{"id":955,"chatRo…
+1:48:45 PM [express] GET /api/unread-counts 304 in 750ms :: {"unreadCounts":[]}
+1:48:48 PM [express] GET /api/voice-bookmark-requests 200 in 19ms
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:48:48 PM [express] GET /api/total-unread-badge 304 in 728ms :: {"totalBadgeCount":0,"unreadMessage…
+1:48:48 PM [express] GET /api/contacts 304 in 45ms :: {"contacts":[{"id":117,"userId":120,"contactUs…
+1:48:49 PM [express] GET /api/unread-counts 304 in 706ms :: {"unreadCounts":[]}
+1:48:50 PM [express] GET /api/voice-bookmark-requests 200 in 7ms
+1:48:53 PM [express] GET /api/chat-rooms/116/messages 304 in 234ms :: {"messages":[{"id":955,"chatRo…
+1:48:53 PM [express] GET /api/unread-counts 304 in 727ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:48:54 PM [express] GET /api/total-unread-badge 304 in 726ms :: {"totalBadgeCount":0,"unreadMessage…
+1:48:56 PM [express] GET /api/chat-rooms/116/ai-notices 304 in 39ms :: []
+1:48:57 PM [express] GET /api/unread-counts 304 in 728ms :: {"unreadCounts":[]}
+1:48:58 PM [express] GET /api/chat-rooms 304 in 193ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:49:00 PM [express] GET /api/total-unread-badge 304 in 731ms :: {"totalBadgeCount":0,"unreadMessage…
+1:49:00 PM [express] GET /api/voice-bookmark-requests 200 in 16ms
+1:49:01 PM [express] GET /api/unread-counts 304 in 727ms :: {"unreadCounts":[]}
+1:49:01 PM [express] GET /api/voice-bookmark-requests 200 in 8ms
+1:49:02 PM [express] GET /api/unread-counts 401 in 1ms :: {"message":"Not authenticated"}
+1:49:03 PM [express] GET /api/chat-rooms/116/messages 304 in 124ms :: {"messages":[{"id":955,"chatRo…
+1:49:05 PM [express] GET /api/unread-counts 304 in 676ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:49:06 PM [express] GET /api/total-unread-badge 304 in 730ms :: {"totalBadgeCount":0,"unreadMessage…
+1:49:09 PM [express] GET /api/unread-counts 304 in 715ms :: {"unreadCounts":[]}
+1:49:09 PM [express] GET /api/ai-notices 304 in 38ms :: []
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:49:12 PM [express] GET /api/total-unread-badge 304 in 768ms :: {"totalBadgeCount":0,"unreadMessage…
+1:49:12 PM [express] GET /api/voice-bookmark-requests 200 in 11ms
+1:49:13 PM [express] GET /api/unread-counts 304 in 855ms :: {"unreadCounts":[]}
+1:49:13 PM [express] GET /api/chat-rooms 304 in 216ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:49:14 PM [express] GET /api/voice-bookmark-requests 200 in 5ms
+1:49:14 PM [express] GET /api/chat-rooms/116/messages 304 in 85ms :: {"messages":[{"id":955,"chatRoo…
+1:49:16 PM [express] GET /api/unread-counts 304 in 736ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:49:18 PM [express] GET /api/total-unread-badge 304 in 781ms :: {"totalBadgeCount":0,"unreadMessage…
+1:49:19 PM [express] GET /api/contacts 304 in 75ms :: {"contacts":[{"id":117,"userId":120,"contactUs…
+1:49:20 PM [express] GET /api/unread-counts 304 in 722ms :: {"unreadCounts":[]}
+1:49:24 PM [express] GET /api/chat-rooms/116/messages 304 in 244ms :: {"messages":[{"id":955,"chatRo…
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:49:24 PM [express] GET /api/total-unread-badge 304 in 817ms :: {"totalBadgeCount":0,"unreadMessage…
+1:49:24 PM [express] GET /api/voice-bookmark-requests 200 in 5ms
+1:49:24 PM [express] GET /api/unread-counts 304 in 852ms :: {"unreadCounts":[]}
+1:49:25 PM [express] GET /api/voice-bookmark-requests 200 in 15ms
+1:49:26 PM [express] GET /api/chat-rooms/116/ai-notices 304 in 39ms :: []
+1:49:28 PM [express] GET /api/unread-counts 304 in 739ms :: {"unreadCounts":[]}
+1:49:28 PM [express] GET /api/chat-rooms 304 in 205ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:49:30 PM [express] GET /api/total-unread-badge 304 in 764ms :: {"totalBadgeCount":0,"unreadMessage…
+1:49:32 PM [express] GET /api/unread-counts 304 in 721ms :: {"unreadCounts":[]}
+1:49:32 PM [express] GET /api/unread-counts 401 in 1ms :: {"message":"Not authenticated"}
+1:49:34 PM [express] GET /api/chat-rooms/116/messages 304 in 118ms :: {"messages":[{"id":955,"chatRo…
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:49:36 PM [express] GET /api/total-unread-badge 304 in 760ms :: {"totalBadgeCount":0,"unreadMessage…
+1:49:36 PM [express] GET /api/voice-bookmark-requests 200 in 6ms
+1:49:36 PM [express] GET /api/unread-counts 304 in 817ms :: {"unreadCounts":[]}
+1:49:37 PM [express] GET /api/unread-counts 304 in 743ms :: {"unreadCounts":[]}
+1:49:37 PM [express] GET /api/voice-bookmark-requests 200 in 6ms
+1:49:39 PM [express] GET /api/ai-notices 304 in 38ms :: []
+1:49:40 PM [express] GET /api/unread-counts 304 in 729ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:49:42 PM [express] GET /api/total-unread-badge 304 in 729ms :: {"totalBadgeCount":0,"unreadMessage…
+1:49:44 PM [express] GET /api/unread-counts 304 in 711ms :: {"unreadCounts":[]}
+1:49:44 PM [express] GET /api/chat-rooms 304 in 195ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:49:44 PM [express] GET /api/chat-rooms/116/messages 304 in 91ms :: {"messages":[{"id":955,"chatRoo…
+1:49:48 PM [express] GET /api/unread-counts 304 in 740ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:49:48 PM [express] GET /api/total-unread-badge 304 in 787ms :: {"totalBadgeCount":0,"unreadMessage…
+1:49:48 PM [express] GET /api/voice-bookmark-requests 200 in 20ms
+1:49:49 PM [express] GET /api/contacts 304 in 46ms :: {"contacts":[{"id":117,"userId":120,"contactUs…
+1:49:49 PM [express] GET /api/voice-bookmark-requests 200 in 5ms
+1:49:51 PM [express] GET /api/unread-counts 304 in 762ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:49:54 PM [express] GET /api/total-unread-badge 304 in 807ms :: {"totalBadgeCount":0,"unreadMessage…
+1:49:55 PM [express] GET /api/chat-rooms/116/messages 304 in 118ms :: {"messages":[{"id":955,"chatRo…
+1:49:55 PM [express] GET /api/unread-counts 304 in 756ms :: {"unreadCounts":[]}
+1:49:56 PM [express] GET /api/chat-rooms/116/ai-notices 304 in 37ms :: []
+1:49:59 PM [express] GET /api/chat-rooms 304 in 350ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:49:59 PM [express] GET /api/unread-counts 304 in 802ms :: {"unreadCounts":[]}
+1:49:59 PM [express] GET /api/voice-bookmark-requests 200 in 7ms
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:49:59 PM [express] GET /api/total-unread-badge 304 in 845ms :: {"totalBadgeCount":0,"unreadMessage…
+1:50:01 PM [express] GET /api/voice-bookmark-requests 200 in 7ms
+1:50:02 PM [express] GET /api/unread-counts 401 in 1ms :: {"message":"Not authenticated"}
+1:50:03 PM [express] GET /api/unread-counts 304 in 746ms :: {"unreadCounts":[]}
+1:50:05 PM [express] GET /api/chat-rooms/116/messages 304 in 115ms :: {"messages":[{"id":955,"chatRo…
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:50:05 PM [express] GET /api/total-unread-badge 304 in 812ms :: {"totalBadgeCount":0,"unreadMessage…
+1:50:07 PM [express] GET /api/unread-counts 304 in 759ms :: {"unreadCounts":[]}
+1:50:09 PM [express] GET /api/ai-notices 304 in 39ms :: []
+1:50:11 PM [express] GET /api/unread-counts 304 in 731ms :: {"unreadCounts":[]}
+1:50:11 PM [express] GET /api/voice-bookmark-requests 200 in 18ms
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:50:11 PM [express] GET /api/total-unread-badge 304 in 738ms :: {"totalBadgeCount":0,"unreadMessage…
+1:50:12 PM [express] GET /api/voice-bookmark-requests 200 in 10ms
+1:50:15 PM [express] GET /api/chat-rooms 304 in 196ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:50:15 PM [express] GET /api/unread-counts 304 in 705ms :: {"unreadCounts":[]}
+1:50:15 PM [express] GET /api/chat-rooms/116/messages 304 in 116ms :: {"messages":[{"id":955,"chatRo…
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:50:17 PM [express] GET /api/total-unread-badge 304 in 758ms :: {"totalBadgeCount":0,"unreadMessage…
+1:50:19 PM [express] GET /api/unread-counts 304 in 760ms :: {"unreadCounts":[]}
+1:50:19 PM [express] GET /api/contacts 304 in 40ms :: {"contacts":[{"id":117,"userId":120,"contactUs…
+1:50:23 PM [express] GET /api/unread-counts 304 in 718ms :: {"unreadCounts":[]}
+1:50:23 PM [express] GET /api/voice-bookmark-requests 200 in 6ms
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:50:23 PM [express] GET /api/total-unread-badge 304 in 767ms :: {"totalBadgeCount":0,"unreadMessage…
+1:50:24 PM [express] GET /api/voice-bookmark-requests 200 in 9ms
+1:50:25 PM [express] GET /api/chat-rooms/116/messages 304 in 120ms :: {"messages":[{"id":955,"chatRo…
+1:50:26 PM [express] GET /api/chat-rooms/116/ai-notices 304 in 37ms :: []
+1:50:26 PM [express] GET /api/unread-counts 304 in 723ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:50:29 PM [express] GET /api/total-unread-badge 304 in 768ms :: {"totalBadgeCount":0,"unreadMessage…
+1:50:30 PM [express] GET /api/chat-rooms 304 in 188ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:50:30 PM [express] GET /api/unread-counts 304 in 720ms :: {"unreadCounts":[]}
+1:50:32 PM [express] GET /api/unread-counts 401 in 2ms :: {"message":"Not authenticated"}
+1:50:34 PM [express] GET /api/unread-counts 304 in 733ms :: {"unreadCounts":[]}
+1:50:35 PM [express] GET /api/voice-bookmark-requests 200 in 3ms
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:50:35 PM [express] GET /api/total-unread-badge 304 in 992ms :: {"totalBadgeCount":0,"unreadMessage…
+1:50:36 PM [express] GET /api/chat-rooms/116/messages 304 in 115ms :: {"messages":[{"id":955,"chatRo…
+1:50:36 PM [express] GET /api/voice-bookmark-requests 200 in 5ms
+1:50:38 PM [express] GET /api/unread-counts 304 in 733ms :: {"unreadCounts":[]}
+1:50:39 PM [express] GET /api/ai-notices 304 in 39ms :: []
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:50:41 PM [express] GET /api/total-unread-badge 304 in 1043ms :: {"totalBadgeCount":0,"unreadMessag…
+1:50:42 PM [express] GET /api/unread-counts 304 in 701ms :: {"unreadCounts":[]}
+1:50:45 PM [express] GET /api/chat-rooms 304 in 219ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:50:46 PM [express] GET /api/unread-counts 304 in 825ms :: {"unreadCounts":[]}
+1:50:46 PM [express] GET /api/chat-rooms/116/messages 304 in 128ms :: {"messages":[{"id":955,"chatRo…
+1:50:46 PM [express] GET /api/voice-bookmark-requests 200 in 8ms
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:50:47 PM [express] GET /api/total-unread-badge 304 in 756ms :: {"totalBadgeCount":0,"unreadMessage…
+1:50:48 PM [express] GET /api/unread-counts 304 in 746ms :: {"unreadCounts":[]}
+1:50:48 PM [express] GET /api/voice-bookmark-requests 200 in 10ms
+1:50:49 PM [express] GET /api/contacts 304 in 78ms :: {"contacts":[{"id":117,"userId":120,"contactUs…
+1:50:50 PM [express] GET /api/unread-counts 304 in 766ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:50:53 PM [express] GET /api/total-unread-badge 304 in 776ms :: {"totalBadgeCount":0,"unreadMessage…
+1:50:54 PM [express] GET /api/unread-counts 304 in 724ms :: {"unreadCounts":[]}
+1:50:56 PM [express] GET /api/chat-rooms/116/messages 304 in 128ms :: {"messages":[{"id":955,"chatRo…
+1:50:56 PM [express] GET /api/chat-rooms/116/ai-notices 304 in 37ms :: []
+1:50:57 PM [express] GET /api/unread-counts 304 in 720ms :: {"unreadCounts":[]}
+1:50:58 PM [express] GET /api/voice-bookmark-requests 200 in 5ms
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:50:59 PM [express] GET /api/total-unread-badge 304 in 769ms :: {"totalBadgeCount":0,"unreadMessage…
+1:51:00 PM [express] GET /api/voice-bookmark-requests 200 in 8ms
+1:51:01 PM [express] GET /api/chat-rooms 304 in 194ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:51:01 PM [express] GET /api/unread-counts 304 in 715ms :: {"unreadCounts":[]}
+1:51:02 PM [express] GET /api/unread-counts 401 in 1ms :: {"message":"Not authenticated"}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:51:05 PM [express] GET /api/total-unread-badge 304 in 741ms :: {"totalBadgeCount":0,"unreadMessage…
+1:51:05 PM [express] GET /api/unread-counts 304 in 883ms :: {"unreadCounts":[]}
+1:51:06 PM [express] GET /api/unread-counts 304 in 771ms :: {"unreadCounts":[]}
+1:51:07 PM [express] GET /api/chat-rooms/116/messages 304 in 123ms :: {"messages":[{"id":955,"chatRo…
+1:51:07 PM [express] GET /api/unread-counts 304 in 722ms :: {"unreadCounts":[]}
+1:51:09 PM [express] GET /api/unread-counts 304 in 729ms :: {"unreadCounts":[]}
+1:51:09 PM [express] GET /api/ai-notices 304 in 40ms :: []
+1:51:10 PM [express] GET /api/voice-bookmark-requests 200 in 12ms
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:51:11 PM [express] GET /api/total-unread-badge 304 in 740ms :: {"totalBadgeCount":0,"unreadMessage…
+1:51:11 PM [express] GET /api/voice-bookmark-requests 200 in 16ms
+1:51:13 PM [express] GET /api/unread-counts 304 in 713ms :: {"unreadCounts":[]}
+1:51:16 PM [express] GET /api/chat-rooms 304 in 203ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:51:17 PM [express] GET /api/total-unread-badge 304 in 828ms :: {"totalBadgeCount":0,"unreadMessage…
+1:51:17 PM [express] GET /api/chat-rooms/116/messages 304 in 239ms :: {"messages":[{"id":955,"chatRo…
+1:51:17 PM [express] GET /api/unread-counts 304 in 739ms :: {"unreadCounts":[]}
+1:51:19 PM [express] GET /api/contacts 304 in 47ms :: {"contacts":[{"id":117,"userId":120,"contactUs…
+1:51:21 PM [express] GET /api/unread-counts 304 in 761ms :: {"unreadCounts":[]}
+1:51:22 PM [express] GET /api/voice-bookmark-requests 200 in 5ms
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:51:23 PM [express] GET /api/total-unread-badge 304 in 779ms :: {"totalBadgeCount":0,"unreadMessage…
+1:51:23 PM [express] GET /api/voice-bookmark-requests 200 in 7ms
+1:51:25 PM [express] GET /api/unread-counts 304 in 735ms :: {"unreadCounts":[]}
+1:51:27 PM [express] GET /api/chat-rooms/116/ai-notices 304 in 42ms :: []
+1:51:27 PM [express] GET /api/chat-rooms/116/messages 304 in 119ms :: {"messages":[{"id":955,"chatRo…
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:51:29 PM [express] GET /api/total-unread-badge 304 in 793ms :: {"totalBadgeCount":0,"unreadMessage…
+1:51:29 PM [express] GET /api/unread-counts 304 in 850ms :: {"unreadCounts":[]}
+1:51:31 PM [express] GET /api/chat-rooms 304 in 214ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:51:33 PM [express] GET /api/unread-counts 304 in 731ms :: {"unreadCounts":[]}
+1:51:33 PM [express] GET /api/unread-counts 401 in 1ms :: {"message":"Not authenticated"}
+1:51:33 PM [express] GET /api/voice-bookmark-requests 200 in 12ms
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:51:35 PM [express] GET /api/total-unread-badge 304 in 764ms :: {"totalBadgeCount":0,"unreadMessage…
+1:51:35 PM [express] GET /api/voice-bookmark-requests 200 in 9ms
+1:51:37 PM [express] GET /api/unread-counts 304 in 760ms :: {"unreadCounts":[]}
+1:51:37 PM [express] GET /api/chat-rooms/116/messages 304 in 116ms :: {"messages":[{"id":955,"chatRo…
+📡 Activity status for user 120: online
+1:51:39 PM [express] POST /api/user/activity-status 200 in 181ms :: {"success":true}
+1:51:39 PM [express] GET /api/chat-rooms/116/messages 304 in 243ms :: {"messages":[{"id":955,"chatRo…
+1:51:39 PM [express] GET /api/chat-rooms 200 in 326ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:51:39 PM [express] GET /api/contacts 304 in 41ms :: {"contacts":[{"id":117,"userId":120,"contactUs…
+1:51:39 PM [express] GET /api/unread-counts 304 in 737ms :: {"unreadCounts":[]}
+1:51:39 PM [express] GET /api/chat-rooms/122/messages 200 in 97ms :: {"messages":[{"id":1020,"chatRo…
+1:51:40 PM [express] GET /api/chat-rooms/116/messages 200 in 117ms :: {"messages":[{"id":955,"chatRo…
+1:51:40 PM [express] GET /api/chat-rooms/107/messages 200 in 138ms :: {"messages":[{"id":881,"chatRo…
+1:51:40 PM [express] GET /api/chat-rooms/124/messages 200 in 232ms :: {"messages":[{"id":1004,"chatR…
+1:51:40 PM [express] GET /api/ai-notices 304 in 39ms :: []
+1:51:40 PM [express] GET /api/chat-rooms/125/messages 304 in 79ms :: {"messages":[{"id":1013,"chatRo…
+1:51:40 PM [express] GET /api/unread-counts 304 in 726ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:51:41 PM [express] GET /api/total-unread-badge 304 in 763ms :: {"totalBadgeCount":0,"unreadMessage…
+1:51:41 PM [express] GET /api/unread-counts 304 in 720ms :: {"unreadCounts":[]}
+Location detection error: TypeError: Cannot read properties of undefined (reading 'toLowerCase')
+    at <anonymous> (/home/runner/workspace/server/routes.ts:6023:14)
+    at Array.some (<anonymous>)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:6022:50)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at next (/home/runner/workspace/node_modules/express/lib/router/route.js:149:13)
+    at Route.dispatch (/home/runner/workspace/node_modules/express/lib/router/route.js:119:3)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at /home/runner/workspace/node_modules/express/lib/router/index.js:284:15
+    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+    at /home/runner/workspace/node_modules/express/lib/router/index.js:646:15
+    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:265:14)
+    at Function.handle (/home/runner/workspace/node_modules/express/lib/router/index.js:175:3)
+    at router (/home/runner/workspace/node_modules/express/lib/router/index.js:47:12)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+    at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+    at <anonymous> (/home/runner/workspace/server/index.ts:662:3)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+    at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+    at serveStatic (/home/runner/workspace/node_modules/serve-static/index.js:75:16)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+    at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+    at urlencodedParser (/home/runner/workspace/node_modules/body-parser/lib/types/urlencoded.js:85:7)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+    at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+    at /home/runner/workspace/node_modules/body-parser/lib/read.js:137:5
+    at AsyncResource.runInAsyncScope (node:async_hooks:206:9)
+    at invokeCallback (/home/runner/workspace/node_modules/raw-body/index.js:238:16)
+    at done (/home/runner/workspace/node_modules/raw-body/index.js:227:7)
+    at IncomingMessage.onEnd (/home/runner/workspace/node_modules/raw-body/index.js:287:7)
+    at IncomingMessage.emit (node:events:524:28)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
+1:51:43 PM [express] POST /api/location/detect 500 in 2ms :: {"message":"Failed to detect location i…
+Location detection error: TypeError: Cannot read properties of undefined (reading 'toLowerCase')
+    at <anonymous> (/home/runner/workspace/server/routes.ts:6023:14)
+    at Array.some (<anonymous>)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:6022:50)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at next (/home/runner/workspace/node_modules/express/lib/router/route.js:149:13)
+    at Route.dispatch (/home/runner/workspace/node_modules/express/lib/router/route.js:119:3)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at /home/runner/workspace/node_modules/express/lib/router/index.js:284:15
+    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+    at /home/runner/workspace/node_modules/express/lib/router/index.js:646:15
+    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:265:14)
+    at Function.handle (/home/runner/workspace/node_modules/express/lib/router/index.js:175:3)
+    at router (/home/runner/workspace/node_modules/express/lib/router/index.js:47:12)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+    at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+    at <anonymous> (/home/runner/workspace/server/index.ts:662:3)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+    at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+    at serveStatic (/home/runner/workspace/node_modules/serve-static/index.js:75:16)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+    at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+    at urlencodedParser (/home/runner/workspace/node_modules/body-parser/lib/types/urlencoded.js:85:7)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+    at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+    at /home/runner/workspace/node_modules/body-parser/lib/read.js:137:5
+    at AsyncResource.runInAsyncScope (node:async_hooks:206:9)
+    at invokeCallback (/home/runner/workspace/node_modules/raw-body/index.js:238:16)
+    at done (/home/runner/workspace/node_modules/raw-body/index.js:227:7)
+    at IncomingMessage.onEnd (/home/runner/workspace/node_modules/raw-body/index.js:287:7)
+    at IncomingMessage.emit (node:events:524:28)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
+1:51:43 PM [express] POST /api/location/detect 500 in 1ms :: {"message":"Failed to detect location i…
+Message creation - Request body: {
+  "content": "테스트",
+  "messageType": "text"
+}
+Message creation - Chat room ID: 116
+Message creation - User ID: 120
+Message creation - Parsed data: {
+  "chatRoomId": 116,
+  "senderId": 120,
+  "content": "테스트",
+  "messageType": "text"
+}
+Message creation - Request body: {
+  "content": "테스트",
+  "messageType": "text"
+}
+Message creation - Chat room ID: 116
+Message creation - User ID: 120
+Message creation - Parsed data: {
+  "chatRoomId": 116,
+  "senderId": 120,
+  "content": "테스트",
+  "messageType": "text"
+}
+📱 Telegram-style notification: 이소은 테스트 sent message
+📱 Telegram-style notification: 이소은 테스트 sent message
+📱 User 126 has no push subscriptions - skipping
+📱 User 126 has no push subscriptions - skipping
+간편음성메세지 브로드캐스트 시작: 116 참가자: 2
+메시지 전송 성공: 120
+WebSocket 연결 없음 또는 닫힘: 126
+간편음성메세지 브로드캐스트 시작: 116 참가자: 2
+메시지 전송 성공: 120
+WebSocket 연결 없음 또는 닫힘: 126
+🤖 AI Notice Analysis: Analyzing message from 이소은 테스트
+Analyzing message for notices: "테스트"
+1:51:44 PM [express] POST /api/chat-rooms/116/messages 200 in 315ms :: {"message":{"id":1077,"chatRo…
+🤖 AI Notice Analysis: Analyzing message from 이소은 테스트
+Analyzing message for notices: "테스트"
+1:51:44 PM [express] POST /api/chat-rooms/116/messages 200 in 320ms :: {"message":{"id":1078,"chatRo…
+1:51:44 PM [express] GET /api/chat-rooms/116/messages 200 in 121ms :: {"messages":[{"id":955,"chatRo…
+1:51:44 PM [express] GET /api/chat-rooms/116/messages 200 in 120ms :: {"messages":[{"id":955,"chatRo…
+1:51:44 PM [express] GET /api/chat-rooms/116/messages 200 in 118ms :: {"messages":[{"id":955,"chatRo…
+1:51:44 PM [express] GET /api/chat-rooms 200 in 212ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:51:44 PM [express] GET /api/chat-rooms/116/messages 304 in 123ms :: {"messages":[{"id":955,"chatRo…
+1:51:44 PM [express] GET /api/chat-rooms/116/messages 304 in 107ms :: {"messages":[{"id":955,"chatRo…
+1:51:44 PM [express] GET /api/chat-rooms/116/messages 304 in 121ms :: {"messages":[{"id":955,"chatRo…
+AI Notice Analysis Result: { hasNotice: false, notices: [] }
+🤖 AI Notice Analysis: No important notices detected
+1:51:44 PM [express] GET /api/chat-rooms 304 in 170ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:51:44 PM [express] GET /api/chat-rooms/116/messages 304 in 107ms :: {"messages":[{"id":955,"chatRo…
+Mark read request: userId=120, chatRoomId=116, lastMessageId=1078
+Mark read request: userId=120, chatRoomId=116, lastMessageId=1078
+1:51:44 PM [express] POST /api/chat-rooms/116/mark-read 200 in 41ms :: {"success":true}
+1:51:44 PM [express] POST /api/chat-rooms/116/mark-read 200 in 40ms :: {"success":true}
+1:51:44 PM [express] GET /api/chat-rooms 304 in 132ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:51:44 PM [express] GET /api/chat-rooms/116/messages 304 in 85ms :: {"messages":[{"id":955,"chatRoo…
+1:51:45 PM [express] GET /api/chat-rooms/116/messages 304 in 115ms :: {"messages":[{"id":955,"chatRo…
+1:51:45 PM [express] GET /api/chat-rooms/116/messages 304 in 89ms :: {"messages":[{"id":955,"chatRoo…
+1:51:45 PM [express] GET /api/chat-rooms 304 in 202ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:51:45 PM [express] GET /api/chat-rooms 304 in 142ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:51:45 PM [express] GET /api/unread-counts 304 in 757ms :: {"unreadCounts":[]}
+AI Notice Analysis Result: { hasNotice: false, notices: [] }
+🤖 AI Notice Analysis: No important notices detected
+1:51:45 PM [express] GET /api/voice-bookmark-requests 200 in 4ms
+1:51:45 PM [express] GET /api/chat-rooms 304 in 143ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:51:46 PM [express] GET /api/unread-counts 304 in 722ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:51:46 PM [express] GET /api/total-unread-badge 304 in 780ms :: {"totalBadgeCount":0,"unreadMessage…
+1:51:47 PM [express] GET /api/voice-bookmark-requests 200 in 4ms
+1:51:47 PM [express] GET /api/unread-counts 304 in 705ms :: {"unreadCounts":[]}
+1:51:48 PM [express] GET /api/unread-counts 304 in 701ms :: {"unreadCounts":[]}
+💓 Heartbeat from user 120: active
+1:51:48 PM [express] POST /api/user/heartbeat 200 in 41ms :: {"success":true}
+1:51:48 PM [express] GET /api/unread-counts 304 in 702ms :: {"unreadCounts":[]}
+📡 Activity status for user 126: offline
+1:51:51 PM [express] POST /api/user/activity-status 200 in 39ms :: {"success":true}
+📡 Activity status for user 126: online
+1:51:51 PM [express] POST /api/user/activity-status 200 in 39ms :: {"success":true}
+1:51:51 PM [express] GET /api/chat-rooms 200 in 158ms :: {"chatRooms":[{"id":116,"name":"이소은 테스트","i…
+1:51:51 PM [express] GET /api/contacts 200 in 165ms :: {"contacts":[{"id":108,"userId":126,"contactU…
+📡 Activity status for user 126: online
+1:51:51 PM [express] POST /api/user/activity-status 200 in 39ms :: {"success":true}
+📡 Activity status for user 126: online
+1:51:51 PM [express] POST /api/user/activity-status 200 in 40ms :: {"success":true}
+WebSocket connection attempt from: /ws
+1:51:51 PM [express] GET /api/chat-rooms 200 in 127ms :: {"chatRooms":[{"id":116,"name":"이소은 테스트","i…
+WebSocket message received: { type: 'auth', userId: 126 }
+WebSocket user authenticated: 126
+1:51:51 PM [express] GET /api/contacts 200 in 40ms :: {"contacts":[{"id":108,"userId":126,"contactUs…
+1:51:51 PM [express] GET /api/unread-counts 304 in 703ms :: {"unreadCounts":[]}
+1:51:51 PM [express] GET /api/unread-counts 200 in 617ms :: {"unreadCounts":[{"chatRoomId":116,"unre…
+1:51:51 PM [express] GET /api/unread-counts 200 in 625ms :: {"unreadCounts":[{"chatRoomId":116,"unre…
+1:51:52 PM [express] GET /api/unread-counts 200 in 498ms :: {"unreadCounts":[{"chatRoomId":116,"unre…
+1:51:52 PM [express] GET /api/contacts 200 in 37ms :: {"contacts":[{"id":108,"userId":126,"contactUs…
+1:51:52 PM [express] GET /api/chat-rooms 200 in 156ms :: {"chatRooms":[{"id":116,"name":"이소은 테스트","i…
+1:51:52 PM [express] GET /api/ai-notices 304 in 43ms :: []
+1:51:52 PM [express] GET /api/unread-counts 200 in 510ms :: {"unreadCounts":[{"chatRoomId":116,"unre…
+1:51:52 PM [express] GET /api/chat-rooms/122/messages 200 in 78ms :: {"messages":[{"id":1020,"chatRo…
+1:51:52 PM [express] GET /api/chat-rooms/117/messages 200 in 81ms :: {"messages":[{"id":925,"chatRoo…
+1:51:52 PM [express] GET /api/chat-rooms/112/messages 200 in 123ms :: {"messages":[{"id":920,"chatRo…
+1:51:52 PM [express] GET /api/chat-rooms/119/messages 200 in 114ms :: {"messages":[{"id":985,"chatRo…
+1:51:52 PM [express] GET /api/unread-counts 200 in 508ms :: {"unreadCounts":[{"chatRoomId":116,"unre…
+1:51:52 PM [express] GET /api/unread-counts 200 in 519ms :: {"unreadCounts":[{"chatRoomId":116,"unre…
+1:51:52 PM [express] GET /api/chat-rooms/116/messages 200 in 122ms :: {"messages":[{"id":955,"chatRo…
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:51:52 PM [express] GET /api/total-unread-badge 304 in 754ms :: {"totalBadgeCount":0,"unreadMessage…
+WebSocket connection closed for user: 126
+📡 Activity status for user 126: offline
+1:51:54 PM [express] POST /api/user/activity-status 200 in 39ms :: {"success":true}
+1:51:55 PM [express] GET /api/chat-rooms/116/messages 200 in 122ms :: {"messages":[{"id":955,"chatRo…
+1:51:55 PM [express] GET /api/unread-counts 304 in 749ms :: {"unreadCounts":[]}
+Mark read request: userId=120, chatRoomId=116, lastMessageId=1078
+Mark read request: userId=120, chatRoomId=116, lastMessageId=1078
+1:51:55 PM [express] POST /api/chat-rooms/116/mark-read 200 in 39ms :: {"success":true}
+1:51:55 PM [express] POST /api/chat-rooms/116/mark-read 200 in 39ms :: {"success":true}
+1:51:56 PM [express] GET /api/chat-rooms/116/messages 304 in 119ms :: {"messages":[{"id":955,"chatRo…
+1:51:56 PM [express] GET /api/chat-rooms 200 in 200ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:51:56 PM [express] GET /api/chat-rooms/116/messages 304 in 166ms :: {"messages":[{"id":955,"chatRo…
+1:51:56 PM [express] GET /api/chat-rooms 304 in 166ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:51:56 PM [express] GET /api/unread-counts 304 in 789ms :: {"unreadCounts":[]}
+1:51:57 PM [express] GET /api/chat-rooms/116/ai-notices 304 in 38ms :: []
+1:51:57 PM [express] GET /api/voice-bookmark-requests 200 in 13ms
+1:51:57 PM [express] GET /api/unread-counts 304 in 762ms :: {"unreadCounts":[]}
+1:51:58 PM [express] GET /api/unread-counts 304 in 744ms :: {"unreadCounts":[]}
+1:51:58 PM [express] GET /api/voice-bookmark-requests 200 in 9ms
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:51:58 PM [express] GET /api/total-unread-badge 304 in 869ms :: {"totalBadgeCount":0,"unreadMessage…
+1:51:59 PM [express] GET /api/unread-counts 304 in 745ms :: {"unreadCounts":[]}
+📡 Activity status for user 126: offline
+1:52:00 PM [express] POST /api/user/activity-status 200 in 41ms :: {"success":true}
+📡 Activity status for user 126: online
+1:52:00 PM [express] POST /api/user/activity-status 200 in 41ms :: {"success":true}
+1:52:00 PM [express] GET /api/contacts 304 in 39ms :: {"contacts":[{"id":108,"userId":126,"contactUs…
+1:52:00 PM [express] GET /api/chat-rooms 200 in 160ms :: {"chatRooms":[{"id":116,"name":"이소은 테스트","i…
+📡 Activity status for user 126: online
+1:52:00 PM [express] POST /api/user/activity-status 200 in 41ms :: {"success":true}
+1:52:00 PM [express] GET /api/chat-rooms 200 in 157ms :: {"chatRooms":[{"id":116,"name":"이소은 테스트","i…
+1:52:00 PM [express] GET /api/contacts 304 in 40ms :: {"contacts":[{"id":108,"userId":126,"contactUs…
+1:52:00 PM [express] GET /api/unread-counts 304 in 481ms :: {"unreadCounts":[{"chatRoomId":116,"unre…
+1:52:00 PM [express] GET /api/unread-counts 304 in 507ms :: {"unreadCounts":[{"chatRoomId":116,"unre…
+📡 Activity status for user 126: online
+1:52:00 PM [express] POST /api/user/activity-status 200 in 41ms :: {"success":true}
+1:52:00 PM [express] GET /api/unread-counts 304 in 494ms :: {"unreadCounts":[{"chatRoomId":116,"unre…
+WebSocket connection attempt from: /ws
+1:52:00 PM [express] GET /api/chat-rooms 200 in 133ms :: {"chatRooms":[{"id":116,"name":"이소은 테스트","i…
+1:52:00 PM [express] GET /api/contacts 304 in 49ms :: {"contacts":[{"id":108,"userId":126,"contactUs…
+1:52:00 PM [express] GET /api/ai-notices 304 in 38ms :: []
+1:52:00 PM [express] GET /api/unread-counts 304 in 495ms :: {"unreadCounts":[{"chatRoomId":116,"unre…
+WebSocket message received: { type: 'auth', userId: 126 }
+WebSocket user authenticated: 126
+1:52:01 PM [express] GET /api/unread-counts 304 in 481ms :: {"unreadCounts":[{"chatRoomId":116,"unre…
+1:52:01 PM [express] GET /api/unread-counts 304 in 497ms :: {"unreadCounts":[{"chatRoomId":116,"unre…
+1:52:01 PM [express] GET /api/voice-bookmark-requests 200 in 38ms
+1:52:01 PM [express] GET /api/chat-rooms/112/ai-notices 200 in 43ms :: []
+1:52:01 PM [express] GET /api/chat-rooms/112/messages 200 in 134ms :: {"messages":[{"id":920,"chatRo…
+1:52:01 PM [express] GET /api/bookmarks 200 in 256ms :: {"bookmarks":[{"id":10,"userId":126,"message…
+1:52:01 PM [express] GET /api/commands 200 in 285ms :: {"commands":[{"id":154,"userId":126,"chatRoom…
+1:52:02 PM [express] GET /api/unread-counts 304 in 529ms :: {"unreadCounts":[{"chatRoomId":116,"unre…
+Mark read request: userId=126, chatRoomId=112, lastMessageId=1019
+1:52:02 PM [express] GET /api/unread-counts 304 in 501ms :: {"unreadCounts":[{"chatRoomId":116,"unre…
+1:52:02 PM [express] POST /api/chat-rooms/112/mark-read 200 in 39ms :: {"success":true}
+1:52:02 PM [express] GET /api/unread-counts 304 in 784ms :: {"unreadCounts":[]}
+Mark read request: userId=126, chatRoomId=112, lastMessageId=1019
+1:52:02 PM [express] POST /api/chat-rooms/112/mark-read 200 in 40ms :: {"success":true}
+1:52:02 PM [express] GET /api/unread-counts 401 in 0ms :: {"message":"Not authenticated"}
+📡 Activity status for user 120: offline
+1:52:02 PM [express] POST /api/user/activity-status 200 in 38ms :: {"success":true}
+1:52:03 PM [express] GET /api/unread-counts 304 in 535ms :: {"unreadCounts":[{"chatRoomId":116,"unre…
+1:52:03 PM [express] GET /api/chat-rooms/112/messages 304 in 125ms :: {"messages":[{"id":920,"chatRo…
+1:52:03 PM [express] GET /api/chat-rooms 200 in 139ms :: {"chatRooms":[{"id":116,"name":"이소은 테스트","i…
+1:52:03 PM [express] GET /api/chat-rooms 200 in 165ms :: {"chatRooms":[{"id":116,"name":"이소은 테스트","i…
+1:52:03 PM [express] GET /api/chat-rooms/112/messages 304 in 93ms :: {"messages":[{"id":920,"chatRoo…
+1:52:03 PM [express] GET /api/voice-bookmark-requests 200 in 3ms
+1:52:03 PM [express] GET /api/unread-counts 304 in 502ms :: {"unreadCounts":[{"chatRoomId":116,"unre…
+1:52:03 PM [express] GET /api/contacts 200 in 40ms :: {"contacts":[{"id":108,"userId":126,"contactUs…
+1:52:03 PM [express] GET /api/ai-notices 304 in 40ms :: []
+1:52:04 PM [express] GET /api/unread-counts 304 in 515ms :: {"unreadCounts":[{"chatRoomId":116,"unre…
+1:52:04 PM [express] GET /api/unread-counts 304 in 542ms :: {"unreadCounts":[{"chatRoomId":116,"unre…
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:52:04 PM [express] GET /api/total-unread-badge 304 in 789ms :: {"totalBadgeCount":0,"unreadMessage…
+💓 Heartbeat from user 126: active
+1:52:06 PM [express] POST /api/user/heartbeat 200 in 55ms :: {"success":true}
+📱 Total badge count for user 126: 8 (messages: 8, AI notices: 0)
+1:52:06 PM [express] GET /api/total-unread-badge 200 in 587ms :: {"totalBadgeCount":8,"unreadMessage…
+1:52:06 PM [express] GET /api/unread-counts 304 in 805ms :: {"unreadCounts":[]}
+1:52:06 PM [express] GET /api/chat-rooms/116/messages 200 in 123ms :: {"messages":[{"id":955,"chatRo…
+Mark read request: userId=120, chatRoomId=116, lastMessageId=1078
+Mark read request: userId=120, chatRoomId=116, lastMessageId=1078
+1:52:06 PM [express] POST /api/chat-rooms/116/mark-read 200 in 40ms :: {"success":true}
+1:52:06 PM [express] POST /api/chat-rooms/116/mark-read 200 in 39ms :: {"success":true}
+1:52:07 PM [express] GET /api/chat-rooms/116/messages 304 in 128ms :: {"messages":[{"id":955,"chatRo…
+1:52:07 PM [express] GET /api/chat-rooms 200 in 202ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:52:07 PM [express] GET /api/chat-rooms/116/messages 304 in 110ms :: {"messages":[{"id":955,"chatRo…
+1:52:07 PM [express] GET /api/chat-rooms 304 in 218ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:52:07 PM [express] GET /api/unread-counts 304 in 603ms :: {"unreadCounts":[{"chatRoomId":116,"unre…
+1:52:07 PM [express] GET /api/unread-counts 304 in 852ms :: {"unreadCounts":[]}
+1:52:08 PM [express] GET /api/unread-counts 304 in 737ms :: {"unreadCounts":[]}
+1:52:09 PM [express] GET /api/voice-bookmark-requests 200 in 10ms
+1:52:09 PM [express] GET /api/unread-counts 304 in 826ms :: {"unreadCounts":[]}
+1:52:09 PM [express] GET /api/contacts 200 in 48ms :: {"contacts":[{"id":117,"userId":120,"contactUs…
+1:52:10 PM [express] GET /api/ai-notices 304 in 40ms :: []
+1:52:10 PM [express] GET /api/voice-bookmark-requests 200 in 5ms
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:52:10 PM [express] GET /api/total-unread-badge 304 in 779ms :: {"totalBadgeCount":0,"unreadMessage…
+1:52:10 PM [express] GET /api/unread-counts 304 in 756ms :: {"unreadCounts":[]}
+1:52:11 PM [express] GET /api/unread-counts 304 in 524ms :: {"unreadCounts":[{"chatRoomId":116,"unre…
+📱 Total badge count for user 126: 8 (messages: 8, AI notices: 0)
+1:52:11 PM [express] GET /api/total-unread-badge 304 in 541ms :: {"totalBadgeCount":8,"unreadMessage…
+📡 Activity status for user 120: online
+1:52:12 PM [express] POST /api/user/activity-status 200 in 59ms :: {"success":true}
+1:52:12 PM [express] GET /api/contacts 304 in 45ms :: {"contacts":[{"id":117,"userId":120,"contactUs…
+1:52:12 PM [express] GET /api/chat-rooms/116/messages 200 in 121ms :: {"messages":[{"id":955,"chatRo…
+WebSocket connection closed for user: 120
+1:52:12 PM [express] GET /api/chat-rooms 200 in 317ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+📡 Activity status for user 120: online
+1:52:13 PM [express] POST /api/user/activity-status 200 in 44ms :: {"success":true}
+1:52:13 PM [express] GET /api/ai-notices 304 in 49ms :: []
+💓 Heartbeat from user 120: active
+1:52:13 PM [express] POST /api/user/heartbeat 200 in 71ms :: {"success":true}
+WebSocket connection attempt from: /ws
+WebSocket message received: { type: 'auth', userId: 120 }
+WebSocket user authenticated: 120
+1:52:13 PM [express] GET /api/chat-rooms 200 in 300ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+1:52:13 PM [express] GET /api/contacts 200 in 317ms :: {"contacts":[{"id":117,"userId":120,"contactU…
+1:52:13 PM [express] GET /api/unread-counts 304 in 949ms :: {"unreadCounts":[]}
+1:52:13 PM [express] GET /api/chat-rooms/124/messages 200 in 146ms :: {"messages":[{"id":1004,"chatR…
+1:52:13 PM [express] GET /api/chat-rooms/122/messages 200 in 152ms :: {"messages":[{"id":1020,"chatR…
+1:52:13 PM [express] GET /api/chat-rooms/125/messages 304 in 153ms :: {"messages":[{"id":1013,"chatR…
+1:52:13 PM [express] GET /api/chat-rooms/107/messages 200 in 218ms :: {"messages":[{"id":881,"chatRo…
+1:52:14 PM [express] GET /api/chat-rooms/116/messages 200 in 305ms :: {"messages":[{"id":955,"chatRo…
+1:52:14 PM [express] GET /api/unread-counts 304 in 1280ms :: {"unreadCounts":[]}
+1:52:14 PM [express] GET /api/unread-counts 304 in 964ms :: {"unreadCounts":[]}
+1:52:15 PM [express] GET /api/unread-counts 304 in 555ms :: {"unreadCounts":[{"chatRoomId":116,"unre…
+1:52:15 PM [express] GET /api/unread-counts 304 in 887ms :: {"unreadCounts":[]}
+1:52:15 PM [express] GET /api/unread-counts 304 in 914ms :: {"unreadCounts":[]}
+1:52:16 PM [express] GET /api/unread-counts 304 in 804ms :: {"unreadCounts":[]}
+📱 Total badge count for user 126: 8 (messages: 8, AI notices: 0)
+1:52:17 PM [express] GET /api/total-unread-badge 304 in 620ms :: {"totalBadgeCount":8,"unreadMessage…
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:52:18 PM [express] GET /api/total-unread-badge 304 in 842ms :: {"totalBadgeCount":0,"unreadMessage…
+1:52:18 PM [express] GET /api/unread-counts 304 in 531ms :: {"unreadCounts":[{"chatRoomId":116,"unre…
+1:52:19 PM [express] GET /api/chat-rooms 200 in 190ms :: {"chatRooms":[{"id":116,"name":"이소은 테스트","i…
+1:52:20 PM [express] GET /api/unread-counts 304 in 817ms :: {"unreadCounts":[]}
+💓 Heartbeat from user 126: active
+1:52:21 PM [express] POST /api/user/heartbeat 200 in 40ms :: {"success":true}
+1:52:22 PM [express] GET /api/unread-counts 304 in 575ms :: {"unreadCounts":[{"chatRoomId":116,"unre…
+📱 Total badge count for user 126: 8 (messages: 8, AI notices: 0)
+1:52:23 PM [express] GET /api/total-unread-badge 304 in 597ms :: {"totalBadgeCount":8,"unreadMessage…
+1:52:24 PM [express] GET /api/unread-counts 304 in 835ms :: {"unreadCounts":[]}
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:52:24 PM [express] GET /api/total-unread-badge 304 in 870ms :: {"totalBadgeCount":0,"unreadMessage…
+1:52:26 PM [express] GET /api/unread-counts 304 in 527ms :: {"unreadCounts":[{"chatRoomId":116,"unre…
+💓 Heartbeat from user 120: active
+1:52:27 PM [express] POST /api/user/heartbeat 200 in 53ms :: {"success":true}
+1:52:28 PM [express] GET /api/unread-counts 304 in 815ms :: {"unreadCounts":[]}
+1:52:28 PM [express] GET /api/chat-rooms 200 in 208ms :: {"chatRooms":[{"id":116,"name":"Hot","isGro…
+📱 Total badge count for user 126: 8 (messages: 8, AI notices: 0)
+1:52:28 PM [express] GET /api/total-unread-badge 304 in 567ms :: {"totalBadgeCount":8,"unreadMessage…
+1:52:29 PM [express] GET /api/unread-counts 304 in 524ms :: {"unreadCounts":[{"chatRoomId":116,"unre…
+📱 Total badge count for user 120: 0 (messages: 0, AI notices: 0)
+1:52:30 PM [express] GET /api/total-unread-badge 304 in 821ms :: {"totalBadgeCount":0,"unreadMessage…
+1:52:32 PM [express] GET /api/unread-counts 304 in 826ms :: {"unreadCounts":[]}
+1:52:32 PM [express] GET /api/unread-counts 401 in 0ms :: {"message":"Not authenticated"}
+1:52:33 PM [express] GET /api/unread-counts 304 in 532ms :: {"unreadCounts":[{"chatRoomId":116,"unre…
+1:52:34 PM [express] GET /api/contacts 200 in 50ms :: {"contacts":[{"id":108,"userId":126,"contactUs…
+1:52:34 PM [express] GET /api/ai-notices 304 in 160ms :: []
+1:52:34 PM [express] GET /api/chat-rooms 200 in 166ms :: {"chatRooms":[{"id":116,"name":"이소은 테스트","i…
+📱 Total badge count for user 126: 8 (messages: 8, AI notices: 0)
+1:52:34 PM [express] GET /api/total-unread-badge 304 in 596ms :: {"totalBadgeCount":8,"unreadMessage…
+1:52:34 PM [express] GET /api/chat-rooms/116/messages 200 in 121ms :: {"messages":[{"id":955,"chatRo…
+1:52:34 PM [express] GET /api/chat-rooms/119/messages 200 in 85ms :: {"messages":[{"id":985,"chatRoo…
+1:52:34 PM [express] GET /api/chat-rooms/122/messages 200 in 81ms :: {"messages":[{"id":1020,"chatRo…
+1:52:35 PM [express] GET /api/chat-rooms/112/messages 200 in 116ms :: {"messages":[{"id":920,"chatRo…
+1:52:35 PM [express] GET /api/chat-rooms/117/messages 200 in 83ms :: {"messages":[{"id":925,"chatRoo…
