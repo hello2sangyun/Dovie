@@ -1,0 +1,155 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/F06EE534-4D23-4A64-A469-C5EFFD556E00/App.app'
+⚡️  Loading app at https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev...
+GPU process (0x11311c1e0) took 2.293974 seconds to launch
+Networking process (0x113064190) took 8.255586 seconds to launch
+WebContent process (0x1130f0100) took 3.078485 seconds to launch
+0x1130f0100 - [PID=75298] WebProcessProxy::didBecomeUnresponsive:
+0x144348718 - [pageProxyID=7, webPageID=8, PID=75298] WebPageProxy::processDidBecomeUnresponsive:
+WebContent[75298] Unable to hide query parameters from script (missing data)
+⚡️  [debug] - [vite] connecting...
+⚡️  WebView loaded
+⚡️  [log] - [Badge] Service Worker not supported
+⚡️  To Native ->  App addListener 78513932
+⚡️  To Native ->  App addListener 78513933
+⚡️  To Native ->  App addListener 78513934
+⚡️  To Native ->  PushNotifications requestPermissions 78513935
+⚡️  TO JS {"receive":"granted"}
+⚡️  To Native ->  PushNotifications register 78513936
+⚡️  TO JS undefined
+⚡️  [log] - 🔄 Auth context updating user: 121 profilePicture: /uploads/profile_1761144817232_rf4rde1nn4e.jpg
+⚡️  [log] - 🚀 Starting profile image preloading...
+⚡️  [log] - 📱 iOS 네이티브 푸시 알림 등록 성공
+⚡️  To Native ->  PushNotifications addListener 78513937
+⚡️  To Native ->  PushNotifications addListener 78513938
+⚡️  To Native ->  PushNotifications addListener 78513939
+⚡️  To Native ->  PushNotifications addListener 78513940
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+⚡️  [log] -    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+⚡️  [log] - 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+⚡️  [log] - MainApp rendering with user: 121
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  To Native ->  App addListener 78513941
+⚡️  To Native ->  App addListener 78513942
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":121}
+⚡️  [log] - WebSocket authentication successful for user: 121
+⚡️  [log] - 📥 Found 7 profile images to preload
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761070023452_fvup6od4hy.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761144817232_rf4rde1nn4e.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761602401844_h0cbedi9kaf.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761603336729_ol7qqlpxpv.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761606486798_jejztvnxp8j.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761070087497_tdjrs8unfmn.jpg
+⚡️  [log] - 🎉 Profile image preloading completed!
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 6
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: [{"chatRoomId":107,"unreadCount":5},{"chatRoomId":126,"unreadCount":1}]
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 6
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 6
+⚡️  To Native ->  Badge set 78513943
+⚡️  [log] - 📱 PWA Badge update: 0 → 6 (messages: 6, AI: 0)
+⚡️  [log] - 📱 Native Badge update: 0 → 6 (messages: 6, AI: 0)
+⚡️  TO JS undefined
+⚡️  [log] - ✅ Native badge count set to 6
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [log] - WebSocket disconnected: 1000 App backgrounded
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+WebContent[75298] 0x10e068100 - [sessionID=1] WebProcess::markAllLayersVolatile: Failed to mark layers as volatile for webPageID=8
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] App visible - suppressing notifications
+⚡️  [log] - 📱 앱이 활성화됨 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app opened - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App foregrounded - reconnecting WebSocket
+⚡️  [log] - 📱 Calling connect() after foreground transition
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+⚡️  [log] -    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":121}
+⚡️  [log] - WebSocket authentication successful for user: 121
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App foregrounded - reconnecting WebSocket
+⚡️  [log] - WebSocket disconnected: 1000 App backgrounded
+⚡️  [log] - 📱 Calling connect() after foreground transition
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+⚡️  [log] -    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  To Native ->  App removeListener 78513944
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 9
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: [{"chatRoomId":107,"unreadCount":8},{"chatRoomId":126,"unreadCount":1}]
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 9
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 9
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":121}
+⚡️  [log] - WebSocket authentication successful for user: 121
+⚡️  [log] - 📱 PWA Badge update: 6 → 9 (messages: 9, AI: 0)
+⚡️  [log] - 📱 Native Badge update: 6 → 9 (messages: 9, AI: 0)
+⚡️  To Native ->  Badge set 78513945
+⚡️  TO JS undefined
+⚡️  [log] - ✅ Native badge count set to 9
+⚡️  [error] - Diagnostics failed: {}
