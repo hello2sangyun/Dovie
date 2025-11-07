@@ -1,0 +1,170 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/94FBFFCA-EC1B-4A3A-B20E-098824740B7F/App.app'
+⚡️  Loading app at https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev...
+Networking process (0x112054190) took 6.494083 seconds to launch
+GPU process (0x1121101e0) took 2.474772 seconds to launch
+WebContent process (0x1120e8100) took 3.225443 seconds to launch
+0x1120e8100 - [PID=78407] WebProcessProxy::didBecomeUnresponsive:
+0x106b54018 - [pageProxyID=7, webPageID=8, PID=78407] WebPageProxy::processDidBecomeUnresponsive:
+WebContent[78407] Unable to hide query parameters from script (missing data)
+⚡️  [debug] - [vite] connecting...
+⚡️  [log] - 📱 No stored user, initializing as logged out
+⚡️  WebView loaded
+Reporter disconnected. { function=sendMessage, reporterID=336738320908289 }
+Reporter disconnected. { function=sendMessage, reporterID=336738320908289 }
+Reporter disconnected. { function=sendMessage, reporterID=336738320908289 }
+Reporter disconnected. { function=sendMessage, reporterID=336738320908289 }
+Reporter disconnected. { function=sendMessage, reporterID=336738320908289 }
+Reporter disconnected. { function=sendMessage, reporterID=336738320908289 }
+Reporter disconnected. { function=sendMessage, reporterID=336738320908289 }
+Reporter disconnected. { function=sendMessage, reporterID=336738320908289 }
+Reporter disconnected. { function=sendMessage, reporterID=336738320908289 }
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+	(Note: If you're seeing NSAutoresizingMaskLayoutConstraints that you don't understand, refer to the documentation for the UIView property translatesAutoresizingMaskIntoConstraints) 
+(
+    "<NSAutoresizingMaskLayoutConstraint:0x1275c1bd0 h=-&- v=-&- _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x12752a200.minX == 0   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x12741ca00 )>",
+    "<NSAutoresizingMaskLayoutConstraint:0x1275c1c20 h=-&- v=-&- H:[_TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x12752a200]-(0)-|   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x12741ca00 )>",
+    "<NSLayoutConstraint:0x1275c13b0 _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x12752a200.width == _UIButtonBarButton:0x12741cc80.width   (active)>",
+    "<NSLayoutConstraint:0x1275c1a90 '_UITemporaryLayoutWidth' _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x12741ca00.width == 0   (active)>",
+    "<NSLayoutConstraint:0x1275c14f0 'IB_Leading_Leading' H:|-(8)-[_UIModernBarButton:0x1275f0a80]   (active, names: '|':_UIButtonBarButton:0x12741cc80 )>",
+    "<NSLayoutConstraint:0x1275c1540 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x1275f0a80]-(8)-|   (active, names: '|':_UIButtonBarButton:0x12741cc80 )>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x1275c1540 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x1275f0a80]-(8)-|   (active, names: '|':_UIButtonBarButton:0x12741cc80 )>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+	(Note: If you're seeing NSAutoresizingMaskLayoutConstraints that you don't understand, refer to the documentation for the UIView property translatesAutoresizingMaskIntoConstraints) 
+(
+    "<NSAutoresizingMaskLayoutConstraint:0x1275c32a0 h=-&- v=-&- _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x12752a600.minX == 0   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x12741c500 )>",
+    "<NSAutoresizingMaskLayoutConstraint:0x1275c32f0 h=-&- v=-&- H:[_TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x12752a600]-(0)-|   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x12741c500 )>",
+    "<NSLayoutConstraint:0x1275c2b20 _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x12752a600.width == _UIButtonBarButton:0x12741c780.width   (active)>",
+    "<NSLayoutConstraint:0x1275c3160 '_UITemporaryLayoutWidth' _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x12741c500.width == 0   (active)>",
+    "<NSLayoutConstraint:0x1275c2c60 'IB_Leading_Leading' H:|-(8)-[_UIModernBarButton:0x1275f0e00]   (active, names: '|':_UIButtonBarButton:0x12741c780 )>",
+    "<NSLayoutConstraint:0x1275c2cb0 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x1275f0e00]-(8)-|   (active, names: '|':_UIButtonBarButton:0x12741c780 )>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x1275c2cb0 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x1275f0e00]-(8)-|   (active, names: '|':_UIButtonBarButton:0x12741c780 )>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+	(Note: If you're seeing NSAutoresizingMaskLayoutConstraints that you don't understand, refer to the documentation for the UIView property translatesAutoresizingMaskIntoConstraints) 
+(
+    "<NSAutoresizingMaskLayoutConstraint:0x1276bc140 h=-&- v=-&- _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x12752aa00.minX == 0   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x12741e080 )>",
+    "<NSAutoresizingMaskLayoutConstraint:0x1276bc190 h=-&- v=-&- H:[_TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x12752aa00]-(0)-|   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x12741e080 )>",
+    "<NSLayoutConstraint:0x117b0b390 _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x12752aa00.width == _UIButtonBarButton:0x12741c280.width   (active)>",
+    "<NSLayoutConstraint:0x1276bc000 '_UITemporaryLayoutWidth' _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x12741e080.width == 0   (active)>",
+    "<NSLayoutConstraint:0x117b0b480 'IB_Leading_Leading' H:|-(8)-[_UIModernBarButton:0x1275f1180]   (active, names: '|':_UIButtonBarButton:0x12741c280 )>",
+    "<NSLayoutConstraint:0x117b0b4d0 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x1275f1180]-(8)-|   (active, names: '|':_UIButtonBarButton:0x12741c280 )>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x117b0b4d0 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x1275f1180]-(8)-|   (active, names: '|':_UIButtonBarButton:0x12741c280 )>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 8F649CC0-A196-47B9-BCC2-B7F1C4CDA6E0
+<0x1069ae440> Gesture: System gesture gate timed out.
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 8F649CC0-A196-47B9-BCC2-B7F1C4CDA6E0
+Reporter disconnected or already stopped. { func=stop, reporterID=336738320908289 }
+⚡️  To Native ->  App addListener 72637732
+⚡️  To Native ->  App addListener 72637733
+⚡️  To Native ->  App addListener 72637734
+⚡️  To Native ->  PushNotifications addListener 72637735
+⚡️  To Native ->  PushNotifications addListener 72637736
+⚡️  To Native ->  PushNotifications addListener 72637737
+⚡️  To Native ->  PushNotifications addListener 72637738
+⚡️  To Native ->  PushNotifications requestPermissions 72637739
+⚡️  [log] - [Badge] Service Worker not supported
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+⚡️  [log] -    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+⚡️  [log] - 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  To Native ->  App addListener 72637740
+⚡️  To Native ->  App addListener 72637741
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [error] - WebSocket error: {"isTrusted":true}
+⚡️  [error] - WebSocket error event: {"type":"error","target":{},"timeStamp":25530}
+⚡️  [log] - WebSocket disconnected: 1006 
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 2
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: [{"chatRoomId":116,"unreadCount":2}]
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 2
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 2
+⚡️  To Native ->  Badge set 72637742
+⚡️  [log] - 📱 PWA Badge update: 0 → 2 (messages: 2, AI: 0)
+⚡️  [log] - 📱 Native Badge update: 0 → 2 (messages: 2, AI: 0)
+⚡️  TO JS undefined
+⚡️  [log] - ✅ Native badge count set to 2
+⚡️  TO JS {"receive":"granted"}
+⚡️  To Native ->  PushNotifications register 72637743
+⚡️  TO JS undefined
+⚡️  [log] - 📱 iOS 네이티브 푸시 알림 등록 성공 (리스너 대기 중)
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App foregrounded - reconnecting WebSocket
+⚡️  [log] - 📱 Calling connect() after foreground transition
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+⚡️  [log] -    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+⚡️  [log] - WebSocket disconnected: 1000 App backgrounded
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+Snapshotting a view (0x1178e3c00, UIKeyboardImpl) that is not in a visible window requires afterScreenUpdates:YES.
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline

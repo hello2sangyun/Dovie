@@ -1,0 +1,174 @@
+Last login: Fri Nov  7 17:22:15 on ttys000
+stanlee@Stans-MacBook-Air ~ % rm -rf ~/Library/MobileDevice/Provisioning\ Profiles/*
+
+zsh: sure you want to delete the only file in /Users/stanlee/Library/MobileDevice/Provisioning Profiles [yn]? n
+stanlee@Stans-MacBook-Air ~ % loads
+zsh: command not found: loads
+stanlee@Stans-MacBook-Air ~ % 
+stanlee@Stans-MacBook-Air ~ % y
+zsh: command not found: y
+stanlee@Stans-MacBook-Air ~ % rm -rf ~/Library/MobileDevice/Provisioning\ Profiles/*
+
+zsh: sure you want to delete the only file in /Users/stanlee/Library/MobileDevice/Provisioning Profiles [yn]? y
+stanlee@Stans-MacBook-Air ~ % 
+stanlee@Stans-MacBook-Air ~ % cd ~/Downloads
+
+stanlee@Stans-MacBook-Air Downloads % uuid=$(security cms -D -i Push.mobileprovision | grep -aA1 UUID | grep -o "[-a-zA-Z0-9]\{36\}")
+echo "UUID: $uuid"
+cp Push.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$uuid.mobileprovision
+UUID: 4dbe75e5-59e9-4fe6-b62f-5e17c1ec5eaf
+stanlee@Stans-MacBook-Air Downloads % ls -la ~/Library/MobileDevice/Provisioning\ Profiles/
+
+
+total 32
+drwxr-xr-x  3 stanlee  staff     96 Nov  7 17:26 .
+drwxr-xr-x  3 stanlee  staff     96 Nov  7 16:03 ..
+-rw-r--r--@ 1 stanlee  staff  14358 Nov  7 17:26 4dbe75e5-59e9-4fe6-b62f-5e17c1ec5eaf.mobileprovision
+stanlee@Stans-MacBook-Air Downloads % killall Xcode
+
+No matching processes belonging to you were found
+stanlee@Stans-MacBook-Air Downloads % cd /Users/stanlee/Documents/Dovie
+
+cd: no such file or directory: /Users/stanlee/Documents/Dovie
+stanlee@Stans-MacBook-Air Downloads % git stash
+You do not have the initial commit yet
+stanlee@Stans-MacBook-Air Downloads % git stash
+You do not have the initial commit yet
+stanlee@Stans-MacBook-Air Downloads % cd /Users/stanlee/Download/Dovie 
+
+cd: no such file or directory: /Users/stanlee/Download/Dovie
+stanlee@Stans-MacBook-Air Downloads % cd /Users/stanlee/Downloads/Dovie
+
+stanlee@Stans-MacBook-Air Dovie % git stash
+Saved working directory and index state WIP on main: d5a7489 iOS Info.plist 수정 - TestFlight 업로드 준비
+stanlee@Stans-MacBook-Air Dovie % git pull
+
+Already up to date.
+stanlee@Stans-MacBook-Air Dovie % npm install
+
+
+up to date, audited 1004 packages in 2s
+
+99 packages are looking for funding
+  run `npm fund` for details
+
+13 vulnerabilities (3 low, 7 moderate, 2 high, 1 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+stanlee@Stans-MacBook-Air Dovie % npx cap sync ios
+
+✔ Copying web assets from dist to ios/App/App/public in 31.10ms
+✔ Creating capacitor.config.json in ios/App/App in 953.38μs
+✔ copy ios in 75.10ms
+✔ Updating iOS plugins in 6.14ms
+✖ Updating iOS native dependencies with pod install - failed!
+✖ update ios - failed!
+[error] xcode-select: error: tool 'xcodebuild' requires Xcode, but active
+        developer directory '/Library/Developer/CommandLineTools' is a command
+        line tools instance
+        
+stanlee@Stans-MacBook-Air Dovie % npx cap open ios
+
+✔ Opening the Xcode workspace... in 3.00s
+stanlee@Stans-MacBook-Air Dovie % # Profile 내용 확인
+security cms -D -i ~/Downloads/Push.mobileprovision | grep -A 5 "DeveloperCertificates"
+zsh: command not found: #
+	<key>DeveloperCertificates</key>
+	<array>
+		<data>MIIF0jCCBLqgAwIBAgIQamoxf0Sz8+qvaSxKjbKO9TANBgkqhkiG9w0BAQsFADB1MUQwQgYDVQQDDDtBcHBsZSBXb3JsZHdpZGUgRGV2ZWxvcGVyIFJlbGF0aW9ucyBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eTELMAkGA1UECwwCRzMxEzARBgNVBAoMCkFwcGxlIEluYy4xCzAJBgNVBAYTAlVTMB4XDTI1MDMyNzIwNDUyNVoXDTI2MDMyNzIwNDUyNFowgZgxGjAYBgoJkiaJk/IsZAEBDAo0NFc4OVc1N0tQMUEwPwYDVQQDDDhBcHBsZSBEZXZlbG9wbWVudDogbmF5YWxlZXNhbmd5dW5AZ21haWwuY29tIChXNkc3Uzg2UzIyKTETMBEGA1UECwwKQlVWNkxUUzNKQzEVMBMGA1UECgwMU2FuZyB5dW4g7J20MQswCQYDVQQGEwJVUzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMC7fbyytFohpYUzmiLHfyp4gHa698syMgO5mtNRa1wZ1AhdmOyBAt7fd41mrT9i1U7VcBS2DQ49C05rth/Gu3/iUv1TVj0+lqWPbgad/zvMQ2xX2FjVHIYW5zsfiDAnwTDeeVeS10/RS7EIAenJJ6Efbi4Cr3M2yzDUUcpOCESYyUyU1wky9cudS24ETMJ2ITlHUY9y264g3xxEIzTbcR7zNR6yqpgmJI+J3ipWlTqylta7zauWqedNJ12dTDsw0ScySgHMZMdmPCsDobJi2GPsaA5M+Fp0YMIT5oOivwNrRKnzpfJkLLubtnUN1NkO8XJ/w9onOLLHOur6XtsDaDcCAwEAAaOCAjgwggI0MAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUCf7AFZD5r2QKkhK5JihjDJfsp7IwcAYIKwYBBQUHAQEEZDBiMC0GCCsGAQUFBzAChiFodHRwOi8vY2VydHMuYXBwbGUuY29tL3d3ZHJnMy5kZXIwMQYIKwYBBQUHMAGGJWh0dHA6Ly9vY3NwLmFwcGxlLmNvbS9vY3NwMDMtd3dkcmczMDQwggEeBgNVHSAEggEVMIIBETCCAQ0GCSqGSIb3Y2QFATCB/zCBwwYIKwYBBQUHAgIwgbYMgbNSZWxpYW5jZSBvbiB0aGlzIGNlcnRpZmljYXRlIGJ5IGFueSBwYXJ0eSBhc3N1bWVzIGFjY2VwdGFuY2Ugb2YgdGhlIHRoZW4gYXBwbGljYWJsZSBzdGFuZGFyZCB0ZXJtcyBhbmQgY29uZGl0aW9ucyBvZiB1c2UsIGNlcnRpZmljYXRlIHBvbGljeSBhbmQgY2VydGlmaWNhdGlvbiBwcmFjdGljZSBzdGF0ZW1lbnRzLjA3BggrBgEFBQcCARYraHR0cHM6Ly93d3cuYXBwbGUuY29tL2NlcnRpZmljYXRlYXV0aG9yaXR5LzAWBgNVHSUBAf8EDDAKBggrBgEFBQcDAzAdBgNVHQ4EFgQU6oI0aRgTpRviR8YoZc9gWzVqBAIwDgYDVR0PAQH/BAQDAgeAMBMGCiqGSIb3Y2QGAQIBAf8EAgUAMBMGCiqGSIb3Y2QGAQwBAf8EAgUAMA0GCSqGSIb3DQEBCwUAA4IBAQDFH/O/TJOzkJE2jGLxEb93lK4Zg/AnixY7sJhMnRFqiukqZ+YekLN4PJhwR/WUt+6xzycU/XRI6gtHykX1lRsytc4uoGhE9wZUQhxmxe1lz1F6ZxtbKrnq4xj8/LrMpoTpLO5nFXu7sHTph8H7jZ1XEelBiViWjHzX+3A2WANr/S5bFo4GpC0ZMZJFX0j7dhJsDJYPESOq078lQ9bB6ZRMZasE6plmPk0qjuf9/WBcHZBA3xhvc8VSDp0aIFKWE55YXGXuSp/c1lbFmw7Ewvw6Ji0TBoeRpHNw6MiUd4zRHQOlVqJ5DPFjNUcfsPl+Ds9hxZvbbwp+6F2Av/tKXPQ/</data>
+		<data>MIIFxjCCBK6gAwIBAgIQf4FS65fGiaPlbRB8JU7NbTANBgkqhkiG9w0BAQsFADB1MUQwQgYDVQQDDDtBcHBsZSBXb3JsZHdpZGUgRGV2ZWxvcGVyIFJlbGF0aW9ucyBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eTELMAkGA1UECwwCRzMxEzARBgNVBAoMCkFwcGxlIEluYy4xCzAJBgNVBAYTAlVTMB4XDTI1MTEwNjE5MjY1N1oXDTI2MTEwNjE5MjY1NlowgYwxGjAYBgoJkiaJk/IsZAEBDAo0NFc4OVc1N0tQMTUwMwYDVQQDDCxBcHBsZSBEZXZlbG9wbWVudDogU2FuZyBZdW4gTGVlIChXNkc3Uzg2UzIyKTETMBEGA1UECwwKQlVWNkxUUzNKQzEVMBMGA1UECgwMU2FuZyBZdW4gTGVlMQswCQYDVQQGEwJIVTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAJ7/dsmaqg05CRz1a596fmQRo92HHCNUvajwYXJMxRH3jPqDYw5RODdmeu6FqLRzNT0oS1kLEIR42UqaYIZ+YVT7spJERLLuQE1wIYCYuEFGUuILaoCAuVsn5pj57vW8VfvFtkGYitVcp2eNg1A9XRO296rLowuFk+5xmK93WnM+rUQzYJl9rR6kbALlTQF41Y4kNQxPNNEY3ZZrB0yOHf9R1yFUPlFCUAfIwaErahJ1kLmi+2G05EPN6cv/rSRY6aQx/MjX543HD/Hwc8qoJfU1P8NIEOT1t9UzsTRFi5jOBAxICj5ba3tNmEwjFxdju3Vp07M8huQo16C8cQpqDlMCAwEAAaOCAjgwggI0MAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUCf7AFZD5r2QKkhK5JihjDJfsp7IwcAYIKwYBBQUHAQEEZDBiMC0GCCsGAQUFBzAChiFodHRwOi8vY2VydHMuYXBwbGUuY29tL3d3ZHJnMy5kZXIwMQYIKwYBBQUHMAGGJWh0dHA6Ly9vY3NwLmFwcGxlLmNvbS9vY3NwMDMtd3dkcmczMDQwggEeBgNVHSAEggEVMIIBETCCAQ0GCSqGSIb3Y2QFATCB/zCBwwYIKwYBBQUHAgIwgbYMgbNSZWxpYW5jZSBvbiB0aGlzIGNlcnRpZmljYXRlIGJ5IGFueSBwYXJ0eSBhc3N1bWVzIGFjY2VwdGFuY2Ugb2YgdGhlIHRoZW4gYXBwbGljYWJsZSBzdGFuZGFyZCB0ZXJtcyBhbmQgY29uZGl0aW9ucyBvZiB1c2UsIGNlcnRpZmljYXRlIHBvbGljeSBhbmQgY2VydGlmaWNhdGlvbiBwcmFjdGljZSBzdGF0ZW1lbnRzLjA3BggrBgEFBQcCARYraHR0cHM6Ly93d3cuYXBwbGUuY29tL2NlcnRpZmljYXRlYXV0aG9yaXR5LzAWBgNVHSUBAf8EDDAKBggrBgEFBQcDAzAdBgNVHQ4EFgQUPuqwphqsym36RQ3hR3/47Uj99YcwDgYDVR0PAQH/BAQDAgeAMBMGCiqGSIb3Y2QGAQIBAf8EAgUAMBMGCiqGSIb3Y2QGAQwBAf8EAgUAMA0GCSqGSIb3DQEBCwUAA4IBAQBJbFl7xtxvDVpnJ5GAypdpzoKvlqFKQnMC+3hAADDrJxAtTsviD/YkH9wSuWPibaujUg+jw42aesHWrDqEXeVY+zk0hQ/DytAHVq9temAp5IuSzCvrXF3Rhe1tl2SyT51agiRgnTKlsw/QZYD9a37Vpr01IZtPnu1/q4jA889+zkqGIU+6jh3QX2cypoFyr7wsXWCzignC+yq+8siBg7sXUPMxlJWSN5zEppVEgakUdIucogqgXe2lhqsSi8wkhDZWNggFRqI8YM828YYalt3PJ/LKFZ4f9CSsBRBXKSOVbIrOLwcamoZv3BQyt4FdVFsl9c5Vk+VmeCTua2LCt/oR</data>
+	</array>
+
+stanlee@Stans-MacBook-Air Dovie % rm -rf ~/Library/Developer/Xcode/DerivedData/* 
+
+zsh: sure you want to delete all 5 files in /Users/stanlee/Library/Developer/Xcode/DerivedData [yn]? y
+
+stanlee@Stans-MacBook-Air Dovie % 
+stanlee@Stans-MacBook-Air Dovie % cd ~/Downloads/Dovie
+stanlee@Stans-MacBook-Air Dovie % rm -rf ios/build
+
+stanlee@Stans-MacBook-Air Dovie % rm -rf ios/App/Pods
+
+stanlee@Stans-MacBook-Air Dovie % rm -rf ios/App/App.xcworkspace/xcuserdata
+stanlee@Stans-MacBook-Air Dovie % cd ios/App
+
+stanlee@Stans-MacBook-Air App % pod deintegrate
+
+Deintegrating `App.xcodeproj`
+Deleted 1 'Check Pods Manifest.lock' build phases.
+Deleted 1 'Embed Pods Frameworks' build phases.
+- Pods_App.framework
+- Pods-App.debug.xcconfig
+- Pods-App.release.xcconfig
+Deleted 1 empty `Pods` groups from project.
+Deleted 1 empty `Frameworks` groups from project.
+Removing `Pods` directory.
+
+Project has been deintegrated. No traces of CocoaPods left in project.
+Note: The workspace referencing the Pods project still remains.
+stanlee@Stans-MacBook-Air App % pod install
+
+Analyzing dependencies
+Downloading dependencies
+Installing Capacitor (7.4.0)
+Installing CapacitorApp (7.0.1)
+Installing CapacitorCamera (7.0.1)
+Installing CapacitorCordova (7.4.0)
+Installing CapacitorFilesystem (7.1.1)
+Installing CapacitorHaptics (7.0.1)
+Installing CapacitorPushNotifications (7.0.1)
+Installing CapacitorStatusBar (7.0.1)
+Installing CapacitorToast (7.0.1)
+Installing CapawesomeCapacitorBadge (7.0.1)
+Installing IONFilesystemLib (1.0.1)
+Generating Pods project
+Integrating client project
+Pod installation complete! There are 10 dependencies from the Podfile and 11 total pods installed.
+stanlee@Stans-MacBook-Air App % cd ~/Downloads/Dovie
+
+stanlee@Stans-MacBook-Air Dovie % npx cap open ios
+
+
+✔ Opening the Xcode workspace... in 3.00s
+stanlee@Stans-MacBook-Air Dovie % log stream --predicate 'process == "apsd" OR subsystem contains "com.apple.apns"' --device --level debug
+
+
+log: unrecognized option `--device'
+usage: log stream [options]
+   or: log stream [options] --process <pid> | <process>
+   or: log stream [options] --user <uid> | <user> 
+
+description:
+    Stream events from the system or a given process.
+
+options:
+    --[no-]backtrace                Control whether backtraces are shown
+    --color <mode>                  Control color output (valid: auto, always, none)
+    --level default | info | debug  Include events at, and below, the given level
+    --predicate <predicate>         Filter events using the given predicate
+    --process <pid> | <process>     Stream events from the specified process
+    --user <uid> | <user>           Stream events from the specified user
+    --source                        Annotate output with source file and line-number
+    --style <style>                 Output format (valid: default, syslog, json, ndjson, compact)
+    --timeout <num>[m|h|d]          Terminate streaming after timeout has elapsed
+    --type activity | log | trace   Limit streaming to a given event type
+    --mach-continuous-time          Print mach continuous time timestamps rather than walltime
+    --unreliable                    Annotate output with whether the log was emitted unreliably
+    --ignore-dropped                Don't output anything for dropped messages while streaming
+
+predicate usage:
+    Filter predicates follow the NSPredicate format described at:
+    https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/Predicates/AdditionalChapters/Introduction.html
+
+    For predicate field/type details, see `log help predicates`.
+
+shorthand usage: 
+    Shorthand is converted to a predicate. For details, see `log help shorthand`.
+
+stanlee@Stans-MacBook-Air Dovie % 

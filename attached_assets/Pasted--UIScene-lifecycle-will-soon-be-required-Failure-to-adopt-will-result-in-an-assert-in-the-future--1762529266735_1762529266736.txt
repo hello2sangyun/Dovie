@@ -1,0 +1,242 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/A162FD11-6B61-4D9B-9F8C-7CC03DFF54D8/App.app'
+⚡️  Loading app at https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev...
+WebContent process (0x1110e8100) took 2.946450 seconds to launch
+Networking process (0x111054190) took 6.416066 seconds to launch
+GPU process (0x1111101e0) took 2.138889 seconds to launch
+0x1110e8100 - [PID=78453] WebProcessProxy::didBecomeUnresponsive:
+0x106374718 - [pageProxyID=7, webPageID=8, PID=78453] WebPageProxy::processDidBecomeUnresponsive:
+WebContent[78453] Unable to hide query parameters from script (missing data)
+⚡️  [debug] - [vite] connecting...
+⚡️  [log] - 📱 No stored user, initializing as logged out
+⚡️  WebView loaded
+[C:3] Error received: Connection interrupted.
+[C:3-1] Error received: Connection interrupted.
+-[RTIInputSystemClient _configureConnection:withMachName:]_block_invoke  Client connection to service was interrupted: <NSXPCConnection: 0x1170b33e0> connection to service with pid -1 named (null)
+Reporter disconnected. { function=sendMessage, reporterID=336935889403905 }
+Reporter disconnected. { function=sendMessage, reporterID=336935889403905 }
+Reporter disconnected. { function=sendMessage, reporterID=336935889403905 }
+Reporter disconnected. { function=sendMessage, reporterID=336935889403905 }
+Reporter disconnected. { function=sendMessage, reporterID=336935889403905 }
+Reporter disconnected. { function=sendMessage, reporterID=336935889403905 }
+Reporter disconnected. { function=sendMessage, reporterID=336935889403905 }
+Reporter disconnected. { function=sendMessage, reporterID=336935889403905 }
+Reporter disconnected. { function=sendMessage, reporterID=336935889403905 }
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+	(Note: If you're seeing NSAutoresizingMaskLayoutConstraints that you don't understand, refer to the documentation for the UIView property translatesAutoresizingMaskIntoConstraints) 
+(
+    "<NSAutoresizingMaskLayoutConstraint:0x11ad26f30 h=-&- v=-&- _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x11acd6200.minX == 0   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x11ad79400 )>",
+    "<NSAutoresizingMaskLayoutConstraint:0x11ad26f80 h=-&- v=-&- H:[_TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x11acd6200]-(0)-|   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x11ad79400 )>",
+    "<NSLayoutConstraint:0x11ad26710 _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x11acd6200.width == _UIButtonBarButton:0x11ad79180.width   (active)>",
+    "<NSLayoutConstraint:0x11ad26df0 '_UITemporaryLayoutWidth' _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x11ad79400.width == 0   (active)>",
+    "<NSLayoutConstraint:0x11ad26850 'IB_Leading_Leading' H:|-(8)-[_UIModernBarButton:0x11ad9ca80]   (active, names: '|':_UIButtonBarButton:0x11ad79180 )>",
+    "<NSLayoutConstraint:0x11ad268a0 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x11ad9ca80]-(8)-|   (active, names: '|':_UIButtonBarButton:0x11ad79180 )>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x11ad268a0 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x11ad9ca80]-(8)-|   (active, names: '|':_UIButtonBarButton:0x11ad79180 )>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+	(Note: If you're seeing NSAutoresizingMaskLayoutConstraints that you don't understand, refer to the documentation for the UIView property translatesAutoresizingMaskIntoConstraints) 
+(
+    "<NSAutoresizingMaskLayoutConstraint:0x11ae74410 h=-&- v=-&- _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x11acd6600.minX == 0   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x11ad79900 )>",
+    "<NSAutoresizingMaskLayoutConstraint:0x11ae74460 h=-&- v=-&- H:[_TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x11acd6600]-(0)-|   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x11ad79900 )>",
+    "<NSLayoutConstraint:0x11ad27e80 _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x11acd6600.width == _UIButtonBarButton:0x11ad79680.width   (active)>",
+    "<NSLayoutConstraint:0x11ae742d0 '_UITemporaryLayoutWidth' _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x11ad79900.width == 0   (active)>",
+    "<NSLayoutConstraint:0x117148140 'IB_Leading_Leading' H:|-(8)-[_UIModernBarButton:0x11ad9ce00]   (active, names: '|':_UIButtonBarButton:0x11ad79680 )>",
+    "<NSLayoutConstraint:0x1061be6c0 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x11ad9ce00]-(8)-|   (active, names: '|':_UIButtonBarButton:0x11ad79680 )>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x1061be6c0 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x11ad9ce00]-(8)-|   (active, names: '|':_UIButtonBarButton:0x11ad79680 )>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+	(Note: If you're seeing NSAutoresizingMaskLayoutConstraints that you don't understand, refer to the documentation for the UIView property translatesAutoresizingMaskIntoConstraints) 
+(
+    "<NSAutoresizingMaskLayoutConstraint:0x11ae75a40 h=-&- v=-&- _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x11acd6a00.minX == 0   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x11ad79e00 )>",
+    "<NSAutoresizingMaskLayoutConstraint:0x11ae75a90 h=-&- v=-&- H:[_TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x11acd6a00]-(0)-|   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x11ad79e00 )>",
+    "<NSLayoutConstraint:0x11ae75310 _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x11acd6a00.width == _UIButtonBarButton:0x11ad79b80.width   (active)>",
+    "<NSLayoutConstraint:0x11ae75900 '_UITemporaryLayoutWidth' _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$19f4a2dd420ButtonRepresentation__:0x11ad79e00.width == 0   (active)>",
+    "<NSLayoutConstraint:0x11ae75400 'IB_Leading_Leading' H:|-(8)-[_UIModernBarButton:0x11ad9d180]   (active, names: '|':_UIButtonBarButton:0x11ad79b80 )>",
+    "<NSLayoutConstraint:0x11ae75450 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x11ad9d180]-(8)-|   (active, names: '|':_UIButtonBarButton:0x11ad79b80 )>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x11ae75450 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x11ad9d180]-(8)-|   (active, names: '|':_UIButtonBarButton:0x11ad79b80 )>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = BDC429D2-718A-4032-B497-0154673F065B
+containerToPush is nil, will not push anything to candidate receiver for request token: 796282CA
+<_UIKBFeedbackGenerator: 0x10626bd80>: Error: Cannot start engine because it does not exist.
+<_UIKBFeedbackGenerator: 0x10626bd80>: Engine is not running. Can't play feedback.
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  Can only perform input operation for an active session. sessionID = 04294262-EEB8-4D40-8718-69FC63C633B6
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  Can only perform input operation for an active session. sessionID = 04294262-EEB8-4D40-8718-69FC63C633B6
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  Can only perform input operation for an active session. sessionID = 04294262-EEB8-4D40-8718-69FC63C633B6
+<_UIKBFeedbackGenerator: 0x117295980>: Error: Cannot start engine because it does not exist.
+<_UIKBFeedbackGenerator: 0x117295980>: Engine is not running. Can't play feedback.
+<_UIKBFeedbackGenerator: 0x117295980>: Error: Cannot start engine because it does not exist.
+<_UIKBFeedbackGenerator: 0x117295980>: Engine is not running. Can't play feedback.
+<_UIKBFeedbackGenerator: 0x117295980>: Error: Cannot start engine because it does not exist.
+<_UIKBFeedbackGenerator: 0x117295980>: Engine is not running. Can't play feedback.
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+Reporter disconnected. { function=sendMessage, reporterID=336935889403906 }
+Reporter disconnected. { function=sendMessage, reporterID=336935889403906 }
+Reporter disconnected. { function=sendMessage, reporterID=336935889403906 }
+Reporter disconnected. { function=sendMessage, reporterID=336935889403906 }
+Reporter disconnected. { function=sendMessage, reporterID=336935889403906 }
+Reporter disconnected. { function=sendMessage, reporterID=336935889403906 }
+Reporter disconnected. { function=sendMessage, reporterID=336935889403906 }
+Reporter disconnected. { function=sendMessage, reporterID=336935889403906 }
+Reporter disconnected. { function=sendMessage, reporterID=336935889403906 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 080FF751-D326-40AA-B346-0FCFD5C6E7FA
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+Reporter disconnected. { function=sendMessage, reporterID=336935889403907 }
+Reporter disconnected. { function=sendMessage, reporterID=336935889403907 }
+Reporter disconnected. { function=sendMessage, reporterID=336935889403907 }
+Reporter disconnected. { function=sendMessage, reporterID=336935889403907 }
+Reporter disconnected. { function=sendMessage, reporterID=336935889403907 }
+Reporter disconnected. { function=sendMessage, reporterID=336935889403907 }
+Reporter disconnected. { function=sendMessage, reporterID=336935889403907 }
+Reporter disconnected. { function=sendMessage, reporterID=336935889403907 }
+Reporter disconnected. { function=sendMessage, reporterID=336935889403907 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 080FF751-D326-40AA-B346-0FCFD5C6E7FA
+⚡️  [log] - SMS verification successful, user data: {"id":112,"username":"naya2sangyun","displayName":"나야24","email":"24@gmail.com","password":"$2b$10$mlwJy0OGNVridOrYghPhneuAUcqQZXIOXSy7QqRHNkLjjcJPhVrRq","phoneNumber":"+36703566630","birthday":null,"profilePicture":"/uploads/profile_1750617686061_8br3igrqnq.jpg","qrCode":null,"qrToken":"8e8a530f6bac146ff1f1145235c8f5e6b6f533289bc732b2484fdb2dcea2fc1b","qrTokenExpiry":"2025-06-25T20:50:05.503Z","isOnline":true,"lastSeen":"2025-11-06T18:01:28.719Z","language":"ko","notificationsEnabled":true,"notificationSound":"default","isEmailVerified":true,"isProfileComplete":true,"userRole":"user","businessName":null,"businessAddress":null,"businessLatitude":null,"businessLongitude":null,"isBusinessVerified":false,"allowVoicePlayback":true,"autoPlayVoiceMessages":false,"allowVoiceBookmarks":true,"authProvider":null,"providerId":null,"providerEmail":null,"aiPreferences":null,"createdAt":"2025-06-22T10:16:09.439Z"}
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+⚡️  [debug] - [vite] connecting...
+⚡️  WebView loaded
+⚡️  [log] - [Badge] Service Worker not supported
+⚡️  To Native ->  App addListener 24599470
+⚡️  To Native ->  App addListener 24599471
+⚡️  To Native ->  App addListener 24599472
+⚡️  To Native ->  PushNotifications addListener 24599473
+⚡️  To Native ->  PushNotifications addListener 24599474
+⚡️  To Native ->  PushNotifications addListener 24599475
+⚡️  To Native ->  PushNotifications addListener 24599476
+⚡️  To Native ->  PushNotifications requestPermissions 24599477
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [log] - 🔄 Auth context updating user: 112 profilePicture: /uploads/profile_1750617686061_8br3igrqnq.jpg
+⚡️  [log] - 🚀 Starting profile image preloading...
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [log] - 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+⚡️  [log] - MainApp rendering with user: 112
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  To Native ->  App addListener 24599478
+⚡️  To Native ->  App addListener 24599479
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - 📥 Found 4 profile images to preload
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 0
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: []
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1750617357396_bmzacckp9z.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1750617686061_8br3igrqnq.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761603336729_ol7qqlpxpv.jpg
+⚡️  [log] - 🎉 Profile image preloading completed!
+⚡️  TO JS {"receive":"granted"}
+⚡️  To Native ->  PushNotifications register 24599480
+⚡️  TO JS undefined
+⚡️  [log] - 📱 iOS 네이티브 푸시 알림 등록 성공 (리스너 대기 중)
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App foregrounded - reconnecting WebSocket
+⚡️  To Native ->  App removeListener 24599481
+⚡️  To Native ->  App addListener 24599482
+⚡️  [log] - 📱 PWA Badge update: 0 → 1 (messages: 1, AI: 0)
+⚡️  [log] - 📱 Native Badge update: 0 → 1 (messages: 1, AI: 0)
+⚡️  To Native ->  Badge set 24599483
+⚡️  TO JS undefined
+⚡️  [log] - ✅ Native badge count set to 1
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 1
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: [{"chatRoomId":127,"unreadCount":1}]
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 1
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 1
+⚡️  To Native ->  App addListener 24599484
+⚡️  To Native ->  App removeListener 24599485
+⚡️  [log] - 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: 이소은 테스트
+⚡️  To Native ->  Filesystem mkdir 24599486
+⚡️  To Native ->  Filesystem mkdir 24599487
+⚡️  To Native ->  App removeListener 24599488
+⚡️  TO JS undefined
+ERROR MESSAGE:  {"message":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/16908555-46E7-4117-8CC5-8E440B707F92\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010","errorMessage":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/16908555-46E7-4117-8CC5-8E440B707F92\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten."}
+⚡️  To Native ->  Filesystem readFile 24599489
+⚡️  To Native ->  Filesystem readFile 24599490
+⚡️  [error] - {"message":"Directory at 'file:///var/mobile/Containers/Data/Application/16908555-46E7-4117-8CC5-8E440B707F92/Library/Caches/file_cache/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010","errorMessage":"Directory at 'file:///var/mobile/Containers/Data/Application/16908555-46E7-4117-8CC5-8E440B707F92/Library/Caches/file_cache/'  already exists, cannot be overwritten."}
+ERROR MESSAGE:  {"message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","code":"OS-PLUG-FILE-0013","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+ERROR MESSAGE:  {"code":"OS-PLUG-FILE-0013","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [error] - {"message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","code":"OS-PLUG-FILE-0013","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [log] - [FileCache] No existing cache index, starting fresh
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  [error] - {"code":"OS-PLUG-FILE-0013","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [log] - [FileCache] No existing cache index, starting fresh
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  To Native ->  App addListener 24599491
+⚡️  To Native ->  App addListener 24599492
+⚡️  To Native ->  Badge set ⚡️  [log] - 📱 Real-time badge sync event: 0
+24599493
+⚡️  TO JS undefined
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 0
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: []
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  To Native ->  Badge set 24599494
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  [log] - 📱 PWA Badge update: 1 → 0 (messages: 0, AI: 0)
+⚡️  To Native ->  App addListener 24599495
+⚡️  To Native ->  App removeListener 24599496
+⚡️  To Native ->  App removeListener 24599497
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+Snapshotting a view (0x11ac4c000, UIKeyboardImpl) that is not in a visible window requires afterScreenUpdates:YES.
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline
