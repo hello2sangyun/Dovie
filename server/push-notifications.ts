@@ -37,6 +37,8 @@ interface PushNotificationPayload {
   sound?: string;
   unreadCount?: number;
   badgeCount?: number;  // Explicit iOS badge count
+  timestamp?: number;   // Notification timestamp
+  renotify?: boolean;   // Re-notify for grouped notifications
 }
 
 export async function sendPushNotification(
@@ -175,20 +177,26 @@ export async function sendPushNotification(
         };
 
         // Telegram/WhatsApp-style delivery options
+        const headers: Record<string, string> = {
+          'Topic': 'dovie-messenger',
+          // iOS optimizations (like WhatsApp iOS)
+          'apns-priority': '10',
+          'apns-push-type': 'alert',
+          'apns-topic': 'com.dovie.messenger',
+          // Android optimizations (like Telegram Android)
+          'FCM-Priority': 'high'
+        };
+        
+        // Add optional headers only if they exist
+        if (payload.tag) {
+          headers['apns-collapse-id'] = payload.tag; // Group notifications like WhatsApp
+          headers['FCM-Collapse-Key'] = payload.tag;
+        }
+        
         const options = {
           TTL: 60 * 60 * 24 * 7, // 7 days (like Telegram)
           urgency: 'high' as const,
-          headers: {
-            'Topic': 'dovie-messenger',
-            // iOS optimizations (like WhatsApp iOS)
-            'apns-priority': '10',
-            'apns-push-type': 'alert',
-            'apns-topic': 'com.dovie.messenger',
-            'apns-collapse-id': payload.tag, // Group notifications like WhatsApp
-            // Android optimizations (like Telegram Android)
-            'FCM-Collapse-Key': payload.tag,
-            'FCM-Priority': 'high'
-          }
+          headers
         };
 
         console.log(`📱 Sending Telegram-style notification to user ${userId}:`, {
