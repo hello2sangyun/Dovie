@@ -2,6 +2,16 @@ import webpush from 'web-push';
 import jwt from 'jsonwebtoken';
 import { storage } from './storage';
 
+// APNS Environment Detection
+const IS_PRODUCTION = process.env.NODE_ENV !== 'development';
+const APNS_SERVER = IS_PRODUCTION ? 'api.push.apple.com' : 'api.development.push.apple.com';
+
+console.log(`\n📱 ========================================`);
+console.log(`📱 APNS Push Notification Service`);
+console.log(`📱 Environment: ${IS_PRODUCTION ? 'PRODUCTION' : 'DEVELOPMENT'}`);
+console.log(`📱 Server: ${APNS_SERVER}`);
+console.log(`📱 ========================================\n`);
+
 // VAPID keys for web push
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || 'BEJz0sc4kl1Mc2a34ZXfkT3zTCkgJtWE58fpZgpo7Z9tAl3cmbwGP4JCZSrbMdCzvILww-1eMC7ONC-JCo_dFRc';
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || 'Dq1anJf0nXWXhNT27dI0SEXIsfImRbRnrFeB5WJZvQU';
@@ -267,14 +277,8 @@ async function sendIOSPushNotifications(
       // APNS HTTP/2 요청 구성
       const postData = JSON.stringify(apnsPayload);
       
-      // Use production APNS server by default, development if NODE_ENV is development
-      const isProduction = process.env.NODE_ENV !== 'development';
-      const apnsHostname = isProduction 
-        ? 'api.push.apple.com' 
-        : 'api.development.push.apple.com';
-      
       const options = {
-        hostname: apnsHostname,
+        hostname: APNS_SERVER,
         port: 443,
         path: `/3/device/${deviceToken}`,
         method: 'POST',
@@ -288,8 +292,6 @@ async function sendIOSPushNotifications(
           'content-length': Buffer.byteLength(postData)
         }
       };
-      
-      console.log(`📱 Using APNS server: ${apnsHostname} (${isProduction ? 'production' : 'development'})`)
 
       console.log(`📱 iOS APNS 알림 발송: ${deviceToken.substring(0, 20)}...`);
 
