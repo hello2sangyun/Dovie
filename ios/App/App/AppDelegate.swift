@@ -25,7 +25,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     // APNS: 푸시 알림 수신 (백그라운드)
     func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-        NotificationCenter.default.post(name: NSNotification.Name.CDVRemoteNotification, object: userInfo)
+        NotificationCenter.default.post(name: NSNotification.Name(rawValue: "pushNotificationReceived"), object: userInfo)
         completionHandler(.newData)
     }
 
