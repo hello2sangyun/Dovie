@@ -80,18 +80,21 @@ export async function sendPushNotification(
       }
     }
 
-    // Telegram/WhatsApp-style intelligent filtering: Don't send to active users
+    // Telegram/WhatsApp-style intelligent filtering: Send silent push to active users
+    // This ensures badge updates even when the app is in background
     const userActivity = await storage.getUserActivity(userId);
+    let isSilentPush = false;
+    
     if (userActivity?.isOnline) {
-      console.log(`🚫 Skipping push notification for user ${userId}: currently active/online`);
-      return;
-    }
-
-    // Check if user was active in the last 2 minutes (like WhatsApp)
-    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
-    if (userActivity?.lastSeen && userActivity.lastSeen > twoMinutesAgo) {
-      console.log(`🚫 Skipping push notification for user ${userId}: recently active (${userActivity.lastSeen})`);
-      return;
+      console.log(`🔕 User ${userId} currently active/online - sending silent push (badge only)`);
+      isSilentPush = true;
+    } else {
+      // Check if user was active in the last 2 minutes (like WhatsApp)
+      const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+      if (userActivity?.lastSeen && userActivity.lastSeen > twoMinutesAgo) {
+        console.log(`🔕 User ${userId} recently active (${userActivity.lastSeen}) - sending silent push (badge only)`);
+        isSilentPush = true;
+      }
     }
 
     // Get user's push subscriptions (PWA)
@@ -216,8 +219,12 @@ export async function sendPushNotification(
 
     // iOS APNS 푸시 알림 발송
     if (iosTokens.length > 0) {
-      console.log(`📱 iOS APNS 알림 발송 시작: ${iosTokens.length}개 디바이스`);
-      await sendIOSPushNotifications(iosTokens, payload, userId);
+      if (isSilentPush) {
+        console.log(`📱 iOS APNS Silent Push 발송 시작: ${iosTokens.length}개 디바이스 (배지만 업데이트)`);
+      } else {
+        console.log(`📱 iOS APNS 알림 발송 시작: ${iosTokens.length}개 디바이스`);
+      }
+      await sendIOSPushNotifications(iosTokens, payload, userId, isSilentPush);
     }
 
   } catch (error) {
@@ -229,7 +236,8 @@ export async function sendPushNotification(
 async function sendIOSPushNotifications(
   iosTokens: any[], 
   payload: PushNotificationPayload,
-  userId: number
+  userId: number,
+  isSilent: boolean = false
 ): Promise<void> {
   const https = require('https');
   
@@ -237,26 +245,33 @@ async function sendIOSPushNotifications(
     try {
       const deviceToken = tokenInfo.device_token;
       
-      // iOS APNS 페이로드 구성 (Rich Notifications with images, action buttons, grouping)
-      // Note: badgeCount is now auto-calculated earlier in sendPushNotification
+      // iOS APNS 페이로드 구성
       const apnsPayload: any = {
         aps: {
-          alert: {
-            title: payload.title || "새 메시지",
-            body: payload.body || "새 메시지가 도착했습니다",
-            // Optional subtitle for additional context
-            ...(payload.data?.subtitle && { subtitle: payload.data.subtitle })
-          },
-          // Use nullish coalescing to preserve zero values (allows badge to clear)
-          // badgeCount is auto-calculated earlier if not provided
-          badge: payload.badgeCount ?? 0,
-          sound: payload.sound || "default",
-          // Enable rich notifications (images, videos, audio)
-          "mutable-content": 1,
-          // Enable background updates
-          "content-available": 1,
-          // Category for action buttons (reply, mark read, etc.)
-          category: "MESSAGE_CATEGORY",
+          // Silent push: badge only, no alert/sound (Apple allows this with 'alert' type)
+          // Normal push: full notification with alert, badge, sound
+          ...(isSilent ? {
+            // Silent badge update: badge only, no alert/sound
+            badge: payload.badgeCount ?? 0,
+            // Enable background updates
+            "content-available": 1,
+          } : {
+            // Normal notification: alert, badge, sound, rich media
+            alert: {
+              title: payload.title || "새 메시지",
+              body: payload.body || "새 메시지가 도착했습니다",
+              // Optional subtitle for additional context
+              ...(payload.data?.subtitle && { subtitle: payload.data.subtitle })
+            },
+            badge: payload.badgeCount ?? 0,
+            sound: payload.sound || "default",
+            // Enable rich notifications (images, videos, audio)
+            "mutable-content": 1,
+            // Enable background updates
+            "content-available": 1,
+            // Category for action buttons (reply, mark read, etc.)
+            category: "MESSAGE_CATEGORY",
+          }),
           // Thread ID for notification grouping (group by chat room)
           "thread-id": `chat-${payload.data?.chatRoomId || 'default'}`
         },
@@ -284,16 +299,24 @@ async function sendIOSPushNotifications(
         method: 'POST',
         headers: {
           'authorization': `bearer ${getAPNSJWT()}`,
+          // Both silent and normal use 'alert' type
+          // Silent: badge-only update (no alert/sound in payload)
+          // Normal: full notification with alert, badge, sound
           'apns-push-type': 'alert',
           'apns-expiration': '0',
-          'apns-priority': '10',
+          // Silent: priority 5 (power efficient), Normal: priority 10 (immediate)
+          'apns-priority': isSilent ? '5' : '10',
           'apns-topic': 'com.dovie.messenger',
           'content-type': 'application/json',
           'content-length': Buffer.byteLength(postData)
         }
       };
 
-      console.log(`📱 iOS APNS 알림 발송: ${deviceToken.substring(0, 20)}...`);
+      if (isSilent) {
+        console.log(`🔕 iOS APNS Silent Push 발송 (배지만): ${deviceToken.substring(0, 20)}...`);
+      } else {
+        console.log(`📱 iOS APNS 알림 발송: ${deviceToken.substring(0, 20)}...`);
+      }
 
       // HTTP/2 요청 발송
       const req = https.request(options, (res: any) => {
