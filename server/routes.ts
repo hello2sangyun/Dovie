@@ -2057,12 +2057,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log(`📱 Telegram-style notification: ${sender.displayName} sent message`);
             
             for (const recipient of recipients) {
-              // Check if user has enabled push notifications
+              // Check if user has enabled push notifications (PWA or iOS)
               const subscriptions = await storage.getUserPushSubscriptions(recipient.id);
-              if (subscriptions.length === 0) {
-                console.log(`📱 User ${recipient.id} has no push subscriptions - skipping`);
+              const hasIOSToken = await storage.hasIOSDeviceToken(recipient.id);
+              
+              if (subscriptions.length === 0 && !hasIOSToken) {
+                console.log(`📱 User ${recipient.id} has no push subscriptions (PWA or iOS) - skipping`);
                 continue;
               }
+              
+              console.log(`📱 User ${recipient.id} has push enabled: PWA=${subscriptions.length > 0}, iOS=${hasIOSToken}`);
               
               // Check if recipient is currently online and actively viewing this chat
               // In production, this would check WebSocket connections and current chat focus
