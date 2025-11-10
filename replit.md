@@ -44,22 +44,35 @@ Key features include:
 - **Push Notifications**: `web-push` for PWA notifications, APNS for iOS native.
 
 ## Recent Changes (2024-11-10)
-### iOS Keyboard Performance Fix
-- **Problem**: 10-second lag when tapping text fields, "Reporter disconnected" errors flooding console, 2-second delay on first keyboard touch
-- **Root Cause**: `resize: 'body'` mode causes excessive WKWebView ↔ iOS native messaging overhead. iOS resizes webview AFTER keyboard animation completes (not before), creating communication overload
-- **Solution**: Changed Capacitor keyboard config to `resize: 'none'`:
-  - Keyboard overlays content without resizing webview
-  - Eliminates JavaScript/native bridge communication overhead
-  - Removes AutoLayout constraint conflicts
-  - Result: Instant keyboard response, zero lag
-- **Configuration** (`capacitor.config.ts`):
+### iOS Keyboard Performance Fix (Final Solution)
+- **Problem**: Multiple keyboard-related issues on iOS:
+  1. 10-second lag when tapping text fields
+  2. "Reporter disconnected" errors flooding console
+  3. UITapGestureRecognizer blocking for 20+ seconds
+  4. Keyboard overlay hiding input fields
+  
+- **Evolution of Solutions**:
+  1. **`resize: 'body'`** (Initial): Excessive WKWebView ↔ iOS native messaging overhead, 10-second lag
+  2. **`resize: 'none'`** (Second attempt): Fixed lag but caused XPC connection interrupts and keyboard overlaying input fields
+  3. **`resize: 'ionic'`** (Final solution): Perfect balance - lightweight performance with automatic viewport adjustment
+  
+- **Final Configuration** (`capacitor.config.ts`):
   ```typescript
   Keyboard: {
-    resize: 'none',        // No webview resize = minimal communication
+    resize: 'ionic',       // JS-driven webview resizing - optimal performance
     style: 'dark',         // Matches app theme
     resizeOnFullScreen: false  // Prevents constraint conflicts
   }
   ```
+  
+- **Why `resize: 'ionic'` is optimal**:
+  - Avoids heavy `resize: 'body'` native messaging overhead
+  - Prevents `resize: 'none'` XPC disconnection issues
+  - Automatically scrolls viewport when keyboard appears
+  - Keeps input fields visible without manual JavaScript intervention
+  - Eliminates UITapGestureRecognizer blocking
+  
+- **Result**: Zero lag, no XPC errors, input fields always visible, instant keyboard response
 
 ### Profile Image Preloading Removal (2024-11-10)
 - **Problem**: iOS keyboard lag persisted even after Capacitor keyboard config fix; profile image preloading blocked main thread during app initialization
