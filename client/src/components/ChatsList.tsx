@@ -823,6 +823,8 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
                 isChecked={selectedRoomIds.includes(chatRoom.id)}
                 onLongPressStart={handleLongPressStart}
                 onLongPressEnd={handleLongPressEnd}
+                onTouchMove={handleTouchMove}
+                onTouchCancel={handleTouchCancel}
                 isRecording={isRecording && recordingChatRoom?.id === chatRoom.id}
               />
             ))}
@@ -851,6 +853,8 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
                 isChecked={selectedRoomIds.includes(chatRoom.id)}
                 onLongPressStart={handleLongPressStart}
                 onLongPressEnd={handleLongPressEnd}
+                onTouchMove={handleTouchMove}
+                onTouchCancel={handleTouchCancel}
                 isRecording={isRecording && recordingChatRoom?.id === chatRoom.id}
               />
             ))}
@@ -931,6 +935,8 @@ function ChatRoomItem({
   isChecked = false,
   onLongPressStart,
   onLongPressEnd,
+  onTouchMove,
+  onTouchCancel,
   isRecording = false
 }: {
   chatRoom: any;
@@ -945,7 +951,9 @@ function ChatRoomItem({
   isMultiSelectMode?: boolean;
   isChecked?: boolean;
   onLongPressStart?: (chatRoom: any, e?: React.TouchEvent | React.MouseEvent) => void;
-  onLongPressEnd?: (e?: React.TouchEvent | React.MouseEvent) => void;
+  onLongPressEnd?: (e: React.TouchEvent | React.MouseEvent, chatRoomId: number) => void;
+  onTouchMove?: (e: React.TouchEvent) => void;
+  onTouchCancel?: () => void;
   isRecording?: boolean;
 }) {
   const { user } = useAuth();
@@ -1059,13 +1067,13 @@ function ChatRoomItem({
             }
           }}
           onTouchMove={(e) => {
-            if (!isMultiSelectMode) {
-              handleTouchMove(e);
+            if (!isMultiSelectMode && onTouchMove) {
+              onTouchMove(e);
             }
           }}
           onTouchCancel={() => {
-            if (!isMultiSelectMode) {
-              handleTouchCancel();
+            if (!isMultiSelectMode && onTouchCancel) {
+              onTouchCancel();
             }
           }}
           onTouchEnd={(e) => {
