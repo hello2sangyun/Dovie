@@ -45,7 +45,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 export default function MainApp() {
-  const { user, isLoading, isPreloadingImages, preloadProfileImages } = useAuth();
+  const { user, isLoading } = useAuth();
   const queryClient = useQueryClient();
   const { preloadImage, isLoading: imagePreloading } = useImagePreloader();
   const [location, setLocation] = useLocation();
@@ -67,9 +67,6 @@ export default function MainApp() {
   const [messageDataForCommand, setMessageDataForCommand] = useState<any>(null);
   const [contactFilter, setContactFilter] = useState<number | null>(null);
   const [friendFilter, setFriendFilter] = useState<number | null>(null);
-  
-  // 프로필 이미지 프리로딩 플래그 - 사용자별로 한 번만 실행되도록
-  const lastPreloadedUserIdRef = useRef<number | null>(null);
 
   const { sendMessage, connectionState, pendingMessageCount } = useWebSocket(user?.id);
   
@@ -237,33 +234,6 @@ export default function MainApp() {
       window.history.pushState(newState, '', location);
     }
   }, [activeTab, activeMobileTab, selectedChatRoom, showMobileChat, showSettings, location]);
-
-  // 프로필 이미지 프리로딩 - 브라우저가 한가할 때만 실행 (렉 방지)
-  useEffect(() => {
-    if (user?.id && lastPreloadedUserIdRef.current !== user.id) {
-      console.log("⏰ 프로필 이미지 프리로딩 예약 - 브라우저 유휴 시간에 실행됩니다...");
-      
-      // 먼저 5초 대기 후 requestIdleCallback으로 유휴 시간에 실행
-      const initialTimer = setTimeout(() => {
-        // requestIdleCallback을 사용해서 브라우저가 한가할 때만 실행
-        const requestIdleCallbackFn = (window as any).requestIdleCallback || ((cb: Function) => setTimeout(cb, 1));
-        
-        const idleCallbackId = requestIdleCallbackFn(() => {
-          console.log("🚀 프로필 이미지 프리로딩 시작 (유휴 시간)");
-          lastPreloadedUserIdRef.current = user.id; // 현재 사용자 ID 저장하여 중복 실행 방지
-          preloadProfileImages(user.id.toString()).catch((error) => {
-            console.log("⚠️ 프로필 이미지 프리로딩 실패, 정상 진행:", error);
-          });
-        }, { timeout: 10000 }); // 최대 10초 대기
-        
-        return idleCallbackId;
-      }, 5000); // 5초 후 유휴 시간 대기 시작
-
-      return () => {
-        clearTimeout(initialTimer);
-      };
-    }
-  }, [user?.id, preloadProfileImages]);
 
   // Handle URL parameters for chat room and friend filter
   useEffect(() => {
@@ -1353,10 +1323,10 @@ export default function MainApp() {
       {/* Mobile Banner Notifications - replaces bottom popup notifications */}
       <BannerNotificationContainer />
 
-      {/* Loading screen overlay for profile image preloading */}
-      {(isLoading || isPreloadingImages) && (
+      {/* Loading screen overlay */}
+      {isLoading && (
         <div className="fixed inset-0 z-50 bg-white">
-          <LoadingScreen message="프로필 이미지를 다운로드하는 중..." />
+          <LoadingScreen message="로딩 중..." />
         </div>
       )}
     </div>

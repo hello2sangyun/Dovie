@@ -1,6 +1,6 @@
-const CACHE_NAME = 'dovie-messenger-v1';
-const STATIC_CACHE_NAME = 'dovie-static-v1';
-const DYNAMIC_CACHE_NAME = 'dovie-dynamic-v1';
+const CACHE_NAME = 'dovie-messenger-v2';
+const STATIC_CACHE_NAME = 'dovie-static-v2';
+const DYNAMIC_CACHE_NAME = 'dovie-dynamic-v2';
 
 // Static assets to cache
 const STATIC_ASSETS = [

@@ -1,5 +1,5 @@
 // iOS 16 PWA 전용 Service Worker
-const CACHE_NAME = 'dovie-ios16-v1';
+const CACHE_NAME = 'dovie-ios16-v2';
 
 // iOS 16 호환 설치
 self.addEventListener('install', (event) => {

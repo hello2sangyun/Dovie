@@ -1,5 +1,5 @@
 // iOS 16 PWA 강화 Service Worker - 푸시/알림/배지 최적화
-const CACHE_NAME = 'dovie-ios16-enhanced-v1';
+const CACHE_NAME = 'dovie-ios16-enhanced-v2';
 
 // iOS 16 PWA 호환 설치
 self.addEventListener('install', (event) => {

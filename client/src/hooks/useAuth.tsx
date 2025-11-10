@@ -1,19 +1,15 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { User } from "@shared/schema";
-import { useInstantImageCache } from "./useInstantImageCache";
-import { usePermissions } from "./usePermissions";
 
 interface AuthContextType {
   user: User | null;
   setUser: (user: User | null) => void;
   logout: () => void;
   isLoading: boolean;
-  isPreloadingImages: boolean;
   loginWithUsername: (username: string, password: string) => Promise<any>;
   loginWithEmail: (email: string, password: string) => Promise<any>;
   requestPermissions: () => Promise<void>;
-  preloadProfileImages: (userId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,8 +17,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [initialized, setInitialized] = useState(false);
-  const [profileImagesLoaded, setProfileImagesLoaded] = useState(false);
-  const [isPreloadingImages, setIsPreloadingImages] = useState(false);
 
   // PWAPushManager가 처리하므로 간소화됨
   const autoEnablePushNotifications = async (userId?: number) => {
@@ -58,109 +52,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     retry: false,
   });
 
-  // 연락처와 채팅룸 데이터에서 프로필 이미지 URL 추출 및 프리로딩
-  const preloadProfileImages = useCallback(async (userId: string) => {
-    setIsPreloadingImages(true);
-    try {
-      console.log("🚀 Starting profile image preloading...");
-      
-      // 프리로딩 타임아웃 설정 (최대 10초)
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error("Preloading timeout")), 10000);
-      });
-      
-      const preloadingPromise = async () => {
-        // 연락처 데이터 가져오기
-        const contactsResponse = await fetch("/api/contacts", {
-          headers: { "x-user-id": userId },
-        });
-        
-        // 채팅룸 데이터 가져오기
-        const chatRoomsResponse = await fetch("/api/chat-rooms", {
-          headers: { "x-user-id": userId },
-        });
-        
-        const profileImageUrls = new Set<string>();
-        
-        if (contactsResponse.ok) {
-          const contactsData = await contactsResponse.json();
-          contactsData.contacts?.forEach((contact: any) => {
-            if (contact.contactUser?.profilePicture) {
-              profileImageUrls.add(contact.contactUser.profilePicture);
-            }
-          });
-        }
-        
-        if (chatRoomsResponse.ok) {
-          const chatRoomsData = await chatRoomsResponse.json();
-          chatRoomsData.chatRooms?.forEach((chatRoom: any) => {
-            if (chatRoom.profilePicture) {
-              profileImageUrls.add(chatRoom.profilePicture);
-            }
-            // 채팅방 참가자 프로필 이미지들도 포함
-            if (chatRoom.participants) {
-              chatRoom.participants.forEach((participant: any) => {
-                if (participant.profilePicture) {
-                  profileImageUrls.add(participant.profilePicture);
-                }
-              });
-            }
-          });
-        }
-        
-        console.log(`📥 Found ${profileImageUrls.size} profile images to preload`);
-        
-        // 최대 20개 이미지만 프리로드 (성능 고려)
-        const imagesToPreload = Array.from(profileImageUrls).slice(0, 20);
-        
-        // 모든 프로필 이미지를 병렬로 다운로드 (각각 3초 타임아웃)
-        const imagePromises = imagesToPreload.map(async (imageUrl) => {
-          try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 3000);
-            
-            const response = await fetch(imageUrl, { signal: controller.signal });
-            clearTimeout(timeoutId);
-            
-            if (response.ok) {
-              const blob = await response.blob();
-              const objectUrl = URL.createObjectURL(blob);
-              
-              // 전역 캐시 초기화 (없으면 생성)
-              if (!(window as any).globalImageCache) {
-                (window as any).globalImageCache = new Map();
-              }
-              
-              // 이미지 캐시에 저장
-              (window as any).globalImageCache.set(imageUrl, {
-                blob,
-                objectUrl,
-                timestamp: Date.now(),
-                preloaded: true
-              });
-              
-              console.log("✅ Preloaded profile image:", imageUrl);
-            }
-          } catch (error) {
-            console.log("⚠️ Skipped image:", imageUrl);
-          }
-        });
-        
-        await Promise.allSettled(imagePromises);
-        console.log("🎉 Profile image preloading completed!");
-      };
-      
-      // 타임아웃과 함께 프리로딩 실행
-      await Promise.race([preloadingPromise(), timeoutPromise]);
-      setProfileImagesLoaded(true);
-    } catch (error) {
-      console.log("⚠️ Profile image preloading timed out or failed, proceeding anyway");
-      setProfileImagesLoaded(true); // 실패해도 로그인은 진행
-    } finally {
-      setIsPreloadingImages(false);
-    }
-  }, []); // 빈 의존성 배열 - 한 번만 생성
-
   // Store auth token in Service Worker for independent badge updates
   const storeAuthTokenInSW = async (userId: string) => {
     try {
@@ -183,12 +74,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log("🔄 Auth context updating user:", data.user.id, "profilePicture:", data.user.profilePicture);
       setUser(data.user);
       setInitialized(true);
-      setProfileImagesLoaded(true); // Skip image preloading to prevent loading issues
       
       // Store auth token for independent badge refresh
       storeAuthTokenInSW(data.user.id.toString());
-      
-      // 프리로딩은 MainApp 진입 후에만 실행 (로그인 페이지 렉 방지)
     } else if (error && storedUserId) {
       // Clear user data if authentication fails for stored user
       console.log("❌ Authentication failed, clearing user data");
@@ -196,15 +84,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem("userId");
       localStorage.removeItem("rememberLogin");
       setInitialized(true);
-      setProfileImagesLoaded(true);
-      setIsPreloadingImages(false);
     } else if (!storedUserId && !initialized) {
       // No stored user ID, mark as initialized immediately
       console.log("📱 No stored user, initializing as logged out");
       setUser(null);
       setInitialized(true);
-      setProfileImagesLoaded(true);
-      setIsPreloadingImages(false);
     }
   }, [data, error, storedUserId, initialized]);
 
@@ -303,8 +187,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem("lastLoginTime");
       setUser(null);
       setInitialized(false);
-      setProfileImagesLoaded(false);
-      setIsPreloadingImages(false);
 
       // Clear image cache
       if ((window as any).globalImageCache) {
@@ -395,11 +277,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser: handleSetUser, 
       logout,
       isLoading: (isLoading && !!storedUserId) || !initialized,
-      isPreloadingImages,
       loginWithUsername,
       loginWithEmail,
-      requestPermissions,
-      preloadProfileImages
+      requestPermissions
     }}>
       {children}
     </AuthContext.Provider>
