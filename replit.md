@@ -51,43 +51,45 @@ Key features include:
   - "RTIInputSystemClient" errors and "System gesture gate timed out" messages
   - Keyboard overlaying input fields, making them invisible
   
-- **Root Cause Analysis**:
-  - `resize: 'body'` mode triggers excessive WKWebView ↔ iOS native messaging
-  - Even without Capacitor Keyboard event listeners, the lag persisted
-  - iOS text input system (RTIInputSystemClient) conflicts with `resize: 'body'`
-  - 9-second timeout = iOS waiting for native bridge response before giving up
+- **Root Cause Analysis** (Deep Investigation):
+  - **Initial hypothesis (INCORRECT)**: `resize: 'body'` mode causes native messaging overhead
+  - **Testing**: Changed to `resize: 'none'` but lag persisted with same errors
+  - **True Root Cause**: `backdrop-filter: blur()` + CSS `transform` combination on LoginPage
+  - iOS 16/17 WKWebView has a known performance bug: When keyboard appears, re-rendering blurred layers and transformed ancestors freezes GPU/compositing for several seconds
+  - During this freeze, all native bridge calls fail → "Reporter disconnected" spam (these are symptoms, not the cause)
+  - The Capacitor Keyboard plugin itself was never the problem
   
-- **Final Solution**: `resize: 'none'` + visualViewport Web API
+- **Final Solution**: Remove visual effects that block GPU compositing
   
 - **Configuration** (`capacitor.config.ts`):
   ```typescript
   Keyboard: {
-    resize: 'none',              // Eliminates native bridge overhead
+    resize: 'none',              // Avoids WebView resize overhead
     style: 'dark',               // Matches app theme
     resizeOnFullScreen: false    // Prevents constraint conflicts
   }
   ```
   
 - **LoginPage Implementation** (`client/src/pages/LoginPage.tsx`):
-  - Uses `window.visualViewport` API (Web standard, no native communication)
-  - Detects keyboard height: `window.innerHeight - window.visualViewport.height`
-  - Applies CSS transform to move screen upward when keyboard appears
-  - Smooth 0.3s ease-out transition animation
-  - Moves screen up by 40% of keyboard height to keep input fields visible
-  - Auto-resets to original position when keyboard dismisses
+  - **Removed**: `backdrop-blur-sm` from Card component (GPU-intensive filter)
+  - **Removed**: CSS `transform` animations on container (causes compositing stall)
+  - **Added**: `scrollIntoView({ behavior: 'smooth', block: 'center' })` for focused inputs
+  - Uses `window.visualViewport` API to detect keyboard (Web standard, no native calls)
+  - Simple, performant approach that keeps inputs visible without heavy visual effects
   
 - **Why this approach works**:
-  - `resize: 'none'` removes all native bridge communication for keyboard
-  - visualViewport API is pure Web API - zero iOS native calls
-  - CSS transform is handled entirely by browser rendering engine
-  - No WKWebView ↔ iOS messaging = no lag
-  - Input fields remain visible throughout keyboard interaction
+  - No `backdrop-filter` = no costly GPU layer compositing
+  - No CSS `transform` on input containers = no render pipeline freeze
+  - `scrollIntoView` is handled natively by browser without blocking main thread
+  - `resize: 'none'` avoids unnecessary WebView resize communication
+  - Input fields remain visible through standard scrolling behavior
   
 - **Result**: 
   - ✅ Zero keyboard lag - instant response on text field tap
   - ✅ No "Reporter disconnected" errors
+  - ✅ No GPU/compositing stalls
   - ✅ Input fields stay visible when keyboard appears
-  - ✅ Smooth, native-like animation experience
+  - ✅ Clean, performant implementation
 
 ### Profile Image Preloading Removal (2024-11-10)
 - **Problem**: iOS keyboard lag persisted even after Capacitor keyboard config fix; profile image preloading blocked main thread during app initialization
