@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { User } from "@shared/schema";
 import { useInstantImageCache } from "./useInstantImageCache";
@@ -59,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   // 연락처와 채팅룸 데이터에서 프로필 이미지 URL 추출 및 프리로딩
-  const preloadProfileImages = async (userId: string) => {
+  const preloadProfileImages = useCallback(async (userId: string) => {
     setIsPreloadingImages(true);
     try {
       console.log("🚀 Starting profile image preloading...");
@@ -106,11 +106,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               });
             }
           });
-        }
-        
-        // 현재 사용자 프로필 이미지도 포함
-        if (data?.user?.profilePicture) {
-          profileImageUrls.add(data.user.profilePicture);
         }
         
         console.log(`📥 Found ${profileImageUrls.size} profile images to preload`);
@@ -164,7 +159,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsPreloadingImages(false);
     }
-  };
+  }, []); // 빈 의존성 배열 - 한 번만 생성
 
   // Store auth token in Service Worker for independent badge updates
   const storeAuthTokenInSW = async (userId: string) => {

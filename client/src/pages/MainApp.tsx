@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -67,6 +67,9 @@ export default function MainApp() {
   const [messageDataForCommand, setMessageDataForCommand] = useState<any>(null);
   const [contactFilter, setContactFilter] = useState<number | null>(null);
   const [friendFilter, setFriendFilter] = useState<number | null>(null);
+  
+  // 프로필 이미지 프리로딩 플래그 - 사용자별로 한 번만 실행되도록
+  const lastPreloadedUserIdRef = useRef<number | null>(null);
 
   const { sendMessage, connectionState, pendingMessageCount } = useWebSocket(user?.id);
   
@@ -237,10 +240,11 @@ export default function MainApp() {
 
   // 프로필 이미지 프리로딩 - MainApp 진입 후 5초 지연 실행 (로그인 페이지 렉 방지)
   useEffect(() => {
-    if (user?.id) {
+    if (user?.id && lastPreloadedUserIdRef.current !== user.id) {
       console.log("⏰ 프로필 이미지 프리로딩 5초 후 시작 예정...");
       const preloadTimer = setTimeout(() => {
         console.log("🚀 프로필 이미지 프리로딩 시작");
+        lastPreloadedUserIdRef.current = user.id; // 현재 사용자 ID 저장하여 중복 실행 방지
         preloadProfileImages(user.id.toString()).catch((error) => {
           console.log("⚠️ 프로필 이미지 프리로딩 실패, 정상 진행:", error);
         });
