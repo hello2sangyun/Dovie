@@ -52,14 +52,16 @@ Key features include:
   - Keyboard overlaying input fields, making them invisible
   
 - **Root Cause Analysis** (Deep Investigation):
-  - **Initial hypothesis (INCORRECT)**: `resize: 'body'` mode causes native messaging overhead
-  - **Testing**: Changed to `resize: 'none'` but lag persisted with same errors
-  - **True Root Cause**: `backdrop-filter: blur()` + CSS `transform` combination on LoginPage
-  - iOS 16/17 WKWebView has a known performance bug: When keyboard appears, re-rendering blurred layers and transformed ancestors freezes GPU/compositing for several seconds
-  - During this freeze, all native bridge calls fail → "Reporter disconnected" spam (these are symptoms, not the cause)
-  - The Capacitor Keyboard plugin itself was never the problem
+  - **Initial hypothesis #1 (INCORRECT)**: `resize: 'body'` mode causes native messaging overhead
+  - **Testing #1**: Changed to `resize: 'none'` but lag persisted with same errors
+  - **Initial hypothesis #2 (INCORRECT)**: `backdrop-filter: blur()` + CSS `transform` causes GPU stall
+  - **Testing #2**: Removed backdrop-blur and transform, but lag still persisted
+  - **True Root Cause**: `window.visualViewport` resize listener + `scrollIntoView({behavior: 'smooth'})`
+  - WKWebView keyboard task queue blocks when smooth scrolling runs during keyboard presentation (Apple bug #103286930)
+  - The visualViewport listener fires multiple times per keyboard animation, triggering smooth scrolls that block the queue
+  - During this block, all native bridge calls fail → "Reporter disconnected" spam × 9
   
-- **Final Solution**: Remove visual effects that block GPU compositing
+- **Final Solution**: Use Capacitor Keyboard events + non-blocking scroll
   
 - **Configuration** (`capacitor.config.ts`):
   ```typescript
@@ -71,25 +73,26 @@ Key features include:
   ```
   
 - **LoginPage Implementation** (`client/src/pages/LoginPage.tsx`):
-  - **Removed**: `backdrop-blur-sm` from Card component (GPU-intensive filter)
-  - **Removed**: CSS `transform` animations on container (causes compositing stall)
-  - **Added**: `scrollIntoView({ behavior: 'smooth', block: 'center' })` for focused inputs
-  - Uses `window.visualViewport` API to detect keyboard (Web standard, no native calls)
-  - Simple, performant approach that keeps inputs visible without heavy visual effects
+  - **Removed**: `window.visualViewport` resize listener (root cause)
+  - **Removed**: `scrollIntoView({ behavior: 'smooth' })` (blocks keyboard queue)
+  - **Removed**: `backdrop-blur-sm` from Card (cleanup)
+  - **Added**: Capacitor `Keyboard.addListener('keyboardDidShow')` event
+  - **Added**: `scrollIntoView({ behavior: 'auto', block: 'center' })` (non-blocking)
+  - 150ms timeout ensures keyboard animation finishes before scrolling
   
 - **Why this approach works**:
-  - No `backdrop-filter` = no costly GPU layer compositing
-  - No CSS `transform` on input containers = no render pipeline freeze
-  - `scrollIntoView` is handled natively by browser without blocking main thread
-  - `resize: 'none'` avoids unnecessary WebView resize communication
-  - Input fields remain visible through standard scrolling behavior
+  - Capacitor Keyboard events fire after keyboard animation completes
+  - No synchronous work during keyboard presentation = no queue blocking
+  - `behavior: 'auto'` scrolls instantly without animation, avoiding WKWebView bug
+  - Input fields scroll into view reliably without blocking main thread
+  - Clean separation: native keyboard handling + simple web scroll
   
 - **Result**: 
   - ✅ Zero keyboard lag - instant response on text field tap
   - ✅ No "Reporter disconnected" errors
-  - ✅ No GPU/compositing stalls
+  - ✅ No keyboard task queue blocking
   - ✅ Input fields stay visible when keyboard appears
-  - ✅ Clean, performant implementation
+  - ✅ Stable, performant implementation
 
 ### Profile Image Preloading Removal (2024-11-10)
 - **Problem**: iOS keyboard lag persisted even after Capacitor keyboard config fix; profile image preloading blocked main thread during app initialization
