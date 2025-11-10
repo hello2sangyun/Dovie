@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -84,38 +84,8 @@ export default function MainApp() {
   // iOS Capacitor native push notifications
   const { isRegistered: isIOSRegistered, clearBadge: clearIOSBadge } = useCapacitorPushNotifications();
 
-  // Helper function to navigate to chat room from push notification
-  const navigateToChatRoom = useCallback((chatId: number) => {
-    // Prevent duplicate navigation
-    if (selectedChatRoom === chatId) {
-      console.log('📱 Already in chat room:', chatId);
-      return;
-    }
-    
-    console.log('📱 Navigating to chat room:', chatId);
-    setSelectedChatRoom(chatId);
-    setShowMobileChat(true);
-    setActiveTab('chats');
-    // Keep wouter routing in sync with proper route path
-    setLocation(`/chat-rooms/${chatId}`);
-  }, [selectedChatRoom, setLocation]);
-
-  // Check for pending chat room after user loads (handles cold launch from notification)
-  useEffect(() => {
-    if (user && !isLoading) {
-      const pendingChatRoomId = localStorage.getItem('pendingChatRoomId');
-      if (pendingChatRoomId) {
-        console.log('📱 User loaded: Opening chat room from push notification:', pendingChatRoomId);
-        const chatId = Number(pendingChatRoomId);
-        localStorage.removeItem('pendingChatRoomId');
-        navigateToChatRoom(chatId);
-      }
-    }
-  }, [user, isLoading, navigateToChatRoom]);
-
   // Immediate data synchronization when app becomes visible (like Telegram/WhatsApp)
   useEffect(() => {
-
     const handleVisibilityChange = () => {
       if (!document.hidden && user) {
         console.log('🔄 PWA app opened - syncing messages immediately');
@@ -128,15 +98,6 @@ export default function MainApp() {
         // If a chat room is selected, refresh its messages immediately
         if (selectedChatRoom) {
           queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${selectedChatRoom}/messages`] });
-        }
-        
-        // Check for pending chat room navigation from push notification
-        const pendingChatRoomId = localStorage.getItem('pendingChatRoomId');
-        if (pendingChatRoomId) {
-          console.log('📱 App resumed: Opening chat room from push notification:', pendingChatRoomId);
-          const chatId = Number(pendingChatRoomId);
-          localStorage.removeItem('pendingChatRoomId');
-          navigateToChatRoom(chatId);
         }
       }
     };
@@ -157,26 +118,14 @@ export default function MainApp() {
       }
     };
 
-    // Handle custom openChatRoom event from push notification
-    const handleOpenChatRoom = ((event: CustomEvent) => {
-      if (user && event.detail?.chatRoomId) {
-        console.log('📱 Opening chat room from event:', event.detail.chatRoomId);
-        const chatId = Number(event.detail.chatRoomId);
-        localStorage.removeItem('pendingChatRoomId');
-        navigateToChatRoom(chatId);
-      }
-    }) as EventListener;
-
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('focus', handleFocus);
-    window.addEventListener('openChatRoom', handleOpenChatRoom);
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleFocus);
-      window.removeEventListener('openChatRoom', handleOpenChatRoom);
     };
-  }, [user, queryClient, selectedChatRoom, navigateToChatRoom]);
+  }, [user, queryClient, selectedChatRoom]);
 
   // 브라우저 뒤로가기 버튼 처리 - 앱 내 네비게이션 관리
   useEffect(() => {

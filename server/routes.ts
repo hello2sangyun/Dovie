@@ -6493,7 +6493,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await sendPushNotification(Number(userId), {
         title: title || "Dovie Messenger 테스트",
         body: body || "푸시 알림이 정상적으로 작동합니다!",
-        badgeCount: 0, // Test notification doesn't affect badge count
         icon: '/icons/icon-192x192.png',
         badge: '/icons/icon-72x72.png',
         data: {
@@ -6878,7 +6877,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await sendPushNotification(userId, {
         title: "📱 iPhone PWA 테스트",
         body: "푸시 알림이 정상적으로 작동합니다!",
-        badgeCount: 0, // Test notification doesn't affect badge count
         data: {
           type: 'test',
           url: '/',

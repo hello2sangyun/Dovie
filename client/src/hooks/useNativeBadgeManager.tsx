@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Badge } from '@capawesome/capacitor-badge';
 import { Capacitor } from '@capacitor/core';
 import { useAuth } from './useAuth';
 import { useAppState } from './useAppState';
@@ -27,71 +28,53 @@ export function useNativeBadgeManager() {
 
   // Update native badge when badge count changes
   useEffect(() => {
-    if (!user || !badgeData || !isNativePlatform) {
-      console.log('📱 Skipping native badge update - not native platform or no user/data');
-      return;
-    }
+    if (!user || !badgeData || !isNativePlatform) return;
 
-    const updateBadge = async () => {
-      const { Badge } = await import('@capawesome/capacitor-badge');
-      const totalBadgeCount = badgeData.totalBadgeCount;
+    const totalBadgeCount = badgeData.totalBadgeCount;
 
-      // Only update if count actually changed to avoid unnecessary updates
-      if (totalBadgeCount !== lastBadgeCountRef.current) {
-        console.log(`📱 Native Badge update: ${lastBadgeCountRef.current} → ${totalBadgeCount} (messages: ${badgeData.unreadMessages}, AI: ${badgeData.unreadAiNotices})`);
-        lastBadgeCountRef.current = totalBadgeCount;
-        
-        try {
-          await Badge.set({ count: totalBadgeCount });
+    // Only update if count actually changed to avoid unnecessary updates
+    if (totalBadgeCount !== lastBadgeCountRef.current) {
+      console.log(`📱 Native Badge update: ${lastBadgeCountRef.current} → ${totalBadgeCount} (messages: ${badgeData.unreadMessages}, AI: ${badgeData.unreadAiNotices})`);
+      lastBadgeCountRef.current = totalBadgeCount;
+      
+      // Use Capacitor Badge plugin to set badge count
+      Badge.set({ count: totalBadgeCount })
+        .then(() => {
           console.log(`✅ Native badge count set to ${totalBadgeCount}`);
-        } catch (error) {
+        })
+        .catch((error) => {
           console.error('❌ Failed to set native badge count:', error);
-        }
-      }
-    };
-
-    updateBadge();
+        });
+    }
   }, [user, badgeData, isNativePlatform]);
 
   // Clear badge when user logs out
   useEffect(() => {
     if (!user && lastBadgeCountRef.current > 0 && isNativePlatform) {
-      const clearBadgeOnLogout = async () => {
-        const { Badge } = await import('@capawesome/capacitor-badge');
-        console.log('📱 User logged out - clearing native badge');
-        lastBadgeCountRef.current = 0;
-        
-        try {
-          await Badge.clear();
-        } catch (error) {
-          console.error('❌ Failed to clear badge on logout:', error);
-        }
-      };
+      console.log('📱 User logged out - clearing native badge');
+      lastBadgeCountRef.current = 0;
       
-      clearBadgeOnLogout();
+      Badge.clear()
+        .catch((error) => {
+          console.error('❌ Failed to clear badge on logout:', error);
+        });
     }
   }, [user, isNativePlatform]);
 
   // Update badge immediately when app comes to foreground
   useEffect(() => {
     if (appState === 'active' && isNativePlatform && badgeData) {
-      const syncBadgeOnForeground = async () => {
-        const { Badge } = await import('@capawesome/capacitor-badge');
-        const totalBadgeCount = badgeData.totalBadgeCount;
-        
-        if (totalBadgeCount !== lastBadgeCountRef.current) {
-          console.log(`📱 App foregrounded - syncing badge to ${totalBadgeCount}`);
-          lastBadgeCountRef.current = totalBadgeCount;
-          
-          try {
-            await Badge.set({ count: totalBadgeCount });
-          } catch (error) {
-            console.error('❌ Failed to sync badge on foreground:', error);
-          }
-        }
-      };
+      const totalBadgeCount = badgeData.totalBadgeCount;
       
-      syncBadgeOnForeground();
+      if (totalBadgeCount !== lastBadgeCountRef.current) {
+        console.log(`📱 App foregrounded - syncing badge to ${totalBadgeCount}`);
+        lastBadgeCountRef.current = totalBadgeCount;
+        
+        Badge.set({ count: totalBadgeCount })
+          .catch((error) => {
+            console.error('❌ Failed to sync badge on foreground:', error);
+          });
+      }
     }
   }, [appState, badgeData, isNativePlatform]);
 
@@ -99,17 +82,15 @@ export function useNativeBadgeManager() {
   useEffect(() => {
     if (!isNativePlatform) return;
 
-    const handleBadgeSync = async (event: CustomEvent) => {
-      const { Badge } = await import('@capawesome/capacitor-badge');
+    const handleBadgeSync = (event: CustomEvent) => {
       const { totalUnread } = event.detail;
       console.log(`📱 Real-time badge sync event: ${totalUnread}`);
       
       lastBadgeCountRef.current = totalUnread;
-      try {
-        await Badge.set({ count: totalUnread });
-      } catch (error) {
-        console.error('❌ Failed to sync badge via event:', error);
-      }
+      Badge.set({ count: totalUnread })
+        .catch((error) => {
+          console.error('❌ Failed to sync badge via event:', error);
+        });
     };
 
     window.addEventListener('native-badge-sync' as any, handleBadgeSync);
@@ -126,7 +107,6 @@ export function useNativeBadgeManager() {
       if (!isNativePlatform) return;
       
       try {
-        const { Badge } = await import('@capawesome/capacitor-badge');
         await Badge.set({ count });
         lastBadgeCountRef.current = count;
         console.log(`✅ Badge manually set to ${count}`);
@@ -138,7 +118,6 @@ export function useNativeBadgeManager() {
       if (!isNativePlatform) return;
       
       try {
-        const { Badge } = await import('@capawesome/capacitor-badge');
         await Badge.clear();
         lastBadgeCountRef.current = 0;
         console.log('✅ Badge cleared');
