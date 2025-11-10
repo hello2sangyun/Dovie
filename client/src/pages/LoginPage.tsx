@@ -64,11 +64,27 @@ export default function LoginPage() {
   useEffect(() => {
     let listenerHandle: any;
 
-    Keyboard.addListener('keyboardDidShow', () => {
+    Keyboard.addListener('keyboardDidShow', (info) => {
       const activeElement = document.activeElement as HTMLElement;
       if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
         setTimeout(() => {
-          activeElement.scrollIntoView({ behavior: 'auto', block: 'center' });
+          const rect = activeElement.getBoundingClientRect();
+          const keyboardHeight = info.keyboardHeight || 0;
+          const windowHeight = window.innerHeight;
+          
+          // Calculate available space above keyboard
+          const availableHeight = windowHeight - keyboardHeight;
+          
+          // Calculate desired scroll position to center input in visible area
+          const inputCenterY = rect.top + rect.height / 2;
+          const desiredCenterY = availableHeight / 2;
+          const scrollOffset = inputCenterY - desiredCenterY;
+          
+          // Scroll to position (using 'auto' to avoid potential queue blocking)
+          window.scrollTo({
+            top: window.scrollY + scrollOffset,
+            behavior: 'auto'
+          });
         }, 150);
       }
     }).then(handle => {
