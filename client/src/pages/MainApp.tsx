@@ -45,7 +45,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 export default function MainApp() {
-  const { user, isLoading, isPreloadingImages } = useAuth();
+  const { user, isLoading, isPreloadingImages, preloadProfileImages } = useAuth();
   const queryClient = useQueryClient();
   const { preloadImage, isLoading: imagePreloading } = useImagePreloader();
   const [location, setLocation] = useLocation();
@@ -234,6 +234,21 @@ export default function MainApp() {
       window.history.pushState(newState, '', location);
     }
   }, [activeTab, activeMobileTab, selectedChatRoom, showMobileChat, showSettings, location]);
+
+  // 프로필 이미지 프리로딩 - MainApp 진입 후 5초 지연 실행 (로그인 페이지 렉 방지)
+  useEffect(() => {
+    if (user?.id) {
+      console.log("⏰ 프로필 이미지 프리로딩 5초 후 시작 예정...");
+      const preloadTimer = setTimeout(() => {
+        console.log("🚀 프로필 이미지 프리로딩 시작");
+        preloadProfileImages(user.id.toString()).catch((error) => {
+          console.log("⚠️ 프로필 이미지 프리로딩 실패, 정상 진행:", error);
+        });
+      }, 5000); // 5초 지연
+
+      return () => clearTimeout(preloadTimer);
+    }
+  }, [user?.id, preloadProfileImages]);
 
   // Handle URL parameters for chat room and friend filter
   useEffect(() => {
