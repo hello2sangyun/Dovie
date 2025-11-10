@@ -1,0 +1,631 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/6B4DDD20-661F-462F-BDC1-BB44AE8E6B79/App.app'
+⚡️  Loading app at https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev...
+📱 [AppDelegate] Registered for remote notifications
+Networking process (0x112064190) took 8.561636 seconds to launch
+GPU process (0x1121141e0) took 2.241660 seconds to launch
+WebContent process (0x1120e0100) took 3.172008 seconds to launch
+📱 [AppDelegate] APNS 토큰 등록 성공
+0x1120e0100 - [PID=8142] WebProcessProxy::didBecomeUnresponsive:
+0x13239c718 - [pageProxyID=7, webPageID=8, PID=8142] WebPageProxy::processDidBecomeUnresponsive:
+WebContent[8142] Unable to hide query parameters from script (missing data)
+⚡️  [debug] - [vite] connecting...
+Updated list with error: DownloadFailed
+Updated list with error: DownloadFailed
+⚡️  WebView loaded
+⚡️  [log] - [Badge] Service Worker not supported
+⚡️  To Native ->  App addListener 4012096
+⚡️  To Native ->  App addListener 4012097
+⚡️  To Native ->  App addListener 4012098
+⚡️  To Native ->  PushNotifications addListener 4012099
+⚡️  To Native ->  PushNotifications addListener 4012100
+⚡️  To Native ->  PushNotifications addListener 4012101
+⚡️  To Native ->  PushNotifications addListener 4012102
+⚡️  To Native ->  PushNotifications requestPermissions 4012103
+⚡️  [log] - 🔄 Auth context updating user: 126 profilePicture: /uploads/profile_1761606486798_jejztvnxp8j.jpg
+⚡️  [log] - 🚀 Starting profile image preloading...
+⚡️  TO JS {"receive":"granted"}
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+⚡️  [log] -    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+⚡️  [log] - 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  To Native ->  App addListener 4012104
+⚡️  To Native ->  App addListener 4012105
+⚡️  To Native ->  PushNotifications register 4012106
+⚡️  TO JS {"value":"9ED88FB599817AD40BC33223E6C7C14E35B7C45D40542AFB85B400D0E50877FE"}
+📱 [AppDelegate] APNS 토큰 등록 성공
+⚡️  TO JS undefined
+⚡️  [log] - 📱 iOS 푸시 토큰 획득: 9ED88FB599817AD40BC33223E6C7C14E35B7C45D40542AFB85B400D0E50877FE
+⚡️  [log] - 📱 서버로 iOS 토큰 전송 시작: 9ED88FB599817AD40BC3...
+⚡️  [log] - 📱 iOS 네이티브 푸시 알림 등록 성공 (리스너 대기 중)
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - ✅ iOS 푸시 토큰이 서버에 저장되었습니다: {"success":true,"message":"iOS push token registered successfully","userId":126,"tokenPreview":"9ED88FB599817AD40BC3..."}
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 0
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: []
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 📥 Found 5 profile images to preload
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761144817232_rf4rde1nn4e.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761070087497_tdjrs8unfmn.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761606486798_jejztvnxp8j.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761602401844_h0cbedi9kaf.jpg
+⚡️  [log] - ✅ Preloaded profile image: /uploads/profile_1761603336729_ol7qqlpxpv.jpg
+⚡️  [log] - 🎉 Profile image preloading completed!
+⚡️  [log] - 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: Lee Sang Yun
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  [error] - {}
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1152:34
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=6f985bc5
+⚡️  chunk-RPCDYKBN.js?v=6f985bc5:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1152:34
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=6f985bc5
+⚡️  chunk-RPCDYKBN.js?v=6f985bc5:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1152:34
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=6f985bc5
+⚡️  chunk-RPCDYKBN.js?v=6f985bc5:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1152:34
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  [error] - {}
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=6f985bc5
+⚡️  chunk-RPCDYKBN.js?v=6f985bc5:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+⚡️  [error] - {}
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1152:34
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=6f985bc5
+⚡️  chunk-RPCDYKBN.js?v=6f985bc5:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1152:34
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=6f985bc5
+⚡️  chunk-RPCDYKBN.js?v=6f985bc5:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1152:34
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=6f985bc5
+⚡️  chunk-RPCDYKBN.js?v=6f985bc5:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1152:34
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=6f985bc5
+⚡️  chunk-RPCDYKBN.js?v=6f985bc5:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1152:34
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=6f985bc5
+⚡️  chunk-RPCDYKBN.js?v=6f985bc5:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1152:34
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  [error] - {}
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=6f985bc5
+⚡️  chunk-RPCDYKBN.js?v=6f985bc5:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1152:34
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=6f985bc5
+⚡️  [error] - {}
+⚡️  chunk-RPCDYKBN.js?v=6f985bc5:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1152:34
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=6f985bc5
+⚡️  chunk-RPCDYKBN.js?v=6f985bc5:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+⚡️  [error] - {}
+⚡️  To Native ->  Filesystem mkdir 4012107
+⚡️  To Native ->  Filesystem mkdir 4012108
+⚡️  To Native ->  App removeListener 4012109
+ERROR MESSAGE:  {"message":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/E90B877D-9D8F-4FE8-8B76-C8910EF04430\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","errorMessage":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/E90B877D-9D8F-4FE8-8B76-C8910EF04430\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010"}
+ERROR MESSAGE:  {"code":"OS-PLUG-FILE-0010","message":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/E90B877D-9D8F-4FE8-8B76-C8910EF04430\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","errorMessage":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/E90B877D-9D8F-4FE8-8B76-C8910EF04430\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten."}
+⚡️  [error] - {"message":"Directory at 'file:///var/mobile/Containers/Data/Application/E90B877D-9D8F-4FE8-8B76-C8910EF04430/Library/Caches/file_cache/'  already exists, cannot be overwritten.","errorMessage":"Directory at 'file:///var/mobile/Containers/Data/Application/E90B877D-9D8F-4FE8-8B76-C8910EF04430/Library/Caches/file_cache/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010"}
+⚡️  To Native ->  Filesystem readFile 4012110
+⚡️  To Native ->  Filesystem readFile 4012111
+⚡️  [error] - {"code":"OS-PLUG-FILE-0010","message":"Directory at 'file:///var/mobile/Containers/Data/Application/E90B877D-9D8F-4FE8-8B76-C8910EF04430/Library/Caches/file_cache/'  already exists, cannot be overwritten.","errorMessage":"Directory at 'file:///var/mobile/Containers/Data/Application/E90B877D-9D8F-4FE8-8B76-C8910EF04430/Library/Caches/file_cache/'  already exists, cannot be overwritten."}
+ERROR MESSAGE:  {"message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","code":"OS-PLUG-FILE-0013"}
+ERROR MESSAGE:  {"code":"OS-PLUG-FILE-0013","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [error] - {"message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","code":"OS-PLUG-FILE-0013"}
+⚡️  [log] - [FileCache] No existing cache index, starting fresh
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  [error] - {"code":"OS-PLUG-FILE-0013","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [log] - [FileCache] No existing cache index, starting fresh
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  To Native ->  App addListener 4012112
+⚡️  To Native ->  App addListener 4012113
+WebContent[8142] The sandbox in this process does not allow access to RunningBoard.
+WebContent[8142] Handshake aborted as the connection has been invalidated
+WebContent[8142] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+WebContent[8142] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+WebContent[8142] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+⚡️  [log] - Image loaded successfully: /uploads/file_1761720079439_zs0xud2p4dd.png
+⚡️  [log] - Image loaded successfully: /uploads/file_1761720079439_zs0xud2p4dd.png
+⚡️  [log] - Image loaded successfully: /uploads/1761630067811_IMG_4483.jpeg
+⚡️  [log] - Image loaded successfully: /uploads/1761630067811_IMG_4483.jpeg
+⚡️  [log] - Image loaded successfully: /uploads/file_1761720097546_48fukin8a5k.png
+⚡️  [log] - Image loaded successfully: /uploads/file_1761720097546_48fukin8a5k.png
+⚡️  [log] - Image loaded successfully: /uploads/1761636479611_IMG_4483.jpeg
+⚡️  [log] - Image loaded successfully: /uploads/1761636479611_IMG_4483.jpeg
+⚡️  [log] - Image loaded successfully: /uploads/file_1762283811946_y8hr35mynk.jpeg
+⚡️  [log] - Image loaded successfully: /uploads/file_1762283811946_y8hr35mynk.jpeg
+⚡️  [log] - Image loaded successfully: /uploads/1761699855100_IMG_4490.jpeg
+⚡️  [log] - Image loaded successfully: /uploads/1761699855100_IMG_4490.jpeg
+WebContent[8142] +[HDRImage getPixelType:YCCMatrixString:chromaSubsampling:componentRange:bitDepth:isFloat:forBuffer:]:1050: *** Missing YCC matrix, falling back to ITU_R_601_4
+⚡️  [log] - ✅ Microphone permission already granted, stream ready
+⚡️  [log] - ✅ Microphone permission already granted, stream ready
+WebContent[8142] +[HDRImage getPixelType:YCCMatrixString:chromaSubsampling:componentRange:bitDepth:isFloat:forBuffer:]:1050: *** Missing YCC matrix, falling back to ITU_R_601_4
+WebContent[8142] +[HDRImage getPixelType:YCCMatrixString:chromaSubsampling:componentRange:bitDepth:isFloat:forBuffer:]:1050: *** Missing YCC matrix, falling back to ITU_R_601_4
+WebContent[8142] +[HDRImage getPixelType:YCCMatrixString:chromaSubsampling:componentRange:bitDepth:isFloat:forBuffer:]:1050: *** Missing YCC matrix, falling back to ITU_R_601_4
+WebContent[8142] +[HDRImage getPixelType:YCCMatrixString:chromaSubsampling:componentRange:bitDepth:isFloat:forBuffer:]:1050: *** Missing YCC matrix, falling back to ITU_R_601_4
+WebContent[8142] IOSurface creation failed. IOSurface service not present
+WebContent[8142] +[HDRImage getPixelType:YCCMatrixString:chromaSubsampling:componentRange:bitDepth:isFloat:forBuffer:]:1050: *** Missing YCC matrix, falling back to ITU_R_601_4
+WebContent[8142] IOSurface creation failed. IOSurface service not present
+WebContent[8142] IOSurface creation failed. IOSurface service not present
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  To Native ->  Badge set 4012114
+⚡️  TO JS undefined
+⚡️  To Native ->  App addListener 4012115
+⚡️  To Native ->  App removeListener 4012116
+⚡️  To Native ->  App removeListener 4012117
+⚡️  To Native ->  Badge set ⚡️  [log] - 📱 Real-time badge sync event: 0
+4012118
+⚡️  TO JS undefined
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [log] - WebSocket disconnected: 1000 App backgrounded
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+Updated list with error: DownloadFailed
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+Updated list with error: DownloadFailed
+Updated list with error: DownloadFailed
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] App visible - suppressing notifications
+⚡️  [log] - 📱 앱이 활성화됨 - 배지 상태 새로고침
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🔄 PWA app opened - syncing messages immediately
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App foregrounded - reconnecting WebSocket
+⚡️  [log] - 📱 Calling connect() after foreground transition
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+⚡️  [log] -    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+⚡️  [log] - [NotificationManager] Activity status updated: online
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  [log] - 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: 이상윤
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1152:34
+⚡️  [error] - {}
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  [error] - {}
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=6f985bc5
+⚡️  chunk-RPCDYKBN.js?v=6f985bc5:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [log] - 📜 스크롤 감지 - 터치 동작 취소
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1152:34
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=6f985bc5
+⚡️  chunk-RPCDYKBN.js?v=6f985bc5:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+⚡️  [error] - {}
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1152:34
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=6f985bc5
+⚡️  chunk-RPCDYKBN.js?v=6f985bc5:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  [error] - {}
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1152:34
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=6f985bc5
+⚡️  chunk-RPCDYKBN.js?v=6f985bc5:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1152:34
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=6f985bc5
+⚡️  chunk-RPCDYKBN.js?v=6f985bc5:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1152:34
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=6f985bc5
+⚡️  chunk-RPCDYKBN.js?v=6f985bc5:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  [error] - {}
+⚡️  ChatsList.tsx:1152:34
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=6f985bc5
+⚡️  chunk-RPCDYKBN.js?v=6f985bc5:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1152:34
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=6f985bc5
+⚡️  chunk-RPCDYKBN.js?v=6f985bc5:3750:25
+
+⚡️  See above for help with debugging blank-screen issues
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/src/components/ChatsList.tsx
+⚡️  ChatsList.tsx:1152:34
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [error] - {}
+
+⚡️  ------ STARTUP JS ERROR ------
+
+⚡️  ReferenceError: Can't find variable: handleTouchMove
+⚡️  URL: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=6f985bc5
+⚡️  chunk-RPCDYKBN.js?v=6f985bc5:3750:25
+⚡️  [error] - {}
+
+⚡️  See above for help with debugging blank-screen issues
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 1
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: [{"chatRoomId":116,"unreadCount":1}]
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 1
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 1
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [log] - WebSocket disconnected: 1000 App backgrounded
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] App visible - suppressing notifications
+⚡️  [log] - 📱 앱이 활성화됨 - 배지 상태 새로고침
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🔄 PWA app opened - syncing messages immediately
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - 📱 App foregrounded - reconnecting WebSocket
+⚡️  [log] - 📱 Calling connect() after foreground transition
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+⚡️  [log] -    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [error] - WebSocket error: {"isTrusted":true}
+⚡️  [error] - WebSocket error event: {"type":"error","target":{},"timeStamp":100002}
+⚡️  [log] - WebSocket disconnected: 1006 
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - [NotificationManager] Activity status updated: offline
