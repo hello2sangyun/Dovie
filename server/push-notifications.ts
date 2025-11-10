@@ -345,21 +345,21 @@ async function sendIOSPushNotifications(
 
       if (isSilent) {
         // Silent badge update: badge only, no alert/sound
-        // Apple requires pushType 'background' for content-available without alert
+        // contentAvailable: true → apns2 auto-sets pushType='background' HTTP/2 header
         notification = new Notification(deviceToken, {
           badge: payload.badgeCount ?? 0,
           contentAvailable: true,
           threadId: `chat-${payload.data?.chatRoomId || 'default'}`,
-          payload: customData
+          payload: customData,
+          priority: 5 // Power efficient
         });
-        notification.pushType = 'background'; // CRITICAL: Use 'background' for silent push
-        notification.priority = 5; // Power efficient
         
         console.log(`🔕 iOS APNS Silent Push 발송 (배지만): ${deviceToken.substring(0, 20)}...`);
         console.log(`   Badge: ${payload.badgeCount}`);
-        console.log(`   Push Type: background`);
+        console.log(`   Push Type: background (auto-set by apns2)`);
       } else {
         // Normal notification: alert, badge, sound, rich media
+        // alert present → apns2 auto-sets pushType='alert' HTTP/2 header
         notification = new Notification(deviceToken, {
           alert: {
             title: payload.title || "새 메시지",
@@ -373,16 +373,15 @@ async function sendIOSPushNotifications(
           contentAvailable: true, // Enable background updates
           category: "MESSAGE_CATEGORY", // Action buttons (reply, mark read)
           threadId: `chat-${payload.data?.chatRoomId || 'default'}`,
-          payload: customData
+          payload: customData,
+          priority: 10 // Immediate delivery
         });
-        notification.pushType = 'alert'; // Use 'alert' for notifications with alert content
-        notification.priority = 10; // Immediate delivery
         
         console.log(`📱 iOS APNS 알림 발송: ${deviceToken.substring(0, 20)}...`);
         console.log(`   Title: ${payload.title}`);
         console.log(`   Body: ${payload.body}`);
         console.log(`   Badge: ${payload.badgeCount}`);
-        console.log(`   Push Type: alert`);
+        console.log(`   Push Type: alert (auto-set by apns2)`);
       }
 
       // Set expiry (1 hour from now)
