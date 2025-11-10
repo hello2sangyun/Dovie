@@ -42,3 +42,26 @@ Key features include:
 - **Native App Conversion**: Capacitor framework (`@capacitor/keyboard`, `@capacitor/push-notifications`).
 - **iOS Push Notifications**: Apple Push Notification service (APNS) with JWT authentication.
 - **Push Notifications**: `web-push` for PWA notifications, APNS for iOS native.
+
+## Recent Changes (2024-11-10)
+### iOS Keyboard Performance Fix
+- **Problem**: 10-second lag when tapping text fields, "Reporter disconnected" errors flooding console, 2-second delay on first keyboard touch
+- **Root Cause**: `resize: 'body'` mode causes excessive WKWebView ↔ iOS native messaging overhead. iOS resizes webview AFTER keyboard animation completes (not before), creating communication overload
+- **Solution**: Changed Capacitor keyboard config to `resize: 'none'`:
+  - Keyboard overlays content without resizing webview
+  - Eliminates JavaScript/native bridge communication overhead
+  - Removes AutoLayout constraint conflicts
+  - Result: Instant keyboard response, zero lag
+- **Configuration** (`capacitor.config.ts`):
+  ```typescript
+  Keyboard: {
+    resize: 'none',        // No webview resize = minimal communication
+    style: 'dark',         // Matches app theme
+    resizeOnFullScreen: false  // Prevents constraint conflicts
+  }
+  ```
+
+### Additional iOS Improvements (2024-11-10)
+- **Badge Count Fix**: Removed duplicate +1 increment in unread message calculation (server/routes.ts Line 2015)
+- **Logout Protection**: Complete push subscription cleanup - server deletes all PWA/iOS tokens on logout
+- **Deep Linking**: Navigation service enables push notification tap → chat room navigation (both running app and cold start scenarios)
