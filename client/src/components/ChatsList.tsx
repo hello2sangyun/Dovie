@@ -455,7 +455,7 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     await queryClient.prefetchQuery({
       queryKey: [`/api/chat-rooms/${chatRoomId}/messages`],
       queryFn: async () => {
-        const response = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages`);
+        const response = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages`, 'GET');
         return response.json();
       },
       staleTime: 30 * 1000, // 30초간 신선한 상태로 유지
@@ -467,7 +467,7 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     await queryClient.prefetchQuery({
       queryKey: ["/api/commands"],
       queryFn: async () => {
-        const response = await apiRequest("/api/commands");
+        const response = await apiRequest("/api/commands", 'GET');
         return response.json();
       },
       staleTime: 60 * 1000, // 1분간 신선한 상태로 유지
@@ -965,7 +965,7 @@ function ChatRoomItem({
       await queryClient.prefetchQuery({
         queryKey: [`/api/chat-rooms/${chatRoom.id}/messages`],
         queryFn: async () => {
-          const response = await apiRequest(`/api/chat-rooms/${chatRoom.id}/messages`);
+          const response = await apiRequest(`/api/chat-rooms/${chatRoom.id}/messages`, 'GET');
           return response.json();
         },
         staleTime: 30 * 1000, // 30초간 신선한 상태로 유지
