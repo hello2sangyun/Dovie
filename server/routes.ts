@@ -2014,67 +2014,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
               
               console.log(`📱 Badge count for user ${recipient.id}: ${totalBadgeCount} (${totalUnreadMessages} messages + ${unreadAiNotices} AI notices)`);
               
-              // WhatsApp/Telegram-style notification content
+              // Notification title and body - show message content only
               let notificationTitle = sender.displayName;
               let notificationBody = messageData.content || '새 메시지';
               
-              // Group chat handling (like WhatsApp)
+              // Group chat: show chat name and sender in title
               if (chatRoom.participants.length > 2) {
                 const chatName = chatRoom.name || '그룹 채팅';
-                notificationTitle = `${chatName}`;
-                notificationBody = `${sender.displayName}: ${notificationBody}`;
+                notificationTitle = `${chatName} - ${sender.displayName}`;
               }
               
-              // Message type handling (like Telegram)
+              // Message type handling - body shows content only (no sender name)
               switch (messageData.messageType) {
                 case 'voice':
                   if (messageData.content && messageData.content.trim()) {
-                    // Show transcribed content for voice messages (like Telegram)
-                    notificationBody = chatRoom.participants.length > 2 
-                      ? `${sender.displayName}: 🎤 ${messageData.content}`
-                      : `🎤 ${messageData.content}`;
+                    // Show transcribed content for voice messages
+                    notificationBody = `🎤 ${messageData.content}`;
                   } else {
-                    notificationBody = chatRoom.participants.length > 2 
-                      ? `${sender.displayName}: 🎤 음성 메시지`
-                      : '🎤 음성 메시지';
+                    notificationBody = '🎤 음성 메시지';
                   }
                   break;
                 case 'file':
-                  notificationBody = chatRoom.participants.length > 2 
-                    ? `${sender.displayName}: 📄 파일`
-                    : '📄 파일';
+                  notificationBody = '📄 파일';
                   break;
                 case 'image':
-                  notificationBody = chatRoom.participants.length > 2 
-                    ? `${sender.displayName}: 📷 사진`
-                    : '📷 사진';
+                  notificationBody = '📷 사진';
                   break;
                 case 'video':
-                  notificationBody = chatRoom.participants.length > 2 
-                    ? `${sender.displayName}: 🎥 동영상`
-                    : '🎥 동영상';
+                  notificationBody = '🎥 동영상';
                   break;
                 case 'youtube':
-                  notificationBody = chatRoom.participants.length > 2 
-                    ? `${sender.displayName}: 🎬 YouTube 동영상`
-                    : '🎬 YouTube 동영상';
+                  notificationBody = '🎬 YouTube 동영상';
                   break;
                 default:
-                  // Limit message length (like WhatsApp)
-                  if (notificationBody.length > 100) {
-                    notificationBody = notificationBody.substring(0, 97) + '...';
+                  // Limit message length to 50 characters
+                  if (notificationBody.length > 50) {
+                    notificationBody = notificationBody.substring(0, 47) + '...';
                   }
                   break;
               }
               
-              // Multiple message grouping (like Telegram)
+              // Use chat room as notification tag for grouping
               let notificationTag = `dovie-chat-${req.params.chatRoomId}`;
-              if (chatUnreadCount > 0) {
-                notificationBody = `${chatUnreadCount + 1}개의 새 메시지`;
-                if (chatRoom.participants.length > 2) {
-                  notificationBody = `${chatName}: ${notificationBody}`;
-                }
-              }
               
               console.log(`📱 Sending Telegram-style notification to ${recipient.id}: "${notificationTitle}" - "${notificationBody}"`);
               
