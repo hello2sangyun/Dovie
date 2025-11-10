@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { Toast } from '@capacitor/toast';
 import { Capacitor } from '@capacitor/core';
+import { navigationService } from '@/lib/navigation';
 
 export const useCapacitorPushNotifications = () => {
   const [isRegistered, setIsRegistered] = useState(false);
@@ -48,8 +49,18 @@ export const useCapacitorPushNotifications = () => {
           // 채팅방으로 이동하는 로직 구현
           const data = notification.notification.data;
           if (data && data.chatRoomId) {
-            // 채팅방으로 네비게이션
-            window.location.href = `#/chat/${data.chatRoomId}`;
+            const chatRoomId = data.chatRoomId;
+            const targetPath = `/chat-rooms/${chatRoomId}`;
+            
+            // Check if navigation service is registered (app is running)
+            if (navigationService.isRegistered()) {
+              console.log('✅ App is running - navigating immediately to:', targetPath);
+              navigationService.navigate(targetPath);
+            } else {
+              // Cold start - app is being opened from notification
+              console.log('❄️ Cold start detected - saving pendingDeepLink to localStorage:', targetPath);
+              localStorage.setItem('pendingDeepLink', targetPath);
+            }
           }
         });
 

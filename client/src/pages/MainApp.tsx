@@ -6,6 +6,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useImagePreloader, preloadGlobalImage } from "@/hooks/useImagePreloader";
 
 import { useLocation, useParams } from "wouter";
+import { navigationService } from "@/lib/navigation";
 
 import VaultLogo from "@/components/VaultLogo";
 import ContactsList from "@/components/ContactsList";
@@ -83,6 +84,37 @@ export default function MainApp() {
   
   // iOS Capacitor native push notifications
   const { isRegistered: isIOSRegistered, clearBadge: clearIOSBadge } = useCapacitorPushNotifications();
+
+  // Register navigation service and handle pending deep links from push notifications
+  useEffect(() => {
+    // Register the navigator with the navigation service
+    navigationService.registerNavigator(setLocation);
+    console.log('✅ Navigator registered with navigation service');
+
+    // Check for pending deep link from cold start (push notification clicked while app was closed)
+    const pendingDeepLink = localStorage.getItem('pendingDeepLink');
+    if (pendingDeepLink && user) {
+      console.log('🔗 Found pending deep link from cold start:', pendingDeepLink);
+      
+      // Clear the pending deep link immediately to prevent re-navigation
+      localStorage.removeItem('pendingDeepLink');
+      
+      // Navigate to the pending deep link
+      console.log('🚀 Navigating to pending deep link:', pendingDeepLink);
+      setLocation(pendingDeepLink);
+      
+      // Extract chatRoomId from the path and update state
+      const match = pendingDeepLink.match(/\/chat-rooms\/(\d+)/);
+      if (match) {
+        const chatRoomId = parseInt(match[1]);
+        setSelectedChatRoom(chatRoomId);
+        setShowMobileChat(true);
+        setActiveTab("chats");
+        setActiveMobileTab("chats");
+        console.log('✅ Chat room selected from deep link:', chatRoomId);
+      }
+    }
+  }, [user, setLocation]);
 
   // Immediate data synchronization when app becomes visible (like Telegram/WhatsApp)
   useEffect(() => {
