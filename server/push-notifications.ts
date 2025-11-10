@@ -1,6 +1,5 @@
 import webpush from 'web-push';
-import jwt from 'jsonwebtoken';
-import https from 'https';
+import { ApnsClient, Notification } from 'apns2';
 import { storage } from './storage';
 
 // APNS Environment Detection
@@ -12,6 +11,62 @@ console.log(`📱 APNS Push Notification Service`);
 console.log(`📱 Environment: ${IS_PRODUCTION ? 'PRODUCTION' : 'DEVELOPMENT'}`);
 console.log(`📱 Server: ${APNS_SERVER}`);
 console.log(`📱 ========================================\n`);
+
+// APNS Client Setup with apns2 (HTTP/2 + JWT auto-handling)
+let apnsClient: ApnsClient | null = null;
+
+function initializeAPNSClient(): ApnsClient | null {
+  const keyId = process.env.APNS_KEY_ID;
+  const teamId = process.env.APNS_TEAM_ID;
+  const privateKey = process.env.APNS_PRIVATE_KEY;
+
+  if (!keyId || !teamId || !privateKey) {
+    console.warn('⚠️  APNS credentials not configured. iOS push notifications will not work.');
+    console.warn('   Please set: APNS_KEY_ID, APNS_TEAM_ID, APNS_PRIVATE_KEY');
+    return null;
+  }
+
+  try {
+    // Format private key: convert \n escape sequences to actual newlines
+    let formattedKey = privateKey
+      .replace(/\\n/g, '\n')
+      .trim();
+    
+    // Validate PEM format
+    if (!formattedKey.includes('-----BEGIN PRIVATE KEY-----')) {
+      console.error('❌ APNS_PRIVATE_KEY missing PEM header. Expected format:');
+      console.error('   -----BEGIN PRIVATE KEY-----');
+      console.error('   (key content)');
+      console.error('   -----END PRIVATE KEY-----');
+      return null;
+    }
+
+    // Initialize apns2 client with HTTP/2 support
+    const client = new ApnsClient({
+      team: teamId,
+      keyId: keyId,
+      signingKey: formattedKey,
+      defaultTopic: 'com.dovie.messenger',
+      production: IS_PRODUCTION,
+      requestTimeout: 10000, // 10 seconds timeout
+      keepAlive: true // Reuse HTTP/2 connections for better performance
+    });
+
+    console.log(`✅ APNS Client initialized successfully`);
+    console.log(`   Team ID: ${teamId}`);
+    console.log(`   Key ID: ${keyId}`);
+    console.log(`   Production: ${IS_PRODUCTION}`);
+    console.log(`   Default Topic: com.dovie.messenger`);
+    
+    return client;
+  } catch (error) {
+    console.error('❌ Failed to initialize APNS client:', error);
+    return null;
+  }
+}
+
+// Initialize APNS client on startup
+apnsClient = initializeAPNSClient();
 
 // VAPID keys for web push
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || 'BEJz0sc4kl1Mc2a34ZXfkT3zTCkgJtWE58fpZgpo7Z9tAl3cmbwGP4JCZSrbMdCzvILww-1eMC7ONC-JCo_dFRc';
@@ -248,14 +303,20 @@ export async function sendPushNotification(
   }
 }
 
-// iOS APNS 푸시 알림 발송 함수
+// iOS APNS 푸시 알림 발송 함수 (apns2 라이브러리 사용)
 async function sendIOSPushNotifications(
   iosTokens: any[], 
   payload: PushNotificationPayload,
   userId: number,
   isSilent: boolean = false
 ): Promise<void> {
-  for (const tokenInfo of iosTokens) {
+  // Check if APNS client is initialized
+  if (!apnsClient) {
+    console.warn('⚠️ APNS client not initialized. Skipping iOS push notifications.');
+    return;
+  }
+
+  const sendPromises = iosTokens.map(async (tokenInfo) => {
     try {
       // Drizzle ORM은 camelCase로 변환하므로 deviceToken 사용
       const deviceToken = tokenInfo.deviceToken;
@@ -263,178 +324,95 @@ async function sendIOSPushNotifications(
       // 디바이스 토큰 검증
       if (!deviceToken || typeof deviceToken !== 'string') {
         console.warn(`⚠️ Skipping invalid device token for user ${userId}:`, tokenInfo);
-        continue;
+        return;
       }
       
-      // iOS APNS 페이로드 구성
-      const apnsPayload: any = {
-        aps: {
-          // Silent push: badge only, no alert/sound (Apple allows this with 'alert' type)
-          // Normal push: full notification with alert, badge, sound
-          ...(isSilent ? {
-            // Silent badge update: badge only, no alert/sound
-            badge: payload.badgeCount ?? 0,
-            // Enable background updates
-            "content-available": 1,
-          } : {
-            // Normal notification: alert, badge, sound, rich media
-            alert: {
-              title: payload.title || "새 메시지",
-              body: payload.body || "새 메시지가 도착했습니다",
-              // Optional subtitle for additional context
-              ...(payload.data?.subtitle && { subtitle: payload.data.subtitle })
-            },
-            badge: payload.badgeCount ?? 0,
-            sound: payload.sound || "default",
-            // Enable rich notifications (images, videos, audio)
-            "mutable-content": 1,
-            // Enable background updates
-            "content-available": 1,
-            // Category for action buttons (reply, mark read, etc.)
-            category: "MESSAGE_CATEGORY",
-          }),
-          // Thread ID for notification grouping (group by chat room)
-          "thread-id": `chat-${payload.data?.chatRoomId || 'default'}`
-        },
-        custom: {
-          type: payload.data?.type || 'message',
-          chatRoomId: payload.data?.chatRoomId,
-          messageId: payload.data?.messageId,
-          senderId: payload.data?.senderId,
-          senderName: payload.data?.senderName,
-          url: payload.data?.url || '/',
-          // Image/media attachment URL for rich notifications
-          ...(payload.data?.imageUrl && { imageUrl: payload.data.imageUrl }),
-          ...(payload.data?.videoUrl && { videoUrl: payload.data.videoUrl }),
-          ...(payload.data?.audioUrl && { audioUrl: payload.data.audioUrl })
-        }
+      // iOS APNS 페이로드 구성 (올바른 aps 래퍼 구조)
+      const customData = {
+        type: payload.data?.type || 'message',
+        chatRoomId: payload.data?.chatRoomId,
+        messageId: payload.data?.messageId,
+        senderId: payload.data?.senderId,
+        senderName: payload.data?.senderName,
+        url: payload.data?.url || '/',
+        // Image/media attachment URL for rich notifications
+        ...(payload.data?.imageUrl && { imageUrl: payload.data.imageUrl }),
+        ...(payload.data?.videoUrl && { videoUrl: payload.data.videoUrl }),
+        ...(payload.data?.audioUrl && { audioUrl: payload.data.audioUrl })
       };
 
-      // APNS HTTP/2 요청 구성
-      const postData = JSON.stringify(apnsPayload);
-      
-      const options = {
-        hostname: APNS_SERVER,
-        port: 443,
-        path: `/3/device/${deviceToken}`,
-        method: 'POST',
-        headers: {
-          'authorization': `bearer ${getAPNSJWT()}`,
-          // Both silent and normal use 'alert' type
-          // Silent: badge-only update (no alert/sound in payload)
-          // Normal: full notification with alert, badge, sound
-          'apns-push-type': 'alert',
-          'apns-expiration': '0',
-          // Silent: priority 5 (power efficient), Normal: priority 10 (immediate)
-          'apns-priority': isSilent ? '5' : '10',
-          'apns-topic': 'com.dovie.messenger',
-          'content-type': 'application/json',
-          'content-length': Buffer.byteLength(postData)
-        }
-      };
+      let notification: Notification;
 
       if (isSilent) {
+        // Silent badge update: badge only, no alert/sound
+        // Apple requires pushType 'background' for content-available without alert
+        notification = new Notification(deviceToken, {
+          badge: payload.badgeCount ?? 0,
+          contentAvailable: true,
+          threadId: `chat-${payload.data?.chatRoomId || 'default'}`,
+          payload: customData
+        });
+        notification.pushType = 'background'; // CRITICAL: Use 'background' for silent push
+        notification.priority = 5; // Power efficient
+        
         console.log(`🔕 iOS APNS Silent Push 발송 (배지만): ${deviceToken.substring(0, 20)}...`);
-        console.log(`   Payload:`, JSON.stringify(apnsPayload, null, 2));
+        console.log(`   Badge: ${payload.badgeCount}`);
+        console.log(`   Push Type: background`);
       } else {
+        // Normal notification: alert, badge, sound, rich media
+        notification = new Notification(deviceToken, {
+          alert: {
+            title: payload.title || "새 메시지",
+            body: payload.body || "새 메시지가 도착했습니다",
+            // Optional subtitle for additional context
+            ...(payload.data?.subtitle && { subtitle: payload.data.subtitle })
+          },
+          badge: payload.badgeCount ?? 0,
+          sound: payload.sound || "default",
+          mutableContent: true, // Enable rich notifications (images, videos, audio)
+          contentAvailable: true, // Enable background updates
+          category: "MESSAGE_CATEGORY", // Action buttons (reply, mark read)
+          threadId: `chat-${payload.data?.chatRoomId || 'default'}`,
+          payload: customData
+        });
+        notification.pushType = 'alert'; // Use 'alert' for notifications with alert content
+        notification.priority = 10; // Immediate delivery
+        
         console.log(`📱 iOS APNS 알림 발송: ${deviceToken.substring(0, 20)}...`);
         console.log(`   Title: ${payload.title}`);
         console.log(`   Body: ${payload.body}`);
         console.log(`   Badge: ${payload.badgeCount}`);
-        console.log(`   Full Payload:`, JSON.stringify(apnsPayload, null, 2));
+        console.log(`   Push Type: alert`);
       }
 
-      // HTTP/2 요청 발송
-      const req = https.request(options, (res: any) => {
-        let responseBody = '';
-        res.on('data', (chunk: any) => {
-          responseBody += chunk;
-        });
-        
-        res.on('end', () => {
-          console.log(`📱 APNS 응답 상태: ${res.statusCode} for user ${userId}`);
-          
-          if (res.statusCode === 200) {
-            console.log(`✅ iOS 푸시 알림 성공: user ${userId}, token: ${deviceToken.substring(0, 20)}...`);
-          } else if (res.statusCode === 410) {
-            console.log(`🧹 iOS 토큰 만료됨, 삭제 필요: user ${userId}`);
-            console.log(`   Response: ${responseBody}`);
-            // 만료된 토큰 삭제
-            storage.deleteIOSDeviceToken(userId, deviceToken);
-          } else {
-            console.log(`❌ iOS 푸시 알림 실패: ${res.statusCode} for user ${userId}`);
-            console.log(`   Response: ${responseBody}`);
-          }
-        });
-      });
+      // Set expiry (1 hour from now)
+      notification.expiry = Math.floor(Date.now() / 1000) + 3600;
 
-      req.on('error', (error: Error) => {
-        console.error(`❌ iOS APNS 요청 오류 user ${userId}:`, error);
-      });
+      console.log(`📱 Full APNS Notification:`, JSON.stringify(notification, null, 2));
 
-      req.write(postData);
-      req.end();
+      // Send notification via apns2 (HTTP/2 + JWT auto-handled)
+      const result = await apnsClient.send(notification);
+      
+      console.log(`✅ iOS 푸시 알림 성공: user ${userId}, token: ${deviceToken.substring(0, 20)}...`);
+      console.log(`   APNS Response:`, result);
 
-    } catch (error) {
+    } catch (error: any) {
       const tokenPreview = tokenInfo.deviceToken 
         ? tokenInfo.deviceToken.substring(0, 20) + '...' 
         : 'unknown';
+      
       console.error(`❌ iOS 토큰 ${tokenPreview} 발송 실패 (user ${userId}):`, error);
-    }
-  }
-}
-
-// APNS JWT 토큰 생성
-function getAPNSJWT(): string {
-  const keyId = process.env.APNS_KEY_ID;
-  const teamId = process.env.APNS_TEAM_ID;
-  const privateKey = process.env.APNS_PRIVATE_KEY;
-
-  // 환경 변수가 없으면 경고하고 임시 토큰 반환 (개발 모드)
-  if (!keyId || !teamId || !privateKey) {
-    console.warn('⚠️  APNS credentials not configured. Push notifications will not work.');
-    console.warn('   Please set: APNS_KEY_ID, APNS_TEAM_ID, APNS_PRIVATE_KEY');
-    return "temporary_dev_token";
-  }
-
-  try {
-    // APNS Private Key 처리: \n 이스케이프 문자를 실제 줄바꿈으로 변환
-    // Replit Secrets에서는 "\n"이 문자열 그대로 저장될 수 있으므로 자동 변환 필요
-    let formattedKey = privateKey
-      .replace(/\\n/g, '\n')  // \n 이스케이프를 실제 줄바꿈으로 변환
-      .trim();                 // 앞뒤 공백 제거
-    
-    // PEM 형식 검증
-    if (!formattedKey.includes('-----BEGIN PRIVATE KEY-----')) {
-      console.error('❌ APNS_PRIVATE_KEY missing PEM header. Expected format:');
-      console.error('   -----BEGIN PRIVATE KEY-----');
-      console.error('   (key content)');
-      console.error('   -----END PRIVATE KEY-----');
-      return "temporary_dev_token";
-    }
-
-    // APNS JWT 토큰 생성 (1시간 유효)
-    const token = jwt.sign(
-      {
-        iss: teamId,
-        iat: Math.floor(Date.now() / 1000)
-      },
-      formattedKey,
-      {
-        algorithm: 'ES256',
-        header: {
-          alg: 'ES256',
-          kid: keyId
-        },
-        expiresIn: '1h'
+      
+      // Handle token expiration (410 status)
+      if (error.statusCode === 410 || error.reason === 'Unregistered' || error.reason === 'BadDeviceToken') {
+        console.log(`🧹 iOS 토큰 만료됨, 삭제: user ${userId}`);
+        await storage.deleteIOSDeviceToken(userId, tokenInfo.deviceToken);
       }
-    );
-    
-    return token;
-  } catch (error) {
-    console.error('❌ Failed to generate APNS JWT:', error);
-    return "temporary_dev_token";
-  }
+    }
+  });
+
+  // Send all notifications in parallel
+  await Promise.allSettled(sendPromises);
 }
 
 export async function sendMessageNotification(
