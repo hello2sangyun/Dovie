@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
 
 interface CacheEntry {
@@ -34,6 +33,9 @@ class FileCache {
         return;
       }
 
+      // Dynamic imports to avoid loading Capacitor on web
+      const { Filesystem, Directory } = await import('@capacitor/filesystem');
+
       // 캐시 디렉토리 생성
       try {
         await Filesystem.mkdir({
@@ -60,6 +62,7 @@ class FileCache {
 
   private async loadCacheIndex(): Promise<void> {
     try {
+      const { Filesystem, Directory, Encoding } = await import('@capacitor/filesystem');
       const result = await Filesystem.readFile({
         path: `${CACHE_DIR}/index.json`,
         directory: Directory.Cache,
@@ -77,6 +80,7 @@ class FileCache {
 
   private async saveCacheIndex(): Promise<void> {
     try {
+      const { Filesystem, Directory, Encoding } = await import('@capacitor/filesystem');
       const data = Object.fromEntries(this.cacheIndex);
       await Filesystem.writeFile({
         path: `${CACHE_DIR}/index.json`,
@@ -109,6 +113,8 @@ class FileCache {
     }
 
     try {
+      const { Filesystem, Directory } = await import('@capacitor/filesystem');
+      
       // 파일 존재 확인
       const fileName = this.getFileName(url);
       await Filesystem.stat({
@@ -144,6 +150,8 @@ class FileCache {
     const filePath = `${CACHE_DIR}/${fileName}`;
 
     try {
+      const { Filesystem, Directory } = await import('@capacitor/filesystem');
+      
       // Blob을 Base64로 변환
       const base64Data = await this.blobToBase64(blob);
 
@@ -208,6 +216,8 @@ class FileCache {
     let freedSpace = 0;
     const targetSize = MAX_CACHE_SIZE * 0.8; // 80%까지 줄이기
 
+    const { Filesystem, Directory } = await import('@capacitor/filesystem');
+
     for (const [url, entry] of sortedEntries) {
       if (stats.totalSize - freedSpace <= targetSize) {
         break;
@@ -258,6 +268,8 @@ class FileCache {
     await this.init();
 
     try {
+      const { Filesystem, Directory } = await import('@capacitor/filesystem');
+      
       // 캐시 디렉토리 전체 삭제
       await Filesystem.rmdir({
         path: CACHE_DIR,
