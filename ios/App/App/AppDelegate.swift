@@ -49,7 +49,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         // Capacitor에 알림 액션 전달
         let userInfo = response.notification.request.content.userInfo
-        NotificationCenter.default.post(name: NSNotification.Name.capacitorDidReceiveNotification, object: userInfo)
+        NotificationCenter.default.post(name: NSNotification.Name(rawValue: "capacitorDidReceiveNotification"), object: userInfo)
         completionHandler()
     }
 
