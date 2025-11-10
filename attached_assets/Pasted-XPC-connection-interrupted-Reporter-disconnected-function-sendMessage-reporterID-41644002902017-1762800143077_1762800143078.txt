@@ -1,0 +1,73 @@
+XPC connection interrupted
+Reporter disconnected. { function=sendMessage, reporterID=41644002902017 }
+Reporter disconnected. { function=sendMessage, reporterID=41644002902017 }
+Reporter disconnected. { function=sendMessage, reporterID=41644002902017 }
+Reporter disconnected. { function=sendMessage, reporterID=41644002902017 }
+Reporter disconnected. { function=sendMessage, reporterID=41644002902017 }
+Reporter disconnected. { function=sendMessage, reporterID=41644002902017 }
+Reporter disconnected. { function=sendMessage, reporterID=41644002902017 }
+Reporter disconnected. { function=sendMessage, reporterID=41644002902017 }
+Reporter disconnected. { function=sendMessage, reporterID=41644002902017 }
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+	(Note: If you're seeing NSAutoresizingMaskLayoutConstraints that you don't understand, refer to the documentation for the UIView property translatesAutoresizingMaskIntoConstraints) 
+(
+    "<NSAutoresizingMaskLayoutConstraint:0x1295ddd10 h=-&- v=-&- _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x129566200.minX == 0   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a73e2dd420ButtonRepresentation__:0x129418a00 )>",
+    "<NSAutoresizingMaskLayoutConstraint:0x1295ddd60 h=-&- v=-&- H:[_TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x129566200]-(0)-|   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a73e2dd420ButtonRepresentation__:0x129418a00 )>",
+    "<NSLayoutConstraint:0x1295dd4f0 _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x129566200.width == _UIButtonBarButton:0x129418c80.width   (active)>",
+    "<NSLayoutConstraint:0x1295ddbd0 '_UITemporaryLayoutWidth' _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a73e2dd420ButtonRepresentation__:0x129418a00.width == 0   (active)>",
+    "<NSLayoutConstraint:0x1295dd630 'IB_Leading_Leading' H:|-(8)-[_UIModernBarButton:0x129608a80]   (active, names: '|':_UIButtonBarButton:0x129418c80 )>",
+    "<NSLayoutConstraint:0x1295dd680 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x129608a80]-(8)-|   (active, names: '|':_UIButtonBarButton:0x129418c80 )>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x1295dd680 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x129608a80]-(8)-|   (active, names: '|':_UIButtonBarButton:0x129418c80 )>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+	(Note: If you're seeing NSAutoresizingMaskLayoutConstraints that you don't understand, refer to the documentation for the UIView property translatesAutoresizingMaskIntoConstraints) 
+(
+    "<NSAutoresizingMaskLayoutConstraint:0x1295df3e0 h=-&- v=-&- _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x129566600.minX == 0   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a73e2dd420ButtonRepresentation__:0x129418500 )>",
+    "<NSAutoresizingMaskLayoutConstraint:0x1295df430 h=-&- v=-&- H:[_TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x129566600]-(0)-|   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a73e2dd420ButtonRepresentation__:0x129418500 )>",
+    "<NSLayoutConstraint:0x1295dec60 _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x129566600.width == _UIButtonBarButton:0x129418780.width   (active)>",
+    "<NSLayoutConstraint:0x1295df2a0 '_UITemporaryLayoutWidth' _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a73e2dd420ButtonRepresentation__:0x129418500.width == 0   (active)>",
+    "<NSLayoutConstraint:0x1295deda0 'IB_Leading_Leading' H:|-(8)-[_UIModernBarButton:0x129608e00]   (active, names: '|':_UIButtonBarButton:0x129418780 )>",
+    "<NSLayoutConstraint:0x1295dedf0 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x129608e00]-(8)-|   (active, names: '|':_UIButtonBarButton:0x129418780 )>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x1295dedf0 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x129608e00]-(8)-|   (active, names: '|':_UIButtonBarButton:0x129418780 )>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+	(Note: If you're seeing NSAutoresizingMaskLayoutConstraints that you don't understand, refer to the documentation for the UIView property translatesAutoresizingMaskIntoConstraints) 
+(
+    "<NSAutoresizingMaskLayoutConstraint:0x1296f0370 h=-&- v=-&- _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x129566a00.minX == 0   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a73e2dd420ButtonRepresentation__:0x12941a080 )>",
+    "<NSAutoresizingMaskLayoutConstraint:0x1296f03c0 h=-&- v=-&- H:[_TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x129566a00]-(0)-|   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a73e2dd420ButtonRepresentation__:0x12941a080 )>",
+    "<NSLayoutConstraint:0x118f1b110 _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x129566a00.width == _UIButtonBarButton:0x129418280.width   (active)>",
+    "<NSLayoutConstraint:0x1296f0230 '_UITemporaryLayoutWidth' _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a73e2dd420ButtonRepresentation__:0x12941a080.width == 0   (active)>",
+    "<NSLayoutConstraint:0x118f1b570 'IB_Leading_Leading' H:|-(8)-[_UIModernBarButton:0x129609180]   (active, names: '|':_UIButtonBarButton:0x129418280 )>",
+    "<NSLayoutConstraint:0x118f1b5c0 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x129609180]-(8)-|   (active, names: '|':_UIButtonBarButton:0x129418280 )>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x118f1b5c0 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x129609180]-(8)-|   (active, names: '|':_UIButtonBarButton:0x129418280 )>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 6CC1673A-3E93-4680-82B8-6300C5B64370
+<0x107e5e940> Gesture: System gesture gate timed out.
+Result accumulator timeout: 3.000000, exceeded.
