@@ -238,19 +238,30 @@ export default function MainApp() {
     }
   }, [activeTab, activeMobileTab, selectedChatRoom, showMobileChat, showSettings, location]);
 
-  // 프로필 이미지 프리로딩 - MainApp 진입 후 5초 지연 실행 (로그인 페이지 렉 방지)
+  // 프로필 이미지 프리로딩 - 브라우저가 한가할 때만 실행 (렉 방지)
   useEffect(() => {
     if (user?.id && lastPreloadedUserIdRef.current !== user.id) {
-      console.log("⏰ 프로필 이미지 프리로딩 5초 후 시작 예정...");
-      const preloadTimer = setTimeout(() => {
-        console.log("🚀 프로필 이미지 프리로딩 시작");
-        lastPreloadedUserIdRef.current = user.id; // 현재 사용자 ID 저장하여 중복 실행 방지
-        preloadProfileImages(user.id.toString()).catch((error) => {
-          console.log("⚠️ 프로필 이미지 프리로딩 실패, 정상 진행:", error);
-        });
-      }, 5000); // 5초 지연
+      console.log("⏰ 프로필 이미지 프리로딩 예약 - 브라우저 유휴 시간에 실행됩니다...");
+      
+      // 먼저 5초 대기 후 requestIdleCallback으로 유휴 시간에 실행
+      const initialTimer = setTimeout(() => {
+        // requestIdleCallback을 사용해서 브라우저가 한가할 때만 실행
+        const requestIdleCallbackFn = (window as any).requestIdleCallback || ((cb: Function) => setTimeout(cb, 1));
+        
+        const idleCallbackId = requestIdleCallbackFn(() => {
+          console.log("🚀 프로필 이미지 프리로딩 시작 (유휴 시간)");
+          lastPreloadedUserIdRef.current = user.id; // 현재 사용자 ID 저장하여 중복 실행 방지
+          preloadProfileImages(user.id.toString()).catch((error) => {
+            console.log("⚠️ 프로필 이미지 프리로딩 실패, 정상 진행:", error);
+          });
+        }, { timeout: 10000 }); // 최대 10초 대기
+        
+        return idleCallbackId;
+      }, 5000); // 5초 후 유휴 시간 대기 시작
 
-      return () => clearTimeout(preloadTimer);
+      return () => {
+        clearTimeout(initialTimer);
+      };
     }
   }, [user?.id, preloadProfileImages]);
 
