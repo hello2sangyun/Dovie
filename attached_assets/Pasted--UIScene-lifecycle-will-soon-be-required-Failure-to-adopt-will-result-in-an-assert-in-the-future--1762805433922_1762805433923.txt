@@ -1,0 +1,40 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/489091EC-FCB8-4753-B9F1-A705B8AFF423/App.app'
+KeyboardPlugin: no resize
+⚡️  Loading app at https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev...
+📱 [AppDelegate] Registered for remote notifications
+Networking process (0x112060190) took 16.850897 seconds to launch
+GPU process (0x1121081e0) took 5.001280 seconds to launch
+WebContent process (0x1120e0100) took 6.545441 seconds to launch
+📱 [AppDelegate] APNS 토큰 등록 성공
+0x1120e0100 - [PID=10635] WebProcessProxy::didBecomeUnresponsive:
+0x106b88718 - [pageProxyID=7, webPageID=8, PID=10635] WebPageProxy::processDidBecomeUnresponsive:
+WebContent[10635] Unable to hide query parameters from script (missing data)
+⚡️  [debug] - [vite] connecting...
+⚡️  WebView loaded
+⚡️  [log] - 📱 No stored user, initializing as logged out
+XPC connection interrupted
+Reporter disconnected. { function=sendMessage, reporterID=45625437585409 }
+Reporter disconnected. { function=sendMessage, reporterID=45625437585409 }
+Reporter disconnected. { function=sendMessage, reporterID=45625437585409 }
+Reporter disconnected. { function=sendMessage, reporterID=45625437585409 }
+Reporter disconnected. { function=sendMessage, reporterID=45625437585409 }
+Reporter disconnected. { function=sendMessage, reporterID=45625437585409 }
+Reporter disconnected. { function=sendMessage, reporterID=45625437585409 }
+Reporter disconnected. { function=sendMessage, reporterID=45625437585409 }
+Reporter disconnected. { function=sendMessage, reporterID=45625437585409 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 9AB70365-C7D0-49B2-8BBC-98FC188C5D23
+[!] <UITapGestureRecognizer: 0x11782f480; id = 32; phase = possible> is blocking its subgraph for 20.940188540999998 seconds:
+    <WKDeferringGestureRecognizer: 0x11782e940 "Deferrer for touch start (delayed reset)"; id = 20; phase = failed>
+    <nil "UITextInteractionNameInteractiveRefinement"; id = 85; phase = failed(interactionEnded)>
+    <_UIRelationshipGestureRecognizer: 0x1178aca00 "com.apple.UIKit.clickPresentationFailure"; id = 59; phase = failed>
+    <UITapAndAHalfRecognizer: 0x106b69500 "UITextInteractionNameTapAndAHalf"; id = 88; phase = failed(removedFromContainer)>
+    <WKDeferringGestureRecognizer: 0x11782ed00 "Deferrer for touch end (delayed reset)"; id = 23; phase = failed>
+    <_UIDragLiftGestureRecognizer: 0x11784d400 "com.apple.UIKit.dragInitiation"; id = 45; phase = failed(interactionEnded)>
+    <WKImageAnalysisGestureRecognizer: 0x117821b80 "Image analysis"; id = 69; phase = failed(interactionEnded)>
+    <nil "UITextInteractionNameDoubleTap"; id = 87; phase = failed(removedFromContainer)>
+    <_UIRelationshipGestureRecognizer: 0x11782fe80 "com.apple.UIKit.dragFailureRelationships"; id = 46; phase = failed>
+    <WKDeferringGestureRecognizer: 0x11782f0c0 "Deferrer for image analysis"; id = 26; phase = failed>
+Reporter disconnected or already stopped. { func=stop, reporterID=45625437585409 }
+Result accumulator timeout: 3.000000, exceeded.
+Result accumulator timeout: 3.000000, exceeded.
