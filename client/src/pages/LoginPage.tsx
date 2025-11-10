@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [, setLocation] = useLocation();
   const { setUser } = useAuth();
   const { toast } = useToast();
+  const containerRef = useRef<HTMLDivElement>(null);
   
   // Username/Password login state
   const [usernameLoginData, setUsernameLoginData] = useState({
@@ -60,8 +61,32 @@ export default function LoginPage() {
     usernameLoginMutation.mutate(usernameLoginData);
   };
 
+  useEffect(() => {
+    const handleViewportResize = () => {
+      if (!window.visualViewport || !containerRef.current) return;
+      
+      const keyboardHeight = window.innerHeight - window.visualViewport.height;
+      
+      if (keyboardHeight > 100) {
+        containerRef.current.style.transform = `translateY(-${keyboardHeight * 0.4}px)`;
+        containerRef.current.style.transition = 'transform 0.3s ease-out';
+      } else {
+        containerRef.current.style.transform = 'translateY(0)';
+        containerRef.current.style.transition = 'transform 0.3s ease-out';
+      }
+    };
+
+    window.visualViewport?.addEventListener('resize', handleViewportResize);
+    window.visualViewport?.addEventListener('scroll', handleViewportResize);
+
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handleViewportResize);
+      window.visualViewport?.removeEventListener('scroll', handleViewportResize);
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="transform scale-150 mb-8">
