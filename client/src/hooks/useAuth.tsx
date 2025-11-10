@@ -13,6 +13,7 @@ interface AuthContextType {
   loginWithUsername: (username: string, password: string) => Promise<any>;
   loginWithEmail: (email: string, password: string) => Promise<any>;
   requestPermissions: () => Promise<void>;
+  preloadProfileImages: (userId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -192,10 +193,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Store auth token for independent badge refresh
       storeAuthTokenInSW(data.user.id.toString());
       
-      // 프로필 이미지 프리로딩을 백그라운드에서 실행 (앱 로딩을 차단하지 않음)
-      preloadProfileImages(data.user.id.toString()).catch(() => {
-        console.log("Profile image preloading failed, continuing normally");
-      });
+      // 프리로딩은 MainApp 진입 후에만 실행 (로그인 페이지 렉 방지)
     } else if (error && storedUserId) {
       // Clear user data if authentication fails for stored user
       console.log("❌ Authentication failed, clearing user data");
@@ -405,7 +403,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isPreloadingImages,
       loginWithUsername,
       loginWithEmail,
-      requestPermissions
+      requestPermissions,
+      preloadProfileImages
     }}>
       {children}
     </AuthContext.Provider>
