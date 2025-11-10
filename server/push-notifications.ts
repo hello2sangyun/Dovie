@@ -35,22 +35,9 @@ function initializeAPNSClient(): ApnsClient | null {
       .replace(/\\n/g, '\n')
       .trim();
     
-    // Debug: Log key format
-    console.log('🔍 APNS Private Key Debug:');
-    console.log(`   Raw length: ${privateKey.length} chars`);
-    console.log(`   Has \\n escapes: ${privateKey.includes('\\n')}`);
-    console.log(`   First 50 chars: ${privateKey.substring(0, 50)}...`);
-    console.log(`   After format length: ${formattedKey.length} chars`);
-    console.log(`   After format first 50 chars: ${formattedKey.substring(0, 50)}...`);
-    console.log(`   Has PEM header: ${formattedKey.includes('-----BEGIN PRIVATE KEY-----')}`);
-    console.log(`   Line count: ${formattedKey.split('\n').length} lines`);
-    
-    // Validate PEM format
+    // Validate PEM format (no logging for security - silence is safer)
     if (!formattedKey.includes('-----BEGIN PRIVATE KEY-----')) {
-      console.error('❌ APNS_PRIVATE_KEY missing PEM header. Expected format:');
-      console.error('   -----BEGIN PRIVATE KEY-----');
-      console.error('   (key content)');
-      console.error('   -----END PRIVATE KEY-----');
+      console.error('❌ APNS_PRIVATE_KEY missing PEM header');
       return null;
     }
 
