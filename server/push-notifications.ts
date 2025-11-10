@@ -105,20 +105,16 @@ export async function sendPushNotification(
     console.log(`📱 User: ${userId}`);
     console.log(`📱 Title: ${payload.title}`);
     console.log(`📱 Body: ${payload.body}`);
-    console.log(`📱 Badge Count (provided): ${payload.badgeCount}`);
     
-    // Auto-calculate badge count if not provided (for backward compatibility)
-    // This ensures both PWA and iOS receive accurate badge counts
+    // CRITICAL: badgeCount must be provided by caller to avoid race conditions
+    // Fallback auto-calculation was removed because it caused stale reads (+1 overcount)
+    // when lastReadMessageId hadn't been updated yet
     if (payload.badgeCount === undefined) {
-      console.log(`⚠️  Badge count not provided, calculating from unread counts for user ${userId}`);
-      const unreadCounts = await storage.getUnreadCounts(userId);
-      const totalUnread = unreadCounts.reduce((total, count) => total + count.unreadCount, 0);
-      const unreadAiNotices = await storage.getUnreadAiNoticesCount(userId);
-      payload.badgeCount = totalUnread + unreadAiNotices;
-      console.log(`📊 Auto-calculated badge count: ${payload.badgeCount} (${totalUnread} messages + ${unreadAiNotices} AI notices)`);
-    } else {
-      console.log(`✅ Badge count explicitly provided: ${payload.badgeCount}`);
+      console.error(`❌ ERROR: badgeCount not provided for user ${userId}. This is a bug - all callers must provide badgeCount.`);
+      payload.badgeCount = 0; // Safe fallback to prevent app crashes
     }
+    
+    console.log(`📱 Badge Count: ${payload.badgeCount}`);
     
     const notificationSettings = await storage.getNotificationSettings(userId);
     

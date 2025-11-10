@@ -11,6 +11,7 @@ async function testPushNotification() {
     await sendPushNotification(TEST_USER_ID, {
       title: 'Dovie Messenger 테스트',
       body: '푸시 알림 시스템이 정상 작동하고 있습니다!',
+      badgeCount: 0, // Test notification doesn't affect badge count
       data: {
         type: 'test',
         timestamp: Date.now(),
