@@ -76,9 +76,9 @@ Key features include:
   - **Removed**: `window.visualViewport` resize listener (root cause)
   - **Removed**: `scrollIntoView({ behavior: 'smooth' })` (blocks keyboard queue)
   - **Removed**: `backdrop-blur-sm` from Card (cleanup)
-  - **Added**: Capacitor `Keyboard.addListener('keyboardDidShow')` event
-  - **Added**: `scrollIntoView({ behavior: 'auto', block: 'center' })` (non-blocking)
-  - 150ms timeout ensures keyboard animation finishes before scrolling
+  - **Added**: Capacitor `Keyboard.addListener('keyboardDidShow')` event with keyboard height info
+  - **Added**: Smart scrolling - calculates available viewport space (window height - keyboard height) and centers input in visible area using `window.scrollTo` with `behavior: 'auto'`
+  - 150ms timeout ensures keyboard animation finishes before measuring and scrolling
   
 - **Why this approach works**:
   - Capacitor Keyboard events fire after keyboard animation completes
