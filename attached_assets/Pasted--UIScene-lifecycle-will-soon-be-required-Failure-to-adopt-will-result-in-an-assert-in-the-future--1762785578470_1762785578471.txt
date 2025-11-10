@@ -1,0 +1,368 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/DC70E417-5734-47F5-A02E-BCC712D72244/App.app'
+⚡️  Loading app at https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev...
+XPC connection interrupted
+Networking process (0x114064190) took 10.242142 seconds to launch
+GPU process (0x1141201e0) took 2.446643 seconds to launch
+WebContent process (0x1140ec100) took 3.303442 seconds to launch
+0x1140ec100 - [PID=7640] WebProcessProxy::didBecomeUnresponsive:
+0x119c74018 - [pageProxyID=7, webPageID=8, PID=7640] WebPageProxy::processDidBecomeUnresponsive:
+⚡️  JS Eval error A JavaScript exception occurred
+⚡️  JS Eval error A JavaScript exception occurred
+WebContent[7640] Unable to hide query parameters from script (missing data)
+Updated list with error: DownloadFailed
+⚡️  [debug] - [vite] connecting...
+⚡️  WebView loaded
+⚡️  [log] - 📱 No stored user, initializing as logged out
+Updated list with error: DownloadFailed
+Updated list with error: DownloadFailed
+XPC connection interrupted
+Reporter disconnected. { function=sendMessage, reporterID=32779190403073 }
+Reporter disconnected. { function=sendMessage, reporterID=32779190403073 }
+Reporter disconnected. { function=sendMessage, reporterID=32779190403073 }
+Reporter disconnected. { function=sendMessage, reporterID=32779190403073 }
+Reporter disconnected. { function=sendMessage, reporterID=32779190403073 }
+Reporter disconnected. { function=sendMessage, reporterID=32779190403073 }
+Reporter disconnected. { function=sendMessage, reporterID=32779190403073 }
+Reporter disconnected. { function=sendMessage, reporterID=32779190403073 }
+Reporter disconnected. { function=sendMessage, reporterID=32779190403073 }
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+	(Note: If you're seeing NSAutoresizingMaskLayoutConstraints that you don't understand, refer to the documentation for the UIView property translatesAutoresizingMaskIntoConstraints) 
+(
+    "<NSAutoresizingMaskLayoutConstraint:0x1295a4910 h=-&- v=-&- _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x1294ea200.minX == 0   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a73e2dd420ButtonRepresentation__:0x119feca00 )>",
+    "<NSAutoresizingMaskLayoutConstraint:0x1295a4960 h=-&- v=-&- H:[_TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x1294ea200]-(0)-|   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a73e2dd420ButtonRepresentation__:0x119feca00 )>",
+    "<NSLayoutConstraint:0x1295a40f0 _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x1294ea200.width == _UIButtonBarButton:0x119fecc80.width   (active)>",
+    "<NSLayoutConstraint:0x1295a47d0 '_UITemporaryLayoutWidth' _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a73e2dd420ButtonRepresentation__:0x119feca00.width == 0   (active)>",
+    "<NSLayoutConstraint:0x1295a4230 'IB_Leading_Leading' H:|-(8)-[_UIModernBarButton:0x129591180]   (active, names: '|':_UIButtonBarButton:0x119fecc80 )>",
+    "<NSLayoutConstraint:0x1295a4280 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x129591180]-(8)-|   (active, names: '|':_UIButtonBarButton:0x119fecc80 )>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x1295a4280 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x129591180]-(8)-|   (active, names: '|':_UIButtonBarButton:0x119fecc80 )>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+	(Note: If you're seeing NSAutoresizingMaskLayoutConstraints that you don't understand, refer to the documentation for the UIView property translatesAutoresizingMaskIntoConstraints) 
+(
+    "<NSAutoresizingMaskLayoutConstraint:0x1295a5fe0 h=-&- v=-&- _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x1294ea600.minX == 0   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a73e2dd420ButtonRepresentation__:0x119fec500 )>",
+    "<NSAutoresizingMaskLayoutConstraint:0x1295a6030 h=-&- v=-&- H:[_TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x1294ea600]-(0)-|   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a73e2dd420ButtonRepresentation__:0x119fec500 )>",
+    "<NSLayoutConstraint:0x1295a5860 _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x1294ea600.width == _UIButtonBarButton:0x119fec780.width   (active)>",
+    "<NSLayoutConstraint:0x1295a5ea0 '_UITemporaryLayoutWidth' _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a73e2dd420ButtonRepresentation__:0x119fec500.width == 0   (active)>",
+    "<NSLayoutConstraint:0x1295a59a0 'IB_Leading_Leading' H:|-(8)-[_UIModernBarButton:0x129591500]   (active, names: '|':_UIButtonBarButton:0x119fec780 )>",
+    "<NSLayoutConstraint:0x1295a59f0 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x129591500]-(8)-|   (active, names: '|':_UIButtonBarButton:0x119fec780 )>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x1295a59f0 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x129591500]-(8)-|   (active, names: '|':_UIButtonBarButton:0x119fec780 )>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+	(Note: If you're seeing NSAutoresizingMaskLayoutConstraints that you don't understand, refer to the documentation for the UIView property translatesAutoresizingMaskIntoConstraints) 
+(
+    "<NSAutoresizingMaskLayoutConstraint:0x1295a7610 h=-&- v=-&- _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x1294eaa00.minX == 0   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a73e2dd420ButtonRepresentation__:0x119fee080 )>",
+    "<NSAutoresizingMaskLayoutConstraint:0x1295a7660 h=-&- v=-&- H:[_TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x1294eaa00]-(0)-|   (active, names: '|':_TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a73e2dd420ButtonRepresentation__:0x119fee080 )>",
+    "<NSLayoutConstraint:0x1295a6ee0 _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper:0x1294eaa00.width == _UIButtonBarButton:0x119fec280.width   (active)>",
+    "<NSLayoutConstraint:0x1295a74d0 '_UITemporaryLayoutWidth' _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a73e2dd420ButtonRepresentation__:0x119fee080.width == 0   (active)>",
+    "<NSLayoutConstraint:0x1295a6fd0 'IB_Leading_Leading' H:|-(8)-[_UIModernBarButton:0x129591880]   (active, names: '|':_UIButtonBarButton:0x119fec280 )>",
+    "<NSLayoutConstraint:0x1295a7020 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x129591880]-(8)-|   (active, names: '|':_UIButtonBarButton:0x119fec280 )>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x1295a7020 'IB_Trailing_Trailing' H:[_UIModernBarButton:0x129591880]-(8)-|   (active, names: '|':_UIButtonBarButton:0x119fec280 )>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 498964CC-EAE3-4278-AEC2-BDB6595937D9
+<0x108e3a440> Gesture: System gesture gate timed out.
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+Reporter disconnected. { function=sendMessage, reporterID=32779190403074 }
+Reporter disconnected. { function=sendMessage, reporterID=32779190403074 }
+Reporter disconnected. { function=sendMessage, reporterID=32779190403074 }
+Reporter disconnected. { function=sendMessage, reporterID=32779190403074 }
+Reporter disconnected. { function=sendMessage, reporterID=32779190403074 }
+Reporter disconnected. { function=sendMessage, reporterID=32779190403074 }
+Reporter disconnected. { function=sendMessage, reporterID=32779190403074 }
+Reporter disconnected. { function=sendMessage, reporterID=32779190403074 }
+Reporter disconnected. { function=sendMessage, reporterID=32779190403074 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 498964CC-EAE3-4278-AEC2-BDB6595937D9
+Result accumulator timeout: 3.000000, exceeded.
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 498964CC-EAE3-4278-AEC2-BDB6595937D9
+Result accumulator timeout: 3.000000, exceeded.
+⚡️  To Native ->  App addListener 28716493
+⚡️  To Native ->  App addListener 28716494
+⚡️  To Native ->  App addListener 28716495
+⚡️  To Native ->  PushNotifications addListener 28716496
+⚡️  To Native ->  PushNotifications addListener 28716497
+⚡️  To Native ->  PushNotifications addListener 28716498
+⚡️  To Native ->  PushNotifications addListener 28716499
+⚡️  To Native ->  PushNotifications requestPermissions 28716500
+⚡️  [log] - [Badge] Service Worker not supported
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+⚡️  [log] -    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+⚡️  [log] - 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  To Native ->  App addListener 28716501
+⚡️  To Native ->  App addListener 28716502
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [error] - WebSocket error: {"isTrusted":true}
+⚡️  [error] - WebSocket error event: {"type":"error","target":{},"timeStamp":42327}
+⚡️  [log] - WebSocket disconnected: 1006 
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 7
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: [{"chatRoomId":116,"unreadCount":7}]
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 7
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 7
+⚡️  [log] - 📱 PWA Badge update: 0 → 7 (messages: 7, AI: 0)
+⚡️  To Native ->  Badge set 28716503
+⚡️  [log] - 📱 Native Badge update: 0 → 7 (messages: 7, AI: 0)
+⚡️  TO JS undefined
+⚡️  [log] - ✅ Native badge count set to 7
+⚡️  TO JS {"receive":"granted"}
+⚡️  To Native ->  PushNotifications register 28716504
+⚡️  TO JS undefined
+⚡️  [log] - 📱 iOS 네이티브 푸시 알림 등록 성공 (리스너 대기 중)
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App foregrounded - reconnecting WebSocket
+⚡️  [log] - 📱 Calling connect() after foreground transition
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+⚡️  [log] -    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+⚡️  TO JS {"value":"9ED88FB599817AD40BC33223E6C7C14E35B7C45D40542AFB85B400D0E50877FE"}
+📱 [AppDelegate] APNS 토큰 등록 성공
+⚡️  [log] - 📱 iOS 푸시 토큰 획득: 9ED88FB599817AD40BC33223E6C7C14E35B7C45D40542AFB85B400D0E50877FE
+⚡️  [log] - 📱 서버로 iOS 토큰 전송 시작: 9ED88FB599817AD40BC3...
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - ✅ iOS 푸시 토큰이 서버에 저장되었습니다: {"success":true,"message":"iOS push token registered successfully","userId":126,"tokenPreview":"9ED88FB599817AD40BC3..."}
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+⚡️  [log] - WebSocket disconnected: 1000 App backgrounded
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+Snapshotting a view (0x119d3f400, UIKeyboardImpl) that is not in a visible window requires afterScreenUpdates:YES.
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] App visible - suppressing notifications
+⚡️  [log] - 📱 앱이 활성화됨 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app opened - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App foregrounded - reconnecting WebSocket
+⚡️  [log] - 📱 Calling connect() after foreground transition
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+⚡️  [log] -    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 8
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: [{"chatRoomId":116,"unreadCount":8}]
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 8
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 8
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [log] - WebSocket disconnected: 1000 App backgrounded
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+Snapshotting a view (0x119fc4000, UIKeyboardImpl) that has not been rendered at least once requires afterScreenUpdates:YES.
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] App visible - suppressing notifications
+⚡️  [log] - 📱 앱이 활성화됨 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app opened - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App foregrounded - reconnecting WebSocket
+⚡️  [log] - 📱 Calling connect() after foreground transition
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+⚡️  [log] -    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: 이소은 테스트
+⚡️  To Native ->  Filesystem mkdir 28716505
+⚡️  To Native ->  Filesystem mkdir 28716506
+⚡️  To Native ->  App removeListener 28716507
+⚡️  TO JS undefined
+ERROR MESSAGE:  {"errorMessage":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/9DFDA7B5-3D9B-44EC-8343-325516BEF3FC\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","message":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/9DFDA7B5-3D9B-44EC-8343-325516BEF3FC\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010"}
+⚡️  To Native ->  Filesystem readFile 28716508
+⚡️  To Native ->  Filesystem readFile 28716509
+⚡️  [error] - {"errorMessage":"Directory at 'file:///var/mobile/Containers/Data/Application/9DFDA7B5-3D9B-44EC-8343-325516BEF3FC/Library/Caches/file_cache/'  already exists, cannot be overwritten.","message":"Directory at 'file:///var/mobile/Containers/Data/Application/9DFDA7B5-3D9B-44EC-8343-325516BEF3FC/Library/Caches/file_cache/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010"}
+ERROR MESSAGE:  {"errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","code":"OS-PLUG-FILE-0013","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+ERROR MESSAGE:  {"errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","code":"OS-PLUG-FILE-0013","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [error] - {"errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","code":"OS-PLUG-FILE-0013","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [log] - [FileCache] No existing cache index, starting fresh
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  [error] - {"errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","code":"OS-PLUG-FILE-0013","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [log] - [FileCache] No existing cache index, starting fresh
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  To Native ->  App addListener 28716510
+⚡️  To Native ->  App addListener 28716511
+⚡️  To Native ->  Badge set 28716512
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 0
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: []
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  To Native ->  Badge set 28716513
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  [log] - 📱 PWA Badge update: 7 → 0 (messages: 0, AI: 0)
+Reporter disconnected. { function=sendMessage, reporterID=32779190403075 }
+Reporter disconnected. { function=sendMessage, reporterID=32779190403075 }
+Reporter disconnected. { function=sendMessage, reporterID=32779190403075 }
+Reporter disconnected. { function=sendMessage, reporterID=32779190403075 }
+Reporter disconnected. { function=sendMessage, reporterID=32779190403075 }
+Reporter disconnected. { function=sendMessage, reporterID=32779190403075 }
+Reporter disconnected. { function=sendMessage, reporterID=32779190403075 }
+Reporter disconnected. { function=sendMessage, reporterID=32779190403075 }
+Reporter disconnected. { function=sendMessage, reporterID=32779190403075 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 1ABA25EE-DFBE-46DD-9676-63D1B6CE3C2B
+Reporter disconnected or already stopped. { func=stop, reporterID=32779190403075 }
+⚡️  [log] - WebSocket message received: {"type":"new_message","message":{"id":1198,"chatRoomId":116,"senderId":126,"content":"Rrtt","messageType":"text","fileUrl":null,"fileName":null,"fileSize":null,"voiceDuration":null,"detectedLanguage":null,"confidence":null,"isCommandRecall":false,"isTranslated":false,"isCalculated":false,"pollData":null,"originalMessageId":null,"replyToMessageId":null,"boomTimer":null,"expiresAt":null,"targetUserId":null,"spotlightMessageId":null,"spotlightDuration":null,"isEdited":false,"editedAt":null,"mentionedUserIds":null,"mentionAll":false,"youtubePreview":null,"isSystemMessage":false,"isStarred":false,"starredAt":null,"createdAt":"2025-11-10T14:37:17.382Z","sender":{"id":126,"username":"yong","displayName":"테스트용 계정","email":"dddd@gmail.com","password":"$2b$10$LwSlRlFZYQBEYFCfQuYbB.92N2G0aBQ7.TsJqFHhxlJmMB242HK9S","phoneNumber":"","birthday":"1985-05-20","profilePicture":"/uploads/profile_1761606486798_jejztvnxp8j.jpg","qrCode":null,"qrToken":"cc23a9f4d21f5aa32a8bcb846a0b8d6d08955ac1ad455943e9813b662d59ddc6","qrTokenExpiry":"2025-10-30T17:13:24.699Z","isOnline":true,"lastSeen":"2025-11-10T14:37:08.251Z","language":"en","notificationsEnabled":true,"notificationSound":"default","isEmailVerified":true,"isProfileComplete":true,"userRole":"user","businessName":null,"businessAddress":null,"businessLatitude":null,"businessLongitude":null,"isBusinessVerified":false,"allowVoicePlayback":true,"autoPlayVoiceMessages":false,"allowVoiceBookmarks":true,"authProvider":null,"providerId":null,"providerEmail":null,"aiPreferences":null,"createdAt":"2025-10-27T18:10:13.075Z"}}}
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  To Native ->  Badge set 28716514
+⚡️  TO JS undefined
+⚡️  To Native ->  Badge set 28716515
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  To Native ->  App addListener 28716516
+⚡️  To Native ->  App removeListener 28716517
+⚡️  To Native ->  App removeListener 28716518
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [log] - WebSocket disconnected: 1000 App backgrounded
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+Snapshotting a view (0x119fc4800, UIKeyboardImpl) that is not in a visible window requires afterScreenUpdates:YES.
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - [NotificationManager] Activity status updated: offline
