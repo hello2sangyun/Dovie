@@ -1,6 +1,6 @@
 import { 
   users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications,
-  fileUploads, fileDownloads, businessProfiles, userPosts, locationShareRequests, locationShares, reminders,
+  fileUploads, fileDownloads, businessProfiles, userPosts, reminders,
   messageReactions, messageLikes, pushSubscriptions, iosDeviceTokens, aiNotices, bookmarks, voiceBookmarkRequests,
   userChatSettings, notificationSettings, verificationCodes,
   type User, type InsertUser, type Contact, type InsertContact,
@@ -10,8 +10,6 @@ import {
   type FileUpload, type InsertFileUpload, type FileDownload, type InsertFileDownload,
   type BusinessProfile, type InsertBusinessProfile,
   type UserPost, type InsertUserPost,
-  type LocationShareRequest, type InsertLocationShareRequest,
-  type LocationShare, type InsertLocationShare,
   type Reminder, type InsertReminder,
   type MessageReaction, type InsertMessageReaction,
   type AiNotice, type InsertAiNotice,
@@ -113,14 +111,6 @@ export interface IStorage {
   
   // Voice settings operations
   updateVoiceSettings(userId: number, settings: { allowVoicePlayback?: boolean; autoPlayVoiceMessages?: boolean }): Promise<User | undefined>;
-
-  // Location sharing operations
-  createLocationShareRequest(request: InsertLocationShareRequest): Promise<LocationShareRequest>;
-  getLocationShareRequest(requestId: number): Promise<LocationShareRequest | undefined>;
-  updateLocationShareRequest(requestId: number, updates: Partial<InsertLocationShareRequest>): Promise<LocationShareRequest | undefined>;
-  createLocationShare(share: InsertLocationShare): Promise<LocationShare>;
-  getLocationSharesForChatRoom(chatRoomId: number): Promise<LocationShare[]>;
-  detectLocationRequest(message: string): boolean;
 
   // Reminder operations
   createReminder(reminder: InsertReminder): Promise<Reminder>;
@@ -1121,39 +1111,6 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
     return user;
-  }
-
-  async createLocationShareRequest(request: InsertLocationShareRequest): Promise<LocationShareRequest> {
-    const [newRequest] = await db.insert(locationShareRequests).values(request).returning();
-    return newRequest;
-  }
-
-  async getLocationShareRequest(requestId: number): Promise<LocationShareRequest | undefined> {
-    const [request] = await db.select().from(locationShareRequests).where(eq(locationShareRequests.id, requestId));
-    return request;
-  }
-
-  async updateLocationShareRequest(requestId: number, updates: Partial<InsertLocationShareRequest>): Promise<LocationShareRequest | undefined> {
-    const [request] = await db
-      .update(locationShareRequests)
-      .set(updates)
-      .where(eq(locationShareRequests.id, requestId))
-      .returning();
-    return request;
-  }
-
-  async createLocationShare(share: InsertLocationShare): Promise<LocationShare> {
-    const [newShare] = await db.insert(locationShares).values(share).returning();
-    return newShare;
-  }
-
-  async getLocationSharesForChatRoom(chatRoomId: number): Promise<LocationShare[]> {
-    return await db.select().from(locationShares).where(eq(locationShares.chatRoomId, chatRoomId));
-  }
-
-  detectLocationRequest(message: string): boolean {
-    const locationKeywords = ['어디', '위치', '주소', '장소', 'where', 'location', 'address'];
-    return locationKeywords.some(keyword => message.toLowerCase().includes(keyword));
   }
 
   // Reminder operations implementation
