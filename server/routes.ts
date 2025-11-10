@@ -2150,7 +2150,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 messageType: messageData.messageType || 'text',
                 senderId: Number(userId),
                 senderName: sender.displayName,
-                unreadCount: totalUnreadCount,
+                unreadCount: totalBadgeCount,
                 url: `/?chat=${req.params.chatRoomId}`
               };
 
