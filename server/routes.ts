@@ -2068,21 +2068,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
               
               console.log(`📱 User ${recipient.id} has push enabled: PWA=${subscriptions.length > 0}, iOS=${hasIOSToken}`);
               
-              // Check if recipient is currently online and actively viewing this chat
-              // In production, this would check WebSocket connections and current chat focus
-              const recipientUser = await storage.getUser(recipient.id);
-              const isRecipientOnline = recipientUser?.isOnline && 
-                (Date.now() - new Date(recipientUser.lastSeen || 0).getTime()) < 30000; // 30 seconds
-              
-              if (isRecipientOnline) {
-                console.log(`📱 User ${recipient.id} is online - suppressing notification (like WhatsApp)`);
-                continue;
-              }
-              
-              // Get current unread count for this specific chat (like Telegram badge)
+              // Get current unread count for badge calculation
               const unreadCounts = await storage.getUnreadCounts(recipient.id);
               const chatUnreadCount = unreadCounts.find(c => c.chatRoomId === Number(req.params.chatRoomId))?.unreadCount || 0;
-              const totalUnreadCount = unreadCounts.reduce((sum, c) => sum + c.unreadCount, 0) + 1;
+              
+              // Calculate total badge count: messages + AI notices
+              const unreadAiNotices = await storage.getUnreadAiNoticesCount(recipient.id);
+              const totalUnreadMessages = unreadCounts.reduce((sum, c) => sum + c.unreadCount, 0) + 1; // +1 for this new message
+              const totalBadgeCount = totalUnreadMessages + unreadAiNotices;
+              
+              console.log(`📱 Badge count for user ${recipient.id}: ${totalBadgeCount} (${totalUnreadMessages} messages + ${unreadAiNotices} AI notices)`);
               
               // WhatsApp/Telegram-style notification content
               let notificationTitle = sender.displayName;
@@ -2187,6 +2182,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 requireInteraction: false,
                 silent: false,
                 sound: '/notification-sound.mp3',
+                badgeCount: totalBadgeCount, // 🔥 FIX: Explicitly pass badge count
                 // Telegram-style notification grouping
                 renotify: true,
                 timestamp: Date.now()

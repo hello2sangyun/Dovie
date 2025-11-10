@@ -46,6 +46,12 @@ export async function sendPushNotification(
   payload: PushNotificationPayload
 ): Promise<void> {
   try {
+    console.log(`\n📱 ========== PUSH NOTIFICATION START ==========`);
+    console.log(`📱 User: ${userId}`);
+    console.log(`📱 Title: ${payload.title}`);
+    console.log(`📱 Body: ${payload.body}`);
+    console.log(`📱 Badge Count (provided): ${payload.badgeCount}`);
+    
     // Auto-calculate badge count if not provided (for backward compatibility)
     // This ensures both PWA and iOS receive accurate badge counts
     if (payload.badgeCount === undefined) {
@@ -55,6 +61,8 @@ export async function sendPushNotification(
       const unreadAiNotices = await storage.getUnreadAiNoticesCount(userId);
       payload.badgeCount = totalUnread + unreadAiNotices;
       console.log(`📊 Auto-calculated badge count: ${payload.badgeCount} (${totalUnread} messages + ${unreadAiNotices} AI notices)`);
+    } else {
+      console.log(`✅ Badge count explicitly provided: ${payload.badgeCount}`);
     }
     
     const notificationSettings = await storage.getNotificationSettings(userId);
@@ -88,16 +96,15 @@ export async function sendPushNotification(
     const userActivity = await storage.getUserActivity(userId);
     let isSilentPush = false;
     
+    // CRITICAL FIX: Only check WebSocket connection status, NOT lastSeen time
+    // Users in background should receive FULL notifications, not silent
     if (userActivity?.isOnline) {
-      console.log(`🔕 User ${userId} currently active/online - sending silent push (badge only)`);
+      // isOnline means WebSocket is connected (app is open AND in foreground)
+      console.log(`🔕 User ${userId} currently active/online (WebSocket connected) - sending silent push (badge only)`);
       isSilentPush = true;
     } else {
-      // Check if user was active in the last 2 minutes (like WhatsApp)
-      const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
-      if (userActivity?.lastSeen && userActivity.lastSeen > twoMinutesAgo) {
-        console.log(`🔕 User ${userId} recently active (${userActivity.lastSeen}) - sending silent push (badge only)`);
-        isSilentPush = true;
-      }
+      console.log(`📱 User ${userId} offline/background - sending FULL notification with alert + sound + badge`);
+      isSilentPush = false;
     }
 
     // Get user's push subscriptions (PWA)
@@ -328,23 +335,37 @@ async function sendIOSPushNotifications(
 
       if (isSilent) {
         console.log(`🔕 iOS APNS Silent Push 발송 (배지만): ${deviceToken.substring(0, 20)}...`);
+        console.log(`   Payload:`, JSON.stringify(apnsPayload, null, 2));
       } else {
         console.log(`📱 iOS APNS 알림 발송: ${deviceToken.substring(0, 20)}...`);
+        console.log(`   Title: ${payload.title}`);
+        console.log(`   Body: ${payload.body}`);
+        console.log(`   Badge: ${payload.badgeCount}`);
+        console.log(`   Full Payload:`, JSON.stringify(apnsPayload, null, 2));
       }
 
       // HTTP/2 요청 발송
       const req = https.request(options, (res: any) => {
-        console.log(`📱 APNS 응답 상태: ${res.statusCode} for user ${userId}`);
+        let responseBody = '';
+        res.on('data', (chunk: any) => {
+          responseBody += chunk;
+        });
         
-        if (res.statusCode === 200) {
-          console.log(`✅ iOS 푸시 알림 성공: user ${userId}`);
-        } else if (res.statusCode === 410) {
-          console.log(`🧹 iOS 토큰 만료됨, 삭제 필요: user ${userId}`);
-          // 만료된 토큰 삭제
-          storage.deleteIOSDeviceToken(userId, deviceToken);
-        } else {
-          console.log(`❌ iOS 푸시 알림 실패: ${res.statusCode} for user ${userId}`);
-        }
+        res.on('end', () => {
+          console.log(`📱 APNS 응답 상태: ${res.statusCode} for user ${userId}`);
+          
+          if (res.statusCode === 200) {
+            console.log(`✅ iOS 푸시 알림 성공: user ${userId}, token: ${deviceToken.substring(0, 20)}...`);
+          } else if (res.statusCode === 410) {
+            console.log(`🧹 iOS 토큰 만료됨, 삭제 필요: user ${userId}`);
+            console.log(`   Response: ${responseBody}`);
+            // 만료된 토큰 삭제
+            storage.deleteIOSDeviceToken(userId, deviceToken);
+          } else {
+            console.log(`❌ iOS 푸시 알림 실패: ${res.statusCode} for user ${userId}`);
+            console.log(`   Response: ${responseBody}`);
+          }
+        });
       });
 
       req.on('error', (error: Error) => {
