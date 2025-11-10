@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -11,12 +11,12 @@ import { apiRequest } from "@/lib/queryClient";
 import VaultLogo from "@/components/VaultLogo";
 import { User, Lock, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Keyboard } from "@capacitor/keyboard";
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
   const { setUser } = useAuth();
   const { toast } = useToast();
-  const containerRef = useRef<HTMLDivElement>(null);
   
   // Username/Password login state
   const [usernameLoginData, setUsernameLoginData] = useState({
@@ -62,30 +62,26 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
-    const handleViewportResize = () => {
-      if (!window.visualViewport) return;
-      
-      const keyboardHeight = window.innerHeight - window.visualViewport.height;
-      
-      if (keyboardHeight > 100) {
-        const activeElement = document.activeElement as HTMLElement;
-        if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
-          setTimeout(() => {
-            activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }, 100);
-        }
-      }
-    };
+    let listenerHandle: any;
 
-    window.visualViewport?.addEventListener('resize', handleViewportResize);
+    Keyboard.addListener('keyboardDidShow', () => {
+      const activeElement = document.activeElement as HTMLElement;
+      if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
+        setTimeout(() => {
+          activeElement.scrollIntoView({ behavior: 'auto', block: 'center' });
+        }, 150);
+      }
+    }).then(handle => {
+      listenerHandle = handle;
+    });
 
     return () => {
-      window.visualViewport?.removeEventListener('resize', handleViewportResize);
+      listenerHandle?.remove();
     };
   }, []);
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="transform scale-150 mb-8">
