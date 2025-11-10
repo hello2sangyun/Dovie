@@ -54,25 +54,31 @@ Key features include:
 - **Evolution of Solutions**:
   1. **`resize: 'body'`** (Initial): Excessive WKWebView ↔ iOS native messaging overhead, 10-second lag
   2. **`resize: 'none'`** (Second attempt): Fixed lag but caused XPC connection interrupts and keyboard overlaying input fields
-  3. **`resize: 'ionic'`** (Final solution): Perfect balance - lightweight performance with automatic viewport adjustment
+  3. **`resize: 'ionic'`** (Third attempt): Still had XPC connection issues and 10-second lag persisted
+  4. **`resize: 'body'` + Custom CSS** (Final solution): Restored default behavior with LoginPage-specific keyboard handling
   
 - **Final Configuration** (`capacitor.config.ts`):
   ```typescript
   Keyboard: {
-    resize: 'ionic',       // JS-driven webview resizing - optimal performance
+    resize: 'body',        // Capacitor default - webview resizes with keyboard
     style: 'dark',         // Matches app theme
     resizeOnFullScreen: false  // Prevents constraint conflicts
   }
   ```
   
-- **Why `resize: 'ionic'` is optimal**:
-  - Avoids heavy `resize: 'body'` native messaging overhead
-  - Prevents `resize: 'none'` XPC disconnection issues
-  - Automatically scrolls viewport when keyboard appears
-  - Keeps input fields visible without manual JavaScript intervention
-  - Eliminates UITapGestureRecognizer blocking
+- **LoginPage Enhancement** (`client/src/pages/LoginPage.tsx`):
+  - Added Capacitor Keyboard event listeners (`keyboardWillShow`, `keyboardWillHide`)
+  - Dynamically adjusts screen position when keyboard appears
+  - Smooth transform animation (0.3s ease-out)
+  - Translates screen upward by 40% of keyboard height to keep input fields visible
   
-- **Result**: Zero lag, no XPC errors, input fields always visible, instant keyboard response
+- **Why this approach works**:
+  - `resize: 'body'` provides predictable webview resize behavior
+  - Custom keyboard listeners allow fine-tuned control per page
+  - Transform animation creates smooth, responsive UX
+  - Can be extended to other form-heavy pages (signup, profile setup) as needed
+  
+- **Result**: Restored default Capacitor behavior while adding custom keyboard handling for optimal login experience
 
 ### Profile Image Preloading Removal (2024-11-10)
 - **Problem**: iOS keyboard lag persisted even after Capacitor keyboard config fix; profile image preloading blocked main thread during app initialization

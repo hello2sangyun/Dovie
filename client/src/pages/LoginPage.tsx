@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -11,11 +11,13 @@ import { apiRequest } from "@/lib/queryClient";
 import VaultLogo from "@/components/VaultLogo";
 import { User, Lock, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Keyboard } from '@capacitor/keyboard';
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
   const { setUser } = useAuth();
   const { toast } = useToast();
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   
   // Username/Password login state
   const [usernameLoginData, setUsernameLoginData] = useState({
@@ -60,9 +62,36 @@ export default function LoginPage() {
     usernameLoginMutation.mutate(usernameLoginData);
   };
 
+  useEffect(() => {
+    let showListener: any = null;
+    let hideListener: any = null;
+    
+    const setup = async () => {
+      showListener = await Keyboard.addListener('keyboardWillShow', (info) => {
+        setKeyboardHeight(info.keyboardHeight);
+      });
+      
+      hideListener = await Keyboard.addListener('keyboardWillHide', () => {
+        setKeyboardHeight(0);
+      });
+    };
+    
+    setup();
+    
+    return () => {
+      showListener?.remove();
+      hideListener?.remove();
+    };
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div 
+      className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8"
+      style={{
+        transform: keyboardHeight > 0 ? `translateY(-${keyboardHeight * 0.4}px)` : 'none',
+        transition: 'transform 0.3s ease-out'
+      }}
+    >
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="transform scale-150 mb-8">
