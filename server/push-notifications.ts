@@ -3,7 +3,10 @@ import { ApnsClient, Notification } from 'apns2';
 import { storage } from './storage';
 
 // APNS Environment Detection
-const IS_PRODUCTION = process.env.NODE_ENV !== 'development';
+// APNS_PRODUCTION 환경변수로 제어 (기본값: production)
+// package.json의 dev 스크립트가 NODE_ENV=development로 강제 설정하므로
+// 별도의 APNS_PRODUCTION 환경변수를 사용하여 APNS 모드 제어
+const IS_PRODUCTION = process.env.APNS_PRODUCTION !== 'false';
 const APNS_SERVER = IS_PRODUCTION ? 'api.push.apple.com' : 'api.development.push.apple.com';
 
 console.log(`\n📱 ========================================`);
@@ -57,7 +60,7 @@ function initializeAPNSClient(): ApnsClient | null {
       keyId: keyId,
       signingKey: formattedKey,
       defaultTopic: 'com.dovie.messenger',
-      production: IS_PRODUCTION,
+      host: APNS_SERVER, // Use host instead of production boolean
       requestTimeout: 10000, // 10 seconds timeout
       keepAlive: true // Reuse HTTP/2 connections for better performance
     });
@@ -360,8 +363,9 @@ async function sendIOSPushNotifications(
           badge: payload.badgeCount ?? 0,
           contentAvailable: true,
           threadId: `chat-${payload.data?.chatRoomId || 'default'}`,
-          payload: customData,
-          priority: 5 // Power efficient
+          data: customData, // Use 'data' instead of 'payload'
+          priority: 5, // Power efficient
+          expiration: Math.floor(Date.now() / 1000) + 3600 // 1 hour expiry
         });
         
         console.log(`🔕 iOS APNS Silent Push 발송 (배지만): ${deviceToken.substring(0, 20)}...`);
@@ -383,8 +387,9 @@ async function sendIOSPushNotifications(
           contentAvailable: true, // Enable background updates
           category: "MESSAGE_CATEGORY", // Action buttons (reply, mark read)
           threadId: `chat-${payload.data?.chatRoomId || 'default'}`,
-          payload: customData,
-          priority: 10 // Immediate delivery
+          data: customData, // Use 'data' instead of 'payload'
+          priority: 10, // Immediate delivery
+          expiration: Math.floor(Date.now() / 1000) + 3600 // 1 hour expiry
         });
         
         console.log(`📱 iOS APNS 알림 발송: ${deviceToken.substring(0, 20)}...`);
@@ -393,9 +398,6 @@ async function sendIOSPushNotifications(
         console.log(`   Badge: ${payload.badgeCount}`);
         console.log(`   Push Type: alert (auto-set by apns2)`);
       }
-
-      // Set expiry (1 hour from now)
-      notification.expiry = Math.floor(Date.now() / 1000) + 3600;
 
       console.log(`📱 Full APNS Notification:`, JSON.stringify(notification, null, 2));
 
