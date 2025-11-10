@@ -288,11 +288,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Logout function
   const logout = async (forceRedirect: boolean = true) => {
     try {
-      // Call logout API endpoint
+      // Get userId before clearing storage
+      const userId = localStorage.getItem("userId");
+      
+      // Call logout API endpoint with userId header
       await fetch("/api/auth/logout", {
         method: "POST",
         credentials: "include",
+        headers: {
+          ...(userId ? { "x-user-id": userId } : {})
+        }
       });
+      
+      console.log("🔒 로그아웃 API 호출 완료 - 푸시 구독 및 토큰 삭제됨");
     } catch (error) {
       console.error("Logout API call failed:", error);
     } finally {

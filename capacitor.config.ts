@@ -27,6 +27,11 @@ const config: CapacitorConfig = {
     },
     StatusBar: {
       style: 'dark'
+    },
+    Keyboard: {
+      resize: 'body',
+      style: 'dark',
+      resizeOnFullScreen: true
     }
   }
 };

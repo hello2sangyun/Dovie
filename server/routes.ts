@@ -669,8 +669,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.headers["x-user-id"];
       
       if (userId) {
+        const userIdNum = Number(userId);
+        
         // 사용자 오프라인 상태 업데이트
-        await storage.updateUser(Number(userId), { isOnline: false });
+        await storage.updateUser(userIdNum, { isOnline: false });
+        
+        // 🔒 보안: 로그아웃 시 모든 푸시 구독 및 iOS 토큰 삭제
+        console.log(`🔒 로그아웃: 사용자 ${userIdNum}의 모든 푸시 구독 및 디바이스 토큰 삭제`);
+        
+        // PWA 푸시 구독 삭제
+        const subscriptions = await storage.getUserPushSubscriptions(userIdNum);
+        for (const sub of subscriptions) {
+          await storage.deletePushSubscription(userIdNum, sub.endpoint);
+        }
+        console.log(`   ✅ PWA 구독 ${subscriptions.length}개 삭제 완료`);
+        
+        // iOS APNS 디바이스 토큰 삭제
+        const iosTokens = await storage.getIOSDeviceTokens(userIdNum);
+        for (const token of iosTokens) {
+          await storage.deleteIOSDeviceToken(userIdNum, token.deviceToken);
+        }
+        console.log(`   ✅ iOS 토큰 ${iosTokens.length}개 삭제 완료`);
       }
 
       res.json({ message: "로그아웃되었습니다." });
@@ -2009,7 +2028,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               
               // Calculate total badge count: messages + AI notices
               const unreadAiNotices = await storage.getUnreadAiNoticesCount(recipient.id);
-              const totalUnreadMessages = unreadCounts.reduce((sum, c) => sum + c.unreadCount, 0) + 1; // +1 for this new message
+              const totalUnreadMessages = unreadCounts.reduce((sum, c) => sum + c.unreadCount, 0);
               const totalBadgeCount = totalUnreadMessages + unreadAiNotices;
               
               console.log(`📱 Badge count for user ${recipient.id}: ${totalBadgeCount} (${totalUnreadMessages} messages + ${unreadAiNotices} AI notices)`);
