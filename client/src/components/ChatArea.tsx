@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { UserAvatar } from "@/components/UserAvatar";
 import InstantAvatar from "@/components/InstantAvatar";
 import MediaPreview from "@/components/MediaPreview";
-import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause, MoreVertical, LogOut, Settings, MapPin, Sparkles, Bell, Mic, Bookmark } from "lucide-react";
+import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause, MoreVertical, LogOut, Settings, Sparkles, Bell, Mic, Bookmark } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 import AddFriendConfirmModal from "./AddFriendConfirmModal";
@@ -28,7 +28,6 @@ import { UnifiedSendButton } from "./UnifiedSendButton";
 import { FileUploadModal } from "./FileUploadModal";
 import { LinkPreview } from "./LinkPreview";
 
-import { LocationShareModal } from "./LocationShareModal";
 import ReminderTimeModal from "./ReminderTimeModal";
 import { ConnectionStatusIndicator } from "./ConnectionStatusIndicator";
 import { VoiceMessagePreviewModal } from "./VoiceMessagePreviewModal";
@@ -54,7 +53,6 @@ interface ChatAreaProps {
   onCreateCommand: (fileData?: any, messageData?: any) => void;
   showMobileHeader?: boolean;
   onBackClick?: () => void;
-  isLocationChat?: boolean;
 }
 
 // URL detection utility
@@ -64,12 +62,9 @@ const detectUrls = (text: string | null | undefined): string[] => {
   return text.match(urlRegex) || [];
 };
 
-export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader, onBackClick, isLocationChat }: ChatAreaProps) {
+export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader, onBackClick }: ChatAreaProps) {
   const { user } = useAuth();
   const [, navigate] = useLocation();
-  
-  // Use the isLocationChat prop directly
-  const isLocationChatRoom = isLocationChat || false;
 
   // 모바일 키보드 숨기기 유틸리티 함수
   const hideMobileKeyboard = () => {
@@ -235,8 +230,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [translatingMessages, setTranslatingMessages] = useState<Set<number>>(new Set());
   const [isTranslating, setIsTranslating] = useState(false);
   const [showOriginal, setShowOriginal] = useState<Set<number>>(new Set()); // 원문을 보여줄 메시지 ID들
-  const [showLocationShareModal, setShowLocationShareModal] = useState(false);
-  const [locationRequestId, setLocationRequestId] = useState<number | undefined>();
   
   // 리마인더 모달 상태
   const [showReminderModal, setShowReminderModal] = useState(false);
@@ -257,8 +250,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       
       if (response.ok) {
         // Invalidate messages to refresh the UI
-        const queryKey = isLocationChatRoom ? "/api/location/chat-rooms" : "/api/chat-rooms";
-        queryClient.invalidateQueries({ queryKey: [queryKey, chatRoomId, "messages"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms", chatRoomId, "messages"] });
       }
     } catch (error) {
       console.error('Quick reply error:', error);
@@ -392,40 +384,18 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const hasInitialScrolledRef = useRef(false);
   const [, forceRender] = useState({});
 
-  // Get chat room details (only for regular chats, not location chats)
+  // Get chat room details
   const { data: chatRoomsData } = useQuery({
     queryKey: ["/api/chat-rooms"],
-    enabled: !!user && !isLocationChatRoom,
+    enabled: !!user,
   });
 
-  // Get location chat profile if this is a location chat
-  const { data: locationChatProfile } = useQuery({
-    queryKey: [`/api/location/chat-rooms/${chatRoomId}/profile`],
-    enabled: !!user && isLocationChatRoom,
-    retry: false,
-  });
+  const currentChatRoom = (chatRoomsData as any)?.chatRooms?.find((room: any) => room.id === chatRoomId);
 
-  // Get nearby chats to find the current location chat room details
-  const { data: nearbyChatsData } = useQuery({
-    queryKey: ["/api/location/nearby-chats"],
-    enabled: !!user && isLocationChatRoom,
-    retry: false,
-  });
-
-  const currentChatRoom = isLocationChatRoom 
-    ? nearbyChatsData?.chatRooms?.find((room: any) => room.id === chatRoomId) || {
-        id: chatRoomId,
-        name: '주변챗',
-        isGroup: true,
-        participants: [{ id: user?.id, displayName: user?.displayName || '나' }],
-        isLocationChat: true
-      }
-    : (chatRoomsData as any)?.chatRooms?.find((room: any) => room.id === chatRoomId);
-
-  // Get contacts to check if other participants are friends (only for regular chats)
+  // Get contacts to check if other participants are friends
   const { data: contactsData } = useQuery({
     queryKey: ["/api/contacts"],
-    enabled: !!user && !isLocationChatRoom,
+    enabled: !!user,
     queryFn: async () => {
       const response = await fetch("/api/contacts", {
         headers: { "x-user-id": user!.id.toString() },
@@ -437,16 +407,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // Get messages with immediate refresh for PWA app behavior
   const { data: messagesData, isLoading, isFetching } = useQuery({
-    queryKey: [isLocationChatRoom ? "/api/location/chat-rooms" : "/api/chat-rooms", chatRoomId, "messages"],
+    queryKey: ["/api/chat-rooms", chatRoomId, "messages"],
     enabled: !!chatRoomId,
     staleTime: 0, // Always fetch fresh data like native messaging apps
     refetchOnMount: true, // Always refresh when component mounts
     refetchOnWindowFocus: true, // Refresh when app becomes visible
     refetchInterval: 10000, // Poll every 10 seconds for real-time updates
     queryFn: async () => {
-      const endpoint = isLocationChatRoom 
-        ? `/api/location/chat-rooms/${chatRoomId}/messages`
-        : `/api/chat-rooms/${chatRoomId}/messages`;
+      const endpoint = `/api/chat-rooms/${chatRoomId}/messages`;
       
       const response = await fetch(endpoint, {
         headers: {
@@ -458,10 +426,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     },
   });
 
-  // Get commands for suggestions (only for regular chats)
+  // Get commands for suggestions
   const { data: commandsData } = useQuery({
     queryKey: ["/api/commands", { chatRoomId }],
-    enabled: !!user && !!chatRoomId && !isLocationChatRoom,
+    enabled: !!user && !!chatRoomId,
     queryFn: async () => {
       const response = await fetch(`/api/commands?chatRoomId=${chatRoomId}`, {
         headers: { "x-user-id": user!.id.toString() },
@@ -474,7 +442,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   // Get unread AI notices count for this chat room
   const { data: aiNoticesData } = useQuery({
     queryKey: [`/api/chat-rooms/${chatRoomId}/ai-notices`],
-    enabled: !!user && !!chatRoomId && !isLocationChatRoom,
+    enabled: !!user && !!chatRoomId,
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
@@ -483,7 +451,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   // Get voice bookmark requests for this chat room
   const { data: voiceBookmarkRequestsData } = useQuery({
     queryKey: ['/api/voice-bookmark-requests'],
-    enabled: !!user && !!chatRoomId && !isLocationChatRoom,
+    enabled: !!user && !!chatRoomId,
     refetchInterval: 10000, // Poll every 10 seconds for updates
   });
 
@@ -501,38 +469,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
-      const endpoint = isLocationChatRoom 
-        ? `/api/location/chat-rooms/${chatRoomId}/messages`
-        : `/api/chat-rooms/${chatRoomId}/messages`;
-      
-      // Check for location requests in the message content
-      if (messageData.content && messageData.messageType === 'text') {
-        try {
-          const locationDetectionResponse = await apiRequest("/api/location/detect", "POST", {
-            message: messageData.content
-          });
-          const { isLocationRequest } = await locationDetectionResponse.json();
-          
-          if (isLocationRequest) {
-            // Trigger location sharing modal after a short delay
-            setTimeout(() => {
-              setShowLocationShareModal(true);
-            }, 500);
-          }
-        } catch (error) {
-          console.log("Location detection failed, continuing with message send");
-        }
-      }
+      const endpoint = `/api/chat-rooms/${chatRoomId}/messages`;
       
       const response = await apiRequest(endpoint, "POST", messageData);
       return response.json();
     },
     onSuccess: () => {
-      const queryKey = isLocationChatRoom ? "/api/location/chat-rooms" : "/api/chat-rooms";
-      queryClient.invalidateQueries({ queryKey: [queryKey, chatRoomId, "messages"] });
-      if (!isLocationChatRoom) {
-        queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
-      }
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms", chatRoomId, "messages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
       setMessage("");
       setShowCommandSuggestions(false);
       setReplyToMessage(null); // 회신 상태 초기화
@@ -1345,23 +1289,22 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const commands = commandsData?.commands || [];
   const contacts = contactsData?.contacts || [];
 
-  // Get unread counts to detect first unread message (only for regular chats)
+  // Get unread counts to detect first unread message
   const { data: unreadData, status: unreadStatus, isFetching: isUnreadFetching } = useQuery({
     queryKey: ["/api/unread-counts"],
-    enabled: !!user && !isLocationChatRoom,
+    enabled: !!user,
     refetchInterval: 5000, // Check every 5 seconds
   });
 
   // unread 데이터가 정착되었는지 확인 (로딩 완료 또는 에러)
-  // locationChatRoom의 경우 쿼리가 비활성화되므로 즉시 settled로 간주
-  const unreadSettled = isLocationChatRoom || unreadStatus === 'success' || (unreadStatus === 'error' && !isUnreadFetching);
+  const unreadSettled = unreadStatus === 'success' || (unreadStatus === 'error' && !isUnreadFetching);
 
   // chatRoomId 변경 시 즉시 unreadData refetch
   useEffect(() => {
-    if (chatRoomId && user && !isLocationChatRoom) {
+    if (chatRoomId && user) {
       queryClient.refetchQueries({ queryKey: ["/api/unread-counts"] });
     }
-  }, [chatRoomId, user, isLocationChatRoom]);
+  }, [chatRoomId, user]);
 
   // Initial scroll on chat room entry
   useEffect(() => {
@@ -4130,8 +4073,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                 <h3 className={cn(
                   "font-semibold truncate flex-1 min-w-0 flex items-center space-x-2",
                   showMobileHeader ? "text-base" : "text-lg",
-                  // 주변챗용 특별한 색상
-                  isLocationChatRoom ? "text-blue-700" : "text-gray-900"
+                  "text-gray-900"
                 )}
                 title={chatRoomDisplayName}
                 >
@@ -4153,11 +4095,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     </span>
                   ) : (
                     <span className="truncate font-bold">{chatRoomDisplayName}</span>
-                  )}
-                  {isLocationChatRoom && (
-                    <span className="flex-shrink-0 text-blue-600 text-lg" title="주변챗">
-                      📍
-                    </span>
                   )}
                 </h3>
                 
@@ -4201,28 +4138,19 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            {!isLocationChatRoom && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-gray-400 hover:text-purple-600"
-                onClick={() => setShowSearch(!showSearch)}
-                data-testid="button-search"
-              >
-                <Search className="h-4 w-4" />
-              </Button>
-            )}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-gray-400 hover:text-purple-600"
+              onClick={() => setShowSearch(!showSearch)}
+              data-testid="button-search"
+            >
+              <Search className="h-4 w-4" />
+            </Button>
 
-            {/* 주변챗용 특별한 정보 버튼 */}
-            {isLocationChatRoom ? (
-              <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-                <MapPin className="h-4 w-4" />
-              </Button>
-            ) : (
-              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-purple-600">
-                <Info className="h-4 w-4" />
-              </Button>
-            )}
+            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-purple-600">
+              <Info className="h-4 w-4" />
+            </Button>
             <div className="relative">
               <Button 
                 variant="ghost" 
@@ -4529,39 +4457,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     )}
                   >
                   <div className="flex flex-col items-center flex-shrink-0">
-                    {isLocationChatRoom ? (
-                      // 주변챗에서는 임시 프로필 표시
-                      <div className="w-8 h-8 rounded-full border-2 border-white shadow-lg ring-2 ring-white/50 group-hover:scale-105 transition-transform duration-200">
-                        {isMe && locationChatProfile?.profileImageUrl ? (
-                          <img 
-                            src={locationChatProfile.profileImageUrl} 
-                            alt="프로필" 
-                            className="w-full h-full rounded-full object-cover"
-                          />
-                        ) : !isMe && msg.locationProfile?.profileImageUrl ? (
-                          <img 
-                            src={msg.locationProfile.profileImageUrl} 
-                            alt="프로필" 
-                            className="w-full h-full rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className={`w-full h-full rounded-full bg-gradient-to-br ${getAvatarColor(isMe ? (locationChatProfile?.nickname || "나") : (msg.locationProfile?.nickname || msg.sender.displayName))} flex items-center justify-center text-white text-xs font-bold shadow-inner`}>
-                            {(isMe ? (locationChatProfile?.nickname || "나") : (msg.locationProfile?.nickname || msg.sender.displayName)).charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      // 일반 채팅에서는 원래 프로필 표시 - 컴팩트하게
-                      <div className="w-8 h-8 rounded-full shadow-lg ring-2 ring-white/50 group-hover:scale-105 transition-transform duration-200 overflow-hidden">
-                        <InstantAvatar 
-                          src={isMe ? user?.profilePicture : msg.sender?.profilePicture}
-                          alt={isMe ? (user?.displayName || "Me") : msg.sender.displayName}
-                          fallbackText={isMe ? (user?.displayName || "Me") : msg.sender.displayName}
-                          size="sm" 
-                          className={`w-full h-full bg-gradient-to-br ${getAvatarColor(isMe ? (user?.displayName || "Me") : msg.sender.displayName)} text-xs font-bold shadow-inner`}
-                        />
-                      </div>
-                    )}
+                    <div className="w-8 h-8 rounded-full shadow-lg ring-2 ring-white/50 group-hover:scale-105 transition-transform duration-200 overflow-hidden">
+                      <InstantAvatar 
+                        src={isMe ? user?.profilePicture : msg.sender?.profilePicture}
+                        alt={isMe ? (user?.displayName || "Me") : msg.sender.displayName}
+                        fallbackText={isMe ? (user?.displayName || "Me") : msg.sender.displayName}
+                        size="sm" 
+                        className={`w-full h-full bg-gradient-to-br ${getAvatarColor(isMe ? (user?.displayName || "Me") : msg.sender.displayName)} text-xs font-bold shadow-inner`}
+                      />
+                    </div>
                   </div>
                   
                   <div className={cn(
@@ -4573,10 +4477,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     {!isMe && (
                       <div className="flex items-center space-x-2 mb-1">
                         <span className="text-xs font-semibold text-gray-700">
-                          {isLocationChatRoom 
-                            ? (msg.locationProfile?.nickname || msg.sender.displayName)
-                            : msg.sender.displayName
-                          }
+                          {msg.sender.displayName}
                         </span>
                         <span className="text-xs text-gray-400 font-medium">
                           {formatTime(msg.createdAt)}
@@ -5658,10 +5559,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
         <div className={cn(
           "px-4 py-2 chat-input-area flex items-center justify-center",
-          // 주변챗용 특별한 디자인
-          isLocationChatRoom 
-            ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-t-2 border-blue-200" 
-            : "bg-white border-t border-gray-200"
+          "bg-white border-t border-gray-200"
         )}>
           <div className="flex items-center gap-3 w-full max-w-4xl mx-auto">
           {/* Enhanced left buttons group */}
@@ -5745,7 +5643,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             
             <Textarea
               ref={messageInputRef}
-              placeholder={isLocationChatRoom ? "📍 주변챗에 메시지를 입력하세요..." : "메시지를 입력하세요..."}
+              placeholder="메시지를 입력하세요..."
               value={message}
               onChange={(e) => {
                 const newValue = e.target.value;
@@ -6519,14 +6417,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         onClose={() => setShowFileUploadModal(false)}
         onUpload={handleFileUploadWithHashtags}
         maxFiles={10}
-      />
-
-      {/* Location Share Modal */}
-      <LocationShareModal
-        isOpen={showLocationShareModal}
-        onClose={() => setShowLocationShareModal(false)}
-        chatRoomId={chatRoomId}
-        requestId={locationRequestId}
       />
 
       {/* AI Chat Assistant Modal */}

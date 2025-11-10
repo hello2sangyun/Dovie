@@ -988,7 +988,6 @@ export default function MainApp() {
               <ChatArea 
                 chatRoomId={selectedChatRoom}
                 onCreateCommand={handleCreateCommand}
-                isLocationChat={false}
               />
             </div>
           ) : (
