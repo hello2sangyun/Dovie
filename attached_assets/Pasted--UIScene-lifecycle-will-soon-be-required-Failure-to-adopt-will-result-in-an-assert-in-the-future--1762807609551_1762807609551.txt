@@ -1,0 +1,80 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/DAD7671A-883B-40EB-9364-7F158BDC2E5E/App.app'
+KeyboardPlugin: resize mode - body
+⚡️  Loading app at https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev...
+📱 [AppDelegate] Registered for remote notifications
+Networking process (0x110060190) took 17.129290 seconds to launch
+GPU process (0x1101141e0) took 5.178782 seconds to launch
+WebContent process (0x1100ec100) took 6.816403 seconds to launch
+📱 [AppDelegate] APNS 토큰 등록 성공
+0x1100ec100 - [PID=11023] WebProcessProxy::didBecomeUnresponsive:
+0x11a37c718 - [pageProxyID=7, webPageID=8, PID=11023] WebPageProxy::processDidBecomeUnresponsive:
+WebContent[11023] Unable to hide query parameters from script (missing data)
+⚡️  [debug] - [vite] connecting...
+⚡️  WebView loaded
+⚡️  [log] - 📱 No stored user, initializing as logged out
+⚡️  To Native ->  Keyboard addListener 61767332
+⚡️  To Native ->  Keyboard addListener 61767333
+XPC connection interrupted
+Reporter disconnected. { function=sendMessage, reporterID=47296179863553 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863553 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863553 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863553 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863553 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863553 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863553 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863553 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863553 }
+⚡️  TO JS {"keyboardHeight":308}
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 1F15159F-5D8E-44A4-8AD9-3A6DA4F1E528
+<0x11a1ce940> Gesture: System gesture gate timed out.
+Result accumulator timeout: 3.000000, exceeded.
+⚡️  TO JS undefined
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+Reporter disconnected. { function=sendMessage, reporterID=47296179863554 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863554 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863554 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863554 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863554 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863554 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863554 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863554 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863554 }
+⚡️  TO JS {"keyboardHeight":308}
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 1F15159F-5D8E-44A4-8AD9-3A6DA4F1E528
+⚡️  TO JS {"keyboardHeight":335}
+⚡️  TO JS undefined
+Reporter disconnected or already stopped. { func=stop, reporterID=47296179863554 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+Reporter disconnected. { function=sendMessage, reporterID=47296179863555 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863555 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863555 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863555 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863555 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863555 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863555 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863555 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863555 }
+⚡️  TO JS {"keyboardHeight":308}
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 1F15159F-5D8E-44A4-8AD9-3A6DA4F1E528
+⚡️  TO JS {"keyboardHeight":335}
+Result accumulator timeout: 3.000000, exceeded.
+⚡️  TO JS undefined
+Reporter disconnected or already stopped. { func=stop, reporterID=47296179863555 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+Reporter disconnected. { function=sendMessage, reporterID=47296179863556 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863556 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863556 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863556 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863556 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863556 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863556 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863556 }
+Reporter disconnected. { function=sendMessage, reporterID=47296179863556 }
+⚡️  TO JS {"keyboardHeight":308}
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 1F15159F-5D8E-44A4-8AD9-3A6DA4F1E528
+⚡️  TO JS {"keyboardHeight":335}
+⚡️  TO JS undefined
+Reporter disconnected or already stopped. { func=stop, reporterID=47296179863556 }
