@@ -1,13 +1,23 @@
 import UIKit
 import Capacitor
+import UserNotifications
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
 
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        // Set UNUserNotificationCenter delegate for push notifications
+        UNUserNotificationCenter.current().delegate = self
+        
+        // Register for remote notifications on main thread
+        // This ensures APNS token registration starts even if Capacitor plugin flow hasn't initialized yet
+        DispatchQueue.main.async {
+            application.registerForRemoteNotifications()
+            print("📱 [AppDelegate] Registered for remote notifications")
+        }
+        
         return true
     }
     
@@ -27,6 +37,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
         NotificationCenter.default.post(name: NSNotification.Name(rawValue: "pushNotificationReceived"), object: userInfo)
         completionHandler(.newData)
+    }
+    
+    // UNUserNotificationCenterDelegate: 앱이 포그라운드에 있을 때 알림 표시 방법 결정
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        // 포그라운드에서도 배너, 사운드, 배지를 모두 표시
+        completionHandler([.banner, .sound, .badge])
+    }
+    
+    // UNUserNotificationCenterDelegate: 사용자가 알림을 탭했을 때 처리
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        // Capacitor에 알림 액션 전달
+        let userInfo = response.notification.request.content.userInfo
+        NotificationCenter.default.post(name: NSNotification.Name.capacitorDidReceiveNotification, object: userInfo)
+        completionHandler()
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
