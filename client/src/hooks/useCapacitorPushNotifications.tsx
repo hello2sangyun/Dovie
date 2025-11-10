@@ -48,8 +48,12 @@ export const useCapacitorPushNotifications = () => {
           // 채팅방으로 이동하는 로직 구현
           const data = notification.notification.data;
           if (data && data.chatRoomId) {
-            // 채팅방으로 네비게이션
-            window.location.href = `#/chat/${data.chatRoomId}`;
+            console.log('📱 채팅방으로 이동:', data.chatRoomId);
+            // localStorage에 저장하고 커스텀 이벤트 발생
+            localStorage.setItem('pendingChatRoomId', data.chatRoomId.toString());
+            window.dispatchEvent(new CustomEvent('openChatRoom', { 
+              detail: { chatRoomId: data.chatRoomId } 
+            }));
           }
         });
 
