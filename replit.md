@@ -61,6 +61,17 @@ Key features include:
   }
   ```
 
+### Profile Image Preloading Removal (2024-11-10)
+- **Problem**: iOS keyboard lag persisted even after Capacitor keyboard config fix; profile image preloading blocked main thread during app initialization
+- **Root Cause**: `preloadProfileImages` function (even with 5-second delay) created heavy network requests and Blob processing on main thread, causing "Reporter disconnected" errors and keyboard input lag
+- **Solution**: Complete removal of eager preloading feature:
+  - Removed `preloadProfileImages` function from `useAuth.tsx` (~100 lines)
+  - Removed `isPreloadingImages` and `profileImagesLoaded` state management
+  - Cleaned up `MainApp.tsx` preloading imports and useEffect
+  - Profile images now load on-demand via existing `InstantAvatar` component with Blob-based caching
+  - Service Worker cache versions bumped to v2 (sw.js, sw-ios16.js, sw-ios16-enhanced.js) to ensure fresh deployment
+- **Result**: Zero main thread blocking during app startup, instant keyboard response, on-demand image loading sufficient for UX
+
 ### Additional iOS Improvements (2024-11-10)
 - **Badge Count Fix**: Removed duplicate +1 increment in unread message calculation (server/routes.ts Line 2015)
 - **Logout Protection**: Complete push subscription cleanup - server deletes all PWA/iOS tokens on logout
