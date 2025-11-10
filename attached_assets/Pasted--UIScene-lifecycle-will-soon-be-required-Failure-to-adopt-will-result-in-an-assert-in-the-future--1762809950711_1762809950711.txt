@@ -1,0 +1,43 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/E849067C-7D42-42C0-A093-AA6C3DECDD40/App.app'
+KeyboardPlugin: no resize
+⚡️  Loading app at https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev...
+📱 [AppDelegate] Registered for remote notifications
+Networking process (0x113054190) took 18.853453 seconds to launch
+GPU process (0x11311c1e0) took 6.930834 seconds to launch
+WebContent process (0x1130ec100) took 8.579308 seconds to launch
+📱 [AppDelegate] APNS 토큰 등록 성공
+0x1130ec100 - [PID=11122] WebProcessProxy::didBecomeUnresponsive:
+0x1039f7dc8 - [pageProxyID=7, webPageID=8, PID=11122] WebPageProxy::processDidBecomeUnresponsive:
+WebContent[11122] Unable to hide query parameters from script (missing data)
+⚡️  [debug] - [vite] connecting...
+⚡️  WebView loaded
+⚡️  [log] - 📱 No stored user, initializing as logged out
+XPC connection interrupted
+Reporter disconnected. { function=sendMessage, reporterID=47755741364225 }
+Reporter disconnected. { function=sendMessage, reporterID=47755741364225 }
+Reporter disconnected. { function=sendMessage, reporterID=47755741364225 }
+Reporter disconnected. { function=sendMessage, reporterID=47755741364225 }
+Reporter disconnected. { function=sendMessage, reporterID=47755741364225 }
+Reporter disconnected. { function=sendMessage, reporterID=47755741364225 }
+Reporter disconnected. { function=sendMessage, reporterID=47755741364225 }
+Reporter disconnected. { function=sendMessage, reporterID=47755741364225 }
+Reporter disconnected. { function=sendMessage, reporterID=47755741364225 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 15E4CFFC-5823-4A1F-942F-7D86D1E0E8B2
+<0x108226940> Gesture: System gesture gate timed out.
+Result accumulator timeout: 3.000000, exceeded.
+Attempted to update accumulator from source type: 0, after completion has already been called for token:[88593FCB]. This is an error and will be ignored.
+Reporter disconnected or already stopped. { func=stop, reporterID=47755741364225 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 15E4CFFC-5823-4A1F-942F-7D86D1E0E8B2
+Reporter disconnected. { function=sendMessage, reporterID=47755741364227 }
+Reporter disconnected. { function=sendMessage, reporterID=47755741364227 }
+Reporter disconnected. { function=sendMessage, reporterID=47755741364227 }
+Reporter disconnected. { function=sendMessage, reporterID=47755741364227 }
+Reporter disconnected. { function=sendMessage, reporterID=47755741364227 }
+Reporter disconnected. { function=sendMessage, reporterID=47755741364227 }
+Reporter disconnected. { function=sendMessage, reporterID=47755741364227 }
+Reporter disconnected. { function=sendMessage, reporterID=47755741364227 }
+Reporter disconnected. { function=sendMessage, reporterID=47755741364227 }

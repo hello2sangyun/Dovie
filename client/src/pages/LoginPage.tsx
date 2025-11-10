@@ -63,25 +63,24 @@ export default function LoginPage() {
 
   useEffect(() => {
     const handleViewportResize = () => {
-      if (!window.visualViewport || !containerRef.current) return;
+      if (!window.visualViewport) return;
       
       const keyboardHeight = window.innerHeight - window.visualViewport.height;
       
       if (keyboardHeight > 100) {
-        containerRef.current.style.transform = `translateY(-${keyboardHeight * 0.4}px)`;
-        containerRef.current.style.transition = 'transform 0.3s ease-out';
-      } else {
-        containerRef.current.style.transform = 'translateY(0)';
-        containerRef.current.style.transition = 'transform 0.3s ease-out';
+        const activeElement = document.activeElement as HTMLElement;
+        if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
+          setTimeout(() => {
+            activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 100);
+        }
       }
     };
 
     window.visualViewport?.addEventListener('resize', handleViewportResize);
-    window.visualViewport?.addEventListener('scroll', handleViewportResize);
 
     return () => {
       window.visualViewport?.removeEventListener('resize', handleViewportResize);
-      window.visualViewport?.removeEventListener('scroll', handleViewportResize);
     };
   }, []);
 
@@ -96,7 +95,7 @@ export default function LoginPage() {
           <p className="text-gray-600">안전하고 스마트한 메신저</p>
         </div>
 
-        <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
+        <Card className="border-0 shadow-xl bg-white">
           <CardHeader>
             <CardTitle className="text-center text-xl">로그인</CardTitle>
           </CardHeader>
