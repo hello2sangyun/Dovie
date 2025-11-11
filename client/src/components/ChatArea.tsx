@@ -3974,7 +3974,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   if (isLoading) {
     return (
       <div className="h-full flex items-center justify-center bg-gray-50">
-        <div className="text-gray-500">메시지를 불러오는 중...</div>
+        <div className="flex items-center gap-2 text-gray-500">
+          <LoadingSpinner size="medium" color="purple" />
+          <span>메시지를 불러오는 중...</span>
+        </div>
       </div>
     );
   }
@@ -4051,9 +4054,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       {!hasInitialScrolledRef.current && messages.length > 0 && (
         <div className="absolute inset-0 bg-white dark:bg-gray-900 z-50 flex items-center justify-center">
           <div className="text-center">
-            <div className="w-12 h-12 mx-auto mb-3 relative">
-              <div className="absolute inset-0 border-4 border-purple-200 dark:border-purple-800 rounded-full"></div>
-              <div className="absolute inset-0 border-4 border-purple-500 dark:border-purple-400 rounded-full border-t-transparent animate-spin"></div>
+            <div className="w-12 h-12 mx-auto mb-3">
+              <LoadingSpinner size="large" color="purple" />
             </div>
             <p className="text-base font-medium text-gray-700 dark:text-gray-200">대화 내용 불러오는 중...</p>
           </div>
@@ -5286,7 +5288,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                                       {(msg as any).isUploading && msg.messageType !== 'file' && (
                                         <div className="mb-2">
                                           <div className="flex items-center space-x-2 mb-1">
-                                            <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"></div>
+                                            <LoadingSpinner size="small" color="purple" />
                                             <span className={cn(
                                               "text-sm font-medium",
                                               isMe ? "text-white/90" : "text-gray-700"
@@ -5760,7 +5762,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               aria-label="파일 첨부"
             >
               {uploadFileMutation.isPending ? (
-                <div className="animate-spin h-4 w-4 border-2 border-purple-600 border-t-transparent rounded-full" />
+                <LoadingSpinner size="small" color="purple" />
               ) : (
                 <Paperclip className="h-4 w-4" />
               )}
