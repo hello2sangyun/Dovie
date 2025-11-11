@@ -1833,10 +1833,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       return;
     }
 
-    const maxSize = 5 * 1024 * 1024;
+    const maxSize = 100 * 1024 * 1024;
     for (let i = 0; i < files.length; i++) {
       if (files[i].size > maxSize) {
-        alert(`${files[i].name} 파일이 5MB를 초과합니다. 각 파일은 5MB 이하여야 합니다.`);
+        alert(`${files[i].name} 파일이 100MB를 초과합니다. 각 파일은 100MB 이하여야 합니다.`);
         return;
       }
     }
@@ -2127,7 +2127,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
       const file = files[0];
-      const maxSize = 500 * 1024 * 1024; // 500MB
+      const maxSize = 100 * 1024 * 1024; // 100MB
       
       if (file.size > maxSize) {
         return;

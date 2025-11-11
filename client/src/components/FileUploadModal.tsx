@@ -58,8 +58,8 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
       return;
     }
 
-    // Check file sizes (5MB limit per file)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    // Check file sizes (100MB limit per file)
+    const maxSize = 100 * 1024 * 1024; // 100MB
     for (let i = 0; i < files.length; i++) {
       if (files[i].size > maxSize) {
         return;
