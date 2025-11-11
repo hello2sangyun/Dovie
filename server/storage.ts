@@ -65,7 +65,7 @@ export interface IStorage {
   toggleChatPin(userId: number, chatRoomId: number, isPinned: boolean): Promise<UserChatSettings>;
 
   // Message operations
-  getMessages(chatRoomId: number, limit?: number): Promise<(Message & { sender: User })[]>;
+  getMessages(chatRoomId: number, limit?: number, offset?: number): Promise<(Message & { sender: User })[]>;
   createMessage(message: InsertMessage): Promise<Message>;
   getMessageById(messageId: number): Promise<(Message & { sender: User }) | undefined>;
   updateMessage(messageId: number, updates: Partial<InsertMessage>): Promise<Message | undefined>;
@@ -586,8 +586,8 @@ export class DatabaseStorage implements IStorage {
     return this.upsertUserChatSettings({ userId, chatRoomId, isPinned });
   }
 
-  async getMessages(chatRoomId: number, limit: number = 50): Promise<(Message & { sender: User, reactions?: any[] })[]> {
-    const rows = await db
+  async getMessages(chatRoomId: number, limit: number = 50, offset: number = 0): Promise<(Message & { sender: User, reactions?: any[] })[]> {
+    const query = db
       .select({
         messages: messages,
         users: users
@@ -597,6 +597,9 @@ export class DatabaseStorage implements IStorage {
       .where(eq(messages.chatRoomId, chatRoomId))
       .orderBy(desc(messages.createdAt))
       .limit(limit);
+    
+    // Add offset if provided
+    const rows = offset > 0 ? await query.offset(offset) : await query;
 
     const messageList = rows.map(row => ({
       ...row.messages,

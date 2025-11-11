@@ -428,6 +428,22 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [unreadNewMessages, setUnreadNewMessages] = useState(0);
   const hasInitialScrolledRef = useRef(false);
   const [, forceRender] = useState({});
+  
+  // Infinite scroll state
+  const [allMessages, setAllMessages] = useState<any[]>([]);
+  const [messageOffset, setMessageOffset] = useState(0);
+  const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const loadMoreSentinelRef = useRef<HTMLDivElement>(null);
+  const previousScrollHeightRef = useRef(0);
+  
+  // Reset infinite scroll state when chatRoom changes
+  useEffect(() => {
+    setAllMessages([]);
+    setMessageOffset(0);
+    setHasMoreMessages(true);
+    setIsLoadingMore(false);
+  }, [chatRoomId]);
 
   // Get chat room details
   const { data: chatRoomsData } = useQuery({
@@ -450,7 +466,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     },
   });
 
-  // Get messages with immediate refresh for PWA app behavior
+  // Get messages with immediate refresh for PWA app behavior (infinite scroll - initial load only)
   const { data: messagesData, isLoading, isFetching } = useQuery({
     queryKey: ["/api/chat-rooms", chatRoomId, "messages"],
     enabled: !!chatRoomId,
@@ -459,7 +475,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     refetchOnWindowFocus: true, // Refresh when app becomes visible
     refetchInterval: 10000, // Poll every 10 seconds for real-time updates
     queryFn: async () => {
-      const endpoint = `/api/chat-rooms/${chatRoomId}/messages`;
+      const endpoint = `/api/chat-rooms/${chatRoomId}/messages?limit=50&offset=0`;
       
       const response = await fetch(endpoint, {
         headers: {
@@ -470,6 +486,111 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       return response.json();
     },
   });
+  
+  // Sync messagesData to allMessages (merge new messages, preserve old ones)
+  useEffect(() => {
+    if (messagesData?.messages) {
+      const newMessages = messagesData.messages;
+      
+      setAllMessages(prev => {
+        // If no previous messages or chatRoom changed, replace completely
+        if (prev.length === 0) {
+          return newMessages;
+        }
+        
+        // Merge: keep older messages (loaded via infinite scroll) + update recent messages
+        const oldestNew = newMessages[0];
+        const oldestNewIndex = prev.findIndex(m => m.id === oldestNew?.id);
+        
+        if (oldestNewIndex === -1) {
+          // No overlap - append new messages (shouldn't happen in normal flow)
+          return [...prev, ...newMessages];
+        } else if (oldestNewIndex === 0) {
+          // Perfect match - just update recent messages
+          return newMessages;
+        } else {
+          // Partial overlap - keep older messages, replace from overlap point
+          return [...prev.slice(0, oldestNewIndex), ...newMessages];
+        }
+      });
+      
+      setHasMoreMessages(messagesData.hasMore ?? true);
+      // Don't reset offset on refetch - only increment when loading more
+    }
+  }, [messagesData]);
+  
+  // Load more messages (infinite scroll)
+  const loadMoreMessages = async () => {
+    if (!chatRoomId || isLoadingMore || !hasMoreMessages) return;
+    
+    setIsLoadingMore(true);
+    
+    try {
+      const response = await fetch(
+        `/api/chat-rooms/${chatRoomId}/messages?limit=50&offset=${messageOffset}`,
+        {
+          headers: {
+            'x-user-id': user?.id?.toString() || '',
+          },
+        }
+      );
+      
+      if (!response.ok) throw new Error("Failed to fetch more messages");
+      
+      const data = await response.json();
+      
+      if (data.messages && data.messages.length > 0) {
+        // Save current scroll position
+        const previousScrollTop = chatScrollRef.current?.scrollTop || 0;
+        const previousScrollHeight = chatScrollRef.current?.scrollHeight || 0;
+        
+        // Prepend older messages
+        setAllMessages(prev => [...data.messages, ...prev]);
+        setMessageOffset(prev => prev + data.messages.length);
+        setHasMoreMessages(data.hasMore ?? false);
+        
+        // Restore scroll position after DOM update
+        requestAnimationFrame(() => {
+          if (chatScrollRef.current) {
+            const newScrollHeight = chatScrollRef.current.scrollHeight;
+            const scrollDiff = newScrollHeight - previousScrollHeight;
+            // Restore position: previous scroll + added content height
+            chatScrollRef.current.scrollTop = previousScrollTop + scrollDiff;
+          }
+        });
+      } else {
+        setHasMoreMessages(false);
+      }
+    } catch (error) {
+      console.error("Failed to load more messages:", error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+  
+  // IntersectionObserver for infinite scroll
+  useEffect(() => {
+    const sentinel = loadMoreSentinelRef.current;
+    if (!sentinel || !hasMoreMessages) return;
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting && !isLoadingMore && hasMoreMessages) {
+          loadMoreMessages();
+        }
+      },
+      {
+        root: chatScrollRef.current,
+        rootMargin: '100px',
+        threshold: 0.1,
+      }
+    );
+    
+    observer.observe(sentinel);
+    
+    return () => observer.disconnect();
+  }, [hasMoreMessages, isLoadingMore, messageOffset, chatRoomId]);
 
   // Get commands for suggestions
   const { data: commandsData } = useQuery({
@@ -1220,7 +1341,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     });
   };
 
-  const messages = messagesData?.messages || [];
+  const messages = allMessages;
 
   // Intelligent auto-scroll function with smooth transitions
   const scrollToBottom = (behavior: 'smooth' | 'instant' = 'smooth') => {
@@ -4581,6 +4702,28 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           </div>
         ) : (
           <>
+            {/* Infinite scroll: Load more sentinel */}
+            {hasMoreMessages && (
+              <div 
+                ref={loadMoreSentinelRef}
+                className="flex justify-center py-2"
+                data-testid="load-more-sentinel"
+              >
+                {isLoadingMore && (
+                  <div className="flex items-center space-x-2 text-gray-500">
+                    <LoadingSpinner />
+                    <span className="text-sm">이전 메시지 불러오는 중...</span>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {!hasMoreMessages && messages.length > 0 && (
+              <div className="flex justify-center py-2">
+                <span className="text-xs text-gray-400">채팅의 시작입니다</span>
+              </div>
+            )}
+            
             {messages.map((msg: any, index: number) => {
             const isMe = msg.senderId === user?.id;
             const showDate = index === 0 || 

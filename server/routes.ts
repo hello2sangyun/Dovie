@@ -1772,8 +1772,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/chat-rooms/:chatRoomId/messages", async (req, res) => {
     try {
       const chatRoomId = Number(req.params.chatRoomId);
-      const messages = await storage.getMessages(chatRoomId);
-      res.json({ messages });
+      const limit = req.query.limit ? Number(req.query.limit) : 50;
+      const offset = req.query.offset ? Number(req.query.offset) : 0;
+      
+      const messages = await storage.getMessages(chatRoomId, limit, offset);
+      res.json({ messages, hasMore: messages.length === limit });
     } catch (error) {
       console.error("Messages fetch error:", error);
       res.status(500).json({ message: "Failed to get messages" });
