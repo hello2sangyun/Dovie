@@ -25,6 +25,7 @@ The backend uses Node.js and Express.js (TypeScript, ES modules) with PostgreSQL
 - **YouTube Integration**: Search, preview, and sharing of YouTube videos within chat.
 - **Settings**: Comprehensive account management, AI settings (Smart Inbox filter toggles), language selection, and support.
 - **File Uploads**: Increased per-file upload limit to 100MB with a streamlined attachment flow including inline previews.
+- **File Preview**: Full-screen modal for images (with zoom controls), PDFs (iframe viewer), and files with share/save/forward capabilities using Capacitor APIs.
 
 ### System Design Choices
 The application prioritizes performance and responsiveness, particularly on mobile devices. This includes a "resize: 'none'" keyboard configuration for Capacitor on iOS to prevent input lag, and the removal of main thread blocking operations like eager profile image preloading. Loading states are standardized using a single `LoadingSpinner` component for visual consistency. Push notifications are refined for a cleaner appearance.
@@ -42,6 +43,7 @@ The application prioritizes performance and responsiveness, particularly on mobi
 - **SMS/Phone Verification**: Twilio SMS API.
 - **Geolocation**: ipapi.co service, browser geolocation API.
 - **Maps**: Google Maps integration.
-- **Native App Conversion**: Capacitor framework (`@capacitor/keyboard`, `@capacitor/push-notifications`).
+- **Native App Conversion**: Capacitor framework (`@capacitor/keyboard`, `@capacitor/push-notifications`, `@capacitor/share`, `@capacitor/filesystem`).
 - **iOS Push Notifications**: Apple Push Notification service (APNS) with JWT authentication.
 - **Push Notifications**: `web-push` for PWA notifications, APNS for iOS native.
+- **File Operations**: Capacitor Share API for native sharing, Filesystem API for saving files to device.
