@@ -65,6 +65,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const { user } = useAuth();
   const [, navigate] = useLocation();
   
+  // 인라인 파일 첨부 미리보기 상태 (최상단에 선언 - useCallback에서 사용)
+  const [selectedPendingFiles, setSelectedPendingFiles] = useState<FileList | null>(null);
+  const [showFilePreview, setShowFilePreview] = useState(false);
+  const [fileDescription, setFileDescription] = useState("");
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   // 스와이프 진행 상태 관리
   const [swipeProgress, setSwipeProgress] = useState(0);
   const [isNavigating, setIsNavigating] = useState(false);
@@ -377,18 +384,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [showHashtagSuggestion, setShowHashtagSuggestion] = useState(false);
   const [hashtagQuery, setHashtagQuery] = useState('');
   
-  // 인라인 파일 첨부 미리보기 상태
-  const [selectedPendingFiles, setSelectedPendingFiles] = useState<FileList | null>(null);
-  const [showFilePreview, setShowFilePreview] = useState(false);
-  const [fileDescription, setFileDescription] = useState("");
-  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
-  
   // 길게 터치 관련 상태
   const [touchTimer, setTouchTimer] = useState<NodeJS.Timeout | null>(null);
   const [isLongPress, setIsLongPress] = useState(false);
   const [touchStartData, setTouchStartData] = useState<{rect: DOMRect, message: any} | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const chatAreaRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
@@ -6680,7 +6680,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         type="file"
         multiple
         accept="image/*,video/*,audio/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/*"
-        onChange={(e) => handleFileSelect(e.target.files)}
+        onChange={handleFileSelect}
         className="hidden"
       />
 
