@@ -15,6 +15,15 @@ interface FileCacheStats {
   entries: CacheEntry[];
 }
 
+type SubscriberCallback = () => void;
+
+interface UrlState {
+  status: 'idle' | 'loading' | 'success' | 'error';
+  uri: string | null;
+  error: Error | null;
+  subscribers: Set<SubscriberCallback>;
+}
+
 const CACHE_DIR = 'file_cache';
 const MAX_CACHE_SIZE = 100 * 1024 * 1024; // 100MB
 const CACHE_INDEX_KEY = 'file_cache_index';
@@ -22,6 +31,8 @@ const CACHE_INDEX_KEY = 'file_cache_index';
 class FileCache {
   private cacheIndex: Map<string, CacheEntry> = new Map();
   private initialized = false;
+  private urlStates: Map<string, UrlState> = new Map();
+  private activeDownloads: Map<string, Promise<string>> = new Map();
 
   async init(): Promise<void> {
     if (this.initialized) return;
@@ -94,6 +105,43 @@ class FileCache {
     const urlHash = btoa(url).replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
     const extension = url.split('.').pop()?.split('?')[0] || 'bin';
     return `${urlHash}.${extension}`;
+  }
+
+  private getOrCreateUrlState(url: string): UrlState {
+    if (!this.urlStates.has(url)) {
+      this.urlStates.set(url, {
+        status: 'idle',
+        uri: null,
+        error: null,
+        subscribers: new Set()
+      });
+    }
+    return this.urlStates.get(url)!;
+  }
+
+  subscribe(url: string, callback: SubscriberCallback): () => void {
+    const state = this.getOrCreateUrlState(url);
+    state.subscribers.add(callback);
+
+    // Return unsubscribe function
+    return () => {
+      state.subscribers.delete(callback);
+      // Clean up state if no more subscribers
+      if (state.subscribers.size === 0 && state.status !== 'loading') {
+        this.urlStates.delete(url);
+      }
+    };
+  }
+
+  private notifySubscribers(url: string): void {
+    const state = this.urlStates.get(url);
+    if (state) {
+      state.subscribers.forEach(callback => callback());
+    }
+  }
+
+  getUrlState(url: string): UrlState {
+    return this.getOrCreateUrlState(url);
   }
 
   async getCachedFile(url: string): Promise<string | null> {
@@ -178,6 +226,79 @@ class FileCache {
       // 실패 시 ObjectURL로 폴백
       return URL.createObjectURL(blob);
     }
+  }
+
+  async fetchAndCache(url: string): Promise<string> {
+    // Check if there's already an active download for this URL
+    const activeDownload = this.activeDownloads.get(url);
+    if (activeDownload) {
+      console.log(`[FileCache] Reusing active download for: ${url}`);
+      return activeDownload;
+    }
+
+    const state = this.getOrCreateUrlState(url);
+
+    // Start download
+    const downloadPromise = (async () => {
+      try {
+        // Update state to loading
+        state.status = 'loading';
+        state.uri = null;
+        state.error = null;
+        this.notifySubscribers(url);
+
+        // 1. Check cache first
+        const cachedUri = await this.getCachedFile(url);
+        if (cachedUri) {
+          console.log(`[FileCache] Cache hit: ${url}`);
+          state.status = 'success';
+          state.uri = cachedUri;
+          state.error = null;
+          this.notifySubscribers(url);
+          return cachedUri;
+        }
+
+        // 2. Download from network
+        console.log(`[FileCache] Cache miss, downloading: ${url}`);
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const blob = await response.blob();
+
+        // 3. Cache the file
+        const uri = await this.cacheFile(url, blob);
+        
+        // Update state to success
+        state.status = 'success';
+        state.uri = uri;
+        state.error = null;
+        this.notifySubscribers(url);
+
+        return uri;
+      } catch (error) {
+        console.error('[FileCache] Failed to fetch and cache:', error);
+        
+        // Update state to error
+        state.status = 'error';
+        state.uri = null;
+        state.error = error instanceof Error ? error : new Error(String(error));
+        this.notifySubscribers(url);
+
+        // Fallback to original URL
+        return url;
+      } finally {
+        // Remove from active downloads
+        this.activeDownloads.delete(url);
+      }
+    })();
+
+    // Store the active download promise
+    this.activeDownloads.set(url, downloadPromise);
+
+    return downloadPromise;
   }
 
   private async blobToBase64(blob: Blob): Promise<string> {
@@ -275,6 +396,10 @@ class FileCache {
       this.cacheIndex.clear();
       await this.saveCacheIndex();
 
+      // Clear all URL states
+      this.urlStates.clear();
+      this.activeDownloads.clear();
+
       console.log('[FileCache] Cache cleared successfully');
     } catch (error) {
       console.error('[FileCache] Failed to clear cache:', error);
@@ -285,6 +410,59 @@ class FileCache {
 // 전역 싱글톤 인스턴스
 const globalFileCache = new FileCache();
 
+// New hook: useFileCacheEntry - for per-URL loading states
+export function useFileCacheEntry(url: string) {
+  const [state, setState] = useState<{
+    status: 'idle' | 'loading' | 'success' | 'error';
+    uri: string | null;
+    error: Error | null;
+  }>(() => {
+    const urlState = globalFileCache.getUrlState(url);
+    return {
+      status: urlState.status,
+      uri: urlState.uri,
+      error: urlState.error
+    };
+  });
+
+  // Subscribe to state changes
+  useEffect(() => {
+    const updateState = () => {
+      const urlState = globalFileCache.getUrlState(url);
+      setState({
+        status: urlState.status,
+        uri: urlState.uri,
+        error: urlState.error
+      });
+    };
+
+    const unsubscribe = globalFileCache.subscribe(url, updateState);
+
+    return unsubscribe;
+  }, [url]);
+
+  // Trigger download if not cached and not already loading
+  useEffect(() => {
+    const urlState = globalFileCache.getUrlState(url);
+    if (urlState.status === 'idle') {
+      globalFileCache.fetchAndCache(url);
+    }
+  }, [url]);
+
+  // Refetch function
+  const refetch = useCallback(() => {
+    globalFileCache.fetchAndCache(url);
+  }, [url]);
+
+  return {
+    status: state.status,
+    uri: state.uri,
+    error: state.error,
+    refetch
+  };
+}
+
+// Existing hook: useFileCache - kept unchanged for backward compatibility
 export function useFileCache() {
   const [stats, setStats] = useState<FileCacheStats>({
     totalSize: 0,
