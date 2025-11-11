@@ -2110,7 +2110,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               await sendPushNotification(recipient.id, {
                 title: notificationTitle,
                 body: notificationBody,
-                icon: '/icons/icon-192x192.png',
+                icon: '/icons/dovie-logo.png',
                 badge: `/icons/icon-72x72.png`,
                 data: notificationData,
                 tag: notificationTag,

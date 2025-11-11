@@ -46,6 +46,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   const mimeType = fileType || getFileTypeFromExtension(extension);
   const isImage = mimeType.startsWith('image/') || ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension || '');
   const isPDF = mimeType === 'application/pdf' || extension === 'pdf';
+  const isVideo = mimeType.startsWith('video/') || ['mp4', 'webm', 'ogg', 'mov'].includes(extension || '');
 
   function getFileTypeFromExtension(ext?: string): string {
     if (!ext) return 'application/octet-stream';
@@ -77,7 +78,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
     }
     setShowUI(true);
     uiTimeoutRef.current = setTimeout(() => {
-      if (isImage) {
+      if (isImage || isVideo) {
         setShowUI(false);
       }
     }, 3000);
@@ -389,6 +390,20 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
               }}
               draggable={false}
               data-testid="image-preview"
+            />
+          </div>
+        ) : isVideo ? (
+          <div 
+            className="relative w-full h-full flex items-center justify-center bg-black"
+            onClick={resetUITimeout}
+          >
+            <video
+              src={fileUrl}
+              className="max-w-full max-h-full object-contain"
+              controls
+              playsInline
+              autoPlay={false}
+              data-testid="video-preview"
             />
           </div>
         ) : isPDF ? (

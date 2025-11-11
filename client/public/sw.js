@@ -310,27 +310,33 @@ self.addEventListener('push', (event) => {
   });
   
   event.waitUntil(
-    self.registration.showNotification(
-      notificationData.title || '새 메시지',
-      options
-    ).then(() => {
-      console.log('[SW] Telegram-style notification displayed');
+    Promise.all([
+      // Show notification
+      self.registration.showNotification(
+        notificationData.title || '새 메시지',
+        options
+      ).then(() => {
+        console.log('[SW] Telegram-style notification displayed');
+        
+        // Update badge only if unread count is provided (like Telegram)
+        if (notificationData.data?.unreadCount > 0) {
+          return setTelegramStyleBadge(notificationData.data.unreadCount);
+        }
+      }).catch((error) => {
+        console.error('[SW] Notification failed:', error);
+        
+        // Telegram-style fallback - simple notification
+        return self.registration.showNotification('새 메시지', {
+          body: '메시지를 확인하세요',
+          icon: '/icons/icon-192x192.png',
+          tag: `dovie-fallback-${Date.now()}`,
+          silent: false
+        });
+      }),
       
-      // Update badge only if unread count is provided (like Telegram)
-      if (notificationData.data?.unreadCount > 0) {
-        return setTelegramStyleBadge(notificationData.data.unreadCount);
-      }
-    }).catch((error) => {
-      console.error('[SW] Notification failed:', error);
-      
-      // Telegram-style fallback - simple notification
-      return self.registration.showNotification('새 메시지', {
-        body: '메시지를 확인하세요',
-        icon: '/icons/icon-192x192.png',
-        tag: `dovie-fallback-${Date.now()}`,
-        silent: false
-      });
-    })
+      // Preload messages in background for faster app opening
+      preloadChatMessages(notificationData.data?.chatRoomId)
+    ])
   );
 });
 
@@ -811,6 +817,38 @@ self.addEventListener('message', (event) => {
     updateAppBadge(unreadCount);
   }
 });
+
+// Preload chat messages for faster app opening
+async function preloadChatMessages(chatRoomId) {
+  if (!chatRoomId) {
+    console.log('[SW] No chatRoomId provided, skipping message preload');
+    return;
+  }
+  
+  try {
+    console.log(`[SW] 📥 Preloading messages for chat room ${chatRoomId}`);
+    
+    // Create the exact request URL that the app will use
+    const requestUrl = `/api/chat-rooms/${chatRoomId}/messages`;
+    const response = await fetch(requestUrl);
+    
+    if (response.ok) {
+      const data = await response.json();
+      console.log(`[SW] ✅ Preloaded ${data.messages?.length || 0} messages for chat ${chatRoomId}`);
+      
+      // Cache the response using the exact request URL for proper cache hits
+      const cache = await caches.open(DYNAMIC_CACHE_NAME);
+      await cache.put(requestUrl, response.clone());
+      
+      console.log(`[SW] 💾 Cached messages for instant access`);
+    } else {
+      console.log(`[SW] ⚠️ Failed to preload messages: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('[SW] ❌ Message preloading failed:', error);
+    // Don't throw - let notification display even if preload fails
+  }
+}
 
 // Periodic badge sync - fetch current unread count every 30 seconds
 setInterval(async () => {

@@ -185,8 +185,8 @@ export async function sendPushNotification(
     const notificationPayload = JSON.stringify({
       title: payload.title || "새 메시지",
       body: payload.body || "새 메시지가 도착했습니다",
-      icon: '/icons/icon-192x192.png',
-      badge: '/icons/icon-72x72.png',
+      icon: payload.icon || '/icons/dovie-logo.png',
+      badge: payload.badge || '/icons/icon-72x72.png',
       data: {
         url: payload.data?.url || '/',
         timestamp: payload.timestamp || Date.now(),

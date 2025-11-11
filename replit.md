@@ -19,13 +19,13 @@ The backend uses Node.js and Express.js (TypeScript, ES modules) with PostgreSQL
 - **Business Features**: Business profiles and professional networking.
 - **Location Features**: Location-based chat rooms, nearby user discovery, location sharing.
 - **Admin Panel**: Monitoring, user management, performance metrics.
-- **Push Notifications**: Intelligent filtering, grouped notifications, comprehensive iOS PWA/Native app support with sound and badges.
+- **Push Notifications**: Intelligent filtering, grouped notifications, comprehensive iOS PWA/Native app support with sound and badges. Includes Dovie logo in notification icons. Service Worker preloads chat messages in background when push notifications are received for instant app opening.
 - **Hashtag System**: Single hashtag per file, auto-extraction, enhanced search.
 - **Voice Messages**: Quick voice messages with transcription, smart suggestion integration, and retry.
 - **YouTube Integration**: Search, preview, and sharing of YouTube videos within chat.
 - **Settings**: Comprehensive account management, AI settings (Smart Inbox filter toggles), language selection, and support.
 - **File Uploads**: Increased per-file upload limit to 100MB with a streamlined attachment flow including inline previews.
-- **File Preview**: Fullscreen immersive modal with pinch-to-zoom (0.5x-5x), pan navigation for zoomed images, double-tap reset, auto-hiding UI (3-second timer), and gesture-optimized controls. Supports images (with touch zoom), PDFs (iframe viewer), and files with share/save/forward capabilities using Capacitor APIs. Black background with minimal overlay controls for maximum content visibility.
+- **File Preview**: Fullscreen immersive modal with pinch-to-zoom (0.5x-5x), pan navigation for zoomed images, double-tap reset, auto-hiding UI (3-second timer), and gesture-optimized controls. Supports images (with touch zoom), videos (with native controls and fullscreen playback), PDFs (iframe viewer), and files with share/save/forward capabilities using Capacitor APIs. Black background with minimal overlay controls for maximum content visibility. iOS-style back button (← arrow) in top-left corner.
 
 ### System Design Choices
 The application prioritizes performance and responsiveness, particularly on mobile devices. This includes a "resize: 'body'" keyboard configuration for Capacitor on iOS to enable automatic viewport adjustment when the keyboard appears, ensuring input fields remain visible. Main thread blocking operations like eager profile image preloading have been removed for better performance. Loading states are standardized using a single `LoadingSpinner` component for visual consistency. Push notifications are refined for a cleaner appearance.

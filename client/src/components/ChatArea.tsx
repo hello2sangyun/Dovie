@@ -3694,8 +3694,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       return;
     }
     
-    // iOS에서 길게 누르기가 작동하도록 preventDefault 추가
-    e.preventDefault();
     setIsLongPress(false);
     
     // 터치 시작 시점에 element의 위치 정보를 미리 저장
@@ -3744,8 +3742,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       return;
     }
     
-    // iOS에서 길게 누르기가 작동하도록 preventDefault 추가
-    e.preventDefault();
     if (touchTimer) {
       clearTimeout(touchTimer);
       setTouchTimer(null);
@@ -3773,8 +3769,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       return;
     }
     
-    // iOS에서 길게 누르기가 작동하도록 preventDefault 추가
-    e.preventDefault();
     if (touchTimer) {
       clearTimeout(touchTimer);
       setTouchTimer(null);
