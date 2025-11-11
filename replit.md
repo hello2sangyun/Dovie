@@ -25,7 +25,7 @@ The backend uses Node.js and Express.js (TypeScript, ES modules) with PostgreSQL
 - **YouTube Integration**: Search, preview, and sharing of YouTube videos within chat.
 - **Settings**: Comprehensive account management, AI settings (Smart Inbox filter toggles), language selection, and support.
 - **File Uploads**: Increased per-file upload limit to 100MB with a streamlined attachment flow including inline previews.
-- **File Preview**: Full-screen modal for images (with zoom controls), PDFs (iframe viewer), and files with share/save/forward capabilities using Capacitor APIs.
+- **File Preview**: Fullscreen immersive modal with pinch-to-zoom (0.5x-5x), pan navigation for zoomed images, double-tap reset, auto-hiding UI (3-second timer), and gesture-optimized controls. Supports images (with touch zoom), PDFs (iframe viewer), and files with share/save/forward capabilities using Capacitor APIs. Black background with minimal overlay controls for maximum content visibility.
 
 ### System Design Choices
 The application prioritizes performance and responsiveness, particularly on mobile devices. This includes a "resize: 'body'" keyboard configuration for Capacitor on iOS to enable automatic viewport adjustment when the keyboard appears, ensuring input fields remain visible. Main thread blocking operations like eager profile image preloading have been removed for better performance. Loading states are standardized using a single `LoadingSpinner` component for visual consistency. Push notifications are refined for a cleaner appearance.
