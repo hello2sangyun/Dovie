@@ -15,7 +15,7 @@ The backend uses Node.js and Express.js (TypeScript, ES modules) with PostgreSQL
 
 ### Feature Specifications
 - **Authentication**: Email/password, phone number verification (Twilio), profile setup, role-based access.
-- **Chat System**: Real-time messaging, group/direct chats, encrypted file sharing, emoji reactions, replies, archive.
+- **Chat System**: Real-time messaging, group/direct chats, encrypted file sharing, emoji reactions, replies, archive. Features infinite scroll pagination (loads 50 messages at a time with older messages fetched on scroll-up) and per-file download loading states with spinner overlays that maintain message bubble visibility.
 - **Business Features**: Business profiles and professional networking.
 - **Location Features**: Location-based chat rooms, nearby user discovery, location sharing.
 - **Admin Panel**: Monitoring, user management, performance metrics.
@@ -28,7 +28,7 @@ The backend uses Node.js and Express.js (TypeScript, ES modules) with PostgreSQL
 - **File Preview**: Fullscreen immersive modal with pinch-to-zoom (0.5x-5x), pan navigation for zoomed images, double-tap reset, auto-hiding UI (3-second timer), and gesture-optimized controls. Supports images (with touch zoom), videos (with native controls and fullscreen playback), PDFs (iframe viewer), and files with share/save/forward capabilities using Capacitor APIs. Black background with minimal overlay controls for maximum content visibility. iOS-style back button (← arrow) in top-left corner.
 
 ### System Design Choices
-The application prioritizes performance and responsiveness, particularly on mobile devices. This includes a "resize: 'body'" keyboard configuration for Capacitor on iOS to enable automatic viewport adjustment when the keyboard appears, ensuring input fields remain visible. Main thread blocking operations like eager profile image preloading have been removed for better performance. Loading states are standardized using a single `LoadingSpinner` component for visual consistency. Push notifications are refined for a cleaner appearance.
+The application prioritizes performance and responsiveness, particularly on mobile devices. This includes a "resize: 'body'" keyboard configuration for Capacitor on iOS to enable automatic viewport adjustment when the keyboard appears, ensuring input fields remain visible. Main thread blocking operations like eager profile image preloading have been removed for better performance. Loading states are standardized using a single `LoadingSpinner` component for visual consistency. Push notifications are refined for a cleaner appearance. Message pagination uses infinite scroll with IntersectionObserver for seamless loading of older messages while preserving scroll position. File caching implements a per-URL subscriber pattern with `useFileCacheEntry` hook that tracks individual download states, enabling concurrent downloads with shared network requests and proper cleanup.
 
 ## External Dependencies
 - **Database**: `@neondatabase/serverless`, `drizzle-orm`.
