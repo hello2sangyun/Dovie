@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Save, Reply, Edit3, Globe, Copy, Share2, Trash2 } from "lucide-react";
+import { Bookmark, Reply, Edit3, Globe, Copy, Share2, Trash2 } from "lucide-react";
 
 interface MessageContextMenuProps {
   x: number;
@@ -194,25 +194,25 @@ export default function MessageContextMenu({
         onClick={onClose}
       />
       
-      {/* Context Menu - Modern Clean Design */}
+      {/* Context Menu - Compact Simple Design */}
       <div
         ref={menuRef}
-        className="context-menu fixed z-50 bg-white dark:bg-gray-900 backdrop-blur-xl border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl overflow-hidden min-w-[220px]"
+        className="context-menu fixed z-50 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden min-w-[110px]"
         style={{ left: menuPosition.x, top: menuPosition.y }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* 이모지 반응 섹션 - 상단 */}
         {onReaction && (
-          <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 px-3 py-2.5 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-around gap-1">
+          <div className="bg-gray-50 dark:bg-gray-800 px-2 py-1.5 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-around gap-0.5">
               {reactions.map((reaction) => (
                 <button
                   key={reaction.name}
                   onClick={handleReactionClick(reaction.emoji, reaction.name)}
-                  className="group relative flex items-center justify-center w-9 h-9 rounded-full hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all duration-200 hover:scale-125 active:scale-95"
+                  className="flex items-center justify-center w-6 h-6 rounded hover:bg-white dark:hover:bg-gray-700 transition-colors active:scale-95"
                   title={reaction.name}
                 >
-                  <span className="text-xl">{reaction.emoji}</span>
+                  <span className="text-base">{reaction.emoji}</span>
                 </button>
               ))}
             </div>
@@ -220,24 +220,24 @@ export default function MessageContextMenu({
         )}
         
         {/* 메인 액션 섹션 */}
-        <div className="py-1.5">
+        <div className="py-0.5">
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start px-4 py-2.5 h-auto text-sm font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors rounded-none"
+            className="w-full justify-start px-2 py-1.5 h-auto text-xs hover:bg-gray-100 dark:hover:bg-gray-800 rounded-none"
             onClick={handleReplyClick}
           >
-            <Reply className="w-4 h-4 mr-3 text-blue-600 dark:text-blue-400" />
+            <Reply className="w-3 h-3 mr-2" />
             <span>답장</span>
           </Button>
 
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start px-4 py-2.5 h-auto text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors rounded-none"
+            className="w-full justify-start px-2 py-1.5 h-auto text-xs hover:bg-gray-100 dark:hover:bg-gray-800 rounded-none"
             onClick={handleCopyClick}
           >
-            <Copy className="w-4 h-4 mr-3 text-gray-600 dark:text-gray-400" />
+            <Copy className="w-3 h-3 mr-2" />
             <span>복사</span>
           </Button>
           
@@ -245,49 +245,49 @@ export default function MessageContextMenu({
             <Button
               variant="ghost"
               size="sm"
-              className="w-full justify-start px-4 py-2.5 h-auto text-sm font-medium hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors rounded-none"
+              className="w-full justify-start px-2 py-1.5 h-auto text-xs hover:bg-gray-100 dark:hover:bg-gray-800 rounded-none"
               onClick={handleEditClick}
             >
-              <Edit3 className="w-4 h-4 mr-3 text-orange-600 dark:text-orange-400" />
+              <Edit3 className="w-3 h-3 mr-2" />
               <span>수정</span>
             </Button>
           )}
         </div>
 
         {/* 추가 기능 섹션 */}
-        <div className="border-t border-gray-100 dark:border-gray-800 py-1.5">
+        <div className="border-t border-gray-100 dark:border-gray-800 py-0.5">
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start px-4 py-2.5 h-auto text-sm font-medium hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors rounded-none"
+            className="w-full justify-start px-2 py-1.5 h-auto text-xs hover:bg-gray-100 dark:hover:bg-gray-800 rounded-none"
             onClick={handleSaveClick}
             data-testid="button-save-message"
           >
-            <Save className="w-4 h-4 mr-3 text-green-600 dark:text-green-400" />
+            <Bookmark className="w-3 h-3 mr-2" />
             <span>북마크</span>
           </Button>
 
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start px-4 py-2.5 h-auto text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors rounded-none"
+            className="w-full justify-start px-2 py-1.5 h-auto text-xs hover:bg-gray-100 dark:hover:bg-gray-800 rounded-none"
             onClick={handleForwardClick}
             data-testid="button-forward-message"
           >
-            <Share2 className="w-4 h-4 mr-3 text-indigo-600 dark:text-indigo-400" />
-            <span>전달하기</span>
+            <Share2 className="w-3 h-3 mr-2" />
+            <span>전달</span>
           </Button>
         </div>
 
         {/* 번역 & 삭제 섹션 */}
-        <div className="border-t border-gray-100 dark:border-gray-800 py-1.5">
+        <div className="border-t border-gray-100 dark:border-gray-800 py-0.5">
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start px-4 py-2.5 h-auto text-sm font-medium hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors rounded-none"
+            className="w-full justify-start px-2 py-1.5 h-auto text-xs hover:bg-gray-100 dark:hover:bg-gray-800 rounded-none"
             onClick={handleTranslateClick}
           >
-            <Globe className="w-4 h-4 mr-3 text-purple-600 dark:text-purple-400" />
+            <Globe className="w-3 h-3 mr-2" />
             <span>번역</span>
           </Button>
 
@@ -295,11 +295,11 @@ export default function MessageContextMenu({
             <Button
               variant="ghost"
               size="sm"
-              className="w-full justify-start px-4 py-2.5 h-auto text-sm font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors rounded-none"
+              className="w-full justify-start px-2 py-1.5 h-auto text-xs hover:bg-gray-100 dark:hover:bg-gray-800 rounded-none"
               onClick={handleDeleteClick}
               data-testid="button-delete-message"
             >
-              <Trash2 className="w-4 h-4 mr-3 text-red-600 dark:text-red-400" />
+              <Trash2 className="w-3 h-3 mr-2" />
               <span>삭제</span>
             </Button>
           )}
