@@ -1824,7 +1824,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     setReplyToMessage(null); // 회신 모드 해제
   };
 
-  const handleFileSelect = (files: FileList | null) => {
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
     if (!files || files.length === 0) return;
 
     if (files.length > 10) {
@@ -5752,9 +5753,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               accessibilityMode={accessibilitySettings.reducedMotion}
               hapticFeedback={accessibilitySettings.hapticEnabled}
               className="text-gray-500 hover:text-purple-600 hover:bg-purple-50 p-2 h-9 w-9 rounded-lg transition-all duration-200 flex items-center justify-center"
-              onClick={handleFileUpload}
+              onClick={() => fileInputRef.current?.click()}
               disabled={uploadFileMutation.isPending}
               aria-label="파일 첨부"
+              data-testid="button-file-attach"
             >
               {uploadFileMutation.isPending ? (
                 <LoadingSpinner size="small" color="purple" />
@@ -6321,15 +6323,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           </div>
         </div>
       </div>
-
-      {/* Hidden file input */}
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileSelect}
-        className="hidden"
-        multiple={false}
-      />
 
       {/* Add Friend Confirmation Modal */}
       {nonFriendUsers.length > 0 && (
