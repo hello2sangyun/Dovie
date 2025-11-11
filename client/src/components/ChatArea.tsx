@@ -3681,6 +3681,19 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // 길게 터치 이벤트 핸들러
   const handleTouchStart = (e: React.TouchEvent, message: any) => {
+    // 터치된 요소가 파일/이미지/비디오(클릭 가능한 미디어)인지 확인
+    const touchedElement = e.target as HTMLElement;
+    
+    // img, video 태그이거나 cursor-pointer 클래스를 가진 요소는 long-press 처리 건너뛰기
+    // 이렇게 하면 파일/이미지 클릭이 정상적으로 작동함
+    if (
+      touchedElement.tagName === 'IMG' ||
+      touchedElement.tagName === 'VIDEO' ||
+      touchedElement.closest('.cursor-pointer')
+    ) {
+      return;
+    }
+    
     // iOS에서 길게 누르기가 작동하도록 preventDefault 추가
     e.preventDefault();
     setIsLongPress(false);
