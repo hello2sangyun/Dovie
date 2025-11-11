@@ -165,6 +165,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
   }, [user, chatRoomId]);
 
+  // 컴포넌트 언마운트 시 미리보기 URL 정리
+  useEffect(() => {
+    return () => {
+      previewUrls.forEach(url => {
+        if (url) URL.revokeObjectURL(url);
+      });
+    };
+  }, [previewUrls]);
+
   // 임시 메시지 저장 관련 함수들
   const getDraftKey = (roomId: number) => `chat_draft_${roomId}`;
   
@@ -369,6 +378,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
   const [showHashtagSuggestion, setShowHashtagSuggestion] = useState(false);
   const [hashtagQuery, setHashtagQuery] = useState('');
+  
+  // 인라인 파일 첨부 미리보기 상태
+  const [selectedPendingFiles, setSelectedPendingFiles] = useState<FileList | null>(null);
+  const [showFilePreview, setShowFilePreview] = useState(false);
+  const [fileDescription, setFileDescription] = useState("");
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   
   // 길게 터치 관련 상태
   const [touchTimer, setTouchTimer] = useState<NodeJS.Timeout | null>(null);
@@ -1812,7 +1827,63 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   };
 
   const handleFileUpload = () => {
-    setShowFileUploadModal(true);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    if (files.length > 10) {
+      alert('파일은 최대 10개까지 선택할 수 있습니다.');
+      return;
+    }
+
+    const maxSize = 5 * 1024 * 1024;
+    for (let i = 0; i < files.length; i++) {
+      if (files[i].size > maxSize) {
+        alert(`${files[i].name} 파일이 5MB를 초과합니다. 각 파일은 5MB 이하여야 합니다.`);
+        return;
+      }
+    }
+
+    const urls: string[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.type.startsWith('image/')) {
+        urls.push(URL.createObjectURL(file));
+      } else {
+        urls.push('');
+      }
+    }
+
+    setSelectedPendingFiles(files);
+    setPreviewUrls(urls);
+    setShowFilePreview(true);
+    setFileDescription('');
+  };
+
+  const handleCancelFilePreview = () => {
+    previewUrls.forEach(url => {
+      if (url) URL.revokeObjectURL(url);
+    });
+    setSelectedPendingFiles(null);
+    setPreviewUrls([]);
+    setShowFilePreview(false);
+    setFileDescription('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleSendFilesInline = async () => {
+    if (!selectedPendingFiles) return;
+
+    try {
+      await handleFileUploadWithHashtags(selectedPendingFiles, '', fileDescription);
+      handleCancelFilePreview();
+    } catch (error) {
+      console.error('파일 전송 오류:', error);
+    }
   };
 
   const handleFileUploadWithHashtags = async (files: FileList, caption: string, description: string) => {
@@ -2234,20 +2305,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     };
   }, [showChatSettings]);
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const maxSize = 500 * 1024 * 1024; // 500MB
-      
-      if (file.size > maxSize) {
-        // Reset file input
-        event.target.value = '';
-        return;
-      }
-      
-      uploadFileMutation.mutate(file);
-    }
-  };
 
   // 스마트 채팅 상태
   const [smartSuggestions, setSmartSuggestions] = useState<Array<{
@@ -5588,6 +5645,82 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           </div>
         )}
 
+        {/* Inline File Preview */}
+        {showFilePreview && selectedPendingFiles && (
+          <div className="px-4 py-3 bg-purple-50 border-t border-purple-200">
+            <div className="space-y-3">
+              {/* 파일 미리보기 */}
+              <div className="flex flex-wrap gap-2">
+                {Array.from(selectedPendingFiles).map((file, index) => {
+                  const isImage = file.type.startsWith('image/');
+                  const icon = isImage ? (
+                    <FileImage className="h-5 w-5 text-blue-500" />
+                  ) : file.type.includes('pdf') ? (
+                    <FileText className="h-5 w-5 text-red-500" />
+                  ) : file.type.includes('spreadsheet') || file.type.includes('excel') ? (
+                    <FileSpreadsheet className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <File className="h-5 w-5 text-gray-500" />
+                  );
+
+                  return (
+                    <div key={index} className="flex items-center gap-2 bg-white rounded-lg p-2 border border-purple-200">
+                      {isImage && previewUrls[index] ? (
+                        <img 
+                          src={previewUrls[index]} 
+                          alt={file.name} 
+                          className="w-12 h-12 object-cover rounded"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 flex items-center justify-center bg-gray-100 rounded">
+                          {icon}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate" title={file.name}>
+                          {file.name.length > 20 ? `${file.name.substring(0, 17)}...` : file.name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {(file.size / 1024).toFixed(1)} KB
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* 파일 설명 입력란 */}
+              <Textarea
+                value={fileDescription}
+                onChange={(e) => setFileDescription(e.target.value)}
+                placeholder="이 파일에 대한 설명을 입력하세요..."
+                className="w-full min-h-[60px] resize-none border-purple-300 focus:ring-purple-500 focus:border-purple-500"
+                maxLength={500}
+              />
+
+              {/* 전송 및 취소 버튼 */}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCancelFilePreview}
+                  className="flex-1"
+                >
+                  취소
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleSendFilesInline}
+                  className="flex-1 purple-gradient hover:purple-gradient-hover text-white"
+                  disabled={uploadFileMutation.isPending}
+                >
+                  {uploadFileMutation.isPending ? "전송 중..." : "전송"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* File Upload Progress Display */}
         {uploadProgress.length > 0 && (
           <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
@@ -6558,6 +6691,16 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           }}
         />
       )}
+
+      {/* Hidden File Input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        accept="image/*,video/*,audio/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/*"
+        onChange={(e) => handleFileSelect(e.target.files)}
+        className="hidden"
+      />
 
     </div>
   );
