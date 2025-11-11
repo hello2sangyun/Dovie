@@ -1,7 +1,6 @@
-import { useState } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { X, Download, File, FileText, FileImage, FileVideo, FileAudio, FileCode, ZoomIn, ZoomOut, Share2, Send } from 'lucide-react';
+import { X, Download, File, FileText, FileImage, FileVideo, FileAudio, FileCode, Share2, Send } from 'lucide-react';
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
@@ -28,9 +27,19 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   messageId,
   onForward
 }) => {
-  const [zoom, setZoom] = useState(100);
+  const [scale, setScale] = useState(1);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [showUI, setShowUI] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  
+  const imageRef = useRef<HTMLImageElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const lastTouchDistance = useRef<number>(0);
+  const lastTouchPos = useRef({ x: 0, y: 0 });
+  const isDragging = useRef(false);
+  const uiTimeoutRef = useRef<NodeJS.Timeout>();
+  const lastTapRef = useRef<number>(0);
 
   const isNative = Capacitor.isNativePlatform();
   const extension = fileName.split('.').pop()?.toLowerCase();
@@ -51,12 +60,141 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
     return types[ext] || 'application/octet-stream';
   }
 
-  const handleZoomIn = () => setZoom(prev => Math.min(prev + 25, 200));
-  const handleZoomOut = () => setZoom(prev => Math.max(prev - 25, 50));
+  // Reset state when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      setScale(1);
+      setPosition({ x: 0, y: 0 });
+      setShowUI(true);
+      resetUITimeout();
+    }
+  }, [isOpen]);
+
+  // Auto-hide UI after 3 seconds
+  const resetUITimeout = () => {
+    if (uiTimeoutRef.current) {
+      clearTimeout(uiTimeoutRef.current);
+    }
+    setShowUI(true);
+    uiTimeoutRef.current = setTimeout(() => {
+      if (isImage) {
+        setShowUI(false);
+      }
+    }, 3000);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (uiTimeoutRef.current) {
+        clearTimeout(uiTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleClose = () => {
-    setZoom(100);
+    setScale(1);
+    setPosition({ x: 0, y: 0 });
     onClose();
+  };
+
+  // Calculate distance between two touch points
+  const getTouchDistance = (touches: React.TouchList) => {
+    if (touches.length < 2) return 0;
+    const touch1 = touches[0];
+    const touch2 = touches[1];
+    const dx = touch1.clientX - touch2.clientX;
+    const dy = touch1.clientY - touch2.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
+  // Get center point between two touches
+  const getTouchCenter = (touches: React.TouchList) => {
+    if (touches.length < 2) return { x: 0, y: 0 };
+    return {
+      x: (touches[0].clientX + touches[1].clientX) / 2,
+      y: (touches[0].clientY + touches[1].clientY) / 2
+    };
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!isImage) return;
+    
+    const now = Date.now();
+    const timeSinceLastTap = now - lastTapRef.current;
+    
+    // Double tap to reset
+    if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
+      e.preventDefault();
+      setScale(1);
+      setPosition({ x: 0, y: 0 });
+      resetUITimeout();
+      return;
+    }
+    lastTapRef.current = now;
+
+    if (e.touches.length === 2) {
+      // Pinch zoom
+      e.preventDefault();
+      lastTouchDistance.current = getTouchDistance(e.touches);
+    } else if (e.touches.length === 1) {
+      // Pan
+      lastTouchPos.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY
+      };
+      isDragging.current = scale > 1;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isImage) return;
+
+    if (e.touches.length === 2) {
+      // Pinch zoom
+      e.preventDefault();
+      const distance = getTouchDistance(e.touches);
+      if (lastTouchDistance.current > 0) {
+        const delta = distance / lastTouchDistance.current;
+        const newScale = Math.min(Math.max(scale * delta, 0.5), 5);
+        setScale(newScale);
+      }
+      lastTouchDistance.current = distance;
+      resetUITimeout();
+    } else if (e.touches.length === 1 && isDragging.current && scale > 1) {
+      // Pan while zoomed
+      e.preventDefault();
+      const deltaX = e.touches[0].clientX - lastTouchPos.current.x;
+      const deltaY = e.touches[0].clientY - lastTouchPos.current.y;
+      
+      setPosition(prev => ({
+        x: prev.x + deltaX,
+        y: prev.y + deltaY
+      }));
+      
+      lastTouchPos.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY
+      };
+      resetUITimeout();
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!isImage) return;
+    isDragging.current = false;
+    if (e.touches.length === 0) {
+      lastTouchDistance.current = 0;
+    }
+  };
+
+  // Toggle UI on tap (when not zoomed)
+  const handleImageClick = () => {
+    if (scale === 1) {
+      setShowUI(prev => !prev);
+      if (!showUI) {
+        resetUITimeout();
+      }
+    }
   };
 
   const handleShare = async () => {
@@ -73,7 +211,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
         if (navigator.share) {
           const response = await fetch(fileUrl);
           const blob = await response.blob();
-          const file = new (File as any)([blob], fileName, { type: mimeType });
+          const file = new (window as any).File([blob], fileName, { type: mimeType });
           
           await navigator.share({
             files: [file],
@@ -161,8 +299,6 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
     }
   };
 
-  const handleDownload = handleSaveToDevice;
-
   const formatFileSize = (bytes?: number) => {
     if (!bytes) return '알 수 없음';
     if (bytes < 1024) return `${bytes} B`;
@@ -189,154 +325,144 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
     return <File className="h-16 w-16 text-purple-600 dark:text-purple-400" />;
   };
 
-  const renderFileContent = () => {
-    if (isImage) {
-      return (
-        <div className="flex-1 flex items-center justify-center p-4 overflow-auto bg-black/5 dark:bg-black/20">
-          <img
-            src={fileUrl}
-            alt={fileName}
-            className="max-w-full max-h-full object-contain transition-transform duration-200"
-            style={{ 
-              maxHeight: 'calc(90vh - 180px)',
-              transform: `scale(${zoom / 100})`
-            }}
-            data-testid="image-preview"
-          />
+  if (!isOpen) return null;
+
+  return (
+    <div 
+      className="fixed inset-0 z-[9999] bg-black"
+      ref={containerRef}
+    >
+      {/* Top overlay - Close button */}
+      <div 
+        className={`absolute top-0 left-0 right-0 z-10 transition-opacity duration-300 ${
+          showUI ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        <div className="flex items-center justify-between p-4 bg-gradient-to-b from-black/80 to-transparent">
+          <h3 className="text-white font-medium truncate max-w-[70%] text-sm">
+            {fileName}
+          </h3>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClose}
+            className="text-white hover:bg-white/20 h-10 w-10 p-0 rounded-full"
+            data-testid="button-close-file-preview"
+          >
+            <X className="h-6 w-6" />
+          </Button>
         </div>
-      );
-    } else if (isPDF) {
-      return (
-        <div className="flex-1 overflow-auto p-4 bg-gray-50 dark:bg-gray-900">
+      </div>
+
+      {/* Main content */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        {isImage ? (
+          <div 
+            className="relative w-full h-full flex items-center justify-center overflow-hidden"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onClick={handleImageClick}
+          >
+            <img
+              ref={imageRef}
+              src={fileUrl}
+              alt={fileName}
+              className="max-w-full max-h-full object-contain select-none transition-transform duration-200"
+              style={{ 
+                transform: `scale(${scale}) translate(${position.x / scale}px, ${position.y / scale}px)`,
+                touchAction: 'none'
+              }}
+              draggable={false}
+              data-testid="image-preview"
+            />
+          </div>
+        ) : isPDF ? (
           <iframe
             src={fileUrl}
-            className="w-full h-full min-h-[60vh] border-0 rounded"
+            className="w-full h-full border-0"
             title={fileName}
             data-testid="pdf-preview"
           />
-        </div>
-      );
-    } else {
-      return (
-        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-          <div className="bg-purple-100 dark:bg-purple-900/30 p-6 rounded-full mb-4">
-            {getFileIcon()}
-          </div>
-          <h3 className="text-lg font-semibold mb-2 break-all px-4">{fileName}</h3>
-          <p className="text-sm text-muted-foreground mb-1">
-            파일 크기: {formatFileSize(fileSize)}
-          </p>
-          <p className="text-sm text-muted-foreground mb-6">
-            이 파일 형식은 미리보기를 지원하지 않습니다.
-          </p>
-          <Button 
-            onClick={() => window.open(fileUrl, '_blank')}
-            className="bg-purple-600 hover:bg-purple-700"
-            data-testid="button-open-external"
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            외부 앱으로 열기
-          </Button>
-        </div>
-      );
-    }
-  };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-white dark:bg-gray-900 border-0 overflow-hidden">
-        <div className="relative w-full h-full flex flex-col">
-          {/* 헤더 */}
-          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-600 to-purple-700 dark:from-purple-800 dark:to-purple-900">
-            <h3 className="text-white font-medium truncate max-w-[60%]">
+        ) : (
+          <div className="flex flex-col items-center justify-center p-8 text-center">
+            <div className="bg-purple-100 dark:bg-purple-900/30 p-8 rounded-full mb-6">
+              {getFileIcon()}
+            </div>
+            <h3 className="text-white text-xl font-semibold mb-3 break-all px-4 max-w-md">
               {fileName}
             </h3>
-            <div className="flex items-center gap-2">
-              {isImage && (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleZoomOut}
-                    disabled={zoom <= 50}
-                    className="text-white hover:bg-white/20 h-8 w-8 p-0"
-                    data-testid="button-zoom-out"
-                  >
-                    <ZoomOut className="h-4 w-4" />
-                  </Button>
-                  <span className="text-white text-sm min-w-[4rem] text-center">
-                    {zoom}%
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleZoomIn}
-                    disabled={zoom >= 200}
-                    className="text-white hover:bg-white/20 h-8 w-8 p-0"
-                    data-testid="button-zoom-in"
-                  >
-                    <ZoomIn className="h-4 w-4" />
-                  </Button>
-                  <div className="w-px h-6 bg-white/30 mx-1" />
-                </>
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleClose}
-                className="text-white hover:bg-white/20"
-                data-testid="button-close-file-preview"
-              >
-                <X className="h-4 w-4" />
-              </Button>
+            <p className="text-gray-300 text-sm mb-2">
+              파일 크기: {formatFileSize(fileSize)}
+            </p>
+            <p className="text-gray-400 text-sm mb-8">
+              이 파일 형식은 미리보기를 지원하지 않습니다.
+            </p>
+            <Button 
+              onClick={() => window.open(fileUrl, '_blank')}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+              data-testid="button-open-external"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              외부 앱으로 열기
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom overlay - Action buttons */}
+      <div 
+        className={`absolute bottom-0 left-0 right-0 z-10 transition-opacity duration-300 ${
+          showUI ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        <div className="flex items-center justify-around p-6 bg-gradient-to-t from-black/80 to-transparent">
+          <button
+            onClick={handleShare}
+            disabled={isLoading}
+            className="flex flex-col items-center gap-1 text-white hover:text-purple-400 transition-colors disabled:opacity-50"
+            data-testid="button-share-file"
+          >
+            <div className="bg-white/10 hover:bg-white/20 rounded-full p-3 transition-colors">
+              <Share2 className="h-6 w-6" />
             </div>
-          </div>
-
-          {/* 파일 콘텐츠 */}
-          {renderFileContent()}
-
-          {/* 액션 버튼들 */}
-          <div className="flex items-center justify-around p-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleShare}
+            <span className="text-xs">공유</span>
+          </button>
+          
+          <button
+            onClick={handleSaveToDevice}
+            disabled={isLoading}
+            className="flex flex-col items-center gap-1 text-white hover:text-purple-400 transition-colors disabled:opacity-50"
+            data-testid="button-save-file"
+          >
+            <div className="bg-white/10 hover:bg-white/20 rounded-full p-3 transition-colors">
+              <Download className="h-6 w-6" />
+            </div>
+            <span className="text-xs">저장</span>
+          </button>
+          
+          {onForward && (
+            <button
+              onClick={onForward}
               disabled={isLoading}
-              className="flex flex-col items-center gap-1 h-auto py-2 px-4"
-              data-testid="button-share-file"
+              className="flex flex-col items-center gap-1 text-white hover:text-purple-400 transition-colors disabled:opacity-50"
+              data-testid="button-forward-file"
             >
-              <Share2 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-              <span className="text-xs">공유</span>
-            </Button>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSaveToDevice}
-              disabled={isLoading}
-              className="flex flex-col items-center gap-1 h-auto py-2 px-4"
-              data-testid="button-save-file"
-            >
-              <Download className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-              <span className="text-xs">저장</span>
-            </Button>
-            
-            {onForward && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onForward}
-                disabled={isLoading}
-                className="flex flex-col items-center gap-1 h-auto py-2 px-4"
-                data-testid="button-forward-file"
-              >
-                <Send className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                <span className="text-xs">전달</span>
-              </Button>
-            )}
-          </div>
+              <div className="bg-white/10 hover:bg-white/20 rounded-full p-3 transition-colors">
+                <Send className="h-6 w-6" />
+              </div>
+              <span className="text-xs">전달</span>
+            </button>
+          )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+
+      {/* Zoom indicator (only show when zoomed) */}
+      {isImage && scale !== 1 && showUI && (
+        <div className="absolute top-20 left-1/2 transform -translate-x-1/2 bg-black/60 text-white px-4 py-2 rounded-full text-sm z-20">
+          {Math.round(scale * 100)}%
+        </div>
+      )}
+    </div>
   );
 };
