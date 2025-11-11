@@ -296,7 +296,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const handleSwipeReply = (messageId: number) => {
     // Find the message to reply to
     const messages = messagesData?.messages || [];
-    const messageToReply = messages.find(m => m.id === messageId);
+    const messageToReply = messages.find((m: any) => m.id === messageId);
     
     if (messageToReply) {
       // Set the reply-to message and focus input
@@ -612,7 +612,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  const unreadAiNoticesCount = aiNoticesData?.filter((notice: any) => !notice.isRead).length || 0;
+  const unreadAiNoticesCount = (aiNoticesData as any)?.filter((notice: any) => !notice.isRead).length || 0;
 
   // Get voice bookmark requests for this chat room
   const { data: voiceBookmarkRequestsData } = useQuery({
@@ -629,7 +629,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // Create a Set of bookmarked message IDs for fast lookup
   const bookmarkedMessageIds = new Set(
-    bookmarksData?.bookmarks?.map((b: any) => b.messageId) || []
+    (bookmarksData as any)?.bookmarks?.map((b: any) => b.messageId) || []
   );
 
   // Send message mutation
@@ -1014,13 +1014,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // 전체 채팅방 번역 함수
   const handleChatTranslation = async (targetLanguage: string) => {
-    if (!messages?.data?.messages) return;
+    if (!(messages as any)?.data?.messages) return;
     
     try {
       setIsTranslating(true);
       
       // 번역할 메시지들 수집 (텍스트 메시지만, 최근 20개)
-      const textMessages = messages.data.messages
+      const textMessages = (messages as any).data.messages
         .filter((msg: any) => msg.messageType === 'text' && msg.content.trim())
         .slice(-20);
       
@@ -1073,12 +1073,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       });
       
       const results = await Promise.all(translationPromises);
-      const successfulTranslations = results.filter(result => result !== null);
+      const successfulTranslations = results.filter((result: any) => result !== null);
       
       if (successfulTranslations.length > 0) {
         // 번역 결과를 기존 번역 상태에 저장
         const newTranslations: {[key: number]: {text: string, language: string}} = {};
-        successfulTranslations.forEach(translation => {
+        successfulTranslations.forEach((translation: any) => {
           if (translation) {
             newTranslations[translation.messageId] = {
               text: translation.translatedText,
@@ -1173,7 +1173,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(["/api/chat-rooms", chatRoomId, "messages"]);
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms", chatRoomId, "messages"] });
     },
     onError: () => {
     },
@@ -1524,8 +1524,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // Unread message detection (updated when messages or unread data changes)
   useEffect(() => {
-    if (messages.length > 0 && unreadData?.unreadCounts) {
-      const currentRoomUnread = unreadData.unreadCounts.find((u: any) => u.chatRoomId === chatRoomId);
+    if (messages.length > 0 && (unreadData as any)?.unreadCounts) {
+      const currentRoomUnread = (unreadData as any).unreadCounts.find((u: any) => u.chatRoomId === chatRoomId);
       
       if (currentRoomUnread && currentRoomUnread.unreadCount > 0) {
         // Find first unread message (assuming last N messages are unread)
@@ -1937,7 +1937,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
     // 멘션 데이터 추가
     if (mentionedUsers.length > 0) {
-      messageData.mentionedUserIds = JSON.stringify(mentionedUsers.map(u => u.id));
+      messageData.mentionedUserIds = JSON.stringify(mentionedUsers.map((u: any) => u.id));
     }
     if (mentionAll) {
       messageData.mentionAll = true;
@@ -2651,8 +2651,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         const usageKey = `${fromCurrency}_${toCurrency}`;
         const usageCount = usage[usageKey] || 0;
         
-        const fromFlag = currencyPatterns[fromCurrency]?.flag || '💱';
-        const toFlag = currencyPatterns[toCurrency]?.flag || '💱';
+        const fromFlag = (currencyPatterns as any)[fromCurrency]?.flag || '💱';
+        const toFlag = (currencyPatterns as any)[toCurrency]?.flag || '💱';
         
         conversions.push({
           toCurrency,
@@ -4580,9 +4580,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       )}
 
       {/* Voice Bookmark Request Banners */}
-      {voiceBookmarkRequestsData?.requests && voiceBookmarkRequestsData.requests.length > 0 && (
+      {(voiceBookmarkRequestsData as any)?.requests && (voiceBookmarkRequestsData as any).requests.length > 0 && (
         <div className="border-b border-gray-200">
-          {voiceBookmarkRequestsData.requests
+          {(voiceBookmarkRequestsData as any).requests
             .filter((request: any) => {
               // Filter requests for this chat room
               const message = messages.find(m => m.id === request.messageId);
@@ -4881,7 +4881,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                             userSelect: 'auto',
                             WebkitUserSelect: 'auto',
                             MozUserSelect: 'auto',
-                            msUserSelect: 'auto',
+                            msUserSelect: 'auto' as any,
                             WebkitTouchCallout: 'default'
                           }}
                           onClick={(e) => {
@@ -4983,7 +4983,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                               userSelect: 'auto',
                               WebkitUserSelect: 'auto',
                               MozUserSelect: 'auto',
-                              msUserSelect: 'auto',
+                              msUserSelect: 'auto' as any,
                               WebkitTouchCallout: 'default'
                             }}
                           >
