@@ -17,7 +17,9 @@ import FriendProfilePage from "@/pages/FriendProfilePage";
 import UserProfilePage from "@/pages/UserProfilePage";
 import GroupInfoPage from "@/pages/GroupInfoPage";
 import NotFound from "@/pages/not-found";
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
+
+const ScreenshotDemo = lazy(() => import("@/pages/ScreenshotDemo"));
 
 function Router() {
   return (
@@ -35,6 +37,13 @@ function Router() {
       <Route path="/admin" component={AdminPage} />
       <Route path="/friend/:userId" component={FriendProfilePage} />
       <Route path="/profile/:userId" component={UserProfilePage} />
+      <Route path="/screenshots/:id">
+        {() => (
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-purple-50">Loading...</div>}>
+            <ScreenshotDemo />
+          </Suspense>
+        )}
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );
