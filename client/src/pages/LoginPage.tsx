@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,6 @@ import { apiRequest } from "@/lib/queryClient";
 import VaultLogo from "@/components/VaultLogo";
 import { User, Lock, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Keyboard } from "@capacitor/keyboard";
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
@@ -60,41 +59,6 @@ export default function LoginPage() {
     
     usernameLoginMutation.mutate(usernameLoginData);
   };
-
-  useEffect(() => {
-    let listenerHandle: any;
-
-    Keyboard.addListener('keyboardDidShow', (info) => {
-      const activeElement = document.activeElement as HTMLElement;
-      if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
-        setTimeout(() => {
-          const rect = activeElement.getBoundingClientRect();
-          const keyboardHeight = info.keyboardHeight || 0;
-          const windowHeight = window.innerHeight;
-          
-          // Calculate available space above keyboard
-          const availableHeight = windowHeight - keyboardHeight;
-          
-          // Calculate desired scroll position to center input in visible area
-          const inputCenterY = rect.top + rect.height / 2;
-          const desiredCenterY = availableHeight / 2;
-          const scrollOffset = inputCenterY - desiredCenterY;
-          
-          // Scroll to position (using 'auto' to avoid potential queue blocking)
-          window.scrollTo({
-            top: window.scrollY + scrollOffset,
-            behavior: 'auto'
-          });
-        }, 150);
-      }
-    }).then(handle => {
-      listenerHandle = handle;
-    });
-
-    return () => {
-      listenerHandle?.remove();
-    };
-  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
