@@ -1092,10 +1092,13 @@ export default function MainApp() {
                 </div>
               </div>
             )}
-            {activeMobileTab === "chats" && !showMobileChat && (
+            {activeMobileTab === "chats" && (
               <div
                 key="chats"
-                className="absolute inset-0 flex flex-col"
+                className={`absolute inset-0 flex flex-col bg-white transition-transform duration-300 ease-out ${
+                  showMobileChat ? '-translate-x-full' : 'translate-x-0'
+                }`}
+                style={{ zIndex: showMobileChat ? 10 : 20 }}
               >
                 {/* Search Header for Chats */}
                 <div className="flex-shrink-0 p-4 bg-gray-50 border-b border-gray-200">

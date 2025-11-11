@@ -3725,6 +3725,25 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
+    // 터치된 요소가 파일/이미지/비디오(클릭 가능한 미디어)인지 확인
+    const touchedElement = e.target as HTMLElement;
+    
+    // img, video 태그이거나 cursor-pointer 클래스를 가진 요소는 preventDefault 건너뛰기
+    if (
+      touchedElement.tagName === 'IMG' ||
+      touchedElement.tagName === 'VIDEO' ||
+      touchedElement.closest('.cursor-pointer')
+    ) {
+      // 타이머만 정리하고 preventDefault는 하지 않음
+      if (touchTimer) {
+        clearTimeout(touchTimer);
+        setTouchTimer(null);
+      }
+      setTouchStartData(null);
+      setTimeout(() => setIsLongPress(false), 100);
+      return;
+    }
+    
     // iOS에서 길게 누르기가 작동하도록 preventDefault 추가
     e.preventDefault();
     if (touchTimer) {
@@ -3736,6 +3755,24 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
+    // 터치된 요소가 파일/이미지/비디오(클릭 가능한 미디어)인지 확인
+    const touchedElement = e.target as HTMLElement;
+    
+    // img, video 태그이거나 cursor-pointer 클래스를 가진 요소는 preventDefault 건너뛰기
+    if (
+      touchedElement.tagName === 'IMG' ||
+      touchedElement.tagName === 'VIDEO' ||
+      touchedElement.closest('.cursor-pointer')
+    ) {
+      // 타이머만 정리하고 preventDefault는 하지 않음
+      if (touchTimer) {
+        clearTimeout(touchTimer);
+        setTouchTimer(null);
+      }
+      setTouchStartData(null);
+      return;
+    }
+    
     // iOS에서 길게 누르기가 작동하도록 preventDefault 추가
     e.preventDefault();
     if (touchTimer) {
