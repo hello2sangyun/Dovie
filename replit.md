@@ -60,6 +60,18 @@ Key features include:
   - Supports multi-file selection (max 10 files, 5MB each)
 - **Result**: ✅ Faster, more intuitive file sharing workflow matching modern messaging apps
 
+### Duplicate File Input Bug Fix (2025-11-11)
+- **Problem**: "Cannot access uninitialized variable" error preventing chat room navigation
+  - Duplicate file input elements (Line 6325-6331 and Line 6683-6689) used same `fileInputRef`
+  - React constraint: single ref cannot be shared between multiple DOM elements
+  - Error blocked all chat room functionality
+- **Solution**: Removed legacy single-file input element (client/src/components/ChatArea.tsx)
+  - Deleted duplicate `<input type="file">` at Line 6325-6331
+  - Kept only the multiple-file input at Line 6683-6689
+  - Updated `handleFileSelect` function signature from `(files: FileList | null)` to `(event: React.ChangeEvent<HTMLInputElement>)`
+  - Fixed paperclip button onClick handler: changed from `handleFileUpload` to `() => fileInputRef.current?.click()`
+- **Result**: ✅ Chat room navigation restored, no JavaScript errors, single clean file input implementation
+
 ### Unified Loading Spinner Design
 - **Problem**: Inconsistent loading indicators across the app (various custom div spinners with different styles)
 - **Solution**: Standardized all loading states to use LoadingSpinner component (client/src/components/MicroInteractions.tsx)
