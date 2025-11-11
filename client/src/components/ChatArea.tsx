@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -65,6 +65,10 @@ const detectUrls = (text: string | null | undefined): string[] => {
 export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader, onBackClick }: ChatAreaProps) {
   const { user } = useAuth();
   const [, navigate] = useLocation();
+  
+  // 스와이프 진행 상태 관리
+  const [swipeProgress, setSwipeProgress] = useState(0);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   // 모바일 키보드 숨기기 유틸리티 함수
   const hideMobileKeyboard = () => {
@@ -83,14 +87,31 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
   };
 
+  // 스와이프 진행 상태 콜백 (useCallback으로 감싸서 안정화)
+  const handleSwipeProgress = useCallback((deltaX: number, progress: number) => {
+    if (!isNavigating) {
+      setSwipeProgress(progress);
+    }
+  }, [isNavigating]);
+
   // 스와이프로 뒤로가기 (모바일 환경에서만)
   useSwipeBack({
     onBack: () => {
       if (onBackClick) {
-        onBackClick();
+        setIsNavigating(true);
+        // 페이지 슬라이드 애니메이션 후 뒤로가기 실행
+        setTimeout(() => {
+          onBackClick();
+          // 애니메이션 완료 후 상태 리셋
+          setTimeout(() => {
+            setIsNavigating(false);
+            setSwipeProgress(0);
+          }, 50);
+        }, 300);
       }
     },
     enabled: !!onBackClick && showMobileHeader === true,
+    onSwipeProgress: handleSwipeProgress,
   });
 
   const queryClient = useQueryClient();
@@ -3916,14 +3937,31 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       ref={chatAreaRef}
       data-chat-area="true"
       className={cn(
-        "h-full flex flex-col relative mb-0 pb-0 animate-slide-in-left",
+        "h-full flex flex-col relative mb-0 pb-0 animate-slide-in-left overflow-hidden",
         isDragOver ? 'bg-purple-50' : ''
       )}
+      style={{
+        transform: isNavigating 
+          ? 'translateX(100%)' 
+          : `translateX(${Math.min(swipeProgress * 100, 100)}%)`,
+        transition: isNavigating ? 'transform 0.3s ease-out' : 'none',
+        willChange: swipeProgress > 0 || isNavigating ? 'transform' : 'auto',
+      }}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
+      {/* Swipe Back Overlay */}
+      {swipeProgress > 0 && (
+        <div 
+          className="absolute inset-0 bg-black pointer-events-none z-0"
+          style={{
+            opacity: swipeProgress * 0.2,
+            transition: isNavigating ? 'opacity 0.3s ease-out' : 'none',
+          }}
+        />
+      )}
 
       
       {/* Drag Overlay */}

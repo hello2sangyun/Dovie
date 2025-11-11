@@ -2048,9 +2048,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 case 'voice':
                   if (messageData.content && messageData.content.trim()) {
                     // Show transcribed content for voice messages
-                    notificationBody = `🎤 ${messageData.content}`;
+                    notificationBody = messageData.content;
                   } else {
-                    notificationBody = '🎤 음성 메시지';
+                    notificationBody = '음성 메시지';
                   }
                   break;
                 case 'file':

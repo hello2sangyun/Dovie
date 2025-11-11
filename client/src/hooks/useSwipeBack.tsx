@@ -5,6 +5,7 @@ interface UseSwipeBackOptions {
   enabled?: boolean;
   edgeThreshold?: number; // 왼쪽 가장자리 감지 영역 (px)
   swipeThreshold?: number; // 스와이프 완료 거리 (px)
+  onSwipeProgress?: (deltaX: number, progress: number) => void; // 스와이프 진행 상태 콜백
 }
 
 export function useSwipeBack({
@@ -12,6 +13,7 @@ export function useSwipeBack({
   enabled = true,
   edgeThreshold = 30,
   swipeThreshold = 100,
+  onSwipeProgress,
 }: UseSwipeBackOptions) {
   const touchStartXRef = useRef<number>(0);
   const touchStartYRef = useRef<number>(0);
@@ -42,6 +44,12 @@ export function useSwipeBack({
       if (deltaX > 20 && deltaY < deltaX / 2) {
         // 스크롤 방지
         e.preventDefault();
+        
+        // 스와이프 진행 상태 콜백 호출
+        if (onSwipeProgress) {
+          const progress = Math.min(deltaX / swipeThreshold, 1);
+          onSwipeProgress(deltaX, progress);
+        }
       }
     };
 
@@ -54,12 +62,21 @@ export function useSwipeBack({
       // 오른쪽으로 충분히 스와이프했으면 뒤로가기
       if (deltaX >= swipeThreshold) {
         onBack();
+      } else {
+        // 스와이프 취소 시 progress를 0으로 리셋
+        if (onSwipeProgress) {
+          onSwipeProgress(0, 0);
+        }
       }
 
       isSwipingRef.current = false;
     };
 
     const handleTouchCancel = () => {
+      // 스와이프 취소 시 progress를 0으로 리셋
+      if (onSwipeProgress) {
+        onSwipeProgress(0, 0);
+      }
       isSwipingRef.current = false;
     };
 
@@ -75,5 +92,5 @@ export function useSwipeBack({
       document.removeEventListener('touchend', handleTouchEnd);
       document.removeEventListener('touchcancel', handleTouchCancel);
     };
-  }, [enabled, onBack, edgeThreshold, swipeThreshold]);
+  }, [enabled, onBack, edgeThreshold, swipeThreshold, onSwipeProgress]);
 }
