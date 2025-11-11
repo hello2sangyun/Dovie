@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { X, Download, File, FileText, FileImage, FileVideo, FileAudio, FileCode, Share2, Send } from 'lucide-react';
+import { X, Download, File, FileText, FileImage, FileVideo, FileAudio, FileCode, Share2, Send, ArrowLeft } from 'lucide-react';
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
@@ -332,16 +332,30 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
       className="fixed inset-0 z-[9999] bg-black"
       ref={containerRef}
     >
-      {/* Top overlay - Close button */}
+      {/* Top overlay - Back and Close buttons */}
       <div 
         className={`absolute top-0 left-0 right-0 z-10 transition-opacity duration-300 ${
           showUI ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
       >
         <div className="flex items-center justify-between p-4 bg-gradient-to-b from-black/80 to-transparent">
-          <h3 className="text-white font-medium truncate max-w-[70%] text-sm">
+          {/* Back button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClose}
+            className="text-white hover:bg-white/20 h-10 w-10 p-0 rounded-full"
+            data-testid="button-back-file-preview"
+          >
+            <ArrowLeft className="h-6 w-6" />
+          </Button>
+          
+          {/* File name */}
+          <h3 className="text-white font-medium truncate max-w-[50%] text-sm absolute left-1/2 transform -translate-x-1/2">
             {fileName}
           </h3>
+          
+          {/* Close button */}
           <Button
             variant="ghost"
             size="sm"
