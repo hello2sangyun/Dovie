@@ -43,8 +43,33 @@ Key features include:
 - **iOS Push Notifications**: Apple Push Notification service (APNS) with JWT authentication.
 - **Push Notifications**: `web-push` for PWA notifications, APNS for iOS native.
 
-## Recent Changes (2024-11-10)
-### iOS Keyboard Performance Fix (Final Solution)
+## Recent Changes (2025-11-11)
+### Voice Message Push Notification Enhancement
+- **Problem**: Voice message push notifications included 🎤 microphone emoji prefix, creating visual clutter
+- **Solution**: Removed microphone emoji from voice message notification body (server/routes.ts)
+  - Notifications now display clean transcription text or simple "음성 메시지" fallback
+  - Cleaner, more professional notification appearance
+- **Result**: ✅ Streamlined push notifications matching modern messaging app standards
+
+### iOS-Style Swipe-Back Page Transition
+- **Feature**: Added native-like swipe gesture for navigating back from chat rooms
+- **Implementation** (client/src/hooks/useSwipeBack.tsx, client/src/components/ChatArea.tsx):
+  - **Progress Tracking**: Hook now reports real-time swipe progress (0-1 scale) via onSwipeProgress callback
+  - **Visual Feedback**: ChatArea applies translateX transform based on swipe distance
+  - **Overlay Effect**: Dark overlay (opacity 0-0.2) fades in during swipe for depth perception
+  - **Smooth Animation**: 300ms ease-out transition when navigation completes
+  - **State Management**: useCallback stabilizes progress callback, prevents stale closures
+  - **Cleanup**: State resets (swipeProgress, isNavigating) after animation completes
+  - **Overflow Handling**: overflow-hidden on container prevents content shift
+- **User Experience**:
+  - Swipe from left edge (within 50px) to trigger back gesture
+  - Page slides right in real-time following finger movement
+  - Release past threshold (100px) to navigate, otherwise spring back
+  - willChange optimization for smooth 60fps animation
+- **Result**: ✅ Native iOS-like swipe-back interaction, production-ready implementation
+
+### Previous Changes (2024-11-10)
+#### iOS Keyboard Performance Fix (Final Solution)
 - **Problem**: 9-second keyboard input lag on iOS login screen
   - Tapping text fields caused 9-second delay before keyboard appeared
   - "Reporter disconnected" errors (×9) flooding console
@@ -94,7 +119,7 @@ Key features include:
   - ✅ Input fields stay visible when keyboard appears
   - ✅ Stable, performant implementation
 
-### Profile Image Preloading Removal (2024-11-10)
+#### Profile Image Preloading Removal (2024-11-10)
 - **Problem**: iOS keyboard lag persisted even after Capacitor keyboard config fix; profile image preloading blocked main thread during app initialization
 - **Root Cause**: `preloadProfileImages` function (even with 5-second delay) created heavy network requests and Blob processing on main thread, causing "Reporter disconnected" errors and keyboard input lag
 - **Solution**: Complete removal of eager preloading feature:
@@ -105,7 +130,7 @@ Key features include:
   - Service Worker cache versions bumped to v2 (sw.js, sw-ios16.js, sw-ios16-enhanced.js) to ensure fresh deployment
 - **Result**: Zero main thread blocking during app startup, instant keyboard response, on-demand image loading sufficient for UX
 
-### Additional iOS Improvements (2024-11-10)
+#### Additional iOS Improvements (2024-11-10)
 - **Badge Count Fix**: Removed duplicate +1 increment in unread message calculation (server/routes.ts Line 2015)
 - **Logout Protection**: Complete push subscription cleanup - server deletes all PWA/iOS tokens on logout
 - **Deep Linking**: Navigation service enables push notification tap → chat room navigation (both running app and cold start scenarios)
