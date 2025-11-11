@@ -1,0 +1,193 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/24B2EF20-3E32-4B6C-8D5A-333CEF95EC30/App.app'
+KeyboardPlugin: resize mode - body
+⚡️  Loading app at https://dovie-hello2sangyun.replit.app...
+📱 [AppDelegate] Registered for remote notifications
+Networking process (0x111064190) took 9.012480 seconds to launch
+WebContent process (0x1110f0100) took 4.268789 seconds to launch
+GPU process (0x11111c1e0) took 3.015115 seconds to launch
+📱 [AppDelegate] APNS 토큰 등록 성공
+0x1110f0100 - [PID=21152] WebProcessProxy::didBecomeUnresponsive:
+0x136374718 - [pageProxyID=7, webPageID=8, PID=21152] WebPageProxy::processDidBecomeUnresponsive:
+WebContent[21152] Unable to hide query parameters from script (missing data)
+⚡️  WebView loaded
+⚡️  [log] - 📱 No stored user, initializing as logged out
+Reporter disconnected. { function=sendMessage, reporterID=90821378441217 }
+Reporter disconnected. { function=sendMessage, reporterID=90821378441217 }
+Reporter disconnected. { function=sendMessage, reporterID=90821378441217 }
+Reporter disconnected. { function=sendMessage, reporterID=90821378441217 }
+Reporter disconnected. { function=sendMessage, reporterID=90821378441217 }
+Reporter disconnected. { function=sendMessage, reporterID=90821378441217 }
+Reporter disconnected. { function=sendMessage, reporterID=90821378441217 }
+Reporter disconnected. { function=sendMessage, reporterID=90821378441217 }
+Reporter disconnected. { function=sendMessage, reporterID=90821378441217 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 94F457D4-F3D7-4E9C-BF9A-B84401A52EEF
+<0x136216440> Gesture: System gesture gate timed out.
+Result accumulator timeout: 3.000000, exceeded.
+XPC connection interrupted
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 94F457D4-F3D7-4E9C-BF9A-B84401A52EEF
+Reporter disconnected or already stopped. { func=stop, reporterID=90821378441217 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 94F457D4-F3D7-4E9C-BF9A-B84401A52EEF
+Reporter disconnected. { function=sendMessage, reporterID=90821378441218 }
+Reporter disconnected. { function=sendMessage, reporterID=90821378441218 }
+Reporter disconnected. { function=sendMessage, reporterID=90821378441218 }
+Reporter disconnected. { function=sendMessage, reporterID=90821378441218 }
+Reporter disconnected. { function=sendMessage, reporterID=90821378441218 }
+Reporter disconnected. { function=sendMessage, reporterID=90821378441218 }
+Reporter disconnected. { function=sendMessage, reporterID=90821378441218 }
+Reporter disconnected. { function=sendMessage, reporterID=90821378441218 }
+Reporter disconnected. { function=sendMessage, reporterID=90821378441218 }
+Reporter disconnected or already stopped. { func=stop, reporterID=90821378441218 }
+⚡️  To Native ->  App addListener 16727700
+⚡️  To Native ->  App addListener 16727701
+⚡️  To Native ->  App addListener 16727702
+⚡️  To Native ->  PushNotifications addListener 16727703
+⚡️  To Native ->  PushNotifications addListener 16727704
+⚡️  To Native ->  PushNotifications addListener 16727705
+⚡️  To Native ->  PushNotifications addListener 16727706
+⚡️  To Native ->  PushNotifications requestPermissions 16727707
+⚡️  [log] - [Badge] Service Worker not supported
+⚡️  [log] - ✅ Navigation service registered
+⚡️  [log] - ✅ Navigator registered with navigation service
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://dovie-hello2sangyun.replit.app/ws
+⚡️  [log] -    Protocol: wss:, Host: dovie-hello2sangyun.replit.app
+⚡️  [log] - 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+⚡️  [log] - ✅ Navigation service registered
+⚡️  [log] - ✅ Navigator registered with navigation service
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  To Native ->  App addListener 16727708
+⚡️  To Native ->  App addListener 16727709
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [error] - WebSocket error: {"isTrusted":true}
+⚡️  [error] - WebSocket error event: {"type":"error","target":{},"timeStamp":51349.00000000001}
+⚡️  [log] - WebSocket disconnected: 1006 
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 0
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: []
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  TO JS {"receive":"granted"}
+⚡️  To Native ->  PushNotifications register 16727710
+⚡️  TO JS undefined
+⚡️  TO JS {"value":"973E0FD9C536FF722A6E70D43D5CD97F6D6EB28BEE9A7FC3F9DA3D236F44DF2C"}
+📱 [AppDelegate] APNS 토큰 등록 성공
+⚡️  [log] - 📱 iOS 네이티브 푸시 알림 등록 성공 (리스너 대기 중)
+⚡️  [log] - 📱 iOS 푸시 토큰 획득: 973E0FD9C536FF722A6E70D43D5CD97F6D6EB28BEE9A7FC3F9DA3D236F44DF2C
+⚡️  [log] - 📱 서버로 iOS 토큰 전송 시작: 973E0FD9C536FF722A6E...
+⚡️  [log] - ✅ iOS 푸시 토큰이 서버에 저장되었습니다: {"success":true,"message":"iOS push token registered successfully","userId":126,"tokenPreview":"973E0FD9C536FF722A6E..."}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App foregrounded - reconnecting WebSocket
+⚡️  [log] - 📱 Calling connect() after foreground transition
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://dovie-hello2sangyun.replit.app/ws
+⚡️  [log] -    Protocol: wss:, Host: dovie-hello2sangyun.replit.app
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+⚡️  [log] - 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: 이소은 테스트
+⚡️  To Native ->  Filesystem mkdir 16727711
+⚡️  To Native ->  Filesystem mkdir 16727712
+⚡️  TO JS undefined
+ERROR MESSAGE:  {"message":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/92077C1F-980B-4311-9079-0A34C92D9A5B\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010","errorMessage":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/92077C1F-980B-4311-9079-0A34C92D9A5B\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten."}
+⚡️  To Native ->  Filesystem readFile 16727713
+⚡️  To Native ->  Filesystem readFile 16727714
+ERROR MESSAGE:  {"code":"OS-PLUG-FILE-0013","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [error] - {"message":"Directory at 'file:///var/mobile/Containers/Data/Application/92077C1F-980B-4311-9079-0A34C92D9A5B/Library/Caches/file_cache/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010","errorMessage":"Directory at 'file:///var/mobile/Containers/Data/Application/92077C1F-980B-4311-9079-0A34C92D9A5B/Library/Caches/file_cache/'  already exists, cannot be overwritten."}
+ERROR MESSAGE:  {"message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","code":"OS-PLUG-FILE-0013"}
+⚡️  [error] - {"code":"OS-PLUG-FILE-0013","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [log] - [FileCache] No existing cache index, starting fresh
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  [error] - {"message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","code":"OS-PLUG-FILE-0013"}
+⚡️  [log] - [FileCache] No existing cache index, starting fresh
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  To Native ->  App addListener 16727715
+⚡️  To Native ->  App addListener 16727716
+⚡️  [log] - [FileCache] Cache miss, downloading: /uploads/file_1762843566907_yrg49f75ne.jpeg
+⚡️  [log] - [FileCache] Cache miss, downloading: /uploads/file_1762843788937_0vyybbht6fr.pdf
+⚡️  To Native ->  Filesystem writeFile 16727717
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/92077C1F-980B-4311-9079-0A34C92D9A5B\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYyODQzNzg4.pdf"}
+⚡️  To Native ->  Filesystem writeFile 16727718
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/92077C1F-980B-4311-9079-0A34C92D9A5B\/Library\/Caches\/file_cache\/index.json"}
+⚡️  [log] - [FileCache] Cached file: /uploads/file_1762843788937_0vyybbht6fr.pdf -> file:///var/mobile/Containers/Data/Application/92077C1F-980B-4311-9079-0A34C92D9A5B/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyODQzNzg4.pdf
+⚡️  To Native ->  Badge set 16727719
+⚡️  To Native ->  Badge set 16727720
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  TO JS undefined
+WebContent[21152] <<<< CMPhotoJFIFUtilities >>>> signalled err=-17102 at <>:1776
+WebContent[21152] The sandbox in this process does not allow access to RunningBoard.
+WebContent[21152] Handshake aborted as the connection has been invalidated
+WebContent[21152] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+⚡️  To Native ->  Filesystem writeFile 16727721
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/92077C1F-980B-4311-9079-0A34C92D9A5B\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYyODQzNTY2.jpeg"}
+⚡️  To Native ->  Filesystem writeFile 16727722
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/92077C1F-980B-4311-9079-0A34C92D9A5B\/Library\/Caches\/file_cache\/index.json"}
+⚡️  [log] - [FileCache] Cached file: /uploads/file_1762843566907_yrg49f75ne.jpeg -> file:///var/mobile/Containers/Data/Application/92077C1F-980B-4311-9079-0A34C92D9A5B/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyODQzNTY2.jpeg
+WebContent[21152] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+⚡️  [log] - Image loaded successfully: capacitor://localhost/_capacitor_file_/var/mobile/Containers/Data/Application/92077C1F-980B-4311-9079-0A34C92D9A5B/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyODQzNTY2.jpeg
+⚡️  [log] - Image loaded successfully: capacitor://localhost/_capacitor_file_/var/mobile/Containers/Data/Application/92077C1F-980B-4311-9079-0A34C92D9A5B/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyODQzNTY2.jpeg
+WebContent[21152] +[HDRImage getPixelType:YCCMatrixString:chromaSubsampling:componentRange:bitDepth:isFloat:forBuffer:]:1050: *** Missing YCC matrix, falling back to ITU_R_601_4
+WebContent[21152] +[HDRImage getPixelType:YCCMatrixString:chromaSubsampling:componentRange:bitDepth:isFloat:forBuffer:]:1050: *** Missing YCC matrix, falling back to ITU_R_601_4
+WebContent[21152] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+Reporter disconnected. { function=sendMessage, reporterID=90821378441221 }
+Reporter disconnected. { function=sendMessage, reporterID=90821378441221 }
+Reporter disconnected. { function=sendMessage, reporterID=90821378441221 }
+Reporter disconnected. { function=sendMessage, reporterID=90821378441221 }
+Reporter disconnected. { function=sendMessage, reporterID=90821378441221 }
+Reporter disconnected. { function=sendMessage, reporterID=90821378441221 }
+Reporter disconnected. { function=sendMessage, reporterID=90821378441221 }
+Reporter disconnected. { function=sendMessage, reporterID=90821378441221 }
+Reporter disconnected. { function=sendMessage, reporterID=90821378441221 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 94F457D4-F3D7-4E9C-BF9A-B84401A52EEF
+Reporter disconnected or already stopped. { func=stop, reporterID=90821378441221 }
+⚡️  To Native ->  App removeListener 16727723
+⚡️  To Native ->  App removeListener 16727724
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+⚡️  [log] - WebSocket disconnected: 1000 App backgrounded
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+[C:3] Error received: Connection interrupted.
+[C:3-1] Error received: Connection interrupted.
+-[RTIInputSystemClient _configureConnection:withMachName:]_block_invoke  Client connection to service was interrupted: <NSXPCConnection: 0x136cc3020> connection to service with pid -1 named (null)
+Snapshotting a view (0x136d16800, UIKeyboardImpl) that is not in a visible window requires afterScreenUpdates:YES.
