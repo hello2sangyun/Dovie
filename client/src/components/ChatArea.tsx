@@ -25,7 +25,6 @@ import PollDetailModal from "./PollDetailModal";
 import TranslateModal from "./TranslateModal";
 import VoiceRecorder from "./VoiceRecorder";
 import { UnifiedSendButton } from "./UnifiedSendButton";
-import { FileUploadModal } from "./FileUploadModal";
 import { LinkPreview } from "./LinkPreview";
 
 import ReminderTimeModal from "./ReminderTimeModal";
@@ -246,7 +245,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [activePoll, setActivePoll] = useState<any>(null);
   const [pollVotes, setPollVotes] = useState<{[key: number]: number}>({});
   const [userVote, setUserVote] = useState<number | null>(null);
-  const [showFileUploadModal, setShowFileUploadModal] = useState(false);
   const [votedUsers, setVotedUsers] = useState<Set<number>>(new Set());
   const [explodedMessages, setExplodedMessages] = useState<Set<number>>(new Set());
   const [messageTimers, setMessageTimers] = useState<{[key: number]: number}>({});
@@ -1824,10 +1822,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     // 메시지 전송 후 임시 저장된 내용 삭제
     clearDraftMessage(chatRoomId);
     setReplyToMessage(null); // 회신 모드 해제
-  };
-
-  const handleFileUpload = () => {
-    fileInputRef.current?.click();
   };
 
   const handleFileSelect = (files: FileList | null) => {
@@ -6583,14 +6577,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             ? messages?.find((m: any) => m.id === forwardMessageId)?.content || ""
             : ""
         }
-      />
-
-      {/* File Upload Modal with Hashtag Support */}
-      <FileUploadModal
-        isOpen={showFileUploadModal}
-        onClose={() => setShowFileUploadModal(false)}
-        onUpload={handleFileUploadWithHashtags}
-        maxFiles={10}
       />
 
       {/* AI Chat Assistant Modal */}
