@@ -224,7 +224,8 @@ const FilePreview = ({ fileUrl, fileName, fileSize, isMe, summary, onPreviewRequ
     return `${(size / (1024 * 1024)).toFixed(1)}MB`;
   };
 
-  const handleFileClick = () => {
+  const handleFileClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (onPreviewRequest) {
       onPreviewRequest();
     } else {
@@ -267,7 +268,10 @@ const ImagePreview = ({ src, fileName, isMe, onPreviewRequest }: { src: string; 
       <div className={cn(
         "relative rounded-lg overflow-hidden w-full cursor-pointer",
         isMe ? "ml-auto" : "mr-auto"
-      )} onClick={() => onPreviewRequest && onPreviewRequest()}>
+      )} onClick={(e) => {
+        e.stopPropagation();
+        onPreviewRequest && onPreviewRequest();
+      }}>
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-100 min-h-32">
             <div className="animate-spin w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full"></div>
