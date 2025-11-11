@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import { Play, Pause, Volume2, VolumeX, Download, ExternalLink, Image as ImageIcon, Video, FileText, File } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ImageViewerModal } from "./ImageViewerModal";
 
 // 파일명을 8글자로 제한하는 함수
 const truncateFileName = (fileName: string, maxLength: number = 8): string => {
@@ -27,6 +26,7 @@ interface MediaPreviewProps {
   isMe: boolean;
   className?: string;
   summary?: string;
+  onPreviewRequest?: (fileUrl: string, fileName: string, fileSize?: number, fileType?: string) => void;
 }
 
 // URL 패턴 감지 함수
@@ -193,9 +193,7 @@ const VideoPlayer = ({ src, fileName, isMe }: { src: string; fileName: string; i
 };
 
 // FilePreview 컴포넌트 - 간단한 파일 설명과 클릭 가능한 미리보기
-const FilePreview = ({ fileUrl, fileName, fileSize, isMe, summary }: { fileUrl: string; fileName: string; fileSize?: number; isMe: boolean; summary?: string }) => {
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  
+const FilePreview = ({ fileUrl, fileName, fileSize, isMe, summary, onPreviewRequest }: { fileUrl: string; fileName: string; fileSize?: number; isMe: boolean; summary?: string; onPreviewRequest?: () => void }) => {
   const getFileIcon = () => {
     const extension = fileName.split('.').pop()?.toLowerCase();
     switch (extension) {
@@ -227,97 +225,49 @@ const FilePreview = ({ fileUrl, fileName, fileSize, isMe, summary }: { fileUrl: 
   };
 
   const handleFileClick = () => {
-    const extension = fileName.split('.').pop()?.toLowerCase();
-    if (['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(extension || '')) {
-      setIsPreviewOpen(true);
+    if (onPreviewRequest) {
+      onPreviewRequest();
     } else {
       window.open(fileUrl, '_blank');
     }
   };
 
-  // 심플한 UX/UI로 파일 요약을 말풍선에 표시
   return (
-    <>
-      <div 
-        className={cn(
-          "inline-flex items-center space-x-2 px-3 py-2 rounded-xl cursor-pointer transition-colors max-w-xs",
-          isMe 
-            ? "bg-blue-500 text-white hover:bg-blue-600" 
-            : "bg-gray-100 text-gray-900 hover:bg-gray-200"
-        )}
-        onClick={handleFileClick}
-      >
-        <div className="flex-shrink-0">
-          {getFileIcon()}
+    <div 
+      className={cn(
+        "inline-flex items-center space-x-2 px-3 py-2 rounded-xl cursor-pointer transition-colors max-w-xs",
+        isMe 
+          ? "bg-blue-500 text-white hover:bg-blue-600" 
+          : "bg-gray-100 text-gray-900 hover:bg-gray-200"
+      )}
+      onClick={handleFileClick}
+    >
+      <div className="flex-shrink-0">
+        {getFileIcon()}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className={cn("text-sm font-medium", isMe ? "text-white" : "text-gray-900")} title={fileName}>
+          {summary || truncateFileName(fileName)}
         </div>
-        <div className="flex-1 min-w-0">
-          <div className={cn("text-sm font-medium", isMe ? "text-white" : "text-gray-900")} title={fileName}>
-            {summary || truncateFileName(fileName)}
-          </div>
-          <div className={cn("text-xs", isMe ? "text-blue-100" : "text-gray-500")}>
-            {formatFileSize(fileSize)}
-          </div>
+        <div className={cn("text-xs", isMe ? "text-blue-100" : "text-gray-500")}>
+          {formatFileSize(fileSize)}
         </div>
       </div>
-
-      {/* 파일 미리보기 모달 */}
-      {isPreviewOpen && (
-        <div 
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
-          onClick={() => setIsPreviewOpen(false)}
-        >
-          <div 
-            className="bg-white rounded-lg w-full max-w-4xl h-full max-h-[90vh] flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between p-4 border-b">
-              <h3 className="text-lg font-semibold truncate">{fileName}</h3>
-              <div className="flex items-center space-x-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  asChild
-                >
-                  <a href={fileUrl} download={fileName}>
-                    <Download className="h-4 w-4 mr-2" />
-                    다운로드
-                  </a>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsPreviewOpen(false)}
-                >
-                  ✕
-                </Button>
-              </div>
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <iframe
-                src={fileUrl}
-                className="w-full h-full border-0"
-                title={fileName}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+    </div>
   );
 };
 
 // ImagePreview 컴포넌트
-const ImagePreview = ({ src, fileName, isMe }: { src: string; fileName: string; isMe: boolean }) => {
+const ImagePreview = ({ src, fileName, isMe, onPreviewRequest }: { src: string; fileName: string; isMe: boolean; onPreviewRequest?: () => void }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
-  const [isViewerOpen, setIsViewerOpen] = useState(false);
 
   return (
     <>
       <div className={cn(
         "relative rounded-lg overflow-hidden w-full cursor-pointer",
         isMe ? "ml-auto" : "mr-auto"
-      )} onClick={() => setIsViewerOpen(true)}>
+      )} onClick={() => onPreviewRequest && onPreviewRequest()}>
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-100 min-h-32">
             <div className="animate-spin w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full"></div>
@@ -372,14 +322,6 @@ const ImagePreview = ({ src, fileName, isMe }: { src: string; fileName: string; 
           </>
         )}
       </div>
-
-      {/* 이미지 뷰어 모달 */}
-      <ImageViewerModal
-        isOpen={isViewerOpen}
-        onClose={() => setIsViewerOpen(false)}
-        imageUrl={src}
-        fileName={fileName}
-      />
     </>
   );
 };
@@ -450,7 +392,7 @@ const LinkPreview = ({ url, isMe }: { url: string; isMe: boolean }) => {
   );
 };
 
-export default function MediaPreview({ fileUrl, fileName, fileSize, messageContent, isMe, className, summary }: MediaPreviewProps) {
+export default function MediaPreview({ fileUrl, fileName, fileSize, messageContent, isMe, className, summary, onPreviewRequest }: MediaPreviewProps) {
   // 메시지 내용에서 URL 추출
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const urls = messageContent?.match(urlRegex) || [];
@@ -458,12 +400,20 @@ export default function MediaPreview({ fileUrl, fileName, fileSize, messageConte
   // 파일 URL이 있는 경우 파일 타입 감지
   if (fileUrl) {
     const fileType = detectUrlType(fileUrl);
+    const handlePreview = () => {
+      if (onPreviewRequest) {
+        const mimeType = fileType === 'image' ? 'image/jpeg' : 
+                        fileType === 'video' ? 'video/mp4' : 
+                        'application/octet-stream';
+        onPreviewRequest(fileUrl, fileName, fileSize, mimeType);
+      }
+    };
     
     switch (fileType) {
       case 'image':
         return (
           <div className={className}>
-            <ImagePreview src={fileUrl} fileName={fileName} isMe={isMe} />
+            <ImagePreview src={fileUrl} fileName={fileName} isMe={isMe} onPreviewRequest={handlePreview} />
           </div>
         );
         
@@ -477,7 +427,7 @@ export default function MediaPreview({ fileUrl, fileName, fileSize, messageConte
       default:
         return (
           <div className={className}>
-            <FilePreview fileUrl={fileUrl} fileName={fileName} fileSize={fileSize} isMe={isMe} summary={summary} />
+            <FilePreview fileUrl={fileUrl} fileName={fileName} fileSize={fileSize} isMe={isMe} summary={summary} onPreviewRequest={handlePreview} />
           </div>
         );
     }

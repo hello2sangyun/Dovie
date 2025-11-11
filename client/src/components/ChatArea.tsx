@@ -36,6 +36,7 @@ import { HashtagSuggestion } from "./HashtagSuggestion";
 import { AIChatAssistantModal } from "./AIChatAssistantModal";
 import AiNoticesModal from "./AiNoticesModal";
 import { ForwardMessageModal } from "./ForwardMessageModal";
+import { FilePreviewModal } from "./FilePreviewModal";
 
 import TypingIndicator, { useTypingIndicator } from "./TypingIndicator";
 import { 
@@ -409,6 +410,16 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   // Forward message modal state
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [forwardMessageId, setForwardMessageId] = useState<number | null>(null);
+  
+  // File preview modal state
+  const [filePreviewState, setFilePreviewState] = useState<{
+    isOpen: boolean;
+    fileUrl: string;
+    fileName: string;
+    fileSize?: number;
+    fileType?: string;
+    messageId?: number;
+  } | null>(null);
   
   // Simplified auto-scroll state
   const [lastScrollTop, setLastScrollTop] = useState(0);
@@ -3387,7 +3398,22 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
   };
 
-
+  // File preview handlers
+  const handlePreviewRequest = (fileUrl: string, fileName: string, fileSize?: number, fileType?: string, messageId?: number) => {
+    setFilePreviewState({ isOpen: true, fileUrl, fileName, fileSize, fileType, messageId });
+  };
+  
+  const handlePreviewClose = () => {
+    setFilePreviewState(null);
+  };
+  
+  const handleForwardFromPreview = () => {
+    if (filePreviewState?.messageId) {
+      setForwardMessageId(filePreviewState.messageId);
+      setShowForwardModal(true);
+      setFilePreviewState(null);
+    }
+  };
 
   // 메시지 편집 핸들러
   const handleEditMessage = (message: any) => {
@@ -4902,6 +4928,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                             messageContent={msg.content}
                             isMe={isMe}
                             className="mb-2"
+                            onPreviewRequest={(url, name, size, type) => 
+                              handlePreviewRequest(url, name, size, type, msg.id)
+                            }
                           />
                           
                           {/* 원형 업로드 진행률 오버레이 */}
@@ -6571,6 +6600,20 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             : ""
         }
       />
+
+      {/* File Preview Modal */}
+      {filePreviewState && (
+        <FilePreviewModal
+          isOpen={filePreviewState.isOpen}
+          onClose={handlePreviewClose}
+          fileUrl={filePreviewState.fileUrl}
+          fileName={filePreviewState.fileName}
+          fileSize={filePreviewState.fileSize}
+          fileType={filePreviewState.fileType}
+          messageId={filePreviewState.messageId}
+          onForward={handleForwardFromPreview}
+        />
+      )}
 
       {/* AI Chat Assistant Modal */}
       <AIChatAssistantModal
