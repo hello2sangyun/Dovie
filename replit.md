@@ -30,6 +30,11 @@ The backend uses Node.js and Express.js (TypeScript, ES modules) with PostgreSQL
 ### System Design Choices
 The application prioritizes performance and responsiveness, particularly on mobile devices. This includes a "resize: 'body'" keyboard configuration for Capacitor on iOS to enable automatic viewport adjustment when the keyboard appears, ensuring input fields remain visible. Main thread blocking operations like eager profile image preloading have been removed for better performance. Loading states are standardized using a single `LoadingSpinner` component for visual consistency. Push notifications are refined for a cleaner appearance. Message pagination uses infinite scroll with IntersectionObserver for seamless loading of older messages while preserving scroll position. File caching implements a per-URL subscriber pattern with `useFileCacheEntry` hook that tracks individual download states, enabling concurrent downloads with shared network requests and proper cleanup.
 
+## Deployment Configuration
+- **Production Server**: `https://dovie-hello2sangyun.replit.app` - Official deployment server for production environment
+- **iOS Native App**: Configured in `capacitor.config.ts` to connect to production server
+- **WebSocket**: Uses same production server URL with `wss://` protocol for real-time communication
+
 ## External Dependencies
 - **Database**: `@neondatabase/serverless`, `drizzle-orm`.
 - **Authentication/Security**: `bcryptjs`, `crypto-js`, `jsonwebtoken`.
