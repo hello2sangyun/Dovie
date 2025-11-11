@@ -5652,7 +5652,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           <div className="px-4 py-3 bg-purple-50 border-t border-purple-200">
             <div className="space-y-3">
               {/* 파일 미리보기 */}
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto">
                 {Array.from(selectedPendingFiles).map((file, index) => {
                   const isImage = file.type.startsWith('image/');
                   const icon = isImage ? (
@@ -5696,12 +5696,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                 value={fileDescription}
                 onChange={(e) => setFileDescription(e.target.value)}
                 placeholder="이 파일에 대한 설명을 입력하세요..."
-                className="w-full min-h-[60px] resize-none border-purple-300 focus:ring-purple-500 focus:border-purple-500"
+                rows={1}
+                className="w-full resize-none border-purple-300 focus:ring-purple-500 focus:border-purple-500"
                 maxLength={500}
               />
 
               {/* 전송 및 취소 버튼 */}
-              <div className="flex gap-2">
+              <div className="flex gap-2 pb-4">
                 <Button
                   variant="outline"
                   size="sm"
