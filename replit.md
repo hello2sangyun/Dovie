@@ -21,7 +21,7 @@ The backend uses Node.js and Express.js (TypeScript, ES modules) with PostgreSQL
 - **Admin Panel**: Monitoring, user management, performance metrics.
 - **Push Notifications**: Intelligent filtering, grouped notifications, comprehensive iOS PWA/Native app support with sound and badges. Includes Dovie logo in notification icons. Service Worker preloads chat messages in background when push notifications are received for instant app opening.
 - **Hashtag System**: Single hashtag per file, auto-extraction, enhanced search.
-- **Voice Messages**: Quick voice messages with transcription, smart suggestion integration, and retry.
+- **Voice Messages**: Unified voice recording experience across the app with VoiceRecordingModal - a full-screen centered modal featuring a large microphone icon with pulse animation, real-time timer, and cancel/send buttons. Accessible from three contexts: UnifiedSendButton in ChatArea (button click), ChatsList (long-press 640ms on chat room), and ContactsList (long-press on contact). All MediaRecorder logic, permission handling, and background lifecycle management (pause/resume on app state change) centralized in VoiceRecordingModal. Includes transcription, smart suggestion integration, silence detection, and retry functionality.
 - **YouTube Integration**: Search, preview, and sharing of YouTube videos within chat.
 - **Settings**: Comprehensive account management, AI settings (Smart Inbox filter toggles), language selection, and support.
 - **File Uploads**: Increased per-file upload limit to 100MB with a streamlined attachment flow including inline previews.
