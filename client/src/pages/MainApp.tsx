@@ -315,9 +315,9 @@ export default function MainApp() {
         // 각 요청을 100ms씩 지연시켜 서버 부하 분산
         setTimeout(() => {
           queryClient.prefetchQuery({
-            queryKey: [`/api/chat-rooms/${room.id}/messages`],
+            queryKey: ["/api/chat-rooms", room.id, "messages"],
             queryFn: async () => {
-              const response = await apiRequest(`/api/chat-rooms/${room.id}/messages`, "GET");
+              const response = await apiRequest(`/api/chat-rooms/${room.id}/messages?limit=30&offset=0`, "GET");
               if (!response.ok) throw new Error('Failed to prefetch messages');
               return response.json();
             },
