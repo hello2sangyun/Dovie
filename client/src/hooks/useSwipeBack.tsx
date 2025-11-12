@@ -12,7 +12,7 @@ export function useSwipeBack({
   onBack,
   enabled = true,
   edgeThreshold = 30,
-  swipeThreshold = 100,
+  swipeThreshold = 150,
   onSwipeProgress,
 }: UseSwipeBackOptions) {
   const touchStartXRef = useRef<number>(0);

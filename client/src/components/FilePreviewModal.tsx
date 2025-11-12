@@ -40,6 +40,9 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   const isDragging = useRef(false);
   const uiTimeoutRef = useRef<NodeJS.Timeout>();
   const lastTapRef = useRef<number>(0);
+  const swipeStartY = useRef<number>(0);
+  const swipeCurrentY = useRef<number>(0);
+  const [swipeOffset, setSwipeOffset] = useState(0);
 
   const isNative = Capacitor.isNativePlatform();
   const extension = fileName.split('.').pop()?.toLowerCase();
@@ -67,6 +70,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
       setScale(1);
       setPosition({ x: 0, y: 0 });
       setShowUI(true);
+      setSwipeOffset(0);
       resetUITimeout();
     }
   }, [isOpen]);
@@ -138,11 +142,14 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
       e.preventDefault();
       lastTouchDistance.current = getTouchDistance(e.touches);
     } else if (e.touches.length === 1) {
-      // Pan
+      // Pan or swipe to dismiss
+      const touch = e.touches[0];
       lastTouchPos.current = {
-        x: e.touches[0].clientX,
-        y: e.touches[0].clientY
+        x: touch.clientX,
+        y: touch.clientY
       };
+      swipeStartY.current = touch.clientY;
+      swipeCurrentY.current = touch.clientY;
       isDragging.current = scale > 1;
     }
   };
@@ -161,27 +168,51 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
       }
       lastTouchDistance.current = distance;
       resetUITimeout();
-    } else if (e.touches.length === 1 && isDragging.current && scale > 1) {
-      // Pan while zoomed
-      e.preventDefault();
-      const deltaX = e.touches[0].clientX - lastTouchPos.current.x;
-      const deltaY = e.touches[0].clientY - lastTouchPos.current.y;
+    } else if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - lastTouchPos.current.x;
+      const deltaY = touch.clientY - lastTouchPos.current.y;
       
-      setPosition(prev => ({
-        x: prev.x + deltaX,
-        y: prev.y + deltaY
-      }));
-      
-      lastTouchPos.current = {
-        x: e.touches[0].clientX,
-        y: e.touches[0].clientY
-      };
-      resetUITimeout();
+      if (isDragging.current && scale > 1) {
+        // Pan while zoomed
+        e.preventDefault();
+        setPosition(prev => ({
+          x: prev.x + deltaX,
+          y: prev.y + deltaY
+        }));
+        
+        lastTouchPos.current = {
+          x: touch.clientX,
+          y: touch.clientY
+        };
+        resetUITimeout();
+      } else if (scale === 1) {
+        // Swipe to dismiss (only when not zoomed)
+        swipeCurrentY.current = touch.clientY;
+        const swipeDelta = swipeCurrentY.current - swipeStartY.current;
+        
+        // Only allow downward swipes
+        if (swipeDelta > 0) {
+          e.preventDefault();
+          setSwipeOffset(swipeDelta);
+          resetUITimeout();
+        }
+      }
     }
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (!isImage) return;
+    
+    // Check if swipe down was far enough to close
+    const swipeDelta = swipeCurrentY.current - swipeStartY.current;
+    if (scale === 1 && swipeDelta > 150) {
+      handleClose();
+    } else {
+      // Reset swipe offset
+      setSwipeOffset(0);
+    }
+    
     isDragging.current = false;
     if (e.touches.length === 0) {
       lastTouchDistance.current = 0;
@@ -330,8 +361,11 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 z-[9999] bg-black"
+      className="fixed inset-0 z-[9999] bg-black transition-opacity duration-300"
       ref={containerRef}
+      style={{
+        opacity: swipeOffset > 0 ? Math.max(0, 1 - swipeOffset / 300) : 1
+      }}
     >
       {/* Top overlay - Back and Close buttons */}
       <div 
@@ -383,10 +417,11 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
               ref={imageRef}
               src={fileUrl}
               alt={fileName}
-              className="max-w-full max-h-full object-contain select-none transition-transform duration-200"
+              className="max-w-full max-h-full object-contain select-none"
               style={{ 
-                transform: `scale(${scale}) translate(${position.x / scale}px, ${position.y / scale}px)`,
-                touchAction: 'none'
+                transform: `scale(${scale}) translate(${position.x / scale}px, ${(position.y + swipeOffset) / scale}px)`,
+                touchAction: 'none',
+                transition: swipeOffset === 0 ? 'transform 0.2s ease-out' : 'none'
               }}
               draggable={false}
               data-testid="image-preview"

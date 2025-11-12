@@ -58,6 +58,7 @@ export default function UserProfilePage() {
   
   const [selectedImage, setSelectedImage] = useState<{ url: string; name: string } | null>(null);
   const [selectedFile, setSelectedFile] = useState<{ url: string; name: string; size?: number } | null>(null);
+  const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
 
   console.log('UserProfilePage mounted', { match, userId, currentUser });
 
@@ -477,6 +478,11 @@ export default function UserProfilePage() {
                   <div className="grid grid-cols-3 gap-2">
                     {mediaFiles.map((file) => {
                       const isImage = isImageFile(file.fileUrl);
+                      
+                      if (failedImages.has(file.id)) {
+                        return null;
+                      }
+                      
                       return (
                         <div
                           key={file.id}
@@ -493,6 +499,9 @@ export default function UserProfilePage() {
                               src={file.fileUrl}
                               alt="Shared media"
                               className="w-full h-full object-cover"
+                              onError={() => {
+                                setFailedImages(prev => new Set(prev).add(file.id));
+                              }}
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-purple-50">
