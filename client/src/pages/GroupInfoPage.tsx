@@ -561,7 +561,8 @@ export default function GroupInfoPage() {
               {filteredParticipants.map((participant) => (
                 <div
                   key={participant.id}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50"
+                  onClick={() => navigate(`/profile/${participant.id}`)}
+                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
                   data-testid={`participant-${participant.id}`}
                 >
                   <Avatar className="h-10 w-10">
