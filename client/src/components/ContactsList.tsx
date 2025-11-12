@@ -357,8 +357,15 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
       longPressTimerRef.current = null;
     }
     
-    if (wasShortPress && !isScrollingRef.current && !showVoiceModal) {
-      // 짧게 클릭한 경우 (640ms 이내) AND 스크롤이 아닐 때만 AND 녹음 모달이 안 떠있을 때 - 연락처 선택
+    // 녹음 중일 때 손을 떼면 모달을 닫아 자동 전송
+    if (showVoiceModal) {
+      console.log('🎤 손을 뗌 - 녹음 자동 전송');
+      setShowVoiceModal(false);
+      return;
+    }
+    
+    if (wasShortPress && !isScrollingRef.current) {
+      // 짧게 클릭한 경우 (640ms 이내) AND 스크롤이 아닐 때만 - 연락처 선택
       onSelectContact(contactUserId);
     }
     
