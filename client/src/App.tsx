@@ -7,19 +7,42 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import LandingPage from "@/pages/LandingPage";
 import NotFound from "@/pages/not-found";
-import { useEffect, lazy, Suspense } from "react";
+import { useEffect, lazy, Suspense, ComponentType } from "react";
+import { Capacitor } from '@capacitor/core';
 
-const LoginPage = lazy(() => import("@/pages/LoginPage"));
-const SignupPage = lazy(() => import("@/pages/SignupPage"));
-const ForgotPasswordPage = lazy(() => import("@/pages/ForgotPasswordPage"));
+// lazyWithPreload: lazy loading with optional preload capability
+function lazyWithPreload<T extends ComponentType<any>>(
+  factory: () => Promise<{ default: T }>
+) {
+  const Component = lazy(factory);
+  (Component as any).preload = factory;
+  return Component;
+}
+
+// 모든 페이지를 lazy loading (웹과 네이티브 모두)
+// 네이티브에서는 아래에서 preload하여 키보드 렉 방지
+const LoginPage = lazyWithPreload(() => import("@/pages/LoginPage"));
+const SignupPage = lazyWithPreload(() => import("@/pages/SignupPage"));
+const ForgotPasswordPage = lazyWithPreload(() => import("@/pages/ForgotPasswordPage"));
+const MainApp = lazyWithPreload(() => import("@/pages/MainApp"));
+
+// 나머지 화면은 preload 없이 lazy loading만
 const ProfileSetupPage = lazy(() => import("@/pages/ProfileSetupPage"));
 const PhoneLogin = lazy(() => import("@/pages/PhoneLogin"));
-const MainApp = lazy(() => import("@/pages/MainApp"));
 const AdminPage = lazy(() => import("@/pages/AdminPage"));
 const FriendProfilePage = lazy(() => import("@/pages/FriendProfilePage"));
 const UserProfilePage = lazy(() => import("@/pages/UserProfilePage"));
 const GroupInfoPage = lazy(() => import("@/pages/GroupInfoPage"));
 const ScreenshotDemo = lazy(() => import("@/pages/ScreenshotDemo"));
+
+// 네이티브 앱에서는 초기 화면을 preload하여 키보드 렉 방지
+if (Capacitor.isNativePlatform()) {
+  console.log('🚀 Native platform detected - preloading critical pages');
+  (LoginPage as any).preload?.();
+  (SignupPage as any).preload?.();
+  (ForgotPasswordPage as any).preload?.();
+  (MainApp as any).preload?.();
+}
 
 const LoadingFallback = () => (
   <div className="flex items-center justify-center min-h-dvh bg-gradient-to-br from-purple-50 via-white to-blue-50">
