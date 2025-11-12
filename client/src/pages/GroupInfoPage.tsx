@@ -267,46 +267,48 @@ export default function GroupInfoPage() {
           <div className="bg-white mt-4 mx-4 rounded-2xl shadow-sm p-6">
             <div className="flex flex-col items-center">
               {/* Profile Image */}
-              <div className="relative mb-3">
+              <div className="relative mb-4">
                 {chatRoom?.profileImage ? (
-                  <InstantAvatar
-                    src={chatRoom.profileImage}
-                    fallbackText={chatRoom.name}
-                    size="xl"
-                    className="h-24 w-24"
-                  />
+                  <div className="relative w-28 h-28">
+                    <InstantAvatar
+                      src={chatRoom.profileImage}
+                      fallbackText={chatRoom.name}
+                      size="xl"
+                      className="h-28 w-28"
+                    />
+                  </div>
                 ) : (
-                  <div className="relative w-24 h-24 flex items-center justify-center">
+                  <div className="relative w-28 h-28 flex items-center justify-center">
                     {participants.slice(0, 2).map((participant, index) => {
-                      // ChatsList와 동일한 수평 겹침 배치
-                      const horizontalPositions = [
-                        { top: '50%', left: '0px', transform: 'translateY(-50%)' },
-                        { top: '50%', right: '0px', transform: 'translateY(-50%)' }
+                      // 수평 겹침 배치 - 더 크고 균형잡힌 배치
+                      const positions = [
+                        { top: '50%', left: '8px', transform: 'translateY(-50%)' },
+                        { top: '50%', right: '8px', transform: 'translateY(-50%)' }
                       ];
-                      
-                      const position = horizontalPositions[index];
                       
                       return (
                         <div
                           key={participant.id}
-                          className="absolute border-2 border-white rounded-full shadow-md"
+                          className="absolute border-3 border-white rounded-full shadow-lg"
                           style={{
-                            ...position,
+                            ...positions[index],
                             zIndex: 2 - index
                           }}
                         >
-                          <InstantAvatar 
-                            src={participant?.profilePicture}
-                            fallbackText={participant?.displayName || participant?.username}
-                            size="lg" 
-                            className="purple-gradient"
-                          />
+                          <div className="w-16 h-16">
+                            <InstantAvatar 
+                              src={participant?.profilePicture}
+                              fallbackText={participant?.displayName || participant?.username}
+                              size="xl" 
+                              className="w-16 h-16"
+                            />
+                          </div>
                         </div>
                       );
                     })}
                     {participants.length > 2 && (
                       <div 
-                        className="absolute bottom-0 right-0 bg-purple-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold shadow-md border-2 border-white"
+                        className="absolute bottom-1 right-1 bg-purple-500 text-white text-sm rounded-full w-8 h-8 flex items-center justify-center font-bold shadow-lg border-3 border-white"
                         style={{ zIndex: 3 }}
                       >
                         +{participants.length - 2}
@@ -316,10 +318,10 @@ export default function GroupInfoPage() {
                 )}
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="absolute bottom-0 right-0 bg-purple-600 text-white rounded-full p-2 shadow-lg hover:bg-purple-700 transition-colors"
+                  className="absolute -bottom-1 -right-1 bg-purple-600 text-white rounded-full p-2.5 shadow-lg hover:bg-purple-700 transition-colors"
                   data-testid="button-change-profile-image"
                 >
-                  <Camera className="h-4 w-4" />
+                  <Camera className="h-5 w-5" />
                 </button>
                 <input
                   ref={fileInputRef}
@@ -333,11 +335,11 @@ export default function GroupInfoPage() {
 
               {/* Group Name */}
               {isEditingName ? (
-                <div className="flex items-center gap-2 w-full max-w-xs mb-2">
+                <div className="flex items-center gap-2 w-full max-w-xs">
                   <Input
                     value={groupName}
                     onChange={(e) => setGroupName(e.target.value)}
-                    className="text-center font-semibold text-lg"
+                    className="text-center font-bold text-xl"
                     autoFocus
                     data-testid="input-group-name"
                   />
@@ -345,24 +347,24 @@ export default function GroupInfoPage() {
                     size="sm"
                     variant="ghost"
                     onClick={handleSaveName}
-                    className="h-8 w-8 p-0"
+                    className="h-9 w-9 p-0 hover:bg-purple-50"
                     data-testid="button-save-name"
                   >
-                    <Check className="h-4 w-4" />
+                    <Check className="h-5 w-5 text-green-600" />
                   </Button>
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={() => setIsEditingName(false)}
-                    className="h-8 w-8 p-0"
+                    className="h-9 w-9 p-0 hover:bg-red-50"
                     data-testid="button-cancel-name"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-5 w-5 text-red-600" />
                   </Button>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 mb-2">
-                  <h2 className="text-xl font-bold text-gray-900" data-testid="text-group-name">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl font-bold text-gray-900" data-testid="text-group-name">
                     {chatRoom?.name}
                   </h2>
                   <Button
@@ -372,15 +374,15 @@ export default function GroupInfoPage() {
                       setGroupName(chatRoom?.name || "");
                       setIsEditingName(true);
                     }}
-                    className="h-8 w-8 p-0"
+                    className="h-9 w-9 p-0 hover:bg-purple-50"
                     data-testid="button-edit-name"
                   >
-                    <Edit2 className="h-4 w-4" />
+                    <Edit2 className="h-5 w-5 text-purple-600" />
                   </Button>
                 </div>
               )}
 
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-500 mt-2">
                 {participants.length}명의 멤버
               </p>
             </div>
