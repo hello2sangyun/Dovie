@@ -1538,6 +1538,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/chat-rooms/:chatRoomId", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const chatRoom = await storage.getChatRoomById(Number(req.params.chatRoomId));
+      
+      if (!chatRoom) {
+        return res.status(404).json({ message: "Chat room not found" });
+      }
+
+      res.json({
+        ...chatRoom,
+        profileImage: chatRoom.profileImagePath || null,
+      });
+    } catch (error) {
+      console.error("Get chat room error:", error);
+      res.status(500).json({ message: "Failed to get chat room" });
+    }
+  });
+
   app.post("/api/chat-rooms", async (req, res) => {
     const userId = req.headers["x-user-id"];
     if (!userId) {
