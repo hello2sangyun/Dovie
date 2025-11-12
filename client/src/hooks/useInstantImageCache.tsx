@@ -13,6 +13,7 @@ interface InstantImageCache {
   isImageReady: (url: string) => boolean;
   getCacheSize: () => number;
   clearCache: () => void;
+  invalidateUrl: (url: string) => void;
 }
 
 // 전역 이미지 캐시 - 앱 전체에서 공유
@@ -169,6 +170,16 @@ export function useInstantImageCache(): InstantImageCache {
     setCacheSize(0);
   }, []);
 
+  // 특정 URL의 캐시 무효화
+  const invalidateUrl = useCallback((url: string): void => {
+    const entry = globalImageCache.get(url);
+    if (entry) {
+      URL.revokeObjectURL(entry.objectUrl);
+      globalImageCache.delete(url);
+      setCacheSize(globalImageCache.size);
+    }
+  }, []);
+
   // 컴포넌트 마운트 시 AbortController 초기화
   useEffect(() => {
     abortController.current = new AbortController();
@@ -205,6 +216,7 @@ export function useInstantImageCache(): InstantImageCache {
     getInstantImage,
     isImageReady,
     getCacheSize,
-    clearCache
+    clearCache,
+    invalidateUrl
   };
 }

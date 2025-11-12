@@ -51,7 +51,7 @@ export const InstantAvatar = memo(function InstantAvatar({
   const [forceRefresh, setForceRefresh] = useState(0);
   const [forceUpdate, setForceUpdate] = useState(0);
   const [showFallback, setShowFallback] = useState(false);
-  const { getInstantImage } = useInstantImageCache();
+  const { getInstantImage, invalidateUrl } = useInstantImageCache();
 
   // 이니셜 생성
   const initials = fallbackText
@@ -101,10 +101,36 @@ export const InstantAvatar = memo(function InstantAvatar({
   // 프로필 이미지 업데이트 이벤트 리스너
   useEffect(() => {
     const handleProfileImageUpdate = (event: CustomEvent) => {
-      const { newUrl } = event.detail;
-      // 현재 src와 새 URL이 관련된 경우 강제로 다시 렌더링
-      // newUrl이 null인 경우(이미지 제거)도 처리
-      if (src && (src.includes('profile_') || (newUrl && newUrl.includes('profile_')))) {
+      const { newUrl, chatRoomId } = event.detail;
+      
+      // URL 최적화 함수 (메인 useEffect와 동일한 로직)
+      const optimizeUrl = (url: string | null): string | null => {
+        if (!url) return null;
+        
+        if (url.startsWith('/uploads/')) {
+          const filename = url.split('/').pop();
+          return filename ? `/api/profile-images/${filename}` : null;
+        } else if (url.startsWith('profile_')) {
+          return `/api/profile-images/${url}`;
+        } else if (!url.startsWith('http') && !url.startsWith('/api/')) {
+          return `/api/profile-images/${url}`;
+        }
+        return url;
+      };
+      
+      // 현재 src와 새 URL의 캐시 무효화
+      const currentOptimizedUrl = optimizeUrl(src || null);
+      const newOptimizedUrl = optimizeUrl(newUrl);
+      
+      if (currentOptimizedUrl) {
+        invalidateUrl(currentOptimizedUrl);
+      }
+      if (newOptimizedUrl && newOptimizedUrl !== currentOptimizedUrl) {
+        invalidateUrl(newOptimizedUrl);
+      }
+      
+      // chatRoomId가 제공된 경우 또는 관련 프로필 이미지인 경우 forceUpdate
+      if (chatRoomId || (src && src.includes('profile_')) || (newUrl && newUrl.includes('profile_'))) {
         setForceUpdate(prev => prev + 1);
       }
     };
@@ -114,7 +140,7 @@ export const InstantAvatar = memo(function InstantAvatar({
     return () => {
       window.removeEventListener('profileImageUpdated', handleProfileImageUpdate as EventListener);
     };
-  }, [src]);
+  }, [src, invalidateUrl]);
 
   return (
     <div className="relative">
