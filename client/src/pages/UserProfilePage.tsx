@@ -476,41 +476,39 @@ export default function UserProfilePage() {
               <TabsContent value="media" className="p-4">
                 {mediaFiles.length > 0 ? (
                   <div className="grid grid-cols-3 gap-2">
-                    {mediaFiles.map((file) => {
-                      const isImage = isImageFile(file.fileUrl);
-                      
-                      if (failedImages.has(file.id)) {
-                        return null;
-                      }
-                      
-                      return (
-                        <div
-                          key={file.id}
-                          className="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
-                          data-testid={`media-item-${file.id}`}
-                          onClick={() => {
-                            if (isImage) {
-                              setSelectedImage({ url: file.fileUrl, name: getFileName(file.fileUrl) });
-                            }
-                          }}
-                        >
-                          {isImage ? (
-                            <img
-                              src={file.fileUrl}
-                              alt="Shared media"
-                              className="w-full h-full object-cover"
-                              onError={() => {
-                                setFailedImages(prev => new Set(prev).add(file.id));
-                              }}
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-purple-50">
-                              <FileVideo className="h-12 w-12 text-purple-600" />
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                    {mediaFiles
+                      .filter((file) => !failedImages.has(file.id))
+                      .map((file) => {
+                        const isImage = isImageFile(file.fileUrl);
+                        
+                        return (
+                          <div
+                            key={file.id}
+                            className="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                            data-testid={`media-item-${file.id}`}
+                            onClick={() => {
+                              if (isImage) {
+                                setSelectedImage({ url: file.fileUrl, name: getFileName(file.fileUrl) });
+                              }
+                            }}
+                          >
+                            {isImage ? (
+                              <img
+                                src={file.fileUrl}
+                                alt="Shared media"
+                                className="w-full h-full object-cover"
+                                onError={() => {
+                                  setFailedImages(prev => new Set(prev).add(file.id));
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-purple-50">
+                                <FileVideo className="h-12 w-12 text-purple-600" />
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                   </div>
                 ) : (
                   <div className="text-center py-12">
