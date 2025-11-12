@@ -3,6 +3,7 @@ import { useRef, useCallback } from 'react';
 interface UseLongPressTriggerOptions {
   onLongPress: () => void;
   onShortPress?: () => void;
+  onRelease?: (wasLongPress: boolean) => void; // Called when user releases, with flag indicating if it was a long press
   disabled?: boolean;
   delay?: number; // in milliseconds, default 500ms
 }
@@ -14,6 +15,7 @@ interface UseLongPressTriggerOptions {
 export function useLongPressTrigger({
   onLongPress,
   onShortPress,
+  onRelease,
   disabled = false,
   delay = 500
 }: UseLongPressTriggerOptions) {
@@ -43,6 +45,7 @@ export function useLongPressTrigger({
 
   const handleEnd = useCallback(() => {
     const wasShortPress = longPressTimerRef.current !== null && !isLongPressRef.current;
+    const wasLongPress = isLongPressRef.current;
     
     clearTimer();
 
@@ -51,8 +54,13 @@ export function useLongPressTrigger({
       onShortPress();
     }
 
+    // Always call onRelease when user releases, but with flag indicating if it was a long press
+    if (onRelease) {
+      onRelease(wasLongPress);
+    }
+
     isLongPressRef.current = false;
-  }, [clearTimer, onShortPress]);
+  }, [clearTimer, onShortPress, onRelease]);
 
   // Mouse event handlers
   const handleMouseDown = useCallback(() => {

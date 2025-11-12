@@ -40,6 +40,13 @@ export function UnifiedSendButton({
         onSendMessage();
       }
     },
+    onRelease: (wasLongPress) => {
+      // When user releases after long press, close voice modal to auto-send
+      if (wasLongPress && showVoiceModal) {
+        console.log('🎤 손을 뗌 - 녹음 자동 전송');
+        setShowVoiceModal(false);
+      }
+    },
     disabled
   });
 
