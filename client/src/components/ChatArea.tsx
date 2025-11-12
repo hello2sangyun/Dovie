@@ -470,12 +470,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const { data: messagesData, isLoading, isFetching } = useQuery({
     queryKey: ["/api/chat-rooms", chatRoomId, "messages"],
     enabled: !!chatRoomId,
-    staleTime: 0, // Always fetch fresh data like native messaging apps
+    staleTime: 30000, // 30초 캐시로 즉시 로딩 (프리페치된 데이터 활용)
     refetchOnMount: true, // Always refresh when component mounts
     refetchOnWindowFocus: true, // Refresh when app becomes visible
     refetchInterval: 10000, // Poll every 10 seconds for real-time updates
     queryFn: async () => {
-      const endpoint = `/api/chat-rooms/${chatRoomId}/messages?limit=50&offset=0`;
+      const endpoint = `/api/chat-rooms/${chatRoomId}/messages?limit=30&offset=0`;
       
       const response = await fetch(endpoint, {
         headers: {
