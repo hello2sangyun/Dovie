@@ -2158,10 +2158,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Don't fail message send if notifications fail
       }
 
-      // Broadcast to WebSocket connections
+      // Broadcast to WebSocket connections (include clientRequestId for deduplication)
       broadcastToRoom(Number(req.params.chatRoomId), {
         type: "new_message",
-        message: messageWithSender,
+        message: {
+          ...messageWithSender,
+          clientRequestId: req.body.clientRequestId || null
+        },
       });
 
       // Background AI Notice Analysis (non-blocking)
@@ -2232,7 +2235,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      res.json({ message: messageWithSender });
+      res.json({ 
+        message: {
+          ...messageWithSender,
+          clientRequestId: req.body.clientRequestId || null
+        }
+      });
     } catch (error: any) {
       console.error("Message creation error:", error);
       console.error("Error details:", {

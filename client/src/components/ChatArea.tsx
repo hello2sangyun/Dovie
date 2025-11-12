@@ -430,7 +430,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [, forceRender] = useState({});
   
   // Infinite scroll state
-  const [allMessages, setAllMessages] = useState<any[]>([]);
   const [messageOffset, setMessageOffset] = useState(0);
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -487,35 +486,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     },
   });
   
-  // Sync messagesData to allMessages (merge new messages, preserve old ones)
+  // Update hasMore state when messagesData changes
   useEffect(() => {
-    if (messagesData?.messages) {
-      const newMessages = messagesData.messages;
-      
-      setAllMessages(prev => {
-        // If no previous messages or chatRoom changed, replace completely
-        if (prev.length === 0) {
-          return newMessages;
-        }
-        
-        // Merge: keep older messages (loaded via infinite scroll) + update recent messages
-        const oldestNew = newMessages[0];
-        const oldestNewIndex = prev.findIndex(m => m.id === oldestNew?.id);
-        
-        if (oldestNewIndex === -1) {
-          // No overlap - append new messages (shouldn't happen in normal flow)
-          return [...prev, ...newMessages];
-        } else if (oldestNewIndex === 0) {
-          // Perfect match - just update recent messages
-          return newMessages;
-        } else {
-          // Partial overlap - keep older messages, replace from overlap point
-          return [...prev.slice(0, oldestNewIndex), ...newMessages];
-        }
-      });
-      
+    if (messagesData) {
       setHasMoreMessages(messagesData.hasMore ?? true);
-      // Don't reset offset on refetch - only increment when loading more
     }
   }, [messagesData]);
   
@@ -544,8 +518,28 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         const previousScrollTop = chatScrollRef.current?.scrollTop || 0;
         const previousScrollHeight = chatScrollRef.current?.scrollHeight || 0;
         
-        // Prepend older messages
-        setAllMessages(prev => [...data.messages, ...prev]);
+        // Prepend older messages to query cache with overlap handling
+        queryClient.setQueryData(
+          ["/api/chat-rooms", chatRoomId, "messages"],
+          (old: any) => {
+            if (!old || !old.messages) return { messages: data.messages, hasMore: data.hasMore };
+            
+            // Find overlap point: where does the fetched page meet the cached data?
+            const oldestCachedId = old.messages[0]?.id;
+            const overlapIndex = data.messages.findIndex((msg: any) => msg.id === oldestCachedId);
+            
+            // If overlap found, prepend only the non-overlapping part
+            const newMessages = overlapIndex >= 0 
+              ? data.messages.slice(0, overlapIndex)
+              : data.messages; // No overlap, prepend all
+            
+            return {
+              messages: [...newMessages, ...old.messages],
+              hasMore: data.hasMore
+            };
+          }
+        );
+        
         setMessageOffset(prev => prev + data.messages.length);
         setHasMoreMessages(data.hasMore ?? false);
         
@@ -632,21 +626,116 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     (bookmarksData as any)?.bookmarks?.map((b: any) => b.messageId) || []
   );
 
-  // Send message mutation
+  // Send message mutation with optimistic updates
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
       const endpoint = `/api/chat-rooms/${chatRoomId}/messages`;
-      
+      // clientRequestId is already in messageData from onMutate
       const response = await apiRequest(endpoint, "POST", messageData);
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms", chatRoomId, "messages"] });
+    onMutate: async (messageData: any) => {
+      // Generate clientRequestId once for both optimistic and server request
+      // Note: We mutate messageData directly so mutationFn receives the same clientRequestId
+      // This is safe because message sending is one-time and not reused
+      const clientRequestId = messageData.clientRequestId || `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      if (!messageData.clientRequestId) {
+        messageData.clientRequestId = clientRequestId;
+      }
+      
+      // Cancel outgoing refetches to prevent race conditions
+      await queryClient.cancelQueries({ queryKey: ["/api/chat-rooms", chatRoomId, "messages"] });
+      
+      // Deep clone snapshot for safe rollback
+      const previousMessagesData: any = queryClient.getQueryData(["/api/chat-rooms", chatRoomId, "messages"]);
+      const previousMessages = previousMessagesData 
+        ? structuredClone(previousMessagesData) // Deep clone for safe rollback
+        : { messages: [] };
+      
+      // Create optimistic message with the same clientRequestId
+      const tempId = `temp-${Date.now()}`;
+      const optimisticMessage = {
+        id: tempId,
+        tempId,
+        clientRequestId, // Use the same clientRequestId
+        chatRoomId,
+        senderId: user?.id,
+        content: messageData.content || "",
+        messageType: messageData.messageType || "text",
+        fileUrl: messageData.fileUrl || null,
+        fileName: messageData.fileName || null,
+        fileSize: messageData.fileSize || null,
+        replyToMessageId: messageData.replyToMessageId || null,
+        replyToContent: messageData.replyToContent || null,
+        replyToSender: messageData.replyToSender || null,
+        mentions: messageData.mentions || null,
+        hashtag: messageData.hashtag || null,
+        transcription: messageData.transcription || null,
+        duration: messageData.duration || null,
+        attachments: messageData.attachments || null,
+        createdAt: new Date().toISOString(),
+        isEdited: false,
+        deliveryStatus: 'sending',
+        isOptimistic: true,
+        sender: {
+          id: user?.id,
+          displayName: user?.displayName || user?.username || "나",
+          profilePicture: user?.profilePicture
+        }
+      };
+      
+      // Optimistically update the cache
+      queryClient.setQueryData(["/api/chat-rooms", chatRoomId, "messages"], (old: any) => {
+        if (!old || !old.messages) return { messages: [optimisticMessage] };
+        return {
+          ...old,
+          messages: [...old.messages, optimisticMessage]
+        };
+      });
+      
+      // Scroll to bottom immediately
+      setTimeout(() => {
+        scrollToBottom('instant');
+      }, 10);
+      
+      // Return context for rollback and success reconciliation
+      return { previousMessages, tempId, clientRequestId };
+    },
+    onError: (error, messageData, context: any) => {
+      // Rollback on error with safe defaults
+      if (context?.previousMessages) {
+        queryClient.setQueryData(
+          ["/api/chat-rooms", chatRoomId, "messages"], 
+          context.previousMessages
+        );
+      }
+      console.error("메시지 전송 실패:", error);
+    },
+    onSuccess: (data, messageData, context: any) => {
+      if (!context) return;
+      
+      // Replace optimistic message with server response using clientRequestId
+      queryClient.setQueryData(["/api/chat-rooms", chatRoomId, "messages"], (old: any) => {
+        if (!old || !old.messages) return { messages: [data.message] };
+        return {
+          ...old,
+          messages: old.messages.map((msg: any) => 
+            msg.clientRequestId === context.clientRequestId 
+              ? { ...data.message, deliveryStatus: 'sent' } 
+              : msg
+          )
+        };
+      });
+      
+      // Invalidate related queries for fresh data
       queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
       queryClient.invalidateQueries({ queryKey: ["/api/shared-media"] });
+      
+      // Clear input and UI states
       setMessage("");
       setShowCommandSuggestions(false);
-      setReplyToMessage(null); // 회신 상태 초기화
+      setReplyToMessage(null);
       
       // 스마트 제안 숨기기
       setShowSmartSuggestions(false);
@@ -656,13 +745,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         clearTimeout(suggestionTimeout);
         setSuggestionTimeout(null);
       }
-
-      // 메시지 전송 후 맨 아래로 즉시 이동
-      setTimeout(() => {
-        scrollToBottom('instant');
-      }, 50);
-    },
-    onError: (error) => {
     },
   });
 
@@ -1342,7 +1424,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     });
   };
 
-  const messages = allMessages;
+  // Use messages from query cache instead of local state
+  const messages = messagesData?.messages || [];
 
   // Intelligent auto-scroll function with smooth transitions
   const scrollToBottom = (behavior: 'smooth' | 'instant' = 'smooth') => {
@@ -4785,6 +4868,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                         <span className="text-xs text-gray-400 font-medium">
                           {formatTime(msg.createdAt)}
                         </span>
+                        {msg.deliveryStatus === 'sending' && (
+                          <span className="text-xs text-gray-400 animate-pulse">전송 중...</span>
+                        )}
                       </div>
                     )}
 
@@ -4807,7 +4893,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                               : isMe 
                                 ? "bg-gradient-to-br from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/25 rounded-tr-md backdrop-blur-sm hover:shadow-xl hover:shadow-purple-500/30 transition-all duration-300" 
                                 : "bg-gradient-to-br from-white to-gray-50 text-gray-900 shadow-md shadow-gray-200/50 border border-gray-200/80 rounded-tl-md backdrop-blur-sm hover:shadow-lg hover:shadow-gray-300/40 transition-all duration-300",
-                          bookmarkedMessageIds.has(msg.id) && "ring-2 ring-yellow-400 ring-offset-2"
+                          bookmarkedMessageIds.has(msg.id) && "ring-2 ring-yellow-400 ring-offset-2",
+                          msg.deliveryStatus === 'sending' && "opacity-70"
                         )}
                         style={{ 
                           userSelect: 'none',

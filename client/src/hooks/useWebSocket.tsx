@@ -179,11 +179,50 @@ export function useWebSocket(userId?: number) {
               break;
             
             case "new_message":
-              // Invalidate messages query to fetch new message
+              // Handle new message with optimistic update deduplication
               if (data.message?.chatRoomId) {
-                queryClient.invalidateQueries({ 
-                  queryKey: ["/api/chat-rooms", data.message.chatRoomId, "messages"] 
+                // Check if this message already exists in cache (from optimistic update)
+                const cachedData: any = queryClient.getQueryData([
+                  "/api/chat-rooms", 
+                  data.message.chatRoomId, 
+                  "messages"
+                ]);
+                
+                const existingMessages = cachedData?.messages || [];
+                const isDuplicate = existingMessages.some((msg: any) => {
+                  // Match by clientRequestId (optimistic) or id (already delivered)
+                  return (data.message.clientRequestId && msg.clientRequestId === data.message.clientRequestId) ||
+                         (msg.id === data.message.id);
                 });
+                
+                if (isDuplicate) {
+                  // Replace optimistic message with server version
+                  queryClient.setQueryData(
+                    ["/api/chat-rooms", data.message.chatRoomId, "messages"],
+                    (old: any) => {
+                      if (!old || !old.messages) return { messages: [data.message] };
+                      return {
+                        ...old,
+                        messages: old.messages.map((msg: any) => {
+                          // Replace if matching clientRequestId or id
+                          if ((data.message.clientRequestId && msg.clientRequestId === data.message.clientRequestId) ||
+                              (msg.id === data.message.id)) {
+                            return { ...data.message, deliveryStatus: 'sent' };
+                          }
+                          return msg;
+                        })
+                      };
+                    }
+                  );
+                  // Don't invalidate - we already have the message
+                } else {
+                  // New message - invalidate to fetch it
+                  queryClient.invalidateQueries({ 
+                    queryKey: ["/api/chat-rooms", data.message.chatRoomId, "messages"] 
+                  });
+                }
+                
+                // Always invalidate chat rooms list for timestamp/preview updates
                 queryClient.invalidateQueries({ 
                   queryKey: ["/api/chat-rooms"] 
                 });
