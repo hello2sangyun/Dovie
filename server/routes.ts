@@ -2984,12 +2984,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { filename } = req.params;
       
-      // 보안 검증: profile_ 접두사가 있거나 암호화된 해시 파일명 허용
+      // 보안 검증: 다음 패턴 중 하나를 허용
+      // 1. profile_ 접두사로 시작하는 파일 (개인 프로필)
+      // 2. 확장자가 있는 암호화된 해시 파일 (레거시 암호화 파일)
+      // 3. 확장자 없는 32자리 해시 파일 (multer 기본 설정으로 생성된 그룹 이미지)
       const isProfileFile = filename.startsWith('profile_');
       const isEncryptedFile = /^[a-f0-9]+\.(jpg|jpeg|png|gif|webp)$/i.test(filename);
+      const isGroupImage = /^[a-f0-9]{32}$/i.test(filename); // multer 기본 해시 (32자리, 확장자 없음)
       
-      if (!isProfileFile && !isEncryptedFile) {
-        console.log('Access denied for file:', filename, 'isProfile:', isProfileFile, 'isEncrypted:', isEncryptedFile);
+      if (!isProfileFile && !isEncryptedFile && !isGroupImage) {
+        console.log('Access denied for file:', filename, 'isProfile:', isProfileFile, 'isEncrypted:', isEncryptedFile, 'isGroupImage:', isGroupImage);
         return res.status(403).json({ message: "Access denied" });
       }
       
