@@ -643,6 +643,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms", chatRoomId, "messages"] });
       queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/shared-media"] });
       setMessage("");
       setShowCommandSuggestions(false);
       setReplyToMessage(null); // 회신 상태 초기화
