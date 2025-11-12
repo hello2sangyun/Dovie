@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { FilePreviewModal } from "@/components/FilePreviewModal";
 import { FolderIcon, FileIcon, Grid3x3, List, ChevronLeft, Search, Download, Share2, Eye, ArrowUp, ArrowDown } from "lucide-react";
 
 interface FileUploadData {
@@ -56,6 +57,7 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [sortBy, setSortBy] = useState<SortBy>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+  const [selectedFile, setSelectedFile] = useState<{ url: string; name: string; size?: number; type?: string } | null>(null);
 
   // Fetch all file uploads
   const { data: filesData, isLoading } = useQuery<{ files: FileUploadData[] }>({
@@ -231,7 +233,12 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
 
   // Handle file preview
   const handlePreview = (file: FileUploadData) => {
-    window.open(file.filePath, '_blank');
+    setSelectedFile({
+      url: file.filePath,
+      name: file.originalName,
+      size: file.fileSize,
+      type: file.fileType
+    });
   };
 
   // Handle share using Web Share API
@@ -567,6 +574,18 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
           </>
         )}
       </div>
+
+      {/* File Preview Modal */}
+      {selectedFile && (
+        <FilePreviewModal
+          isOpen={true}
+          onClose={() => setSelectedFile(null)}
+          fileUrl={selectedFile.url}
+          fileName={selectedFile.name}
+          fileSize={selectedFile.size}
+          fileType={selectedFile.type}
+        />
+      )}
     </div>
   );
 }
