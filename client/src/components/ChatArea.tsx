@@ -4832,7 +4832,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           MozUserSelect: 'none',
                           msUserSelect: 'none',
                         WebkitTouchCallout: 'none',
-                        touchAction: 'none'
+                        touchAction: 'pan-y'
                       }}
                       onContextMenu={(e) => handleMessageRightClick(e, msg)}
                       onTouchStart={(e) => {
