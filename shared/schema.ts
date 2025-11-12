@@ -176,6 +176,7 @@ export const messages = pgTable("messages", {
   fileUrl: text("file_url"),
   fileName: text("file_name"),
   fileSize: integer("file_size"),
+  attachments: jsonb("attachments"), // Array of multiple files: [{ fileUrl, fileName, fileSize, fileType, description }]
   voiceDuration: decimal("voice_duration", { precision: 10, scale: 2 }), // in seconds for voice messages (e.g., 2.72)
   detectedLanguage: text("detected_language"), // detected language for voice messages
   confidence: decimal("confidence", { precision: 3, scale: 2 }), // transcription confidence score
@@ -828,6 +829,13 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
     if (typeof val === 'string') return parseFloat(val);
     return val;
   }).optional(),
+  attachments: z.array(z.object({
+    fileUrl: z.string(),
+    fileName: z.string(),
+    fileSize: z.number(),
+    fileType: z.string().optional(),
+    description: z.string().optional(),
+  })).optional(),
 });
 
 export const insertMessageReadSchema = createInsertSchema(messageReads).omit({

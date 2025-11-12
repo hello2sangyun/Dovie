@@ -2019,51 +2019,50 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     console.log('📝 캡션:', caption);
     console.log('📄 설명:', description);
     
-    // 업로드 시작 즉시 각 파일에 대한 임시 메시지 생성
-    const tempMessages = Array.from(files).map((file, index) => {
-      let messageContent = `📎 ${file.name}`;
-      
-      if (index === 0 && caption) {
-        messageContent += `\n\n${caption}`;
-      }
-      
-      if (description.trim()) {
-        messageContent += `\n\n${description}`;
-      }
-      
-      return {
-        id: Date.now() + index, // 임시 ID
-        chatRoomId: chatRoomId,
-        senderId: user?.id || 0,
-        content: messageContent,
-        messageType: "file" as const,
+    // 하나의 임시 메시지 생성 (여러 파일을 묶음으로 표시)
+    const tempMessageId = Date.now();
+    const fileNames = Array.from(files).map(f => f.name).join(', ');
+    
+    let messageContent = caption || fileDescription || '';
+    if (!messageContent && files.length > 0) {
+      messageContent = `📎 ${files.length}개의 파일`;
+    }
+    
+    const tempMessage = {
+      id: tempMessageId,
+      chatRoomId: chatRoomId,
+      senderId: user?.id || 0,
+      content: messageContent,
+      messageType: "file" as const,
+      isUploading: true,
+      uploadProgress: 0,
+      attachments: Array.from(files).map(file => ({
         fileName: file.name,
         fileSize: file.size,
-        isUploading: true, // 업로드 중 표시
-        uploadProgress: 0,
-        createdAt: new Date().toISOString(),
-        sender: {
-          id: user?.id || 0,
-          username: user?.username || '',
-          displayName: user?.displayName || '',
-          profilePicture: user?.profilePicture
-        }
-      };
-    });
+        fileType: file.type,
+        isUploading: true
+      })),
+      createdAt: new Date().toISOString(),
+      sender: {
+        id: user?.id || 0,
+        username: user?.username || '',
+        displayName: user?.displayName || '',
+        profilePicture: user?.profilePicture
+      }
+    };
     
-    // 임시 메시지들을 채팅에 즉시 표시
+    // 임시 메시지를 채팅에 즉시 표시
     queryClient.setQueryData([`/api/chat-rooms`, chatRoomId, "messages"], (oldData: any) => {
-      if (!oldData) return { messages: tempMessages };
+      if (!oldData) return { messages: [tempMessage] };
       return {
         ...oldData,
-        messages: [...oldData.messages, ...tempMessages]
+        messages: [...oldData.messages, tempMessage]
       };
     });
     
     try {
-      // Process each file individually to match server expectation
+      // Process each file upload
       const uploadPromises = Array.from(files).map(async (file, index) => {
-        const tempMessageId = tempMessages[index].id;
         console.log(`📁 파일 ${index + 1} 업로드:`, file.name);
         
         try {
@@ -2083,6 +2082,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                 return newProgress;
               });
               
+              // Calculate overall progress
+              const overallProgress = ((index + progress.progress / 100) / files.length) * 100;
+              
               // Update message progress in chat
               queryClient.setQueryData([`/api/chat-rooms`, chatRoomId, "messages"], (oldData: any) => {
                 if (!oldData) return oldData;
@@ -2090,7 +2092,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   ...oldData,
                   messages: oldData.messages.map((msg: any) => 
                     msg.id === tempMessageId 
-                      ? { ...msg, uploadProgress: progress.progress }
+                      ? { ...msg, uploadProgress: Math.round(overallProgress) }
                       : msg
                   )
                 };
@@ -2107,27 +2109,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           }, 3000);
           
           return {
-            ...uploadResult,
-            originalFile: file,
-            tempMessageId
+            fileUrl: uploadResult.fileUrl,
+            fileName: uploadResult.fileName,
+            fileSize: uploadResult.fileSize,
+            fileType: file.type,
+            description: description
           };
         } catch (error) {
           console.error(`❌ 파일 ${index + 1} 업로드 실패:`, error);
-          
-          // 실패한 임시 메시지 제거
-          queryClient.setQueryData([`/api/chat-rooms`, chatRoomId, "messages"], (oldData: any) => {
-            if (!oldData) return oldData;
-            return {
-              ...oldData,
-              messages: oldData.messages.filter((msg: any) => msg.id !== tempMessageId)
-            };
-          });
-          
-          // Remove from upload progress after error (with delay to show error)
-          setTimeout(() => {
-            setUploadProgress(prev => prev.filter(p => p.fileName !== file.name || p.status !== 'error'));
-          }, 3000);
-          
           throw error;
         }
       });
@@ -2135,49 +2124,28 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       const uploadResults = await Promise.all(uploadPromises);
       console.log('✅ 모든 파일 업로드 완료:', uploadResults.length, '개');
       
-      // Send each file as a separate message with caption and description
-      const messagePromises = uploadResults.map(async (uploadData, index) => {
-        // Include description in all file messages, caption only in first
-        let messageContent = `📎 ${uploadData.fileName}`;
-        
-        if (index === 0 && caption) {
-          messageContent += `\n\n${caption}`;
-        }
-        
-        if (description.trim()) {
-          messageContent += `\n\n${description}`;
-        }
-        
-        console.log('📤 File upload message content:', messageContent);
-        console.log('📄 Description being sent:', description);
-        
-        const realMessage = await sendMessageMutation.mutateAsync({
-          messageType: "file",
-          fileUrl: uploadData.fileUrl,
-          fileName: uploadData.fileName,
-          fileSize: uploadData.fileSize,
-          content: messageContent,
-          replyToMessageId: replyToMessage?.id
-        });
-        
-        // 임시 메시지를 실제 메시지로 교체
-        queryClient.setQueryData([`/api/chat-rooms`, chatRoomId, "messages"], (oldData: any) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            messages: oldData.messages.map((msg: any) => 
-              msg.id === uploadData.tempMessageId 
-                ? { ...realMessage, sender: msg.sender }
-                : msg
-            )
-          };
-        });
-        
-        return realMessage;
+      // Send as ONE message with all attachments
+      const realMessage = await sendMessageMutation.mutateAsync({
+        messageType: "file",
+        content: messageContent,
+        attachments: uploadResults,
+        replyToMessageId: replyToMessage?.id
       });
       
-      await Promise.all(messagePromises);
-      console.log('✅ 모든 메시지 전송 완료');
+      console.log('✅ 묶음 메시지 전송 완료');
+      
+      // Replace temp message with real message
+      queryClient.setQueryData([`/api/chat-rooms`, chatRoomId, "messages"], (oldData: any) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          messages: oldData.messages.map((msg: any) => 
+            msg.id === tempMessageId 
+              ? { ...realMessage, sender: tempMessage.sender }
+              : msg
+          )
+        };
+      });
       
       // Clear reply state
       setReplyToMessage(null);
@@ -2191,12 +2159,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     } catch (error) {
       console.error('❌ 파일 업로드 오류:', error);
       
-      // 실패 시 모든 임시 메시지 제거
+      // 실패 시 임시 메시지 제거
       queryClient.setQueryData([`/api/chat-rooms`, chatRoomId, "messages"], (oldData: any) => {
         if (!oldData) return oldData;
         return {
           ...oldData,
-          messages: oldData.messages.filter((msg: any) => !msg.isUploading)
+          messages: oldData.messages.filter((msg: any) => msg.id !== tempMessageId)
         };
       });
       
