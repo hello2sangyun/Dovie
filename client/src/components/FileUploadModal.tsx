@@ -58,8 +58,8 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
       return;
     }
 
-    // Check file sizes (100MB limit per file)
-    const maxSize = 100 * 1024 * 1024; // 100MB
+    // Check file sizes (500MB limit per file)
+    const maxSize = 500 * 1024 * 1024; // 500MB
     for (let i = 0; i < files.length; i++) {
       if (files[i].size > maxSize) {
         return;
@@ -162,7 +162,7 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
                 파일 선택
               </Button>
               <p className="text-xs text-gray-500 mt-1 sm:mt-2">
-                최대 {maxFiles}개 파일, 각 파일 5MB 이하
+                최대 {maxFiles}개 파일, 각 파일 500MB 이하
               </p>
             </div>
           )}

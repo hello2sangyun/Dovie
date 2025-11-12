@@ -130,9 +130,10 @@ interface VideoPlayerProps {
   error: Error | null;
   refetch: () => void;
   fileSize?: number;
+  onPreviewRequest?: () => void;
 }
 
-const VideoPlayer = ({ src, fileName, isMe, status, uri, error, refetch, fileSize }: VideoPlayerProps) => {
+const VideoPlayer = ({ src, fileName, isMe, status, uri, error, refetch, fileSize, onPreviewRequest }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -188,10 +189,16 @@ const VideoPlayer = ({ src, fileName, isMe, status, uri, error, refetch, fileSiz
   };
 
   return (
-    <div className={cn(
-      "relative bg-black rounded-lg overflow-hidden max-w-md min-h-[200px]",
-      isMe ? "ml-auto" : "mr-auto"
-    )}>
+    <div 
+      className={cn(
+        "relative bg-black rounded-lg overflow-hidden max-w-md min-h-[200px] cursor-pointer",
+        isMe ? "ml-auto" : "mr-auto"
+      )}
+      onClick={(e) => {
+        e.stopPropagation();
+        onPreviewRequest && onPreviewRequest();
+      }}
+    >
       <video
         ref={videoRef}
         src={videoSrc}
@@ -225,7 +232,10 @@ const VideoPlayer = ({ src, fileName, isMe, status, uri, error, refetch, fileSiz
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={togglePlay}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  togglePlay();
+                }}
                 className="text-white hover:bg-white/20 p-1 h-8 w-8"
                 data-testid="button-video-play-pause"
               >
@@ -234,7 +244,10 @@ const VideoPlayer = ({ src, fileName, isMe, status, uri, error, refetch, fileSiz
               
               <div 
                 className="flex-1 h-1 bg-white/30 rounded-full cursor-pointer"
-                onClick={handleSeek}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSeek(e);
+                }}
               >
                 <div 
                   className="h-full bg-white rounded-full transition-all"
@@ -249,7 +262,10 @@ const VideoPlayer = ({ src, fileName, isMe, status, uri, error, refetch, fileSiz
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={toggleMute}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleMute();
+                }}
                 className="text-white hover:bg-white/20 p-1 h-8 w-8"
                 data-testid="button-video-mute"
               >
@@ -267,7 +283,10 @@ const VideoPlayer = ({ src, fileName, isMe, status, uri, error, refetch, fileSiz
               variant="ghost"
               size="sm"
               className="text-white hover:bg-white/20 p-1 h-8 w-8"
-              onClick={() => window.open(videoSrc, '_blank')}
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(videoSrc, '_blank');
+              }}
               title="다운로드"
               data-testid="button-video-download"
             >
@@ -575,6 +594,7 @@ export default function MediaPreview({ fileUrl, fileName, fileSize, messageConte
               error={error}
               refetch={refetch}
               fileSize={fileSize}
+              onPreviewRequest={handlePreview}
             />
           </div>
         );
