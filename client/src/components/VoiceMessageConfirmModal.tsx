@@ -326,32 +326,32 @@ export default function VoiceMessageConfirmModal({
         style={{ animation: 'scaleIn 200ms ease-out' }}
       >
         {/* 헤더 - 보라색 accent */}
-        <div className="px-6 pt-6 pb-4 border-b-2 border-purple-500/20 dark:border-purple-400/20">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+        <div className="px-4 pt-4 pb-3 border-b-2 border-purple-500/20 dark:border-purple-400/20">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
             음성 메시지 확인
           </h2>
         </div>
 
-        <div className="px-6 py-6 space-y-5 max-h-[70vh] overflow-y-auto">
+        <div className="px-4 py-4 space-y-3 max-h-[70vh] overflow-y-auto">
           {/* 오디오 플레이어 - 커스텀 웨이브폼 디자인 */}
-          <div className="bg-purple-50 dark:bg-purple-950/30 rounded-xl p-4 border border-purple-200 dark:border-purple-800/50">
-            <div className="flex items-center gap-4">
+          <div className="bg-purple-50 dark:bg-purple-950/30 rounded-xl p-3 border border-purple-200 dark:border-purple-800/50">
+            <div className="flex items-center gap-3">
               {/* 재생 버튼 */}
               <button
                 onClick={togglePlayPause}
-                className="flex-shrink-0 w-14 h-14 rounded-full bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center transition-colors shadow-lg"
+                className="flex-shrink-0 w-12 h-12 rounded-full bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center transition-colors shadow-lg"
                 data-testid="button-play-pause"
               >
                 {isPlaying ? (
-                  <Pause className="w-6 h-6" fill="currentColor" />
+                  <Pause className="w-5 h-5" fill="currentColor" />
                 ) : (
-                  <Play className="w-6 h-6 ml-0.5" fill="currentColor" />
+                  <Play className="w-5 h-5 ml-0.5" fill="currentColor" />
                 )}
               </button>
 
-              {/* 웨이브폼 비주얼 - 더 크고 선명하게 */}
-              <div className="flex-1 flex items-center gap-1 h-16">
+              {/* 웨이브폼 비주얼 */}
+              <div className="flex-1 flex items-center gap-1 h-12">
                 {[...Array(35)].map((_, i) => {
                   const height = Math.sin(i * 0.5) * 40 + 50;
                   return (
@@ -373,44 +373,44 @@ export default function VoiceMessageConfirmModal({
               </div>
 
               {/* 시간 표시 */}
-              <div className="flex-shrink-0 text-base font-bold text-purple-700 dark:text-purple-300 min-w-[3.5rem] text-right">
+              <div className="flex-shrink-0 text-sm font-semibold text-purple-700 dark:text-purple-300 min-w-[3rem] text-right">
                 {duration?.toFixed(1)}초
               </div>
             </div>
           </div>
 
           {/* 텍스트 영역 - 메인 포커스, 강조된 디자인 */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-base font-semibold text-gray-900 dark:text-gray-100">
+              <label className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                 인식된 텍스트
               </label>
               {isCorrecting && (
-                <span className="flex items-center text-sm text-purple-600 dark:text-purple-400 font-medium">
-                  <Sparkles className="w-4 h-4 mr-1.5 animate-pulse" />
+                <span className="flex items-center text-xs text-purple-600 dark:text-purple-400 font-medium">
+                  <Sparkles className="w-3.5 h-3.5 mr-1 animate-pulse" />
                   AI 보정 중
                 </span>
               )}
               {aiCorrectionApplied && !isCorrecting && (
-                <span className="flex items-center text-sm text-purple-600 dark:text-purple-400 font-medium">
-                  <Sparkles className="w-4 h-4 mr-1.5" />
+                <span className="flex items-center text-xs text-purple-600 dark:text-purple-400 font-medium">
+                  <Sparkles className="w-3.5 h-3.5 mr-1" />
                   AI 보정 완료
                 </span>
               )}
             </div>
             
-            {/* 텍스트 입력 - 고대비 카드, 큰 폰트, 보라색 accent */}
+            {/* 텍스트 입력 - 고대비 카드, 보라색 accent */}
             <div className="relative">
               <Textarea
                 value={editedText}
                 onChange={(e) => setEditedText(e.target.value)}
                 placeholder="음성으로 인식된 텍스트를 확인하고 수정하세요..."
                 className={cn(
-                  "min-h-[200px] text-lg leading-relaxed",
+                  "min-h-[140px] text-base leading-relaxed",
                   "focus:ring-2 focus:ring-purple-500 focus:border-purple-500",
                   "border-2 border-gray-200 dark:border-gray-700",
                   "bg-gray-50 dark:bg-gray-800/50",
-                  "rounded-xl p-4",
+                  "rounded-xl p-3",
                   "resize-none",
                   "shadow-inner",
                   "transition-all duration-200",
@@ -424,28 +424,28 @@ export default function VoiceMessageConfirmModal({
               <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-purple-600 opacity-20 dark:opacity-30 blur-sm -z-10 rounded-xl pointer-events-none" />
             </div>
             
-            <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
               <span className="font-medium">{editedText.length}자</span>
               <span>텍스트를 확인하고 수정하세요</span>
             </div>
           </div>
 
           {/* 배경음악 - 펼치기/접기 */}
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
             <button
               onClick={() => setShowBgmOptions(!showBgmOptions)}
-              className="flex items-center justify-between w-full text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
+              className="flex items-center justify-between w-full text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
               data-testid="button-toggle-bgm"
             >
               <span className="flex items-center gap-2">
-                <Music className="w-4 h-4" />
+                <Music className="w-3.5 h-3.5" />
                 배경음악 {selectedBgm !== "none" && `(${BGM_OPTIONS.find(o => o.value === selectedBgm)?.label})`}
               </span>
-              {showBgmOptions ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              {showBgmOptions ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
             </button>
 
             {showBgmOptions && (
-              <div className="mt-3 space-y-3 pl-6">
+              <div className="mt-2 space-y-2 pl-5">
                 <Select value={selectedBgm} onValueChange={setSelectedBgm}>
                   <SelectTrigger className="h-9 text-sm" data-testid="select-bgm">
                     <SelectValue />
@@ -487,32 +487,32 @@ export default function VoiceMessageConfirmModal({
           </div>
 
           {/* 버튼들 - 심플하게 */}
-          <div className="flex gap-2 pt-2">
+          <div className="flex gap-2 pt-1">
             <Button
               variant="outline"
               onClick={onClose}
-              className="flex-1"
+              className="flex-1 h-9 text-sm"
               data-testid="button-cancel"
             >
-              <X className="w-4 h-4 mr-2" />
+              <X className="w-4 h-4 mr-1.5" />
               취소
             </Button>
             <Button
               variant="outline"
               onClick={handleReRecord}
-              className="flex-1"
+              className="flex-1 h-9 text-sm"
               data-testid="button-rerecord"
             >
-              <Mic className="w-4 h-4 mr-2" />
+              <Mic className="w-4 h-4 mr-1.5" />
               다시 녹음
             </Button>
             <Button
               onClick={handleSend}
               disabled={isSending}
-              className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+              className="flex-1 h-9 text-sm bg-purple-600 hover:bg-purple-700 text-white"
               data-testid="button-send"
             >
-              <Send className="w-4 h-4 mr-2" />
+              <Send className="w-4 h-4 mr-1.5" />
               {isSending ? "전송 중..." : "보내기"}
             </Button>
           </div>
