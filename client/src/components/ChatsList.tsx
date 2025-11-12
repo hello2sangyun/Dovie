@@ -272,8 +272,15 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
       longPressTimerRef.current = null;
     }
     
-    if (wasShortPress && !isScrollingRef.current && !showVoiceModal) {
-      // 짧게 클릭한 경우 (640ms 이내) AND 스크롤이 아닐 때만 AND 녹음 모달이 안 떠있을 때 - 채팅방으로 이동
+    // 녹음 중일 때 손을 떼면 모달을 닫아 자동 전송
+    if (showVoiceModal) {
+      console.log('🎤 손을 뗌 - 녹음 자동 전송');
+      setShowVoiceModal(false);
+      return;
+    }
+    
+    if (wasShortPress && !isScrollingRef.current) {
+      // 짧게 클릭한 경우 (640ms 이내) AND 스크롤이 아닐 때만 - 채팅방으로 이동
       onSelectChat(chatRoomId);
     }
     
