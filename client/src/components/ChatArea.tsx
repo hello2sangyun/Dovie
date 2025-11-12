@@ -438,7 +438,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   
   // Reset infinite scroll state when chatRoom changes
   useEffect(() => {
-    setAllMessages([]);
     setMessageOffset(0);
     setHasMoreMessages(true);
     setIsLoadingMore(false);
