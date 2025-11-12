@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Mic, X, Send } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Mic } from "lucide-react";
 import { useMicrophonePermission } from "../hooks/useMicrophonePermission";
 import { useAppState } from "../hooks/useAppState";
 
@@ -25,29 +24,48 @@ export function VoiceRecordingModal({
   const recordingStartTimeRef = useRef<number>(0);
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const isCancelledRef = useRef<boolean>(false);
   
   const { hasPermission, requestPermission, getStream } = useMicrophonePermission();
   const appState = useAppState();
 
-  // Auto-stop recording when app goes to background
+  // Auto-cancel recording when app goes to background
   useEffect(() => {
     if (appState === 'background' && isRecording) {
-      console.log('📱 App backgrounded - stopping voice recording to save battery');
-      handleCancel();
+      console.log('📱 App backgrounded - cancelling voice recording to save battery');
+      isCancelledRef.current = true;
+      onClose();
     }
   }, [appState, isRecording]);
 
-  // Start recording when modal opens
+  // Auto-send recording when modal closes (unless cancelled)
   useEffect(() => {
-    if (isOpen && !isRecording && !isPreparing) {
-      startRecording();
+    if (!isOpen && isRecording && !isPreparing) {
+      console.log('📱 Modal closed - auto-sending voice recording');
+      if (mediaRecorderRef.current && !isCancelledRef.current) {
+        // Auto-send: stop recording and trigger onRecordingComplete
+        mediaRecorderRef.current.stop();
+      } else if (isCancelledRef.current) {
+        // Cancelled: cleanup without sending
+        cleanup();
+      }
     }
     
-    // Cleanup on unmount or close
+    // Reset cancel flag when modal opens
+    if (isOpen) {
+      isCancelledRef.current = false;
+      if (!isRecording && !isPreparing) {
+        startRecording();
+      }
+    }
+    
+    // Cleanup on unmount
     return () => {
-      cleanup();
+      if (!isOpen) {
+        cleanup();
+      }
     };
-  }, [isOpen]);
+  }, [isOpen, isRecording, isPreparing]);
 
   const startRecording = async () => {
     setIsPreparing(true);
@@ -153,15 +171,9 @@ export function VoiceRecordingModal({
     }
   };
 
-  const handleSend = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-    }
-  };
-
-  const handleCancel = () => {
-    cleanup();
+  const handleBackgroundClick = () => {
+    // User explicitly cancelled by clicking background
+    isCancelledRef.current = true;
     onClose();
   };
 
@@ -206,7 +218,7 @@ export function VoiceRecordingModal({
       {/* Dimmed Background */}
       <div 
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={handleCancel}
+        onClick={handleBackgroundClick}
       />
       
       {/* Recording Content */}
@@ -249,36 +261,9 @@ export function VoiceRecordingModal({
           </div>
         </div>
         
-        {/* Control Buttons */}
-        <div className="flex items-center space-x-4">
-          {/* Cancel Button */}
-          <Button
-            onClick={handleCancel}
-            size="lg"
-            variant="outline"
-            className="bg-white/10 hover:bg-white/20 text-white border-white/30 backdrop-blur-sm h-14 px-8"
-            data-testid="button-cancel-recording"
-          >
-            <X className="h-5 w-5 mr-2" />
-            취소
-          </Button>
-          
-          {/* Send Button */}
-          <Button
-            onClick={handleSend}
-            size="lg"
-            disabled={isPreparing || recordingDuration < 500}
-            className="bg-purple-600 hover:bg-purple-700 text-white h-14 px-8"
-            data-testid="button-send-recording"
-          >
-            <Send className="h-5 w-5 mr-2" />
-            전송
-          </Button>
-        </div>
-        
         {/* Helper Text */}
-        <p className="text-white/70 text-sm text-center max-w-xs">
-          음성 메시지를 녹음하고 있습니다. 완료되면 전송 버튼을 누르세요.
+        <p className="text-white text-lg text-center max-w-xs font-medium mt-4">
+          손을 떼면 녹음이 중지됩니다
         </p>
       </div>
       
