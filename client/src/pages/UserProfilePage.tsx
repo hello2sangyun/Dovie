@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { InstantAvatar } from "@/components/InstantAvatar";
 import { AIChatAssistantModal } from "@/components/AIChatAssistantModal";
-import { ImageViewerModal } from "@/components/ImageViewerModal";
 import { FilePreviewModal } from "@/components/FilePreviewModal";
 import { 
   ArrowLeft, 
@@ -57,7 +56,6 @@ export default function UserProfilePage() {
   const [showAIModal, setShowAIModal] = useState(false);
   const [activeTab, setActiveTab] = useState("media");
   
-  const [selectedImage, setSelectedImage] = useState<{ url: string; name: string } | null>(null);
   const [selectedFile, setSelectedFile] = useState<{ url: string; name: string; size?: number } | null>(null);
   const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
 
@@ -494,9 +492,11 @@ export default function UserProfilePage() {
                             className="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
                             data-testid={`media-item-${file.id}`}
                             onClick={() => {
-                              if (isImage) {
-                                setSelectedImage({ url: file.fileUrl, name: getFileName(file.fileUrl) });
-                              }
+                              // 이미지와 동영상 모두 FilePreviewModal로 열기 (중앙 배치, 줌, 공유 기능 제공)
+                              setSelectedFile({ 
+                                url: file.fileUrl, 
+                                name: getFileName(file.fileUrl)
+                              });
                             }}
                           >
                             {isImage ? (
@@ -626,16 +626,6 @@ export default function UserProfilePage() {
             </Button>
           </div>
         </div>
-      )}
-
-      {/* Image Viewer Modal */}
-      {selectedImage && (
-        <ImageViewerModal
-          isOpen={true}
-          onClose={() => setSelectedImage(null)}
-          imageUrl={selectedImage.url}
-          fileName={selectedImage.name}
-        />
       )}
 
       {/* File Preview Modal */}
