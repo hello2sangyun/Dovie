@@ -251,6 +251,33 @@ export function useWebSocket(userId?: number) {
               }
               break;
             
+            case "chatRoomUpdated":
+              // Handle chat room updates (name, profile image, etc.)
+              if (data.chatRoom) {
+                // Invalidate all chat rooms queries
+                queryClient.invalidateQueries({ 
+                  queryKey: ["/api/chat-rooms"] 
+                });
+                // Invalidate specific chat room query
+                queryClient.invalidateQueries({ 
+                  queryKey: [`/api/chat-rooms/${data.chatRoom.id}`] 
+                });
+                // Invalidate participants query
+                queryClient.invalidateQueries({ 
+                  queryKey: [`/api/chat-rooms/${data.chatRoom.id}/participants`] 
+                });
+                
+                // Clear image cache for updated/removed profile image
+                // Dispatch event even if profileImage is null (for removals)
+                window.dispatchEvent(new CustomEvent('profileImageUpdated', { 
+                  detail: { 
+                    newUrl: data.chatRoom.profileImage || null,
+                    chatRoomId: data.chatRoom.id
+                  } 
+                }));
+              }
+              break;
+            
             case "error":
               console.error("WebSocket server error:", data.message);
               break;

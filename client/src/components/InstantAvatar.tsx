@@ -103,7 +103,8 @@ export const InstantAvatar = memo(function InstantAvatar({
     const handleProfileImageUpdate = (event: CustomEvent) => {
       const { newUrl } = event.detail;
       // 현재 src와 새 URL이 관련된 경우 강제로 다시 렌더링
-      if (src && (src.includes('profile_') || newUrl.includes('profile_'))) {
+      // newUrl이 null인 경우(이미지 제거)도 처리
+      if (src && (src.includes('profile_') || (newUrl && newUrl.includes('profile_')))) {
         setForceUpdate(prev => prev + 1);
       }
     };

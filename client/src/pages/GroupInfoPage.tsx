@@ -168,9 +168,19 @@ export default function GroupInfoPage() {
       if (!response.ok) throw new Error('Failed to upload image');
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}`] });
       queryClient.invalidateQueries({ queryKey: ['/api/chat-rooms'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/participants`] });
+      
+      // Clear image cache to force reload (even if image was removed)
+      window.dispatchEvent(new CustomEvent('profileImageUpdated', { 
+        detail: { 
+          newUrl: data.chatRoom?.profileImage || null,
+          chatRoomId: chatRoomId
+        } 
+      }));
+      
       toast({ title: "프로필 사진이 변경되었습니다" });
     },
     onError: () => {
