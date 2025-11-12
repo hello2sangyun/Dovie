@@ -18,6 +18,7 @@ import { Plus, Search, Pin, Users, X, Trash2, LogOut, MoreVertical, Mic, Bell } 
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 import VoiceMessageConfirmModal from "./VoiceMessageConfirmModal";
+import { VoiceRecordingModal } from "./VoiceRecordingModal";
 import LoadingScreen from "./LoadingScreen";
 
 interface ChatsListProps {
@@ -43,11 +44,8 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
   
   // 음성 메시지 관련 상태
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [recordingChatRoom, setRecordingChatRoom] = useState<any>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
-  const [recordingStartTime, setRecordingStartTime] = useState(0);
   
   // 스크롤 감지 - useRef로 동기적 업데이트
   const touchStartYRef = useRef<number>(0);
@@ -65,37 +63,6 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
   
   // 음성 처리 로딩 상태
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
-
-  // Pause recording when app goes to background (prevents mic sound and battery drain)
-  // Resume when app comes back to foreground
-  useEffect(() => {
-    if (appState === 'background' && isRecording && mediaRecorderRef.current) {
-      console.log('📱 App backgrounded - pausing chat voice recording (no mic sound)');
-      // Pause instead of stop - prevents microphone "띠딩" sound
-      // Feature detection for iOS WebView compatibility
-      if (mediaRecorderRef.current.state === 'recording') {
-        if (typeof mediaRecorderRef.current.pause === 'function') {
-          try {
-            mediaRecorderRef.current.pause();
-          } catch (error) {
-            console.warn('📱 MediaRecorder.pause() not supported, recording continues');
-          }
-        }
-      }
-    } else if (appState === 'active' && isRecording && mediaRecorderRef.current) {
-      console.log('📱 App foregrounded - resuming chat voice recording');
-      // Resume recording when app comes back
-      if (mediaRecorderRef.current.state === 'paused') {
-        if (typeof mediaRecorderRef.current.resume === 'function') {
-          try {
-            mediaRecorderRef.current.resume();
-          } catch (error) {
-            console.warn('📱 MediaRecorder.resume() not supported');
-          }
-        }
-      }
-    }
-  }, [appState, isRecording]);
 
   // Voice Confirm Modal 콜백 함수들
   const handleVoiceMessageSend = async (editedText: string) => {
@@ -153,12 +120,13 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     // 모달 닫기
     setShowVoiceConfirmModal(false);
     
-    // 녹음 시작 (현재 chatRoom context 유지)
+    // 녹음 모달 열기 (현재 chatRoom context 유지)
     if (voiceConfirmData) {
       const chatRoom = (chatRoomsData as any)?.chatRooms?.find((room: any) => room.id === voiceConfirmData.chatRoomId);
       if (chatRoom) {
         setTimeout(() => {
-          startVoiceRecording(chatRoom);
+          setRecordingChatRoom(chatRoom);
+          setShowVoiceModal(true);
         }, 300);
       }
     }
@@ -235,7 +203,7 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
   // 길게 누르기 시작
   const handleLongPressStart = (chatRoom: any, e?: React.TouchEvent | React.MouseEvent) => {
     // 녹음 중이 아닐 때는 preventDefault 하지 않음 (네이티브 스크롤 허용)
-    if (e && isRecording) {
+    if (e && showVoiceModal) {
       e.preventDefault();
     }
     
@@ -250,9 +218,10 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     isScrollingRef.current = false;
     
     const timer = setTimeout(() => {
-      // 스크롤 중이 아닐 때만 음성 녹음 시작 (ref.current로 최신 값 확인)
+      // 스크롤 중이 아닐 때만 음성 녹음 모달 열기 (ref.current로 최신 값 확인)
       if (!isScrollingRef.current) {
-        startVoiceRecording(chatRoom);
+        setRecordingChatRoom(chatRoom);
+        setShowVoiceModal(true);
       } else {
         console.log('🚫 스크롤 중이므로 음성 녹음 취소');
       }
@@ -295,11 +264,6 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
 
   // 길게 누르기 끝
   const handleLongPressEnd = (e: React.TouchEvent | React.MouseEvent, chatRoomId: number) => {
-    // 녹음 중일 때만 preventDefault (스크롤 허용)
-    if (isRecording && e) {
-      e.preventDefault();
-    }
-    
     const wasShortPress = longPressTimerRef.current !== null;
     
     // 타이머 취소 (동기적)
@@ -308,16 +272,10 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
       longPressTimerRef.current = null;
     }
     
-    if (isRecording) {
-      // 녹음 중이었다면 click 이벤트 차단하고 녹음 중지
-      if (e) e.stopPropagation();
-      stopVoiceRecording();
-    } else if (wasShortPress && !isScrollingRef.current) {
-      // 짧게 클릭한 경우 (640ms 이내) AND 스크롤이 아닐 때만 - 채팅방으로 이동
+    if (wasShortPress && !isScrollingRef.current && !showVoiceModal) {
+      // 짧게 클릭한 경우 (640ms 이내) AND 스크롤이 아닐 때만 AND 녹음 모달이 안 떠있을 때 - 채팅방으로 이동
       onSelectChat(chatRoomId);
     }
-    
-    setRecordingChatRoom(null);
     
     // 스크롤 감지 초기화 (동기적) - 약간의 지연으로 스크롤 상태 유지
     setTimeout(() => {
@@ -326,66 +284,24 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     }, 100);
   };
 
-  // 음성 녹음 시작
-  const startVoiceRecording = async (chatRoom: any) => {
-    console.log('🎤 채팅방 음성 녹음 시작:', getChatRoomDisplayName(chatRoom));
+  // 음성 녹음 완료 핸들러
+  const handleVoiceRecordingComplete = (audioBlob: Blob, duration: number) => {
+    console.log('🎤 채팅방 음성 녹음 완료:', recordingChatRoom?.id, '파일 크기:', audioBlob.size, '지속시간:', duration);
     
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
-      });
-      
-      mediaRecorderRef.current = mediaRecorder;
-      chunksRef.current = [];
-      
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          chunksRef.current.push(event.data);
-        }
-      };
-      
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm;codecs=opus' });
-        const duration = Math.max(1, Math.round((Date.now() - recordingStartTime) / 1000));
-        
-        console.log('📞 duration:', duration);
-        console.log('🎤 채팅방 간편음성메세지 전송 시작:', chatRoom.id, '파일 크기:', audioBlob.size, '지속시간:', duration);
-        
-        if (audioBlob.size > 0) {
-          sendVoiceMessage(chatRoom, audioBlob);
-        } else {
-          console.error('❌ Empty audio blob created');
-        }
-        
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      mediaRecorder.onerror = (event) => {
-        console.error('❌ MediaRecorder error:', event);
-      };
-
-      // Start recording with timeslice for regular data events
-      mediaRecorder.start(1000); // Collect data every 1 second
-      setIsRecording(true);
-      setRecordingChatRoom(chatRoom);
-      setRecordingStartTime(Date.now());
-      
-      console.log('🎤 음성 녹음 시작:', getChatRoomDisplayName(chatRoom));
-    } catch (error) {
-      console.error('❌ Voice recording failed:', error);
+    if (audioBlob.size > 0 && recordingChatRoom) {
+      sendVoiceMessage(recordingChatRoom, audioBlob);
+    } else {
+      console.error('❌ Empty audio blob or no recording chat room');
     }
+    
+    setShowVoiceModal(false);
+    setRecordingChatRoom(null);
   };
 
-  // 음성 녹음 중지
-  const stopVoiceRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      console.log('🛑 음성 녹음 중지');
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-      setRecordingChatRoom(null);
-    }
+  // 모달 닫기 핸들러
+  const handleCloseVoiceModal = () => {
+    setShowVoiceModal(false);
+    setRecordingChatRoom(null);
   };
 
   // 음성 메시지 전송 (채팅방용) - 통합된 방식 사용
@@ -872,7 +788,6 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
                 onLongPressEnd={handleLongPressEnd}
                 onTouchMove={handleTouchMove}
                 onTouchCancel={handleTouchCancel}
-                isRecording={isRecording && recordingChatRoom?.id === chatRoom.id}
               />
             ))}
           </>
@@ -902,7 +817,6 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
                 onLongPressEnd={handleLongPressEnd}
                 onTouchMove={handleTouchMove}
                 onTouchCancel={handleTouchCancel}
-                isRecording={isRecording && recordingChatRoom?.id === chatRoom.id}
               />
             ))}
           </>
@@ -951,6 +865,14 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
         </DialogContent>
       </Dialog>
 
+      {/* Voice Recording Modal */}
+      <VoiceRecordingModal
+        isOpen={showVoiceModal}
+        onClose={handleCloseVoiceModal}
+        onRecordingComplete={handleVoiceRecordingComplete}
+        targetName={recordingChatRoom ? getChatRoomDisplayName(recordingChatRoom) : ''}
+      />
+
       {/* Voice Message Confirm Modal */}
       {voiceConfirmData && (
         <VoiceMessageConfirmModal
@@ -983,8 +905,7 @@ function ChatRoomItem({
   onLongPressStart,
   onLongPressEnd,
   onTouchMove,
-  onTouchCancel,
-  isRecording = false
+  onTouchCancel
 }: {
   chatRoom: any;
   displayName: string;
@@ -1001,7 +922,6 @@ function ChatRoomItem({
   onLongPressEnd?: (e: React.TouchEvent | React.MouseEvent, chatRoomId: number) => void;
   onTouchMove?: (e: React.TouchEvent) => void;
   onTouchCancel?: () => void;
-  isRecording?: boolean;
 }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -1107,8 +1027,7 @@ function ChatRoomItem({
       className={cn(
         "p-4 hover:bg-slate-50 dark:hover:bg-slate-800 border-b border-slate-200 dark:border-slate-700 transition-colors relative",
         isSelected && !isMultiSelectMode && "bg-slate-50 dark:bg-slate-800",
-        isMultiSelectMode && isChecked && "bg-blue-50 dark:bg-blue-900",
-        isRecording && "bg-red-50 dark:bg-red-900 border-red-200 dark:border-red-700"
+        isMultiSelectMode && isChecked && "bg-blue-50 dark:bg-blue-900"
       )}
       onClick={(e) => {
         // 다중 선택 모드일 때만 onClick 사용
@@ -1120,15 +1039,6 @@ function ChatRoomItem({
     >
       {isPinned && !isMultiSelectMode && (
         <Pin className="absolute top-2 right-2 text-purple-500 h-3 w-3" />
-      )}
-      
-      {isRecording && (
-        <div className="absolute inset-0 bg-red-500/10 border-2 border-red-500 rounded-lg flex items-center justify-center pointer-events-none">
-          <div className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-2">
-            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-            <span>음성 녹음 중...</span>
-          </div>
-        </div>
       )}
       
       <div className="flex items-center justify-between">

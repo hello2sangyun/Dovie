@@ -13,6 +13,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { InstantAvatar } from "@/components/InstantAvatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import VoiceMessageConfirmModal from "./VoiceMessageConfirmModal";
+import { VoiceRecordingModal } from "./VoiceRecordingModal";
 import LoadingScreen from "./LoadingScreen";
 
 interface ContactsListProps {
@@ -33,13 +34,10 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
   const [contactToBlock, setContactToBlock] = useState<any>(null);
   const [contactToDelete, setContactToDelete] = useState<any>(null);
 
-  // 음성 메시지 관련 상태 - useRef로 동기적 처리
+  // 음성 메시지 관련 상태
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [recordingContact, setRecordingContact] = useState<any>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
-  const [recordingStartTime, setRecordingStartTime] = useState(0);
   
   // 스크롤 감지 - useRef로 동기적 처리
   const touchStartYRef = useRef<number>(0);
@@ -58,37 +56,6 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
   
   // 음성 처리 로딩 상태
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
-
-  // Pause recording when app goes to background (prevents mic sound and battery drain)
-  // Resume when app comes back to foreground
-  useEffect(() => {
-    if (appState === 'background' && isRecording && mediaRecorderRef.current) {
-      console.log('📱 App backgrounded - pausing contact voice recording (no mic sound)');
-      // Pause instead of stop - prevents microphone "띠딩" sound
-      // Feature detection for iOS WebView compatibility
-      if (mediaRecorderRef.current.state === 'recording') {
-        if (typeof mediaRecorderRef.current.pause === 'function') {
-          try {
-            mediaRecorderRef.current.pause();
-          } catch (error) {
-            console.warn('📱 MediaRecorder.pause() not supported, recording continues');
-          }
-        }
-      }
-    } else if (appState === 'active' && isRecording && mediaRecorderRef.current) {
-      console.log('📱 App foregrounded - resuming contact voice recording');
-      // Resume recording when app comes back
-      if (mediaRecorderRef.current.state === 'paused') {
-        if (typeof mediaRecorderRef.current.resume === 'function') {
-          try {
-            mediaRecorderRef.current.resume();
-          } catch (error) {
-            console.warn('📱 MediaRecorder.resume() not supported');
-          }
-        }
-      }
-    }
-  }, [appState, isRecording]);
 
   // Toggle favorite mutation
   const toggleFavoriteMutation = useMutation({
@@ -321,7 +288,7 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
   // 길게 누르기 시작
   const handleLongPressStart = (contact: any, e: React.TouchEvent | React.MouseEvent) => {
     // 녹음 중이 아닐 때는 preventDefault 하지 않음 (네이티브 스크롤 허용)
-    if (e && isRecording) {
+    if (e && showVoiceModal) {
       e.preventDefault();
     }
     
@@ -336,16 +303,16 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
     isScrollingRef.current = false;
     
     const timer = setTimeout(() => {
-      // 스크롤 중이 아닐 때만 음성 녹음 시작 (ref.current로 최신 값 확인)
+      // 스크롤 중이 아닐 때만 음성 녹음 모달 열기 (ref.current로 최신 값 확인)
       if (!isScrollingRef.current) {
-        startVoiceRecording(contact);
+        setRecordingContact(contact);
+        setShowVoiceModal(true);
       } else {
         console.log('🚫 스크롤 중이므로 음성 녹음 취소');
       }
     }, 640); // 640ms 후 음성 녹음 시작 (20% 단축)
     
     longPressTimerRef.current = timer;
-    setRecordingContact(contact); // 어떤 연락처인지 저장
   };
 
   // 터치 이동 감지 (스크롤 감지) - useRef로 동기적 처리
@@ -382,11 +349,6 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
 
   // 길게 누르기 끝
   const handleLongPressEnd = (e: React.TouchEvent | React.MouseEvent, contactUserId: number) => {
-    // 녹음 중일 때만 preventDefault (스크롤 허용)
-    if (isRecording && e) {
-      e.preventDefault();
-    }
-    
     const wasShortPress = longPressTimerRef.current !== null;
     
     // 타이머 취소 (동기적)
@@ -395,16 +357,10 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
       longPressTimerRef.current = null;
     }
     
-    if (isRecording) {
-      // 녹음 중이었다면 click 이벤트 차단하고 녹음 중지
-      if (e) e.stopPropagation();
-      stopVoiceRecording();
-    } else if (wasShortPress && !isScrollingRef.current) {
-      // 짧게 클릭한 경우 (640ms 이내) AND 스크롤이 아닐 때만 - 채팅방으로 이동
+    if (wasShortPress && !isScrollingRef.current && !showVoiceModal) {
+      // 짧게 클릭한 경우 (640ms 이내) AND 스크롤이 아닐 때만 AND 녹음 모달이 안 떠있을 때 - 연락처 선택
       onSelectContact(contactUserId);
     }
-    
-    setRecordingContact(null);
     
     // 스크롤 감지 초기화 (동기적) - 약간의 지연으로 스크롤 상태 유지
     setTimeout(() => {
@@ -419,66 +375,24 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
     e.preventDefault();
   };
 
-  // 음성 녹음 시작
-  const startVoiceRecording = async (contact: any) => {
-    console.log('🎤 친구 음성 녹음 시작:', contact.contactUser.displayName);
+  // 음성 녹음 완료 핸들러
+  const handleVoiceRecordingComplete = (audioBlob: Blob, duration: number) => {
+    console.log('🎤 친구 음성 녹음 완료:', recordingContact?.contactUser.displayName, '파일 크기:', audioBlob.size, '지속시간:', duration);
     
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
-      });
-      
-      mediaRecorderRef.current = mediaRecorder;
-      chunksRef.current = [];
-      
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          chunksRef.current.push(event.data);
-        }
-      };
-      
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm;codecs=opus' });
-        const duration = Math.max(1, Math.round((Date.now() - recordingStartTime) / 1000));
-        
-        console.log('📞 duration:', duration);
-        console.log('🎤 친구 간편음성메세지 전송 시작:', contact.contactUserId, '파일 크기:', audioBlob.size, '지속시간:', duration);
-        
-        if (audioBlob.size > 0) {
-          await sendVoiceMessage(contact, audioBlob);
-        } else {
-          console.error('❌ Empty audio blob created');
-        }
-        
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      mediaRecorder.onerror = (event) => {
-        console.error('❌ MediaRecorder error:', event);
-      };
-
-      // Start recording with timeslice for regular data events
-      mediaRecorder.start(1000); // Collect data every 1 second
-      setIsRecording(true);
-      setRecordingContact(contact);
-      setRecordingStartTime(Date.now());
-      
-      console.log('🎤 음성 녹음 시작:', contact.contactUser.displayName);
-    } catch (error) {
-      console.error('❌ Voice recording failed:', error);
+    if (audioBlob.size > 0 && recordingContact) {
+      sendVoiceMessage(recordingContact, audioBlob);
+    } else {
+      console.error('❌ Empty audio blob or no recording contact');
     }
+    
+    setShowVoiceModal(false);
+    setRecordingContact(null);
   };
 
-  // 음성 녹음 중지
-  const stopVoiceRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      console.log('🛑 음성 녹음 중지');
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-      setRecordingContact(null);
-    }
+  // 모달 닫기 핸들러
+  const handleCloseVoiceModal = () => {
+    setShowVoiceModal(false);
+    setRecordingContact(null);
   };
 
   // 음성 메시지 전송 (친구용 - 1:1 채팅방으로 전송)
@@ -599,12 +513,13 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
     // 모달 닫기
     setShowVoiceConfirmModal(false);
     
-    // 녹음 시작 (현재 contact context 유지)
+    // 녹음 모달 열기 (현재 contact context 유지)
     if (voiceConfirmData) {
       const contact = (contactsData as any)?.find((c: any) => c.contactUserId === voiceConfirmData.contactUserId);
       if (contact) {
         setTimeout(() => {
-          startVoiceRecording(contact);
+          setRecordingContact(contact);
+          setShowVoiceModal(true);
         }, 300);
       }
     }
@@ -698,15 +613,11 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
           <div className="flex overflow-x-auto px-2 py-2 space-x-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
             {favoriteContacts.map((contact: any) => {
               const displayName = contact.nickname || contact.contactUser.displayName;
-              const isRecordingThisContact = isRecording && recordingContact?.id === contact.id;
               
               return (
                 <div key={contact.id} className="flex flex-col items-center space-y-1 min-w-[60px] group">
                   <div 
-                    className={cn(
-                      "relative cursor-pointer select-none",
-                      isRecordingThisContact && "animate-pulse"
-                    )}
+                    className="relative cursor-pointer select-none"
                     onTouchStart={(e) => handleLongPressStart(contact, e)}
                     onTouchMove={(e) => handleTouchMove(e)}
                     onTouchCancel={() => handleTouchCancel()}
@@ -720,16 +631,8 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
                       src={contact.contactUser.profilePicture}
                       fallbackText={displayName}
                       size="md"
-                      className={cn(
-                        "group-hover:ring-2 group-hover:ring-blue-300 transition-all",
-                        isRecordingThisContact && "ring-4 ring-red-500 ring-offset-2"
-                      )}
+                      className="group-hover:ring-2 group-hover:ring-blue-300 transition-all"
                     />
-                    {isRecordingThisContact && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-red-500 bg-opacity-30 rounded-full">
-                        <Mic className="h-6 w-6 text-white animate-pulse" />
-                      </div>
-                    )}
                     {hasRecentPost(contact.contactUserId) && (
                       <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 border-2 border-white rounded-full flex items-center justify-center z-20">
                         <Users className="h-2 w-2 text-white" />
@@ -759,15 +662,10 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
           </div>
         ) : (
           filteredAndSortedContacts.map((contact: any) => {
-            const isRecordingThisContact = isRecording && recordingContact?.id === contact.id;
-            
             return (
             <div
               key={contact.id}
-              className={cn(
-                "px-3 py-2 hover:bg-purple-50 border-b border-gray-100 transition-colors",
-                isRecordingThisContact && "bg-red-50 animate-pulse"
-              )}
+              className="px-3 py-2 hover:bg-purple-50 border-b border-gray-100 transition-colors"
             >
               <div className="flex items-center justify-between">
                 <div 
@@ -786,16 +684,8 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
                       src={contact.contactUser.profilePicture}
                       fallbackText={contact.nickname || contact.contactUser.displayName}
                       size="sm"
-                      className={cn(
-                        "hover:ring-2 hover:ring-blue-300 transition-all",
-                        isRecordingThisContact && "ring-4 ring-red-500 ring-offset-2"
-                      )}
+                      className="hover:ring-2 hover:ring-blue-300 transition-all"
                     />
-                    {isRecordingThisContact && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-red-500 bg-opacity-30 rounded-full">
-                        <Mic className="h-4 w-4 text-white animate-pulse" />
-                      </div>
-                    )}
                     {hasRecentPost(contact.contactUserId) && (
                       <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 border-2 border-white rounded-full flex items-center justify-center z-20">
                         <Users className="h-2 w-2 text-white" />
@@ -914,6 +804,14 @@ export default function ContactsList({ onAddContact, onSelectContact, onNavigate
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Voice Recording Modal */}
+      <VoiceRecordingModal
+        isOpen={showVoiceModal}
+        onClose={handleCloseVoiceModal}
+        onRecordingComplete={handleVoiceRecordingComplete}
+        targetName={recordingContact?.nickname ?? recordingContact?.contactUser?.displayName}
+      />
 
       {/* Voice Message Confirm Modal */}
       {voiceConfirmData && (
