@@ -335,33 +335,33 @@ export default function VoiceMessageConfirmModal({
 
         <div className="px-6 py-6 space-y-5 max-h-[70vh] overflow-y-auto">
           {/* 오디오 플레이어 - 커스텀 웨이브폼 디자인 */}
-          <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4">
+          <div className="bg-purple-50 dark:bg-purple-950/30 rounded-xl p-4 border border-purple-200 dark:border-purple-800/50">
             <div className="flex items-center gap-4">
               {/* 재생 버튼 */}
               <button
                 onClick={togglePlayPause}
-                className="flex-shrink-0 w-12 h-12 rounded-full bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center transition-colors shadow-md"
+                className="flex-shrink-0 w-14 h-14 rounded-full bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center transition-colors shadow-lg"
                 data-testid="button-play-pause"
               >
                 {isPlaying ? (
-                  <Pause className="w-5 h-5" fill="currentColor" />
+                  <Pause className="w-6 h-6" fill="currentColor" />
                 ) : (
-                  <Play className="w-5 h-5 ml-0.5" fill="currentColor" />
+                  <Play className="w-6 h-6 ml-0.5" fill="currentColor" />
                 )}
               </button>
 
-              {/* 웨이브폼 비주얼 */}
-              <div className="flex-1 flex items-center gap-1 h-12">
-                {[...Array(40)].map((_, i) => {
-                  const height = Math.sin(i * 0.5) * 30 + 50;
+              {/* 웨이브폼 비주얼 - 더 크고 선명하게 */}
+              <div className="flex-1 flex items-center gap-1 h-16">
+                {[...Array(35)].map((_, i) => {
+                  const height = Math.sin(i * 0.5) * 40 + 50;
                   return (
                     <div
                       key={i}
                       className={cn(
                         "flex-1 rounded-full transition-all",
                         isPlaying 
-                          ? "bg-purple-500 dark:bg-purple-400" 
-                          : "bg-gray-300 dark:bg-gray-700"
+                          ? "bg-purple-600 dark:bg-purple-400 shadow-sm" 
+                          : "bg-purple-300 dark:bg-purple-600"
                       )}
                       style={{
                         height: `${height}%`,
@@ -373,7 +373,7 @@ export default function VoiceMessageConfirmModal({
               </div>
 
               {/* 시간 표시 */}
-              <div className="flex-shrink-0 text-sm font-medium text-gray-600 dark:text-gray-400 min-w-[3rem] text-right">
+              <div className="flex-shrink-0 text-base font-bold text-purple-700 dark:text-purple-300 min-w-[3.5rem] text-right">
                 {duration?.toFixed(1)}초
               </div>
             </div>

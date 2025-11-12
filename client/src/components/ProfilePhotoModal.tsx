@@ -126,7 +126,10 @@ export default function ProfilePhotoModal({ isOpen, onClose }: ProfilePhotoModal
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent 
+        className="max-w-md"
+        overlayClassName="bg-black/35 backdrop-blur-sm"
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             프로필 사진 변경

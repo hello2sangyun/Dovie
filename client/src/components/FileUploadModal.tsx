@@ -130,7 +130,10 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="w-[95vw] max-w-sm sm:max-w-lg max-h-[90vh] overflow-y-auto mx-2 p-3 sm:p-6">
+      <DialogContent 
+        className="w-[95vw] max-w-sm sm:max-w-lg max-h-[90vh] overflow-y-auto mx-2 p-3 sm:p-6"
+        overlayClassName="bg-black/35 backdrop-blur-sm"
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Upload className="h-5 w-5 text-purple-600" />
