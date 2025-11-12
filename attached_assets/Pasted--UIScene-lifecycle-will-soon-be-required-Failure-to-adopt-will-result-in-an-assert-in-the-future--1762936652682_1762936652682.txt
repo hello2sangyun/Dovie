@@ -1,0 +1,298 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/4F5E8292-3490-44EB-AA54-52B496571730/App.app'
+KeyboardPlugin: resize mode - body
+⚡️  Loading app at https://dovie-hello2sangyun.replit.app...
+📱 [AppDelegate] Registered for remote notifications
+XPC connection interrupted
+Networking process (0x112064190) took 16.232804 seconds to launch
+GPU process (0x11211c1e0) took 3.987934 seconds to launch
+WebContent process (0x1120ec100) took 7.272050 seconds to launch
+Connection::sendMessage(): Too many messages (129) in the queue to remote PID: 23780 (most common: 78 WebProcess_BacklightLevelDidChange messages), notifying client
+📱 [AppDelegate] APNS 토큰 등록 성공
+WebContent[23780] 0x100e94c18 - [webPageID=8] WebPage::runJavaScriptInFrameInScriptWorld: Request to run JavaScript failed with error <private>
+⚡️  JS Eval error A JavaScript exception occurred
+Updated list with error: DownloadFailed
+Updated list with error: DownloadFailed
+Updated list with error: DownloadFailed
+WebContent[23780] 0x100e94c18 - [webPageID=8] WebPage::runJavaScriptInFrameInScriptWorld: Request to run JavaScript failed with error <private>
+⚡️  JS Eval error A JavaScript exception occurred
+WebContent[23780] Unable to hide query parameters from script (missing data)
+⚡️  WebView loaded
+⚡️  [log] - 🔄 Auth context updating user: 126 profilePicture: /uploads/profile_1761606486798_jejztvnxp8j.jpg
+Updated list with error: DownloadFailed
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://dovie-hello2sangyun.replit.app/ws
+⚡️  [log] -    Protocol: wss:, Host: dovie-hello2sangyun.replit.app
+⚡️  [log] - 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+⚡️  [log] - [Badge] Service Worker not supported
+⚡️  [log] - ✅ Navigation service registered
+⚡️  [log] - ✅ Navigator registered with navigation service
+⚡️  To Native ->  App addListener 61249700
+⚡️  To Native ->  App addListener 61249701
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  To Native ->  App addListener 61249702
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  To Native ->  App addListener 61249703
+⚡️  To Native ->  App addListener 61249704
+⚡️  To Native ->  PushNotifications addListener 61249705
+⚡️  To Native ->  PushNotifications addListener 61249706
+⚡️  To Native ->  PushNotifications addListener 61249707
+⚡️  To Native ->  PushNotifications addListener 61249708
+⚡️  To Native ->  PushNotifications requestPermissions 61249709
+⚡️  TO JS {"receive":"granted"}
+⚡️  To Native ->  PushNotifications register 61249710
+⚡️  TO JS undefined
+⚡️  TO JS {"value":"973E0FD9C536FF722A6E70D43D5CD97F6D6EB28BEE9A7FC3F9DA3D236F44DF2C"}
+📱 [AppDelegate] APNS 토큰 등록 성공
+⚡️  [log] - 📱 iOS 네이티브 푸시 알림 등록 성공 (리스너 대기 중)
+⚡️  [log] - 📱 iOS 푸시 토큰 획득: 973E0FD9C536FF722A6E70D43D5CD97F6D6EB28BEE9A7FC3F9DA3D236F44DF2C
+⚡️  [log] - 📱 서버로 iOS 토큰 전송 시작: 973E0FD9C536FF722A6E...
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - ✅ iOS 푸시 토큰이 서버에 저장되었습니다: {"success":true,"message":"iOS push token registered successfully","userId":126,"tokenPreview":"973E0FD9C536FF722A6E..."}
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 2
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: [{"chatRoomId":119,"unreadCount":2}]
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 2
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 2
+⚡️  [log] - 📱 PWA Badge update: 0 → 2 (messages: 2, AI: 0)
+⚡️  To Native ->  Badge set 61249711
+⚡️  [log] - 📱 Native Badge update: 0 → 2 (messages: 2, AI: 0)
+⚡️  TO JS undefined
+⚡️  [log] - ✅ Native badge count set to 2
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+0x11211c1e0 - GPUProcessProxy::gpuProcessExited: reason=IdleExit
+0x1120ec100 - [PID=23780] WebProcessProxy::gpuProcessExited: reason=IdleExit
+Updated list with error: DownloadFailed
+Updated list with error: DownloadFailed
+Failed to terminate process: Error Domain=com.apple.extensionKit.errorDomain Code=18 "(null)" UserInfo={NSUnderlyingError=0x138d075d0 {Error Domain=RBSRequestErrorDomain Code=3 "No such process found" UserInfo={NSLocalizedFailureReason=No such process found}}}
+⚡️  [log] - [NotificationManager] User inactive - enabling notifications
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - [NotificationManager] App visible - suppressing notifications
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 📱 앱이 활성화됨 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app opened - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  To Native ->  App removeListener 61249712
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [log] - WebSocket disconnected: 1000 App backgrounded
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - [NotificationManager] App visible - suppressing notifications
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 📱 앱이 활성화됨 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app opened - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App foregrounded - reconnecting WebSocket
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - 📱 Calling connect() after foreground transition
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://dovie-hello2sangyun.replit.app/ws
+⚡️  [log] -    Protocol: wss:, Host: dovie-hello2sangyun.replit.app
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 3
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: [{"chatRoomId":119,"unreadCount":3}]
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 3
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 3
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+⚡️  To Native ->  App addListener 61249713
+⚡️  [log] - 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: real
+⚡️  To Native ->  Filesystem mkdir 61249714
+⚡️  To Native ->  Filesystem mkdir 61249715
+ERROR MESSAGE:  {"errorMessage":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/7911431B-E31A-4F46-9BEF-01B41945637C\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","message":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/7911431B-E31A-4F46-9BEF-01B41945637C\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010"}
+ERROR MESSAGE:  {"message":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/7911431B-E31A-4F46-9BEF-01B41945637C\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","errorMessage":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/7911431B-E31A-4F46-9BEF-01B41945637C\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010"}
+⚡️  [error] - {"errorMessage":"Directory at 'file:///var/mobile/Containers/Data/Application/7911431B-E31A-4F46-9BEF-01B41945637C/Library/Caches/file_cache/'  already exists, cannot be overwritten.","message":"Directory at 'file:///var/mobile/Containers/Data/Application/7911431B-E31A-4F46-9BEF-01B41945637C/Library/Caches/file_cache/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010"}
+⚡️  To Native ->  Filesystem readFile 61249716
+⚡️  To Native ->  Filesystem readFile 61249717
+⚡️  TO JS {"data":"{\"\/uploads\/file_1762843788937_0vyybbht6fr.pdf\":{\"uri\":\"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/92077C1F-980B-4311-9079-0A34C92D9A5B\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYyODQzNzg4.pdf\",\"size\":89663,\"timesta
+⚡️  [error] - {"message":"Directory at 'file:///var/mobile/Containers/Data/Application/7911431B-E31A-4F46-9BEF-01B41945637C/Library/Caches/file_cache/'  already exists, cannot be overwritten.","errorMessage":"Directory at 'file:///var/mobile/Containers/Data/Application/7911431B-E31A-4F46-9BEF-01B41945637C/Library/Caches/file_cache/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010"}
+⚡️  TO JS {"data":"{\"\/uploads\/file_1762843788937_0vyybbht6fr.pdf\":{\"uri\":\"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/92077C1F-980B-4311-9079-0A34C92D9A5B\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYyODQzNzg4.pdf\",\"size\":89663,\"timesta
+⚡️  [log] - [FileCache] Loaded 9 cached files
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  [log] - [FileCache] Loaded 9 cached files
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  [log] - 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: real
+⚡️  To Native ->  App addListener 61249718
+⚡️  To Native ->  App addListener 61249719
+DeviceIdHashSaltStorage: The length of the hash salt (47) is different to the length of the hash salts defined in WebKit (48)
+⚡️  [log] - [FileCache] Cache miss, downloading: /uploads/file_1762845707100_vyntc81f8sj.jpeg
+⚡️  [log] - [FileCache] Cache miss, downloading: /uploads/file_1762847153043_7fknqoaf848.pdf
+⚡️  [log] - [FileCache] Cache miss, downloading: /uploads/file_1762849189604_q82877q4qa.jpeg
+⚡️  [log] - [FileCache] Cache miss, downloading: /uploads/file_1762849513723_aml49nutkss.pdf
+⚡️  [log] - [FileCache] Cache miss, downloading: /uploads/file_1762854376160_djtpf4zueog.mov
+WebContent[23780] The sandbox in this process does not allow access to RunningBoard.
+WebContent[23780] Handshake aborted as the connection has been invalidated
+WebContent[23780] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+WebContent[23780] <<<< CMPhotoJFIFUtilities >>>> signalled err=-17102 at <>:1776
+WebContent[23780] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+⚡️  [log] - ✅ Microphone permission already granted, stream ready
+⚡️  [log] - ✅ Microphone permission already granted, stream ready
+⚡️  [error] - [FileCache] Failed to fetch and cache: {}
+⚡️  [log] - Image loaded successfully: /uploads/file_1762849189604_q82877q4qa.jpeg
+⚡️  [log] - Image loaded successfully: /uploads/file_1762849189604_q82877q4qa.jpeg
+⚡️  To Native ->  Filesystem writeFile 61249720
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/7911431B-E31A-4F46-9BEF-01B41945637C\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYyODQ5NTEz.pdf"}
+⚡️  To Native ->  Filesystem writeFile 61249721
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/7911431B-E31A-4F46-9BEF-01B41945637C\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYyODQ3MTUz.pdf"}
+⚡️  To Native ->  Filesystem writeFile 61249722
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/7911431B-E31A-4F46-9BEF-01B41945637C\/Library\/Caches\/file_cache\/index.json"}
+⚡️  To Native ->  Filesystem writeFile 61249723
+⚡️  To Native ->  Filesystem writeFile 61249724
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/7911431B-E31A-4F46-9BEF-01B41945637C\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYyODQ1NzA3.jpeg"}
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/7911431B-E31A-4F46-9BEF-01B41945637C\/Library\/Caches\/file_cache\/index.json"}
+⚡️  [log] - [FileCache] Cached file: /uploads/file_1762849513723_aml49nutkss.pdf -> file:///var/mobile/Containers/Data/Application/7911431B-E31A-4F46-9BEF-01B41945637C/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyODQ5NTEz.pdf
+⚡️  To Native ->  Filesystem writeFile 61249725
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/7911431B-E31A-4F46-9BEF-01B41945637C\/Library\/Caches\/file_cache\/index.json"}
+⚡️  [log] - [FileCache] Cached file: /uploads/file_1762847153043_7fknqoaf848.pdf -> file:///var/mobile/Containers/Data/Application/7911431B-E31A-4F46-9BEF-01B41945637C/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyODQ3MTUz.pdf
+⚡️  [log] - [FileCache] Cached file: /uploads/file_1762845707100_vyntc81f8sj.jpeg -> file:///var/mobile/Containers/Data/Application/7911431B-E31A-4F46-9BEF-01B41945637C/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyODQ1NzA3.jpeg
+WebContent[23780] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+⚡️  [log] - Image loaded successfully: capacitor://localhost/_capacitor_file_/var/mobile/Containers/Data/Application/7911431B-E31A-4F46-9BEF-01B41945637C/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyODQ1NzA3.jpeg
+⚡️  [log] - Image loaded successfully: capacitor://localhost/_capacitor_file_/var/mobile/Containers/Data/Application/7911431B-E31A-4F46-9BEF-01B41945637C/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyODQ1NzA3.jpeg
+⚡️  To Native ->  Filesystem writeFile 61249726
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/7911431B-E31A-4F46-9BEF-01B41945637C\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYyODQ5MTg5.jpeg"}
+⚡️  To Native ->  Filesystem writeFile 61249727
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/7911431B-E31A-4F46-9BEF-01B41945637C\/Library\/Caches\/file_cache\/index.json"}
+⚡️  [log] - [FileCache] Cached file: /uploads/file_1762849189604_q82877q4qa.jpeg -> file:///var/mobile/Containers/Data/Application/7911431B-E31A-4F46-9BEF-01B41945637C/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyODQ5MTg5.jpeg
+WebContent[23780] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+⚡️  [log] - Image loaded successfully: capacitor://localhost/_capacitor_file_/var/mobile/Containers/Data/Application/7911431B-E31A-4F46-9BEF-01B41945637C/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyODQ5MTg5.jpeg
+⚡️  [log] - Image loaded successfully: capacitor://localhost/_capacitor_file_/var/mobile/Containers/Data/Application/7911431B-E31A-4F46-9BEF-01B41945637C/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyODQ5MTg5.jpeg
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 0
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: []
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  To Native ->  Badge set 61249728
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  To Native ->  Badge set 61249729
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  TO JS undefined
+XPC connection interrupted
+Reporter disconnected. { function=sendMessage, reporterID=101975408508929 }
+Reporter disconnected. { function=sendMessage, reporterID=101975408508929 }
+Reporter disconnected. { function=sendMessage, reporterID=101975408508929 }
+Reporter disconnected. { function=sendMessage, reporterID=101975408508929 }
+Reporter disconnected. { function=sendMessage, reporterID=101975408508929 }
+Reporter disconnected. { function=sendMessage, reporterID=101975408508929 }
+Reporter disconnected. { function=sendMessage, reporterID=101975408508929 }
+Reporter disconnected. { function=sendMessage, reporterID=101975408508929 }
+Reporter disconnected. { function=sendMessage, reporterID=101975408508929 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 6C961A0B-78BF-40EE-9E9C-968DDB5FC6CC
+⚡️  [log] - 📱 PWA Badge update: 2 → 0 (messages: 0, AI: 0)
+⚡️  To Native ->  Badge set 61249730
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  To Native ->  Badge set 61249731
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  TO JS undefined
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+<_UIKBFeedbackGenerator: 0x13829b300>: Error: Cannot start engine because it does not exist.
+<_UIKBFeedbackGenerator: 0x13829b300>: Engine is not running. Can't play feedback.
+<_UIKBFeedbackGenerator: 0x13829b300>: Error: Cannot start engine because it does not exist.
+<_UIKBFeedbackGenerator: 0x13829b300>: Engine is not running. Can't play feedback.
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [log] - WebSocket disconnected: 1000 App backgrounded
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+-[WKContentView(WKInteraction) _interpretKeyEvent:withContext:] - system input delegate is nil
+⚡️  [log] - [NotificationManager] Window blurred
+[!] <UITapGestureRecognizer: 0x138c67840; id = 32; phase = possible | failed(nonTap)> is blocking its subgraph for 20.810578582999998 seconds:
+    <_UIRelationshipGestureRecognizer: 0x138d10000 "com.apple.UIKit.dragFailureRelationships"; id = 46; phase = failed>
+    <_UIRelationshipGestureRecognizer: 0x138d10b40 "com.apple.UIKit.clickPresentationFailure"; id = 59; phase = failed>
+    <WKImageAnalysisGestureRecognizer: 0x138c45b80 "Image analysis"; id = 69; phase = failed(interactionEnded)>
+    <WKDeferringGestureRecognizer: 0x138c66bc0 "Deferrer for touch start (delayed reset)"; id = 20; phase = failed>
+    <WKDeferringGestureRecognizer: 0x138c66f80 "Deferrer for touch end (delayed reset)"; id = 23; phase = failed>
+    <nil "UITextInteractionNameInteractiveRefinement"; id = 83; phase = failed(interactionEnded)>
+    <WKDeferringGestureRecognizer: 0x138c67340 "Deferrer for image analysis"; id = 26; phase = failed>
+    <_UIDragLiftGestureRecognizer: 0x138c99400 "com.apple.UIKit.dragInitiation"; id = 45; phase = failed(interactionEnded)>
+    <nil "UITextInteractionNameDoubleTap"; id = 85; phase = failed(removedFromContainer)>
+    <nil "UITextInteractionNameTapAndAHalf"; id = 86; phase = failed(removedFromContainer)>
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  To Native ->  Badge set 61249732
+⚡️  TO JS undefined
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  To Native ->  Badge set 61249733
+⚡️  TO JS undefined
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  To Native ->  Badge set 61249734
+⚡️  TO JS undefined
+⚡️  To Native ->  Badge set 61249735
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  [log] - [NotificationManager] Activity status updated: offline
