@@ -677,7 +677,35 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     if (!lastMessage) return "메시지가 없습니다";
     
     if (lastMessage.messageType === "file") {
-      // 파일 타입에 따라 텍스트 구분
+      // 묶음 파일인 경우 (attachments 배열 존재)
+      if (lastMessage.attachments && lastMessage.attachments.length > 0) {
+        const firstFile = lastMessage.attachments[0];
+        const fileName = firstFile.fileName || '';
+        const fileUrl = firstFile.fileUrl || '';
+        const lowerName = fileName.toLowerCase();
+        const lowerUrl = fileUrl.toLowerCase();
+        
+        let fileTypeText = '파일';
+        
+        // 이미지 확장자
+        if (lowerName.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i) || 
+            lowerUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i)) {
+          fileTypeText = '사진';
+        }
+        // 비디오 확장자
+        else if (lowerName.match(/\.(mp4|mov|avi|wmv|flv|mkv|webm|m4v)$/i) || 
+                 lowerUrl.match(/\.(mp4|mov|avi|wmv|flv|mkv|webm|m4v)$/i)) {
+          fileTypeText = '영상';
+        }
+        
+        // 여러 개면 "외 N개" 추가
+        if (lastMessage.attachments.length > 1) {
+          return `📎 ${fileTypeText} 외 ${lastMessage.attachments.length - 1}개`;
+        }
+        return `📎 ${fileTypeText}`;
+      }
+      
+      // 단일 파일인 경우 (레거시)
       const fileName = lastMessage.fileName || '';
       const fileUrl = lastMessage.fileUrl || '';
       const lowerName = fileName.toLowerCase();
@@ -696,7 +724,7 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
       }
       
       // 기타 파일
-      return `📎 ${fileName}`;
+      return fileName ? `📎 ${fileName}` : '📎 파일';
     }
     
     if (lastMessage.isCommandRecall) {
@@ -1017,7 +1045,35 @@ function ChatRoomItem({
     if (!lastMessage) return "메시지가 없습니다";
     
     if (lastMessage.messageType === "file") {
-      // 파일 타입에 따라 텍스트 구분
+      // 묶음 파일인 경우 (attachments 배열 존재)
+      if (lastMessage.attachments && lastMessage.attachments.length > 0) {
+        const firstFile = lastMessage.attachments[0];
+        const fileName = firstFile.fileName || '';
+        const fileUrl = firstFile.fileUrl || '';
+        const lowerName = fileName.toLowerCase();
+        const lowerUrl = fileUrl.toLowerCase();
+        
+        let fileTypeText = '파일';
+        
+        // 이미지 확장자
+        if (lowerName.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i) || 
+            lowerUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i)) {
+          fileTypeText = '사진';
+        }
+        // 비디오 확장자
+        else if (lowerName.match(/\.(mp4|mov|avi|wmv|flv|mkv|webm|m4v)$/i) || 
+                 lowerUrl.match(/\.(mp4|mov|avi|wmv|flv|mkv|webm|m4v)$/i)) {
+          fileTypeText = '영상';
+        }
+        
+        // 여러 개면 "외 N개" 추가
+        if (lastMessage.attachments.length > 1) {
+          return `📎 ${fileTypeText} 외 ${lastMessage.attachments.length - 1}개`;
+        }
+        return `📎 ${fileTypeText}`;
+      }
+      
+      // 단일 파일인 경우 (레거시)
       const fileName = lastMessage.fileName || '';
       const fileUrl = lastMessage.fileUrl || '';
       const lowerName = fileName.toLowerCase();
@@ -1036,7 +1092,7 @@ function ChatRoomItem({
       }
       
       // 기타 파일
-      return `📎 ${fileName}`;
+      return fileName ? `📎 ${fileName}` : '📎 파일';
     }
     
     if (lastMessage.isCommandRecall) {
