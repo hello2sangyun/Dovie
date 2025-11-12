@@ -5084,17 +5084,75 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
                       ) : msg.messageType === "file" ? (
                         <div className="relative">
-                          <MediaPreview
-                            fileUrl={msg.fileUrl}
-                            fileName={msg.fileName}
-                            fileSize={msg.fileSize}
-                            messageContent={msg.content}
-                            isMe={isMe}
-                            className="mb-2"
-                            onPreviewRequest={(url, name, size, type) => 
-                              handlePreviewRequest(url, name, size, type, msg.id)
-                            }
-                          />
+                          {/* 여러 파일 묶음 - 텔레그램 스타일 그리드 */}
+                          {(msg as any).attachments && (msg as any).attachments.length > 0 ? (
+                            <div className="space-y-2">
+                              <div className={cn(
+                                "grid gap-1",
+                                (msg as any).attachments.length === 1 ? "grid-cols-1" :
+                                (msg as any).attachments.length === 2 ? "grid-cols-2" :
+                                (msg as any).attachments.length === 3 ? "grid-cols-2" :
+                                (msg as any).attachments.length >= 4 ? "grid-cols-2" : "grid-cols-1"
+                              )}>
+                                {(msg as any).attachments.slice(0, 4).map((attachment: any, index: number) => (
+                                  <div 
+                                    key={index}
+                                    className={cn(
+                                      "relative rounded-lg overflow-hidden",
+                                      (msg as any).attachments.length === 3 && index === 2 ? "col-span-2" : ""
+                                    )}
+                                  >
+                                    <MediaPreview
+                                      fileUrl={attachment.fileUrl}
+                                      fileName={attachment.fileName}
+                                      fileSize={attachment.fileSize}
+                                      messageContent={attachment.description || ''}
+                                      isMe={isMe}
+                                      className="h-full"
+                                      onPreviewRequest={(url, name, size, type) => 
+                                        handlePreviewRequest(url, name, size, type, msg.id)
+                                      }
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                              
+                              {/* 5개 이상일 경우 +N 표시 */}
+                              {(msg as any).attachments.length > 4 && (
+                                <div className={cn(
+                                  "text-xs px-2 py-1 rounded",
+                                  isMe ? "bg-white/20 text-white/80" : "bg-gray-100 text-gray-600"
+                                )}>
+                                  +{(msg as any).attachments.length - 4}개 파일 더보기
+                                </div>
+                              )}
+                              
+                              {/* 파일 설명 */}
+                              {msg.content && msg.content.trim() && !msg.content.startsWith('📎') && (
+                                <div className={cn(
+                                  "text-sm mt-2 pt-2 border-t",
+                                  isMe ? "text-white/90 border-white/20" : "text-gray-800 border-gray-200"
+                                )}>
+                                  {msg.content}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            /* 단일 파일 - 기존 로직 */
+                            <>
+                              <MediaPreview
+                                fileUrl={msg.fileUrl}
+                                fileName={msg.fileName}
+                                fileSize={msg.fileSize}
+                                messageContent={msg.content}
+                                isMe={isMe}
+                                className="mb-2"
+                                onPreviewRequest={(url, name, size, type) => 
+                                  handlePreviewRequest(url, name, size, type, msg.id)
+                                }
+                              />
+                            </>
+                          )}
                           
                           {/* 원형 업로드 진행률 오버레이 */}
                           {(msg as any).isUploading && (msg as any).uploadProgress < 100 && (
