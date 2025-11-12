@@ -29,8 +29,8 @@ app.use((req, res, next) => {
   }
 });
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '550mb' }));
+app.use(express.urlencoded({ extended: true, limit: '550mb' }));
 
 // iOS 다운로드 라우트를 Vite보다 먼저 등록
 app.get("/ios-download-final", (req, res) => {
