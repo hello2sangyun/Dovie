@@ -677,7 +677,26 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     if (!lastMessage) return "메시지가 없습니다";
     
     if (lastMessage.messageType === "file") {
-      return `📎 ${lastMessage.fileName}`;
+      // 파일 타입에 따라 텍스트 구분
+      const fileName = lastMessage.fileName || '';
+      const fileUrl = lastMessage.fileUrl || '';
+      const lowerName = fileName.toLowerCase();
+      const lowerUrl = fileUrl.toLowerCase();
+      
+      // 이미지 확장자
+      if (lowerName.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i) || 
+          lowerUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i)) {
+        return '📎 사진';
+      }
+      
+      // 비디오 확장자
+      if (lowerName.match(/\.(mp4|mov|avi|wmv|flv|mkv|webm|m4v)$/i) || 
+          lowerUrl.match(/\.(mp4|mov|avi|wmv|flv|mkv|webm|m4v)$/i)) {
+        return '📎 영상';
+      }
+      
+      // 기타 파일
+      return `📎 ${fileName}`;
     }
     
     if (lastMessage.isCommandRecall) {
@@ -998,7 +1017,26 @@ function ChatRoomItem({
     if (!lastMessage) return "메시지가 없습니다";
     
     if (lastMessage.messageType === "file") {
-      return `📎 ${lastMessage.fileName}`;
+      // 파일 타입에 따라 텍스트 구분
+      const fileName = lastMessage.fileName || '';
+      const fileUrl = lastMessage.fileUrl || '';
+      const lowerName = fileName.toLowerCase();
+      const lowerUrl = fileUrl.toLowerCase();
+      
+      // 이미지 확장자
+      if (lowerName.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i) || 
+          lowerUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i)) {
+        return '📎 사진';
+      }
+      
+      // 비디오 확장자
+      if (lowerName.match(/\.(mp4|mov|avi|wmv|flv|mkv|webm|m4v)$/i) || 
+          lowerUrl.match(/\.(mp4|mov|avi|wmv|flv|mkv|webm|m4v)$/i)) {
+        return '📎 영상';
+      }
+      
+      // 기타 파일
+      return `📎 ${fileName}`;
     }
     
     if (lastMessage.isCommandRecall) {
