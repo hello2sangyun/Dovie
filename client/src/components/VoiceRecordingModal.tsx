@@ -217,7 +217,7 @@ export function VoiceRecordingModal({
     >
       {/* Dimmed Background */}
       <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/35 backdrop-blur-sm"
         onClick={handleBackgroundClick}
       />
       

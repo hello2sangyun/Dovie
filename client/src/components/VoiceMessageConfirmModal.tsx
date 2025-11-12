@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Mic, Send, X, Sparkles, Music, Play, Pause, ChevronDown, ChevronUp } from "lucide-react";
@@ -305,17 +304,36 @@ export default function VoiceMessageConfirmModal({
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[540px] p-0 gap-0 overflow-hidden">
-        {/* 헤더 - 심플하게 */}
-        <div className="px-6 pt-6 pb-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      style={{ 
+        animation: 'fadeIn 200ms ease-out',
+        paddingBottom: 'env(safe-area-inset-bottom)'
+      }}
+    >
+      {/* Dimmed Background - 녹음 모달과 동일한 은은한 딤 */}
+      <div 
+        className="absolute inset-0 bg-black/35 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      
+      {/* Content Card - 텍스트에 집중 */}
+      <div 
+        className="relative z-10 w-full max-w-lg bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden"
+        style={{ animation: 'scaleIn 200ms ease-out' }}
+      >
+        {/* 헤더 - 보라색 accent */}
+        <div className="px-6 pt-6 pb-4 border-b-2 border-purple-500/20 dark:border-purple-400/20">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
             음성 메시지 확인
           </h2>
         </div>
 
-        <div className="px-6 pb-6 space-y-4">
+        <div className="px-6 py-6 space-y-5 max-h-[70vh] overflow-y-auto">
           {/* 오디오 플레이어 - 커스텀 웨이브폼 디자인 */}
           <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4">
             <div className="flex items-center gap-4">
@@ -361,37 +379,53 @@ export default function VoiceMessageConfirmModal({
             </div>
           </div>
 
-          {/* 텍스트 영역 - 메인 포커스 */}
-          <div className="space-y-2">
+          {/* 텍스트 영역 - 메인 포커스, 강조된 디자인 */}
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="text-base font-semibold text-gray-900 dark:text-gray-100">
                 인식된 텍스트
               </label>
               {isCorrecting && (
-                <span className="flex items-center text-xs text-purple-600 dark:text-purple-400">
-                  <Sparkles className="w-3 h-3 mr-1 animate-pulse" />
+                <span className="flex items-center text-sm text-purple-600 dark:text-purple-400 font-medium">
+                  <Sparkles className="w-4 h-4 mr-1.5 animate-pulse" />
                   AI 보정 중
                 </span>
               )}
               {aiCorrectionApplied && !isCorrecting && (
-                <span className="flex items-center text-xs text-purple-600 dark:text-purple-400">
-                  <Sparkles className="w-3 h-3 mr-1" />
+                <span className="flex items-center text-sm text-purple-600 dark:text-purple-400 font-medium">
+                  <Sparkles className="w-4 h-4 mr-1.5" />
                   AI 보정 완료
                 </span>
               )}
             </div>
             
-            <Textarea
-              value={editedText}
-              onChange={(e) => setEditedText(e.target.value)}
-              placeholder="음성으로 인식된 텍스트를 확인하고 수정하세요..."
-              className="min-h-[180px] text-base leading-relaxed focus:ring-2 focus:ring-purple-500 border-gray-200 dark:border-gray-700 resize-none"
-              disabled={isCorrecting}
-              data-testid="textarea-transcription"
-            />
+            {/* 텍스트 입력 - 고대비 카드, 큰 폰트, 보라색 accent */}
+            <div className="relative">
+              <Textarea
+                value={editedText}
+                onChange={(e) => setEditedText(e.target.value)}
+                placeholder="음성으로 인식된 텍스트를 확인하고 수정하세요..."
+                className={cn(
+                  "min-h-[200px] text-lg leading-relaxed",
+                  "focus:ring-2 focus:ring-purple-500 focus:border-purple-500",
+                  "border-2 border-gray-200 dark:border-gray-700",
+                  "bg-gray-50 dark:bg-gray-800/50",
+                  "rounded-xl p-4",
+                  "resize-none",
+                  "shadow-inner",
+                  "transition-all duration-200",
+                  isCorrecting && "opacity-50 cursor-not-allowed"
+                )}
+                style={{ lineHeight: "1.6" }}
+                disabled={isCorrecting}
+                data-testid="textarea-transcription"
+              />
+              {/* 보라색 accent 테두리 효과 */}
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-purple-600 opacity-20 dark:opacity-30 blur-sm -z-10 rounded-xl pointer-events-none" />
+            </div>
             
-            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-              <span>{editedText.length}자</span>
+            <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+              <span className="font-medium">{editedText.length}자</span>
               <span>텍스트를 확인하고 수정하세요</span>
             </div>
           </div>
@@ -484,25 +518,46 @@ export default function VoiceMessageConfirmModal({
           </div>
         </div>
 
-        {/* 숨겨진 오디오 엘리먼트 */}
-        <audio 
-          ref={audioRef}
-          src={mixedAudioUrl || audioUrl} 
-          preload="auto"
-        />
+      </div>
+      
+      {/* 숨겨진 오디오 엘리먼트 */}
+      <audio 
+        ref={audioRef}
+        src={mixedAudioUrl || audioUrl} 
+        preload="auto"
+      />
 
-        {/* 웨이브 애니메이션 CSS */}
-        <style>{`
-          @keyframes wave {
-            0%, 100% {
-              transform: scaleY(1);
-            }
-            50% {
-              transform: scaleY(0.5);
-            }
+      {/* 애니메이션 CSS - 녹음 모달과 통일 */}
+      <style>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
           }
-        `}</style>
-      </DialogContent>
-    </Dialog>
+          to {
+            opacity: 1;
+          }
+        }
+        
+        @keyframes scaleIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        
+        @keyframes wave {
+          0%, 100% {
+            transform: scaleY(1);
+          }
+          50% {
+            transform: scaleY(0.5);
+          }
+        }
+      `}</style>
+    </div>
   );
 }
