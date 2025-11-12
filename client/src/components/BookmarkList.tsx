@@ -54,7 +54,7 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [sortBy, setSortBy] = useState<SortBy>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [selectedFile, setSelectedFile] = useState<{ url: string; name: string; size?: number; type?: string } | null>(null);
@@ -417,19 +417,19 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
 
             {/* Folders View (Grid) */}
             {!selectedFolderId && viewMode === 'grid' && (
-              <div className="p-4 grid grid-cols-2 gap-3">
+              <div className="p-3 grid grid-cols-3 gap-2">
                 {(sortedItems as FolderItem[]).map((folder) => (
                   <div
                     key={folder.chatRoomId}
                     onClick={() => setSelectedFolderId(folder.chatRoomId)}
-                    className="flex flex-col items-center gap-2 p-4 hover:bg-gray-50 rounded-lg cursor-pointer border border-gray-200 transition-colors"
+                    className="flex flex-col items-center gap-1.5 p-3 hover:bg-gray-50 rounded-lg cursor-pointer border border-gray-200 transition-colors"
                     data-testid={`folder-card-${folder.chatRoomId}`}
                   >
-                    <FolderIcon className="h-12 w-12 text-yellow-500" />
-                    <p className="text-sm font-medium text-gray-900 text-center line-clamp-2 w-full">
+                    <FolderIcon className="h-10 w-10 text-yellow-500" />
+                    <p className="text-xs font-medium text-gray-900 text-center line-clamp-2 w-full">
                       {folder.chatRoomName}
                     </p>
-                    <p className="text-xs text-gray-400">{folder.fileCount}개</p>
+                    <p className="text-[10px] text-gray-400">{folder.fileCount}개</p>
                   </div>
                 ))}
               </div>
@@ -500,7 +500,7 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
 
             {/* Files View (Grid) */}
             {selectedFolderId && viewMode === 'grid' && (
-              <div className="p-4 grid grid-cols-2 gap-3">
+              <div className="p-3 grid grid-cols-3 gap-2">
                 {(sortedItems as FileUploadData[]).map((file) => (
                   <div
                     key={file.id}
@@ -519,11 +519,11 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <span className="text-5xl">{getFileIcon(file.fileType)}</span>
+                        <span className="text-3xl">{getFileIcon(file.fileType)}</span>
                       )}
                       
                       {/* Action buttons on hover */}
-                      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -531,11 +531,11 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
                             e.stopPropagation();
                             handleDownload(file);
                           }}
-                          className="h-7 w-7 p-0 bg-white/90 hover:bg-white shadow-sm"
+                          className="h-6 w-6 p-0 bg-white/90 hover:bg-white shadow-sm"
                           title="다운로드"
                           data-testid={`button-download-grid-${file.id}`}
                         >
-                          <Download className="h-3.5 w-3.5" />
+                          <Download className="h-3 w-3" />
                         </Button>
                         <Button
                           variant="ghost"
@@ -544,27 +544,22 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
                             e.stopPropagation();
                             handleShare(file);
                           }}
-                          className="h-7 w-7 p-0 bg-white/90 hover:bg-white shadow-sm"
+                          className="h-6 w-6 p-0 bg-white/90 hover:bg-white shadow-sm"
                           title="공유"
                           data-testid={`button-share-grid-${file.id}`}
                         >
-                          <Share2 className="h-3.5 w-3.5" />
+                          <Share2 className="h-3 w-3" />
                         </Button>
                       </div>
                     </div>
 
                     {/* File Info */}
-                    <div className="p-2 bg-white">
-                      <p className="text-xs font-medium text-gray-900 truncate" title={file.originalName}>
+                    <div className="p-1.5 bg-white">
+                      <p className="text-[10px] font-medium text-gray-900 truncate leading-tight" title={file.originalName}>
                         {file.originalName}
                       </p>
-                      {file.description && (
-                        <p className="text-xs text-gray-500 line-clamp-1 mt-0.5" title={file.description}>
-                          {file.description}
-                        </p>
-                      )}
-                      <p className="text-xs text-gray-400 mt-1">
-                        {formatDate(file.uploadedAt)} • {formatFileSize(file.fileSize)}
+                      <p className="text-[9px] text-gray-400 mt-0.5">
+                        {formatFileSize(file.fileSize)}
                       </p>
                     </div>
                   </div>
