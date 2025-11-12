@@ -29,7 +29,7 @@ const config: CapacitorConfig = {
       style: 'dark'
     },
     Keyboard: {
-      resize: 'body',
+      resize: 'native',
       style: 'dark',
       resizeOnFullScreen: false
     }
