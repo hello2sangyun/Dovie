@@ -128,7 +128,7 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
         console.log('✅ 음성 메시지 전송 성공!');
         
         // 캐시 무효화
-        queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${voiceConfirmData.chatRoomId}/messages`] });
+        queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms", voiceConfirmData.chatRoomId, "messages"] });
         queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
         
         // 해당 채팅방으로 자동 이동
@@ -453,9 +453,9 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
   // 메시지 미리 로딩 함수
   const prefetchMessages = async (chatRoomId: number) => {
     await queryClient.prefetchQuery({
-      queryKey: [`/api/chat-rooms/${chatRoomId}/messages`],
+      queryKey: ["/api/chat-rooms", chatRoomId, "messages"],
       queryFn: async () => {
-        const response = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages`, 'GET');
+        const response = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages?limit=30&offset=0`, 'GET');
         return response.json();
       },
       staleTime: 30 * 1000, // 30초간 신선한 상태로 유지
@@ -580,9 +580,9 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
     
     topChatRooms.forEach((chatRoom: any) => {
       queryClient.prefetchQuery({
-        queryKey: [`/api/chat-rooms/${chatRoom.id}/messages`],
+        queryKey: ["/api/chat-rooms", chatRoom.id, "messages"],
         queryFn: async () => {
-          const response = await fetch(`/api/chat-rooms/${chatRoom.id}/messages`, {
+          const response = await fetch(`/api/chat-rooms/${chatRoom.id}/messages?limit=30&offset=0`, {
             headers: { 'x-user-id': user.id.toString() }
           });
           if (!response.ok) throw new Error('Failed to fetch messages');
@@ -963,9 +963,9 @@ function ChatRoomItem({
   const handleMouseEnter = async () => {
     try {
       await queryClient.prefetchQuery({
-        queryKey: [`/api/chat-rooms/${chatRoom.id}/messages`],
+        queryKey: ["/api/chat-rooms", chatRoom.id, "messages"],
         queryFn: async () => {
-          const response = await apiRequest(`/api/chat-rooms/${chatRoom.id}/messages`, 'GET');
+          const response = await apiRequest(`/api/chat-rooms/${chatRoom.id}/messages?limit=30&offset=0`, 'GET');
           return response.json();
         },
         staleTime: 30 * 1000, // 30초간 신선한 상태로 유지

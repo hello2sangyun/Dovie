@@ -86,7 +86,7 @@ export const MessageReactionButton: React.FC<MessageReactionButtonProps> = ({
         queryKey: [`/api/messages/${messageId}/reactions`] 
       });
       queryClient.invalidateQueries({ 
-        queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] 
+        queryKey: ["/api/chat-rooms", chatRoomId, "messages"] 
       });
     }
   });
@@ -104,7 +104,7 @@ export const MessageReactionButton: React.FC<MessageReactionButtonProps> = ({
         queryKey: [`/api/messages/${messageId}/reactions`] 
       });
       queryClient.invalidateQueries({ 
-        queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] 
+        queryKey: ["/api/chat-rooms", chatRoomId, "messages"] 
       });
     }
   });

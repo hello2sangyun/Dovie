@@ -129,7 +129,7 @@ export default function MainApp() {
         
         // If a chat room is selected, refresh its messages immediately
         if (selectedChatRoom) {
-          queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${selectedChatRoom}/messages`] });
+          queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms", selectedChatRoom, "messages"] });
         }
       }
     };
@@ -145,7 +145,7 @@ export default function MainApp() {
         
         // If a chat room is selected, refresh its messages immediately
         if (selectedChatRoom) {
-          queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${selectedChatRoom}/messages`] });
+          queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms", selectedChatRoom, "messages"] });
         }
       }
     };

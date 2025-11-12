@@ -83,7 +83,12 @@ export default function GroupInfoPage() {
 
   // Fetch messages for shared content
   const { data: messagesData } = useQuery({
-    queryKey: [`/api/chat-rooms/${chatRoomId}/messages`],
+    queryKey: ["/api/chat-rooms", chatRoomId, "messages"],
+    queryFn: async () => {
+      const response = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages?limit=30&offset=0`, "GET");
+      if (!response.ok) throw new Error('Failed to fetch messages');
+      return response.json();
+    },
     enabled: !!chatRoomId,
   }) as { data?: { messages: Message[] } };
 
