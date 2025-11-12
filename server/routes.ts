@@ -6448,7 +6448,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const sharedRoomIds = sharedRooms.map(r => r.chatRoomId);
 
-      // Get messages with files from these chat rooms (only from the profile user)
+      // Get all shared messages with files from these chat rooms
       const sharedMedia = await db
         .select({
           id: messages.id,
@@ -6460,7 +6460,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(
           and(
             inArray(messages.chatRoomId, sharedRoomIds),
-            eq(messages.userId, parseInt(userId)),
             isNotNull(messages.fileUrl),
             inArray(messages.messageType, ['image', 'video', 'file', 'voice', 'text'])
           )
