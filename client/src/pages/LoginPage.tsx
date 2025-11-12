@@ -61,8 +61,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-dvh bg-gradient-to-br from-purple-50 via-white to-blue-50 overflow-y-auto pb-[env(safe-area-inset-bottom)]">
+      <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 min-h-dvh">
+        <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="transform scale-150 mb-8">
             <VaultLogo size="lg" className="mx-auto" />
@@ -184,6 +185,7 @@ export default function LoginPage() {
             </Tabs>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );

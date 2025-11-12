@@ -6,46 +6,51 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/useAuth";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import LandingPage from "@/pages/LandingPage";
-import LoginPage from "@/pages/LoginPage";
-import SignupPage from "@/pages/SignupPage";
-import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
-import ProfileSetupPage from "@/pages/ProfileSetupPage";
-import PhoneLogin from "@/pages/PhoneLogin";
-import MainApp from "@/pages/MainApp";
-import AdminPage from "@/pages/AdminPage";
-import FriendProfilePage from "@/pages/FriendProfilePage";
-import UserProfilePage from "@/pages/UserProfilePage";
-import GroupInfoPage from "@/pages/GroupInfoPage";
 import NotFound from "@/pages/not-found";
 import { useEffect, lazy, Suspense } from "react";
 
+const LoginPage = lazy(() => import("@/pages/LoginPage"));
+const SignupPage = lazy(() => import("@/pages/SignupPage"));
+const ForgotPasswordPage = lazy(() => import("@/pages/ForgotPasswordPage"));
+const ProfileSetupPage = lazy(() => import("@/pages/ProfileSetupPage"));
+const PhoneLogin = lazy(() => import("@/pages/PhoneLogin"));
+const MainApp = lazy(() => import("@/pages/MainApp"));
+const AdminPage = lazy(() => import("@/pages/AdminPage"));
+const FriendProfilePage = lazy(() => import("@/pages/FriendProfilePage"));
+const UserProfilePage = lazy(() => import("@/pages/UserProfilePage"));
+const GroupInfoPage = lazy(() => import("@/pages/GroupInfoPage"));
 const ScreenshotDemo = lazy(() => import("@/pages/ScreenshotDemo"));
+
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-dvh bg-gradient-to-br from-purple-50 via-white to-blue-50">
+    <div className="text-center">
+      <div className="w-12 h-12 mx-auto mb-4 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+      <p className="text-gray-600">로딩 중...</p>
+    </div>
+  </div>
+);
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={LandingPage} />
-      <Route path="/login" component={LoginPage} />
-      <Route path="/signup" component={SignupPage} />
-      <Route path="/forgot-password" component={ForgotPasswordPage} />
-      <Route path="/profile-setup" component={ProfileSetupPage} />
-      <Route path="/phone-login" component={PhoneLogin} />
-      <Route path="/app" component={MainApp} />
-      <Route path="/chat-rooms" component={MainApp} />
-      <Route path="/chat-rooms/:chatRoomId" component={MainApp} />
-      <Route path="/group-info/:chatRoomId" component={GroupInfoPage} />
-      <Route path="/admin" component={AdminPage} />
-      <Route path="/friend/:userId" component={FriendProfilePage} />
-      <Route path="/profile/:userId" component={UserProfilePage} />
-      <Route path="/screenshots/:id">
-        {() => (
-          <Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-purple-50">Loading...</div>}>
-            <ScreenshotDemo />
-          </Suspense>
-        )}
-      </Route>
-      <Route component={NotFound} />
-    </Switch>
+    <Suspense fallback={<LoadingFallback />}>
+      <Switch>
+        <Route path="/" component={LandingPage} />
+        <Route path="/login" component={LoginPage} />
+        <Route path="/signup" component={SignupPage} />
+        <Route path="/forgot-password" component={ForgotPasswordPage} />
+        <Route path="/profile-setup" component={ProfileSetupPage} />
+        <Route path="/phone-login" component={PhoneLogin} />
+        <Route path="/app" component={MainApp} />
+        <Route path="/chat-rooms" component={MainApp} />
+        <Route path="/chat-rooms/:chatRoomId" component={MainApp} />
+        <Route path="/group-info/:chatRoomId" component={GroupInfoPage} />
+        <Route path="/admin" component={AdminPage} />
+        <Route path="/friend/:userId" component={FriendProfilePage} />
+        <Route path="/profile/:userId" component={UserProfilePage} />
+        <Route path="/screenshots/:id" component={ScreenshotDemo} />
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 

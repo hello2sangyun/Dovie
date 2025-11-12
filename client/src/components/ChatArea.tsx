@@ -5943,7 +5943,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         )}
 
         <div className={cn(
-          "px-4 py-2 chat-input-area flex items-center justify-center",
+          "px-4 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] chat-input-area flex items-center justify-center",
           "bg-white border-t border-gray-200"
         )}>
           <div className="flex items-center gap-3 w-full max-w-4xl mx-auto">
