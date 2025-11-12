@@ -3802,21 +3802,27 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // 길게 터치 이벤트 핸들러
   const handleTouchStart = (e: React.TouchEvent, message: any) => {
-    // 터치된 요소가 인터랙티브 요소인지 확인
     const touchedElement = e.target as HTMLElement;
     
-    // 이미지/비디오를 직접 터치한 경우는 프리뷰를 위해 long-press 차단
-    // 버튼, 링크도 차단
-    if (
+    // 직접 터치한 요소만 체크 (부모 탐색 없음)
+    // 이미지/비디오/버튼/링크를 직접 터치한 경우만 차단
+    const isInteractiveElement = 
       touchedElement.tagName === 'IMG' ||
       touchedElement.tagName === 'VIDEO' ||
       touchedElement.tagName === 'BUTTON' ||
       touchedElement.tagName === 'A' ||
-      touchedElement.closest('button') ||
-      touchedElement.closest('a') ||
-      touchedElement.classList.contains('cursor-pointer') ||
-      touchedElement.closest('.cursor-pointer')
-    ) {
+      touchedElement.tagName === 'INPUT' ||
+      touchedElement.tagName === 'TEXTAREA';
+    
+    // 디버깅용 로그
+    console.log('🖱️ Touch start:', {
+      tagName: touchedElement.tagName,
+      className: touchedElement.className,
+      isInteractive: isInteractiveElement
+    });
+    
+    if (isInteractiveElement) {
+      console.log('⛔ Touch blocked - interactive element');
       return;
     }
     
@@ -3827,8 +3833,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     const rect = target.getBoundingClientRect();
     setTouchStartData({ rect, message });
     
+    console.log('⏱️ Long-press timer started (400ms)');
+    
     const timer = setTimeout(() => {
       setIsLongPress(true);
+      
+      console.log('✅ Long-press activated - showing menu');
       
       // 저장된 위치 정보와 메시지로 메뉴 표시
       const isOwnMessage = message.senderId === user?.id;
@@ -3843,29 +3853,31 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       });
       
       navigator.vibrate?.(50); // 햅틱 피드백
-    }, 400); // 400ms 길게 터치 (500ms에서 단축)
+    }, 400); // 400ms 길게 터치
     
     setTouchTimer(timer);
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    // 터치된 요소가 인터랙티브 요소인지 확인
     const touchedElement = e.target as HTMLElement;
     
-    // 이미지/비디오, 버튼, 링크 등은 preventDefault 건너뛰기
-    if (
+    console.log('🖱️ Touch end:', touchedElement.tagName);
+    
+    // 직접 터치한 요소만 체크
+    const isInteractiveElement = 
       touchedElement.tagName === 'IMG' ||
       touchedElement.tagName === 'VIDEO' ||
       touchedElement.tagName === 'BUTTON' ||
       touchedElement.tagName === 'A' ||
-      touchedElement.closest('button') ||
-      touchedElement.closest('a') ||
-      touchedElement.closest('.cursor-pointer')
-    ) {
+      touchedElement.tagName === 'INPUT' ||
+      touchedElement.tagName === 'TEXTAREA';
+    
+    if (isInteractiveElement) {
       // 타이머만 정리하고 preventDefault는 하지 않음
       if (touchTimer) {
         clearTimeout(touchTimer);
         setTouchTimer(null);
+        console.log('⏹️ Timer cleared - interactive element');
       }
       setTouchStartData(null);
       setTimeout(() => setIsLongPress(false), 100);
@@ -3875,33 +3887,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     if (touchTimer) {
       clearTimeout(touchTimer);
       setTouchTimer(null);
+      console.log('⏹️ Timer cleared - touch ended');
     }
     setTouchStartData(null);
     setTimeout(() => setIsLongPress(false), 100);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    // 터치된 요소가 인터랙티브 요소인지 확인
-    const touchedElement = e.target as HTMLElement;
-    
-    // 이미지/비디오, 버튼, 링크 등은 타이머만 정리
-    if (
-      touchedElement.tagName === 'IMG' ||
-      touchedElement.tagName === 'VIDEO' ||
-      touchedElement.tagName === 'BUTTON' ||
-      touchedElement.tagName === 'A' ||
-      touchedElement.closest('button') ||
-      touchedElement.closest('a') ||
-      touchedElement.closest('.cursor-pointer')
-    ) {
-      // 타이머만 정리
-      if (touchTimer) {
-        clearTimeout(touchTimer);
-        setTouchTimer(null);
-      }
-      setTouchStartData(null);
-      return;
-    }
+    // 터치가 이동하면 long-press 취소
+    console.log('👆 Touch move - canceling long-press');
     
     if (touchTimer) {
       clearTimeout(touchTimer);
