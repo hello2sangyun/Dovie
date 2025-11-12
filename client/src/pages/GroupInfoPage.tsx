@@ -281,6 +281,7 @@ export default function GroupInfoPage() {
                 {chatRoom?.profileImage ? (
                   <div className="relative w-32 h-32">
                     <InstantAvatar
+                      key={chatRoom.profileImage}
                       src={chatRoom.profileImage}
                       fallbackText={chatRoom.name}
                       size="xl"
