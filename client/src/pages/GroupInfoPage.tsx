@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import InstantAvatar from "@/components/InstantAvatar";
 
 type ChatRoom = {
   id: number;
@@ -267,12 +268,51 @@ export default function GroupInfoPage() {
             <div className="flex flex-col items-center">
               {/* Profile Image */}
               <div className="relative mb-4">
-                <Avatar className="h-24 w-24">
-                  <AvatarImage src={chatRoom?.profileImage} />
-                  <AvatarFallback className="bg-purple-100 text-purple-600 text-2xl font-semibold">
-                    {chatRoom?.name?.[0]?.toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                {chatRoom?.profileImage ? (
+                  <InstantAvatar
+                    src={chatRoom.profileImage}
+                    fallbackText={chatRoom.name}
+                    size="xl"
+                    className="h-24 w-24"
+                  />
+                ) : (
+                  <div className="relative w-24 h-24 flex items-center justify-center">
+                    {participants.slice(0, 2).map((participant, index) => {
+                      const horizontalPositions = [
+                        { top: '50%', left: '0px', transform: 'translateY(-50%)' },
+                        { top: '50%', right: '0px', transform: 'translateY(-50%)' }
+                      ];
+                      
+                      const position = horizontalPositions[index];
+                      
+                      return (
+                        <div
+                          key={participant.id}
+                          className="absolute border-2 border-white rounded-full shadow-md"
+                          style={{
+                            ...position,
+                            zIndex: 2 - index
+                          }}
+                        >
+                          <InstantAvatar 
+                            src={participant?.profilePicture}
+                            fallbackText={participant?.displayName || participant?.username}
+                            size="md" 
+                            className="purple-gradient"
+                          />
+                        </div>
+                      );
+                    })}
+                    {participants.length > 2 && (
+                      <div 
+                        className="absolute bottom-0 right-0 bg-purple-500 text-white text-sm rounded-full w-7 h-7 flex items-center justify-center font-bold shadow-md border-2 border-white"
+                        style={{ zIndex: 3 }}
+                      >
+                        +{participants.length - 2}
+                      </div>
+                    )}
+                  </div>
+                )}
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   className="absolute bottom-0 right-0 bg-purple-600 text-white rounded-full p-2 shadow-lg hover:bg-purple-700 transition-colors"
