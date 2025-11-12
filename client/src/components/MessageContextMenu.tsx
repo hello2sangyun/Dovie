@@ -197,7 +197,7 @@ export default function MessageContextMenu({
       {/* Context Menu - Compact Simple Design */}
       <div
         ref={menuRef}
-        className="context-menu fixed z-50 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden min-w-[110px]"
+        className="context-menu fixed z-50 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden min-w-[110px] select-none"
         style={{ left: menuPosition.x, top: menuPosition.y }}
         onClick={(e) => e.stopPropagation()}
       >
