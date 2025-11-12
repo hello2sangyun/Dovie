@@ -1,0 +1,243 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/89BA8287-D7D6-42DA-AA2C-E2E88F838E9E/App.app'
+Updated list with error: DownloadFailed
+Updated list with error: DownloadFailed
+KeyboardPlugin: resize mode - native
+⚡️  Loading app at https://dovie-hello2sangyun.replit.app...
+Updated list with error: DownloadFailed
+📱 [AppDelegate] Registered for remote notifications
+Networking process (0x11306c190) took 9.910714 seconds to launch
+GPU process (0x1131201e0) took 3.673564 seconds to launch
+WebContent process (0x1130f4100) took 9.968760 seconds to launch
+📱 [AppDelegate] APNS 토큰 등록 성공
+Updated list with error: DownloadFailed
+WebContent[24477] Unable to hide query parameters from script (missing data)
+⚡️  WebView loaded
+Updated list with error: DownloadFailed
+⚡️  [log] - 🔄 Auth context updating user: 126 profilePicture: /uploads/profile_1761606486798_jejztvnxp8j.jpg
+Updated list with error: DownloadFailed
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://dovie-hello2sangyun.replit.app/ws
+⚡️  [log] -    Protocol: wss:, Host: dovie-hello2sangyun.replit.app
+⚡️  [log] - 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+⚡️  [log] - [Badge] Service Worker not supported
+⚡️  [log] - ✅ Navigation service registered
+⚡️  [log] - ✅ Navigator registered with navigation service
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  To Native ->  App addListener 20457931
+⚡️  To Native ->  App addListener 20457932
+⚡️  To Native ->  App addListener 20457933
+⚡️  To Native ->  App addListener 20457934
+⚡️  To Native ->  App addListener 20457935
+⚡️  To Native ->  PushNotifications addListener 20457936
+⚡️  To Native ->  PushNotifications addListener 20457937
+⚡️  To Native ->  PushNotifications addListener 20457938
+⚡️  To Native ->  PushNotifications addListener 20457939
+⚡️  To Native ->  PushNotifications requestPermissions 20457940
+⚡️  TO JS {"receive":"granted"}
+⚡️  To Native ->  PushNotifications register 20457941
+⚡️  TO JS undefined
+⚡️  TO JS {"value":"973E0FD9C536FF722A6E70D43D5CD97F6D6EB28BEE9A7FC3F9DA3D236F44DF2C"}
+📱 [AppDelegate] APNS 토큰 등록 성공
+⚡️  [log] - 📱 iOS 네이티브 푸시 알림 등록 성공 (리스너 대기 중)
+⚡️  [log] - 📱 iOS 푸시 토큰 획득: 973E0FD9C536FF722A6E70D43D5CD97F6D6EB28BEE9A7FC3F9DA3D236F44DF2C
+⚡️  [log] - 📱 서버로 iOS 토큰 전송 시작: 973E0FD9C536FF722A6E...
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - ✅ iOS 푸시 토큰이 서버에 저장되었습니다: {"success":true,"message":"iOS push token registered successfully","userId":126,"tokenPreview":"973E0FD9C536FF722A6E..."}
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 0
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: []
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+⚡️  [log] - 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: real
+⚡️  To Native ->  Filesystem mkdir 20457942
+⚡️  To Native ->  Filesystem mkdir 20457943
+ERROR MESSAGE:  {"code":"OS-PLUG-FILE-0010","message":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/0D2CFF7C-0948-4B9E-A744-DEE0D762E720\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","errorMessage":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/0D2CFF7C-0948-4B9E-A744-DEE0D762E720\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten."}
+ERROR MESSAGE:  {"message":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/0D2CFF7C-0948-4B9E-A744-DEE0D762E720\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010","errorMessage":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/0D2CFF7C-0948-4B9E-A744-DEE0D762E720\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten."}
+⚡️  [error] - {"code":"OS-PLUG-FILE-0010","message":"Directory at 'file:///var/mobile/Containers/Data/Application/0D2CFF7C-0948-4B9E-A744-DEE0D762E720/Library/Caches/file_cache/'  already exists, cannot be overwritten.","errorMessage":"Directory at 'file:///var/mobile/Containers/Data/Application/0D2CFF7C-0948-4B9E-A744-DEE0D762E720/Library/Caches/file_cache/'  already exists, cannot be overwritten."}
+⚡️  To Native ->  Filesystem readFile 20457944
+⚡️  To Native ->  Filesystem readFile 20457945
+⚡️  TO JS {"data":"{\"\/uploads\/file_1762843788937_0vyybbht6fr.pdf\":{\"uri\":\"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/92077C1F-980B-4311-9079-0A34C92D9A5B\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYyODQzNzg4.pdf\",\"size\":89663,\"timesta
+⚡️  [error] - {"message":"Directory at 'file:///var/mobile/Containers/Data/Application/0D2CFF7C-0948-4B9E-A744-DEE0D762E720/Library/Caches/file_cache/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010","errorMessage":"Directory at 'file:///var/mobile/Containers/Data/Application/0D2CFF7C-0948-4B9E-A744-DEE0D762E720/Library/Caches/file_cache/'  already exists, cannot be overwritten."}
+⚡️  TO JS {"data":"{\"\/uploads\/file_1762843788937_0vyybbht6fr.pdf\":{\"uri\":\"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/92077C1F-980B-4311-9079-0A34C92D9A5B\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYyODQzNzg4.pdf\",\"size\":89663,\"timesta
+⚡️  [log] - [FileCache] Loaded 13 cached files
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  [log] - [FileCache] Loaded 13 cached files
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  To Native ->  App addListener 20457946
+⚡️  To Native ->  App addListener 20457947
+DeviceIdHashSaltStorage: The length of the hash salt (47) is different to the length of the hash salts defined in WebKit (48)
+⚡️  To Native ->  Filesystem stat 20457948
+⚡️  To Native ->  Filesystem stat 20457949
+⚡️  To Native ->  Filesystem stat 20457950
+⚡️  To Native ->  Filesystem stat 20457951
+⚡️  TO JS {"type":"file","uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/0D2CFF7C-0948-4B9E-A744-DEE0D762E720\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYyODQ1NzA3.jpeg","mtime":1762935584613,"name":"L3VwbG9hZHMvZmlsZV8xNzYyODQ1NzA3.jpeg","siz
+⚡️  TO JS {"type":"file","size":357266,"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/0D2CFF7C-0948-4B9E-A744-DEE0D762E720\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYyODQ3MTUz.pdf","ctime":1762935584578,"name":"L3VwbG9hZHMvZmlsZV8xNzYyODQ3MT
+⚡️  TO JS {"type":"file","size":3626684,"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/0D2CFF7C-0948-4B9E-A744-DEE0D762E720\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYyODQ5MTg5.jpeg","ctime":1762935584834,"name":"L3VwbG9hZHMvZmlsZV8xNzYyODQ5
+⚡️  TO JS {"type":"file","size":123126,"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/0D2CFF7C-0948-4B9E-A744-DEE0D762E720\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYyODQ5NTEz.pdf","ctime":1762935584569,"name":"L3VwbG9hZHMvZmlsZV8xNzYyODQ5NT
+⚡️  [log] - [FileCache] Cache miss, downloading: /uploads/file_1762854376160_djtpf4zueog.mov
+WebContent[24477] The sandbox in this process does not allow access to RunningBoard.
+WebContent[24477] Handshake aborted as the connection has been invalidated
+WebContent[24477] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+WebContent[24477] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+⚡️  To Native ->  Filesystem writeFile 20457952
+⚡️  To Native ->  Filesystem writeFile 20457953
+⚡️  To Native ->  Filesystem writeFile 20457954
+⚡️  To Native ->  Filesystem writeFile 20457955
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/0D2CFF7C-0948-4B9E-A744-DEE0D762E720\/Library\/Caches\/file_cache\/index.json"}
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/0D2CFF7C-0948-4B9E-A744-DEE0D762E720\/Library\/Caches\/file_cache\/index.json"}
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/0D2CFF7C-0948-4B9E-A744-DEE0D762E720\/Library\/Caches\/file_cache\/index.json"}
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/0D2CFF7C-0948-4B9E-A744-DEE0D762E720\/Library\/Caches\/file_cache\/index.json"}
+⚡️  [log] - Image loaded successfully: /uploads/file_1762849189604_q82877q4qa.jpeg
+⚡️  [log] - Image loaded successfully: /uploads/file_1762849189604_q82877q4qa.jpeg
+⚡️  [log] - Image loaded successfully: /uploads/file_1762845707100_vyntc81f8sj.jpeg
+⚡️  [log] - Image loaded successfully: /uploads/file_1762845707100_vyntc81f8sj.jpeg
+⚡️  [log] - [FileCache] Cache hit: /uploads/file_1762845707100_vyntc81f8sj.jpeg
+⚡️  [log] - [FileCache] Cache hit: /uploads/file_1762847153043_7fknqoaf848.pdf
+⚡️  [log] - [FileCache] Cache hit: /uploads/file_1762849189604_q82877q4qa.jpeg
+⚡️  [log] - [FileCache] Cache hit: /uploads/file_1762849513723_aml49nutkss.pdf
+⚡️  [error] - Image decode error for capacitor://localhost/_capacitor_file_/var/mobile/Containers/Data/Application/7911431B-E31A-4F46-9BEF-01B41945637C/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyODQ1NzA3.jpeg: 
+⚡️  [error] - Image decode error for capacitor://localhost/_capacitor_file_/var/mobile/Containers/Data/Application/7911431B-E31A-4F46-9BEF-01B41945637C/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyODQ1NzA3.jpeg: 
+⚡️  [error] - Image decode error for capacitor://localhost/_capacitor_file_/var/mobile/Containers/Data/Application/7911431B-E31A-4F46-9BEF-01B41945637C/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyODQ5MTg5.jpeg: 
+⚡️  [error] - Image decode error for capacitor://localhost/_capacitor_file_/var/mobile/Containers/Data/Application/7911431B-E31A-4F46-9BEF-01B41945637C/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyODQ5MTg5.jpeg: 
+WebContent[24477] +[HDRImage getPixelType:YCCMatrixString:chromaSubsampling:componentRange:bitDepth:isFloat:forBuffer:]:1050: *** Missing YCC matrix, falling back to ITU_R_601_4
+WebContent[24477] +[HDRImage getPixelType:YCCMatrixString:chromaSubsampling:componentRange:bitDepth:isFloat:forBuffer:]:1050: *** Missing YCC matrix, falling back to ITU_R_601_4
+WebContent[24477] +[HDRImage getPixelType:YCCMatrixString:chromaSubsampling:componentRange:bitDepth:isFloat:forBuffer:]:1050: *** Missing YCC matrix, falling back to ITU_R_601_4
+WebContent[24477] +[HDRImage getPixelType:YCCMatrixString:chromaSubsampling:componentRange:bitDepth:isFloat:forBuffer:]:1050: *** Missing YCC matrix, falling back to ITU_R_601_4
+WebContent[24477] IOSurface creation failed. IOSurface service not present
+WebContent[24477] IOSurface creation failed. IOSurface service not present
+⚡️  [log] - ✅ Microphone permission already granted, stream ready
+⚡️  [log] - ✅ Microphone permission already granted, stream ready
+⚡️  [error] - [FileCache] Failed to fetch and cache: {}
+⚡️  To Native ->  Badge set 20457956
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  To Native ->  Badge set 20457957
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  TO JS undefined
+        CHHapticEngine.mm:676   -[CHHapticEngine finishInit:]: ERROR: Server timeout
+XPC connection interrupted
+<_UIKBFeedbackGenerator: 0x10829be40>: Error creating CHHapticEngine: Error Domain=com.apple.CoreHaptics Code=-4810 "(null)"
+    AVAudioSession_iOS.mm:794   Server returned an error from destroySession:. Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service with pid 115 named com.apple.audio.AudioSession was invalidated from this process." UserInfo={NSDebugDescription=The connection to service with pid 115 named com.apple.audio.AudioSession was invalidated from this process.}
+<_UIKBFeedbackGenerator: 0x10829be40>: Error: Cannot start engine because it does not exist.
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = C6C3314F-A6FF-4DC5-91CE-70689DBA13DB
+⚡️  To Native ->  Badge set 20457958
+⚡️  To Native ->  Badge set 20457959
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  [log] - 📱 Real-time badge sync event: 0
+[!] <_UISystemGestureGateGestureRecognizer: 0x108246940; id = 1; phase = possible | failed(noLongerPossible)> is blocking its subgraph for 24.026841333 seconds:
+    <WKDeferringGestureRecognizer: 0x119016e40 "Deferrer for touch end (immediate reset)"; id = 22; phase = failed>
+    <UITapGestureRecognizer: 0x1190983c0; id = 51; phase = failed(nonTap)>
+    <UIPanGestureRecognizer: 0x119048200 "Scroll axis locking"; id = 9; phase = failed(touchesEnded)>
+    <UIScrollViewDelayedTouchesBeganGestureRecognizer: 0x119015180; id = 7; phase = failed(delayedTouchesDenied)>
+    <nil "UITextInteractionNameSingleTap"; id = 86; phase = failed(activationDenied)>
+    <UIScrollViewPinchGestureRecognizer: 0x11913d040; id = 82; phase = failed>
+    <UIScrollViewPanGestureRecognizer: 0x119009180; id = 8; phase = failed(touchesEnded)>
+    <WKDeferringGestureRecognizer: 0x119017200 "Deferrer for touch move"; id = 25; phase = failed>
+    <_UITouchDurationObservingGestureRecognizer: 0x108365200 "com.apple.UIKit.longPressClickDriverPrimary"; id = 54; phase = failed>
+    <UITapGestureRecognizer: 0x119017980; id = 35; phase = failed(nonTap)>
+    <WKDeferringGestureRecognizer: 0x119016a80 "Deferrer for touch start (immediate reset)"; id = 19; phase = failed>
+[!] <UITapGestureRecognizer: 0x119017840; id = 33; phase = possible> is blocking its subgraph for 24.026822167 seconds:
+    <WKDeferringGestureRecognizer: 0x119016bc0 "Deferrer for touch start (delayed reset)"; id = 20; phase = failed>
+    <WKImageAnalysisGestureRecognizer: 0x119009b80 "Image analysis"; id = 69; phase = failed(interactionEnded)>
+    <nil "UITextInteractionNameInteractiveRefinement"; id = 85; phase = failed(interactionEnded)>
+    <WKDeferringGestureRecognizer: 0x119017340 "Deferrer for image analysis"; id = 26; phase = failed>
+    <UITapAndAHalfRecognizer: 0x108365500 "UITextInteractionNameTapAndAHalf"; id = 88; phase = failed(removedFromContainer)>
+    <_UIDragLiftGestureRecognizer: 0x119049400 "com.apple.UIKit.dragInitiation"; id = 45; phase = failed(interactionEnded)>
+    <_UIRelationshipGestureRecognizer: 0x108247980 "com.apple.UIKit.dragFailureRelationships"; id = 46; phase = failed>
+    <_UIRelationshipGestureRecognizer: 0x119098a00 "com.apple.UIKit.clickPresentationFailure"; id = 59; phase = failed>
+    <nil "UITextInteractionNameDoubleTap"; id = 87; phase = failed(removedFromContainer)>
+    <WKDeferringGestureRecognizer: 0x119016f80 "Deferrer for touch end (delayed reset)"; id = 23; phase = failed>
+containerToPush is nil, will not push anything to candidate receiver for request token: AC60D388
+⚡️  TO JS undefined
+⚡️  TO JS undefined
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+⚡️  [log] - [NotificationManager] Window blurred
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  Can only perform input operation for an active session. sessionID = C6C3314F-A6FF-4DC5-91CE-70689DBA13DB
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = C6C3314F-A6FF-4DC5-91CE-70689DBA13DB
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  Can only perform input operation for an active session. sessionID = C6C3314F-A6FF-4DC5-91CE-70689DBA13DB
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App foregrounded - reconnecting WebSocket
+Reporter disconnected. { function=sendMessage, reporterID=105093554765825 }
+Reporter disconnected. { function=sendMessage, reporterID=105093554765825 }
+Reporter disconnected. { function=sendMessage, reporterID=105093554765825 }
+Reporter disconnected. { function=sendMessage, reporterID=105093554765825 }
+Reporter disconnected. { function=sendMessage, reporterID=105093554765825 }
+Reporter disconnected. { function=sendMessage, reporterID=105093554765825 }
+Reporter disconnected. { function=sendMessage, reporterID=105093554765825 }
+Reporter disconnected. { function=sendMessage, reporterID=105093554765825 }
+Reporter disconnected. { function=sendMessage, reporterID=105093554765825 }
+⚡️  [log] - 📱 Calling connect() after foreground transition
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://dovie-hello2sangyun.replit.app/ws
+⚡️  [log] -    Protocol: wss:, Host: dovie-hello2sangyun.replit.app
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - WebSocket disconnected: 1000 App backgrounded
+Reporter disconnected or already stopped. { func=stop, reporterID=105093554765825 }
+⚡️  To Native ->  Badge set 20457960
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  To Native ->  ⚡️  [log] - 📱 Real-time badge sync event: 0
+Badge set 20457961
+⚡️  TO JS undefined
+⚡️  TO JS undefined
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+⚡️  To Native ->  Badge set 20457962
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  To Native ->  Badge set 20457963
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+Reporter disconnected. { function=sendMessage, reporterID=105093554765826 }
+Reporter disconnected. { function=sendMessage, reporterID=105093554765826 }
+Reporter disconnected. { function=sendMessage, reporterID=105093554765826 }
+Reporter disconnected. { function=sendMessage, reporterID=105093554765826 }
+Reporter disconnected. { function=sendMessage, reporterID=105093554765826 }
+Reporter disconnected. { function=sendMessage, reporterID=105093554765826 }
+Reporter disconnected. { function=sendMessage, reporterID=105093554765826 }
+Reporter disconnected. { function=sendMessage, reporterID=105093554765826 }
+Reporter disconnected. { function=sendMessage, reporterID=105093554765826 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = C6C3314F-A6FF-4DC5-91CE-70689DBA13DB
+⚡️  To Native ->  App removeListener 20457964
+⚡️  To Native ->  App removeListener 20457965
+Reporter disconnected or already stopped. { func=stop, reporterID=105093554765826 }
