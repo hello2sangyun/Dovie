@@ -269,56 +269,76 @@ export default function GroupInfoPage() {
               {/* Profile Image */}
               <div className="relative mb-4">
                 {chatRoom?.profileImage ? (
-                  <div className="relative w-28 h-28">
+                  <div className="relative w-32 h-32">
                     <InstantAvatar
                       src={chatRoom.profileImage}
                       fallbackText={chatRoom.name}
                       size="xl"
-                      className="h-28 w-28"
+                      className="h-32 w-32"
                     />
                   </div>
                 ) : (
-                  <div className="relative w-28 h-28 flex items-center justify-center">
-                    {participants.slice(0, 2).map((participant, index) => {
-                      // 수평 겹침 배치 - 더 크고 균형잡힌 배치
-                      const positions = [
-                        { top: '50%', left: '8px', transform: 'translateY(-50%)' },
-                        { top: '50%', right: '8px', transform: 'translateY(-50%)' }
-                      ];
+                  <div className="relative w-32 h-32 flex items-center justify-center">
+                    {participants.slice(0, Math.min(5, participants.length)).map((participant, index) => {
+                      const totalAvatars = Math.min(5, participants.length);
+                      const isStackLayout = totalAvatars <= 3;
                       
-                      return (
-                        <div
-                          key={participant.id}
-                          className="absolute border-3 border-white rounded-full shadow-lg"
-                          style={{
-                            ...positions[index],
-                            zIndex: 2 - index
-                          }}
-                        >
-                          <div className="w-16 h-16">
+                      if (isStackLayout) {
+                        // 3명 이하: 스택 레이아웃 (수평 겹침)
+                        return (
+                          <div
+                            key={participant.id}
+                            className="rounded-full border-3 border-white shadow-lg bg-slate-500 flex items-center justify-center"
+                            style={{
+                              width: '80px',
+                              height: '80px',
+                              position: index === 0 ? 'relative' : 'absolute',
+                              left: index === 0 ? '0' : `${index * 24}px`,
+                              zIndex: totalAvatars - index
+                            }}
+                          >
                             <InstantAvatar 
-                              src={participant?.profilePicture}
-                              fallbackText={participant?.displayName || participant?.username}
-                              size="xl" 
-                              className="w-16 h-16"
+                              src={participant.profilePicture}
+                              fallbackText={participant.displayName}
+                              size="xl"
+                              className="w-full h-full"
                             />
                           </div>
-                        </div>
-                      );
+                        );
+                      } else {
+                        // 4명 이상: 그리드 레이아웃 (2x2 + 중앙)
+                        const positions = [
+                          'top-0 left-0',
+                          'top-0 right-0', 
+                          'bottom-0 left-0',
+                          'bottom-0 right-0',
+                          'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10'
+                        ];
+                        
+                        return (
+                          <div
+                            key={participant.id}
+                            className={`absolute rounded-full border-2 border-white shadow-md purple-gradient flex items-center justify-center ${positions[index]}`}
+                            style={{
+                              width: '60px',
+                              height: '60px'
+                            }}
+                          >
+                            <InstantAvatar 
+                              src={participant.profilePicture}
+                              fallbackText={participant.displayName}
+                              size="lg"
+                              className="w-full h-full"
+                            />
+                          </div>
+                        );
+                      }
                     })}
-                    {participants.length > 2 && (
-                      <div 
-                        className="absolute bottom-1 right-1 bg-purple-500 text-white text-sm rounded-full w-8 h-8 flex items-center justify-center font-bold shadow-lg border-3 border-white"
-                        style={{ zIndex: 3 }}
-                      >
-                        +{participants.length - 2}
-                      </div>
-                    )}
                   </div>
                 )}
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="absolute -bottom-1 -right-1 bg-purple-600 text-white rounded-full p-2.5 shadow-lg hover:bg-purple-700 transition-colors"
+                  className="absolute -bottom-2 -right-2 bg-purple-600 text-white rounded-full p-3 shadow-lg hover:bg-purple-700 transition-colors z-20"
                   data-testid="button-change-profile-image"
                 >
                   <Camera className="h-5 w-5" />
@@ -333,56 +353,58 @@ export default function GroupInfoPage() {
                 />
               </div>
 
-              {/* Group Name */}
-              {isEditingName ? (
-                <div className="flex items-center gap-2 w-full max-w-xs">
-                  <Input
-                    value={groupName}
-                    onChange={(e) => setGroupName(e.target.value)}
-                    className="text-center font-bold text-xl"
-                    autoFocus
-                    data-testid="input-group-name"
-                  />
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={handleSaveName}
-                    className="h-9 w-9 p-0 hover:bg-purple-50"
-                    data-testid="button-save-name"
-                  >
-                    <Check className="h-5 w-5 text-green-600" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setIsEditingName(false)}
-                    className="h-9 w-9 p-0 hover:bg-red-50"
-                    data-testid="button-cancel-name"
-                  >
-                    <X className="h-5 w-5 text-red-600" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <h2 className="text-2xl font-bold text-gray-900" data-testid="text-group-name">
-                    {chatRoom?.name}
-                  </h2>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => {
-                      setGroupName(chatRoom?.name || "");
-                      setIsEditingName(true);
-                    }}
-                    className="h-9 w-9 p-0 hover:bg-purple-50"
-                    data-testid="button-edit-name"
-                  >
-                    <Edit2 className="h-5 w-5 text-purple-600" />
-                  </Button>
-                </div>
-              )}
+              {/* Group Name - 항상 표시 */}
+              <div className="w-full text-center mb-1">
+                {isEditingName ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <Input
+                      value={groupName}
+                      onChange={(e) => setGroupName(e.target.value)}
+                      className="text-center font-bold text-xl max-w-xs"
+                      autoFocus
+                      data-testid="input-group-name"
+                    />
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleSaveName}
+                      className="h-9 w-9 p-0 hover:bg-green-50 flex-shrink-0"
+                      data-testid="button-save-name"
+                    >
+                      <Check className="h-5 w-5 text-green-600" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setIsEditingName(false)}
+                      className="h-9 w-9 p-0 hover:bg-red-50 flex-shrink-0"
+                      data-testid="button-cancel-name"
+                    >
+                      <X className="h-5 w-5 text-red-600" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center gap-2">
+                    <h2 className="text-2xl font-bold text-gray-900" data-testid="text-group-name">
+                      {chatRoom?.name || "그룹 채팅"}
+                    </h2>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setGroupName(chatRoom?.name || "");
+                        setIsEditingName(true);
+                      }}
+                      className="h-9 w-9 p-0 hover:bg-purple-50 flex-shrink-0"
+                      data-testid="button-edit-name"
+                    >
+                      <Edit2 className="h-5 w-5 text-purple-600" />
+                    </Button>
+                  </div>
+                )}
+              </div>
 
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-sm text-gray-500">
                 {participants.length}명의 멤버
               </p>
             </div>
