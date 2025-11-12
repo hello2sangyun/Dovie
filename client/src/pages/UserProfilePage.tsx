@@ -30,6 +30,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { isImageFile, isVideoFile, getFileType, getFileName, type FileType } from "@/lib/fileUtils";
+import { useSwipeBack } from "@/hooks/useSwipeBack";
 
 interface UserProfile {
   id: number;
@@ -59,6 +60,12 @@ export default function UserProfilePage() {
   const [selectedImage, setSelectedImage] = useState<{ url: string; name: string } | null>(null);
   const [selectedFile, setSelectedFile] = useState<{ url: string; name: string; size?: number } | null>(null);
   const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
+
+  // Swipe back to previous page
+  useSwipeBack({
+    onBack: () => window.history.back(),
+    enabled: true,
+  });
 
   console.log('UserProfilePage mounted', { match, userId, currentUser });
 
@@ -277,7 +284,7 @@ export default function UserProfilePage() {
   return (
     <div className="h-screen bg-gradient-to-br from-purple-50 to-indigo-50 overflow-y-auto">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
           <Button
             variant="ghost"
