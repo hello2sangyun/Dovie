@@ -267,7 +267,7 @@ export default function GroupInfoPage() {
           <div className="bg-white mt-4 mx-4 rounded-2xl shadow-sm p-6">
             <div className="flex flex-col items-center">
               {/* Profile Image */}
-              <div className="relative mb-4">
+              <div className="relative mb-3">
                 {chatRoom?.profileImage ? (
                   <InstantAvatar
                     src={chatRoom.profileImage}
@@ -278,6 +278,7 @@ export default function GroupInfoPage() {
                 ) : (
                   <div className="relative w-24 h-24 flex items-center justify-center">
                     {participants.slice(0, 2).map((participant, index) => {
+                      // ChatsList와 동일한 수평 겹침 배치
                       const horizontalPositions = [
                         { top: '50%', left: '0px', transform: 'translateY(-50%)' },
                         { top: '50%', right: '0px', transform: 'translateY(-50%)' }
@@ -297,7 +298,7 @@ export default function GroupInfoPage() {
                           <InstantAvatar 
                             src={participant?.profilePicture}
                             fallbackText={participant?.displayName || participant?.username}
-                            size="md" 
+                            size="lg" 
                             className="purple-gradient"
                           />
                         </div>
@@ -305,7 +306,7 @@ export default function GroupInfoPage() {
                     })}
                     {participants.length > 2 && (
                       <div 
-                        className="absolute bottom-0 right-0 bg-purple-500 text-white text-sm rounded-full w-7 h-7 flex items-center justify-center font-bold shadow-md border-2 border-white"
+                        className="absolute bottom-0 right-0 bg-purple-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold shadow-md border-2 border-white"
                         style={{ zIndex: 3 }}
                       >
                         +{participants.length - 2}
@@ -332,11 +333,11 @@ export default function GroupInfoPage() {
 
               {/* Group Name */}
               {isEditingName ? (
-                <div className="flex items-center gap-2 w-full max-w-xs">
+                <div className="flex items-center gap-2 w-full max-w-xs mb-2">
                   <Input
                     value={groupName}
                     onChange={(e) => setGroupName(e.target.value)}
-                    className="text-center font-semibold"
+                    className="text-center font-semibold text-lg"
                     autoFocus
                     data-testid="input-group-name"
                   />
@@ -360,8 +361,8 @@ export default function GroupInfoPage() {
                   </Button>
                 </div>
               ) : (
-                <div className="flex items-center gap-2">
-                  <h2 className="text-2xl font-bold text-gray-900" data-testid="text-group-name">
+                <div className="flex items-center gap-2 mb-2">
+                  <h2 className="text-xl font-bold text-gray-900" data-testid="text-group-name">
                     {chatRoom?.name}
                   </h2>
                   <Button
