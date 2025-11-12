@@ -3802,14 +3802,19 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // 길게 터치 이벤트 핸들러
   const handleTouchStart = (e: React.TouchEvent, message: any) => {
-    // 터치된 요소가 파일/이미지/비디오(클릭 가능한 미디어)인지 확인
+    // 터치된 요소가 인터랙티브 요소인지 확인
     const touchedElement = e.target as HTMLElement;
     
-    // img, video 태그이거나 cursor-pointer 클래스를 가진 요소는 long-press 처리 건너뛰기
-    // 이렇게 하면 파일/이미지 클릭이 정상적으로 작동함
+    // 이미지/비디오를 직접 터치한 경우는 프리뷰를 위해 long-press 차단
+    // 버튼, 링크도 차단
     if (
       touchedElement.tagName === 'IMG' ||
       touchedElement.tagName === 'VIDEO' ||
+      touchedElement.tagName === 'BUTTON' ||
+      touchedElement.tagName === 'A' ||
+      touchedElement.closest('button') ||
+      touchedElement.closest('a') ||
+      touchedElement.classList.contains('cursor-pointer') ||
       touchedElement.closest('.cursor-pointer')
     ) {
       return;
@@ -3838,19 +3843,23 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       });
       
       navigator.vibrate?.(50); // 햅틱 피드백
-    }, 500); // 500ms 길게 터치
+    }, 400); // 400ms 길게 터치 (500ms에서 단축)
     
     setTouchTimer(timer);
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    // 터치된 요소가 파일/이미지/비디오(클릭 가능한 미디어)인지 확인
+    // 터치된 요소가 인터랙티브 요소인지 확인
     const touchedElement = e.target as HTMLElement;
     
-    // img, video 태그이거나 cursor-pointer 클래스를 가진 요소는 preventDefault 건너뛰기
+    // 이미지/비디오, 버튼, 링크 등은 preventDefault 건너뛰기
     if (
       touchedElement.tagName === 'IMG' ||
       touchedElement.tagName === 'VIDEO' ||
+      touchedElement.tagName === 'BUTTON' ||
+      touchedElement.tagName === 'A' ||
+      touchedElement.closest('button') ||
+      touchedElement.closest('a') ||
       touchedElement.closest('.cursor-pointer')
     ) {
       // 타이머만 정리하고 preventDefault는 하지 않음
@@ -3872,16 +3881,20 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    // 터치된 요소가 파일/이미지/비디오(클릭 가능한 미디어)인지 확인
+    // 터치된 요소가 인터랙티브 요소인지 확인
     const touchedElement = e.target as HTMLElement;
     
-    // img, video 태그이거나 cursor-pointer 클래스를 가진 요소는 preventDefault 건너뛰기
+    // 이미지/비디오, 버튼, 링크 등은 타이머만 정리
     if (
       touchedElement.tagName === 'IMG' ||
       touchedElement.tagName === 'VIDEO' ||
+      touchedElement.tagName === 'BUTTON' ||
+      touchedElement.tagName === 'A' ||
+      touchedElement.closest('button') ||
+      touchedElement.closest('a') ||
       touchedElement.closest('.cursor-pointer')
     ) {
-      // 타이머만 정리하고 preventDefault는 하지 않음
+      // 타이머만 정리
       if (touchTimer) {
         clearTimeout(touchTimer);
         setTouchTimer(null);
