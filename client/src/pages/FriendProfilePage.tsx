@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 
 import ScrollIndicator from "@/components/ScrollIndicator";
+import { CallModal } from "@/components/CallModal";
+import { useToast } from "@/hooks/use-toast";
 
 interface BusinessPost {
   id: number;
@@ -68,8 +70,11 @@ export default function FriendProfilePage() {
   const userId = params?.userId;
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const [activeTab, setActiveTab] = useState("posts");
+  const [isCallModalOpen, setIsCallModalOpen] = useState(false);
+  const [callChatRoomId, setCallChatRoomId] = useState<number | null>(null);
 
   // Fetch friend's business posts
   const { data: businessPosts = [], isLoading: postsLoading } = useQuery({
@@ -101,7 +106,7 @@ export default function FriendProfilePage() {
     enabled: !!user,
   });
 
-  // Mutation to create or find existing chat room
+  // Mutation to create or find existing chat room (for messaging)
   const createChatRoomMutation = useMutation({
     mutationFn: async (friendUserId: string) => {
       const response = await apiRequest("/api/chat-rooms", "POST", {
@@ -120,12 +125,63 @@ export default function FriendProfilePage() {
     },
   });
 
+  // Mutation to create or find existing chat room (for calling - no navigation)
+  const getOrCreateChatRoomForCall = useMutation({
+    mutationFn: async (friendUserId: string) => {
+      const response = await apiRequest("/api/chat-rooms", "POST", {
+        name: "",
+        isGroup: false,
+        participantIds: [parseInt(friendUserId)],
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+    },
+    onError: (error) => {
+      console.error('Failed to create chat room for call:', error);
+      toast({
+        title: "통화 연결 실패",
+        description: "채팅방을 생성하지 못했습니다. 다시 시도해주세요.",
+        variant: "destructive"
+      });
+    },
+  });
+
   // Function to handle message button click
   const handleMessageClick = () => {
     if (!userId || !user) return;
 
     // Navigate to chat list with filter for this friend
     setLocation(`/app?friendFilter=${userId}`);
+  };
+
+  // Function to handle call button click (get or create chat room)
+  const handleCallClick = async () => {
+    if (!userId || !user) return;
+
+    try {
+      // Check if a direct chat room already exists
+      const existingRoom = (chatRoomsData as any)?.chatRooms?.find((room: any) => 
+        !room.isGroup && 
+        room.participants?.some((p: any) => p.id === parseInt(userId)) &&
+        room.participants?.some((p: any) => p.id === user.id)
+      );
+
+      if (existingRoom) {
+        // Use existing chat room
+        setCallChatRoomId(existingRoom.id);
+        setIsCallModalOpen(true);
+      } else {
+        // Create new chat room (without navigation)
+        const data = await getOrCreateChatRoomForCall.mutateAsync(userId);
+        setCallChatRoomId(data.chatRoom.id);
+        setIsCallModalOpen(true);
+      }
+    } catch (error) {
+      // Error already handled by mutation onError
+      console.error('Failed to get/create chat room for call:', error);
+    }
   };
 
   if (!match || !userId) {
@@ -185,9 +241,16 @@ export default function FriendProfilePage() {
           
           {/* Action Buttons - Mobile Optimized */}
           <div className="grid grid-cols-5 gap-1.5 px-2 mb-5">
-            <Button variant="outline" size="sm" className="flex flex-col items-center py-2.5 px-1 h-auto border-gray-200 hover:bg-gray-50">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex flex-col items-center py-2.5 px-1 h-auto border-gray-200 hover:bg-gray-50"
+              onClick={handleCallClick}
+              disabled={getOrCreateChatRoomForCall.isPending}
+              data-testid="button-call"
+            >
               <Phone className="w-4 h-4 mb-1" />
-              <span className="text-xs">통화</span>
+              <span className="text-xs">{getOrCreateChatRoomForCall.isPending ? "연결중..." : "통화"}</span>
             </Button>
             <Button 
               variant="outline" 
@@ -524,6 +587,20 @@ export default function FriendProfilePage() {
       {/* Bottom spacing for mobile scrolling */}
       <div className="h-6"></div>
       </div>
+
+      {/* Call Modal */}
+      {isCallModalOpen && callChatRoomId && (
+        <CallModal
+          isOpen={isCallModalOpen}
+          onClose={() => {
+            setIsCallModalOpen(false);
+            setCallChatRoomId(null);
+          }}
+          targetUserId={parseInt(userId)}
+          targetName={friendName}
+          chatRoomId={callChatRoomId}
+        />
+      )}
     </div>
   );
 }

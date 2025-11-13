@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -38,6 +38,7 @@ import { AIChatAssistantModal } from "./AIChatAssistantModal";
 import AiNoticesModal from "./AiNoticesModal";
 import { ForwardMessageModal } from "./ForwardMessageModal";
 import { FilePreviewModal } from "./FilePreviewModal";
+import { CallModal } from "./CallModal";
 
 import TypingIndicator, { useTypingIndicator } from "./TypingIndicator";
 import { 
@@ -274,6 +275,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   const [showAIAssistantModal, setShowAIAssistantModal] = useState(false);
   const [showAiNoticesModal, setShowAiNoticesModal] = useState(false);
+  const [isCallModalOpen, setIsCallModalOpen] = useState(false);
 
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
 
@@ -496,6 +498,23 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   });
 
   const currentChatRoom = (chatRoomsData as any)?.chatRooms?.find((room: any) => room.id === chatRoomId);
+
+  // Derive target user info for 1:1 calls (memoized to avoid repeated scans)
+  const targetUserId = useMemo(() => {
+    if (!currentChatRoom?.isGroup && currentChatRoom?.participants) {
+      const targetParticipant = currentChatRoom.participants.find((p: any) => p.id !== user?.id);
+      return targetParticipant?.id || null;
+    }
+    return null;
+  }, [currentChatRoom?.isGroup, currentChatRoom?.participants, user?.id]);
+
+  const targetName = useMemo(() => {
+    if (!currentChatRoom?.isGroup && currentChatRoom?.participants) {
+      const targetParticipant = currentChatRoom.participants.find((p: any) => p.id !== user?.id);
+      return targetParticipant?.displayName ?? targetParticipant?.username ?? '알 수 없는 사용자';
+    }
+    return '알 수 없는 사용자';
+  }, [currentChatRoom?.isGroup, currentChatRoom?.participants, user?.id]);
 
   // Get contacts to check if other participants are friends
   const { data: contactsData } = useQuery({
@@ -4548,6 +4567,18 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               <Search className="h-4 w-4" />
             </Button>
 
+            {!currentChatRoom?.isGroup && targetUserId && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-gray-400 hover:text-purple-600"
+                onClick={() => setIsCallModalOpen(true)}
+                data-testid="button-call"
+              >
+                <Phone className="h-4 w-4" />
+              </Button>
+            )}
+
             <Button variant="ghost" size="sm" className="text-gray-400 hover:text-purple-600">
               <Info className="h-4 w-4" />
             </Button>
@@ -7117,6 +7148,17 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             setVoiceConfirmData(null);
             setIsProcessingVoice(false);
           }}
+        />
+      )}
+
+      {/* Call Modal */}
+      {isCallModalOpen && targetUserId && (
+        <CallModal
+          isOpen={isCallModalOpen}
+          onClose={() => setIsCallModalOpen(false)}
+          targetUserId={targetUserId}
+          targetName={targetName}
+          chatRoomId={chatRoomId}
         />
       )}
 
