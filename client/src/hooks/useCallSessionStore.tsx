@@ -194,6 +194,7 @@ function sessionReducer(
 // ===================================
 
 interface CallSessionStoreContext {
+  // Low-level primitives
   state: CallSessionStoreState;
   createSession: (session: CallSession) => void;
   updateSession: (callSessionId: string, updates: Partial<CallSession>) => void;
@@ -204,6 +205,29 @@ interface CallSessionStoreContext {
   getSession: (callSessionId: string) => CallSession | undefined;
   getActiveSession: () => CallSession | undefined;
   isSessionClaimed: (callSessionId: string) => boolean;
+  
+  // High-level façade for MainApp/UI
+  activeSession: CallSession | undefined;
+  claimedSessionId: string | null;
+  releaseActiveSession: () => void;
+  handleIncomingOffer: (
+    callSessionId: string,
+    fromUserId: number,
+    chatRoomId: number,
+    offer: RTCSessionDescriptionInit,
+    metadata?: {
+      receiverId?: number;
+      receiverName?: string;
+      receiverProfilePicture?: string;
+      callerName?: string;
+      callerProfilePicture?: string;
+      callType?: 'voice' | 'video';
+    }
+  ) => void;
+  handleAnswer: (answer: RTCSessionDescriptionInit) => void;
+  handleReject: () => void;
+  handleEnd: () => void;
+  handleIceCandidate: (candidate: RTCIceCandidateInit) => void;
 }
 
 const CallSessionContext = createContext<CallSessionStoreContext | null>(null);
@@ -427,7 +451,90 @@ export function CallSessionStoreProvider({ children }: { children: ReactNode }) 
     return state.claimedSessionId === callSessionId;
   }, [state.claimedSessionId]);
 
+  // High-level façade methods
+  const releaseActiveSession = useCallback(() => {
+    if (state.activeSessionId) {
+      releaseSession(state.activeSessionId);
+    }
+  }, [state.activeSessionId, releaseSession]);
+
+  const handleIncomingOffer = useCallback((
+    callSessionId: string,
+    fromUserId: number,
+    chatRoomId: number,
+    offer: RTCSessionDescriptionInit,
+    metadata?: {
+      receiverId?: number;
+      receiverName?: string;
+      receiverProfilePicture?: string;
+      callerName?: string;
+      callerProfilePicture?: string;
+      callType?: 'voice' | 'video';
+    }
+  ) => {
+    // Create CallSession with server-hydrated metadata
+    const session: CallSession = {
+      callSessionId,
+      chatRoomId,
+      callerId: fromUserId,
+      receiverId: metadata?.receiverId || 0,
+      callerName: metadata?.callerName || 'Unknown Caller',
+      callerProfilePicture: metadata?.callerProfilePicture,
+      receiverName: metadata?.receiverName || null,
+      receiverProfilePicture: metadata?.receiverProfilePicture || null,
+      callType: metadata?.callType || 'voice',
+      state: CallSessionState.PENDING,
+      offer,
+      answer: null,
+      iceCandidates: [],
+      startedAt: null,
+      endedAt: null,
+      lastEventAt: Date.now()
+    };
+
+    createSession(session);
+    claimSession(callSessionId);
+  }, [createSession, claimSession]);
+
+  const handleAnswer = useCallback((answer: RTCSessionDescriptionInit) => {
+    if (!state.activeSessionId) {
+      console.warn('[CallSessionStore] handleAnswer: No active session');
+      return;
+    }
+    updateSession(state.activeSessionId, { answer });
+    changeSessionState(state.activeSessionId, CallSessionState.CONNECTED);
+  }, [state.activeSessionId, updateSession, changeSessionState]);
+
+  const handleReject = useCallback(() => {
+    if (!state.activeSessionId) {
+      console.warn('[CallSessionStore] handleReject: No active session');
+      return;
+    }
+    changeSessionState(state.activeSessionId, CallSessionState.REJECTED);
+  }, [state.activeSessionId, changeSessionState]);
+
+  const handleEnd = useCallback(() => {
+    if (!state.activeSessionId) {
+      console.warn('[CallSessionStore] handleEnd: No active session');
+      return;
+    }
+    changeSessionState(state.activeSessionId, CallSessionState.ENDED);
+  }, [state.activeSessionId, changeSessionState]);
+
+  const handleIceCandidate = useCallback((candidate: RTCIceCandidateInit) => {
+    if (!state.activeSessionId) {
+      console.warn('[CallSessionStore] handleIceCandidate: No active session');
+      return;
+    }
+    const session = state.sessions.get(state.activeSessionId);
+    if (session) {
+      const updatedCandidates = [...(session.iceCandidates || []), candidate];
+      updateSession(state.activeSessionId, { iceCandidates: updatedCandidates });
+    }
+  }, [state.activeSessionId, state.sessions, updateSession]);
+
   const contextValue: CallSessionStoreContext = {
+    // Low-level primitives
     state,
     createSession,
     updateSession,
@@ -437,7 +544,17 @@ export function CallSessionStoreProvider({ children }: { children: ReactNode }) 
     removeSession,
     getSession,
     getActiveSession,
-    isSessionClaimed
+    isSessionClaimed,
+    
+    // High-level façade
+    activeSession: state.activeSessionId ? state.sessions.get(state.activeSessionId) : undefined,
+    claimedSessionId: state.claimedSessionId,
+    releaseActiveSession,
+    handleIncomingOffer,
+    handleAnswer,
+    handleReject,
+    handleEnd,
+    handleIceCandidate
   };
 
   return (

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWebSocketContext } from "@/hooks/useWebSocketContext";
+import { useCallSessionStore } from "@/hooks/useCallSessionStore";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useImagePreloader, preloadGlobalImage } from "@/hooks/useImagePreloader";
@@ -69,17 +70,18 @@ export default function MainApp() {
   const [contactFilter, setContactFilter] = useState<number | null>(null);
   const [friendFilter, setFriendFilter] = useState<number | null>(null);
 
-  // Incoming call state
-  const [incomingCall, setIncomingCall] = useState<{
-    callSessionId: string;
-    fromUserId: number;
-    fromUserName: string;
-    fromUserProfilePicture?: string;
-    chatRoomId: number;
-    offer: RTCSessionDescriptionInit;
-  } | null>(null);
-
   const { sendMessage, connectionState, pendingMessageCount, subscribeToSignaling } = useWebSocketContext();
+  
+  // CallSessionStore for WebRTC call management
+  const { 
+    activeSession, 
+    handleIncomingOffer, 
+    handleAnswer, 
+    handleReject, 
+    handleEnd,
+    handleIceCandidate,
+    releaseActiveSession 
+  } = useCallSessionStore();
   
   // PWA badge functionality - always active, independent of push notifications
   const { updateBadge, clearBadge, unreadCount } = usePWABadge();
@@ -179,58 +181,57 @@ export default function MainApp() {
     };
   }, [user, queryClient, selectedChatRoom]);
 
-  // Handle incoming WebRTC calls
+  // Handle incoming WebRTC signaling events
   useEffect(() => {
     if (!user || !subscribeToSignaling) return;
 
-    const handleIncomingCall = async (data: any) => {
-      if (data.type === 'call-offer') {
-        console.log('📞 Incoming call from user:', data.fromUserId);
-        
-        // Get caller information from contacts/chat rooms
-        try {
-          const response = await fetch(`/api/users/${data.fromUserId}/profile`, {
-            headers: { 'x-user-id': user.id.toString() }
-          });
+    const handleSignaling = async (data: any) => {
+      console.log('📞 WebSocket signaling event:', data.type);
+      
+      switch (data.type) {
+        case 'call-offer':
+          // Server hydrates caller metadata + set receiver to current user
+          handleIncomingOffer(
+            data.callSessionId,
+            data.fromUserId,
+            data.chatRoomId,
+            data.offer,
+            {
+              receiverId: user.id,
+              receiverName: user.displayName || user.username,
+              receiverProfilePicture: user.profilePicture,
+              callerName: data.callerName,
+              callerProfilePicture: data.callerProfilePicture,
+              callType: data.callType || 'voice'
+            }
+          );
+          break;
           
-          if (response.ok) {
-            const callerProfile = await response.json();
-            
-            setIncomingCall({
-              callSessionId: data.callSessionId,
-              fromUserId: data.fromUserId,
-              fromUserName: callerProfile.displayName || callerProfile.username || 'Unknown User',
-              fromUserProfilePicture: callerProfile.profilePicture,
-              chatRoomId: data.chatRoomId,
-              offer: data.offer
-            });
-          } else {
-            // Fallback with minimal info
-            setIncomingCall({
-              callSessionId: data.callSessionId,
-              fromUserId: data.fromUserId,
-              fromUserName: 'Unknown User',
-              chatRoomId: data.chatRoomId,
-              offer: data.offer
-            });
-          }
-        } catch (error) {
-          console.error('Error fetching caller info:', error);
-          // Fallback with minimal info
-          setIncomingCall({
-            callSessionId: data.callSessionId,
-            fromUserId: data.fromUserId,
-            fromUserName: 'Unknown User',
-            chatRoomId: data.chatRoomId,
-            offer: data.offer
-          });
-        }
+        case 'call-answer':
+          handleAnswer(data.answer);
+          break;
+          
+        case 'call-reject':
+          handleReject();
+          break;
+          
+        case 'call-end':
+          handleEnd();
+          break;
+          
+        case 'call-ice-candidate':
+          handleIceCandidate(data.candidate);
+          break;
+          
+        default:
+          // Ignore unknown signaling types
+          break;
       }
     };
 
-    const unsubscribe = subscribeToSignaling(handleIncomingCall);
+    const unsubscribe = subscribeToSignaling(handleSignaling);
     return () => unsubscribe();
-  }, [user, subscribeToSignaling]);
+  }, [user, subscribeToSignaling, handleIncomingOffer, handleAnswer, handleReject, handleEnd, handleIceCandidate]);
 
   // 브라우저 뒤로가기 버튼 처리 - 앱 내 네비게이션 관리
   useEffect(() => {
@@ -1398,18 +1399,18 @@ export default function MainApp() {
         onClose={() => setModals(prev => ({ ...prev, qrCode: false }))}
       />
 
-      {/* Incoming Call Modal */}
-      {incomingCall && (
+      {/* CallModal - Driven by CallSessionStore */}
+      {activeSession && user && (
         <CallModal
           isOpen={true}
-          onClose={() => setIncomingCall(null)}
-          targetUserId={incomingCall.fromUserId}
-          targetName={incomingCall.fromUserName}
-          targetProfilePicture={incomingCall.fromUserProfilePicture}
-          chatRoomId={incomingCall.chatRoomId}
-          isIncoming={true}
-          callSessionId={incomingCall.callSessionId}
-          offer={incomingCall.offer}
+          onClose={releaseActiveSession}
+          targetUserId={activeSession.receiverId === user.id ? activeSession.callerId : activeSession.receiverId}
+          targetName={activeSession.receiverId === user.id ? activeSession.callerName : activeSession.receiverName!}
+          targetProfilePicture={activeSession.receiverId === user.id ? activeSession.callerProfilePicture : activeSession.receiverProfilePicture}
+          chatRoomId={activeSession.chatRoomId}
+          isIncoming={activeSession.receiverId === user.id}
+          callSessionId={activeSession.callSessionId}
+          offer={activeSession.offer}
         />
       )}
 
