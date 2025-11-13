@@ -212,7 +212,7 @@ export function VoiceRecordingModal({
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center"
+      className="fixed inset-0 z-[9999] flex items-center justify-center"
       style={{ 
         animation: 'fadeIn 200ms ease-out',
         paddingBottom: 'env(safe-area-inset-bottom)'

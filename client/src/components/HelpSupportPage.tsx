@@ -1,13 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ArrowLeft, HelpCircle, Mail, MessageCircle, FileText, Info, ExternalLink, BookOpen, Shield } from "lucide-react";
+import { ArrowLeft, HelpCircle, Mail, MessageCircle, FileText, Info, ChevronRight, BookOpen, Shield } from "lucide-react";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 
 interface HelpSupportPageProps {
   onBack: () => void;
+  onNavigateToUserGuide: () => void;
+  onNavigateToTerms: () => void;
+  onNavigateToPrivacy: () => void;
 }
 
-export default function HelpSupportPage({ onBack }: HelpSupportPageProps) {
+export default function HelpSupportPage({ onBack, onNavigateToUserGuide, onNavigateToTerms, onNavigateToPrivacy }: HelpSupportPageProps) {
   // 스와이프로 뒤로가기
   useSwipeBack({ onBack });
 
@@ -16,18 +19,6 @@ export default function HelpSupportPage({ onBack }: HelpSupportPageProps) {
 
   const handleEmailSupport = () => {
     window.location.href = "mailto:support@doviemessenger.com?subject=Dovie Messenger 문의";
-  };
-
-  const openHelpCenter = () => {
-    window.open("https://help.doviemessenger.com", "_blank");
-  };
-
-  const openTerms = () => {
-    window.open("https://doviemessenger.com/terms", "_blank");
-  };
-
-  const openPrivacy = () => {
-    window.open("https://doviemessenger.com/privacy", "_blank");
   };
 
   return (
@@ -60,7 +51,7 @@ export default function HelpSupportPage({ onBack }: HelpSupportPageProps) {
           </CardHeader>
           <CardContent className="space-y-3">
             <button
-              onClick={openHelpCenter}
+              onClick={onNavigateToUserGuide}
               className="w-full p-4 bg-white border border-gray-200 rounded-lg hover:border-purple-300 hover:shadow-md transition-all text-left group"
               data-testid="button-help-center"
             >
@@ -74,7 +65,7 @@ export default function HelpSupportPage({ onBack }: HelpSupportPageProps) {
                     <div className="text-sm text-gray-500">앱 사용법 및 팁 확인하기</div>
                   </div>
                 </div>
-                <ExternalLink className="h-4 w-4 text-gray-400 group-hover:text-purple-600" />
+                <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-purple-600" />
               </div>
             </button>
           </CardContent>
@@ -97,17 +88,14 @@ export default function HelpSupportPage({ onBack }: HelpSupportPageProps) {
               className="w-full p-4 bg-white border border-gray-200 rounded-lg hover:border-green-300 hover:shadow-md transition-all text-left group"
               data-testid="button-email-support"
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
-                    <Mail className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-gray-900">이메일 문의</div>
-                    <div className="text-sm text-gray-500">support@doviemessenger.com</div>
-                  </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                  <Mail className="h-5 w-5 text-green-600" />
                 </div>
-                <ExternalLink className="h-4 w-4 text-gray-400 group-hover:text-green-600" />
+                <div>
+                  <div className="font-semibold text-gray-900">이메일 문의</div>
+                  <div className="text-sm text-gray-500">support@doviemessenger.com</div>
+                </div>
               </div>
             </button>
           </CardContent>
@@ -126,7 +114,7 @@ export default function HelpSupportPage({ onBack }: HelpSupportPageProps) {
           </CardHeader>
           <CardContent className="space-y-2">
             <button
-              onClick={openTerms}
+              onClick={onNavigateToTerms}
               className="w-full p-3 bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all text-left group"
               data-testid="button-terms"
             >
@@ -135,11 +123,11 @@ export default function HelpSupportPage({ onBack }: HelpSupportPageProps) {
                   <FileText className="h-4 w-4 text-gray-500" />
                   <span className="text-sm font-medium text-gray-900">이용 약관</span>
                 </div>
-                <ExternalLink className="h-3 w-3 text-gray-400 group-hover:text-gray-600" />
+                <ChevronRight className="h-3 w-3 text-gray-400 group-hover:text-gray-600" />
               </div>
             </button>
             <button
-              onClick={openPrivacy}
+              onClick={onNavigateToPrivacy}
               className="w-full p-3 bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all text-left group"
               data-testid="button-privacy"
             >
@@ -148,7 +136,7 @@ export default function HelpSupportPage({ onBack }: HelpSupportPageProps) {
                   <Shield className="h-4 w-4 text-gray-500" />
                   <span className="text-sm font-medium text-gray-900">개인정보 처리방침</span>
                 </div>
-                <ExternalLink className="h-3 w-3 text-gray-400 group-hover:text-gray-600" />
+                <ChevronRight className="h-3 w-3 text-gray-400 group-hover:text-gray-600" />
               </div>
             </button>
           </CardContent>

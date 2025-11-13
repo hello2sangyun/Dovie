@@ -7,24 +7,86 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, UserX, AlertTriangle, Trash2 } from "lucide-react";
+import { ArrowLeft, UserX, AlertTriangle, Trash2, Phone, Shield } from "lucide-react";
 import { useLocation } from "wouter";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
+import { useToast } from "@/hooks/use-toast";
 
 interface AccountManagementPageProps {
   onBack: () => void;
 }
 
+type DeleteStep = 'confirm' | 'phone' | 'verify' | 'password';
+
 export default function AccountManagementPage({ onBack }: AccountManagementPageProps) {
   const { user, logout } = useAuth();
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
 
   // 스와이프로 뒤로가기
   useSwipeBack({ onBack });
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteStep, setDeleteStep] = useState<DeleteStep>('confirm');
   const [confirmText, setConfirmText] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
   const [password, setPassword] = useState("");
+  const [isCodeSent, setIsCodeSent] = useState(false);
 
+  // 전화번호 인증 코드 전송
+  const sendCodeMutation = useMutation({
+    mutationFn: async (phoneNumber: string) => {
+      const response = await apiRequest("/api/auth/send-phone-code", "POST", { phoneNumber });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "인증 코드 전송에 실패했습니다.");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      setIsCodeSent(true);
+      setDeleteStep('verify');
+      toast({
+        title: "인증 코드 전송 완료",
+        description: "입력하신 전화번호로 인증 코드를 전송했습니다.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "전송 실패",
+        description: error.message || "인증 코드 전송에 실패했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // 전화번호 인증 코드 확인
+  const verifyCodeMutation = useMutation({
+    mutationFn: async (data: { phoneNumber: string; code: string }) => {
+      const response = await apiRequest("/api/auth/verify-phone-code", "POST", data);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "인증에 실패했습니다.");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      setDeleteStep('password');
+      toast({
+        title: "인증 성공",
+        description: "전화번호 인증이 완료되었습니다.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "인증 실패",
+        description: error.message || "인증 코드가 올바르지 않습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // 계정 삭제
   const deleteAccountMutation = useMutation({
     mutationFn: async (data: { password: string }) => {
       const response = await apiRequest("/api/auth/delete-account", "POST", data);
@@ -35,25 +97,85 @@ export default function AccountManagementPage({ onBack }: AccountManagementPageP
       return response.json();
     },
     onSuccess: () => {
-      alert("계정이 성공적으로 삭제되었습니다. 그동안 이용해 주셔서 감사합니다.");
-      logout();
-      setLocation("/");
+      toast({
+        title: "계정 삭제 완료",
+        description: "그동안 이용해 주셔서 감사합니다.",
+      });
+      setTimeout(() => {
+        logout();
+        setLocation("/");
+      }, 1500);
     },
     onError: (error: Error) => {
-      alert(error.message || "계정 삭제에 실패했습니다. 비밀번호를 확인해주세요.");
+      toast({
+        title: "계정 삭제 실패",
+        description: error.message || "비밀번호를 확인해주세요.",
+        variant: "destructive",
+      });
     },
   });
 
-  const handleDeleteAccount = () => {
-    if (confirmText !== "DELETE") {
-      alert('정확히 "DELETE"를 입력해주세요.');
-      return;
+  const handleNextStep = () => {
+    if (deleteStep === 'confirm') {
+      if (confirmText !== "DELETE") {
+        toast({
+          title: "입력 오류",
+          description: '정확히 "DELETE"를 입력해주세요.',
+          variant: "destructive",
+        });
+        return;
+      }
+      setDeleteStep('phone');
+    } else if (deleteStep === 'phone') {
+      if (!phoneNumber) {
+        toast({
+          title: "입력 오류",
+          description: "전화번호를 입력해주세요.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (phoneNumber !== user?.phoneNumber) {
+        toast({
+          title: "전화번호 불일치",
+          description: "등록된 전화번호와 일치하지 않습니다.",
+          variant: "destructive",
+        });
+        return;
+      }
+      sendCodeMutation.mutate(phoneNumber);
+      setDeleteStep('verify');
+    } else if (deleteStep === 'verify') {
+      if (!verificationCode) {
+        toast({
+          title: "입력 오류",
+          description: "인증 코드를 입력해주세요.",
+          variant: "destructive",
+        });
+        return;
+      }
+      verifyCodeMutation.mutate({ phoneNumber, code: verificationCode });
+    } else if (deleteStep === 'password') {
+      if (!password) {
+        toast({
+          title: "입력 오류",
+          description: "비밀번호를 입력해주세요.",
+          variant: "destructive",
+        });
+        return;
+      }
+      deleteAccountMutation.mutate({ password });
     }
-    if (!password) {
-      alert("비밀번호를 입력해주세요.");
-      return;
-    }
-    deleteAccountMutation.mutate({ password });
+  };
+
+  const handleDialogClose = () => {
+    setShowDeleteDialog(false);
+    setDeleteStep('confirm');
+    setConfirmText("");
+    setPhoneNumber("");
+    setVerificationCode("");
+    setPassword("");
+    setIsCodeSent(false);
   };
 
   if (!user) return null;
@@ -144,64 +266,124 @@ export default function AccountManagementPage({ onBack }: AccountManagementPageP
         </Card>
       </div>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+      {/* Delete Confirmation Dialog - Multi-step */}
+      <Dialog open={showDeleteDialog} onOpenChange={handleDialogClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center text-red-600">
               <AlertTriangle className="h-5 w-5 mr-2" />
-              계정을 정말 삭제하시겠습니까?
+              {deleteStep === 'confirm' && "계정을 정말 삭제하시겠습니까?"}
+              {deleteStep === 'phone' && "전화번호 인증"}
+              {deleteStep === 'verify' && "인증 코드 확인"}
+              {deleteStep === 'password' && "비밀번호 확인"}
             </DialogTitle>
             <DialogDescription>
-              이 작업은 되돌릴 수 없습니다. 모든 데이터가 영구적으로 삭제됩니다.
+              {deleteStep === 'confirm' && "이 작업은 되돌릴 수 없습니다. 모든 데이터가 영구적으로 삭제됩니다."}
+              {deleteStep === 'phone' && "계정 삭제를 위해 등록된 전화번호로 본인 인증을 진행합니다."}
+              {deleteStep === 'verify' && "전송된 인증 코드를 입력해주세요."}
+              {deleteStep === 'password' && "최종 확인을 위해 비밀번호를 입력해주세요."}
             </DialogDescription>
           </DialogHeader>
+          
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="confirm-text">
-                확인을 위해 <span className="font-bold">DELETE</span>를 입력해주세요
-              </Label>
-              <Input
-                id="confirm-text"
-                value={confirmText}
-                onChange={(e) => setConfirmText(e.target.value)}
-                placeholder="DELETE"
-                className="font-mono"
-                data-testid="input-confirm-delete"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">비밀번호 확인</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="현재 비밀번호"
-                data-testid="input-password"
-              />
-            </div>
+            {/* Step 1: Confirm DELETE text */}
+            {deleteStep === 'confirm' && (
+              <div className="space-y-2">
+                <Label htmlFor="confirm-text">
+                  확인을 위해 <span className="font-bold text-red-600">DELETE</span>를 입력해주세요
+                </Label>
+                <Input
+                  id="confirm-text"
+                  value={confirmText}
+                  onChange={(e) => setConfirmText(e.target.value)}
+                  placeholder="DELETE"
+                  className="font-mono"
+                  data-testid="input-confirm-delete"
+                />
+              </div>
+            )}
+
+            {/* Step 2: Phone number */}
+            {deleteStep === 'phone' && (
+              <div className="space-y-2">
+                <Label htmlFor="phone-number" className="flex items-center">
+                  <Phone className="h-4 w-4 mr-2" />
+                  등록된 전화번호
+                </Label>
+                <Input
+                  id="phone-number"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder={user?.phoneNumber || "전화번호를 입력하세요"}
+                  data-testid="input-phone-number"
+                />
+                <p className="text-xs text-gray-500">
+                  등록된 전화번호: {user?.phoneNumber}
+                </p>
+              </div>
+            )}
+
+            {/* Step 3: Verification code */}
+            {deleteStep === 'verify' && (
+              <div className="space-y-2">
+                <Label htmlFor="verification-code" className="flex items-center">
+                  <Shield className="h-4 w-4 mr-2" />
+                  인증 코드
+                </Label>
+                <Input
+                  id="verification-code"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  placeholder="6자리 인증 코드"
+                  maxLength={6}
+                  data-testid="input-verification-code"
+                />
+                <p className="text-xs text-gray-500">
+                  {phoneNumber}(으)로 전송된 인증 코드를 입력해주세요.
+                </p>
+              </div>
+            )}
+
+            {/* Step 4: Password */}
+            {deleteStep === 'password' && (
+              <div className="space-y-2">
+                <Label htmlFor="password">비밀번호 확인</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="현재 비밀번호"
+                  data-testid="input-password"
+                />
+              </div>
+            )}
           </div>
+
           <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button
               variant="outline"
-              onClick={() => {
-                setShowDeleteDialog(false);
-                setConfirmText("");
-                setPassword("");
-              }}
+              onClick={handleDialogClose}
               className="w-full sm:w-auto"
             >
               취소
             </Button>
             <Button
               variant="destructive"
-              onClick={handleDeleteAccount}
-              disabled={confirmText !== "DELETE" || !password || deleteAccountMutation.isPending}
+              onClick={handleNextStep}
+              disabled={
+                (deleteStep === 'confirm' && confirmText !== "DELETE") ||
+                (deleteStep === 'phone' && (!phoneNumber || sendCodeMutation.isPending)) ||
+                (deleteStep === 'verify' && (!verificationCode || verifyCodeMutation.isPending)) ||
+                (deleteStep === 'password' && (!password || deleteAccountMutation.isPending))
+              }
               className="w-full sm:w-auto"
-              data-testid="button-confirm-delete"
+              data-testid="button-next-step"
             >
-              {deleteAccountMutation.isPending ? "삭제 중..." : "계정 삭제"}
+              {deleteStep === 'confirm' && "다음"}
+              {deleteStep === 'phone' && (sendCodeMutation.isPending ? "전송 중..." : "인증 코드 전송")}
+              {deleteStep === 'verify' && (verifyCodeMutation.isPending ? "확인 중..." : "인증 확인")}
+              {deleteStep === 'password' && (deleteAccountMutation.isPending ? "삭제 중..." : "계정 삭제")}
             </Button>
           </DialogFooter>
         </DialogContent>

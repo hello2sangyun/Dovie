@@ -33,6 +33,9 @@ import AccountManagementPage from "./AccountManagementPage";
 import AISettingsPage from "./AISettingsPage";
 import LanguageSettingsPage from "./LanguageSettingsPage";
 import HelpSupportPage from "./HelpSupportPage";
+import UserGuidePage from "./UserGuidePage";
+import TermsOfServicePage from "./TermsOfServicePage";
+import PrivacyPolicyPage from "./PrivacyPolicyPage";
 
 interface ModernSettingsPageProps {
   isMobile?: boolean;
@@ -41,7 +44,7 @@ interface ModernSettingsPageProps {
 
 export default function ModernSettingsPage({ isMobile = false, onQRCodeClick }: ModernSettingsPageProps) {
   const { user, logout } = useAuth();
-  const [activeView, setActiveView] = useState<'main' | 'blocked-contacts' | 'profile' | 'notifications' | 'security' | 'account-management' | 'ai-settings' | 'language' | 'help-support'>('main');
+  const [activeView, setActiveView] = useState<'main' | 'blocked-contacts' | 'profile' | 'notifications' | 'security' | 'account-management' | 'ai-settings' | 'language' | 'help-support' | 'user-guide' | 'terms' | 'privacy'>('main');
   const [showProfilePhotoUpload, setShowProfilePhotoUpload] = useState(false);
 
   if (!user) return null;
@@ -77,7 +80,26 @@ export default function ModernSettingsPage({ isMobile = false, onQRCodeClick }: 
   }
 
   if (activeView === 'help-support') {
-    return <HelpSupportPage onBack={() => setActiveView('main')} />;
+    return (
+      <HelpSupportPage 
+        onBack={() => setActiveView('main')} 
+        onNavigateToUserGuide={() => setActiveView('user-guide')}
+        onNavigateToTerms={() => setActiveView('terms')}
+        onNavigateToPrivacy={() => setActiveView('privacy')}
+      />
+    );
+  }
+
+  if (activeView === 'user-guide') {
+    return <UserGuidePage onBack={() => setActiveView('help-support')} />;
+  }
+
+  if (activeView === 'terms') {
+    return <TermsOfServicePage onBack={() => setActiveView('help-support')} />;
+  }
+
+  if (activeView === 'privacy') {
+    return <PrivacyPolicyPage onBack={() => setActiveView('help-support')} />;
   }
 
   return (
