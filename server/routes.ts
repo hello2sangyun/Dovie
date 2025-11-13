@@ -5090,6 +5090,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ws.send(JSON.stringify({ type: 'auth_error', error: 'Failed to update status' }));
           }
         }
+
+        // WebRTC call signaling
+        if (message.type === 'call-offer' || message.type === 'call-answer' || 
+            message.type === 'call-ice-candidate' || message.type === 'call-end' ||
+            message.type === 'call-reject') {
+          const targetUserId = message.targetUserId;
+          if (targetUserId) {
+            const targetWs = connections.get(targetUserId);
+            if (targetWs && targetWs.readyState === 1) {
+              targetWs.send(JSON.stringify({
+                ...message,
+                fromUserId: userId
+              }));
+              console.log(`📞 Forwarded ${message.type} from ${userId} to ${targetUserId}`);
+            } else {
+              ws.send(JSON.stringify({
+                type: 'call-error',
+                error: 'Target user not available',
+                callSessionId: message.callSessionId
+              }));
+            }
+          }
+        }
       } catch (error) {
         console.error('WebSocket message error:', error);
         ws.send(JSON.stringify({ type: 'error', message: 'Invalid message format' }));
