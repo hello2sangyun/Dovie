@@ -193,6 +193,24 @@ iOS APNS 푸시 알림의 경우:
 - 리치 알림(Rich Notification)에는 첨부 이미지 표시 가능
 - 서버 코드에서 `/dovie-icon.png` 경로로 아이콘 제공
 
+### 4. Rich Notification 설정 (선택 사항)
+
+알림에 **큰 이미지를 표시**하고 싶다면 Rich Notification을 설정하세요!
+
+📖 **상세 가이드**: [`IOS_RICH_NOTIFICATION_SETUP.md`](IOS_RICH_NOTIFICATION_SETUP.md) 참고
+
+**Rich Notification을 설정하면**:
+- ✅ 텍스트 메시지에도 Dovie 로고 큰 이미지 표시
+- ✅ 이미지 메시지에 실제 이미지 미리보기
+- ✅ 비디오 메시지에 썸네일 표시
+
+**설정 방법 요약**:
+1. Xcode에서 `Notification Service Extension` 추가
+2. `NotificationService.swift` 코드 교체
+3. 빌드 및 테스트
+
+자세한 단계별 가이드는 `IOS_RICH_NOTIFICATION_SETUP.md` 파일을 참고하세요.
+
 ---
 
 ## 🐛 문제 해결 (Troubleshooting)
