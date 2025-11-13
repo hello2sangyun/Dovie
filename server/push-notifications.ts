@@ -487,21 +487,30 @@ export async function sendMessageNotification(
     };
 
     // Add media URL based on message type for APNS rich notifications
+    const BASE_URL = process.env.REPLIT_DOMAINS 
+      ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}`
+      : 'https://dovie-hello2sangyun.replit.app';
+    
     if (mediaUrl) {
+      // User sent media (image, video, voice)
       switch (messageType) {
         case 'image':
-          notificationData.imageUrl = mediaUrl;
-          console.log(`📸 Including image URL in notification: ${mediaUrl.substring(0, 50)}...`);
+          notificationData.imageUrl = mediaUrl.startsWith('http') ? mediaUrl : `${BASE_URL}${mediaUrl}`;
+          console.log(`📸 Including image URL in notification: ${notificationData.imageUrl.substring(0, 50)}...`);
           break;
         case 'video':
-          notificationData.videoUrl = mediaUrl;
-          console.log(`🎥 Including video URL in notification: ${mediaUrl.substring(0, 50)}...`);
+          notificationData.videoUrl = mediaUrl.startsWith('http') ? mediaUrl : `${BASE_URL}${mediaUrl}`;
+          console.log(`🎥 Including video URL in notification: ${notificationData.videoUrl.substring(0, 50)}...`);
           break;
         case 'voice':
-          notificationData.audioUrl = mediaUrl;
-          console.log(`🎤 Including audio URL in notification: ${mediaUrl.substring(0, 50)}...`);
+          notificationData.audioUrl = mediaUrl.startsWith('http') ? mediaUrl : `${BASE_URL}${mediaUrl}`;
+          console.log(`🎤 Including audio URL in notification: ${notificationData.audioUrl.substring(0, 50)}...`);
           break;
       }
+    } else {
+      // No media: show Dovie logo as default rich notification image
+      notificationData.imageUrl = `${BASE_URL}/dovie-icon.png`;
+      console.log(`📱 Using default Dovie logo for rich notification: ${notificationData.imageUrl}`);
     }
 
     await sendPushNotification(recipientUserId, {
