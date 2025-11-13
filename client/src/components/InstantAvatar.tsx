@@ -2,6 +2,7 @@ import { memo, useState, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { useInstantImageCache } from '@/hooks/useInstantImageCache';
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface InstantAvatarProps {
   src?: string | null;
@@ -50,7 +51,9 @@ export const InstantAvatar = memo(function InstantAvatar({
   const [displaySrc, setDisplaySrc] = useState<string | null>(null);
   const [forceRefresh, setForceRefresh] = useState(0);
   const [forceUpdate, setForceUpdate] = useState(0);
-  const [showFallback, setShowFallback] = useState(false);
+  const [showFallback, setShowFallback] = useState(!src);
+  const [isLoading, setIsLoading] = useState(!!src);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
   const { getInstantImage, invalidateUrl } = useInstantImageCache();
 
   // 이니셜 생성
@@ -67,6 +70,8 @@ export const InstantAvatar = memo(function InstantAvatar({
     if (!src) {
       setDisplaySrc(null);
       setShowFallback(true);
+      setIsLoading(false);
+      setIsImageLoaded(false);
       return;
     }
 
@@ -88,12 +93,17 @@ export const InstantAvatar = memo(function InstantAvatar({
     // 즉시 캐시된 이미지 확인
     const cachedImage = getInstantImage(optimizedSrc);
     if (cachedImage) {
+      // 캐시된 이미지도 fade-in 효과를 위해 isImageLoaded를 false로 시작
       setDisplaySrc(cachedImage);
       setShowFallback(false);
+      setIsLoading(true);
+      setIsImageLoaded(false);
       return;
     }
 
-    // 캐시에 없으면 원본 URL 사용
+    // 캐시에 없으면 원본 URL 사용 및 로딩 상태 시작
+    setIsLoading(true);
+    setIsImageLoaded(false);
     setDisplaySrc(optimizedSrc);
     setShowFallback(false);
   }, [src, getInstantImage, forceUpdate]);
@@ -142,23 +152,46 @@ export const InstantAvatar = memo(function InstantAvatar({
     };
   }, [src, invalidateUrl]);
 
+  const handleImageLoad = () => {
+    setIsLoading(false);
+    setIsImageLoaded(true);
+  };
+
+  const handleImageError = () => {
+    setShowFallback(true);
+    setIsLoading(false);
+    setIsImageLoaded(false);
+  };
+
   return (
     <div className="relative">
       <Avatar className={cn(sizeClasses[size], className)}>
-        {displaySrc && !showFallback ? (
-          <AvatarImage 
-            src={displaySrc} 
-            alt={alt}
-            className="object-cover"
-            onError={() => setShowFallback(true)}
-          />
-        ) : (
+        {showFallback ? (
           <AvatarFallback className={cn(
             "font-medium text-white",
             colorClass
           )}>
             {initials}
           </AvatarFallback>
+        ) : (
+          <>
+            {isLoading && !isImageLoaded && (
+              <Skeleton className={cn("absolute inset-0 rounded-full", sizeClasses[size])} />
+            )}
+            {displaySrc && (
+              <AvatarImage 
+                src={displaySrc} 
+                alt={alt}
+                loading="lazy"
+                className={cn(
+                  "object-cover transition-opacity duration-200",
+                  isImageLoaded ? "opacity-100" : "opacity-0"
+                )}
+                onLoad={handleImageLoad}
+                onError={handleImageError}
+              />
+            )}
+          </>
         )}
       </Avatar>
       
