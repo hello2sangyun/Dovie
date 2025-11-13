@@ -3,7 +3,7 @@ import express from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, insertUserPostSchema, insertPostLikeSchema, insertPostCommentSchema, insertCompanyChannelSchema, insertCompanyProfileSchema, insertBookmarkSchema, insertVoiceBookmarkRequestSchema, chatRooms, chatParticipants, userPosts, postLikes, postComments, companyChannels, companyChannelFollowers, companyChannelAdmins, users, businessProfiles, contacts, businessPostReads, businessPosts, businessPostLikes, companyProfiles, messages, messageLikes, messageReactions, linkPreviews, bookmarks, voiceBookmarkRequests } from "@shared/schema";
+import { insertUserSchema, insertMessageSchema, insertCommandSchema, insertContactSchema, insertChatRoomSchema, insertPhoneVerificationSchema, insertUserPostSchema, insertPostLikeSchema, insertPostCommentSchema, insertCompanyChannelSchema, insertCompanyProfileSchema, insertBookmarkSchema, insertVoiceBookmarkRequestSchema, chatRooms, chatParticipants, userPosts, postLikes, postComments, companyChannels, companyChannelFollowers, companyChannelAdmins, users, businessProfiles, contacts, businessPostReads, businessPosts, businessPostLikes, companyProfiles, messages, messageLikes, messageReactions, linkPreviews, bookmarks, voiceBookmarkRequests, CallSession, CallSessionState, CallSessionEvent } from "@shared/schema";
 import { sql } from "drizzle-orm";
 import { translateText, transcribeAudio, answerChatQuestion, analyzeMessageForNotices, correctTranscriptionWithContext } from "./openai";
 import bcrypt from "bcryptjs";
@@ -53,6 +53,161 @@ const upload = multer({
 
 // WebSocket connection management
 const connections = new Map<number, WebSocket>();
+
+// In-memory CallSession storage (temporary, for active calls only)
+const callSessions = new Map<string, CallSession>();
+
+// CallSession helper functions
+async function createOrHydrateSession(data: {
+  callSessionId: string;
+  chatRoomId: number;
+  callerId: number;
+  receiverId: number;
+  callType: 'voice' | 'video';
+  offer?: RTCSessionDescriptionInit;
+}): Promise<CallSession> {
+  const existing = callSessions.get(data.callSessionId);
+  if (existing) {
+    return existing;
+  }
+
+  // Get user metadata
+  const [caller, receiver] = await Promise.all([
+    storage.getUser(data.callerId),
+    storage.getUser(data.receiverId)
+  ]);
+
+  const session: CallSession = {
+    callSessionId: data.callSessionId,
+    chatRoomId: data.chatRoomId,
+    callerId: data.callerId,
+    receiverId: data.receiverId,
+    callerName: caller?.displayName || caller?.username || 'Unknown',
+    callerProfilePicture: caller?.profilePicture,
+    receiverName: receiver?.displayName || receiver?.username,
+    receiverProfilePicture: receiver?.profilePicture,
+    state: CallSessionState.INITIATED,
+    callType: data.callType,
+    offer: data.offer,
+    iceCandidates: [],
+    createdAt: Date.now(),
+    lastEventAt: Date.now()
+  };
+
+  callSessions.set(data.callSessionId, session);
+  console.log(`📞 CallSession created: ${data.callSessionId} (${data.callerId} → ${data.receiverId})`);
+  
+  return session;
+}
+
+function updateCallSession(callSessionId: string, updates: Partial<CallSession>): CallSession | null {
+  const session = callSessions.get(callSessionId);
+  if (!session) {
+    console.warn(`📞 CallSession not found: ${callSessionId}`);
+    return null;
+  }
+
+  const updated = {
+    ...session,
+    ...updates,
+    lastEventAt: Date.now()
+  };
+
+  callSessions.set(callSessionId, updated);
+  return updated;
+}
+
+function applyStateTransition(
+  callSessionId: string, 
+  newState: CallSessionState,
+  additionalData?: Partial<CallSession>
+): CallSession | null {
+  const session = callSessions.get(callSessionId);
+  if (!session) {
+    console.warn(`📞 Cannot transition state - session not found: ${callSessionId}`);
+    return null;
+  }
+
+  const now = Date.now();
+  const updates: Partial<CallSession> = {
+    state: newState,
+    lastEventAt: now,
+    ...additionalData
+  };
+
+  // Track timestamps for state transitions
+  if (newState === CallSessionState.ANSWERED) {
+    updates.answeredAt = now;
+    updates.startedAt = now;
+  } else if (newState === CallSessionState.ENDED) {
+    updates.endedAt = now;
+    if (session.startedAt) {
+      updates.duration = Math.floor((now - session.startedAt) / 1000);
+    }
+  }
+
+  const updated = updateCallSession(callSessionId, updates);
+  console.log(`📞 CallSession state: ${callSessionId} → ${newState}`);
+
+  return updated;
+}
+
+async function persistCallSession(session: CallSession): Promise<void> {
+  try {
+    // Only persist terminal states to DB
+    if (
+      session.state !== CallSessionState.ENDED &&
+      session.state !== CallSessionState.REJECTED &&
+      session.state !== CallSessionState.CANCELED &&
+      session.state !== CallSessionState.EXPIRED
+    ) {
+      return;
+    }
+
+    await storage.createCall({
+      chatRoomId: session.chatRoomId,
+      callerId: session.callerId,
+      receiverId: session.receiverId,
+      callType: session.callType,
+      status: session.state,
+      callSessionId: session.callSessionId,
+      startedAt: session.startedAt ? new Date(session.startedAt) : null,
+      endedAt: session.endedAt ? new Date(session.endedAt) : null,
+      duration: session.duration || null,
+      recordingUrl: null,
+      transcript: session.transcript || null
+    });
+
+    console.log(`📞 CallSession persisted to DB: ${session.callSessionId} (${session.state})`);
+  } catch (error) {
+    console.error(`📞 Failed to persist call session ${session.callSessionId}:`, error);
+  }
+}
+
+function scheduleCleanup(callSessionId: string, delayMs: number = 90000) {
+  setTimeout(() => {
+    const session = callSessions.get(callSessionId);
+    if (session) {
+      callSessions.delete(callSessionId);
+      console.log(`📞 CallSession cleaned up: ${callSessionId}`);
+    }
+  }, delayMs);
+}
+
+function appendIceCandidate(callSessionId: string, candidate: RTCIceCandidateInit): CallSession | null {
+  const session = callSessions.get(callSessionId);
+  if (!session) {
+    return null;
+  }
+
+  // Bounded array to prevent memory growth (max 50 candidates)
+  const candidates = session.iceCandidates || [];
+  if (candidates.length < 50) {
+    candidates.push(candidate);
+  }
+
+  return updateCallSession(callSessionId, { iceCandidates: candidates });
+}
 
 // Helper function to sanitize filenames for safe storage
 const sanitizeFilename = (filename: string): string => {
@@ -5240,62 +5395,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
 
-        // WebRTC call signaling
-        if (message.type === 'call-offer' || message.type === 'call-answer' || 
-            message.type === 'call-ice-candidate' || message.type === 'call-end' ||
-            message.type === 'call-reject') {
-          const targetUserId = message.targetUserId;
-          if (targetUserId) {
-            const targetWs = connections.get(targetUserId);
-            if (targetWs && targetWs.readyState === 1) {
-              targetWs.send(JSON.stringify({
-                ...message,
-                fromUserId: userId
-              }));
-              console.log(`📞 Forwarded ${message.type} from ${userId} to ${targetUserId}`);
-            } else {
-              // Target user is offline - send push notification for call-offer
-              if (message.type === 'call-offer' && userId) {
-                console.log(`📞 Target user ${targetUserId} is offline - sending push notification`);
-                
-                // Get caller information
-                const callerUser = await storage.getUser(userId);
-                if (callerUser) {
-                  const callerName = callerUser.displayName || callerUser.username;
-                  
-                  // Send push notification with call details
-                  await sendPushNotification(targetUserId, {
-                    title: `${callerName} is calling...`,
-                    body: 'Tap to answer the call',
-                    icon: callerUser.profileImage || '/default-avatar.png',
-                    badge: '/dovie-logo.png',
-                    data: {
-                      type: 'incoming-call',
-                      callSessionId: message.callSessionId,
-                      fromUserId: userId,
-                      fromUserName: callerName,
-                      fromUserProfilePicture: callerUser.profileImage,
-                      chatRoomId: message.chatRoomId,
-                      offer: message.offer,
-                      timestamp: Date.now()
-                    },
-                    tag: `call-${message.callSessionId}`,
-                    requireInteraction: true,
-                    sound: 'call-ringtone',
-                    silent: false
-                  });
-                  
-                  console.log(`📞 Push notification sent to user ${targetUserId} for incoming call`);
-                }
-              }
-              
-              // Send error to caller
-              ws.send(JSON.stringify({
-                type: 'call-error',
-                error: 'Target user not available',
-                callSessionId: message.callSessionId
-              }));
-            }
+        // WebRTC call signaling with CallSession management
+        if (message.type === 'call-offer' && userId) {
+          const { callSessionId, chatRoomId, targetUserId, callType, offer } = message;
+          
+          // Generate callSessionId if not provided
+          const sessionId = callSessionId || `call_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+          
+          // Create CallSession
+          const session = await createOrHydrateSession({
+            callSessionId: sessionId,
+            chatRoomId,
+            callerId: userId,
+            receiverId: targetUserId,
+            callType: callType || 'voice',
+            offer
+          });
+
+          // Forward to target if online
+          const targetWs = connections.get(targetUserId);
+          if (targetWs && targetWs.readyState === 1) {
+            targetWs.send(JSON.stringify({
+              ...message,
+              callSessionId: sessionId,
+              fromUserId: userId,
+              callerName: session.callerName,
+              callerProfilePicture: session.callerProfilePicture
+            }));
+            
+            // Transition to RINGING
+            applyStateTransition(sessionId, CallSessionState.RINGING);
+            console.log(`📞 Call offer forwarded: ${userId} → ${targetUserId}`);
+          } else {
+            // Target offline - send push notification
+            console.log(`📞 Target user ${targetUserId} offline - sending push notification`);
+            
+            await sendPushNotification(targetUserId, {
+              title: `${session.callerName} is calling...`,
+              body: 'Tap to answer the call',
+              icon: session.callerProfilePicture || '/default-avatar.png',
+              badge: '/dovie-logo.png',
+              data: {
+                type: 'incoming-call',
+                callSessionId: sessionId,
+                fromUserId: userId,
+                fromUserName: session.callerName,
+                fromUserProfilePicture: session.callerProfilePicture,
+                chatRoomId,
+                offer,
+                timestamp: Date.now()
+              },
+              tag: `call-${sessionId}`,
+              requireInteraction: true,
+              sound: 'call-ringtone',
+              silent: false
+            });
+            
+            // Mark as RINGING anyway (push sent)
+            applyStateTransition(sessionId, CallSessionState.RINGING);
+            console.log(`📞 Push notification sent to user ${targetUserId}`);
+          }
+        }
+        
+        else if (message.type === 'call-answer' && userId) {
+          const { callSessionId, answer } = message;
+          
+          // Transition to ANSWERED
+          const session = applyStateTransition(callSessionId, CallSessionState.ANSWERED, { answer });
+          if (!session) {
+            ws.send(JSON.stringify({ type: 'call-error', error: 'Session not found', callSessionId }));
+            return;
+          }
+          
+          // Forward to caller
+          const callerWs = connections.get(session.callerId);
+          if (callerWs && callerWs.readyState === 1) {
+            callerWs.send(JSON.stringify({
+              ...message,
+              fromUserId: userId
+            }));
+            console.log(`📞 Call answered: ${userId} → ${session.callerId}`);
+          }
+        }
+        
+        else if (message.type === 'call-reject' && userId) {
+          const { callSessionId } = message;
+          
+          // Transition to REJECTED
+          const session = applyStateTransition(callSessionId, CallSessionState.REJECTED);
+          if (!session) {
+            ws.send(JSON.stringify({ type: 'call-error', error: 'Session not found', callSessionId }));
+            return;
+          }
+          
+          // Persist and cleanup
+          await persistCallSession(session);
+          scheduleCleanup(callSessionId, 5000);
+          
+          // Notify caller
+          const callerWs = connections.get(session.callerId);
+          if (callerWs && callerWs.readyState === 1) {
+            callerWs.send(JSON.stringify({
+              ...message,
+              fromUserId: userId
+            }));
+            console.log(`📞 Call rejected: ${userId} → ${session.callerId}`);
+          }
+        }
+        
+        else if (message.type === 'call-end' && userId) {
+          const { callSessionId } = message;
+          
+          // Transition to ENDED
+          const session = applyStateTransition(callSessionId, CallSessionState.ENDED);
+          if (!session) {
+            ws.send(JSON.stringify({ type: 'call-error', error: 'Session not found', callSessionId }));
+            return;
+          }
+          
+          // Persist and cleanup
+          await persistCallSession(session);
+          scheduleCleanup(callSessionId, 5000);
+          
+          // Notify the other participant
+          const otherUserId = userId === session.callerId ? session.receiverId : session.callerId;
+          const otherWs = connections.get(otherUserId);
+          if (otherWs && otherWs.readyState === 1) {
+            otherWs.send(JSON.stringify({
+              ...message,
+              fromUserId: userId
+            }));
+            console.log(`📞 Call ended: ${userId} → ${otherUserId}`);
+          }
+        }
+        
+        else if (message.type === 'call-ice-candidate' && userId) {
+          const { callSessionId, candidate, targetUserId } = message;
+          
+          // Append ICE candidate to session
+          appendIceCandidate(callSessionId, candidate);
+          
+          // Forward to target
+          const targetWs = connections.get(targetUserId);
+          if (targetWs && targetWs.readyState === 1) {
+            targetWs.send(JSON.stringify({
+              ...message,
+              fromUserId: userId
+            }));
+            console.log(`📞 ICE candidate forwarded: ${userId} → ${targetUserId}`);
           }
         }
       } catch (error) {
