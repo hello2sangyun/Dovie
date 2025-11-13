@@ -169,17 +169,19 @@ export default function GroupInfoPage() {
       return response.json();
     },
     onSuccess: (data) => {
+      // 채팅방 데이터 무효화
       queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}`] });
-      queryClient.invalidateQueries({ queryKey: ['/api/chat-rooms'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
       queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/participants`] });
       
-      // Clear image cache to force reload (even if image was removed)
-      window.dispatchEvent(new CustomEvent('profileImageUpdated', { 
-        detail: { 
+      // InstantAvatar 캐시 무효화를 위한 커스텀 이벤트 발송
+      const event = new CustomEvent('profileImageUpdated', {
+        detail: {
           newUrl: data.chatRoom?.profileImage || null,
           chatRoomId: chatRoomId
-        } 
-      }));
+        }
+      });
+      window.dispatchEvent(event);
       
       toast({ title: "프로필 사진이 변경되었습니다" });
     },
