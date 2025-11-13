@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { UserAvatar } from "@/components/UserAvatar";
 import InstantAvatar from "@/components/InstantAvatar";
 import MediaPreview from "@/components/MediaPreview";
@@ -5746,61 +5747,97 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     
                     {/* Emoji Reactions */}
                     {msg.reactions && msg.reactions.length > 0 && (
-                      <div className={cn(
-                        "flex flex-wrap gap-1 mt-1",
-                        isMe ? "justify-end" : "justify-start"
-                      )}>
-                        {(() => {
-                          // Group reactions by emoji
-                          const reactionGroups = msg.reactions.reduce((acc: any, reaction: any) => {
-                            if (!acc[reaction.emoji]) {
-                              acc[reaction.emoji] = {
-                                emoji: reaction.emoji,
-                                count: 0,
-                                users: [],
-                                hasCurrentUser: false
-                              };
-                            }
-                            acc[reaction.emoji].count++;
-                            acc[reaction.emoji].users.push(reaction.userId);
-                            if (reaction.userId === user?.id) {
-                              acc[reaction.emoji].hasCurrentUser = true;
-                            }
-                            return acc;
-                          }, {});
+                      <TooltipProvider delayDuration={200}>
+                        <div className={cn(
+                          "flex flex-wrap gap-1 mt-1",
+                          isMe ? "justify-end" : "justify-start"
+                        )}>
+                          {(() => {
+                            // Group reactions by emoji with user data
+                            const reactionGroups = msg.reactions.reduce((acc: any, reaction: any) => {
+                              if (!acc[reaction.emoji]) {
+                                acc[reaction.emoji] = {
+                                  emoji: reaction.emoji,
+                                  count: 0,
+                                  users: [],
+                                  hasCurrentUser: false
+                                };
+                              }
+                              acc[reaction.emoji].count++;
+                              acc[reaction.emoji].users.push(reaction.user || { 
+                                id: reaction.userId, 
+                                displayName: 'Unknown',
+                                profilePicture: null 
+                              });
+                              if (reaction.userId === user?.id) {
+                                acc[reaction.emoji].hasCurrentUser = true;
+                              }
+                              return acc;
+                            }, {});
 
-                          return Object.values(reactionGroups).map((group: any) => (
-                            <button
-                              key={group.emoji}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                addReactionMutation.mutate({ 
-                                  messageId: msg.id, 
-                                  emoji: group.emoji, 
-                                  emojiName: group.emoji 
-                                });
-                              }}
-                              className={cn(
-                                "flex items-center gap-1 px-2 py-0.5 rounded-full text-xs transition-all hover:scale-110",
-                                group.hasCurrentUser
-                                  ? "bg-purple-100 border-2 border-purple-400 dark:bg-purple-900/30 dark:border-purple-600"
-                                  : "bg-gray-100 border border-gray-300 dark:bg-gray-800 dark:border-gray-600"
-                              )}
-                              data-testid={`reaction-${group.emoji}-${msg.id}`}
-                            >
-                              <span className="text-base">{group.emoji}</span>
-                              <span className={cn(
-                                "font-medium",
-                                group.hasCurrentUser
-                                  ? "text-purple-700 dark:text-purple-400"
-                                  : "text-gray-600 dark:text-gray-300"
-                              )}>
-                                {group.count}
-                              </span>
-                            </button>
-                          ));
-                        })()}
-                      </div>
+                            return Object.values(reactionGroups).map((group: any) => (
+                              <Tooltip key={group.emoji}>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      addReactionMutation.mutate({ 
+                                        messageId: msg.id, 
+                                        emoji: group.emoji, 
+                                        emojiName: group.emoji 
+                                      });
+                                    }}
+                                    className={cn(
+                                      "flex items-center gap-1 px-2 py-0.5 rounded-full text-xs transition-all hover:scale-110",
+                                      group.hasCurrentUser
+                                        ? "bg-purple-100 border-2 border-purple-400 dark:bg-purple-900/30 dark:border-purple-600"
+                                        : "bg-gray-100 border border-gray-300 dark:bg-gray-800 dark:border-gray-600"
+                                    )}
+                                    data-testid={`reaction-${group.emoji}-${msg.id}`}
+                                  >
+                                    <span className="text-base">{group.emoji}</span>
+                                    <span className={cn(
+                                      "font-medium",
+                                      group.hasCurrentUser
+                                        ? "text-purple-700 dark:text-purple-400"
+                                        : "text-gray-600 dark:text-gray-300"
+                                    )}>
+                                      {group.count}
+                                    </span>
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent 
+                                  side="top" 
+                                  className="max-w-xs p-3 bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700"
+                                >
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 pb-1 border-b border-gray-200 dark:border-gray-700">
+                                      <span className="text-lg">{group.emoji}</span>
+                                      <span>리액션</span>
+                                    </div>
+                                    <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                                      {group.users.map((reactionUser: any, idx: number) => (
+                                        <div key={idx} className="flex items-center gap-2">
+                                          <InstantAvatar
+                                            src={reactionUser.profilePicture}
+                                            alt={reactionUser.displayName}
+                                            fallbackText={reactionUser.displayName}
+                                            size="sm"
+                                            className="purple-gradient"
+                                          />
+                                          <span className="text-sm text-gray-700 dark:text-gray-300">
+                                            {reactionUser.displayName}
+                                          </span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                            ));
+                          })()}
+                        </div>
+                      </TooltipProvider>
                     )}
                   </div>
                 </div>

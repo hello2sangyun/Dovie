@@ -614,19 +614,30 @@ export class DatabaseStorage implements IStorage {
       return messageList;
     }
 
-    // Fetch all reactions for these messages
+    // Fetch all reactions for these messages with user information
     const reactionsData = await db
-      .select()
+      .select({
+        reaction: messageReactions,
+        user: {
+          id: users.id,
+          displayName: users.displayName,
+          profilePicture: users.profilePicture
+        }
+      })
       .from(messageReactions)
+      .innerJoin(users, eq(messageReactions.userId, users.id))
       .where(inArray(messageReactions.messageId, messageIds));
 
-    // Group reactions by message ID
+    // Group reactions by message ID with user information
     const reactionsByMessage = new Map<number, any[]>();
-    reactionsData.forEach(reaction => {
+    reactionsData.forEach(({ reaction, user }) => {
       if (!reactionsByMessage.has(reaction.messageId)) {
         reactionsByMessage.set(reaction.messageId, []);
       }
-      reactionsByMessage.get(reaction.messageId)!.push(reaction);
+      reactionsByMessage.get(reaction.messageId)!.push({
+        ...reaction,
+        user
+      });
     });
 
     // Attach reactions to each message
