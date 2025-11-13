@@ -1017,3 +1017,74 @@ export type NotificationSettings = typeof notificationSettings.$inferSelect;
 export type InsertNotificationSettings = z.infer<typeof insertNotificationSettingsSchema>;
 export type VerificationCode = typeof verificationCodes.$inferSelect;
 export type InsertVerificationCode = z.infer<typeof insertVerificationCodeSchema>;
+
+// ===================================
+// Call Session State Machine
+// ===================================
+
+// Call session states following the state machine: initiated → ringing → answered/canceled/expired
+export enum CallSessionState {
+  INITIATED = 'initiated',     // Call offer created, not yet delivered
+  RINGING = 'ringing',         // Call offer delivered to receiver
+  ANSWERED = 'answered',       // Receiver accepted the call
+  REJECTED = 'rejected',       // Receiver declined the call
+  CANCELED = 'canceled',       // Caller canceled before answer
+  EXPIRED = 'expired',         // Call timed out (no answer within timeout)
+  ENDED = 'ended',            // Call completed normally
+  FAILED = 'failed'           // Technical failure (network, etc.)
+}
+
+// Call session events that trigger state transitions
+export enum CallSessionEvent {
+  OFFER_CREATED = 'offer-created',
+  OFFER_DELIVERED = 'offer-delivered',
+  ANSWER_ACCEPTED = 'answer-accepted',
+  CALL_REJECTED = 'call-rejected',
+  CALL_CANCELED = 'call-canceled',
+  CALL_TIMEOUT = 'call-timeout',
+  CALL_ENDED = 'call-ended',
+  CALL_FAILED = 'call-failed'
+}
+
+// Call session data structure for client-side state management
+export interface CallSession {
+  callSessionId: string;
+  chatRoomId: number;
+  callerId: number;
+  receiverId: number;
+  callerName: string;
+  callerProfilePicture?: string;
+  receiverName?: string;
+  receiverProfilePicture?: string;
+  state: CallSessionState;
+  callType: 'voice' | 'video';
+  offer?: RTCSessionDescriptionInit;
+  answer?: RTCSessionDescriptionInit;
+  iceCandidates?: RTCIceCandidateInit[];
+  startedAt?: number;
+  answeredAt?: number;
+  endedAt?: number;
+  duration?: number;
+  transcript?: any;
+  createdAt: number;
+  lastEventAt: number;
+}
+
+// BroadcastChannel message types for Service Worker ↔ MainApp communication
+export interface CallSessionMessage {
+  type: 'call-session-update' | 'call-session-claim' | 'call-session-release';
+  session: CallSession;
+  source: 'websocket' | 'push' | 'native' | 'service-worker';
+}
+
+// Service Worker push notification data structure
+export interface IncomingCallPushData {
+  type: 'incoming-call';
+  callSessionId: string;
+  fromUserId: number;
+  fromUserName: string;
+  fromUserProfilePicture?: string;
+  chatRoomId: number;
+  offer: RTCSessionDescriptionInit;
+  timestamp: number;
+}
