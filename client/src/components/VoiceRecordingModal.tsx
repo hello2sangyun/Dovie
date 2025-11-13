@@ -8,6 +8,7 @@ interface VoiceRecordingModalProps {
   onClose: () => void;
   onRecordingComplete: (audioBlob: Blob, duration: number) => void;
   targetName?: string;
+  replyToMessageId?: number | null;
 }
 
 export function VoiceRecordingModal({

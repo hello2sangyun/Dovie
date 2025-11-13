@@ -1064,8 +1064,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         });
         setShowVoiceConfirmModal(true);
         
-        // 회신 모드 해제
-        setReplyToMessage(null);
+        // 회신 모드는 메시지 전송 후에 해제 (VoiceMessageConfirmModal의 onSend에서 처리)
       } else if (result.error === "SILENT_RECORDING") {
         // 빈 음성 녹음의 경우 조용히 취소 (사용자에게 알리지 않음)
         console.log("🔇 빈 음성 녹음 감지됨, 메시지 전송 취소");
@@ -6751,6 +6750,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             disabled={sendMessageMutation.isPending || isProcessingVoice}
             isPending={sendMessageMutation.isPending}
             accessibilitySettings={accessibilitySettings}
+            replyToMessageId={replyToMessage?.id ?? null}
           />
           </div>
         </div>

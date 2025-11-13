@@ -14,6 +14,7 @@ interface UnifiedSendButtonProps {
     reducedMotion: boolean;
     hapticEnabled: boolean;
   };
+  replyToMessageId?: number | null;
 }
 
 export function UnifiedSendButton({
@@ -22,7 +23,8 @@ export function UnifiedSendButton({
   message,
   disabled,
   isPending,
-  accessibilitySettings
+  accessibilitySettings,
+  replyToMessageId
 }: UnifiedSendButtonProps) {
   const [showVoiceModal, setShowVoiceModal] = useState(false);
 
@@ -98,6 +100,7 @@ export function UnifiedSendButton({
         isOpen={showVoiceModal}
         onClose={handleCloseModal}
         onRecordingComplete={handleVoiceRecordingComplete}
+        replyToMessageId={replyToMessageId}
       />
     </>
   );
