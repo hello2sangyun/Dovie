@@ -64,13 +64,24 @@ export function CallModal({
 
   // Initialize WebRTC
   useEffect(() => {
-    if (!isOpen) return;
+    console.log('📞 CallModal useEffect triggered:', { isOpen, isIncoming, hasAnswered });
+    
+    if (!isOpen) {
+      console.log('📞 Modal not open, skipping WebRTC setup');
+      return;
+    }
     
     // For incoming calls, wait for user to accept before setting up WebRTC
-    if (isIncoming && !hasAnswered) return;
+    if (isIncoming && !hasAnswered) {
+      console.log('📞 Incoming call - waiting for user to answer');
+      return;
+    }
+
+    console.log('📞 Setting up call...');
 
     const setupCall = async () => {
       try {
+        console.log('📞 Getting local media stream...');
         // Get local media stream
         const stream = await navigator.mediaDevices.getUserMedia({ 
           audio: {
@@ -80,10 +91,13 @@ export function CallModal({
           } 
         });
         localStreamRef.current = stream;
+        console.log('📞 Local stream acquired:', stream.getTracks().map(t => `${t.kind}: ${t.label}`));
 
         // Create peer connection
+        console.log('📞 Creating peer connection...');
         const pc = new RTCPeerConnection(iceServers);
         peerConnectionRef.current = pc;
+        console.log('📞 Peer connection created');
 
         // Add local stream to peer connection
         stream.getTracks().forEach(track => {
@@ -170,7 +184,9 @@ export function CallModal({
           sendMessage({
             type: 'call-offer',
             targetUserId,
+            chatRoomId,
             callSessionId: callSessionIdRef.current,
+            callType: 'voice',
             offer: pc.localDescription
           });
           
