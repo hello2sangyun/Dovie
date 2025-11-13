@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 // import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import { WebSocketProvider } from "@/hooks/useWebSocketContext";
+import { CallSessionStoreProvider } from "@/hooks/useCallSessionStore";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import SplashScreen from "@/components/SplashScreen";
 import LandingPage from "@/pages/LandingPage";
@@ -168,10 +169,12 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <WebSocketProvider>
-          <Toaster />
-          <PWAInstallPrompt />
-          {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
-          <Router />
+          <CallSessionStoreProvider>
+            <Toaster />
+            <PWAInstallPrompt />
+            {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
+            <Router />
+          </CallSessionStoreProvider>
         </WebSocketProvider>
       </AuthProvider>
     </QueryClientProvider>
