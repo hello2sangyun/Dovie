@@ -36,6 +36,7 @@ export function CallModal({
   const [isMuted, setIsMuted] = useState(false);
   const [isSpeaker, setIsSpeaker] = useState(false);
   const [transcript, setTranscript] = useState<string[]>([]);
+  const [hasAnswered, setHasAnswered] = useState(false);
   
   const { user } = useAuth();
   const { sendMessage, subscribeToSignaling } = useWebSocketContext();
@@ -64,6 +65,9 @@ export function CallModal({
   // Initialize WebRTC
   useEffect(() => {
     if (!isOpen) return;
+    
+    // For incoming calls, wait for user to accept before setting up WebRTC
+    if (isIncoming && !hasAnswered) return;
 
     const setupCall = async () => {
       try {
@@ -179,7 +183,7 @@ export function CallModal({
     return () => {
       cleanup();
     };
-  }, [isOpen]);
+  }, [isOpen, hasAnswered]);
 
   // Start call timer
   const startCallTimer = () => {
@@ -581,7 +585,10 @@ export function CallModal({
             </div>
             <div className="flex flex-col items-center gap-2">
               <Button
-                onClick={() => setCallState('connecting')}
+                onClick={() => {
+                  setHasAnswered(true);
+                  setCallState('connecting');
+                }}
                 size="lg"
                 className="w-20 h-20 rounded-full bg-green-500 hover:bg-green-600"
                 data-testid="button-accept-call"
