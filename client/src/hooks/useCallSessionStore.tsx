@@ -584,16 +584,17 @@ export function CallSessionStoreProvider({ children }: { children: ReactNode }) 
       callerId: fromUserId,
       receiverId: metadata?.receiverId || 0,
       callerName: metadata?.callerName || 'Unknown Caller',
-      callerProfilePicture: metadata?.callerProfilePicture,
-      receiverName: metadata?.receiverName || null,
-      receiverProfilePicture: metadata?.receiverProfilePicture || null,
+      callerProfilePicture: metadata?.callerProfilePicture || undefined,
+      receiverName: metadata?.receiverName || undefined,
+      receiverProfilePicture: metadata?.receiverProfilePicture || undefined,
       callType: metadata?.callType || 'voice',
-      state: CallSessionState.PENDING,
+      state: CallSessionState.RINGING,
       offer,
-      answer: null,
+      answer: undefined,
       iceCandidates: [],
-      startedAt: null,
-      endedAt: null,
+      startedAt: undefined,
+      endedAt: undefined,
+      createdAt: Date.now(),
       lastEventAt: Date.now()
     };
 
@@ -615,7 +616,7 @@ export function CallSessionStoreProvider({ children }: { children: ReactNode }) 
       return;
     }
     updateSession(state.activeSessionId, { answer });
-    changeSessionState(state.activeSessionId, CallSessionState.CONNECTED);
+    changeSessionState(state.activeSessionId, CallSessionState.ANSWERED);
   }, [state.activeSessionId, updateSession, changeSessionState]);
 
   const handleReject = useCallback(() => {

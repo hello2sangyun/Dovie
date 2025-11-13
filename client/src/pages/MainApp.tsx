@@ -199,7 +199,7 @@ export default function MainApp() {
             {
               receiverId: user.id,
               receiverName: user.displayName || user.username,
-              receiverProfilePicture: user.profilePicture,
+              receiverProfilePicture: user.profilePicture || undefined,
               callerName: data.callerName,
               callerProfilePicture: data.callerProfilePicture,
               callType: data.callType || 'voice'
