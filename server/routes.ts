@@ -5053,6 +5053,155 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Call-related API endpoints
+
+  // POST /api/calls - Save call recording
+  app.post("/api/calls", upload.single('audio'), async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"];
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: "Audio file is required" });
+      }
+
+      const { chatRoomId, targetUserId, duration, transcript } = req.body;
+
+      if (!chatRoomId || !targetUserId || !duration) {
+        return res.status(400).json({ error: "chatRoomId, targetUserId, and duration are required" });
+      }
+
+      console.log("Processing call recording:", {
+        chatRoomId,
+        callerId: userId,
+        receiverId: targetUserId,
+        duration,
+        fileSize: req.file.size
+      });
+
+      // Read audio file
+      const audioBuffer = fs.readFileSync(req.file.path);
+
+      // Encrypt the audio file
+      const encryptedData = encryptFileData(audioBuffer);
+
+      // Create encrypted file path
+      const callsDir = path.join(process.cwd(), "uploads", "calls");
+      if (!fs.existsSync(callsDir)) {
+        fs.mkdirSync(callsDir, { recursive: true });
+      }
+
+      const encryptedFileName = `call_${Date.now()}_${hashFileName(req.file.originalname)}`;
+      const encryptedFilePath = path.join(callsDir, encryptedFileName);
+
+      // Save encrypted file
+      fs.writeFileSync(encryptedFilePath, encryptedData);
+
+      // Delete temporary file
+      fs.unlinkSync(req.file.path);
+
+      // Parse transcript if provided
+      let transcriptData = null;
+      if (transcript) {
+        try {
+          transcriptData = typeof transcript === 'string' ? JSON.parse(transcript) : transcript;
+        } catch (error) {
+          console.error("Failed to parse transcript:", error);
+        }
+      }
+
+      // Create call record in database
+      const call = await storage.createCall({
+        chatRoomId: Number(chatRoomId),
+        callerId: Number(userId),
+        receiverId: Number(targetUserId),
+        duration: Number(duration),
+        recordingPath: encryptedFilePath,
+        transcript: transcriptData,
+        callType: 'voice',
+        status: 'completed'
+      });
+
+      console.log("Call recording saved successfully:", call.id);
+
+      res.json(call);
+    } catch (error) {
+      console.error("Error saving call recording:", error);
+      
+      // Clean up uploaded file if it exists
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      
+      res.status(500).json({ error: "Failed to save call recording" });
+    }
+  });
+
+  // POST /api/transcribe-audio - Transcribe audio chunk in real-time
+  app.post("/api/transcribe-audio", upload.single('audio'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "Audio file is required" });
+      }
+
+      console.log("Transcribing audio chunk:", {
+        filename: req.file.originalname,
+        size: req.file.size
+      });
+
+      // Use OpenAI Whisper API to transcribe
+      const result = await transcribeAudio(req.file.path);
+
+      // Clean up temporary file
+      if (fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+
+      if (result.success) {
+        res.json({ text: result.transcription || "" });
+      } else {
+        console.error("Transcription failed:", result.error);
+        res.status(500).json({ error: result.error || "Transcription failed" });
+      }
+    } catch (error) {
+      console.error("Error transcribing audio:", error);
+      
+      // Clean up uploaded file if it exists
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      
+      res.status(500).json({ error: "Failed to transcribe audio" });
+    }
+  });
+
+  // GET /api/calls/:chatRoomId - Get call history for a chat room
+  app.get("/api/calls/:chatRoomId", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"];
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const { chatRoomId } = req.params;
+      if (!chatRoomId || isNaN(Number(chatRoomId))) {
+        return res.status(400).json({ error: "Valid chatRoomId is required" });
+      }
+
+      console.log("Fetching call history for chat room:", chatRoomId);
+
+      // Get call history with caller and receiver information
+      const calls = await storage.getCallsByChatRoomId(Number(chatRoomId));
+
+      res.json(calls);
+    } catch (error) {
+      console.error("Error fetching call history:", error);
+      res.status(500).json({ error: "Failed to fetch call history" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // WebSocket connections map

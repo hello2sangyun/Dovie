@@ -2,7 +2,7 @@ import {
   users, contacts, chatRooms, chatParticipants, messages, commands, messageReads, phoneVerifications,
   fileUploads, fileDownloads, businessProfiles, userPosts, reminders,
   messageReactions, messageLikes, pushSubscriptions, iosDeviceTokens, aiNotices, bookmarks, voiceBookmarkRequests,
-  userChatSettings, notificationSettings, verificationCodes,
+  userChatSettings, notificationSettings, verificationCodes, calls,
   type User, type InsertUser, type Contact, type InsertContact,
   type ChatRoom, type InsertChatRoom, type Message, type InsertMessage,
   type Command, type InsertCommand, type MessageRead, type InsertMessageRead,
@@ -17,7 +17,8 @@ import {
   type VoiceBookmarkRequest, type InsertVoiceBookmarkRequest,
   type UserChatSettings, type InsertUserChatSettings,
   type NotificationSettings, type InsertNotificationSettings,
-  type VerificationCode, type InsertVerificationCode
+  type VerificationCode, type InsertVerificationCode,
+  type Call, type InsertCall
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, or, count, gt, lt, sql, inArray } from "drizzle-orm";
@@ -184,6 +185,13 @@ export interface IStorage {
   createVerificationCode(data: InsertVerificationCode): Promise<VerificationCode>;
   getVerificationCode(phoneNumber: string, code: string): Promise<VerificationCode | undefined>;
   markVerificationCodeAsUsed(id: number): Promise<void>;
+
+  // Call operations
+  createCall(call: InsertCall): Promise<Call>;
+  updateCall(callSessionId: string, updates: Partial<InsertCall>): Promise<Call | undefined>;
+  getCallsByChatRoomId(chatRoomId: number): Promise<Array<Call & { caller: User; receiver: User }>>;
+  getCallBySessionId(callSessionId: string): Promise<Call | undefined>;
+  getCallById(id: number): Promise<Call | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1980,6 +1988,79 @@ export class DatabaseStorage implements IStorage {
         .where(eq(verificationCodes.id, id));
     } catch (error) {
       console.error('인증 코드 사용 처리 오류:', error);
+      throw error;
+    }
+  }
+
+  async createCall(call: InsertCall): Promise<Call> {
+    try {
+      const [newCall] = await db.insert(calls).values(call).returning();
+      return newCall;
+    } catch (error) {
+      console.error('통화 생성 오류:', error);
+      throw error;
+    }
+  }
+
+  async updateCall(callSessionId: string, updates: Partial<InsertCall>): Promise<Call | undefined> {
+    try {
+      const [updatedCall] = await db.update(calls)
+        .set(updates)
+        .where(eq(calls.callSessionId, callSessionId))
+        .returning();
+      return updatedCall;
+    } catch (error) {
+      console.error('통화 업데이트 오류:', error);
+      throw error;
+    }
+  }
+
+  async getCallsByChatRoomId(chatRoomId: number): Promise<Array<Call & { caller: User; receiver: User }>> {
+    try {
+      const callsList = await db.select()
+        .from(calls)
+        .where(eq(calls.chatRoomId, chatRoomId))
+        .orderBy(desc(calls.createdAt));
+
+      const result = await Promise.all(
+        callsList.map(async (call) => {
+          const caller = await this.getUser(call.callerId);
+          const receiver = await this.getUser(call.receiverId);
+          return {
+            ...call,
+            caller: caller!,
+            receiver: receiver!
+          };
+        })
+      );
+
+      return result;
+    } catch (error) {
+      console.error('채팅방 통화 기록 조회 오류:', error);
+      throw error;
+    }
+  }
+
+  async getCallBySessionId(callSessionId: string): Promise<Call | undefined> {
+    try {
+      const [call] = await db.select()
+        .from(calls)
+        .where(eq(calls.callSessionId, callSessionId));
+      return call;
+    } catch (error) {
+      console.error('통화 세션 조회 오류:', error);
+      throw error;
+    }
+  }
+
+  async getCallById(id: number): Promise<Call | undefined> {
+    try {
+      const [call] = await db.select()
+        .from(calls)
+        .where(eq(calls.id, id));
+      return call;
+    } catch (error) {
+      console.error('통화 ID 조회 오류:', error);
       throw error;
     }
   }
