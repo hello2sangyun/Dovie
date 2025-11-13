@@ -5,9 +5,10 @@ import { Toaster } from "@/components/ui/toaster";
 // import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import SplashScreen from "@/components/SplashScreen";
 import LandingPage from "@/pages/LandingPage";
 import NotFound from "@/pages/not-found";
-import { useEffect, lazy, Suspense, ComponentType } from "react";
+import { useEffect, useState, lazy, Suspense, ComponentType } from "react";
 import { Capacitor } from '@capacitor/core';
 
 // lazyWithPreload: lazy loading with optional preload capability
@@ -78,6 +79,22 @@ function Router() {
 }
 
 function App() {
+  // Splash screen state - only show on native apps on first load
+  const [showSplash, setShowSplash] = useState(() => {
+    // Only show splash screen on native platforms
+    if (Capacitor.isNativePlatform()) {
+      // Check if we've already shown the splash on this session
+      const hasShownSplash = sessionStorage.getItem('hasShownSplash');
+      return !hasShownSplash;
+    }
+    return false;
+  });
+
+  const handleSplashComplete = () => {
+    sessionStorage.setItem('hasShownSplash', 'true');
+    setShowSplash(false);
+  };
+
   // Dark mode initialization
   useEffect(() => {
     const savedDarkMode = localStorage.getItem('darkMode');
@@ -151,6 +168,7 @@ function App() {
       <AuthProvider>
         <Toaster />
         <PWAInstallPrompt />
+        {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
         <Router />
       </AuthProvider>
     </QueryClientProvider>
