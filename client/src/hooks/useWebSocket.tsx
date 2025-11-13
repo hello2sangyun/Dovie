@@ -19,12 +19,15 @@ interface ConnectionState {
   lastReconnectTime: number;
 }
 
+type SignalingMessageHandler = (data: any) => void;
+
 export function useWebSocket(userId?: number) {
   const wsRef = useRef<WebSocket | null>(null);
   const queryClient = useQueryClient();
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
   const retryTimeoutRef = useRef<NodeJS.Timeout>();
   const pendingMessages = useRef<Map<string, PendingMessage>>(new Map());
+  const signalingSubscribers = useRef<Set<SignalingMessageHandler>>(new Set());
   const { showNotification } = useMobileNotification();
   const { user } = useAuth();
   const appState = useAppState();
@@ -321,6 +324,22 @@ export function useWebSocket(userId?: number) {
               console.error("WebSocket server error:", data.message);
               break;
             
+            case "call-offer":
+            case "call-answer":
+            case "call-ice-candidate":
+            case "call-end":
+            case "call-reject":
+            case "call-error":
+              // Broadcast signaling messages to all subscribers
+              signalingSubscribers.current.forEach(handler => {
+                try {
+                  handler(data);
+                } catch (error) {
+                  console.error('Error in signaling message handler:', error);
+                }
+              });
+              break;
+            
             default:
               console.log("Unknown WebSocket message type:", data.type);
           }
@@ -533,9 +552,18 @@ export function useWebSocket(userId?: number) {
     return () => clearInterval(cleanup);
   }, []);
 
+  // Subscribe to signaling messages (for WebRTC calls)
+  const subscribeToSignaling = (handler: SignalingMessageHandler) => {
+    signalingSubscribers.current.add(handler);
+    return () => {
+      signalingSubscribers.current.delete(handler);
+    };
+  };
+
   return { 
     sendMessage, 
     connectionState,
-    pendingMessageCount: pendingMessages.current.size
+    pendingMessageCount: pendingMessages.current.size,
+    subscribeToSignaling
   };
 }

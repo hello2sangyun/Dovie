@@ -36,7 +36,7 @@ export function CallModal({
   const [transcript, setTranscript] = useState<string[]>([]);
   
   const { user } = useAuth();
-  const { sendMessage } = useWebSocket(user?.id);
+  const { sendMessage, subscribeToSignaling } = useWebSocket(user?.id);
   const { toast } = useToast();
   
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
@@ -448,64 +448,62 @@ export function CallModal({
     remoteAudioRef.current = null;
   };
 
-  // Listen for WebSocket messages
+  // Listen for WebSocket signaling messages
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !subscribeToSignaling) return;
 
-    const handleWebSocketMessage = (event: MessageEvent) => {
-      try {
-        const data = JSON.parse(event.data);
-        
-        if (data.callSessionId !== callSessionIdRef.current) return;
+    const handleSignalingMessage = (data: any) => {
+      // Only handle messages for this call session
+      if (data.callSessionId !== callSessionIdRef.current) return;
 
-        switch (data.type) {
-          case 'call-answer':
-            if (peerConnectionRef.current && data.answer) {
-              peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(data.answer));
-            }
-            break;
-            
-          case 'call-ice-candidate':
-            if (peerConnectionRef.current && data.candidate) {
-              peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(data.candidate));
-            }
-            break;
-            
-          case 'call-end':
-            endCall();
-            break;
-            
-          case 'call-reject':
-            toast({
-              title: '통화 거부됨',
-              description: `${targetName}님이 통화를 거부했습니다.`,
-              variant: 'destructive'
-            });
-            onClose();
-            break;
-            
-          case 'call-error':
-            toast({
-              title: '통화 오류',
-              description: data.error || '통화 연결에 실패했습니다.',
-              variant: 'destructive'
-            });
-            onClose();
-            break;
-        }
-      } catch (error) {
-        console.error('📞 Error handling WebSocket message:', error);
+      console.log('📞 CallModal received signaling message:', data.type);
+
+      switch (data.type) {
+        case 'call-answer':
+          if (peerConnectionRef.current && data.answer) {
+            peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(data.answer));
+          }
+          break;
+          
+        case 'call-ice-candidate':
+          if (peerConnectionRef.current && data.candidate) {
+            peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(data.candidate));
+          }
+          break;
+          
+        case 'call-end':
+          endCall();
+          break;
+          
+        case 'call-reject':
+          toast({
+            title: '통화 거부됨',
+            description: `${targetName}님이 통화를 거부했습니다.`,
+            variant: 'destructive'
+          });
+          cleanup();
+          onClose();
+          break;
+          
+        case 'call-error':
+          toast({
+            title: '통화 오류',
+            description: data.error || '통화 연결에 실패했습니다.',
+            variant: 'destructive'
+          });
+          cleanup();
+          onClose();
+          break;
       }
     };
 
-    // Add event listener to WebSocket
-    // Note: This is a simplified version - in production, you'd want to integrate this more tightly with useWebSocket
-    window.addEventListener('message', handleWebSocketMessage);
+    // Subscribe to signaling messages from useWebSocket
+    const unsubscribe = subscribeToSignaling(handleSignalingMessage);
 
     return () => {
-      window.removeEventListener('message', handleWebSocketMessage);
+      unsubscribe();
     };
-  }, [isOpen]);
+  }, [isOpen, subscribeToSignaling]);
 
   // Format duration as MM:SS
   const formatDuration = (seconds: number) => {
