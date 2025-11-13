@@ -397,11 +397,11 @@ export default function InboxPage() {
     return (
       <div
         key={notice.id}
-        className="relative overflow-hidden"
+        className="relative overflow-hidden rounded-lg"
         data-testid={`notice-container-${notice.id}`}
       >
         {/* Delete button revealed by swipe */}
-        <div className="absolute right-0 top-0 bottom-0 w-[100px] bg-red-500 flex items-center justify-center">
+        <div className="absolute right-0 top-0 bottom-0 w-[100px] bg-red-500 flex items-center justify-center rounded-lg">
           <button
             onClick={(e) => {
               e.stopPropagation();
