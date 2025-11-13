@@ -4,6 +4,7 @@ import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 
 interface CallModalProps {
   isOpen: boolean;
@@ -307,7 +308,36 @@ export function CallModal({
       });
 
       if (response.ok) {
-        console.log('📞 Call recording saved successfully');
+        const callData = await response.json();
+        console.log('📞 Call recording saved successfully', callData);
+        
+        // Create a call message in the chat timeline
+        if (callData.call?.id && user?.id) {
+          const durationMin = Math.floor(duration / 60);
+          const durationSec = duration % 60;
+          const durationText = durationMin > 0 
+            ? `${durationMin}분 ${durationSec}초`
+            : `${durationSec}초`;
+          
+          try {
+            await apiRequest('/api/messages', 'POST', {
+              chatRoomId,
+              senderId: user.id,
+              messageType: 'call',
+              callId: callData.call.id,
+              content: `통화 (${durationText})`
+            });
+            
+            // Invalidate messages cache to show the call message
+            queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms`, chatRoomId, 'messages'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/chat-rooms'] });
+            queryClient.invalidateQueries({ queryKey: [`/api/calls/${chatRoomId}`] });
+            
+            console.log('📞 Call message created in chat timeline');
+          } catch (error) {
+            console.error('📞 Failed to create call message:', error);
+          }
+        }
       } else {
         console.error('📞 Failed to save call recording:', response.status);
       }

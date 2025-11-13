@@ -172,7 +172,8 @@ export const messages = pgTable("messages", {
   chatRoomId: integer("chat_room_id").references(() => chatRooms.id).notNull(),
   senderId: integer("sender_id").references(() => users.id).notNull(),
   content: text("content"),
-  messageType: text("message_type").notNull().default("text"), // text, file, command, reply
+  messageType: text("message_type").notNull().default("text"), // text, file, command, reply, call
+  callId: integer("call_id").references(() => calls.id), // For messageType:'call' - links to call record
   fileUrl: text("file_url"),
   fileName: text("file_name"),
   fileSize: integer("file_size"),
