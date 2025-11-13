@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 // import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
+import { WebSocketProvider } from "@/hooks/useWebSocketContext";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import SplashScreen from "@/components/SplashScreen";
 import LandingPage from "@/pages/LandingPage";
@@ -166,10 +167,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Toaster />
-        <PWAInstallPrompt />
-        {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
-        <Router />
+        <WebSocketProvider>
+          <Toaster />
+          <PWAInstallPrompt />
+          {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
+          <Router />
+        </WebSocketProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

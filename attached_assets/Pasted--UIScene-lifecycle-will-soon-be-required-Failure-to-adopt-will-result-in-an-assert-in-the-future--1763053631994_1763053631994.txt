@@ -1,0 +1,718 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/EB058E6D-CD53-4157-B71D-B5405730C54B/App.app'
+KeyboardPlugin: resize mode - native
+⚡️  Loading app at https://dovie-hello2sangyun.replit.app...
+📱 [AppDelegate] Registered for remote notifications
+Networking process (0x113054190) took 8.800632 seconds to launch
+GPU process (0x11311c1e0) took 2.941321 seconds to launch
+WebContent process (0x1130f4100) took 4.162279 seconds to launch
+📱 [AppDelegate] APNS 토큰 등록 성공
+0x1130f4100 - [PID=37810] WebProcessProxy::didBecomeUnresponsive:
+0x118370018 - [pageProxyID=7, webPageID=8, PID=37810] WebPageProxy::processDidBecomeUnresponsive:
+WebContent[37810] 0x105458b78 - [webPageID=8] WebPage::runJavaScriptInFrameInScriptWorld: Request to run JavaScript failed with error <private>
+⚡️  JS Eval error A JavaScript exception occurred
+WebContent[37810] 0x105458b78 - [webPageID=8] WebPage::runJavaScriptInFrameInScriptWorld: Request to run JavaScript failed with error <private>
+⚡️  JS Eval error A JavaScript exception occurred
+WebContent[37810] Unable to hide query parameters from script (missing data)
+⚡️  WebView loaded
+⚡️  [log] - 🚀 Native platform detected - preloading critical pages
+⚡️  [log] - 📱 No stored user, initializing as logged out
+XPC connection interrupted
+Reporter disconnected. { function=sendMessage, reporterID=162358353723393 }
+Reporter disconnected. { function=sendMessage, reporterID=162358353723393 }
+Reporter disconnected. { function=sendMessage, reporterID=162358353723393 }
+Reporter disconnected. { function=sendMessage, reporterID=162358353723393 }
+Reporter disconnected. { function=sendMessage, reporterID=162358353723393 }
+Reporter disconnected. { function=sendMessage, reporterID=162358353723393 }
+Reporter disconnected. { function=sendMessage, reporterID=162358353723393 }
+Reporter disconnected. { function=sendMessage, reporterID=162358353723393 }
+Reporter disconnected. { function=sendMessage, reporterID=162358353723393 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = EA438DD6-164C-4F26-9CAF-9C135CB48A1E
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+Reporter disconnected or already stopped. { func=stop, reporterID=162358353723393 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = EA438DD6-164C-4F26-9CAF-9C135CB48A1E
+View <(null):0x0> does not conform to UITextInput protocol
+Reporter disconnected. { function=sendMessage, reporterID=162358353723394 }
+Reporter disconnected. { function=sendMessage, reporterID=162358353723394 }
+Reporter disconnected. { function=sendMessage, reporterID=162358353723394 }
+Reporter disconnected. { function=sendMessage, reporterID=162358353723394 }
+Reporter disconnected. { function=sendMessage, reporterID=162358353723394 }
+Reporter disconnected. { function=sendMessage, reporterID=162358353723394 }
+Reporter disconnected. { function=sendMessage, reporterID=162358353723394 }
+Reporter disconnected. { function=sendMessage, reporterID=162358353723394 }
+Reporter disconnected. { function=sendMessage, reporterID=162358353723394 }
+Result accumulator timeout: 3.000000, exceeded.
+Result accumulator timeout: 3.000000, exceeded.
+Reporter disconnected or already stopped. { func=stop, reporterID=162358353723394 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+Reporter disconnected. { function=sendMessage, reporterID=162358353723395 }
+Reporter disconnected. { function=sendMessage, reporterID=162358353723395 }
+Reporter disconnected. { function=sendMessage, reporterID=162358353723395 }
+Reporter disconnected. { function=sendMessage, reporterID=162358353723395 }
+Reporter disconnected. { function=sendMessage, reporterID=162358353723395 }
+Reporter disconnected. { function=sendMessage, reporterID=162358353723395 }
+Reporter disconnected. { function=sendMessage, reporterID=162358353723395 }
+Reporter disconnected. { function=sendMessage, reporterID=162358353723395 }
+Reporter disconnected. { function=sendMessage, reporterID=162358353723395 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = EA438DD6-164C-4F26-9CAF-9C135CB48A1E
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = EA438DD6-164C-4F26-9CAF-9C135CB48A1E
+Reporter disconnected or already stopped. { func=stop, reporterID=162358353723395 }
+⚡️  To Native ->  App addListener 133914508
+⚡️  To Native ->  App addListener 133914509
+⚡️  To Native ->  App addListener 133914510
+⚡️  To Native ->  PushNotifications addListener 133914511
+⚡️  To Native ->  PushNotifications addListener 133914512
+⚡️  To Native ->  PushNotifications addListener 133914513
+⚡️  To Native ->  PushNotifications addListener 133914514
+⚡️  To Native ->  PushNotifications requestPermissions 133914515
+⚡️  [log] - [Badge] Service Worker not supported
+⚡️  [log] - ✅ Navigation service registered
+⚡️  [log] - ✅ Navigator registered with navigation service
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://dovie-hello2sangyun.replit.app/ws
+⚡️  [log] -    Protocol: wss:, Host: dovie-hello2sangyun.replit.app
+⚡️  [log] - 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+⚡️  [log] - ✅ Navigation service registered
+⚡️  [log] - ✅ Navigator registered with navigation service
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  To Native ->  App addListener 133914516
+⚡️  To Native ->  App addListener 133914517
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [error] - WebSocket error: {"isTrusted":true}
+⚡️  [error] - WebSocket error event: {"type":"error","target":{},"timeStamp":49859}
+⚡️  [log] - WebSocket disconnected: 1006 
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  To Native ->  App addListener 133914518
+⚡️  To Native ->  App addListener 133914519
+⚡️  To Native ->  App addListener 133914520
+⚡️  To Native ->  App addListener 133914521
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 0
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: []
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  TO JS {"receive":"granted"}
+⚡️  To Native ->  PushNotifications register 133914522
+⚡️  TO JS undefined
+⚡️  TO JS {"value":"02D7CD9C8B7F60C026EEF87D1E21EB31A99D102BC1CF6941C0AC23796188F7FE"}
+📱 [AppDelegate] APNS 토큰 등록 성공
+⚡️  [log] - 📱 iOS 네이티브 푸시 알림 등록 성공 (리스너 대기 중)
+⚡️  [log] - 📱 iOS 푸시 토큰 획득: 02D7CD9C8B7F60C026EEF87D1E21EB31A99D102BC1CF6941C0AC23796188F7FE
+⚡️  [log] - 📱 서버로 iOS 토큰 전송 시작: 02D7CD9C8B7F60C026EE...
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+WebContent[37810] <<<< CMPhotoJFIFUtilities >>>> signalled err=-17102 at <>:1776
+WebContent[37810] The sandbox in this process does not allow access to RunningBoard.
+WebContent[37810] Handshake aborted as the connection has been invalidated
+WebContent[37810] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+⚡️  [log] - ✅ iOS 푸시 토큰이 서버에 저장되었습니다: {"success":true,"message":"iOS push token registered successfully","userId":126,"tokenPreview":"02D7CD9C8B7F60C026EE..."}
+⚡️  [log] - 📱 App foregrounded - reconnecting WebSocket
+⚡️  [log] - 📱 Calling connect() after foreground transition
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://dovie-hello2sangyun.replit.app/ws
+⚡️  [log] -    Protocol: wss:, Host: dovie-hello2sangyun.replit.app
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+WebContent[37810] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+WebContent[37810] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+WebContent[37810] +[HDRImage getPixelType:YCCMatrixString:chromaSubsampling:componentRange:bitDepth:isFloat:forBuffer:]:1050: *** Missing YCC matrix, falling back to ITU_R_601_4
+WebContent[37810] +[HDRImage getPixelType:YCCMatrixString:chromaSubsampling:componentRange:bitDepth:isFloat:forBuffer:]:1050: *** Missing YCC matrix, falling back to ITU_R_601_4
+WebContent[37810] IOSurface creation failed. IOSurface service not present
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+⚡️  To Native ->  App removeListener 133914523
+⚡️  To Native ->  App removeListener 133914524
+⚡️  To Native ->  App removeListener 133914525
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+⚡️  [log] - WebSocket disconnected: 1000 App backgrounded
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+Snapshotting a view (0x11ccee800, UIKeyboardImpl) that is not in a visible window requires afterScreenUpdates:YES.
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  TO JS {"notification":{"data":{"senderId":121,"aps":{"content-available":1,"alert":{"title":"real","body":"hahaha"},"badge":1,"mutable-content":1,"category":"MESSAGE_CATEGORY","sound":"\/notification-sound.mp3","thread-id":"chat-119"},"chatRoomId":119,"type":"me
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] App visible - suppressing notifications
+⚡️  [log] - 📱 앱이 활성화됨 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app opened - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 📱 푸시 알림 클릭: {"notification":{"data":{"senderId":121,"aps":{"content-available":1,"alert":{"title":"real","body":"hahaha"},"badge":1,"mutable-content":1,"category":"MESSAGE_CATEGORY","sound":"/notification-sound.mp3","thread-id":"chat-119"},"chatRoomId":119,"type":"message","senderName":"real","url":"/?chat=119"},"badge":1,"id":"E8047BD0-E19B-44A6-877D-B778C50E9864","body":"hahaha","subtitle":"","title":"real"},"actionId":"tap"}
+⚡️  [log] - ✅ App is running - navigating immediately to: /chat-rooms/119
+⚡️  [log] - 🔄 Navigating to: /chat-rooms/119
+⚡️  To Native ->  Filesystem mkdir 133914526
+⚡️  To Native ->  Filesystem mkdir 133914527
+⚡️  To Native ->  Filesystem mkdir 133914528
+⚡️  To Native ->  Filesystem mkdir 133914529
+⚡️  To Native ->  Filesystem mkdir 133914530
+⚡️  To Native ->  Filesystem mkdir 133914531
+⚡️  To Native ->  Filesystem mkdir 133914532
+⚡️  To Native ->  Filesystem mkdir 133914533
+⚡️  To Native ->  Filesystem mkdir 133914534
+⚡️  To Native ->  Filesystem mkdir 133914535
+⚡️  To Native ->  App addListener 133914536
+⚡️  To Native ->  App addListener 133914537
+⚡️  To Native ->  Filesystem mkdir 133914538
+⚡️  To Native ->  App addListener 133914539
+⚡️  To Native ->  App addListener 133914540
+⚡️  To Native ->  App addListener 133914541
+⚡️  To Native ->  App addListener 133914542
+⚡️  To Native ->  App addListener 133914543
+⚡️  To Native ->  Filesystem mkdir 133914544
+⚡️  TO JS undefined
+ERROR MESSAGE:  {"errorMessage":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010","message":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten."}
+ERROR MESSAGE:  {"code":"OS-PLUG-FILE-0010","errorMessage":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","message":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten."}
+ERROR MESSAGE:  {"message":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010","errorMessage":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten."}
+ERROR MESSAGE:  {"message":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","errorMessage":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010"}
+ERROR MESSAGE:  {"errorMessage":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010","message":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten."}
+ERROR MESSAGE:  {"code":"OS-PLUG-FILE-0010","errorMessage":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","message":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten."}
+ERROR MESSAGE:  {"code":"OS-PLUG-FILE-0010","message":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","errorMessage":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten."}
+ERROR MESSAGE:  {"code":"OS-PLUG-FILE-0010","message":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","errorMessage":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten."}
+ERROR MESSAGE:  {"errorMessage":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","message":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010"}
+ERROR MESSAGE:  {"code":"OS-PLUG-FILE-0010","errorMessage":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","message":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten."}
+ERROR MESSAGE:  {"errorMessage":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","message":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010"}
+⚡️  To Native ->  Filesystem readFile 133914545
+⚡️  To Native ->  Filesystem readFile 133914546
+⚡️  To Native ->  Filesystem readFile 133914547
+⚡️  To Native ->  Filesystem readFile 133914548
+⚡️  To Native ->  Filesystem readFile 133914549
+⚡️  To Native ->  Filesystem readFile 133914550
+⚡️  To Native ->  Filesystem readFile 133914551
+⚡️  To Native ->  Filesystem readFile 133914552
+⚡️  To Native ->  Filesystem readFile 133914553
+⚡️  To Native ->  Filesystem readFile 133914554
+⚡️  To Native ->  Filesystem readFile 133914555
+⚡️  To Native ->  Filesystem readFile 133914556
+ERROR MESSAGE:  {"errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","code":"OS-PLUG-FILE-0013","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [error] - {"errorMessage":"Directory at 'file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010","message":"Directory at 'file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/'  already exists, cannot be overwritten."}
+ERROR MESSAGE:  {"code":"OS-PLUG-FILE-0013","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [error] - {"code":"OS-PLUG-FILE-0010","errorMessage":"Directory at 'file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/'  already exists, cannot be overwritten.","message":"Directory at 'file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/'  already exists, cannot be overwritten."}
+ERROR MESSAGE:  {"message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","code":"OS-PLUG-FILE-0013","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [error] - {"message":"Directory at 'file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010","errorMessage":"Directory at 'file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/'  already exists, cannot be overwritten."}
+⚡️  [error] - {"message":"Directory at 'file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/'  already exists, cannot be overwritten.","errorMessage":"Directory at 'file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010"}
+ERROR MESSAGE:  {"errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","code":"OS-PLUG-FILE-0013"}
+ERROR MESSAGE:  {"code":"OS-PLUG-FILE-0013","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [error] - {"errorMessage":"Directory at 'file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010","message":"Directory at 'file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/'  already exists, cannot be overwritten."}
+ERROR MESSAGE:  {"code":"OS-PLUG-FILE-0013","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [error] - {"code":"OS-PLUG-FILE-0010","errorMessage":"Directory at 'file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/'  already exists, cannot be overwritten.","message":"Directory at 'file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/'  already exists, cannot be overwritten."}
+⚡️  [error] - {"code":"OS-PLUG-FILE-0010","message":"Directory at 'file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/'  already exists, cannot be overwritten.","errorMessage":"Directory at 'file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/'  already exists, cannot be overwritten."}
+ERROR MESSAGE:  {"message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","code":"OS-PLUG-FILE-0013","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+ERROR MESSAGE:  ⚡️  [error] - {"code":"OS-PLUG-FILE-0010","message":"Directory at 'file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/'  already exists, cannot be overwritten.","errorMessage":"Directory at 'file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/'  already exists, cannot be overwritten."}
+{"code":"OS-PLUG-FILE-0013","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+ERROR MESSAGE:  {"errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","code":"OS-PLUG-FILE-0013","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [error] - {"errorMessage":"Directory at 'file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/'  already exists, cannot be overwritten.","message":"Directory at 'file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010"}
+ERROR MESSAGE:  {"message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","code":"OS-PLUG-FILE-0013","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [error] - {"code":"OS-PLUG-FILE-0010","errorMessage":"Directory at 'file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/'  already exists, cannot be overwritten.","message":"Directory at 'file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/'  already exists, cannot be overwritten."}
+ERROR MESSAGE:  {"errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","code":"OS-PLUG-FILE-0013"}
+⚡️  [error] - {"errorMessage":"Directory at 'file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/'  already exists, cannot be overwritten.","message":"Directory at 'file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010"}
+ERROR MESSAGE:  {"code":"OS-PLUG-FILE-0013","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [error] - {"errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","code":"OS-PLUG-FILE-0013","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [log] - [FileCache] No existing cache index, starting fresh
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  [log] - [FileCache] Cache miss, downloading: /uploads/file_1762845707100_vyntc81f8sj.jpeg
+⚡️  [error] - {"code":"OS-PLUG-FILE-0013","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [log] - [FileCache] No existing cache index, starting fresh
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  [log] - [FileCache] Cache miss, downloading: /uploads/file_1762847153043_7fknqoaf848.pdf
+⚡️  [error] - {"message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","code":"OS-PLUG-FILE-0013","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [log] - [FileCache] No existing cache index, starting fresh
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  [log] - [FileCache] Cache miss, downloading: /uploads/file_1762849189604_q82877q4qa.jpeg
+⚡️  [error] - {"errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","code":"OS-PLUG-FILE-0013"}
+⚡️  [log] - [FileCache] No existing cache index, starting fresh
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  [log] - [FileCache] Cache miss, downloading: /uploads/file_1762849513723_aml49nutkss.pdf
+⚡️  [error] - {"code":"OS-PLUG-FILE-0013","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [log] - [FileCache] No existing cache index, starting fresh
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  [log] - [FileCache] Cache miss, downloading: /uploads/file_1762854376160_djtpf4zueog.mov
+⚡️  [error] - {"code":"OS-PLUG-FILE-0013","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [log] - [FileCache] No existing cache index, starting fresh
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  [log] - [FileCache] Cache miss, downloading: /uploads/file_1762957809839_umq6efue9xm.mov
+⚡️  [error] - {"message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","code":"OS-PLUG-FILE-0013","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [log] - [FileCache] No existing cache index, starting fresh
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  [log] - [FileCache] Cache miss, downloading: /uploads/file_1762959748279_wfyrb7aels9.jpeg
+⚡️  [error] - {"code":"OS-PLUG-FILE-0013","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [log] - [FileCache] No existing cache index, starting fresh
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  [log] - [FileCache] Cache miss, downloading: /uploads/file_1762960329189_ucik7xk7cko.jpeg
+⚡️  [error] - {"errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","code":"OS-PLUG-FILE-0013","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [log] - [FileCache] No existing cache index, starting fresh
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  [log] - [FileCache] Cache miss, downloading: /uploads/file_1762960397346_fd93vldxfn7.jpeg
+⚡️  [error] - {"message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","code":"OS-PLUG-FILE-0013","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [log] - [FileCache] No existing cache index, starting fresh
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  [log] - [FileCache] Cache miss, downloading: /uploads/file_1762963431698_elrlyd7pnzd.mp4
+⚡️  [error] - {"errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","code":"OS-PLUG-FILE-0013"}
+⚡️  [log] - [FileCache] No existing cache index, starting fresh
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  [error] - {"code":"OS-PLUG-FILE-0013","errorMessage":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file.","message":"'readFile' failed with: The file “index.json” couldn’t be opened because there is no such file."}
+⚡️  [log] - [FileCache] No existing cache index, starting fresh
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - [NotificationManager] Activity status updated: online
+WebContent[37810] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+⚡️  [error] - Image decode error for /uploads/file_1762959748279_wfyrb7aels9.jpeg: 
+⚡️  [error] - Image decode error for /uploads/file_1762959748279_wfyrb7aels9.jpeg: 
+⚡️  [error] - Image decode error for /uploads/file_1762960397346_fd93vldxfn7.jpeg: 
+⚡️  [error] - Image decode error for /uploads/file_1762960397346_fd93vldxfn7.jpeg: 
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App foregrounded - reconnecting WebSocket
+WebContent[37810] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [error] - [FileCache] Failed to fetch and cache: {}
+⚡️  [log] - 📱 Calling connect() after foreground transition
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://dovie-hello2sangyun.replit.app/ws
+⚡️  [log] -    Protocol: wss:, Host: dovie-hello2sangyun.replit.app
+⚡️  [error] - [FileCache] Failed to fetch and cache: {}
+⚡️  To Native ->  Filesystem writeFile 133914557
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYyODQ5NTEz.pdf"}
+⚡️  To Native ->  Filesystem writeFile 133914558
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/index.json"}
+⚡️  [log] - [FileCache] Cached file: /uploads/file_1762849513723_aml49nutkss.pdf -> file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyODQ5NTEz.pdf
+⚡️  To Native ->  Filesystem writeFile 133914559
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYyODQ3MTUz.pdf"}
+⚡️  To Native ->  Filesystem writeFile 133914560
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/index.json"}
+⚡️  [log] - [FileCache] Cached file: /uploads/file_1762847153043_7fknqoaf848.pdf -> file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyODQ3MTUz.pdf
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 0 pending messages
+WebContent[37810] <<<< CMPhotoJFIFUtilities >>>> signalled err=-17102 at <>:1776
+WebContent[37810] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+WebContent[37810] <<<< CMPhotoJFIFUtilities >>>> signalled err=-17102 at <>:1776
+WebContent[37810] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+⚡️  [log] - 📱 Real-time badge sync event: 1
+⚡️  To Native ->  Badge set 133914561
+⚡️  [log] - Image loaded successfully: /uploads/file_1762849189604_q82877q4qa.jpeg
+⚡️  [log] - Image loaded successfully: /uploads/file_1762849189604_q82877q4qa.jpeg
+⚡️  TO JS undefined
+⚡️  To Native ->  Badge set 133914562
+⚡️  [log] - 📱 Real-time badge sync event: 1
+⚡️  TO JS undefined
+⚡️  [log] - Image loaded successfully: /uploads/file_1762960329189_ucik7xk7cko.jpeg
+⚡️  [log] - Image loaded successfully: /uploads/file_1762960329189_ucik7xk7cko.jpeg
+⚡️  To Native ->  Filesystem writeFile 133914563
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYyOTYwMzI5.jpeg"}
+⚡️  To Native ->  Filesystem writeFile 133914564
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/index.json"}
+⚡️  [log] - [FileCache] Cached file: /uploads/file_1762960329189_ucik7xk7cko.jpeg -> file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyOTYwMzI5.jpeg
+⚡️  [log] - Image loaded successfully: capacitor://localhost/_capacitor_file_/var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyOTYwMzI5.jpeg
+⚡️  [log] - Image loaded successfully: capacitor://localhost/_capacitor_file_/var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyOTYwMzI5.jpeg
+⚡️  [error] - [FileCache] Failed to fetch and cache: {}
+⚡️  [error] - [FileCache] Failed to fetch and cache: {}
+WebContent[37810] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+⚡️  To Native ->  Badge set 133914565
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+⚡️  To Native ->  App removeListener 133914566
+⚡️  To Native ->  App removeListener 133914567
+⚡️  To Native ->  App removeListener 133914568
+⚡️  To Native ->  App removeListener 133914569
+⚡️  To Native ->  Badge set 133914570
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  To Native ->  Filesystem writeFile 133914571
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYyODQ5MTg5.jpeg"}
+⚡️  To Native ->  Filesystem writeFile 133914572
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/index.json"}
+⚡️  [log] - [FileCache] Cached file: /uploads/file_1762849189604_q82877q4qa.jpeg -> file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyODQ5MTg5.jpeg
+⚡️  [log] - 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: real
+⚡️  To Native ->  App addListener 133914573
+⚡️  To Native ->  App addListener 133914574
+⚡️  To Native ->  App addListener 133914575
+⚡️  To Native ->  App addListener 133914576
+⚡️  To Native ->  Filesystem stat 133914577
+⚡️  To Native ->  Filesystem stat 133914578
+⚡️  To Native ->  Filesystem stat 133914579
+⚡️  TO JS {"name":"L3VwbG9hZHMvZmlsZV8xNzYyODQ3MTUz.pdf","type":"file","ctime":1763053493152,"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYyODQ3MTUz.pdf","mtime
+⚡️  TO JS {"name":"L3VwbG9hZHMvZmlsZV8xNzYyODQ5NTEz.pdf","type":"file","ctime":1763053493004,"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYyODQ5NTEz.pdf","mtime
+⚡️  [log] - [FileCache] Cache miss, downloading: /uploads/file_1762854376160_djtpf4zueog.mov
+⚡️  [log] - [FileCache] Cache miss, downloading: /uploads/file_1762957809839_umq6efue9xm.mov
+⚡️  [log] - [FileCache] Cache miss, downloading: /uploads/file_1762959748279_wfyrb7aels9.jpeg
+⚡️  TO JS {"name":"L3VwbG9hZHMvZmlsZV8xNzYyOTYwMzI5.jpeg","type":"file","ctime":1763053494619,"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYyOTYwMzI5.jpeg","mti
+⚡️  [log] - [FileCache] Cache miss, downloading: /uploads/file_1762960397346_fd93vldxfn7.jpeg
+WebContent[37810] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+⚡️  To Native ->  Filesystem writeFile 133914580
+⚡️  To Native ->  Filesystem writeFile 133914581
+⚡️  To Native ->  Filesystem writeFile 133914582
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/index.json"}
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/index.json"}
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/index.json"}
+⚡️  [log] - [FileCache] Cache hit: /uploads/file_1762847153043_7fknqoaf848.pdf
+⚡️  [log] - [FileCache] Cache hit: /uploads/file_1762849513723_aml49nutkss.pdf
+⚡️  [log] - Image loaded successfully: capacitor://localhost/_capacitor_file_/var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyODQ5MTg5.jpeg
+⚡️  [log] - Image loaded successfully: capacitor://localhost/_capacitor_file_/var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyODQ5MTg5.jpeg
+⚡️  [log] - Image loaded successfully: /uploads/file_1762960329189_ucik7xk7cko.jpeg
+⚡️  [log] - Image loaded successfully: /uploads/file_1762960329189_ucik7xk7cko.jpeg
+⚡️  [log] - [FileCache] Cache hit: /uploads/file_1762960329189_ucik7xk7cko.jpeg
+⚡️  [log] - Image loaded successfully: capacitor://localhost/_capacitor_file_/var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyOTYwMzI5.jpeg
+⚡️  [log] - Image loaded successfully: capacitor://localhost/_capacitor_file_/var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyOTYwMzI5.jpeg
+⚡️  To Native ->  Filesystem writeFile 133914583
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYyODQ1NzA3.jpeg"}
+⚡️  To Native ->  Filesystem writeFile 133914584
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/index.json"}
+⚡️  [log] - [FileCache] Cached file: /uploads/file_1762845707100_vyntc81f8sj.jpeg -> file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyODQ1NzA3.jpeg
+⚡️  To Native ->  Filesystem writeFile 133914585
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYyOTYzNDMx.mp4"}
+⚡️  [error] - Image decode error for /uploads/file_1762960397346_fd93vldxfn7.jpeg: 
+⚡️  [error] - Image decode error for /uploads/file_1762960397346_fd93vldxfn7.jpeg: 
+⚡️  [error] - Image decode error for /uploads/file_1762959748279_wfyrb7aels9.jpeg: 
+⚡️  [error] - Image decode error for /uploads/file_1762959748279_wfyrb7aels9.jpeg: 
+⚡️  To Native ->  Filesystem writeFile 133914586
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/index.json"}
+WebContent[37810] +[HDRImage getPixelType:YCCMatrixString:chromaSubsampling:componentRange:bitDepth:isFloat:forBuffer:]:1050: *** Missing YCC matrix, falling back to ITU_R_601_4
+⚡️  [log] - [FileCache] Cached file: /uploads/file_1762963431698_elrlyd7pnzd.mp4 -> file:///var/mobile/Containers/Data/Application/6AC61A82-ED79-485C-B10B-327DEA206986/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYyOTYzNDMx.mp4
+⚡️  [error] - [FileCache] Failed to fetch and cache: {}
+⚡️  [error] - [FileCache] Failed to fetch and cache: {}
+WebContent[37810] +[HDRImage getPixelType:YCCMatrixString:chromaSubsampling:componentRange:bitDepth:isFloat:forBuffer:]:1050: *** Missing YCC matrix, falling back to ITU_R_601_4
+WebContent[37810] IOSurface creation failed. IOSurface service not present
+⚡️  [error] - [FileCache] Failed to fetch and cache: {}
+⚡️  [error] - [FileCache] Failed to fetch and cache: {}
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  To Native ->  Badge set 133914587
+⚡️  TO JS undefined
+⚡️  To Native ->  Badge set 133914588
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://dovie-hello2sangyun.replit.app/ws
+⚡️  [log] -    Protocol: wss:, Host: dovie-hello2sangyun.replit.app
+⚡️  To Native ->  App addListener 133914589
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [error] - WebSocket error: {"isTrusted":true}
+⚡️  [error] - WebSocket error event: {"type":"error","target":{},"timeStamp":75571}
+⚡️  [log] - WebSocket disconnected: 1006 
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+⚡️  [log] - WebSocket disconnected: 1000 App backgrounded
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  [log] - 📱 App state changed: active
+WebContent[37810] ERROR AppleProResHW: 45: AppleProResHW_CheckPlatform(): IOServiceGetMatchingService failed
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - Message msg_1763053502365_ws16x286r queued for retry (WebSocket state: undefined)
+⚡️  [log] - Retrying message msg_1763053502365_ws16x286r (attempt 1/3) in 1238ms
+⚡️  [log] - 📱 App foregrounded - reconnecting WebSocket
+⚡️  [log] - 📱 App foregrounded - reconnecting WebSocket
+⚡️  [log] - 📞 Sending ICE candidate
+⚡️  [log] - Message msg_1763053502371_bwhrd2rn5 queued for retry (WebSocket state: undefined)
+⚡️  [log] - Retrying message msg_1763053502371_bwhrd2rn5 (attempt 1/3) in 1002ms
+⚡️  [log] - 📱 Calling connect() after foreground transition
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://dovie-hello2sangyun.replit.app/ws
+⚡️  [log] -    Protocol: wss:, Host: dovie-hello2sangyun.replit.app
+⚡️  [log] - 📱 Calling connect() after foreground transition
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://dovie-hello2sangyun.replit.app/ws
+⚡️  [log] -    Protocol: wss:, Host: dovie-hello2sangyun.replit.app
+⚡️  [log] - 📞 Sending ICE candidate
+⚡️  [log] - Message msg_1763053502506_ggr8rucz3 queued for retry (WebSocket state: 0)
+⚡️  [log] - Retrying message msg_1763053502506_ggr8rucz3 (attempt 1/3) in 1191ms
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 3 pending messages
+⚡️  [log] - Pending message msg_1763053502365_ws16x286r sent successfully
+⚡️  [log] - Pending message msg_1763053502371_bwhrd2rn5 sent successfully
+⚡️  [log] - Pending message msg_1763053502506_ggr8rucz3 sent successfully
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+⚡️  [log] - Message msg_1763053502371_bwhrd2rn5 retried successfully
+⚡️  [log] - Message msg_1763053502365_ws16x286r retried successfully
+⚡️  [log] - Message msg_1763053502506_ggr8rucz3 retried successfully
+⚡️  To Native ->  Badge set 133914590
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  To Native ->  Badge set 133914591
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  To Native ->  Badge set 133914592
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  To Native ->  Badge set 133914593
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  [log] - Message msg_1763053517219_1a5r3wlx5 sent immediately
+⚡️  To Native ->  App removeListener 133914594
+⚡️  [log] - WebSocket disconnected: 1000 Component unmounting
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  To Native ->  Badge set 133914595
+⚡️  TO JS undefined
+⚡️  To Native ->  Badge set 133914596
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+Snapshotting a view (0x12ad74000, UIKeyboardImpl) that has not been rendered at least once requires afterScreenUpdates:YES.
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [log] - WebSocket disconnected: 1000 App backgrounded
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] App visible - suppressing notifications
+⚡️  [log] - 📱 앱이 활성화됨 - 배지 상태 새로고침
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🔄 PWA app opened - syncing messages immediately
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App foregrounded - reconnecting WebSocket
+⚡️  [log] - 📱 Calling connect() after foreground transition
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://dovie-hello2sangyun.replit.app/ws
+⚡️  [log] -    Protocol: wss:, Host: dovie-hello2sangyun.replit.app
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  To Native ->  Badge set 133914597
+⚡️  TO JS undefined
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+⚡️  To Native ->  Badge ⚡️  [log] - 📱 Real-time badge sync event: 0
+set 133914598
+⚡️  TO JS undefined
+⚡️  [log] - WebSocket message received: {"type":"call-offer","targetUserId":126,"callSessionId":"call_1763053533245_gtgmz1dme","offer":{"type":"offer","sdp":"v=0\r\no=- 7564288311591545552 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=group:BUNDLE 0\r\na=extmap-allow-mixed\r\na=msid-semantic: WMS 87f16762-f02a-4503-adfa-3b51d5c79393\r\nm=audio 9 UDP/TLS/RTP/SAVPF 111 63 9 0 8 13 110 126\r\nc=IN IP4 0.0.0.0\r\na=rtcp:9 IN IP4 0.0.0.0\r\na=ice-ufrag:xO/I\r\na=ice-pwd:x2oLGHjigL8xtH3lmrqige1G\r\na=ice-options:trickle\r\na=fingerprint:sha-256 E1:B4:A0:66:54:55:F4:73:FF:6C:85:81:EE:FB:30:CB:85:3D:B9:3E:C6:6F:55:1F:ED:88:48:8D:0A:AE:CD:24\r\na=setup:actpass\r\na=mid:0\r\na=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level\r\na=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time\r\na=extmap:3 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01\r\na=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid\r\na=sendrecv\r\na=msid:87f16762-f02a-4503-adfa-3b51d5c79393 8968f5c3-97ba-4687-917e-9c154271aa06\r\na=rtcp-mux\r\na=rtcp-rsize\r\na=rtpmap:111 opus/48000/2\r\na=rtcp-fb:111 transport-cc\r\na=fmtp:111 minptime=10;useinbandfec=1\r\na=rtpmap:63 red/48000/2\r\na=fmtp:63 111/111\r\na=rtpmap:9 G722/8000\r\na=rtpmap:0 PCMU/8000\r\na=rtpmap:8 PCMA/8000\r\na=rtpmap:13 CN/8000\r\na=rtpmap:110 telephone-event/48000\r\na=rtpmap:126 telephone-event/8000\r\na=ssrc:404516904 cname:kkimB7HCPkNXES4/\r\na=ssrc:404516904 msid:87f16762-f02a-4503-adfa-3b51d5c79393 8968f5c3-97ba-4687-917e-9c154271aa06\r\n"},"fromUserId":121}
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763053533245_gtgmz1dme","candidate":{"candidate":"candidate:672218898 1 udp 2122260223 172.20.10.12 52159 typ host generation 0 ufrag xO/I network-id 1 network-cost 10","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"xO/I"},"fromUserId":121}
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763053533245_gtgmz1dme","candidate":{"candidate":"candidate:3492315144 1 udp 2122199807 fdb8:8618:ecfd::2 61176 typ host generation 0 ufrag xO/I network-id 2 network-cost 50","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"xO/I"},"fromUserId":121}
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763053533245_gtgmz1dme","candidate":{"candidate":"candidate:1760251323 1 udp 1686052607 94.44.109.58 10826 typ srflx raddr 172.20.10.12 rport 52159 generation 0 ufrag xO/I network-id 1 network-cost 10","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"xO/I"},"fromUserId":121}
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763053533245_gtgmz1dme","candidate":{"candidate":"candidate:1457446282 1 tcp 1518280447 172.20.10.12 9 typ host tcptype active generation 0 ufrag xO/I network-id 1 network-cost 10","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"xO/I"},"fromUserId":121}
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763053533245_gtgmz1dme","candidate":{"candidate":"candidate:2934399632 1 tcp 1518220031 fdb8:8618:ecfd::2 9 typ host tcptype active generation 0 ufrag xO/I network-id 2 network-cost 50","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"xO/I"},"fromUserId":121}
+⚡️  [log] - WebSocket message received: {"type":"call-offer","targetUserId":126,"callSessionId":"call_1763053533245_gtgmz1dme","offer":{"type":"offer","sdp":"v=0\r\no=- 7564288311591545552 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=group:BUNDLE 0\r\na=extmap-allow-mixed\r\na=msid-semantic: WMS 87f16762-f02a-4503-adfa-3b51d5c79393\r\nm=audio 9 UDP/TLS/RTP/SAVPF 111 63 9 0 8 13 110 126\r\nc=IN IP4 0.0.0.0\r\na=rtcp:9 IN IP4 0.0.0.0\r\na=ice-ufrag:xO/I\r\na=ice-pwd:x2oLGHjigL8xtH3lmrqige1G\r\na=ice-options:trickle\r\na=fingerprint:sha-256 E1:B4:A0:66:54:55:F4:73:FF:6C:85:81:EE:FB:30:CB:85:3D:B9:3E:C6:6F:55:1F:ED:88:48:8D:0A:AE:CD:24\r\na=setup:actpass\r\na=mid:0\r\na=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level\r\na=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time\r\na=extmap:3 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01\r\na=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid\r\na=sendrecv\r\na=msid:87f16762-f02a-4503-adfa-3b51d5c79393 8968f5c3-97ba-4687-917e-9c154271aa06\r\na=rtcp-mux\r\na=rtcp-rsize\r\na=rtpmap:111 opus/48000/2\r\na=rtcp-fb:111 transport-cc\r\na=fmtp:111 minptime=10;useinbandfec=1\r\na=rtpmap:63 red/48000/2\r\na=fmtp:63 111/111\r\na=rtpmap:9 G722/8000\r\na=rtpmap:0 PCMU/8000\r\na=rtpmap:8 PCMA/8000\r\na=rtpmap:13 CN/8000\r\na=rtpmap:110 telephone-event/48000\r\na=rtpmap:126 telephone-event/8000\r\na=ssrc:404516904 cname:kkimB7HCPkNXES4/\r\na=ssrc:404516904 msid:87f16762-f02a-4503-adfa-3b51d5c79393 8968f5c3-97ba-4687-917e-9c154271aa06\r\n"},"fromUserId":121}
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763053533245_gtgmz1dme","candidate":{"candidate":"candidate:3492315144 1 udp 2122199807 fdb8:8618:ecfd::2 61176 typ host generation 0 ufrag xO/I network-id 2 network-cost 50","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"xO/I"},"fromUserId":121}
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763053533245_gtgmz1dme","candidate":{"candidate":"candidate:672218898 1 udp 2122260223 172.20.10.12 52159 typ host generation 0 ufrag xO/I network-id 1 network-cost 10","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"xO/I"},"fromUserId":121}
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763053533245_gtgmz1dme","candidate":{"candidate":"candidate:1760251323 1 udp 1686052607 94.44.109.58 10826 typ srflx raddr 172.20.10.12 rport 52159 generation 0 ufrag xO/I network-id 1 network-cost 10","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"xO/I"},"fromUserId":121}
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763053533245_gtgmz1dme","candidate":{"candidate":"candidate:1457446282 1 tcp 1518280447 172.20.10.12 9 typ host tcptype active generation 0 ufrag xO/I network-id 1 network-cost 10","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"xO/I"},"fromUserId":121}
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763053533245_gtgmz1dme","candidate":{"candidate":"candidate:2934399632 1 tcp 1518220031 fdb8:8618:ecfd::2 9 typ host tcptype active generation 0 ufrag xO/I network-id 2 network-cost 50","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"xO/I"},"fromUserId":121}
+⚡️  To Native ->  Badge set 133914599
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  [log] - 🖱️ Touch start: {"tagName":"DIV","className":"rounded-2xl px-3 py-2 w-fit break-words cursor-pointer select-none relative overflow-visible bg-gradient-to-br from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/25 rounded-tr-md backdrop-blur-sm hover:shadow-xl hover:shadow-purple-500/30 transition-all duration-300","isInteractive":false}
+⚡️  [log] - ⏱️ Long-press timer started (400ms)
+⚡️  [log] - 👆 Touch move - canceling long-press
+⚡️  [log] - 👆 Touch move - canceling long-press
+⚡️  To Native ->  Badge set 133914600
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  [log] - 👆 Touch move - canceling long-press
+⚡️  [log] - 👆 Touch move - canceling long-press
+⚡️  [log] - 👆 Touch move - canceling long-press
+⚡️  [log] - 👆 Touch move - canceling long-press
+⚡️  [log] - 👆 Touch move - canceling long-press
+⚡️  [log] - 👆 Touch move - canceling long-press
+⚡️  [log] - 👆 Touch move - canceling long-press
+⚡️  [log] - 🖱️ Touch end: DIV
+⚡️  [log] - WebSocket message received: {"type":"call-end","targetUserId":126,"callSessionId":"call_1763053533245_gtgmz1dme","fromUserId":121}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [log] - WebSocket disconnected: 1000 App backgrounded
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+Snapshotting a view (0x12ad74800, UIKeyboardImpl) that has not been rendered at least once requires afterScreenUpdates:YES.
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - [NotificationManager] Activity status updated: offline

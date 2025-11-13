@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useWebSocket } from "@/hooks/useWebSocket";
+import { useWebSocketContext } from "@/hooks/useWebSocketContext";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useImagePreloader, preloadGlobalImage } from "@/hooks/useImagePreloader";
@@ -18,6 +18,7 @@ import CommandModal from "@/components/CommandModal";
 import CreateGroupChatModal from "@/components/CreateGroupChatModal";
 import ProfilePhotoModal from "@/components/ProfilePhotoModal";
 import ZeroDelayAvatar from "@/components/ZeroDelayAvatar";
+import { CallModal } from "@/components/CallModal";
 
 import { usePWABadge } from "@/hooks/usePWABadge";
 import { usePWABadgeManager } from "@/hooks/usePWABadgeManager";
@@ -68,7 +69,17 @@ export default function MainApp() {
   const [contactFilter, setContactFilter] = useState<number | null>(null);
   const [friendFilter, setFriendFilter] = useState<number | null>(null);
 
-  const { sendMessage, connectionState, pendingMessageCount } = useWebSocket(user?.id);
+  // Incoming call state
+  const [incomingCall, setIncomingCall] = useState<{
+    callSessionId: string;
+    fromUserId: number;
+    fromUserName: string;
+    fromUserProfilePicture?: string;
+    chatRoomId: number;
+    offer: RTCSessionDescriptionInit;
+  } | null>(null);
+
+  const { sendMessage, connectionState, pendingMessageCount, subscribeToSignaling } = useWebSocketContext();
   
   // PWA badge functionality - always active, independent of push notifications
   const { updateBadge, clearBadge, unreadCount } = usePWABadge();
@@ -167,6 +178,59 @@ export default function MainApp() {
       window.removeEventListener('focus', handleFocus);
     };
   }, [user, queryClient, selectedChatRoom]);
+
+  // Handle incoming WebRTC calls
+  useEffect(() => {
+    if (!user || !subscribeToSignaling) return;
+
+    const handleIncomingCall = async (data: any) => {
+      if (data.type === 'call-offer') {
+        console.log('📞 Incoming call from user:', data.fromUserId);
+        
+        // Get caller information from contacts/chat rooms
+        try {
+          const response = await fetch(`/api/users/${data.fromUserId}/profile`, {
+            headers: { 'x-user-id': user.id.toString() }
+          });
+          
+          if (response.ok) {
+            const callerProfile = await response.json();
+            
+            setIncomingCall({
+              callSessionId: data.callSessionId,
+              fromUserId: data.fromUserId,
+              fromUserName: callerProfile.displayName || callerProfile.username || 'Unknown User',
+              fromUserProfilePicture: callerProfile.profilePicture,
+              chatRoomId: data.chatRoomId,
+              offer: data.offer
+            });
+          } else {
+            // Fallback with minimal info
+            setIncomingCall({
+              callSessionId: data.callSessionId,
+              fromUserId: data.fromUserId,
+              fromUserName: 'Unknown User',
+              chatRoomId: data.chatRoomId,
+              offer: data.offer
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching caller info:', error);
+          // Fallback with minimal info
+          setIncomingCall({
+            callSessionId: data.callSessionId,
+            fromUserId: data.fromUserId,
+            fromUserName: 'Unknown User',
+            chatRoomId: data.chatRoomId,
+            offer: data.offer
+          });
+        }
+      }
+    };
+
+    const unsubscribe = subscribeToSignaling(handleIncomingCall);
+    return () => unsubscribe();
+  }, [user, subscribeToSignaling]);
 
   // 브라우저 뒤로가기 버튼 처리 - 앱 내 네비게이션 관리
   useEffect(() => {
@@ -1333,6 +1397,21 @@ export default function MainApp() {
         isOpen={modals.qrCode}
         onClose={() => setModals(prev => ({ ...prev, qrCode: false }))}
       />
+
+      {/* Incoming Call Modal */}
+      {incomingCall && (
+        <CallModal
+          isOpen={true}
+          onClose={() => setIncomingCall(null)}
+          targetUserId={incomingCall.fromUserId}
+          targetName={incomingCall.fromUserName}
+          targetProfilePicture={incomingCall.fromUserProfilePicture}
+          chatRoomId={incomingCall.chatRoomId}
+          isIncoming={true}
+          callSessionId={incomingCall.callSessionId}
+          offer={incomingCall.offer}
+        />
+      )}
 
       {/* Telegram-style notification and PWA badge management */}
       <TelegramStyleNotificationManager />

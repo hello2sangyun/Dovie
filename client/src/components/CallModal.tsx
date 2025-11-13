@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
-import { useWebSocket } from '@/hooks/useWebSocket';
 import { useAuth } from '@/hooks/useAuth';
+import { useWebSocketContext } from '@/hooks/useWebSocketContext';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 
@@ -38,7 +38,7 @@ export function CallModal({
   const [transcript, setTranscript] = useState<string[]>([]);
   
   const { user } = useAuth();
-  const { sendMessage, subscribeToSignaling } = useWebSocket(user?.id);
+  const { sendMessage, subscribeToSignaling } = useWebSocketContext();
   const { toast } = useToast();
   
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
