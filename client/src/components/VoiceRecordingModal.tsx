@@ -178,11 +178,14 @@ export function VoiceRecordingModal({
   };
 
   const cleanup = () => {
+    console.log('🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone');
+    
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
     }
     
     if (mediaRecorderRef.current && mediaRecorderRef.current.stream) {
+      console.log('🎤 Releasing microphone stream from VoiceRecordingModal');
       mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
     }
     
