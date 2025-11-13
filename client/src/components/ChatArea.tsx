@@ -519,6 +519,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     return '알 수 없는 사용자';
   }, [currentChatRoom?.isGroup, currentChatRoom?.participants, user?.id]);
 
+  const targetProfilePicture = useMemo(() => {
+    if (!currentChatRoom?.isGroup && currentChatRoom?.participants) {
+      const targetParticipant = currentChatRoom.participants.find((p: any) => p.id !== user?.id);
+      return targetParticipant?.profilePicture || undefined;
+    }
+    return undefined;
+  }, [currentChatRoom?.isGroup, currentChatRoom?.participants, user?.id]);
+
   // Get contacts to check if other participants are friends
   const { data: contactsData } = useQuery({
     queryKey: ["/api/contacts"],
@@ -7250,6 +7258,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           onClose={() => setIsCallModalOpen(false)}
           targetUserId={targetUserId}
           targetName={targetName}
+          targetProfilePicture={targetProfilePicture}
           chatRoomId={chatRoomId}
         />
       )}

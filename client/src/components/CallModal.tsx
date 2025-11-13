@@ -11,6 +11,7 @@ interface CallModalProps {
   onClose: () => void;
   targetUserId: number;
   targetName: string;
+  targetProfilePicture?: string;
   chatRoomId: number;
   isIncoming?: boolean;
   callSessionId?: string;
@@ -24,6 +25,7 @@ export function CallModal({
   onClose,
   targetUserId,
   targetName,
+  targetProfilePicture,
   chatRoomId,
   isIncoming = false,
   callSessionId: initialCallSessionId,
@@ -514,17 +516,33 @@ export function CallModal({
 
   if (!isOpen) return null;
 
+  // Get profile image URL
+  const profileImageUrl = targetProfilePicture 
+    ? `/api/profile-images/${targetProfilePicture}` 
+    : undefined;
+
   return (
-    <div className="fixed inset-0 z-50 bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 flex flex-col items-center justify-between p-6">
-      {/* Top Section: Status */}
+    <div className="fixed inset-0 z-50 bg-gradient-to-br from-purple-400 via-purple-500 to-indigo-500 flex flex-col items-center justify-between p-6">
+      {/* Top Section: Profile and Status */}
       <div className="w-full max-w-md text-center pt-20">
-        <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-white/10 flex items-center justify-center">
-          <div className="text-5xl">📞</div>
+        {/* Profile Image */}
+        <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-white/20 backdrop-blur-sm border-4 border-white/30 overflow-hidden">
+          {profileImageUrl ? (
+            <img 
+              src={profileImageUrl} 
+              alt={targetName}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-white text-5xl font-bold">
+              {targetName.charAt(0).toUpperCase()}
+            </div>
+          )}
         </div>
         
         <h2 className="text-3xl font-bold text-white mb-2">{targetName}</h2>
         
-        <div className="text-white/80 text-lg">
+        <div className="text-white/90 text-lg">
           {callState === 'ringing' && '전화 거는 중...'}
           {callState === 'connecting' && '연결 중...'}
           {callState === 'connected' && formatDuration(duration)}
@@ -535,7 +553,7 @@ export function CallModal({
       {/* Middle Section: Transcript */}
       {callState === 'connected' && transcript.length > 0 && (
         <div className="w-full max-w-md bg-white/10 backdrop-blur-sm rounded-2xl p-4 max-h-40 overflow-y-auto">
-          <div className="text-white/60 text-xs mb-2">실시간 전사</div>
+          <div className="text-white/70 text-xs mb-2">실시간 전사</div>
           <div className="space-y-1">
             {transcript.slice(-3).map((text, index) => (
               <div key={index} className="text-white text-sm">
@@ -546,67 +564,92 @@ export function CallModal({
         </div>
       )}
 
-      {/* Bottom Section: Controls */}
-      <div className="w-full max-w-md">
-        {callState === 'connected' && (
-          <div className="flex justify-center gap-6 mb-8">
-            <Button
-              onClick={toggleMute}
-              size="lg"
-              variant={isMuted ? 'destructive' : 'secondary'}
-              className="w-16 h-16 rounded-full"
-              data-testid="button-mute-toggle"
-            >
-              {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
-            </Button>
-            
-            <Button
-              onClick={toggleSpeaker}
-              size="lg"
-              variant={isSpeaker ? 'default' : 'secondary'}
-              className="w-16 h-16 rounded-full"
-              data-testid="button-speaker-toggle"
-            >
-              {isSpeaker ? <Volume2 className="w-6 h-6" /> : <VolumeX className="w-6 h-6" />}
-            </Button>
-          </div>
-        )}
-
-        {/* End/Reject Call Button */}
-        <div className="flex justify-center">
-          {isIncoming && callState === 'ringing' ? (
-            <div className="flex gap-4">
+      {/* Bottom Section: Controls - Telegram Style */}
+      <div className="w-full max-w-md pb-8">
+        {isIncoming && callState === 'ringing' ? (
+          <div className="flex justify-center gap-6">
+            <div className="flex flex-col items-center gap-2">
               <Button
                 onClick={rejectCall}
                 size="lg"
-                variant="destructive"
-                className="w-20 h-20 rounded-full"
+                className="w-20 h-20 rounded-full bg-red-500 hover:bg-red-600"
                 data-testid="button-reject-call"
               >
                 <PhoneOff className="w-8 h-8" />
               </Button>
+              <span className="text-white text-sm">종료</span>
+            </div>
+            <div className="flex flex-col items-center gap-2">
               <Button
                 onClick={() => setCallState('connecting')}
                 size="lg"
-                variant="default"
                 className="w-20 h-20 rounded-full bg-green-500 hover:bg-green-600"
                 data-testid="button-accept-call"
               >
                 <Phone className="w-8 h-8" />
               </Button>
+              <span className="text-white text-sm">수락</span>
             </div>
-          ) : callState !== 'ended' ? (
-            <Button
-              onClick={endCall}
-              size="lg"
-              variant="destructive"
-              className="w-20 h-20 rounded-full"
-              data-testid="button-end-call"
-            >
-              <PhoneOff className="w-8 h-8" />
-            </Button>
-          ) : null}
-        </div>
+          </div>
+        ) : callState === 'connected' ? (
+          <div className="flex justify-center gap-6">
+            <div className="flex flex-col items-center gap-2">
+              <Button
+                onClick={toggleSpeaker}
+                size="lg"
+                className={`w-16 h-16 rounded-full ${
+                  isSpeaker 
+                    ? 'bg-white text-purple-500 hover:bg-white/90' 
+                    : 'bg-white/20 backdrop-blur-sm hover:bg-white/30'
+                }`}
+                data-testid="button-speaker-toggle"
+              >
+                {isSpeaker ? <Volume2 className="w-6 h-6" /> : <VolumeX className="w-6 h-6" />}
+              </Button>
+              <span className="text-white text-xs">스피커</span>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <Button
+                onClick={toggleMute}
+                size="lg"
+                className={`w-16 h-16 rounded-full ${
+                  isMuted 
+                    ? 'bg-white text-purple-500 hover:bg-white/90' 
+                    : 'bg-white/20 backdrop-blur-sm hover:bg-white/30'
+                }`}
+                data-testid="button-mute-toggle"
+              >
+                {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
+              </Button>
+              <span className="text-white text-xs">음소거</span>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <Button
+                onClick={endCall}
+                size="lg"
+                className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600"
+                data-testid="button-end-call"
+              >
+                <PhoneOff className="w-6 h-6" />
+              </Button>
+              <span className="text-white text-xs">종료</span>
+            </div>
+          </div>
+        ) : callState !== 'ended' ? (
+          <div className="flex justify-center">
+            <div className="flex flex-col items-center gap-2">
+              <Button
+                onClick={endCall}
+                size="lg"
+                className="w-20 h-20 rounded-full bg-red-500 hover:bg-red-600"
+                data-testid="button-end-call"
+              >
+                <PhoneOff className="w-8 h-8" />
+              </Button>
+              <span className="text-white text-sm">종료</span>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );

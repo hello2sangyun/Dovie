@@ -190,6 +190,7 @@ export default function FriendProfilePage() {
   }
 
   const friendName = (businessCard as any)?.fullName || (businessProfile as any)?.company || (userProfile as any)?.displayName || "친구";
+  const friendProfilePicture = (userProfile as any)?.profilePicture;
 
   return (
     <div className="bg-gradient-to-br from-gray-50 to-white">
@@ -598,6 +599,7 @@ export default function FriendProfilePage() {
           }}
           targetUserId={parseInt(userId)}
           targetName={friendName}
+          targetProfilePicture={friendProfilePicture}
           chatRoomId={callChatRoomId}
         />
       )}
