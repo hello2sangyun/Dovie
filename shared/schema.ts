@@ -431,6 +431,22 @@ export const reminders = pgTable("reminders", {
   completedAt: timestamp("completed_at"),
 });
 
+export const calls = pgTable("calls", {
+  id: serial("id").primaryKey(),
+  chatRoomId: integer("chat_room_id").references(() => chatRooms.id).notNull(),
+  callerId: integer("caller_id").references(() => users.id).notNull(),
+  receiverId: integer("receiver_id").references(() => users.id).notNull(),
+  callType: text("call_type").notNull().default("voice"),
+  status: text("status").notNull().default("ringing"),
+  callSessionId: text("call_session_id").notNull().unique(),
+  startedAt: timestamp("started_at"),
+  endedAt: timestamp("ended_at"),
+  duration: integer("duration"),
+  recordingUrl: text("recording_url"),
+  transcript: jsonb("transcript"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // 북마크 테이블
 export const bookmarks = pgTable("bookmarks", {
   id: serial("id").primaryKey(),
@@ -957,6 +973,14 @@ export type PostLike = typeof postLikes.$inferSelect;
 export type InsertPostLike = z.infer<typeof insertPostLikeSchema>;
 export type Reminder = typeof reminders.$inferSelect;
 export type InsertReminder = z.infer<typeof insertReminderSchema>;
+
+export const insertCallSchema = createInsertSchema(calls).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type Call = typeof calls.$inferSelect;
+export type InsertCall = z.infer<typeof insertCallSchema>;
 export type PostComment = typeof postComments.$inferSelect;
 export type InsertPostComment = z.infer<typeof insertPostCommentSchema>;
 export type CompanyProfile = typeof companyProfiles.$inferSelect;
