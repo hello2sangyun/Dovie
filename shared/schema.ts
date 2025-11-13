@@ -1072,10 +1072,43 @@ export interface CallSession {
 
 // BroadcastChannel message types for Service Worker ↔ MainApp communication
 export interface CallSessionMessage {
-  type: 'call-session-update' | 'call-session-claim' | 'call-session-release' | 'call-session-cleanup';
+  type: 'call-session-update' | 'call-session-claim' | 'call-session-release' | 'call-session-cleanup' | 'call-session-claimed';
   session?: CallSession;
   callSessionId?: string;
-  source: 'websocket' | 'push' | 'native' | 'service-worker' | 'cleanup-timer';
+  source?: 'websocket' | 'push' | 'native' | 'service-worker' | 'cleanup-timer' | 'incoming-offer' | 'queue-advance';
+  tabId?: string;      // For tab arbitration in multi-tab scenarios
+  timestamp?: number;  // For deterministic priority comparison
+}
+
+// Normalized broadcast payload - ensures all emitters include required metadata
+export interface CallSessionBroadcastPayload {
+  type: 'call-session-update' | 'call-session-claim' | 'call-session-release' | 'call-session-cleanup' | 'call-session-claimed';
+  callSessionId: string;  // Required - no longer optional
+  session?: CallSession;  // Optional - may not exist yet
+  tabId: string;          // Required for arbitration
+  timestamp: number;      // Required for priority comparison
+  source: 'websocket' | 'push' | 'native' | 'service-worker' | 'cleanup-timer' | 'incoming-offer' | 'queue-advance';
+}
+
+// Helper to build normalized broadcast messages
+export function buildCallSessionEvent(
+  type: CallSessionBroadcastPayload['type'],
+  payload: {
+    callSessionId: string;
+    session?: CallSession;
+    tabId?: string;
+    timestamp?: number;
+    source?: CallSessionBroadcastPayload['source'];
+  }
+): CallSessionBroadcastPayload {
+  return {
+    type,
+    callSessionId: payload.callSessionId,
+    session: payload.session,
+    tabId: payload.tabId || 'unknown-tab',
+    timestamp: payload.timestamp || Date.now(),
+    source: payload.source || 'websocket'
+  };
 }
 
 // Service Worker push notification data structure

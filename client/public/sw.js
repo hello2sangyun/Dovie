@@ -897,14 +897,18 @@ self.addEventListener('notificationclick', (event) => {
           console.log('[SW] Call session persisted to IndexedDB');
           
           // Step 2: Try BroadcastChannel for existing clients (fast path)
+          // Use normalized payload with required metadata for multi-tab coordination
           const channel = new BroadcastChannel('dovie-call-sessions');
           channel.postMessage({
             type: 'call-session-update',
-            session: sessionPayload,
+            callSessionId: sessionPayload.callSessionId, // Required
+            session: sessionPayload,                      // Optional
+            tabId: 'service-worker',                      // Required for arbitration
+            timestamp: Date.now(),                        // Required for priority
             source: 'service-worker'
           });
           channel.close();
-          console.log('[SW] CallSession broadcasted via BroadcastChannel');
+          console.log('[SW] CallSession broadcasted via BroadcastChannel with normalized payload');
           
           // Step 3: Focus existing window or open new one
           const clientList = await self.clients.matchAll({

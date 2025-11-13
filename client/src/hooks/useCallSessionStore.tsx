@@ -3,7 +3,9 @@ import {
   CallSession, 
   CallSessionState, 
   CallSessionEvent, 
-  CallSessionMessage 
+  CallSessionMessage,
+  CallSessionBroadcastPayload,
+  buildCallSessionEvent
 } from '@shared/schema';
 
 // ===================================
@@ -125,7 +127,7 @@ function sessionReducer(
       const { callSessionId } = action;
       console.log(`[CallSessionStore] Session released: ${callSessionId}`);
       
-      // If releasing the active session, dequeue next one
+      // If releasing the active session, auto-advance to next queued session
       if (newState.activeSessionId === callSessionId) {
         const nextSessionId = newState.queuedSessions[0];
         return {
@@ -148,7 +150,7 @@ function sessionReducer(
       // Remove from queue regardless
       newState.queuedSessions = newState.queuedSessions.filter(id => id !== callSessionId);
       
-      // Clean up active/claimed if this was the current session
+      // Clean up active/claimed if this was the current session, auto-advance to next
       if (newState.activeSessionId === callSessionId) {
         const nextSessionId = newState.queuedSessions[0];
         return {
@@ -235,6 +237,16 @@ const CallSessionContext = createContext<CallSessionStoreContext | null>(null);
 // BroadcastChannel for Service Worker ↔ MainApp communication
 const CALL_CHANNEL_NAME = 'dovie-call-sessions';
 
+// Get or create tab ID for cross-tab coordination
+function getTabId(): string {
+  let tabId = sessionStorage.getItem('dovie-tab-id');
+  if (!tabId) {
+    tabId = `tab_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+    sessionStorage.setItem('dovie-tab-id', tabId);
+  }
+  return tabId;
+}
+
 export function CallSessionStoreProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(sessionReducer, {
     sessions: new Map(),
@@ -245,6 +257,8 @@ export function CallSessionStoreProvider({ children }: { children: ReactNode }) 
 
   const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
   const stateRef = useRef(state);
+  const tabIdRef = useRef<string>(getTabId());
+  const claimTimestampRef = useRef<number>(0); // Track when we claimed current session
 
   // Keep state ref updated
   useEffect(() => {
@@ -266,9 +280,22 @@ export function CallSessionStoreProvider({ children }: { children: ReactNode }) 
       broadcastChannelRef.current = channel;
 
       // Listen for messages from Service Worker - use ref to avoid stale closure
-      channel.onmessage = (event: MessageEvent<CallSessionMessage>) => {
-        const { type, session, callSessionId, source } = event.data;
-        console.log(`[CallSessionStore] BroadcastChannel message: ${type} from ${source}`);
+      channel.onmessage = (event: MessageEvent<CallSessionBroadcastPayload>) => {
+        const { type, session, callSessionId, tabId, timestamp, source } = event.data;
+        
+        // Runtime guard: ensure required metadata present
+        if (!callSessionId) {
+          console.error('[CallSessionStore] Received message without callSessionId - ignoring', event.data);
+          return;
+        }
+        if (!tabId) {
+          console.warn('[CallSessionStore] Received message without tabId - may affect arbitration', event.data);
+        }
+        if (!timestamp) {
+          console.warn('[CallSessionStore] Received message without timestamp - may affect arbitration', event.data);
+        }
+        
+        console.log(`[CallSessionStore] BroadcastChannel message: ${type} from ${source} (tab: ${tabId})`);
 
         // Always use current state from ref
         const currentState = stateRef.current;
@@ -302,11 +329,13 @@ export function CallSessionStoreProvider({ children }: { children: ReactNode }) 
               if (isTerminalState(nextState)) {
                 setTimeout(() => {
                   dispatch({ type: 'SESSION_REMOVED', callSessionId: session.callSessionId });
-                  broadcastChannelRef.current?.postMessage({
-                    type: 'call-session-cleanup',
-                    callSessionId: session.callSessionId,
-                    source: 'cleanup-timer'
-                  } as CallSessionMessage);
+                  broadcastChannelRef.current?.postMessage(
+                    buildCallSessionEvent('call-session-cleanup', {
+                      callSessionId: session.callSessionId,
+                      tabId: tabIdRef.current,
+                      source: 'cleanup-timer'
+                    })
+                  );
                 }, 5000);
               }
             }
@@ -314,7 +343,8 @@ export function CallSessionStoreProvider({ children }: { children: ReactNode }) 
           }
 
           case 'call-session-cleanup': {
-            const targetId = callSessionId ?? session?.callSessionId;
+            // Use callSessionId-first (session may have been removed)
+            const targetId = callSessionId || session?.callSessionId;
             if (targetId) {
               dispatch({ type: 'SESSION_REMOVED', callSessionId: targetId });
             }
@@ -322,23 +352,71 @@ export function CallSessionStoreProvider({ children }: { children: ReactNode }) 
           }
 
           case 'call-session-claim': {
-            if (!session) break;
-            // Service Worker requesting to claim session (from push notification)
+            // Use callSessionId-first (session may not exist yet for push-triggered claims)
+            const targetId = callSessionId || session?.callSessionId;
+            if (!targetId) break;
+            
             // Only dispatch if not already claimed by another session
-            if (!currentState.claimedSessionId || currentState.claimedSessionId === session.callSessionId) {
-              dispatch({ type: 'SESSION_CLAIMED', callSessionId: session.callSessionId });
+            if (!currentState.claimedSessionId || currentState.claimedSessionId === targetId) {
+              dispatch({ type: 'SESSION_CLAIMED', callSessionId: targetId });
             } else {
               console.log(`[CallSessionStore] Ignoring claim from ${source}: ${currentState.claimedSessionId} is already claimed`);
               // Queue the session instead
-              dispatch({ type: 'QUEUE_SESSION', callSessionId: session.callSessionId });
+              dispatch({ type: 'QUEUE_SESSION', callSessionId: targetId });
             }
             break;
           }
 
           case 'call-session-release': {
-            if (!session) break;
-            // Release session
-            dispatch({ type: 'SESSION_RELEASED', callSessionId: session.callSessionId });
+            // Use callSessionId-first (session may have been removed before release)
+            const targetId = callSessionId || session?.callSessionId;
+            if (!targetId) break;
+            
+            dispatch({ type: 'SESSION_RELEASED', callSessionId: targetId });
+            break;
+          }
+
+          case 'call-session-claimed': {
+            const { callSessionId: targetId, tabId: foreignTabId, timestamp: foreignTimestamp } = event.data;
+            if (!targetId) break;
+            
+            const myTabId = tabIdRef.current;
+            const myTimestamp = claimTimestampRef.current;
+            
+            // Ignore self-messages
+            if (foreignTabId === myTabId) {
+              console.log('[CallSessionStore] Ignoring own claim broadcast');
+              break;
+            }
+            
+            // Deterministic arbitration: if we also have this session claimed
+            if (currentState.claimedSessionId === targetId) {
+              // Priority: earlier timestamp wins, tie-break by lower tabId
+              const foreignWins = 
+                (foreignTimestamp && myTimestamp && foreignTimestamp < myTimestamp) ||
+                (foreignTimestamp === myTimestamp && foreignTabId && foreignTabId < myTabId);
+              
+              if (foreignWins) {
+                console.log(`[CallSessionStore] Foreign tab ${foreignTabId} wins claim race, releasing ours`);
+                // Release our claim (dispatch directly to avoid broadcast loop)
+                dispatch({ type: 'SESSION_RELEASED', callSessionId: targetId });
+                // Optionally requeue ourselves to retry when winner releases
+                dispatch({ type: 'QUEUE_SESSION', callSessionId: targetId });
+                claimTimestampRef.current = 0; // Clear our claim timestamp
+              } else {
+                console.log(`[CallSessionStore] We win claim race (our tab: ${myTabId}, foreign: ${foreignTabId})`);
+                // We keep the claim, dequeue from our queue if present
+                if (currentState.queuedSessions.includes(targetId)) {
+                  dispatch({ type: 'DEQUEUE_SESSION', callSessionId: targetId });
+                }
+              }
+            } else {
+              // We don't have it claimed, just dequeue if present
+              if (currentState.queuedSessions.includes(targetId)) {
+                console.log(`[CallSessionStore] Session ${targetId} claimed by foreign tab, dequeuing`);
+                dispatch({ type: 'DEQUEUE_SESSION', callSessionId: targetId });
+              }
+            }
             break;
           }
         }
@@ -374,13 +452,16 @@ export function CallSessionStoreProvider({ children }: { children: ReactNode }) 
   const createSession = useCallback((session: CallSession) => {
     dispatch({ type: 'SESSION_CREATED', session });
     
-    // Broadcast to other tabs/Service Worker
+    // Broadcast to other tabs/Service Worker using normalized event
     if (broadcastChannelRef.current) {
-      broadcastChannelRef.current.postMessage({
-        type: 'call-session-update',
-        session,
-        source: 'websocket'
-      } as CallSessionMessage);
+      broadcastChannelRef.current.postMessage(
+        buildCallSessionEvent('call-session-update', {
+          callSessionId: session.callSessionId,
+          session,
+          tabId: tabIdRef.current,
+          source: 'websocket'
+        })
+      );
     }
   }, []);
 
@@ -401,36 +482,46 @@ export function CallSessionStoreProvider({ children }: { children: ReactNode }) 
       return false;
     }
 
+    // Record claim timestamp for arbitration
+    const claimTime = Date.now();
+    claimTimestampRef.current = claimTime;
+    
     dispatch({ type: 'SESSION_CLAIMED', callSessionId });
     
-    // Broadcast claim to other tabs
+    // Always broadcast claim using normalized event
     if (broadcastChannelRef.current) {
       const session = state.sessions.get(callSessionId);
-      if (session) {
-        broadcastChannelRef.current.postMessage({
-          type: 'call-session-claim',
+      broadcastChannelRef.current.postMessage(
+        buildCallSessionEvent('call-session-claim', {
+          callSessionId,
           session,
+          tabId: tabIdRef.current,
+          timestamp: claimTime,
           source: 'websocket'
-        } as CallSessionMessage);
-      }
+        })
+      );
     }
     
     return true;
   }, [state.claimedSessionId, state.sessions]);
 
   const releaseSession = useCallback((callSessionId: string) => {
+    // Clear claim timestamp when releasing
+    claimTimestampRef.current = 0;
+    
     dispatch({ type: 'SESSION_RELEASED', callSessionId });
     
-    // Broadcast release to other tabs
+    // Always broadcast release using normalized event
     if (broadcastChannelRef.current) {
       const session = state.sessions.get(callSessionId);
-      if (session) {
-        broadcastChannelRef.current.postMessage({
-          type: 'call-session-release',
+      broadcastChannelRef.current.postMessage(
+        buildCallSessionEvent('call-session-release', {
+          callSessionId,
           session,
+          tabId: tabIdRef.current,
           source: 'websocket'
-        } as CallSessionMessage);
-      }
+        })
+      );
     }
   }, [state.sessions]);
 
@@ -472,6 +563,20 @@ export function CallSessionStoreProvider({ children }: { children: ReactNode }) 
       callType?: 'voice' | 'video';
     }
   ) => {
+    // Prevent duplicate session creation
+    if (state.sessions.has(callSessionId)) {
+      console.log('[CallSessionStore] Session already exists, ignoring duplicate:', callSessionId);
+      
+      // Try to claim if not already claimed
+      if (!state.claimedSessionId) {
+        const claimed = claimSession(callSessionId);
+        if (claimed) {
+          console.log('[CallSessionStore] Claimed existing session:', callSessionId);
+        }
+      }
+      return;
+    }
+
     // Create CallSession with server-hydrated metadata
     const session: CallSession = {
       callSessionId,
@@ -493,8 +598,16 @@ export function CallSessionStoreProvider({ children }: { children: ReactNode }) 
     };
 
     createSession(session);
-    claimSession(callSessionId);
-  }, [createSession, claimSession]);
+    
+    // Atomic claim check - queue if already claimed
+    // Note: claimSession() already sets claimTimestampRef and broadcasts
+    const claimed = claimSession(callSessionId);
+    if (!claimed) {
+      console.log('[CallSessionStore] Another session active, queued:', callSessionId);
+    } else {
+      console.log('[CallSessionStore] Successfully claimed incoming call:', callSessionId);
+    }
+  }, [state.sessions, state.claimedSessionId, createSession, claimSession]);
 
   const handleAnswer = useCallback((answer: RTCSessionDescriptionInit) => {
     if (!state.activeSessionId) {
