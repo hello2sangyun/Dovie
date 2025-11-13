@@ -5254,6 +5254,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }));
               console.log(`📞 Forwarded ${message.type} from ${userId} to ${targetUserId}`);
             } else {
+              // Target user is offline - send push notification for call-offer
+              if (message.type === 'call-offer' && userId) {
+                console.log(`📞 Target user ${targetUserId} is offline - sending push notification`);
+                
+                // Get caller information
+                const callerUser = await storage.getUser(userId);
+                if (callerUser) {
+                  const callerName = callerUser.displayName || callerUser.username;
+                  
+                  // Send push notification with call details
+                  await sendPushNotification(targetUserId, {
+                    title: `${callerName} is calling...`,
+                    body: 'Tap to answer the call',
+                    icon: callerUser.profileImage || '/default-avatar.png',
+                    badge: '/dovie-logo.png',
+                    data: {
+                      type: 'incoming-call',
+                      callSessionId: message.callSessionId,
+                      fromUserId: userId,
+                      fromUserName: callerName,
+                      fromUserProfilePicture: callerUser.profileImage,
+                      chatRoomId: message.chatRoomId,
+                      offer: message.offer,
+                      timestamp: Date.now()
+                    },
+                    tag: `call-${message.callSessionId}`,
+                    requireInteraction: true,
+                    sound: 'call-ringtone',
+                    silent: false
+                  });
+                  
+                  console.log(`📞 Push notification sent to user ${targetUserId} for incoming call`);
+                }
+              }
+              
+              // Send error to caller
               ws.send(JSON.stringify({
                 type: 'call-error',
                 error: 'Target user not available',
