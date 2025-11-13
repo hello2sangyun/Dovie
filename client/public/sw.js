@@ -609,6 +609,128 @@ async function updateAppBadge(unreadCount) {
   await setTelegramStyleBadge(unreadCount);
 }
 
+// ========================================
+// Pending Call Sessions - IndexedDB Store
+// ========================================
+
+const CALL_DB_NAME = 'DovieCallSessionDB';
+const CALL_STORE_NAME = 'pendingCalls';
+const CALL_SESSION_TTL = 30000; // 30 seconds
+
+async function openCallSessionDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(CALL_DB_NAME, 1);
+    
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(CALL_STORE_NAME)) {
+        db.createObjectStore(CALL_STORE_NAME, { keyPath: 'callSessionId' });
+      }
+    };
+    
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function putPendingCallSession(session) {
+  try {
+    const db = await openCallSessionDB();
+    const transaction = db.transaction([CALL_STORE_NAME], 'readwrite');
+    const store = transaction.objectStore(CALL_STORE_NAME);
+    
+    const record = {
+      callSessionId: session.callSessionId,
+      session: session,
+      createdAt: Date.now(),
+      expiresAt: Date.now() + CALL_SESSION_TTL
+    };
+    
+    store.put(record);
+    
+    return new Promise((resolve, reject) => {
+      transaction.oncomplete = () => {
+        console.log('[SW] Pending call session stored:', session.callSessionId);
+        resolve();
+      };
+      transaction.onerror = () => reject(transaction.error);
+    });
+  } catch (error) {
+    console.error('[SW] Failed to store pending call session:', error);
+    throw error;
+  }
+}
+
+async function getAllPendingCallSessions() {
+  try {
+    const db = await openCallSessionDB();
+    const transaction = db.transaction([CALL_STORE_NAME], 'readonly');
+    const store = transaction.objectStore(CALL_STORE_NAME);
+    
+    return new Promise((resolve, reject) => {
+      const request = store.getAll();
+      request.onsuccess = () => {
+        const records = request.result;
+        console.log('[SW] Retrieved pending call sessions:', records.length);
+        resolve(records);
+      };
+      request.onerror = () => reject(request.error);
+    });
+  } catch (error) {
+    console.error('[SW] Failed to get pending call sessions:', error);
+    return [];
+  }
+}
+
+async function deletePendingCallSession(callSessionId) {
+  try {
+    const db = await openCallSessionDB();
+    const transaction = db.transaction([CALL_STORE_NAME], 'readwrite');
+    const store = transaction.objectStore(CALL_STORE_NAME);
+    
+    store.delete(callSessionId);
+    
+    return new Promise((resolve, reject) => {
+      transaction.oncomplete = () => {
+        console.log('[SW] Deleted pending call session:', callSessionId);
+        resolve();
+      };
+      transaction.onerror = () => reject(transaction.error);
+    });
+  } catch (error) {
+    console.error('[SW] Failed to delete pending call session:', error);
+  }
+}
+
+async function pruneExpiredCallSessions() {
+  try {
+    const records = await getAllPendingCallSessions();
+    const now = Date.now();
+    let prunedCount = 0;
+    
+    for (const record of records) {
+      if (record.expiresAt < now) {
+        await deletePendingCallSession(record.callSessionId);
+        prunedCount++;
+      }
+    }
+    
+    if (prunedCount > 0) {
+      console.log('[SW] Pruned expired call sessions:', prunedCount);
+    }
+  } catch (error) {
+    console.error('[SW] Failed to prune expired call sessions:', error);
+  }
+}
+
+// Auto-cleanup expired sessions every 5 seconds
+let cleanupIntervalInitialized = false;
+if (!cleanupIntervalInitialized) {
+  setInterval(pruneExpiredCallSessions, 5000);
+  cleanupIntervalInitialized = true;
+  console.log('[SW] Call session cleanup interval initialized');
+}
+
 // Handle messages from main thread - completely independent from push notifications
 self.addEventListener('message', (event) => {
   console.log('[SW] Message received:', event.data);
@@ -674,8 +796,60 @@ self.addEventListener('message', (event) => {
       console.log('[SW] Force badge refresh requested');
       refreshBadgeFromServer();
       break;
+    case 'CALL_READY':
+      // Client signaling it's ready to receive pending call sessions
+      console.log('[SW] Client ready for pending call sessions');
+      event.waitUntil(handleCallReady(event.source));
+      break;
+    case 'CALL_SESSION_CLAIMED':
+      // Client claimed a call session - remove from pending store
+      console.log('[SW] Call session claimed:', event.data.callSessionIds);
+      event.waitUntil(handleCallSessionClaimed(event.data.callSessionIds));
+      break;
+    case 'REQUEST_PENDING_CALLS':
+      // Explicit request for pending calls (robustness against race)
+      console.log('[SW] Explicit request for pending calls');
+      event.waitUntil(handleCallReady(event.source));
+      break;
   }
 });
+
+// Handle CALL_READY from MainApp
+async function handleCallReady(client) {
+  try {
+    const pendingSessions = await getAllPendingCallSessions();
+    
+    if (pendingSessions.length > 0) {
+      console.log('[SW] Sending pending call sessions to client:', pendingSessions.length);
+      
+      client.postMessage({
+        type: 'PENDING_CALL_SESSIONS',
+        sessions: pendingSessions.map(record => record.session)
+      });
+    } else {
+      console.log('[SW] No pending call sessions to deliver');
+    }
+  } catch (error) {
+    console.error('[SW] Failed to handle CALL_READY:', error);
+  }
+}
+
+// Handle CALL_SESSION_CLAIMED from MainApp
+async function handleCallSessionClaimed(callSessionIds) {
+  try {
+    if (!Array.isArray(callSessionIds)) {
+      callSessionIds = [callSessionIds];
+    }
+    
+    for (const sessionId of callSessionIds) {
+      await deletePendingCallSession(sessionId);
+    }
+    
+    console.log('[SW] Removed claimed sessions from pending store');
+  } catch (error) {
+    console.error('[SW] Failed to handle CALL_SESSION_CLAIMED:', error);
+  }
+}
 
 // Removed duplicate message listener - handled above
 
@@ -686,9 +860,85 @@ self.addEventListener('notificationclick', (event) => {
   
   event.notification.close();
   
-  const chatRoomId = event.notification.data?.chatRoomId;
-  const messageId = event.notification.data?.messageId;
-  const senderId = event.notification.data?.senderId;
+  const notificationData = event.notification.data || {};
+  const notificationType = notificationData.type;
+  const chatRoomId = notificationData.chatRoomId;
+  const messageId = notificationData.messageId;
+  const senderId = notificationData.senderId;
+  
+  // Handle incoming call notifications
+  if (notificationType === 'incoming-call') {
+    console.log('[SW] Incoming call notification clicked');
+    
+    const sessionPayload = {
+      callSessionId: notificationData.callSessionId,
+      chatRoomId: notificationData.chatRoomId,
+      callerId: notificationData.fromUserId,
+      receiverId: 0, // Will be set by MainApp
+      callerName: notificationData.fromUserName,
+      callerProfilePicture: notificationData.fromUserProfilePicture,
+      receiverName: null,
+      receiverProfilePicture: null,
+      callType: 'voice',
+      state: 'PENDING',
+      offer: notificationData.offer,
+      answer: null,
+      iceCandidates: [],
+      startedAt: null,
+      endedAt: null,
+      lastEventAt: notificationData.timestamp || Date.now()
+    };
+    
+    event.waitUntil(
+      (async () => {
+        try {
+          // Step 1: Persist to IndexedDB (always, for cold start)
+          await putPendingCallSession(sessionPayload);
+          console.log('[SW] Call session persisted to IndexedDB');
+          
+          // Step 2: Try BroadcastChannel for existing clients (fast path)
+          const channel = new BroadcastChannel('dovie-call-sessions');
+          channel.postMessage({
+            type: 'call-session-update',
+            session: sessionPayload,
+            source: 'service-worker'
+          });
+          channel.close();
+          console.log('[SW] CallSession broadcasted via BroadcastChannel');
+          
+          // Step 3: Focus existing window or open new one
+          const clientList = await self.clients.matchAll({
+            type: 'window',
+            includeUncontrolled: true
+          });
+          
+          for (const client of clientList) {
+            if (client.url.includes(self.location.origin) && 'focus' in client) {
+              console.log('[SW] Focusing existing window for call');
+              return client.focus();
+            }
+          }
+          
+          // No existing client - open new window
+          console.log('[SW] Opening new window for call (cold start)');
+          const newClient = await self.clients.openWindow('/');
+          
+          if (newClient) {
+            console.log('[SW] New window opened, pending session will be delivered via CALL_READY');
+          } else {
+            console.error('[SW] Failed to open new window');
+          }
+          
+          return newClient;
+        } catch (error) {
+          console.error('[SW] Failed to handle incoming call notification:', error);
+          // Fallback: try to open window anyway
+          return self.clients.openWindow('/');
+        }
+      })()
+    );
+    return;
+  }
   
   // Handle Telegram-style notification actions
   if (event.action === 'reply') {

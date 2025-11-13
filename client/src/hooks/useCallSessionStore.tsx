@@ -533,6 +533,9 @@ export function CallSessionStoreProvider({ children }: { children: ReactNode }) 
     }
   }, [state.activeSessionId, state.sessions, updateSession]);
 
+  // Service Worker call sync for cold-start pending sessions
+  useServiceWorkerCallSync(createSession, claimSession);
+
   const contextValue: CallSessionStoreContext = {
     // Low-level primitives
     state,
@@ -570,4 +573,116 @@ export function useCallSessionStore() {
     throw new Error('useCallSessionStore must be used within CallSessionStoreProvider');
   }
   return context;
+}
+
+// ===================================
+// Service Worker Call Sync Hook
+// ===================================
+
+function useServiceWorkerCallSync(
+  createSession: (session: CallSession) => void,
+  claimSession: (callSessionId: string) => boolean
+) {
+  const lastCallReadyRef = useRef<number>(0);
+  const CALL_READY_THROTTLE = 2000; // 2s throttle
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
+      return;
+    }
+
+    const sendCallReady = () => {
+      const now = Date.now();
+      if (now - lastCallReadyRef.current < CALL_READY_THROTTLE) {
+        console.log('[CallSessionStore] CALL_READY throttled');
+        return;
+      }
+      
+      lastCallReadyRef.current = now;
+      
+      navigator.serviceWorker.ready.then((registration) => {
+        if (registration.active) {
+          // Get or create client ID
+          let clientId = sessionStorage.getItem('sw-call-client-id');
+          if (!clientId) {
+            clientId = `client_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+            sessionStorage.setItem('sw-call-client-id', clientId);
+          }
+          
+          // Use controller if available (existing clients), else use registration.active (new clients)
+          const target = navigator.serviceWorker.controller || registration.active;
+          target.postMessage({
+            type: 'CALL_READY',
+            clientId
+          });
+          
+          const via = navigator.serviceWorker.controller ? 'controller' : 'registration.active';
+          console.log(`[CallSessionStore] CALL_READY sent to SW via ${via}`);
+        } else {
+          console.warn('[CallSessionStore] No active service worker found');
+        }
+      }).catch((error) => {
+        console.error('[CallSessionStore] Failed to send CALL_READY:', error);
+      });
+    };
+
+    const handleSWMessage = (event: MessageEvent) => {
+      const { type, sessions } = event.data;
+      
+      if (type === 'PENDING_CALL_SESSIONS' && Array.isArray(sessions)) {
+        console.log('[CallSessionStore] Received pending call sessions from SW:', sessions.length);
+        
+        const claimedSessionIds: string[] = [];
+        
+        sessions.forEach((session: CallSession) => {
+          // Hydrate store
+          createSession(session);
+          
+          // Try to claim (may fail if already claimed)
+          const claimed = claimSession(session.callSessionId);
+          if (claimed) {
+            claimedSessionIds.push(session.callSessionId);
+          }
+        });
+        
+        // Send claimed confirmation to SW
+        if (claimedSessionIds.length > 0) {
+          navigator.serviceWorker.ready.then((registration) => {
+            const target = navigator.serviceWorker.controller || registration.active;
+            if (target) {
+              target.postMessage({
+                type: 'CALL_SESSION_CLAIMED',
+                callSessionIds: claimedSessionIds
+              });
+              
+              console.log('[CallSessionStore] Claimed sessions sent to SW:', claimedSessionIds);
+            }
+          }).catch((error) => {
+            console.error('[CallSessionStore] Failed to send CALL_SESSION_CLAIMED:', error);
+          });
+        }
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('[CallSessionStore] App became visible, sending CALL_READY');
+        sendCallReady();
+      }
+    };
+
+    // Initial CALL_READY
+    sendCallReady();
+
+    // Listen for SW messages
+    navigator.serviceWorker.addEventListener('message', handleSWMessage);
+
+    // Listen for visibility changes
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      navigator.serviceWorker.removeEventListener('message', handleSWMessage);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [createSession, claimSession]);
 }
