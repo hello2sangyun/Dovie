@@ -1072,9 +1072,10 @@ export interface CallSession {
 
 // BroadcastChannel message types for Service Worker ↔ MainApp communication
 export interface CallSessionMessage {
-  type: 'call-session-update' | 'call-session-claim' | 'call-session-release';
-  session: CallSession;
-  source: 'websocket' | 'push' | 'native' | 'service-worker';
+  type: 'call-session-update' | 'call-session-claim' | 'call-session-release' | 'call-session-cleanup';
+  session?: CallSession;
+  callSessionId?: string;
+  source: 'websocket' | 'push' | 'native' | 'service-worker' | 'cleanup-timer';
 }
 
 // Service Worker push notification data structure
