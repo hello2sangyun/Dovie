@@ -104,6 +104,12 @@ export default function InboxPage() {
   // Message preview dialog
   const [previewNotice, setPreviewNotice] = useState<AiNotice | null>(null);
 
+  // Swipe to delete states
+  const [swipedNoticeId, setSwipedNoticeId] = useState<number | null>(null);
+  const [lockedOpenNoticeId, setLockedOpenNoticeId] = useState<number | null>(null);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchCurrent, setTouchCurrent] = useState<number | null>(null);
+
   const debouncedSearch = useDebounce(searchTerm, 500);
 
   // Fetch all AI notices
@@ -265,11 +271,18 @@ export default function InboxPage() {
     if (selectionMode) {
       toggleNoticeSelection(notice.id);
     } else {
-      // Show preview dialog instead of navigating
+      // Mark as read
       if (!notice.isRead) {
         markAsReadMutation.mutate(notice.id);
       }
-      setPreviewNotice(notice);
+      
+      // Navigate to chat room with message highlight
+      if (notice.messageId) {
+        setLocation(`/chat-rooms/${notice.chatRoomId}?highlight=${notice.messageId}`);
+      } else {
+        // If no specific message, just navigate to chat room
+        setLocation(`/chat-rooms/${notice.chatRoomId}`);
+      }
     }
   };
 
@@ -322,23 +335,107 @@ export default function InboxPage() {
     priorityFilter !== "all" ? 1 : 0,
   ].reduce((a, b) => a + b, 0);
 
+  // Handle swipe gestures
+  const handleTouchStart = (e: React.TouchEvent, noticeId: number) => {
+    // Close any other open notice
+    if (lockedOpenNoticeId !== null && lockedOpenNoticeId !== noticeId) {
+      setLockedOpenNoticeId(null);
+    }
+    
+    const touch = e.touches[0];
+    setTouchStart(touch.clientX);
+    setTouchCurrent(touch.clientX);
+    setSwipedNoticeId(noticeId);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStart === null) return;
+    const touch = e.touches[0];
+    setTouchCurrent(touch.clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStart === null || touchCurrent === null || swipedNoticeId === null) return;
+    
+    const diff = touchStart - touchCurrent;
+    
+    // If swiped left more than 80px, lock the delete button open
+    if (diff > 80) {
+      setLockedOpenNoticeId(swipedNoticeId);
+    } else {
+      // Reset swipe if not enough distance
+      setLockedOpenNoticeId(null);
+    }
+    
+    setTouchStart(null);
+    setTouchCurrent(null);
+    setSwipedNoticeId(null);
+  };
+
+  const getSwipeTransform = (noticeId: number) => {
+    // If this notice is locked open, show full swipe distance
+    if (lockedOpenNoticeId === noticeId) return 100;
+    
+    // If currently swiping this notice, calculate transform
+    if (swipedNoticeId === noticeId && touchStart !== null && touchCurrent !== null) {
+      const diff = touchStart - touchCurrent;
+      // Limit swipe distance to 100px
+      return Math.min(Math.max(diff, 0), 100);
+    }
+    
+    return 0;
+  };
+
   // Render notice item - Compact version
   const renderNoticeItem = (notice: AiNotice) => {
     const config = getNoticeIcon(notice.noticeType);
     const Icon = config.icon;
     const senderDisplayName = notice.senderName || notice.senderUsername || "알 수 없음";
+    const swipeDistance = getSwipeTransform(notice.id);
+    const isSwipedFully = swipedNoticeId === notice.id && swipeDistance >= 80;
 
     return (
-      <Card
+      <div
         key={notice.id}
-        data-testid={`notice-${notice.id}`}
-        className={cn(
-          "p-2.5 transition-all hover:shadow-sm cursor-pointer",
-          !notice.isRead && "bg-purple-50 border-purple-200",
-          selectedNotices.has(notice.id) && "border-purple-400 bg-purple-100"
-        )}
+        className="relative overflow-hidden"
+        data-testid={`notice-container-${notice.id}`}
       >
-        <div className="flex items-start gap-2">
+        {/* Delete button revealed by swipe */}
+        <div className="absolute right-0 top-0 bottom-0 w-[100px] bg-red-500 flex items-center justify-center">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              deleteMutation.mutate(notice.id);
+              setLockedOpenNoticeId(null);
+              setSwipedNoticeId(null);
+            }}
+            className="text-white font-semibold px-4"
+            data-testid={`swipe-delete-${notice.id}`}
+          >
+            삭제
+          </button>
+        </div>
+
+        <Card
+          data-testid={`notice-${notice.id}`}
+          className={cn(
+            "p-2.5 transition-all hover:shadow-sm cursor-pointer relative overflow-hidden",
+            !notice.isRead && "bg-gradient-to-r from-purple-50 via-purple-50/80 to-transparent border-purple-200 shadow-sm",
+            !notice.isRead && "before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-purple-100/30 before:to-transparent before:animate-shimmer",
+            selectedNotices.has(notice.id) && "border-purple-400 bg-purple-100"
+          )}
+          style={{
+            transform: `translateX(-${swipeDistance}px)`,
+            transition: touchStart === null ? 'transform 0.3s ease' : 'none',
+            ...(notice.isRead ? {} : {
+              boxShadow: "0 0 0 1px rgba(168, 85, 247, 0.1), 0 1px 3px rgba(168, 85, 247, 0.1)"
+            })
+          }}
+          onTouchStart={(e) => handleTouchStart(e, notice.id)}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          <div className="flex items-start gap-2">
           {selectionMode && (
             <input
               type="checkbox"
@@ -468,6 +565,7 @@ export default function InboxPage() {
           </DropdownMenu>
         </div>
       </Card>
+      </div>
     );
   };
 

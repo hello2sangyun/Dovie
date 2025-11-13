@@ -64,7 +64,7 @@ const detectUrls = (text: string | null | undefined): string[] => {
 
 export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader, onBackClick }: ChatAreaProps) {
   const { user } = useAuth();
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   
   // 인라인 파일 첨부 미리보기 상태 (최상단에 선언 - useCallback에서 사용)
   const [selectedPendingFiles, setSelectedPendingFiles] = useState<FileList | null>(null);
@@ -350,6 +350,51 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
   const [uploadingFiles, setUploadingFiles] = useState<Array<{id: string, fileName: string}>>([]);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
+  
+  // Track last processed highlight to avoid re-processing
+  const lastProcessedHighlight = useRef<number | null>(null);
+
+  // Handle message highlight from URL query parameter
+  useEffect(() => {
+    let scrollTimer: ReturnType<typeof setTimeout> | undefined;
+    let clearTimer: ReturnType<typeof setTimeout> | undefined;
+
+    // Always read fresh window.location.search to catch query changes
+    const params = new URLSearchParams(window.location.search);
+    const highlightParam = params.get('highlight');
+    
+    if (highlightParam) {
+      const messageId = parseInt(highlightParam);
+      if (!isNaN(messageId) && lastProcessedHighlight.current !== messageId) {
+        // Mark this message as processed
+        lastProcessedHighlight.current = messageId;
+        setHighlightedMessageId(messageId);
+        
+        // Scroll to the highlighted message after a short delay
+        scrollTimer = setTimeout(() => {
+          const messageEl = messageRefs.current[messageId];
+          if (messageEl) {
+            messageEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 500);
+        
+        // Clear visual highlight after 3 seconds
+        clearTimer = setTimeout(() => {
+          setHighlightedMessageId(null);
+        }, 3000);
+      }
+    } else {
+      // No highlight param, clear everything
+      lastProcessedHighlight.current = null;
+      setHighlightedMessageId(null);
+    }
+
+    // Cleanup function always runs - prevents memory leaks and state updates after unmount
+    return () => {
+      if (scrollTimer !== undefined) clearTimeout(scrollTimer);
+      if (clearTimer !== undefined) clearTimeout(clearTimer);
+    };
+  }, [chatRoomId, location]);
   const [showChatSettings, setShowChatSettings] = useState(false);
   const chatSettingsRef = useRef<HTMLDivElement>(null);
   const [showMentions, setShowMentions] = useState(false);

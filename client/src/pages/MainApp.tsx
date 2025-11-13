@@ -85,6 +85,15 @@ export default function MainApp() {
   // iOS Capacitor native push notifications
   const { isRegistered: isIOSRegistered, clearBadge: clearIOSBadge } = useCapacitorPushNotifications();
 
+  // Fetch unread AI Inbox count
+  const { data: unreadInboxData } = useQuery<{ count: number }>({
+    queryKey: ["/api/ai-notices/unread-count"],
+    enabled: !!user,
+    refetchInterval: 30000,
+  });
+
+  const unreadInboxCount = unreadInboxData?.count || 0;
+
   // Register navigation service and handle pending deep links from push notifications
   useEffect(() => {
     // Register the navigator with the navigation service
@@ -1253,7 +1262,7 @@ export default function MainApp() {
               {/* Central Inbox FAB Button */}
               <button
                 className={cn(
-                  "flex items-center justify-center w-14 h-14 rounded-full shadow-lg -mt-6 transition-all",
+                  "flex items-center justify-center w-14 h-14 rounded-full shadow-lg -mt-6 transition-all relative",
                   activeMobileTab === "inbox"
                     ? "bg-purple-600 text-white scale-110" 
                     : "bg-gradient-to-br from-purple-600 to-purple-700 text-white hover:scale-105"
@@ -1262,6 +1271,11 @@ export default function MainApp() {
                 data-testid="button-inbox"
               >
                 <Inbox className="h-6 w-6" />
+                {unreadInboxCount > 0 && (
+                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5 shadow-md animate-pulse">
+                    {unreadInboxCount > 99 ? "99+" : unreadInboxCount}
+                  </div>
+                )}
               </button>
 
               <Button
