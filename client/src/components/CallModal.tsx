@@ -91,16 +91,25 @@ export function CallModal({
         });
 
         // Handle incoming remote stream
-        pc.ontrack = (event) => {
+        pc.ontrack = async (event) => {
           console.log('📞 Received remote track:', event.track.kind);
           remoteStreamRef.current = event.streams[0];
           
-          // Play remote audio
+          // Play remote audio - MUST call play() explicitly to avoid browser autoplay blocking
           if (!remoteAudioRef.current) {
             remoteAudioRef.current = new Audio();
             remoteAudioRef.current.autoplay = true;
+            remoteAudioRef.current.volume = 1.0;
           }
           remoteAudioRef.current.srcObject = event.streams[0];
+          
+          // Explicitly play the audio (required for iOS and some browsers)
+          try {
+            await remoteAudioRef.current.play();
+            console.log('📞 Remote audio playing successfully');
+          } catch (error) {
+            console.error('📞 Failed to play remote audio:', error);
+          }
           
           // Start recording after both local and remote tracks are available
           if (localStreamRef.current && pc.connectionState === 'connected') {
