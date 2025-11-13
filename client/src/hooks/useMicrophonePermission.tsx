@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { App } from '@capacitor/app';
 
 interface MicrophonePermissionState {
   hasPermission: boolean;
@@ -13,47 +14,27 @@ export function useMicrophonePermission() {
     stream: null
   });
 
-  // Check initial permission status
+  // Check initial permission status (without activating microphone)
   useEffect(() => {
     const checkPermission = async () => {
       try {
-        // Check if permission was previously granted
+        // Check if permission was previously granted (stored in localStorage)
         const stored = localStorage.getItem('microphonePermissionGranted');
         if (stored === 'true') {
-          // Try to get stream without explicit permission request
-          try {
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-              audio: {
-                echoCancellation: true,
-                noiseSuppression: true,
-                autoGainControl: true,
-                sampleRate: 44100
-              } 
-            });
-            setState(prev => ({ ...prev, hasPermission: true, stream }));
-            console.log('✅ Microphone permission already granted, stream ready');
-            return;
-          } catch (error) {
-            console.log('⚠️ Stored permission but failed to get stream:', error);
-            localStorage.removeItem('microphonePermissionGranted');
-          }
+          // Only update permission flag, don't activate microphone
+          setState(prev => ({ ...prev, hasPermission: true }));
+          console.log('✅ Microphone permission previously granted (no stream created)');
+          return;
         }
 
         // Check permission state via Permissions API (if available)
         if ('permissions' in navigator) {
           const result = await navigator.permissions.query({ name: 'microphone' as PermissionName });
           if (result.state === 'granted') {
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-              audio: {
-                echoCancellation: true,
-                noiseSuppression: true,
-                autoGainControl: true,
-                sampleRate: 44100
-              } 
-            });
-            setState(prev => ({ ...prev, hasPermission: true, stream }));
+            // Permission granted, but don't create stream yet
+            setState(prev => ({ ...prev, hasPermission: true }));
             localStorage.setItem('microphonePermissionGranted', 'true');
-            console.log('✅ Microphone permission detected via Permissions API');
+            console.log('✅ Microphone permission detected (no stream created to avoid iOS chime)');
           }
         }
       } catch (error) {
@@ -64,17 +45,45 @@ export function useMicrophonePermission() {
     checkPermission();
   }, []);
 
-  // Request microphone permission
+  // Release microphone stream when app goes to background
+  useEffect(() => {
+    let listener: any;
+
+    const setupBackgroundListener = async () => {
+      try {
+        listener = await App.addListener('appStateChange', ({ isActive }) => {
+          if (!isActive && state.stream) {
+            console.log('📱 App backgrounded - releasing microphone stream to avoid iOS chime on resume');
+            state.stream.getTracks().forEach(track => track.stop());
+            setState(prev => ({ ...prev, stream: null }));
+          }
+        });
+      } catch (error) {
+        console.log('Could not setup background listener (web mode):', error);
+      }
+    };
+
+    setupBackgroundListener();
+
+    return () => {
+      if (listener) {
+        listener.remove();
+      }
+    };
+  }, [state.stream]);
+
+  // Request microphone permission (only for permission request, not stream creation)
   const requestPermission = useCallback(async (): Promise<boolean> => {
-    if (state.hasPermission && state.stream?.active) {
-      console.log('🎤 Permission already granted with active stream');
+    if (state.hasPermission) {
+      console.log('🎤 Permission already granted');
       return true;
     }
 
     setState(prev => ({ ...prev, isRequesting: true }));
 
     try {
-      console.log('🎤 Requesting microphone permission...');
+      console.log('🎤 Requesting microphone permission (will create temporary stream)...');
+      // Create temporary stream to request permission, then immediately release it
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           echoCancellation: true,
@@ -85,17 +94,15 @@ export function useMicrophonePermission() {
         } 
       });
 
-      console.log('✅ Microphone stream obtained:', {
-        active: stream.active,
-        tracks: stream.getAudioTracks().length,
-        trackState: stream.getAudioTracks()[0]?.readyState
-      });
+      console.log('✅ Microphone permission granted');
+
+      // Immediately stop the stream - we only needed it for permission
+      stream.getTracks().forEach(track => track.stop());
 
       setState(prev => ({ 
         ...prev, 
         hasPermission: true, 
-        isRequesting: false,
-        stream 
+        isRequesting: false
       }));
       
       localStorage.setItem('microphonePermissionGranted', 'true');
@@ -106,47 +113,55 @@ export function useMicrophonePermission() {
       localStorage.removeItem('microphonePermissionGranted');
       return false;
     }
-  }, [state.hasPermission, state.stream]);
+  }, [state.hasPermission]);
 
   // Get fresh stream for recording - iPhone PWA optimized
+  // This function is called when user actually starts recording (not on app init)
   const getStream = useCallback(async (): Promise<MediaStream | null> => {
-    console.log('🎤 Getting microphone stream...');
+    console.log('🎤 Getting microphone stream for recording...');
     
-    // Always create fresh stream for iPhone PWA to avoid permission issues
-    const isIPhonePWA = (window.navigator as any).standalone === true || 
-                       window.matchMedia('(display-mode: standalone)').matches;
-    
-    if (!isIPhonePWA && state.stream && state.stream.active) {
-      console.log('🎤 Using existing active stream');
+    // Check if we have an active stream we can reuse
+    if (state.stream && state.stream.active) {
+      console.log('🎤 Reusing existing active stream');
       return state.stream;
     }
 
-    // Create new stream with iPhone PWA compatible settings
+    // Create new stream - this will trigger iOS "chime" but only when user starts recording
     try {
-      console.log('🎤 Creating fresh microphone stream...');
-      const audioConstraints = {
+      console.log('🎤 Creating fresh microphone stream (iOS chime expected - user initiated)...');
+      
+      // iPhone PWA compatible settings
+      const isIPhonePWA = (window.navigator as any).standalone === true || 
+                         window.matchMedia('(display-mode: standalone)').matches;
+      
+      const audioConstraints = isIPhonePWA ? {
         echoCancellation: false, // Disable for iPhone PWA compatibility
         noiseSuppression: false, // Disable for iPhone PWA compatibility
         autoGainControl: false,  // Disable for iPhone PWA compatibility
         channelCount: 1,         // Mono for better iPhone PWA support
         sampleRate: 16000        // Lower sample rate for iPhone PWA
+      } : {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+        sampleRate: 44100,
+        channelCount: 1
       };
 
-      console.log('🎤 Creating new stream with iPhone PWA settings:', audioConstraints);
       const stream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints });
       
       setState(prev => ({ ...prev, stream, hasPermission: true }));
       localStorage.setItem('microphonePermissionGranted', 'true');
       
-      console.log('✅ Fresh stream created successfully for iPhone PWA');
+      console.log('✅ Microphone stream created successfully (user is recording)');
       return stream;
     } catch (error) {
-      console.error('❌ Failed to get fresh stream:', error);
+      console.error('❌ Failed to get microphone stream:', error);
       setState(prev => ({ ...prev, hasPermission: false, stream: null }));
       localStorage.removeItem('microphonePermissionGranted');
       return null;
     }
-  }, [state.hasPermission, state.stream]);
+  }, [state.stream]);
 
   // Clean up stream
   const releaseStream = useCallback(() => {
