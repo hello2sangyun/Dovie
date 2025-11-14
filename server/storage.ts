@@ -1994,7 +1994,19 @@ export class DatabaseStorage implements IStorage {
 
   async createCall(call: InsertCall): Promise<Call> {
     try {
-      const [newCall] = await db.insert(calls).values(call).returning();
+      const [newCall] = await db.insert(calls)
+        .values(call)
+        .onConflictDoUpdate({
+          target: calls.callSessionId,
+          set: {
+            status: call.status,
+            endedAt: call.endedAt,
+            duration: call.duration,
+            transcript: call.transcript,
+            recordingUrl: call.recordingUrl,
+          }
+        })
+        .returning();
       return newCall;
     } catch (error) {
       console.error('통화 생성 오류:', error);
