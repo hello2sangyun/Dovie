@@ -108,6 +108,20 @@ export function CallModal({
     };
   }, [isOpen]);
 
+  // Play incoming ringtone for receiver
+  useEffect(() => {
+    if (isOpen && isIncoming && callState === 'ringing' && callSoundsRef.current) {
+      console.log('📱 Starting incoming ringtone for receiver');
+      callSoundsRef.current.startIncomingRingtone();
+    }
+    
+    return () => {
+      if (callSoundsRef.current) {
+        callSoundsRef.current.stopIncomingRingtone();
+      }
+    };
+  }, [isOpen, isIncoming, callState]);
+
   // Initialize WebRTC
   useEffect(() => {
     console.log('📞 CallModal useEffect triggered:', { isOpen, isIncoming, hasAnswered });

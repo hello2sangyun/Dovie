@@ -3,6 +3,7 @@ export class CallSounds {
   private ringbackOscillator: OscillatorNode | null = null;
   private ringbackGain: GainNode | null = null;
   private ringbackInterval: NodeJS.Timeout | null = null;
+  private ringtoneInterval: NodeJS.Timeout | null = null;
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -121,8 +122,29 @@ export class CallSounds {
     oscillator.stop(this.audioContext.currentTime + 0.8);
   }
 
+  startIncomingRingtone() {
+    if (!this.audioContext) return;
+
+    this.stopIncomingRingtone();
+
+    const playRing = () => {
+      this.playIncomingRingTone();
+    };
+
+    playRing();
+    this.ringtoneInterval = setInterval(playRing, 3000);
+  }
+
+  stopIncomingRingtone() {
+    if (this.ringtoneInterval) {
+      clearInterval(this.ringtoneInterval);
+      this.ringtoneInterval = null;
+    }
+  }
+
   cleanup() {
     this.stopRingbackTone();
+    this.stopIncomingRingtone();
     if (this.audioContext) {
       this.audioContext.close();
       this.audioContext = null;
