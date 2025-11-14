@@ -142,20 +142,39 @@ export function CallModal({
     const setupCall = async () => {
       try {
         console.log('📞 Getting local media stream...');
+        setCallState('connecting');
         
         // Start ringback tone for outgoing calls
         if (!isIncoming && callSoundsRef.current) {
           callSoundsRef.current.startRingbackTone();
         }
         
-        // Get local media stream
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true
-          } 
-        });
+        // Get local media stream with timeout and retry
+        const getUserMediaWithTimeout = async (constraints: MediaStreamConstraints, timeoutMs = 10000) => {
+          return Promise.race([
+            navigator.mediaDevices.getUserMedia(constraints),
+            new Promise<MediaStream>((_, reject) => 
+              setTimeout(() => reject(new Error('마이크 접근 시간 초과. 다시 시도해주세요.')), timeoutMs)
+            )
+          ]);
+        };
+        
+        let stream: MediaStream;
+        try {
+          stream = await getUserMediaWithTimeout({ 
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true
+            } 
+          });
+        } catch (error) {
+          console.error('📞 First getUserMedia attempt failed:', error);
+          // Retry with simpler constraints for mobile compatibility
+          console.log('📞 Retrying with simpler audio constraints...');
+          stream = await getUserMediaWithTimeout({ audio: true }, 10000);
+        }
+        
         localStreamRef.current = stream;
         console.log('📞 Local stream acquired:', stream.getTracks().map(t => `${t.kind}: ${t.label}`));
 
@@ -266,9 +285,30 @@ export function CallModal({
         }
       } catch (error) {
         console.error('📞 Error setting up call:', error);
+        
+        // Determine user-friendly error message
+        let errorTitle = '통화 연결 실패';
+        let errorDescription = '다시 시도해주세요.';
+        
+        if (error instanceof Error) {
+          if (error.message.includes('시간 초과') || error.message.includes('timeout')) {
+            errorTitle = '마이크 접근 시간 초과';
+            errorDescription = '브라우저를 새로고침하거나 마이크 권한을 다시 설정해주세요.';
+          } else if (error.message.includes('Permission') || error.message.includes('NotAllowedError')) {
+            errorTitle = '마이크 권한 필요';
+            errorDescription = '브라우저 설정에서 마이크 권한을 허용해주세요.';
+          } else if (error.message.includes('NotFoundError')) {
+            errorTitle = '마이크를 찾을 수 없음';
+            errorDescription = '마이크가 연결되어 있는지 확인해주세요.';
+          } else if (error.message.includes('NotReadableError')) {
+            errorTitle = '마이크 사용 불가';
+            errorDescription = '다른 앱에서 마이크를 사용 중일 수 있습니다. 잠시 후 다시 시도해주세요.';
+          }
+        }
+        
         toast({
-          title: '통화 연결 실패',
-          description: '마이크 권한을 확인해주세요.',
+          title: errorTitle,
+          description: errorDescription,
           variant: 'destructive'
         });
         onClose();
