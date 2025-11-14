@@ -1,0 +1,117 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/0482CB0F-27E8-45EF-B475-9399C7C117C2/App.app'
+KeyboardPlugin: resize mode - native
+⚡️  Loading app at https://dovie-hello2sangyun.replit.app...
+Updated list with error: DownloadFailed
+Updated list with error: DownloadFailed
+Updated list with error: DownloadFailed
+📱 [AppDelegate] Registered for remote notifications
+Networking process (0x114064190) took 8.053434 seconds to launch
+GPU process (0x1141181e0) took 2.732948 seconds to launch
+WebContent process (0x1140ec100) took 7.305701 seconds to launch
+📱 [AppDelegate] APNS 토큰 등록 성공
+Updated list with error: DownloadFailed
+WebContent[48984] Unable to hide query parameters from script (missing data)
+⚡️  [log] - 🚀 Native platform detected - preloading critical pages
+⚡️  [log] - [SW] Service Worker support check: {"supported":false,"navigatorSW":"undefined","isSecureContext":true}
+⚡️  [warn] - [SW] Service Workers not supported in this environment (WKWebView/Replit preview)
+⚡️  [warn] - [SW] To test SW features, open the app in a real browser: Chrome, Firefox, Safari
+⚡️  [log] - [CallSessionStore] BroadcastChannel initialized
+⚡️  To Native ->  App addListener 55567950
+⚡️  WebView loaded
+⚡️  [log] - [Badge] Service Worker not supported
+⚡️  [log] - ✅ Navigation service registered
+⚡️  [log] - ✅ Navigator registered with navigation service
+⚡️  To Native ->  App addListener 55567951
+⚡️  To Native ->  App addListener 55567952
+⚡️  To Native ->  PushNotifications addListener 55567953
+⚡️  To Native ->  PushNotifications addListener 55567954
+⚡️  To Native ->  PushNotifications addListener 55567955
+⚡️  To Native ->  PushNotifications addListener 55567956
+⚡️  To Native ->  PushNotifications requestPermissions 55567957
+⚡️  TO JS {"receive":"granted"}
+⚡️  To Native ->  PushNotifications register 55567958
+⚡️  TO JS undefined
+⚡️  TO JS {"value":"CAE0FFC37B90C7D99F1D10B05264F1A45EF1B0BF50A05B393768128DF1B8AE98"}
+📱 [AppDelegate] APNS 토큰 등록 성공
+⚡️  [log] - 📱 iOS 네이티브 푸시 알림 등록 성공 (리스너 대기 중)
+⚡️  [log] - 📱 iOS 푸시 토큰 획득: CAE0FFC37B90C7D99F1D10B05264F1A45EF1B0BF50A05B393768128DF1B8AE98
+⚡️  [log] - 📱 서버로 iOS 토큰 전송 시작: CAE0FFC37B90C7D99F1D...
+Updated list with error: DownloadFailed
+⚡️  [log] - 🔄 Auth context updating user: 126 profilePicture: /uploads/profile_1761606486798_jejztvnxp8j.jpg
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+⚡️  [log] - ✅ Navigation service registered
+⚡️  [log] - ✅ Navigator registered with navigation service
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://dovie-hello2sangyun.replit.app/ws
+⚡️  [log] -    Protocol: wss:, Host: dovie-hello2sangyun.replit.app
+⚡️  To Native ->  App addListener 55567959
+⚡️  To Native ->  App addListener 55567960
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - ✅ iOS 푸시 토큰이 서버에 저장되었습니다: {"success":true,"message":"iOS push token registered successfully","userId":126,"tokenPreview":"CAE0FFC37B90C7D99F1D..."}
+Updated list with error: DownloadFailed
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  To Native ->  App addListener 55567961
+⚡️  To Native ->  App addListener 55567962
+⚡️  To Native ->  App addListener 55567963
+⚡️  To Native ->  App addListener 55567964
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+WebContent[48984] The sandbox in this process does not allow access to RunningBoard.
+WebContent[48984] Handshake aborted as the connection has been invalidated
+WebContent[48984] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+WebContent[48984] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 0
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: []
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - WebSocket disconnected: 1000 App backgrounded
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline
