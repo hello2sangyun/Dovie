@@ -46,7 +46,7 @@ function initializeAPNSClient(): ApnsClient | null {
       team: teamId,
       keyId: keyId,
       signingKey: formattedKey,
-      defaultTopic: 'com.dovie.messenger',
+      defaultTopic: 'com.dovie.messenger', // Default for regular push notifications
       host: APNS_SERVER, // Use host instead of production boolean
       requestTimeout: 10000, // 10 seconds timeout
       keepAlive: true // Reuse HTTP/2 connections for better performance

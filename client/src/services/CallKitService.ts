@@ -75,6 +75,8 @@ export class CallKitService {
   private static instance: CallKitService;
   private voipToken: string | null = null;
   private listeners: PluginListenerHandle[] = [];
+  private userId: number | null = null;
+  private userName: string | null = null;
   
   private constructor() {}
   
@@ -83,6 +85,13 @@ export class CallKitService {
       CallKitService.instance = new CallKitService();
     }
     return CallKitService.instance;
+  }
+  
+  static async initialize(userId: number, userName: string): Promise<void> {
+    const instance = CallKitService.getInstance();
+    instance.userId = userId;
+    instance.userName = userName;
+    await instance.initialize();
   }
   
   async initialize(): Promise<void> {

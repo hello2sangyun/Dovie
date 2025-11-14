@@ -33,6 +33,7 @@ import { ConnectionStatusIndicator } from "@/components/ConnectionStatusIndicato
 
 import { TelegramStyleNotificationManager } from "@/components/TelegramStyleNotificationManager";
 import { useCapacitorPushNotifications } from "@/hooks/useCapacitorPushNotifications";
+import { CallKitService } from "@/services/CallKitService";
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
 
@@ -436,6 +437,9 @@ export default function MainApp() {
     if (!user) return;
     
     console.log('MainApp rendering with user:', user.id);
+    
+    // Initialize CallKit for iOS VoIP
+    CallKitService.initialize(user.id, user.displayName);
     
     // Check if permissions have been requested before
     const microphoneGranted = localStorage.getItem('microphonePermissionGranted');
