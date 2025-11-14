@@ -33,17 +33,18 @@ export function CallModal({
   callSessionId: initialCallSessionId,
   offer: initialOffer
 }: CallModalProps) {
+  const { user } = useAuth();
+  const { sendMessage, subscribeToSignaling } = useWebSocketContext();
+  const { toast } = useToast();
+  const { activeSession } = useCallSessionStore();
+  
   const [callState, setCallState] = useState<CallState>(isIncoming ? 'ringing' : 'connecting');
   const [duration, setDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [isSpeaker, setIsSpeaker] = useState(false);
   const [transcript, setTranscript] = useState<string[]>([]);
-  const [hasAnswered, setHasAnswered] = useState(false);
-  
-  const { user } = useAuth();
-  const { sendMessage, subscribeToSignaling } = useWebSocketContext();
-  const { toast } = useToast();
-  const { activeSession } = useCallSessionStore();
+  // Initialize from activeSession to handle CallKit answer before modal mount
+  const [hasAnswered, setHasAnswered] = useState(() => Boolean(activeSession?.hasAnswered));
   
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
