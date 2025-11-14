@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useWebSocketContext } from '@/hooks/useWebSocketContext';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { CallSounds } from '@/utils/callSounds';
 
 interface CallModalProps {
   isOpen: boolean;
@@ -53,6 +54,7 @@ export function CallModal({
   const callSessionIdRef = useRef<string>(initialCallSessionId || `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
   const callStartTimeRef = useRef<number>(0);
+  const callSoundsRef = useRef<CallSounds | null>(null);
 
   // ICE servers configuration with multiple STUN servers and free TURN server
   const iceServers = {
@@ -92,6 +94,20 @@ export function CallModal({
     iceCandidatePoolSize: 10
   };
 
+  // Initialize call sounds
+  useEffect(() => {
+    if (isOpen) {
+      callSoundsRef.current = new CallSounds();
+    }
+    
+    return () => {
+      if (callSoundsRef.current) {
+        callSoundsRef.current.cleanup();
+        callSoundsRef.current = null;
+      }
+    };
+  }, [isOpen]);
+
   // Initialize WebRTC
   useEffect(() => {
     console.log('📞 CallModal useEffect triggered:', { isOpen, isIncoming, hasAnswered });
@@ -112,6 +128,12 @@ export function CallModal({
     const setupCall = async () => {
       try {
         console.log('📞 Getting local media stream...');
+        
+        // Start ringback tone for outgoing calls
+        if (!isIncoming && callSoundsRef.current) {
+          callSoundsRef.current.startRingbackTone();
+        }
+        
         // Get local media stream
         const stream = await navigator.mediaDevices.getUserMedia({ 
           audio: {
@@ -179,6 +201,12 @@ export function CallModal({
         pc.onconnectionstatechange = () => {
           console.log('📞 Connection state:', pc.connectionState);
           if (pc.connectionState === 'connected') {
+            // Stop ringback tone and play connected sound
+            if (callSoundsRef.current) {
+              callSoundsRef.current.stopRingbackTone();
+              callSoundsRef.current.playConnectedSound();
+            }
+            
             setCallState('connected');
             startCallTimer();
             
@@ -464,6 +492,11 @@ export function CallModal({
 
   // Cleanup resources
   const cleanup = () => {
+    // Stop call sounds
+    if (callSoundsRef.current) {
+      callSoundsRef.current.stopRingbackTone();
+    }
+    
     // Stop timers
     if (durationIntervalRef.current) {
       clearInterval(durationIntervalRef.current);
@@ -581,11 +614,11 @@ export function CallModal({
     : undefined;
 
   return (
-    <div className="fixed inset-0 z-50 bg-gradient-to-br from-purple-400 via-purple-500 to-indigo-500 flex flex-col items-center justify-between p-6">
+    <div className="fixed inset-0 z-50 bg-white flex flex-col items-center justify-between p-6">
       {/* Top Section: Profile and Status */}
       <div className="w-full max-w-md text-center pt-20">
         {/* Profile Image */}
-        <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-white/20 backdrop-blur-sm border-4 border-white/30 overflow-hidden">
+        <div className="w-40 h-40 mx-auto mb-8 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 shadow-lg overflow-hidden">
           {profileImageUrl ? (
             <img 
               src={profileImageUrl} 
@@ -593,15 +626,15 @@ export function CallModal({
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-white text-5xl font-bold">
+            <div className="w-full h-full flex items-center justify-center text-gray-700 text-6xl font-semibold">
               {targetName.charAt(0).toUpperCase()}
             </div>
           )}
         </div>
         
-        <h2 className="text-3xl font-bold text-white mb-2">{targetName}</h2>
+        <h2 className="text-3xl font-semibold text-gray-900 mb-3">{targetName}</h2>
         
-        <div className="text-white/90 text-lg">
+        <div className="text-gray-500 text-lg font-medium">
           {callState === 'ringing' && '전화 거는 중...'}
           {callState === 'connecting' && '연결 중...'}
           {callState === 'connected' && formatDuration(duration)}
@@ -611,11 +644,11 @@ export function CallModal({
 
       {/* Middle Section: Transcript */}
       {callState === 'connected' && transcript.length > 0 && (
-        <div className="w-full max-w-md bg-white/10 backdrop-blur-sm rounded-2xl p-4 max-h-40 overflow-y-auto">
-          <div className="text-white/70 text-xs mb-2">실시간 전사</div>
-          <div className="space-y-1">
+        <div className="w-full max-w-md bg-gray-50 rounded-2xl p-5 max-h-40 overflow-y-auto shadow-sm border border-gray-100">
+          <div className="text-gray-400 text-xs font-medium mb-3">실시간 전사</div>
+          <div className="space-y-2">
             {transcript.slice(-3).map((text, index) => (
-              <div key={index} className="text-white text-sm">
+              <div key={index} className="text-gray-700 text-sm leading-relaxed">
                 {text}
               </div>
             ))}
@@ -623,92 +656,92 @@ export function CallModal({
         </div>
       )}
 
-      {/* Bottom Section: Controls - Telegram Style */}
+      {/* Bottom Section: Controls - Modern Clean Style */}
       <div className="w-full max-w-md pb-8">
         {isIncoming && callState === 'ringing' ? (
-          <div className="flex justify-center gap-6">
-            <div className="flex flex-col items-center gap-2">
+          <div className="flex justify-center gap-8">
+            <div className="flex flex-col items-center gap-3">
               <Button
                 onClick={rejectCall}
                 size="lg"
-                className="w-20 h-20 rounded-full bg-red-500 hover:bg-red-600"
+                className="w-20 h-20 rounded-full bg-red-500 hover:bg-red-600 shadow-lg hover:shadow-xl transition-all"
                 data-testid="button-reject-call"
               >
-                <PhoneOff className="w-8 h-8" />
+                <PhoneOff className="w-8 h-8 text-white" />
               </Button>
-              <span className="text-white text-sm">종료</span>
+              <span className="text-gray-600 text-sm font-medium">종료</span>
             </div>
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center gap-3">
               <Button
                 onClick={() => {
                   setHasAnswered(true);
                   setCallState('connecting');
                 }}
                 size="lg"
-                className="w-20 h-20 rounded-full bg-green-500 hover:bg-green-600"
+                className="w-20 h-20 rounded-full bg-green-500 hover:bg-green-600 shadow-lg hover:shadow-xl transition-all"
                 data-testid="button-accept-call"
               >
-                <Phone className="w-8 h-8" />
+                <Phone className="w-8 h-8 text-white" />
               </Button>
-              <span className="text-white text-sm">수락</span>
+              <span className="text-gray-600 text-sm font-medium">수락</span>
             </div>
           </div>
         ) : callState === 'connected' ? (
           <div className="flex justify-center gap-6">
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center gap-3">
               <Button
                 onClick={toggleSpeaker}
                 size="lg"
-                className={`w-16 h-16 rounded-full ${
+                className={`w-16 h-16 rounded-full shadow-md hover:shadow-lg transition-all ${
                   isSpeaker 
-                    ? 'bg-white text-purple-500 hover:bg-white/90' 
-                    : 'bg-white/20 backdrop-blur-sm hover:bg-white/30'
+                    ? 'bg-blue-500 text-white hover:bg-blue-600' 
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
                 data-testid="button-speaker-toggle"
               >
                 {isSpeaker ? <Volume2 className="w-6 h-6" /> : <VolumeX className="w-6 h-6" />}
               </Button>
-              <span className="text-white text-xs">스피커</span>
+              <span className="text-gray-500 text-xs font-medium">스피커</span>
             </div>
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center gap-3">
               <Button
                 onClick={toggleMute}
                 size="lg"
-                className={`w-16 h-16 rounded-full ${
+                className={`w-16 h-16 rounded-full shadow-md hover:shadow-lg transition-all ${
                   isMuted 
-                    ? 'bg-white text-purple-500 hover:bg-white/90' 
-                    : 'bg-white/20 backdrop-blur-sm hover:bg-white/30'
+                    ? 'bg-blue-500 text-white hover:bg-blue-600' 
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
                 data-testid="button-mute-toggle"
               >
                 {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
               </Button>
-              <span className="text-white text-xs">음소거</span>
+              <span className="text-gray-500 text-xs font-medium">음소거</span>
             </div>
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center gap-3">
               <Button
                 onClick={endCall}
                 size="lg"
-                className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600"
+                className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 shadow-md hover:shadow-lg transition-all"
                 data-testid="button-end-call"
               >
-                <PhoneOff className="w-6 h-6" />
+                <PhoneOff className="w-6 h-6 text-white" />
               </Button>
-              <span className="text-white text-xs">종료</span>
+              <span className="text-gray-500 text-xs font-medium">종료</span>
             </div>
           </div>
         ) : callState !== 'ended' ? (
           <div className="flex justify-center">
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center gap-3">
               <Button
                 onClick={endCall}
                 size="lg"
-                className="w-20 h-20 rounded-full bg-red-500 hover:bg-red-600"
+                className="w-20 h-20 rounded-full bg-red-500 hover:bg-red-600 shadow-lg hover:shadow-xl transition-all"
                 data-testid="button-end-call"
               >
-                <PhoneOff className="w-8 h-8" />
+                <PhoneOff className="w-8 h-8 text-white" />
               </Button>
-              <span className="text-white text-sm">종료</span>
+              <span className="text-gray-600 text-sm font-medium">종료</span>
             </div>
           </div>
         ) : null}
