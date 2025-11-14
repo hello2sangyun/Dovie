@@ -5422,6 +5422,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // POST /api/voip-token - Register VoIP device token for CallKit
+  app.post("/api/voip-token", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"];
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const { voipToken } = req.body;
+      if (!voipToken) {
+        return res.status(400).json({ error: "VoIP token is required" });
+      }
+
+      console.log(`📞 Registering VoIP token for user ${userId}`);
+      
+      await storage.saveVoipToken(Number(userId), voipToken);
+
+      res.json({ success: true, message: "VoIP token registered successfully" });
+    } catch (error) {
+      console.error("Error registering VoIP token:", error);
+      res.status(500).json({ error: "Failed to register VoIP token" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // WebSocket connections map

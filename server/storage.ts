@@ -1509,7 +1509,7 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(pushSubscriptions.userId, userId), eq(pushSubscriptions.endpoint, endpoint)));
   }
 
-  async getUserPushSubscriptions(userId: number): Promise<{ endpoint: string, p256dh: string, auth: string, userAgent: string }[]> {
+  async getUserPushSubscriptions(userId: number): Promise<{ endpoint: string, p256dh: string, auth: string, userAgent: string | null }[]> {
     return await db
       .select({
         endpoint: pushSubscriptions.endpoint,
@@ -1724,6 +1724,41 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('iOS 디바이스 토큰 제거 오류:', error);
       throw error;
+    }
+  }
+
+  async saveVoipToken(userId: number, voipToken: string): Promise<void> {
+    try {
+      // Update existing device token record with VoIP token
+      await db.update(iosDeviceTokens)
+        .set({ 
+          voipToken,
+          updatedAt: new Date()
+        })
+        .where(eq(iosDeviceTokens.userId, userId));
+      
+      console.log(`✅ VoIP token saved for user ${userId}`);
+    } catch (error) {
+      console.error('VoIP 토큰 저장 오류:', error);
+      throw error;
+    }
+  }
+
+  async getVoipToken(userId: number): Promise<string | null> {
+    try {
+      const result = await db.query.iosDeviceTokens.findFirst({
+        where: and(
+          eq(iosDeviceTokens.userId, userId),
+          eq(iosDeviceTokens.isActive, true)
+        ),
+        columns: {
+          voipToken: true
+        }
+      });
+      return result?.voipToken || null;
+    } catch (error) {
+      console.error('VoIP 토큰 조회 오류:', error);
+      return null;
     }
   }
 

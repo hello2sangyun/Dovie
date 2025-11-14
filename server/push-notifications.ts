@@ -531,3 +531,49 @@ export async function sendMessageNotification(
 export function getVapidPublicKey(): string {
   return VAPID_PUBLIC_KEY;
 }
+
+// VoIP Push Notification for CallKit (iOS only)
+export async function sendVoIPPush(
+  voipToken: string,
+  payload: {
+    callId: string;
+    callerName: string;
+    callerId: number;
+    chatRoomId: number;
+  }
+): Promise<boolean> {
+  if (!apnsClient) {
+    console.warn('⚠️ APNS client not initialized. Cannot send VoIP push.');
+    return false;
+  }
+
+  try {
+    // VoIP notification with custom payload
+    const notification = new Notification(voipToken, {
+      topic: 'com.dovie.messenger.voip',  // VoIP topic
+      priority: 10,                         // Immediate delivery
+      expiration: Math.floor(Date.now() / 1000) + 30, // 30 seconds expiry
+      data: {
+        callId: payload.callId,
+        callerName: payload.callerName,
+        callerId: payload.callerId,
+        chatRoomId: payload.chatRoomId
+      }
+    });
+
+    console.log(`📞 [VoIP Push] Sending to ${payload.callerName}`);
+    await apnsClient.send(notification);
+    
+    console.log(`✅ [VoIP Push] Sent successfully to ${voipToken.substring(0, 20)}...`);
+    return true;
+  } catch (error: any) {
+    console.error(`❌ [VoIP Push] Error sending:`, error);
+    
+    // Handle token expiration
+    if (error.statusCode === 410 || error.reason === 'Unregistered' || error.reason === 'BadDeviceToken') {
+      console.log(`🧹 VoIP token expired, should be deleted`);
+    }
+    
+    return false;
+  }
+}
