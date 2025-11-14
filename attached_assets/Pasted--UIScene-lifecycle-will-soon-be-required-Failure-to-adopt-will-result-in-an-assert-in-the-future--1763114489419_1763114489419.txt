@@ -1,0 +1,616 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/A6953D4C-C4CE-4CF3-8327-4B1FDD56B442/App.app'
+KeyboardPlugin: resize mode - native
+⚡️  Loading app at https://dovie-hello2sangyun.replit.app...
+📱 [AppDelegate] Registered for remote notifications
+Networking process (0x111054190) took 1.220863 seconds to launch
+Updated list with error: DownloadFailed
+Updated list with error: DownloadFailed
+Updated list with error: DownloadFailed
+GPU process (0x11110c1e0) took 1.276303 seconds to launch
+WebContent process (0x1110e4100) took 1.448650 seconds to launch
+❌ [AppDelegate] APNS 토큰 등록 실패: no valid “aps-environment” entitlement string found for application
+WebContent[43779] Unable to hide query parameters from script (missing data)
+Updated list with error: DownloadFailed
+⚡️  [log] - 🚀 Native platform detected - preloading critical pages
+⚡️  [log] - [SW] Service Worker support check: {"supported":false,"navigatorSW":"undefined","isSecureContext":true}
+⚡️  [warn] - [SW] Service Workers not supported in this environment (WKWebView/Replit preview)
+⚡️  [warn] - [SW] To test SW features, open the app in a real browser: Chrome, Firefox, Safari
+⚡️  [log] - [CallSessionStore] BroadcastChannel initialized
+⚡️  To Native ->  App addListener 96318547
+Updated list with error: DownloadFailed
+⚡️  [log] - 🔄 Auth context updating user: 126 profilePicture: /uploads/profile_1761606486798_jejztvnxp8j.jpg
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://dovie-hello2sangyun.replit.app/ws
+⚡️  [log] -    Protocol: wss:, Host: dovie-hello2sangyun.replit.app
+Updated list with error: DownloadFailed
+⚡️  WebView loaded
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+⚡️  [log] - [Badge] Service Worker not supported
+⚡️  [log] - ✅ Navigation service registered
+⚡️  [log] - ✅ Navigator registered with navigation service
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  To Native ->  App addListener 96318548
+⚡️  To Native ->  App addListener 96318549
+⚡️  To Native ->  App addListener 96318550
+⚡️  To Native ->  App addListener 96318551
+⚡️  To Native ->  PushNotifications addListener 96318552
+⚡️  To Native ->  PushNotifications addListener 96318553
+⚡️  To Native ->  PushNotifications addListener 96318554
+⚡️  To Native ->  PushNotifications addListener 96318555
+⚡️  To Native ->  PushNotifications requestPermissions 96318556
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  TO JS {"receive":"granted"}
+⚡️  To Native ->  PushNotifications register 96318557
+⚡️  TO JS undefined
+⚡️  [log] - 📱 iOS 네이티브 푸시 알림 등록 성공 (리스너 대기 중)
+⚡️  TO JS {"error":"no valid “aps-environment” entitlement string found for application"}
+❌ [AppDelegate] APNS 토큰 등록 실패: no valid “aps-environment” entitlement string found for application
+⚡️  [error] - ❌ iOS 푸시 등록 실패: {"error":"no valid “aps-environment” entitlement string found for application"}
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  To Native ->  App addListener 96318558
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  To Native ->  App addListener 96318559
+⚡️  To Native ->  App addListener 96318560
+⚡️  To Native ->  App addListener 96318561
+WebContent[43779] The sandbox in this process does not allow access to RunningBoard.
+WebContent[43779] Handshake aborted as the connection has been invalidated
+WebContent[43779] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+WebContent[43779] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 0
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: []
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: 나야나
+⚡️  [log] - 🚫 스크롤 감지 - 음성 녹음 타이머 취소
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+⚡️  To Native ->  App removeListener 96318562
+⚡️  To Native ->  App removeListener 96318563
+⚡️  To Native ->  App removeListener 96318564
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  To Native ->  App addListener 96318565
+⚡️  To Native ->  App addListener 96318566
+⚡️  To Native ->  App addListener 96318567
+WebContent[43779] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763114407072_fw6rmreo1","candidate":{"candidate":"candidate:767419579 1 udp 2122260224 169.254.99.121 54699 typ host generation 0 ufrag CTd6 network-id 2","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"CTd6"},"fromUserId":121}
+⚡️  [log] - 📞 WebSocket signaling event: call-ice-candidate
+⚡️  [warn] - [CallSessionStore] handleIceCandidate: No active session
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763114407072_fw6rmreo1","candidate":{"candidate":"candidate:920912269 1 udp 2122194688 172.20.10.12 56081 typ host generation 0 ufrag CTd6 network-id 1 network-cost 10","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"CTd6"},"fromUserId":121}
+⚡️  [log] - 📞 WebSocket signaling event: call-ice-candidate
+⚡️  [warn] - [CallSessionStore] handleIceCandidate: No active session
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763114407072_fw6rmreo1","candidate":{"candidate":"candidate:3725493779 1 udp 2122134272 fd1b:db0e:10c8::2 54187 typ host generation 0 ufrag CTd6 network-id 3 network-cost 50","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"CTd6"},"fromUserId":121}
+⚡️  [log] - 📞 WebSocket signaling event: call-ice-candidate
+⚡️  [warn] - [CallSessionStore] handleIceCandidate: No active session
+⚡️  [log] - WebSocket message received: {"type":"call-offer","targetUserId":126,"chatRoomId":119,"callSessionId":"call_1763114407072_fw6rmreo1","callType":"voice","offer":{"type":"offer","sdp":"v=0\r\no=- 1780784865222936188 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=group:BUNDLE 0\r\na=extmap-allow-mixed\r\na=msid-semantic: WMS 1524875f-a553-47fc-97f9-8cd49be68818\r\nm=audio 9 UDP/TLS/RTP/SAVPF 111 63 9 0 8 13 110 126\r\nc=IN IP4 0.0.0.0\r\na=rtcp:9 IN IP4 0.0.0.0\r\na=ice-ufrag:CTd6\r\na=ice-pwd:kSaZ5tOd4R9cuSoUhcdtSeFe\r\na=ice-options:trickle\r\na=fingerprint:sha-256 BA:5D:6C:37:EC:F4:42:ED:61:32:F3:4D:96:DA:8F:D0:52:5C:3F:0F:16:5D:9A:36:E7:E0:0C:A0:13:87:90:42\r\na=setup:actpass\r\na=mid:0\r\na=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level\r\na=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time\r\na=extmap:3 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01\r\na=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid\r\na=sendrecv\r\na=msid:1524875f-a553-47fc-97f9-8cd49be68818 d4d8c2d5-63bd-4aaf-bf9e-c1d4b3a7fb2f\r\na=rtcp-mux\r\na=rtcp-rsize\r\na=rtpmap:111 opus/48000/2\r\na=rtcp-fb:111 transport-cc\r\na=fmtp:111 minptime=10;useinbandfec=1\r\na=rtpmap:63 red/48000/2\r\na=fmtp:63 111/111\r\na=rtpmap:9 G722/8000\r\na=rtpmap:0 PCMU/8000\r\na=rtpmap:8 PCMA/8000\r\na=rtpmap:13 CN/8000\r\na=rtpmap:110 telephone-event/48000\r\na=rtpmap:126 telephone-event/8000\r\na=ssrc:4262834362 cname:QWIytkIzubS8w9dj\r\na=ssrc:4262834362 msid:1524875f-a553-47fc-97f9-8cd49be68818 d4d8c2d5-63bd-4aaf-bf9e-c1d4b3a7fb2f\r\n"},"fromUserId":121,"callerName":"real","callerProfilePicture":"/uploads/profile_1761144817232_rf4rde1nn4e.jpg"}
+⚡️  [log] - 📞 WebSocket signaling event: call-offer
+⚡️  [log] - [CallSessionStore] Successfully claimed incoming call: call_1763114407072_fw6rmreo1
+⚡️  [log] - [CallSessionStore] Session created: call_1763114407072_fw6rmreo1, state: ringing
+⚡️  [log] - [CallSessionStore] Session claimed: call_1763114407072_fw6rmreo1
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - 📱 Starting incoming ringtone for receiver
+⚡️  [log] - 📞 CallModal useEffect triggered: {"isOpen":true,"isIncoming":true,"hasAnswered":false}
+⚡️  [log] - 📞 Incoming call - waiting for user to answer
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763114407072_fw6rmreo1","candidate":{"candidate":"candidate:2578374835 1 udp 1685987071 94.44.235.6 13477 typ srflx raddr 172.20.10.12 rport 56081 generation 0 ufrag CTd6 network-id 1 network-cost 10","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"CTd6"},"fromUserId":121}
+⚡️  [log] - 📞 CallModal received signaling message: call-ice-candidate
+⚡️  [log] - 📞 WebSocket signaling event: call-ice-candidate
+⚡️  [log] - [CallSessionStore] Session updated: call_1763114407072_fw6rmreo1
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763114407072_fw6rmreo1","candidate":{"candidate":"candidate:3541512239 1 tcp 1518280447 169.254.99.121 9 typ host tcptype active generation 0 ufrag CTd6 network-id 2","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"CTd6"},"fromUserId":121}
+⚡️  [log] - 📞 CallModal received signaling message: call-ice-candidate
+⚡️  [log] - 📞 WebSocket signaling event: call-ice-candidate
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763114407072_fw6rmreo1","candidate":{"candidate":"candidate:3360609561 1 tcp 1518214911 172.20.10.12 9 typ host tcptype active generation 0 ufrag CTd6 network-id 1 network-cost 10","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"CTd6"},"fromUserId":121}
+⚡️  [log] - 📞 CallModal received signaling message: call-ice-candidate
+⚡️  [log] - 📞 WebSocket signaling event: call-ice-candidate
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763114407072_fw6rmreo1","candidate":{"candidate":"candidate:547639943 1 tcp 1518154495 fd1b:db0e:10c8::2 9 typ host tcptype active generation 0 ufrag CTd6 network-id 3 network-cost 50","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"CTd6"},"fromUserId":121}
+⚡️  [log] - 📞 CallModal received signaling message: call-ice-candidate
+⚡️  [log] - 📞 WebSocket signaling event: call-ice-candidate
+⚡️  [log] - [CallSessionStore] Session updated: call_1763114407072_fw6rmreo1
+⚡️  [log] - [CallSessionStore] Session updated: call_1763114407072_fw6rmreo1
+⚡️  [log] - [CallSessionStore] Session updated: call_1763114407072_fw6rmreo1
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - 📞 CallModal useEffect triggered: {"isOpen":true,"isIncoming":true,"hasAnswered":true}
+⚡️  [log] - 📞 Setting up call...
+⚡️  [log] - 📞 Getting local media stream...
+⚡️  [log] - 📞 Local stream acquired: ["audio: iPhone Microphone"]
+⚡️  [log] - 📞 Creating peer connection...
+WebContent[43779] ERROR AppleProResHW: 45: AppleProResHW_CheckPlatform(): IOServiceGetMatchingService failed
+⚡️  [log] - 📞 Peer connection created
+⚡️  [log] - 📞 Received remote track: audio
+⚡️  [log] - 📞 Remote audio playing successfully
+⚡️  [log] - Message msg_1763114409847_mxacmc1ok sent immediately
+⚡️  [log] - 📞 Sending ICE candidate
+⚡️  [log] - Message msg_1763114409850_fy647klkb sent immediately
+⚡️  [log] - 📞 Sending ICE candidate
+⚡️  [log] - Message msg_1763114410015_ffq6bz0u6 sent immediately
+⚡️  [log] - 📞 Connection state: connecting
+⚡️  [log] - Message msg_1763114417972_du5af8elp sent immediately
+⚡️  [log] - WebSocket message received: {"type":"call-end","targetUserId":126,"callSessionId":"call_1763114407072_fw6rmreo1","fromUserId":121}
+⚡️  [log] - 📞 CallModal received signaling message: call-end
+⚡️  [log] - Message msg_1763114418454_jur6909rs sent immediately
+⚡️  [log] - 📞 WebSocket signaling event: call-end
+⚡️  [log] - [CallSessionStore] Session state changed: call_1763114407072_fw6rmreo1 → ended
+⚡️  [log] - [CallSessionStore] Session call_1763114407072_fw6rmreo1 reached terminal state, cleaning up
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - WebSocket message received: {"type":"call-end","targetUserId":126,"callSessionId":"call_1763114407072_fw6rmreo1","fromUserId":121}
+⚡️  [log] - 📞 CallModal received signaling message: call-end
+⚡️  [log] - Message msg_1763114419451_4h6eqegdc sent immediately
+⚡️  [log] - 📞 WebSocket signaling event: call-end
+⚡️  [log] - [CallSessionStore] Session released: call_1763114407072_fw6rmreo1
+⚡️  [log] - [CallSessionStore] Session state changed: call_1763114407072_fw6rmreo1 → ended
+⚡️  [log] - [CallSessionStore] Session call_1763114407072_fw6rmreo1 reached terminal state, cleaning up
+⚡️  [log] - [CallSessionStore] Session released: call_1763114407072_fw6rmreo1
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - [CallSessionStore] Session released: call_1763114407072_fw6rmreo1
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: test
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  To Native ->  Filesystem mkdir 96318568
+⚡️  To Native ->  App addListener 96318569
+⚡️  To Native ->  App addListener 96318570
+⚡️  To Native ->  Filesystem mkdir 96318571
+⚡️  To Native ->  App addListener 96318572
+⚡️  To Native ->  App addListener 96318573
+⚡️  To Native ->  Filesystem mkdir 96318574
+ERROR MESSAGE:  {"code":"OS-PLUG-FILE-0010","message":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/3579E600-C6FB-4BFA-8AA1-1090CF01FFC5\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","errorMessage":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/3579E600-C6FB-4BFA-8AA1-1090CF01FFC5\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten."}
+ERROR MESSAGE:  {"message":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/3579E600-C6FB-4BFA-8AA1-1090CF01FFC5\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","errorMessage":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/3579E600-C6FB-4BFA-8AA1-1090CF01FFC5\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010"}
+ERROR MESSAGE:  {"message":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/3579E600-C6FB-4BFA-8AA1-1090CF01FFC5\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010","errorMessage":"Directory at 'file:\/\/\/var\/mobile\/Containers\/Data\/Application\/3579E600-C6FB-4BFA-8AA1-1090CF01FFC5\/Library\/Caches\/file_cache\/'  already exists, cannot be overwritten."}
+⚡️  [error] - {"code":"OS-PLUG-FILE-0010","message":"Directory at 'file:///var/mobile/Containers/Data/Application/3579E600-C6FB-4BFA-8AA1-1090CF01FFC5/Library/Caches/file_cache/'  already exists, cannot be overwritten.","errorMessage":"Directory at 'file:///var/mobile/Containers/Data/Application/3579E600-C6FB-4BFA-8AA1-1090CF01FFC5/Library/Caches/file_cache/'  already exists, cannot be overwritten."}
+⚡️  To Native ->  Filesystem readFile 96318575
+⚡️  To Native ->  Filesystem readFile 96318576
+⚡️  To Native ->  Filesystem readFile 96318577
+⚡️  TO JS {"data":"{\"\/uploads\/file_1762849513723_aml49nutkss.pdf\":{\"uri\":\"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYyODQ5NTEz.pdf\",\"size\":123126,\"timest
+⚡️  [error] - {"message":"Directory at 'file:///var/mobile/Containers/Data/Application/3579E600-C6FB-4BFA-8AA1-1090CF01FFC5/Library/Caches/file_cache/'  already exists, cannot be overwritten.","errorMessage":"Directory at 'file:///var/mobile/Containers/Data/Application/3579E600-C6FB-4BFA-8AA1-1090CF01FFC5/Library/Caches/file_cache/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010"}
+⚡️  TO JS {"data":"{\"\/uploads\/file_1762849513723_aml49nutkss.pdf\":{\"uri\":\"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYyODQ5NTEz.pdf\",\"size\":123126,\"timest
+⚡️  [error] - {"message":"Directory at 'file:///var/mobile/Containers/Data/Application/3579E600-C6FB-4BFA-8AA1-1090CF01FFC5/Library/Caches/file_cache/'  already exists, cannot be overwritten.","code":"OS-PLUG-FILE-0010","errorMessage":"Directory at 'file:///var/mobile/Containers/Data/Application/3579E600-C6FB-4BFA-8AA1-1090CF01FFC5/Library/Caches/file_cache/'  already exists, cannot be overwritten."}
+⚡️  TO JS {"data":"{\"\/uploads\/file_1762849513723_aml49nutkss.pdf\":{\"uri\":\"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/6AC61A82-ED79-485C-B10B-327DEA206986\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYyODQ5NTEz.pdf\",\"size\":123126,\"timest
+⚡️  [log] - Image loaded successfully: /uploads/file_1763109395822_ga2qyhbleda.png
+⚡️  [log] - Image loaded successfully: /uploads/file_1763109395822_ga2qyhbleda.png
+⚡️  [log] - [FileCache] Loaded 24 cached files
+⚡️  To Native ->  Filesystem stat 96318578
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/3579E600-C6FB-4BFA-8AA1-1090CF01FFC5\/Library\/Caches\/file_cache\/L3VwbG9hZHMvZmlsZV8xNzYzMTA5Mzk1.png","name":"L3VwbG9hZHMvZmlsZV8xNzYzMTA5Mzk1.png","type":"file","size":872436,"ctime":176310
+⚡️  [log] - [FileCache] Loaded 24 cached files
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  [log] - [FileCache] Loaded 24 cached files
+⚡️  [log] - [FileCache] Initialized successfully
+⚡️  To Native ->  Filesystem writeFile 96318579
+⚡️  TO JS {"uri":"file:\/\/\/var\/mobile\/Containers\/Data\/Application\/3579E600-C6FB-4BFA-8AA1-1090CF01FFC5\/Library\/Caches\/file_cache\/index.json"}
+⚡️  [log] - [FileCache] Cache hit: /uploads/file_1763109395822_ga2qyhbleda.png
+⚡️  [error] - Image decode error for capacitor://localhost/_capacitor_file_/var/mobile/Containers/Data/Application/289CFFEA-764E-4687-902B-8423E0C496A2/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYzMTA5Mzk1.png: 
+⚡️  [error] - Image decode error for capacitor://localhost/_capacitor_file_/var/mobile/Containers/Data/Application/289CFFEA-764E-4687-902B-8423E0C496A2/Library/Caches/file_cache/L3VwbG9hZHMvZmlsZV8xNzYzMTA5Mzk1.png: 
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  To Native ->  Badge set 96318580
+⚡️  TO JS undefined
+⚡️  [log] - 📞 CallModal useEffect triggered: {"isOpen":true,"isIncoming":false,"hasAnswered":false}
+⚡️  [log] - 📞 Setting up call...
+⚡️  [log] - 📞 Getting local media stream...
+⚡️  To Native ->  Badge set 96318581
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  [log] - 📞 Local stream acquired: ["audio: iPhone Microphone"]
+⚡️  [log] - 📞 Creating peer connection...
+⚡️  [log] - 📞 Peer connection created
+⚡️  To Native ->  Badge set 96318582
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  To Native ->  Badge set 96318583
+⚡️  TO JS undefined
+⚡️  TO JS undefined
+⚡️  [log] - Message msg_1763114422217_lttd12tpw sent immediately
+⚡️  [log] - 📞 Sending ICE candidate
+⚡️  [log] - Message msg_1763114422220_rfhnro9dp sent immediately
+⚡️  [log] - 📞 Sending ICE candidate
+⚡️  [log] - Message msg_1763114422250_5l2ncts2f sent immediately
+⚡️  [log] - [CallSessionStore] Removing terminal session: call_1763114407072_fw6rmreo1
+⚡️  [log] - [CallSessionStore] Session removed: call_1763114407072_fw6rmreo1
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - [CallSessionStore] Removing terminal session: call_1763114407072_fw6rmreo1
+⚡️  [log] - [CallSessionStore] Session removed: call_1763114407072_fw6rmreo1
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - Message msg_1763114430045_i4d2to6ud sent immediately
+⚡️  To Native ->  Badge set 96318584
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  To Native ->  Badge set 96318585
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+⚡️  To Native ->  App removeListener 96318586
+⚡️  To Native ->  App removeListener 96318587
+⚡️  To Native ->  App removeListener 96318588
+⚡️  To Native ->  App removeListener 96318589
+⚡️  [log] - 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: real
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  To Native ->  App addListener 96318590
+⚡️  To Native ->  App addListener 96318591
+⚡️  To Native ->  App addListener 96318592
+⚡️  To Native ->  App addListener 96318593
+⚡️  [log] - 📞 CallModal useEffect triggered: {"isOpen":true,"isIncoming":false,"hasAnswered":false}
+⚡️  [log] - 📞 Setting up call...
+⚡️  [log] - 📞 Getting local media stream...
+⚡️  To Native ->  Badge set 96318594
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  [log] - 📞 Local stream acquired: ["audio: iPhone Microphone"]
+⚡️  [log] - 📞 Creating peer connection...
+⚡️  [log] - 📞 Peer connection created
+⚡️  To Native ->  Badge set 96318595
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  [log] - Message msg_1763114437340_d85cf97f3 sent immediately
+⚡️  [log] - 📞 Sending ICE candidate
+⚡️  [log] - Message msg_1763114437342_vtcobupe3 sent immediately
+⚡️  [log] - 📞 Sending ICE candidate
+⚡️  [log] - Message msg_1763114437429_2dlwk4k9t sent immediately
+⚡️  [log] - WebSocket message received: {"type":"call-answer","targetUserId":126,"callSessionId":"call_1763114436758_dkjzcl3vq","answer":{"type":"answer","sdp":"v=0\r\no=- 6589967899552437351 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=group:BUNDLE 0\r\na=extmap-allow-mixed\r\na=msid-semantic: WMS 49f5cd8c-78de-437d-85e0-aa6bdac7eb36\r\nm=audio 9 UDP/TLS/RTP/SAVPF 111 63 9 0 8 13 110 126\r\nc=IN IP4 0.0.0.0\r\na=rtcp:9 IN IP4 0.0.0.0\r\na=ice-ufrag:aEaW\r\na=ice-pwd:7t4jVn8VYKCqviEzUi3em96F\r\na=ice-options:trickle\r\na=fingerprint:sha-256 BE:88:3B:D3:11:BA:12:4A:BA:A8:3C:28:DC:D2:92:AA:EA:70:95:E7:8A:BC:C6:20:7E:06:D4:61:2A:1B:EB:65\r\na=setup:active\r\na=mid:0\r\na=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level\r\na=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time\r\na=extmap:3 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01\r\na=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid\r\na=sendrecv\r\na=msid:49f5cd8c-78de-437d-85e0-aa6bdac7eb36 a82a705e-2c36-4666-9f98-2b6024dd5940\r\na=rtcp-mux\r\na=rtcp-rsize\r\na=rtpmap:111 opus/48000/2\r\na=rtcp-fb:111 transport-cc\r\na=fmtp:111 minptime=10;useinbandfec=1\r\na=rtpmap:63 red/48000/2\r\na=fmtp:63 111/111\r\na=rtpmap:9 G722/8000\r\na=rtpmap:0 PCMU/8000\r\na=rtpmap:8 PCMA/8000\r\na=rtpmap:13 CN/8000\r\na=rtpmap:110 telephone-event/48000\r\na=rtpmap:126 telephone-event/8000\r\na=ssrc:593025758 cname:wnRDyHzA71h45pNs\r\n"},"fromUserId":121}
+⚡️  [log] - 📞 WebSocket signaling event: call-answer
+⚡️  [warn] - [CallSessionStore] handleAnswer: No active session
+⚡️  [log] - 📞 CallModal received signaling message: call-answer
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763114436758_dkjzcl3vq","candidate":{"candidate":"candidate:3652543316 1 udp 2122260223 169.254.99.121 54734 typ host generation 0 ufrag aEaW network-id 2","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"aEaW"},"fromUserId":121}
+⚡️  [log] - 📞 WebSocket signaling event: call-ice-candidate
+⚡️  [warn] - [CallSessionStore] handleIceCandidate: No active session
+⚡️  [log] - 📞 CallModal received signaling message: call-ice-candidate
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763114436758_dkjzcl3vq","candidate":{"candidate":"candidate:3270280802 1 udp 2122194687 172.20.10.12 50590 typ host generation 0 ufrag aEaW network-id 1 network-cost 10","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"aEaW"},"fromUserId":121}
+⚡️  [log] - 📞 WebSocket signaling event: call-ice-candidate
+⚡️  [warn] - [CallSessionStore] handleIceCandidate: No active session
+⚡️  [log] - 📞 CallModal received signaling message: call-ice-candidate
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763114436758_dkjzcl3vq","candidate":{"candidate":"candidate:705036796 1 udp 2122134271 fd1b:db0e:10c8::2 65056 typ host generation 0 ufrag aEaW network-id 3 network-cost 50","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"aEaW"},"fromUserId":121}
+⚡️  [log] - 📞 WebSocket signaling event: call-ice-candidate
+⚡️  [warn] - [CallSessionStore] handleIceCandidate: No active session
+⚡️  [log] - 📞 CallModal received signaling message: call-ice-candidate
+⚡️  [log] - 📞 Received remote track: audio
+⚡️  [log] - 📞 Connection state: connecting
+⚡️  [log] - 📞 Remote audio playing successfully
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763114436758_dkjzcl3vq","candidate":{"candidate":"candidate:1839621980 1 udp 1685987071 94.44.235.6 13462 typ srflx raddr 172.20.10.12 rport 50590 generation 0 ufrag aEaW network-id 1 network-cost 10","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"aEaW"},"fromUserId":121}
+⚡️  [log] - 📞 WebSocket signaling event: call-ice-candidate
+⚡️  [warn] - [CallSessionStore] handleIceCandidate: No active session
+⚡️  [log] - 📞 CallModal received signaling message: call-ice-candidate
+⚡️  [log] - 📞 Connection state: connected
+⚡️  [log] - 📞 Connection established - starting call recording
+⚡️  [log] - 📞 Both local and remote streams added to recording
+WebContent[43779] AudioComponentPluginMgr.mm:590   reg server remote proxy error Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service named com.apple.audio.AudioComponentRegistrar was invalidated: Connection init failed at lookup with error 1 - Operation no
+WebContent[43779] AudioComponentPluginMgr.mm:590   reg server remote proxy error Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service named com.apple.audio.AudioComponentRegistrar was invalidated: Connection init failed at lookup with error 1 - Operation no
+WebContent[43779] AudioComponentPluginMgr.mm:590   reg server remote proxy error Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service named com.apple.audio.AudioComponentRegistrar was invalidated: Connection init failed at lookup with error 1 - Operation no
+WebContent[43779] AudioSampleBufferConverter getting kAudioCodecPropertyDelayMode failed with 1886547824
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763114436758_dkjzcl3vq","candidate":{"candidate":"candidate:656390080 1 tcp 1518280447 169.254.99.121 9 typ host tcptype active generation 0 ufrag aEaW network-id 2","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"aEaW"},"fromUserId":121}
+⚡️  [log] - 📞 WebSocket signaling event: call-ice-candidate
+⚡️  [warn] - [CallSessionStore] handleIceCandidate: No active session
+⚡️  [log] - 📞 CallModal received signaling message: call-ice-candidate
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763114436758_dkjzcl3vq","candidate":{"candidate":"candidate:1011241718 1 tcp 1518214911 172.20.10.12 9 typ host tcptype active generation 0 ufrag aEaW network-id 1 network-cost 10","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"aEaW"},"fromUserId":121}
+⚡️  [log] - 📞 WebSocket signaling event: call-ice-candidate
+⚡️  [warn] - [CallSessionStore] handleIceCandidate: No active session
+⚡️  [log] - 📞 CallModal received signaling message: call-ice-candidate
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763114436758_dkjzcl3vq","candidate":{"candidate":"candidate:3568096616 1 tcp 1518154495 fd1b:db0e:10c8::2 9 typ host tcptype active generation 0 ufrag aEaW network-id 3 network-cost 50","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"aEaW"},"fromUserId":121}
+⚡️  [log] - 📞 WebSocket signaling event: call-ice-candidate
+⚡️  [warn] - [CallSessionStore] handleIceCandidate: No active session
+⚡️  [log] - 📞 CallModal received signaling message: call-ice-candidate
+⚡️  [log] - Message msg_1763114442798_puax29hzs sent immediately
+⚡️  [error] - 📞 Failed to save call recording: 500
+⚡️  [log] - WebSocket message received: {"type":"call-end","targetUserId":126,"callSessionId":"call_1763114436758_dkjzcl3vq","fromUserId":121}
+⚡️  [log] - 📞 WebSocket signaling event: call-end
+⚡️  [warn] - [CallSessionStore] handleEnd: No active session
+⚡️  [log] - 📞 CallModal received signaling message: call-end
+⚡️  [log] - Message msg_1763114443271_0tws0uakd sent immediately
+⚡️  [log] - WebSocket message received: {"type":"call-end","targetUserId":126,"callSessionId":"call_1763114436758_dkjzcl3vq","fromUserId":121}
+⚡️  [log] - 📞 WebSocket signaling event: call-end
+⚡️  [warn] - [CallSessionStore] handleEnd: No active session
+⚡️  [log] - 📞 CallModal received signaling message: call-end
+⚡️  [log] - Message msg_1763114443792_a6tubyuo4 sent immediately
+⚡️  [log] - WebSocket message received: {"type":"call-end","targetUserId":126,"callSessionId":"call_1763114436758_dkjzcl3vq","fromUserId":121}
+⚡️  [log] - 📞 WebSocket signaling event: call-end
+⚡️  [warn] - [CallSessionStore] handleEnd: No active session
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763114446635_tm1eel8ku","candidate":{"candidate":"candidate:368942753 1 udp 2122260224 169.254.99.121 65112 typ host generation 0 ufrag sRWk network-id 2","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"sRWk"},"fromUserId":121}
+⚡️  [log] - 📞 WebSocket signaling event: call-ice-candidate
+⚡️  [warn] - [CallSessionStore] handleIceCandidate: No active session
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763114446635_tm1eel8ku","candidate":{"candidate":"candidate:245660567 1 udp 2122194688 172.20.10.12 61234 typ host generation 0 ufrag sRWk network-id 1 network-cost 10","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"sRWk"},"fromUserId":121}
+⚡️  [log] - 📞 WebSocket signaling event: call-ice-candidate
+⚡️  [warn] - [CallSessionStore] handleIceCandidate: No active session
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763114446635_tm1eel8ku","candidate":{"candidate":"candidate:3863936009 1 udp 2122134272 fd1b:db0e:10c8::2 64540 typ host generation 0 ufrag sRWk network-id 3 network-cost 50","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"sRWk"},"fromUserId":121}
+⚡️  [log] - 📞 WebSocket signaling event: call-ice-candidate
+⚡️  [warn] - [CallSessionStore] handleIceCandidate: No active session
+⚡️  [log] - WebSocket message received: {"type":"call-offer","targetUserId":126,"chatRoomId":119,"callSessionId":"call_1763114446635_tm1eel8ku","callType":"voice","offer":{"type":"offer","sdp":"v=0\r\no=- 2786065355196023257 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=group:BUNDLE 0\r\na=extmap-allow-mixed\r\na=msid-semantic: WMS ac5c8c80-419b-4b90-9a3d-5b6ce58a7d66\r\nm=audio 9 UDP/TLS/RTP/SAVPF 111 63 9 0 8 13 110 126\r\nc=IN IP4 0.0.0.0\r\na=rtcp:9 IN IP4 0.0.0.0\r\na=ice-ufrag:sRWk\r\na=ice-pwd:to0Rv6s0tJzdkRYJE7vHgiP3\r\na=ice-options:trickle\r\na=fingerprint:sha-256 6C:01:16:BD:EE:4C:86:61:D6:24:2E:50:42:3F:22:EA:42:6A:34:A7:68:A6:52:DE:A5:6D:81:FF:48:FA:BD:88\r\na=setup:actpass\r\na=mid:0\r\na=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level\r\na=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time\r\na=extmap:3 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01\r\na=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid\r\na=sendrecv\r\na=msid:ac5c8c80-419b-4b90-9a3d-5b6ce58a7d66 9b0a0428-92d6-444f-8c2d-ef0f59eadd38\r\na=rtcp-mux\r\na=rtcp-rsize\r\na=rtpmap:111 opus/48000/2\r\na=rtcp-fb:111 transport-cc\r\na=fmtp:111 minptime=10;useinbandfec=1\r\na=rtpmap:63 red/48000/2\r\na=fmtp:63 111/111\r\na=rtpmap:9 G722/8000\r\na=rtpmap:0 PCMU/8000\r\na=rtpmap:8 PCMA/8000\r\na=rtpmap:13 CN/8000\r\na=rtpmap:110 telephone-event/48000\r\na=rtpmap:126 telephone-event/8000\r\na=ssrc:207555746 cname:RlCfY1xXFj2vaHep\r\na=ssrc:207555746 msid:ac5c8c80-419b-4b90-9a3d-5b6ce58a7d66 9b0a0428-92d6-444f-8c2d-ef0f59eadd38\r\n"},"fromUserId":121,"callerName":"real","callerProfilePicture":"/uploads/profile_1761144817232_rf4rde1nn4e.jpg"}
+⚡️  [log] - 📞 WebSocket signaling event: call-offer
+⚡️  [log] - [CallSessionStore] Successfully claimed incoming call: call_1763114446635_tm1eel8ku
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763114446635_tm1eel8ku","candidate":{"candidate":"candidate:2716768937 1 udp 1685987071 94.44.235.6 13531 typ srflx raddr 172.20.10.12 rport 61234 generation 0 ufrag sRWk network-id 1 network-cost 10","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"sRWk"},"fromUserId":121}
+⚡️  [log] - 📞 WebSocket signaling event: call-ice-candidate
+⚡️  [warn] - [CallSessionStore] handleIceCandidate: No active session
+⚡️  [log] - [CallSessionStore] Session created: call_1763114446635_tm1eel8ku, state: ringing
+⚡️  [log] - [CallSessionStore] Session claimed: call_1763114446635_tm1eel8ku
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - 📱 Starting incoming ringtone for receiver
+⚡️  [log] - 📞 CallModal useEffect triggered: {"isOpen":true,"isIncoming":true,"hasAnswered":false}
+⚡️  [log] - 📞 Incoming call - waiting for user to answer
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763114446635_tm1eel8ku","candidate":{"candidate":"candidate:3948366389 1 tcp 1518280447 169.254.99.121 9 typ host tcptype active generation 0 ufrag sRWk network-id 2","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"sRWk"},"fromUserId":121}
+⚡️  [log] - 📞 CallModal received signaling message: call-ice-candidate
+⚡️  [log] - 📞 WebSocket signaling event: call-ice-candidate
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763114446635_tm1eel8ku","candidate":{"candidate":"candidate:4027494147 1 tcp 1518214911 172.20.10.12 9 typ host tcptype active generation 0 ufrag sRWk network-id 1 network-cost 10","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"sRWk"},"fromUserId":121}
+⚡️  [log] - 📞 CallModal received signaling message: call-ice-candidate
+⚡️  [log] - 📞 WebSocket signaling event: call-ice-candidate
+⚡️  [log] - [CallSessionStore] Session updated: call_1763114446635_tm1eel8ku
+⚡️  [log] - [CallSessionStore] Session updated: call_1763114446635_tm1eel8ku
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763114446635_tm1eel8ku","candidate":{"candidate":"candidate:417605789 1 tcp 1518154495 fd1b:db0e:10c8::2 9 typ host tcptype active generation 0 ufrag sRWk network-id 3 network-cost 50","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"sRWk"},"fromUserId":121}
+⚡️  [log] - 📞 CallModal received signaling message: call-ice-candidate
+⚡️  [log] - 📞 WebSocket signaling event: call-ice-candidate
+⚡️  [log] - [CallSessionStore] Session updated: call_1763114446635_tm1eel8ku
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - 📞 CallModal useEffect triggered: {"isOpen":true,"isIncoming":true,"hasAnswered":true}
+⚡️  [log] - 📞 Setting up call...
+⚡️  [log] - 📞 Getting local media stream...
+⚡️  [log] - 📞 Local stream acquired: ["audio: iPhone Microphone"]
+⚡️  [log] - 📞 Creating peer connection...
+⚡️  [log] - 📞 Peer connection created
+⚡️  [log] - 📞 Received remote track: audio
+⚡️  [log] - 📞 Remote audio playing successfully
+⚡️  [log] - Message msg_1763114449080_tqzz9jmnj sent immediately
+⚡️  [log] - 📞 Sending ICE candidate
+⚡️  [log] - Message msg_1763114449081_swvne1kkn sent immediately
+⚡️  [log] - 📞 Sending ICE candidate
+⚡️  [log] - Message msg_1763114449118_7g9bc9n9m sent immediately
+⚡️  [log] - 📞 Connection state: connecting
+⚡️  [log] - Message msg_1763114454933_6z94qkm5z sent immediately
+⚡️  [log] - WebSocket message received: {"type":"call-end","targetUserId":126,"callSessionId":"call_1763114446635_tm1eel8ku","fromUserId":121}
+⚡️  [log] - 📞 CallModal received signaling message: call-end
+⚡️  [log] - Message msg_1763114455400_eb0dg0e04 sent immediately
+⚡️  [log] - 📞 WebSocket signaling event: call-end
+⚡️  [log] - [CallSessionStore] Session state changed: call_1763114446635_tm1eel8ku → ended
+⚡️  [log] - [CallSessionStore] Session call_1763114446635_tm1eel8ku reached terminal state, cleaning up
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - WebSocket message received: {"type":"call-end","targetUserId":126,"callSessionId":"call_1763114446635_tm1eel8ku","fromUserId":121}
+⚡️  [log] - 📞 CallModal received signaling message: call-end
+⚡️  [log] - Message msg_1763114455887_52u0pk57w sent immediately
+⚡️  [log] - 📞 WebSocket signaling event: call-end
+⚡️  [log] - [CallSessionStore] Session state changed: call_1763114446635_tm1eel8ku → ended
+⚡️  [log] - [CallSessionStore] Session call_1763114446635_tm1eel8ku reached terminal state, cleaning up
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - [CallSessionStore] Session released: call_1763114446635_tm1eel8ku
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - WebSocket message received: {"type":"call-end","targetUserId":126,"callSessionId":"call_1763114446635_tm1eel8ku","fromUserId":121}
+⚡️  [log] - 📞 WebSocket signaling event: call-end
+⚡️  [warn] - [CallSessionStore] handleEnd: No active session
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - [CallSessionStore] Session released: call_1763114446635_tm1eel8ku
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - WebSocket disconnected: 1000 App backgrounded
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - [CallSessionStore] Session released: call_1763114446635_tm1eel8ku
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  To Native ->  ⚡️  [log] - 📱 Real-time badge sync event: 0
+Badge set 96318596
+⚡️  TO JS undefined
+⚡️  To Native ->  Badge set ⚡️  [log] - 📱 Real-time badge sync event: 0
+96318597
+⚡️  TO JS undefined
+⚡️  To Native ->  Badge set 96318598
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  To Native ->  Badge set 96318599
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  [log] - [CallSessionStore] Removing terminal session: call_1763114446635_tm1eel8ku
+⚡️  [log] - [CallSessionStore] Session removed: call_1763114446635_tm1eel8ku
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - [CallSessionStore] Removing terminal session: call_1763114446635_tm1eel8ku
+⚡️  [log] - [CallSessionStore] Session removed: call_1763114446635_tm1eel8ku
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - [NotificationManager] App visible - suppressing notifications
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 📱 앱이 활성화됨 - 배지 상태 새로고침
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🔄 PWA app opened - syncing messages immediately
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [log] - 📱 App foregrounded - reconnecting WebSocket
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - 📱 Calling connect() after foreground transition
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://dovie-hello2sangyun.replit.app/ws
+⚡️  [log] -    Protocol: wss:, Host: dovie-hello2sangyun.replit.app
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  To Native ->  Badge set 96318600
+⚡️  TO JS undefined
+⚡️  To Native ->  Badge set 96318601
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  [log] - WebSocket message received: {"type":"call-end","targetUserId":126,"callSessionId":"call_1763114469884_3n3ul13nl","fromUserId":121}
+⚡️  [log] - 📞 WebSocket signaling event: call-end
+⚡️  [warn] - [CallSessionStore] handleEnd: No active session
+⚡️  To Native ->  Badge set 96318602
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  TO JS undefined
+⚡️  [log] - 📱 Real-time badge sync event: 0
+⚡️  To Native ->  Badge set 96318603
+⚡️  TO JS undefined
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - WebSocket disconnected: 1000 App backgrounded
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline
