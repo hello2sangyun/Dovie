@@ -164,7 +164,8 @@ async function persistCallSession(session: CallSession): Promise<void> {
       return;
     }
 
-    await storage.createCall({
+    // Save call record to database
+    const call = await storage.createCall({
       chatRoomId: session.chatRoomId,
       callerId: session.callerId,
       receiverId: session.receiverId,
@@ -179,6 +180,70 @@ async function persistCallSession(session: CallSession): Promise<void> {
     });
 
     console.log(`📞 CallSession persisted to DB: ${session.callSessionId} (${session.state})`);
+
+    // Create chat message for call record
+    let messageContent = '';
+    if (session.state === CallSessionState.ENDED) {
+      if (session.duration) {
+        const minutes = Math.floor(session.duration / 60);
+        const seconds = session.duration % 60;
+        const paddedSeconds = seconds.toString().padStart(2, '0');
+        if (minutes > 0) {
+          messageContent = `통화 ${minutes}분 ${paddedSeconds}초`;
+        } else {
+          messageContent = `통화 ${seconds}초`;
+        }
+      } else {
+        // Fallback for ENDED without duration
+        messageContent = '통화 종료';
+      }
+    } else if (session.state === CallSessionState.REJECTED) {
+      messageContent = '부재중 전화';
+    } else if (session.state === CallSessionState.CANCELED) {
+      messageContent = '취소된 통화';
+    } else if (session.state === CallSessionState.EXPIRED) {
+      messageContent = '응답 없음';
+    }
+
+    // Skip message creation if content is empty (safety check)
+    if (!messageContent || messageContent.trim() === '') {
+      console.warn(`📞 Skipping message creation for call session ${session.callSessionId} - empty content`);
+      return;
+    }
+
+    // Create message in chat room
+    const message = await storage.createMessage({
+      chatRoomId: session.chatRoomId,
+      userId: session.callerId,
+      content: messageContent,
+      messageType: 'call',
+      callId: call.id
+    } as any);
+
+    // Broadcast message to both users via WebSocket
+    const callerWs = connections.get(session.callerId);
+    const receiverWs = connections.get(session.receiverId);
+    
+    const messageData = {
+      type: 'new-message',
+      message: {
+        ...message,
+        user: {
+          id: session.callerId,
+          displayName: session.callerName,
+          profilePicture: session.callerProfilePicture
+        }
+      }
+    };
+
+    if (callerWs && callerWs.readyState === WebSocket.OPEN) {
+      callerWs.send(JSON.stringify(messageData));
+    }
+    if (receiverWs && receiverWs.readyState === WebSocket.OPEN) {
+      receiverWs.send(JSON.stringify(messageData));
+    }
+
+    console.log(`📞 Call message created in chat room ${session.chatRoomId}: ${messageContent}`);
   } catch (error) {
     console.error(`📞 Failed to persist call session ${session.callSessionId}:`, error);
   }
