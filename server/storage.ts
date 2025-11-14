@@ -1727,17 +1727,18 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async saveVoipToken(userId: number, voipToken: string): Promise<void> {
+  async saveVoipToken(userId: number, voipToken: string, platform: string = 'ios'): Promise<void> {
     try {
-      // Update existing device token record with VoIP token
+      // Update existing device token record with VoIP token and platform
       await db.update(iosDeviceTokens)
         .set({ 
           voipToken,
+          platform,
           updatedAt: new Date()
         })
         .where(eq(iosDeviceTokens.userId, userId));
       
-      console.log(`✅ VoIP token saved for user ${userId}`);
+      console.log(`✅ VoIP token saved for user ${userId} (platform: ${platform})`);
     } catch (error) {
       console.error('VoIP 토큰 저장 오류:', error);
       throw error;
@@ -1775,13 +1776,15 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getIOSDeviceTokens(userId: number): Promise<{ deviceToken: string, platform: string }[]> {
+  async getIOSDeviceTokens(userId: number): Promise<{ id: number, deviceToken: string, platform: string, voipToken: string | null }[]> {
     try {
       console.log(`📱 iOS 토큰 조회 시작: userId=${userId}`);
       
       const tokens = await db.select({
+        id: iosDeviceTokens.id,
         deviceToken: iosDeviceTokens.deviceToken,
-        platform: iosDeviceTokens.platform
+        platform: iosDeviceTokens.platform,
+        voipToken: iosDeviceTokens.voipToken
       })
       .from(iosDeviceTokens)
       .where(and(
@@ -1791,7 +1794,7 @@ export class DatabaseStorage implements IStorage {
       
       console.log(`📱 조회된 iOS 토큰 수: ${tokens.length}`);
       if (tokens.length > 0) {
-        console.log(`📱 첫 번째 토큰: ${tokens[0].deviceToken.substring(0, 20)}...`);
+        console.log(`📱 첫 번째 토큰: ${tokens[0].deviceToken.substring(0, 20)}..., VoIP: ${tokens[0].voipToken ? 'Yes' : 'No'}`);
       }
       
       return tokens;

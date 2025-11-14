@@ -5435,14 +5435,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Unauthorized" });
       }
 
-      const { voipToken } = req.body;
+      const { voipToken, platform } = req.body;
       if (!voipToken) {
         return res.status(400).json({ error: "VoIP token is required" });
       }
 
-      console.log(`📞 Registering VoIP token for user ${userId}`);
+      console.log(`📞 Registering VoIP token for user ${userId} (platform: ${platform || 'ios'})`);
       
-      await storage.saveVoipToken(Number(userId), voipToken);
+      await storage.saveVoipToken(Number(userId), voipToken, platform || 'ios');
 
       res.json({ success: true, message: "VoIP token registered successfully" });
     } catch (error) {

@@ -126,11 +126,14 @@ export class CallKitService {
           'Content-Type': 'application/json',
           'x-user-id': localStorage.getItem('userId') || ''
         },
-        body: JSON.stringify({ voipToken: token })
+        body: JSON.stringify({ 
+          voipToken: token,
+          platform: 'ios'  // Always 'ios' for CallKit VoIP
+        })
       });
       
       if (response.ok) {
-        console.log('✅ [CallKitService] VoIP token registered on server');
+        console.log('✅ [CallKitService] VoIP token registered on server (platform: ios)');
       } else {
         console.error('❌ [CallKitService] Failed to register VoIP token:', await response.text());
       }
