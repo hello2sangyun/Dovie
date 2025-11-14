@@ -5569,12 +5569,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             // Check if target has iOS VoIP tokens
             const iosDeviceTokens = await storage.getIOSDeviceTokens(targetUserId);
+            console.log(`📞 [VoIP Debug] Found ${iosDeviceTokens.length} iOS device(s) for user ${targetUserId}`);
+            
             let voipPushSent = false;
             
             // Send VoIP push to iOS devices with voipToken
             for (const device of iosDeviceTokens) {
+              console.log(`📞 [VoIP Debug] Device ${device.id}: platform=${device.platform}, hasVoipToken=${!!device.voipToken}`);
+              
               if (device.voipToken) {
                 try {
+                  console.log(`📞 [VoIP Debug] Sending VoIP push with payload:`, {
+                    callSessionId: sessionId,
+                    callerName: session.callerName,
+                    callerId: userId,
+                    chatRoomId
+                  });
+                  
                   await sendVoIPPush(device.voipToken, {
                     callSessionId: sessionId,
                     callerName: session.callerName,
@@ -5582,10 +5593,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     chatRoomId
                   });
                   voipPushSent = true;
-                  console.log(`📞 VoIP push sent to iOS device: ${device.id}`);
+                  console.log(`✅ [VoIP Debug] VoIP push sent successfully to device ${device.id}`);
                 } catch (error) {
-                  console.error(`❌ Failed to send VoIP push to device ${device.id}:`, error);
+                  console.error(`❌ [VoIP Debug] Failed to send VoIP push to device ${device.id}:`, error);
                 }
+              } else {
+                console.log(`⚠️ [VoIP Debug] Device ${device.id} has no VoIP token, skipping VoIP push`);
               }
             }
             
