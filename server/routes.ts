@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request, Response } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
@@ -1560,37 +1560,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Business card routes
-  app.get("/api/business-cards/:userId?", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
+  // TODO: Business card routes - Currently commented out due to missing storage methods
+  // TODO: Implement storage.getBusinessCard() method before enabling
+  // app.get("/api/business-cards/:userId?", async (req, res) => {
+  //   const userId = req.headers["x-user-id"];
+  //   if (!userId) {
+  //     return res.status(401).json({ message: "Not authenticated" });
+  //   }
 
-    try {
-      const targetUserId = req.params.userId ? Number(req.params.userId) : Number(userId);
-      const businessCard = await storage.getBusinessCard(targetUserId);
-      res.json({ businessCard });
-    } catch (error) {
-      console.error("Error fetching business card:", error);
-      res.status(500).json({ message: "Failed to fetch business card" });
-    }
-  });
+  //   try {
+  //     const targetUserId = req.params.userId ? Number(req.params.userId) : Number(userId);
+  //     const businessCard = await storage.getBusinessCard(targetUserId);
+  //     res.json({ businessCard });
+  //   } catch (error) {
+  //     console.error("Error fetching business card:", error);
+  //     res.status(500).json({ message: "Failed to fetch business card" });
+  //   }
+  // });
 
-  app.post("/api/business-cards", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
+  // TODO: Implement storage.createOrUpdateBusinessCard() method before enabling
+  // app.post("/api/business-cards", async (req, res) => {
+  //   const userId = req.headers["x-user-id"];
+  //   if (!userId) {
+  //     return res.status(401).json({ message: "Not authenticated" });
+  //   }
 
-    try {
-      const businessCard = await storage.createOrUpdateBusinessCard(Number(userId), req.body);
-      res.json({ businessCard });
-    } catch (error) {
-      console.error("Error updating business card:", error);
-      res.status(500).json({ message: "Failed to update business card" });
-    }
-  });
+  //   try {
+  //     const businessCard = await storage.createOrUpdateBusinessCard(Number(userId), req.body);
+  //     res.json({ businessCard });
+  //   } catch (error) {
+  //     console.error("Error updating business card:", error);
+  //     res.status(500).json({ message: "Failed to update business card" });
+  //   }
+  // });
 
   // Business profile routes
   app.get("/api/business-profiles/:userId?", async (req, res) => {
@@ -1624,91 +1626,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Business card sharing routes
-  app.post("/api/business-cards/share", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
+  // TODO: Business card sharing routes - Currently commented out due to missing storage methods
+  // TODO: Implement storage.createBusinessCardShare() method before enabling
+  // app.post("/api/business-cards/share", async (req, res) => {
+  //   const userId = req.headers["x-user-id"];
+  //   if (!userId) {
+  //     return res.status(401).json({ message: "Not authenticated" });
+  //   }
 
-    try {
-      const share = await storage.createBusinessCardShare(Number(userId));
-      const shareUrl = `${req.protocol}://${req.get('host')}/business-card/${share.shareToken}`;
-      res.json({ share, shareUrl });
-    } catch (error) {
-      console.error("Error creating share link:", error);
-      res.status(500).json({ message: "Failed to create share link" });
-    }
-  });
+  //   try {
+  //     const share = await storage.createBusinessCardShare(Number(userId));
+  //     const shareUrl = `${req.protocol}://${req.get('host')}/business-card/${share.shareToken}`;
+  //     res.json({ share, shareUrl });
+  //   } catch (error) {
+  //     console.error("Error creating share link:", error);
+  //     res.status(500).json({ message: "Failed to create share link" });
+  //   }
+  // });
 
-  app.get("/api/business-cards/share-info", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
+  // TODO: Implement storage.getBusinessCardShareInfo() method before enabling
+  // app.get("/api/business-cards/share-info", async (req, res) => {
+  //   const userId = req.headers["x-user-id"];
+  //   if (!userId) {
+  //     return res.status(401).json({ message: "Not authenticated" });
+  //   }
 
-    try {
-      const share = await storage.getBusinessCardShareInfo(Number(userId));
-      if (share) {
-        const shareUrl = `${req.protocol}://${req.get('host')}/business-card/${share.shareToken}`;
-        res.json({ ...share, shareUrl });
-      } else {
-        res.json({ shareUrl: null });
-      }
-    } catch (error) {
-      console.error("Error fetching share info:", error);
-      res.status(500).json({ message: "Failed to fetch share info" });
-    }
-  });
+  //   try {
+  //     const share = await storage.getBusinessCardShareInfo(Number(userId));
+  //     if (share) {
+  //       const shareUrl = `${req.protocol}://${req.get('host')}/business-card/${share.shareToken}`;
+  //       res.json({ ...share, shareUrl });
+  //     } else {
+  //       res.json({ shareUrl: null });
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching share info:", error);
+  //     res.status(500).json({ message: "Failed to fetch share info" });
+  //   }
+  // });
 
-  app.get("/business-card/:shareToken", async (req, res) => {
-    try {
-      const share = await storage.getBusinessCardShare(req.params.shareToken);
-      if (!share) {
-        return res.status(404).send("Business card not found");
-      }
+  // TODO: Implement storage.getBusinessCardShare() and storage.getBusinessCard() methods before enabling
+  // app.get("/business-card/:shareToken", async (req, res) => {
+  //   try {
+  //     const share = await storage.getBusinessCardShare(req.params.shareToken);
+  //     if (!share) {
+  //       return res.status(404).send("Business card not found");
+  //     }
 
-      const businessCard = await storage.getBusinessCard(share.userId);
-      const user = await storage.getUser(share.userId);
-      
-      // Simple HTML page for business card viewing
-      const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>${businessCard?.fullName || user?.displayName || 'Business Card'}</title>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <style>
-            body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
-            .card { border: 1px solid #ddd; border-radius: 8px; padding: 20px; background: #f9f9f9; }
-            .name { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
-            .title { font-size: 18px; color: #666; margin-bottom: 10px; }
-            .company { font-size: 16px; margin-bottom: 15px; }
-            .contact-info { margin-bottom: 10px; }
-          </style>
-        </head>
-        <body>
-          <div class="card">
-            <div class="name">${businessCard?.fullName || user?.displayName || 'Name not available'}</div>
-            <div class="title">${businessCard?.jobTitle || 'Position not available'}</div>
-            <div class="company">${businessCard?.companyName || 'Company not available'}</div>
-            ${businessCard?.email ? `<div class="contact-info">📧 ${businessCard.email}</div>` : ''}
-            ${businessCard?.phoneNumber ? `<div class="contact-info">📞 ${businessCard.phoneNumber}</div>` : ''}
-            ${businessCard?.website ? `<div class="contact-info">🌐 <a href="${businessCard.website}">${businessCard.website}</a></div>` : ''}
-            ${businessCard?.address ? `<div class="contact-info">📍 ${businessCard.address}</div>` : ''}
-            ${businessCard?.description ? `<div style="margin-top: 15px;">${businessCard.description}</div>` : ''}
-          </div>
-        </body>
-        </html>
-      `;
-      
-      res.send(html);
-    } catch (error) {
-      console.error("Error displaying business card:", error);
-      res.status(500).send("Error loading business card");
-    }
-  });
+  //     const businessCard = await storage.getBusinessCard(share.userId);
+  //     const user = await storage.getUser(share.userId);
+  //     
+  //     // Simple HTML page for business card viewing
+  //     const html = `
+  //       <!DOCTYPE html>
+  //       <html>
+  //       <head>
+  //         <title>${businessCard?.fullName || user?.displayName || 'Business Card'}</title>
+  //         <meta charset="utf-8">
+  //         <meta name="viewport" content="width=device-width, initial-scale=1">
+  //         <style>
+  //           body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+  //           .card { border: 1px solid #ddd; border-radius: 8px; padding: 20px; background: #f9f9f9; }
+  //           .name { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
+  //           .title { font-size: 18px; color: #666; margin-bottom: 10px; }
+  //           .company { font-size: 16px; margin-bottom: 15px; }
+  //           .contact-info { margin-bottom: 10px; }
+  //         </style>
+  //       </head>
+  //       <body>
+  //         <div class="card">
+  //           <div class="name">${businessCard?.fullName || user?.displayName || 'Name not available'}</div>
+  //           <div class="title">${businessCard?.jobTitle || 'Position not available'}</div>
+  //           <div class="company">${businessCard?.companyName || 'Company not available'}</div>
+  //           ${businessCard?.email ? `<div class="contact-info">📧 ${businessCard.email}</div>` : ''}
+  //           ${businessCard?.phoneNumber ? `<div class="contact-info">📞 ${businessCard.phoneNumber}</div>` : ''}
+  //           ${businessCard?.website ? `<div class="contact-info">🌐 <a href="${businessCard.website}">${businessCard.website}</a></div>` : ''}
+  //           ${businessCard?.address ? `<div class="contact-info">📍 ${businessCard.address}</div>` : ''}
+  //           ${businessCard?.description ? `<div style="margin-top: 15px;">${businessCard.description}</div>` : ''}
+  //         </div>
+  //       </body>
+  //       </html>
+  //     `;
+  //     
+  //     res.send(html);
+  //   } catch (error) {
+  //     console.error("Error displaying business card:", error);
+  //     res.status(500).send("Error loading business card");
+  //   }
+  // });
 
   // User posts routes
   app.get("/api/user-posts/:userId?", async (req, res) => {
@@ -1773,7 +1778,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({
         ...chatRoom,
-        profileImage: chatRoom.profileImagePath || null,
+        profileImage: chatRoom.profilePicture || null,
       });
     } catch (error) {
       console.error("Get chat room error:", error);
@@ -1924,8 +1929,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No file uploaded" });
       }
 
-      const profileImagePath = `/uploads/${req.file.filename}`;
-      const chatRoom = await storage.updateChatRoomProfileImage(Number(req.params.chatRoomId), Number(userId), profileImagePath);
+      const profilePicture = `/uploads/${req.file.filename}`;
+      const chatRoom = await storage.updateChatRoomProfileImage(Number(req.params.chatRoomId), Number(userId), profilePicture);
       
       // WebSocket으로 알림
       broadcastToRoom(Number(req.params.chatRoomId), {
