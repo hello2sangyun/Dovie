@@ -1,0 +1,271 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/63F24B19-50B0-479C-BAFC-B7F7C431FDD1/App.app'
+KeyboardPlugin: resize mode - native
+⚡️  Loading app at https://dovie-hello2sangyun.replit.app...
+Updated list with error: DownloadFailed
+Updated list with error: DownloadFailed
+Updated list with error: DownloadFailed
+📱 [AppDelegate] Registered for remote notifications
+Networking process (0x114064190) took 8.591568 seconds to launch
+GPU process (0x1141181e0) took 3.300137 seconds to launch
+WebContent process (0x1140ec100) took 4.251403 seconds to launch
+📱 [AppDelegate] APNS 토큰 등록 성공
+0x1140ec100 - [PID=44930] WebProcessProxy::didBecomeUnresponsive:
+0x119c6c018 - [pageProxyID=7, webPageID=8, PID=44930] WebPageProxy::processDidBecomeUnresponsive:
+Updated list with error: DownloadFailed
+WebContent[44930] 0x105398b68 - [webPageID=8] WebPage::runJavaScriptInFrameInScriptWorld: Request to run JavaScript failed with error <private>
+⚡️  JS Eval error A JavaScript exception occurred
+WebContent[44930] Unable to hide query parameters from script (missing data)
+⚡️  [log] - 🚀 Native platform detected - preloading critical pages
+⚡️  [log] - [SW] Service Worker support check: {"supported":false,"navigatorSW":"undefined","isSecureContext":true}
+⚡️  [warn] - [SW] Service Workers not supported in this environment (WKWebView/Replit preview)
+⚡️  [warn] - [SW] To test SW features, open the app in a real browser: Chrome, Firefox, Safari
+⚡️  [log] - [CallSessionStore] BroadcastChannel initialized
+⚡️  To Native ->  App addListener 42215317
+⚡️  WebView loaded
+⚡️  [log] - [Badge] Service Worker not supported
+⚡️  [log] - ✅ Navigation service registered
+⚡️  [log] - ✅ Navigator registered with navigation service
+⚡️  To Native ->  App addListener 42215318
+⚡️  To Native ->  App addListener 42215319
+⚡️  To Native ->  PushNotifications addListener 42215320
+⚡️  To Native ->  PushNotifications addListener 42215321
+⚡️  To Native ->  PushNotifications addListener 42215322
+⚡️  To Native ->  PushNotifications addListener 42215323
+⚡️  To Native ->  PushNotifications requestPermissions 42215324
+⚡️  TO JS {"receive":"granted"}
+⚡️  To Native ->  PushNotifications register 42215325
+⚡️  TO JS undefined
+⚡️  TO JS {"value":"CAE0FFC37B90C7D99F1D10B05264F1A45EF1B0BF50A05B393768128DF1B8AE98"}
+📱 [AppDelegate] APNS 토큰 등록 성공
+⚡️  [log] - 📱 iOS 네이티브 푸시 알림 등록 성공 (리스너 대기 중)
+⚡️  [log] - 📱 iOS 푸시 토큰 획득: CAE0FFC37B90C7D99F1D10B05264F1A45EF1B0BF50A05B393768128DF1B8AE98
+⚡️  [log] - 📱 서버로 iOS 토큰 전송 시작: CAE0FFC37B90C7D99F1D...
+⚡️  [log] - 🔄 Auth context updating user: 126 profilePicture: /uploads/profile_1761606486798_jejztvnxp8j.jpg
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+⚡️  [log] - ✅ Navigation service registered
+⚡️  [log] - ✅ Navigator registered with navigation service
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://dovie-hello2sangyun.replit.app/ws
+⚡️  [log] -    Protocol: wss:, Host: dovie-hello2sangyun.replit.app
+⚡️  To Native ->  App addListener 42215326
+⚡️  To Native ->  App addListener 42215327
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+Updated list with error: DownloadFailed
+⚡️  [log] - ✅ iOS 푸시 토큰이 서버에 저장되었습니다: {"success":true,"message":"iOS push token registered successfully","userId":126,"tokenPreview":"CAE0FFC37B90C7D99F1D..."}
+⚡️  [log] - [NotificationManager] Activity status updated: online
+Updated list with error: DownloadFailed
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  To Native ->  App addListener 42215328
+⚡️  To Native ->  App addListener 42215329
+⚡️  To Native ->  App addListener 42215330
+⚡️  To Native ->  App addListener 42215331
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+WebContent[44930] The sandbox in this process does not allow access to RunningBoard.
+WebContent[44930] Handshake aborted as the connection has been invalidated
+WebContent[44930] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":126}
+⚡️  [log] - WebSocket authentication successful for user: 126
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 0
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: []
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+WebContent[44930] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] App visible - suppressing notifications
+⚡️  [log] - 📱 앱이 활성화됨 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app opened - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  TO JS {"isActive":true}
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - 📱 App state changed: active
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+⚡️  To Native ->  App removeListener 42215332
+⚡️  To Native ->  App removeListener 42215333
+⚡️  To Native ->  App removeListener 42215334
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  To Native ->  App addListener 42215335
+⚡️  To Native ->  App addListener 42215336
+⚡️  To Native ->  App addListener 42215337
+WebContent[44930] makeImagePlus:3798: *** ERROR: 'HJPG'-_reader->initImage[0] failed err=-39
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+⚡️  To Native ->  App removeListener 42215338
+⚡️  To Native ->  App removeListener 42215339
+⚡️  To Native ->  App removeListener 42215340
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763118789364_hcvtjbasy","candidate":{"candidate":"candidate:2106703641 1 udp 2122260224 172.20.10.12 56838 typ host generation 0 ufrag FAan network-id 1 network-cost 10","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"FAan"},"fromUserId":121}
+⚡️  [log] - 📞 WebSocket signaling event: call-ice-candidate
+⚡️  [warn] - [CallSessionStore] handleIceCandidate: No active session
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763118789364_hcvtjbasy","candidate":{"candidate":"candidate:3707626364 1 udp 2122199808 fdce:7d15:1118::2 64102 typ host generation 0 ufrag FAan network-id 2 network-cost 50","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"FAan"},"fromUserId":121}
+⚡️  [log] - 📞 WebSocket signaling event: call-ice-candidate
+⚡️  [warn] - [CallSessionStore] handleIceCandidate: No active session
+⚡️  [log] - WebSocket message received: {"type":"call-offer","targetUserId":126,"chatRoomId":119,"callSessionId":"call_1763118789364_hcvtjbasy","callType":"voice","offer":{"type":"offer","sdp":"v=0\r\no=- 5305576458370530779 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=group:BUNDLE 0\r\na=extmap-allow-mixed\r\na=msid-semantic: WMS ef14f1f1-509d-4761-8928-34effbee995c\r\nm=audio 9 UDP/TLS/RTP/SAVPF 111 63 9 0 8 13 110 126\r\nc=IN IP4 0.0.0.0\r\na=rtcp:9 IN IP4 0.0.0.0\r\na=ice-ufrag:FAan\r\na=ice-pwd:Uaao6qH68QX1vkTEVUlyzx3j\r\na=ice-options:trickle\r\na=fingerprint:sha-256 3F:EA:54:F1:FD:90:2B:04:5A:F9:7C:A4:EA:E4:DD:19:CF:53:AA:1D:A3:BD:C3:61:9D:0E:86:AC:46:53:35:FD\r\na=setup:actpass\r\na=mid:0\r\na=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level\r\na=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time\r\na=extmap:3 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01\r\na=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid\r\na=sendrecv\r\na=msid:ef14f1f1-509d-4761-8928-34effbee995c f403f0ce-f2ad-41ac-bc8b-fdf5458f011c\r\na=rtcp-mux\r\na=rtcp-rsize\r\na=rtpmap:111 opus/48000/2\r\na=rtcp-fb:111 transport-cc\r\na=fmtp:111 minptime=10;useinbandfec=1\r\na=rtpmap:63 red/48000/2\r\na=fmtp:63 111/111\r\na=rtpmap:9 G722/8000\r\na=rtpmap:0 PCMU/8000\r\na=rtpmap:8 PCMA/8000\r\na=rtpmap:13 CN/8000\r\na=rtpmap:110 telephone-event/48000\r\na=rtpmap:126 telephone-event/8000\r\na=ssrc:1298127190 cname:J7QfRXWFRFC9gxGH\r\na=ssrc:1298127190 msid:ef14f1f1-509d-4761-8928-34effbee995c f403f0ce-f2ad-41ac-bc8b-fdf5458f011c\r\n"},"fromUserId":121,"callerName":"real","callerProfilePicture":"/uploads/profile_1761144817232_rf4rde1nn4e.jpg"}
+⚡️  [log] - 📞 WebSocket signaling event: call-offer
+⚡️  [log] - [CallSessionStore] Successfully claimed incoming call: call_1763118789364_hcvtjbasy
+⚡️  [log] - [CallSessionStore] Session created: call_1763118789364_hcvtjbasy, state: ringing
+⚡️  [log] - [CallSessionStore] Session claimed: call_1763118789364_hcvtjbasy
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - 📱 Starting incoming ringtone for receiver
+⚡️  [log] - 📞 CallModal useEffect triggered: {"isOpen":true,"isIncoming":true,"hasAnswered":false}
+⚡️  [log] - 📞 Incoming call - waiting for user to answer
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763118789364_hcvtjbasy","candidate":{"candidate":"candidate:3537591847 1 udp 1686052607 94.44.235.6 13440 typ srflx raddr 172.20.10.12 rport 56838 generation 0 ufrag FAan network-id 1 network-cost 10","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"FAan"},"fromUserId":121}
+⚡️  [log] - 📞 CallModal received signaling message: call-ice-candidate
+⚡️  [log] - 📞 WebSocket signaling event: call-ice-candidate
+⚡️  [log] - [CallSessionStore] Session updated: call_1763118789364_hcvtjbasy
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763118789364_hcvtjbasy","candidate":{"candidate":"candidate:2201709453 1 tcp 1518280447 172.20.10.12 9 typ host tcptype active generation 0 ufrag FAan network-id 1 network-cost 10","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"FAan"},"fromUserId":121}
+⚡️  [log] - 📞 CallModal received signaling message: call-ice-candidate
+⚡️  [log] - 📞 WebSocket signaling event: call-ice-candidate
+⚡️  [log] - [CallSessionStore] Session updated: call_1763118789364_hcvtjbasy
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - WebSocket message received: {"type":"call-ice-candidate","targetUserId":126,"callSessionId":"call_1763118789364_hcvtjbasy","candidate":{"candidate":"candidate:576141288 1 tcp 1518220031 fdce:7d15:1118::2 9 typ host tcptype active generation 0 ufrag FAan network-id 2 network-cost 50","sdpMid":"0","sdpMLineIndex":0,"usernameFragment":"FAan"},"fromUserId":121}
+⚡️  [log] - 📞 CallModal received signaling message: call-ice-candidate
+⚡️  [log] - 📞 WebSocket signaling event: call-ice-candidate
+⚡️  [log] - [CallSessionStore] Session updated: call_1763118789364_hcvtjbasy
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - 📞 CallModal useEffect triggered: {"isOpen":true,"isIncoming":true,"hasAnswered":true}
+⚡️  [log] - 📞 Setting up call...
+⚡️  [log] - 📞 Getting local media stream...
+⚡️  [log] - 📞 Local stream acquired: ["audio: iPhone Microphone"]
+⚡️  [log] - 📞 Creating peer connection...
+WebContent[44930] ERROR AppleProResHW: 45: AppleProResHW_CheckPlatform(): IOServiceGetMatchingService failed
+⚡️  [log] - 📞 Peer connection created
+⚡️  [log] - 📞 Received remote track: audio
+⚡️  [log] - 📞 Remote audio playing successfully
+⚡️  [log] - Message msg_1763118792220_m6uzfsj7r sent immediately
+⚡️  [log] - 📞 Sending ICE candidate
+⚡️  [log] - Message msg_1763118792226_u561vppgg sent immediately
+⚡️  [log] - 📞 Sending ICE candidate
+⚡️  [log] - Message msg_1763118792283_e5co89s3f sent immediately
+⚡️  [log] - 📞 Connection state: connecting
+⚡️  [log] - Message msg_1763118798356_af6l1nglq sent immediately
+⚡️  [log] - WebSocket message received: {"type":"call-end","targetUserId":126,"callSessionId":"call_1763118789364_hcvtjbasy","fromUserId":121}
+⚡️  [log] - 📞 CallModal received signaling message: call-end
+⚡️  [log] - Message msg_1763118798874_h9vvbjce1 sent immediately
+⚡️  [log] - 📞 WebSocket signaling event: call-end
+⚡️  [log] - [CallSessionStore] Session state changed: call_1763118789364_hcvtjbasy → ended
+⚡️  [log] - [CallSessionStore] Session call_1763118789364_hcvtjbasy reached terminal state, cleaning up
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - WebSocket message received: {"type":"call-end","targetUserId":126,"callSessionId":"call_1763118789364_hcvtjbasy","fromUserId":121}
+⚡️  [log] - 📞 CallModal received signaling message: call-end
+⚡️  [log] - Message msg_1763118799352_kmfmshl7w sent immediately
+⚡️  [log] - 📞 WebSocket signaling event: call-end
+⚡️  [log] - [CallSessionStore] Session state changed: call_1763118789364_hcvtjbasy → ended
+⚡️  [log] - [CallSessionStore] Session call_1763118789364_hcvtjbasy reached terminal state, cleaning up
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [log] - [CallSessionStore] Session released: call_1763118789364_hcvtjbasy
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - [CallSessionStore] Session released: call_1763118789364_hcvtjbasy
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - [CallSessionStore] Session released: call_1763118789364_hcvtjbasy
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - [CallSessionStore] Removing terminal session: call_1763118789364_hcvtjbasy
+⚡️  [log] - [CallSessionStore] Session removed: call_1763118789364_hcvtjbasy
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - [CallSessionStore] Removing terminal session: call_1763118789364_hcvtjbasy
+⚡️  [log] - [CallSessionStore] Session removed: call_1763118789364_hcvtjbasy
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  TO JS {"isActive":false}
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - 📱 App state changed: background
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [log] - 📱 App backgrounded - closing WebSocket to save battery
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - WebSocket disconnected: 1000 App backgrounded
+⚡️  [log] - 📱 Not reconnecting - app in background or intentionally closed
+⚡️  [log] - 🧹 [CallKitService] Cleaned up listeners
+⚡️  [log] - MainApp rendering with user: 126
+⚡️  [log] - 📞 [CallKitService] Initializing...
+⚡️  [error] - ❌ [CallKitService] Initialization failed: {"code":"UNIMPLEMENTED"}
+⚡️  [log] - [NotificationManager] Activity status updated: offline
