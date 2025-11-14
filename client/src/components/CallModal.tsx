@@ -608,20 +608,15 @@ export function CallModal({
 
   if (!isOpen) return null;
 
-  // Get profile image URL
-  const profileImageUrl = targetProfilePicture 
-    ? `/api/profile-images/${targetProfilePicture}` 
-    : undefined;
-
   return (
     <div className="fixed inset-0 z-50 bg-white flex flex-col items-center justify-between p-6">
       {/* Top Section: Profile and Status */}
       <div className="w-full max-w-md text-center pt-20">
         {/* Profile Image */}
         <div className="w-40 h-40 mx-auto mb-8 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 shadow-lg overflow-hidden">
-          {profileImageUrl ? (
+          {targetProfilePicture ? (
             <img 
-              src={profileImageUrl} 
+              src={targetProfilePicture} 
               alt={targetName}
               className="w-full h-full object-cover"
             />
