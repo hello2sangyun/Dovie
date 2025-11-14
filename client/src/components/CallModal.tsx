@@ -54,12 +54,42 @@ export function CallModal({
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
   const callStartTimeRef = useRef<number>(0);
 
-  // ICE servers configuration
+  // ICE servers configuration with multiple STUN servers and free TURN server
   const iceServers = {
     iceServers: [
+      // Google STUN servers
       { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' }
-    ]
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun2.l.google.com:19302' },
+      { urls: 'stun:stun3.l.google.com:19302' },
+      { urls: 'stun:stun4.l.google.com:19302' },
+      
+      // Cloudflare STUN
+      { urls: 'stun:stun.cloudflare.com:3478' },
+      
+      // Free TURN server from metered.ca (no authentication required for basic use)
+      {
+        urls: 'turn:a.relay.metered.ca:80',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+      },
+      {
+        urls: 'turn:a.relay.metered.ca:80?transport=tcp',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+      },
+      {
+        urls: 'turn:a.relay.metered.ca:443',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+      },
+      {
+        urls: 'turn:a.relay.metered.ca:443?transport=tcp',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+      }
+    ],
+    iceCandidatePoolSize: 10
   };
 
   // Initialize WebRTC

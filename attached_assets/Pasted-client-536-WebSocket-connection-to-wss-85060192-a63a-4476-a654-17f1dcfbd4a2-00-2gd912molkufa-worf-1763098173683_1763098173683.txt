@@ -1,0 +1,670 @@
+client:536 WebSocket connection to 'wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/?token=O4-wLWwGYpb1' failed: 
+setupWebSocket @ client:536
+client:536 Uncaught (in promise) SyntaxError: Failed to construct 'WebSocket': The URL 'wss://localhost:undefined/?token=O4-wLWwGYpb1' is invalid.
+    at setupWebSocket (client:536:19)
+    at fallback (client:509:16)
+    at WebSocket.<anonymous> (client:555:7)
+chunk-RPCDYKBN.js?v=a50a03ed:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+main.tsx:6 [SW] Service Worker support check: Object
+useCallSessionStore.tsx:425 [CallSessionStore] BroadcastChannel initialized
+all.js:6 >=116
+VM14:5 🚀 PWA Service Worker 강제 등록 시작...
+VM14:32 🔍 디바이스 정보: Object
+sw.js:731 [SW] Call session cleanup interval initialized
+sw.js:24 [SW] Installing service worker...
+main.tsx:16 [SW] Service Worker registered successfully: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/
+sw.js:29 [SW] Caching static assets
+useAuth.tsx:74 🔄 Auth context updating user: 121 profilePicture: /uploads/profile_1761144817232_rf4rde1nn4e.jpg
+useWebSocket.tsx:127 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+useWebSocket.tsx:128    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+useWebSocket.tsx:139 WebSocket connected successfully
+useWebSocket.tsx:97 Processing 0 pending messages
+useWebSocket.tsx:173 WebSocket message received: Object
+useWebSocket.tsx:177 WebSocket authentication successful for user: 121
+sw.js:33 [SW] Static assets cached successfully
+sw.js:44 [SW] Activating service worker...
+useCallSessionStore.tsx:734 [CallSessionStore] CALL_READY sent to SW via registration.active
+sw.js:62 [SW] Service worker activated
+sw.js:736 [SW] Message received: Object
+sw.js:801 [SW] Client ready for pending call sessions
+sw.js:1066 [SW] Message received: Object
+VM14:66 [PWA] Install prompt triggered
+sw.js:674 [SW] Retrieved pending call sessions: 0
+sw.js:830 [SW] No pending call sessions to deliver
+app:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+VM14:47 ✅ PWA Service Worker 등록 성공: https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/
+VM14:51 ✅ PWA Service Worker 준비 완료
+VM14:55 🔔 현재 알림 권한: default
+TelegramStyleNotificationManager.tsx:19 [NotificationManager] Initializing Telegram-style activity tracking
+usePWABadge.tsx:82 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+navigation.ts:9 ✅ Navigation service registered
+MainApp.tsx:114 ✅ Navigator registered with navigation service
+MainApp.tsx:438 MainApp rendering with user: 121
+usePWABadge.tsx:25 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+usePWABadge.tsx:37 ✅ PWA 배지 클리어됨 (읽지 않은 메시지 없음)
+sw.js:736 [SW] Message received: Object
+sw.js:777 [SW] Badge system initialized - independent mode
+sw.js:1066 [SW] Message received: Object
+useIndependentBadge.tsx:34 [Badge] Independent badge system initialized
+TelegramStyleNotificationManager.tsx:154 [NotificationManager] Activity status updated: online
+useMicrophonePermission.tsx:26 ✅ Microphone permission previously granted (no stream created)
+useMicrophonePermission.tsx:26 ✅ Microphone permission previously granted (no stream created)
+b7661f8add9fd0a355af9a70fd0244ff:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+usePWABadge.tsx:59 📊 실제 읽지 않은 메시지 수: 0
+usePWABadge.tsx:60 📊 각 채팅방별 읽지 않은 메시지: Array(0)
+usePWABadge.tsx:25 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+usePWABadge.tsx:37 ✅ PWA 배지 클리어됨 (읽지 않은 메시지 없음)
+sw.js:736 [SW] Message received: Object
+sw.js:741 [SW] Setting badge to exact database count: 0
+sw.js:347 [SW] 📱 Setting independent badge: 0
+sw.js:1066 [SW] Message received: Object
+sw.js:358 [SW] ✅ Badge cleared (0 unread)
+sw.js:674 [SW] Retrieved pending call sessions: 0
+TelegramStyleNotificationManager.tsx:64 [NotificationManager] Window blurred
+useAppState.ts:15 📱 App state changed: background
+useAppState.ts:15 📱 App state changed: background
+useAppState.ts:15 📱 App state changed: background
+useAppState.ts:15 📱 App state changed: background
+useAppState.ts:15 📱 App state changed: background
+useAppState.ts:15 📱 App state changed: background
+useAppState.ts:15 📱 App state changed: background
+TelegramStyleNotificationManager.tsx:42 [NotificationManager] App hidden - enabling notifications
+useWebSocket.tsx:438 📱 App backgrounded - closing WebSocket to save battery
+sw.js:736 [SW] Message received: Object
+sw.js:791 [SW] Enabling background badge refresh
+sw.js:1066 [SW] Message received: Object
+useWebSocket.tsx:352 WebSocket disconnected: 1000 App backgrounded
+useWebSocket.tsx:363 📱 Not reconnecting - app in background or intentionally closed
+TelegramStyleNotificationManager.tsx:154 [NotificationManager] Activity status updated: offline
+useCallSessionStore.tsx:783 [CallSessionStore] App became visible, sending CALL_READY
+useCallSessionStore.tsx:734 [CallSessionStore] CALL_READY sent to SW via controller
+useAppState.ts:15 📱 App state changed: active
+useAppState.ts:15 📱 App state changed: active
+useAppState.ts:15 📱 App state changed: active
+useAppState.ts:15 📱 App state changed: active
+useAppState.ts:15 📱 App state changed: active
+useAppState.ts:15 📱 App state changed: active
+useAppState.ts:15 📱 App state changed: active
+TelegramStyleNotificationManager.tsx:46 [NotificationManager] App visible - suppressing notifications
+usePWABadge.tsx:105 🎯 앱 포커스됨 - Service Worker에 알림
+usePWABadge.tsx:137 📱 앱이 활성화됨 - 배지 상태 새로고침
+MainApp.tsx:145 🔄 PWA app opened - syncing messages immediately
+usePWABadge.tsx:25 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+usePWABadge.tsx:37 ✅ PWA 배지 클리어됨 (읽지 않은 메시지 없음)
+TelegramStyleNotificationManager.tsx:57 [NotificationManager] Window focused
+usePWABadge.tsx:105 🎯 앱 포커스됨 - Service Worker에 알림
+usePWABadge.tsx:144 🔍 윈도우 포커스 - 배지 상태 새로고침
+MainApp.tsx:161 🔄 PWA app focused - syncing messages immediately
+usePWABadge.tsx:25 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+usePWABadge.tsx:37 ✅ PWA 배지 클리어됨 (읽지 않은 메시지 없음)
+useWebSocket.tsx:459 📱 App foregrounded - reconnecting WebSocket
+sw.js:736 [SW] Message received: Object
+sw.js:801 [SW] Client ready for pending call sessions
+sw.js:1066 [SW] Message received: Object
+sw.js:736 [SW] Message received: Object
+sw.js:781 [SW] App focused - badge remains database-accurate
+sw.js:1066 [SW] Message received: Object
+sw.js:736 [SW] Message received: Object
+sw.js:781 [SW] App focused - badge remains database-accurate
+sw.js:1066 [SW] Message received: Object
+sw.js:674 [SW] Retrieved pending call sessions: 0
+sw.js:830 [SW] No pending call sessions to deliver
+useWebSocket.tsx:465 📱 Calling connect() after foreground transition
+useWebSocket.tsx:127 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+useWebSocket.tsx:128    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+TelegramStyleNotificationManager.tsx:154 [NotificationManager] Activity status updated: online
+TelegramStyleNotificationManager.tsx:154 [NotificationManager] Activity status updated: online
+useWebSocket.tsx:139 WebSocket connected successfully
+useWebSocket.tsx:97 Processing 0 pending messages
+useWebSocket.tsx:173 WebSocket message received: Object
+useWebSocket.tsx:177 WebSocket authentication successful for user: 121
+sw.js:674 [SW] Retrieved pending call sessions: 0
+sw.js:736 [SW] Message received: Object
+sw.js:762 [SW] Setting badge count: 0
+sw.js:347 [SW] 📱 Setting independent badge: 0
+sw.js:1066 [SW] Message received: Object
+sw.js:358 [SW] ✅ Badge cleared (0 unread)
+sw.js:736 [SW] Message received: Object
+sw.js:762 [SW] Setting badge count: 0
+sw.js:347 [SW] 📱 Setting independent badge: 0
+sw.js:1066 [SW] Message received: Object
+sw.js:358 [SW] ✅ Badge cleared (0 unread)
+sw.js:674 [SW] Retrieved pending call sessions: 0
+TelegramStyleNotificationManager.tsx:64 [NotificationManager] Window blurred
+sw.js:674 [SW] Retrieved pending call sessions: 0
+sw.js:674 [SW] Retrieved pending call sessions: 0
+The resource <URL> was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+The resource <URL> was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+The resource <URL> was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+The resource <URL> was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+The resource <URL> was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+The resource <URL> was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+The resource <URL> was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+The resource <URL> was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+The resource <URL> was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+The resource <URL> was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+The resource <URL> was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+The resource <URL> was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+sw.js:1110 [SW] Syncing badge count with server
+sw.js:674 [SW] Retrieved pending call sessions: 0
+useWebSocket.tsx:173 WebSocket message received: {type: 'call-ice-candidate', targetUserId: 121, callSessionId: 'call_1763097983889_bla7w9q35', candidate: {…}, fromUserId: 126}
+MainApp.tsx:189 📞 WebSocket signaling event: call-ice-candidate
+useCallSessionStore.tsx:640 [CallSessionStore] handleIceCandidate: No active session
+(anonymous) @ useCallSessionStore.tsx:640
+handleSignaling @ MainApp.tsx:223
+(anonymous) @ useWebSocket.tsx:336
+ws.onmessage @ useWebSocket.tsx:334
+useWebSocket.tsx:173 WebSocket message received: {type: 'call-offer', targetUserId: 121, chatRoomId: 119, callSessionId: 'call_1763097983889_bla7w9q35', callType: 'voice', …}
+MainApp.tsx:189 📞 WebSocket signaling event: call-offer
+useCallSessionStore.tsx:609 [CallSessionStore] Successfully claimed incoming call: call_1763097983889_bla7w9q35
+useWebSocket.tsx:173 WebSocket message received: {type: 'call-ice-candidate', targetUserId: 121, callSessionId: 'call_1763097983889_bla7w9q35', candidate: {…}, fromUserId: 126}
+MainApp.tsx:189 📞 WebSocket signaling event: call-ice-candidate
+useCallSessionStore.tsx:640 [CallSessionStore] handleIceCandidate: No active session
+(anonymous) @ useCallSessionStore.tsx:640
+handleSignaling @ MainApp.tsx:223
+(anonymous) @ useWebSocket.tsx:336
+ws.onmessage @ useWebSocket.tsx:334
+useCallSessionStore.tsx:50 [CallSessionStore] Session created: call_1763097983889_bla7w9q35, state: ringing
+useCallSessionStore.tsx:118 [CallSessionStore] Session claimed: call_1763097983889_bla7w9q35
+CallModal.tsx:67 📞 CallModal useEffect triggered: {isOpen: true, isIncoming: true, hasAnswered: false}
+CallModal.tsx:76 📞 Incoming call - waiting for user to answer
+useCallSessionStore.tsx:734 [CallSessionStore] CALL_READY sent to SW via controller
+sw.js:736 [SW] Message received: {type: 'CALL_READY', clientId: 'client_1763097955867_pwmx0j0wn'}
+sw.js:801 [SW] Client ready for pending call sessions
+sw.js:1066 [SW] Message received: {type: 'CALL_READY', clientId: 'client_1763097955867_pwmx0j0wn'}
+sw.js:674 [SW] Retrieved pending call sessions: 0
+sw.js:830 [SW] No pending call sessions to deliver
+TelegramStyleNotificationManager.tsx:57 [NotificationManager] Window focused
+usePWABadge.tsx:105 🎯 앱 포커스됨 - Service Worker에 알림
+usePWABadge.tsx:144 🔍 윈도우 포커스 - 배지 상태 새로고침
+MainApp.tsx:161 🔄 PWA app focused - syncing messages immediately
+usePWABadge.tsx:25 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+usePWABadge.tsx:37 ✅ PWA 배지 클리어됨 (읽지 않은 메시지 없음)
+sw.js:736 [SW] Message received: {type: 'APP_FOCUS'}
+sw.js:781 [SW] App focused - badge remains database-accurate
+sw.js:1066 [SW] Message received: {type: 'APP_FOCUS'}
+CallModal.tsx:67 📞 CallModal useEffect triggered: {isOpen: true, isIncoming: true, hasAnswered: true}
+CallModal.tsx:80 📞 Setting up call...
+CallModal.tsx:84 📞 Getting local media stream...
+CallModal.tsx:94 📞 Local stream acquired: ['audio: MacBook Air Microphone (Built-in)']
+CallModal.tsx:97 📞 Creating peer connection...
+CallModal.tsx:100 📞 Peer connection created
+CallModal.tsx:109 📞 Received remote track: audio
+TelegramStyleNotificationManager.tsx:154 [NotificationManager] Activity status updated: online
+CallModal.tsx:123 📞 Remote audio playing successfully
+useWebSocket.tsx:481 Message msg_1763097987411_0t8buyuc4 sent immediately
+CallModal.tsx:138 📞 Sending ICE candidate
+useWebSocket.tsx:481 Message msg_1763097987412_p33faifct sent immediately
+CallModal.tsx:138 📞 Sending ICE candidate
+useWebSocket.tsx:481 Message msg_1763097987412_gy2zjcj7e sent immediately
+CallModal.tsx:138 📞 Sending ICE candidate
+useWebSocket.tsx:481 Message msg_1763097987412_2cxpxai64 sent immediately
+CallModal.tsx:138 📞 Sending ICE candidate
+useWebSocket.tsx:481 Message msg_1763097987443_tj9dxzdgh sent immediately
+CallModal.tsx:138 📞 Sending ICE candidate
+useWebSocket.tsx:481 Message msg_1763097987537_d5lg6y114 sent immediately
+CallModal.tsx:138 📞 Sending ICE candidate
+useWebSocket.tsx:481 Message msg_1763097987537_bx4a0ydfp sent immediately
+CallModal.tsx:138 📞 Sending ICE candidate
+useWebSocket.tsx:481 Message msg_1763097987538_8eek9txsf sent immediately
+sw.js:674 [SW] Retrieved pending call sessions: 0
+sw.js:736 [SW] Message received: {type: 'TELEGRAM_STYLE_BADGE', count: 0, source: 'app_focus_sync'}
+sw.js:762 [SW] Setting badge count: 0
+sw.js:347 [SW] 📱 Setting independent badge: 0
+sw.js:1066 [SW] Message received: {type: 'TELEGRAM_STYLE_BADGE', count: 0, source: 'app_focus_sync'}
+sw.js:358 [SW] ✅ Badge cleared (0 unread)
+sw.js:674 [SW] Retrieved pending call sessions: 0
+sw.js:674 [SW] Retrieved pending call sessions: 0
+useWebSocket.tsx:173 WebSocket message received: {type: 'call-end', targetUserId: 121, callSessionId: 'call_1763097983889_bla7w9q35', fromUserId: 126}
+CallModal.tsx:490 📞 CallModal received signaling message: call-end
+useWebSocket.tsx:481 Message msg_1763098002926_7izayyqvj sent immediately
+MainApp.tsx:189 📞 WebSocket signaling event: call-end
+useCallSessionStore.tsx:77 [CallSessionStore] Session state changed: call_1763097983889_bla7w9q35 → ended
+useCallSessionStore.tsx:87 [CallSessionStore] Session call_1763097983889_bla7w9q35 reached terminal state, cleaning up
+useCallSessionStore.tsx:734 [CallSessionStore] CALL_READY sent to SW via controller
+sw.js:736 [SW] Message received: {type: 'CALL_READY', clientId: 'client_1763097955867_pwmx0j0wn'}
+sw.js:801 [SW] Client ready for pending call sessions
+sw.js:1066 [SW] Message received: {type: 'CALL_READY', clientId: 'client_1763097955867_pwmx0j0wn'}
+sw.js:674 [SW] Retrieved pending call sessions: 0
+sw.js:830 [SW] No pending call sessions to deliver
+useWebSocket.tsx:173 WebSocket message received: {type: 'call-end', targetUserId: 121, callSessionId: 'call_1763097983889_bla7w9q35', fromUserId: 126}
+CallModal.tsx:490 📞 CallModal received signaling message: call-end
+useWebSocket.tsx:481 Message msg_1763098003316_4a21794op sent immediately
+MainApp.tsx:189 📞 WebSocket signaling event: call-end
+useCallSessionStore.tsx:77 [CallSessionStore] Session state changed: call_1763097983889_bla7w9q35 → ended
+useCallSessionStore.tsx:87 [CallSessionStore] Session call_1763097983889_bla7w9q35 reached terminal state, cleaning up
+useCallSessionStore.tsx:711 [CallSessionStore] CALL_READY throttled
+useWebSocket.tsx:173 WebSocket message received: {type: 'call-end', targetUserId: 121, callSessionId: 'call_1763097983889_bla7w9q35', fromUserId: 126}
+CallModal.tsx:490 📞 CallModal received signaling message: call-end
+useWebSocket.tsx:481 Message msg_1763098003701_try6aje9h sent immediately
+MainApp.tsx:189 📞 WebSocket signaling event: call-end
+useCallSessionStore.tsx:77 [CallSessionStore] Session state changed: call_1763097983889_bla7w9q35 → ended
+useCallSessionStore.tsx:87 [CallSessionStore] Session call_1763097983889_bla7w9q35 reached terminal state, cleaning up
+useCallSessionStore.tsx:711 [CallSessionStore] CALL_READY throttled
+useCallSessionStore.tsx:128 [CallSessionStore] Session released: call_1763097983889_bla7w9q35
+useCallSessionStore.tsx:711 [CallSessionStore] CALL_READY throttled
+useCallSessionStore.tsx:128 [CallSessionStore] Session released: call_1763097983889_bla7w9q35
+useCallSessionStore.tsx:711 [CallSessionStore] CALL_READY throttled
+useCallSessionStore.tsx:128 [CallSessionStore] Session released: call_1763097983889_bla7w9q35
+useCallSessionStore.tsx:711 [CallSessionStore] CALL_READY throttled
+sw.js:674 [SW] Retrieved pending call sessions: 0
+TelegramStyleNotificationManager.tsx:64 [NotificationManager] Window blurred
+useCallSessionStore.tsx:94 [CallSessionStore] Removing terminal session: call_1763097983889_bla7w9q35
+useCallSessionStore.tsx:148 [CallSessionStore] Session removed: call_1763097983889_bla7w9q35
+useCallSessionStore.tsx:734 [CallSessionStore] CALL_READY sent to SW via controller
+sw.js:736 [SW] Message received: {type: 'CALL_READY', clientId: 'client_1763097955867_pwmx0j0wn'}
+sw.js:801 [SW] Client ready for pending call sessions
+sw.js:1066 [SW] Message received: {type: 'CALL_READY', clientId: 'client_1763097955867_pwmx0j0wn'}
+sw.js:674 [SW] Retrieved pending call sessions: 0
+sw.js:830 [SW] No pending call sessions to deliver
+useCallSessionStore.tsx:94 [CallSessionStore] Removing terminal session: call_1763097983889_bla7w9q35
+useCallSessionStore.tsx:148 [CallSessionStore] Session removed: call_1763097983889_bla7w9q35
+useCallSessionStore.tsx:711 [CallSessionStore] CALL_READY throttled
+useCallSessionStore.tsx:94 [CallSessionStore] Removing terminal session: call_1763097983889_bla7w9q35
+useCallSessionStore.tsx:148 [CallSessionStore] Session removed: call_1763097983889_bla7w9q35
+useCallSessionStore.tsx:711 [CallSessionStore] CALL_READY throttled
+sw.js:674 [SW] Retrieved pending call sessions: 0
+sw.js:1110 [SW] Syncing badge count with server
+sw.js:674 [SW] Retrieved pending call sessions: 0
+sw.js:674 [SW] Retrieved pending call sessions: 0
+sw.js:674 [SW] Retrieved pending call sessions: 0
+sw.js:674 [SW] Retrieved pending call sessions: 0
+sw.js:674 [SW] Retrieved pending call sessions: 0
+sw.js:674 [SW] Retrieved pending call sessions: 0
+sw.js:1110 [SW] Syncing badge count with server
+sw.js:674 [SW] Retrieved pending call sessions: 0
+sw.js:674 [SW] Retrieved pending call sessions: 0
+sw.js:674 [SW] Retrieved pending call sessions: 0
+sw.js:674 [SW] Retrieved pending call sessions: 0
+sw.js:674 [SW] Retrieved pending call sessions: 0
+sw.js:674 [SW] Retrieved pending call sessions: 0
+useWebSocket.tsx:352 WebSocket disconnected: 1006 
+useWebSocket.tsx:378 WebSocket disconnected. Reconnecting in 2568ms (attempt 1)
+sw.js:1110 [SW] Syncing badge count with server
+sw.js:674 [SW] Retrieved pending call sessions: 0
+useAppState.ts:15 📱 App state changed: background
+useAppState.ts:15 📱 App state changed: background
+useAppState.ts:15 📱 App state changed: background
+useAppState.ts:15 📱 App state changed: background
+useAppState.ts:15 📱 App state changed: background
+useAppState.ts:15 📱 App state changed: background
+useAppState.ts:15 📱 App state changed: background
+TelegramStyleNotificationManager.tsx:42 [NotificationManager] App hidden - enabling notifications
+sw.js:736 [SW] Message received: {type: 'ENABLE_BACKGROUND_REFRESH', interval: 300000}
+sw.js:791 [SW] Enabling background badge refresh
+sw.js:1066 [SW] Message received: {type: 'ENABLE_BACKGROUND_REFRESH', interval: 300000}
+useWebSocket.tsx:438 📱 App backgrounded - closing WebSocket to save battery
+TelegramStyleNotificationManager.tsx:154 [NotificationManager] Activity status updated: offline
+sw.js:674 [SW] Retrieved pending call sessions: 0
+useAppState.ts:15 📱 App state changed: active
+useAppState.ts:15 📱 App state changed: active
+useAppState.ts:15 📱 App state changed: active
+useAppState.ts:15 📱 App state changed: active
+useAppState.ts:15 📱 App state changed: active
+useAppState.ts:15 📱 App state changed: active
+useAppState.ts:15 📱 App state changed: active
+TelegramStyleNotificationManager.tsx:46 [NotificationManager] App visible - suppressing notifications
+usePWABadge.tsx:105 🎯 앱 포커스됨 - Service Worker에 알림
+usePWABadge.tsx:137 📱 앱이 활성화됨 - 배지 상태 새로고침
+MainApp.tsx:145 🔄 PWA app opened - syncing messages immediately
+sw.js:736 [SW] Message received: {type: 'APP_FOCUS'}
+sw.js:781 [SW] App focused - badge remains database-accurate
+sw.js:1066 [SW] Message received: {type: 'APP_FOCUS'}
+usePWABadge.tsx:25 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+usePWABadge.tsx:37 ✅ PWA 배지 클리어됨 (읽지 않은 메시지 없음)
+useCallSessionStore.tsx:783 [CallSessionStore] App became visible, sending CALL_READY
+useCallSessionStore.tsx:734 [CallSessionStore] CALL_READY sent to SW via controller
+sw.js:736 [SW] Message received: {type: 'CALL_READY', clientId: 'client_1763097955867_pwmx0j0wn'}
+sw.js:801 [SW] Client ready for pending call sessions
+sw.js:1066 [SW] Message received: {type: 'CALL_READY', clientId: 'client_1763097955867_pwmx0j0wn'}
+sw.js:674 [SW] Retrieved pending call sessions: 0
+sw.js:830 [SW] No pending call sessions to deliver
+useWebSocket.tsx:459 📱 App foregrounded - reconnecting WebSocket
+useWebSocket.tsx:465 📱 Calling connect() after foreground transition
+useWebSocket.tsx:127 🔌 Connecting to WebSocket: wss://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/ws
+useWebSocket.tsx:128    Protocol: wss:, Host: 85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev
+sw.js:104 [SW] Network failed for API request, trying cache: /api/chat-rooms
+sw.js:104 [SW] Network failed for API request, trying cache: /api/contacts
+sw.js:104 [SW] Network failed for API request, trying cache: /api/ai-notices
+The FetchEvent for "https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/api/ai-notices" resulted in a network error response: the promise was rejected.
+Promise.then
+(anonymous) @ sw.js:77
+sw.js:94  Uncaught (in promise) TypeError: Failed to fetch
+    at handleApiRequest (sw.js:94:35)
+    at sw.js:77:25
+handleApiRequest @ sw.js:94
+(anonymous) @ sw.js:77
+ChatsList.tsx:483  GET https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/api/ai-notices net::ERR_FAILED
+queryFn @ ChatsList.tsx:483
+fetchFn @ @tanstack_react-query.js?v=a50a03ed:840
+run @ @tanstack_react-query.js?v=a50a03ed:494
+start @ @tanstack_react-query.js?v=a50a03ed:536
+fetch @ @tanstack_react-query.js?v=a50a03ed:926
+executeFetch_fn @ @tanstack_react-query.js?v=a50a03ed:2211
+fetch @ @tanstack_react-query.js?v=a50a03ed:2011
+refetch @ @tanstack_react-query.js?v=a50a03ed:2001
+onFocus @ @tanstack_react-query.js?v=a50a03ed:749
+(anonymous) @ @tanstack_react-query.js?v=a50a03ed:1112
+(anonymous) @ @tanstack_react-query.js?v=a50a03ed:1111
+batch @ @tanstack_react-query.js?v=a50a03ed:583
+onFocus @ @tanstack_react-query.js?v=a50a03ed:1110
+(anonymous) @ @tanstack_react-query.js?v=a50a03ed:1601
+await in (anonymous)
+(anonymous) @ @tanstack_react-query.js?v=a50a03ed:313
+onFocus @ @tanstack_react-query.js?v=a50a03ed:312
+(anonymous) @ @tanstack_react-query.js?v=a50a03ed:299
+listener @ @tanstack_react-query.js?v=a50a03ed:270
+sw.js:109 [SW] Returning cached response for: /api/chat-rooms
+sw.js:109 [SW] Returning cached response for: /api/contacts
+TelegramStyleNotificationManager.tsx:154 [NotificationManager] Activity status updated: online
+sw.js:674 [SW] Retrieved pending call sessions: 0
+useWebSocket.tsx:139 WebSocket connected successfully
+useWebSocket.tsx:97 Processing 0 pending messages
+useWebSocket.tsx:173 WebSocket message received: {type: 'auth_success', userId: 121}
+useWebSocket.tsx:177 WebSocket authentication successful for user: 121
+sw.js:736 [SW] Message received: {type: 'TELEGRAM_STYLE_BADGE', count: 0, source: 'app_focus_sync'}
+sw.js:762 [SW] Setting badge count: 0
+sw.js:347 [SW] 📱 Setting independent badge: 0
+sw.js:1066 [SW] Message received: {type: 'TELEGRAM_STYLE_BADGE', count: 0, source: 'app_focus_sync'}
+sw.js:358 [SW] ✅ Badge cleared (0 unread)
+TelegramStyleNotificationManager.tsx:57 [NotificationManager] Window focused
+usePWABadge.tsx:105 🎯 앱 포커스됨 - Service Worker에 알림
+usePWABadge.tsx:144 🔍 윈도우 포커스 - 배지 상태 새로고침
+MainApp.tsx:161 🔄 PWA app focused - syncing messages immediately
+usePWABadge.tsx:25 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+usePWABadge.tsx:37 ✅ PWA 배지 클리어됨 (읽지 않은 메시지 없음)
+ChatsList.tsx:215 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: Hot
+sw.js:736 [SW] Message received: {type: 'APP_FOCUS'}
+sw.js:781 [SW] App focused - badge remains database-accurate
+sw.js:1066 [SW] Message received: {type: 'APP_FOCUS'}
+useMicrophonePermission.tsx:26 ✅ Microphone permission previously granted (no stream created)
+useFileCache.tsx:43 [FileCache] Not a native platform, skipping initialization
+useMicrophonePermission.tsx:26 ✅ Microphone permission previously granted (no stream created)
+useFileCache.tsx:262 [FileCache] Cache miss, downloading: /uploads/file_1762847153043_7fknqoaf848.pdf
+useFileCache.tsx:262 [FileCache] Cache miss, downloading: /uploads/file_1762849189604_q82877q4qa.jpeg
+useFileCache.tsx:262 [FileCache] Cache miss, downloading: /uploads/file_1762849513723_aml49nutkss.pdf
+useFileCache.tsx:262 [FileCache] Cache miss, downloading: /uploads/file_1762854376160_djtpf4zueog.mov
+useFileCache.tsx:262 [FileCache] Cache miss, downloading: /uploads/file_1762957809839_umq6efue9xm.mov
+useFileCache.tsx:262 [FileCache] Cache miss, downloading: /uploads/file_1762959748279_wfyrb7aels9.jpeg
+useFileCache.tsx:262 [FileCache] Cache miss, downloading: /uploads/file_1762960329189_ucik7xk7cko.jpeg
+useFileCache.tsx:262 [FileCache] Cache miss, downloading: /uploads/file_1762960397346_fd93vldxfn7.jpeg
+useFileCache.tsx:262 [FileCache] Cache miss, downloading: /uploads/file_1762963431698_elrlyd7pnzd.mp4
+MediaPreview.tsx:449 Image loaded successfully: /uploads/file_1762960329189_ucik7xk7cko.jpeg
+MediaPreview.tsx:449 Image loaded successfully: /uploads/file_1762960329189_ucik7xk7cko.jpeg
+MediaPreview.tsx:449 Image loaded successfully: /uploads/file_1762849189604_q82877q4qa.jpeg
+MediaPreview.tsx:449 Image loaded successfully: /uploads/file_1762849189604_q82877q4qa.jpeg
+MediaPreview.tsx:449 Image loaded successfully: blob:https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/c362361a-6ff2-459d-842e-aaee95fbe0da
+MediaPreview.tsx:449 Image loaded successfully: blob:https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/c362361a-6ff2-459d-842e-aaee95fbe0da
+MediaPreview.tsx:449 Image loaded successfully: blob:https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/b70ddc99-0a6b-454e-b251-99dc8a2d634f
+MediaPreview.tsx:449 Image loaded successfully: blob:https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/b70ddc99-0a6b-454e-b251-99dc8a2d634f
+sw.js:674 [SW] Retrieved pending call sessions: 0
+useFileCache.tsx:263  GET https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/uploads/file_1762959748279_wfyrb7aels9.jpeg 404 (Not Found)
+(anonymous) @ useFileCache.tsx:263
+await in (anonymous)
+fetchAndCache @ useFileCache.tsx:296
+(anonymous) @ useFileCache.tsx:448
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=a50a03ed:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=a50a03ed:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=a50a03ed:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=a50a03ed:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=a50a03ed:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=a50a03ed:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=a50a03ed:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=a50a03ed:19416
+commitRoot @ chunk-RPCDYKBN.js?v=a50a03ed:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=a50a03ed:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=a50a03ed:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=a50a03ed:18627
+useFileCache.tsx:282 [FileCache] Failed to fetch and cache: Error: HTTP 404
+    at useFileCache.tsx:266:17
+(anonymous) @ useFileCache.tsx:282
+await in (anonymous)
+fetchAndCache @ useFileCache.tsx:296
+(anonymous) @ useFileCache.tsx:448
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=a50a03ed:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=a50a03ed:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=a50a03ed:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=a50a03ed:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=a50a03ed:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=a50a03ed:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=a50a03ed:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=a50a03ed:19416
+commitRoot @ chunk-RPCDYKBN.js?v=a50a03ed:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=a50a03ed:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=a50a03ed:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=a50a03ed:18627
+useFileCache.tsx:263  GET https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/uploads/file_1762960397346_fd93vldxfn7.jpeg 404 (Not Found)
+(anonymous) @ useFileCache.tsx:263
+await in (anonymous)
+fetchAndCache @ useFileCache.tsx:296
+(anonymous) @ useFileCache.tsx:448
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=a50a03ed:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=a50a03ed:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=a50a03ed:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=a50a03ed:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=a50a03ed:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=a50a03ed:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=a50a03ed:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=a50a03ed:19416
+commitRoot @ chunk-RPCDYKBN.js?v=a50a03ed:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=a50a03ed:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=a50a03ed:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=a50a03ed:18627
+useFileCache.tsx:282 [FileCache] Failed to fetch and cache: Error: HTTP 404
+    at useFileCache.tsx:266:17
+(anonymous) @ useFileCache.tsx:282
+await in (anonymous)
+fetchAndCache @ useFileCache.tsx:296
+(anonymous) @ useFileCache.tsx:448
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=a50a03ed:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=a50a03ed:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=a50a03ed:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=a50a03ed:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=a50a03ed:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=a50a03ed:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=a50a03ed:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=a50a03ed:19416
+commitRoot @ chunk-RPCDYKBN.js?v=a50a03ed:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=a50a03ed:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=a50a03ed:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=a50a03ed:18627
+TelegramStyleNotificationManager.tsx:154 [NotificationManager] Activity status updated: online
+sw.js:736 [SW] Message received: {type: 'TELEGRAM_STYLE_BADGE', count: 0, source: 'app_focus_sync'}
+sw.js:762 [SW] Setting badge count: 0
+sw.js:347 [SW] 📱 Setting independent badge: 0
+sw.js:1066 [SW] Message received: {type: 'TELEGRAM_STYLE_BADGE', count: 0, source: 'app_focus_sync'}
+sw.js:358 [SW] ✅ Badge cleared (0 unread)
+sw.js:674 [SW] Retrieved pending call sessions: 0
+file_1762959748279_wfyrb7aels9.jpeg:1  GET https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/uploads/file_1762959748279_wfyrb7aels9.jpeg 404 (Not Found)
+Image
+commitMount @ chunk-RPCDYKBN.js?v=a50a03ed:8412
+commitLayoutEffectOnFiber @ chunk-RPCDYKBN.js?v=a50a03ed:17102
+commitLayoutMountEffects_complete @ chunk-RPCDYKBN.js?v=a50a03ed:17980
+commitLayoutEffects_begin @ chunk-RPCDYKBN.js?v=a50a03ed:17969
+commitLayoutEffects_begin @ chunk-RPCDYKBN.js?v=a50a03ed:17950
+commitLayoutEffects @ chunk-RPCDYKBN.js?v=a50a03ed:17920
+commitRootImpl @ chunk-RPCDYKBN.js?v=a50a03ed:19353
+commitRoot @ chunk-RPCDYKBN.js?v=a50a03ed:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=a50a03ed:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=a50a03ed:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=a50a03ed:18627
+MediaPreview.tsx:452 Image decode error for /uploads/file_1762959748279_wfyrb7aels9.jpeg: SyntheticBaseEvent {_reactName: 'onError', _targetInst: null, type: 'error', nativeEvent: Event, target: img.w-full.h-auto.max-h-40.sm:max-h-48.object-cover, …}
+onError @ MediaPreview.tsx:452
+callCallback2 @ chunk-RPCDYKBN.js?v=a50a03ed:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=a50a03ed:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=a50a03ed:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=a50a03ed:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=a50a03ed:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=a50a03ed:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=a50a03ed:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=a50a03ed:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=a50a03ed:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=a50a03ed:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=a50a03ed:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=a50a03ed:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=a50a03ed:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=a50a03ed:5472
+MediaPreview.tsx:452 Image decode error for /uploads/file_1762959748279_wfyrb7aels9.jpeg: SyntheticBaseEvent {_reactName: 'onError', _targetInst: null, type: 'error', nativeEvent: Event, target: img.w-full.h-auto.max-h-40.sm:max-h-48.object-cover, …}
+onError @ MediaPreview.tsx:452
+callCallback2 @ chunk-RPCDYKBN.js?v=a50a03ed:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=a50a03ed:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=a50a03ed:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=a50a03ed:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=a50a03ed:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=a50a03ed:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=a50a03ed:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=a50a03ed:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=a50a03ed:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=a50a03ed:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=a50a03ed:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=a50a03ed:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=a50a03ed:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=a50a03ed:5472
+file_1762960397346_fd93vldxfn7.jpeg:1  GET https://85060192-a63a-4476-a654-17f1dcfbd4a2-00-2gd912molkufa.worf.replit.dev/uploads/file_1762960397346_fd93vldxfn7.jpeg 404 (Not Found)
+Image
+commitMount @ chunk-RPCDYKBN.js?v=a50a03ed:8412
+commitLayoutEffectOnFiber @ chunk-RPCDYKBN.js?v=a50a03ed:17102
+commitLayoutMountEffects_complete @ chunk-RPCDYKBN.js?v=a50a03ed:17980
+commitLayoutEffects_begin @ chunk-RPCDYKBN.js?v=a50a03ed:17969
+commitLayoutEffects_begin @ chunk-RPCDYKBN.js?v=a50a03ed:17950
+commitLayoutEffects @ chunk-RPCDYKBN.js?v=a50a03ed:17920
+commitRootImpl @ chunk-RPCDYKBN.js?v=a50a03ed:19353
+commitRoot @ chunk-RPCDYKBN.js?v=a50a03ed:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=a50a03ed:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=a50a03ed:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=a50a03ed:18627
+MediaPreview.tsx:452 Image decode error for /uploads/file_1762960397346_fd93vldxfn7.jpeg: SyntheticBaseEvent {_reactName: 'onError', _targetInst: null, type: 'error', nativeEvent: Event, target: img.w-full.h-auto.max-h-40.sm:max-h-48.object-cover, …}
+onError @ MediaPreview.tsx:452
+callCallback2 @ chunk-RPCDYKBN.js?v=a50a03ed:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=a50a03ed:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=a50a03ed:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=a50a03ed:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=a50a03ed:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=a50a03ed:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=a50a03ed:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=a50a03ed:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=a50a03ed:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=a50a03ed:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=a50a03ed:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=a50a03ed:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=a50a03ed:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=a50a03ed:5472
+MediaPreview.tsx:452 Image decode error for /uploads/file_1762960397346_fd93vldxfn7.jpeg: SyntheticBaseEvent {_reactName: 'onError', _targetInst: null, type: 'error', nativeEvent: Event, target: img.w-full.h-auto.max-h-40.sm:max-h-48.object-cover, …}
+onError @ MediaPreview.tsx:452
+callCallback2 @ chunk-RPCDYKBN.js?v=a50a03ed:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=a50a03ed:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=a50a03ed:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=a50a03ed:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=a50a03ed:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=a50a03ed:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=a50a03ed:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=a50a03ed:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=a50a03ed:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=a50a03ed:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=a50a03ed:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=a50a03ed:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=a50a03ed:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=a50a03ed:5472
+sw.js:674 [SW] Retrieved pending call sessions: 0
+TelegramStyleNotificationManager.tsx:64 [NotificationManager] Window blurred
+sw.js:1110 [SW] Syncing badge count with server
+sw.js:674 [SW] Retrieved pending call sessions: 0
+TelegramStyleNotificationManager.tsx:57 [NotificationManager] Window focused
+usePWABadge.tsx:105 🎯 앱 포커스됨 - Service Worker에 알림
+usePWABadge.tsx:144 🔍 윈도우 포커스 - 배지 상태 새로고침
+usePWABadge.tsx:25 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+usePWABadge.tsx:37 ✅ PWA 배지 클리어됨 (읽지 않은 메시지 없음)
+MainApp.tsx:161 🔄 PWA app focused - syncing messages immediately
+sw.js:736 [SW] Message received: {type: 'APP_FOCUS'}
+sw.js:781 [SW] App focused - badge remains database-accurate
+sw.js:1066 [SW] Message received: {type: 'APP_FOCUS'}
+CallModal.tsx:67 📞 CallModal useEffect triggered: {isOpen: true, isIncoming: false, hasAnswered: false}
+CallModal.tsx:80 📞 Setting up call...
+CallModal.tsx:84 📞 Getting local media stream...
+CallModal.tsx:94 📞 Local stream acquired: ['audio: MacBook Air Microphone (Built-in)']
+CallModal.tsx:97 📞 Creating peer connection...
+CallModal.tsx:100 📞 Peer connection created
+TelegramStyleNotificationManager.tsx:154 [NotificationManager] Activity status updated: online
+useWebSocket.tsx:481 Message msg_1763098139769_jo04s2knc sent immediately
+CallModal.tsx:138 📞 Sending ICE candidate
+useWebSocket.tsx:481 Message msg_1763098139771_o1y9c92t9 sent immediately
+CallModal.tsx:138 📞 Sending ICE candidate
+useWebSocket.tsx:481 Message msg_1763098139771_1shjiiq8c sent immediately
+CallModal.tsx:138 📞 Sending ICE candidate
+useWebSocket.tsx:481 Message msg_1763098139772_iapmvycrw sent immediately
+CallModal.tsx:138 📞 Sending ICE candidate
+useWebSocket.tsx:481 Message msg_1763098139822_4o6bxcpmh sent immediately
+CallModal.tsx:138 📞 Sending ICE candidate
+useWebSocket.tsx:481 Message msg_1763098139887_dq2o6wem4 sent immediately
+CallModal.tsx:138 📞 Sending ICE candidate
+useWebSocket.tsx:481 Message msg_1763098139887_mnjpvvswm sent immediately
+CallModal.tsx:138 📞 Sending ICE candidate
+useWebSocket.tsx:481 Message msg_1763098139888_t3vt4rquc sent immediately
+sw.js:674 [SW] Retrieved pending call sessions: 0
+useWebSocket.tsx:173 WebSocket message received: {type: 'call-answer', targetUserId: 121, callSessionId: 'call_1763098139633_ho3428rbe', answer: {…}, fromUserId: 126}
+MainApp.tsx:189 📞 WebSocket signaling event: call-answer
+useCallSessionStore.tsx:615 [CallSessionStore] handleAnswer: No active session
+(anonymous) @ useCallSessionStore.tsx:615
+handleSignaling @ MainApp.tsx:211
+(anonymous) @ useWebSocket.tsx:336
+ws.onmessage @ useWebSocket.tsx:334
+CallModal.tsx:490 📞 CallModal received signaling message: call-answer
+useWebSocket.tsx:173 WebSocket message received: {type: 'call-ice-candidate', targetUserId: 121, callSessionId: 'call_1763098139633_ho3428rbe', candidate: {…}, fromUserId: 126}
+MainApp.tsx:189 📞 WebSocket signaling event: call-ice-candidate
+useCallSessionStore.tsx:640 [CallSessionStore] handleIceCandidate: No active session
+(anonymous) @ useCallSessionStore.tsx:640
+handleSignaling @ MainApp.tsx:223
+(anonymous) @ useWebSocket.tsx:336
+ws.onmessage @ useWebSocket.tsx:334
+CallModal.tsx:490 📞 CallModal received signaling message: call-ice-candidate
+CallModal.tsx:109 📞 Received remote track: audio
+CallModal.tsx:150 📞 Connection state: connecting
+CallModal.tsx:123 📞 Remote audio playing successfully
+useWebSocket.tsx:173 WebSocket message received: {type: 'call-ice-candidate', targetUserId: 121, callSessionId: 'call_1763098139633_ho3428rbe', candidate: {…}, fromUserId: 126}
+MainApp.tsx:189 📞 WebSocket signaling event: call-ice-candidate
+useCallSessionStore.tsx:640 [CallSessionStore] handleIceCandidate: No active session
+(anonymous) @ useCallSessionStore.tsx:640
+handleSignaling @ MainApp.tsx:223
+(anonymous) @ useWebSocket.tsx:336
+ws.onmessage @ useWebSocket.tsx:334
+CallModal.tsx:490 📞 CallModal received signaling message: call-ice-candidate
+sw.js:736 [SW] Message received: {type: 'TELEGRAM_STYLE_BADGE', count: 0, source: 'app_focus_sync'}
+sw.js:762 [SW] Setting badge count: 0
+sw.js:347 [SW] 📱 Setting independent badge: 0
+sw.js:1066 [SW] Message received: {type: 'TELEGRAM_STYLE_BADGE', count: 0, source: 'app_focus_sync'}
+sw.js:358 [SW] ✅ Badge cleared (0 unread)
+sw.js:674 [SW] Retrieved pending call sessions: 0
+sw.js:674 [SW] Retrieved pending call sessions: 0
+sw.js:674 [SW] Retrieved pending call sessions: 0
+CallModal.tsx:150 📞 Connection state: failed
+useWebSocket.tsx:481 Message msg_1763098159627_ugd2w63p8 sent immediately
+useWebSocket.tsx:173 WebSocket message received: {type: 'call-end', targetUserId: 121, callSessionId: 'call_1763098139633_ho3428rbe', fromUserId: 126}
+MainApp.tsx:189 📞 WebSocket signaling event: call-end
+useCallSessionStore.tsx:632 [CallSessionStore] handleEnd: No active session
+(anonymous) @ useCallSessionStore.tsx:632
+handleSignaling @ MainApp.tsx:219
+(anonymous) @ useWebSocket.tsx:336
+ws.onmessage @ useWebSocket.tsx:334
+CallModal.tsx:490 📞 CallModal received signaling message: call-end
+useWebSocket.tsx:481 Message msg_1763098160015_6tazgjoim sent immediately
+useWebSocket.tsx:173 WebSocket message received: {type: 'call-end', targetUserId: 121, callSessionId: 'call_1763098139633_ho3428rbe', fromUserId: 126}
+MainApp.tsx:189 📞 WebSocket signaling event: call-end
+useCallSessionStore.tsx:632 [CallSessionStore] handleEnd: No active session
+(anonymous) @ useCallSessionStore.tsx:632
+handleSignaling @ MainApp.tsx:219
+(anonymous) @ useWebSocket.tsx:336
+ws.onmessage @ useWebSocket.tsx:334
+CallModal.tsx:490 📞 CallModal received signaling message: call-end
+useWebSocket.tsx:481 Message msg_1763098160391_7dlrystl6 sent immediately
+useWebSocket.tsx:173 WebSocket message received: {type: 'call-end', targetUserId: 121, callSessionId: 'call_1763098139633_ho3428rbe', fromUserId: 126}
+MainApp.tsx:189 📞 WebSocket signaling event: call-end
+useCallSessionStore.tsx:632 [CallSessionStore] handleEnd: No active session
+(anonymous) @ useCallSessionStore.tsx:632
+handleSignaling @ MainApp.tsx:219
+(anonymous) @ useWebSocket.tsx:336
+ws.onmessage @ useWebSocket.tsx:334
+sw.js:674 [SW] Retrieved pending call sessions: 0
+TelegramStyleNotificationManager.tsx:64 [NotificationManager] Window blurred
+sw.js:1110 [SW] Syncing badge count with server
+sw.js:674 [SW] Retrieved pending call sessions: 0
+TelegramStyleNotificationManager.tsx:154 [NotificationManager] Activity status updated: offline
