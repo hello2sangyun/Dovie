@@ -87,13 +87,13 @@ public class CallKitVoipPlugin: CAPPlugin, CAPBridgedPlugin {
     
     @objc func startCall(_ call: CAPPluginCall) {
         guard let callId = call.getString("callId"),
-              let handle = call.getString("handle") else {
+              let handleValue = call.getString("handle") else {
             call.reject("Missing required parameters")
             return
         }
         
         let uuid = UUID(uuidString: callId) ?? UUID()
-        let handle = CXHandle(type: .generic, value: handle)
+        let handle = CXHandle(type: .generic, value: handleValue)
         
         let startCallAction = CXStartCallAction(call: uuid, handle: handle)
         startCallAction.isVideo = false
