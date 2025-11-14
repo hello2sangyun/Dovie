@@ -15,7 +15,7 @@ import { processCommand } from "./openai";
 import { db } from "./db";
 import { eq, and, inArray, desc, gte, isNull, isNotNull } from "drizzle-orm";
 import { initializeNotificationScheduler } from "./notification-scheduler";
-import { getVapidPublicKey, sendPushNotification } from "./push-notifications";
+import { getVapidPublicKey, sendPushNotification, sendVoIPPush } from "./push-notifications";
 import twilio from "twilio";
 import { z } from "zod";
 import { verifyIdToken, initializeFirebaseAdmin } from "./firebase-admin";
@@ -5451,6 +5451,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GET /api/calls/:sessionId - Get call session for CallKit background retrieval
+  app.get("/api/calls/:sessionId", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"];
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const { sessionId } = req.params;
+      
+      // Get call session from in-memory store
+      const session = getCallSession(sessionId);
+      if (!session) {
+        return res.status(404).json({ error: "Call session not found" });
+      }
+
+      // Verify user is part of this call (security check)
+      const userIdNum = Number(userId);
+      if (session.callerId !== userIdNum && session.receiverId !== userIdNum) {
+        return res.status(403).json({ error: "Forbidden: Not part of this call" });
+      }
+
+      // Return session data (including offer for incoming calls)
+      res.json({
+        callSessionId: session.callSessionId,
+        chatRoomId: session.chatRoomId,
+        callerId: session.callerId,
+        receiverId: session.receiverId,
+        callerName: session.callerName,
+        callerProfilePicture: session.callerProfilePicture,
+        receiverName: session.receiverName,
+        receiverProfilePicture: session.receiverProfilePicture,
+        offer: session.offer,
+        answer: session.answer,
+        state: session.state,
+        callType: session.callType
+      });
+    } catch (error) {
+      console.error("Error fetching call session:", error);
+      res.status(500).json({ error: "Failed to fetch call session" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // WebSocket connections map
@@ -5521,9 +5564,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
             applyStateTransition(sessionId, CallSessionState.RINGING);
             console.log(`📞 Call offer forwarded: ${userId} → ${targetUserId}`);
           } else {
-            // Target offline - send push notification
+            // Target offline - send push notification (VoIP for iOS, regular for others)
             console.log(`📞 Target user ${targetUserId} offline - sending push notification`);
             
+            // Check if target has iOS VoIP tokens
+            const iosDeviceTokens = await storage.getIOSDeviceTokens(targetUserId);
+            let voipPushSent = false;
+            
+            // Send VoIP push to iOS devices with voipToken
+            for (const device of iosDeviceTokens) {
+              if (device.voipToken) {
+                try {
+                  await sendVoIPPush(device.voipToken, {
+                    callSessionId: sessionId,
+                    callerName: session.callerName,
+                    callerId: userId,
+                    chatRoomId
+                  });
+                  voipPushSent = true;
+                  console.log(`📞 VoIP push sent to iOS device: ${device.id}`);
+                } catch (error) {
+                  console.error(`❌ Failed to send VoIP push to device ${device.id}:`, error);
+                }
+              }
+            }
+            
+            // Also send regular push notification (for PWA and non-VoIP devices)
             await sendPushNotification(targetUserId, {
               title: `${session.callerName} is calling...`,
               body: 'Tap to answer the call',
@@ -5542,12 +5608,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
               tag: `call-${sessionId}`,
               requireInteraction: true,
               sound: 'call-ringtone',
-              silent: false
+              silent: voipPushSent // Silent if VoIP push was sent to avoid double notification
             });
             
             // Mark as RINGING anyway (push sent)
             applyStateTransition(sessionId, CallSessionState.RINGING);
-            console.log(`📞 Push notification sent to user ${targetUserId}`);
+            console.log(`📞 Push notification sent to user ${targetUserId} (VoIP: ${voipPushSent})`);
           }
         }
         

@@ -33,7 +33,7 @@ import { ConnectionStatusIndicator } from "@/components/ConnectionStatusIndicato
 
 import { TelegramStyleNotificationManager } from "@/components/TelegramStyleNotificationManager";
 import { useCapacitorPushNotifications } from "@/hooks/useCapacitorPushNotifications";
-import { CallKitService } from "@/services/CallKitService";
+import CallKitServiceInstance from "@/services/CallKitService";
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
 
@@ -439,7 +439,62 @@ export default function MainApp() {
     console.log('MainApp rendering with user:', user.id);
     
     // Initialize CallKit for iOS VoIP
-    CallKitService.initialize(user.id, user.displayName);
+    CallKitServiceInstance.initialize(user.id, user.displayName);
+    
+    // Register CallKit event handlers
+    CallKitServiceInstance.onIncomingCall(async (data) => {
+      console.log('📞 [MainApp] CallKit incoming call:', data);
+      // CallKit UI is already showing, need to fetch call session and open CallModal
+      
+      try {
+        // Fetch call session from server (includes offer)
+        const response = await fetch(`/api/calls/${data.callId}`, {
+          headers: {
+            'x-user-id': user.id.toString()
+          }
+        });
+        
+        if (!response.ok) {
+          console.error('❌ Failed to fetch call session:', await response.text());
+          return;
+        }
+        
+        const session = await response.json();
+        console.log('📞 [MainApp] Fetched call session:', session);
+        
+        // Open CallModal via handleIncomingOffer
+        handleIncomingOffer(
+          session.callSessionId,
+          session.callerId,
+          session.chatRoomId,
+          session.offer,
+          {
+            receiverId: user.id,
+            receiverName: user.displayName || user.username,
+            receiverProfilePicture: user.profilePicture || undefined,
+            callerName: session.callerName,
+            callerProfilePicture: session.callerProfilePicture
+          }
+        );
+      } catch (error) {
+        console.error('❌ [MainApp] Error handling CallKit incoming call:', error);
+      }
+    });
+    
+    CallKitServiceInstance.onCallAnswered((data) => {
+      console.log('📞 [MainApp] CallKit call answered:', data.callId);
+      // User answered via CallKit native UI
+      // The actual WebRTC answer will be sent from CallModal
+    });
+    
+    CallKitServiceInstance.onCallEnded((data) => {
+      console.log('📞 [MainApp] CallKit call ended:', data.callId);
+      // User ended call via CallKit
+      // Notify server and cleanup
+      if (activeSession) {
+        handleEnd();
+      }
+    });
     
     // Check if permissions have been requested before
     const microphoneGranted = localStorage.getItem('microphonePermissionGranted');
@@ -451,7 +506,11 @@ export default function MainApp() {
         // 네이티브 앱에서는 시스템 권한 사용
       }, 1000); // Show permissions modal shortly after login
     }
-  }, [user]);
+    
+    return () => {
+      CallKitServiceInstance.cleanup();
+    };
+  }, [user, activeSession, handleEnd]);
 
 
 

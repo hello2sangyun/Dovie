@@ -536,7 +536,7 @@ export function getVapidPublicKey(): string {
 export async function sendVoIPPush(
   voipToken: string,
   payload: {
-    callId: string;
+    callSessionId: string;
     callerName: string;
     callerId: number;
     chatRoomId: number;
@@ -554,7 +554,7 @@ export async function sendVoIPPush(
       priority: 10,                         // Immediate delivery
       expiration: Math.floor(Date.now() / 1000) + 30, // 30 seconds expiry
       data: {
-        callId: payload.callId,
+        callId: payload.callSessionId,  // Map callSessionId to callId for Swift compatibility
         callerName: payload.callerName,
         callerId: payload.callerId,
         chatRoomId: payload.chatRoomId
