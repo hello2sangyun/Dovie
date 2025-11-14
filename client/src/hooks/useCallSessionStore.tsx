@@ -230,6 +230,10 @@ interface CallSessionStoreContext {
   handleReject: () => void;
   handleEnd: () => void;
   handleIceCandidate: (candidate: RTCIceCandidateInit) => void;
+  
+  // CallKit native bridge
+  markAnsweredFromNative: (callSessionId: string) => void;
+  markEndedFromNative: (callSessionId: string) => void;
 }
 
 const CallSessionContext = createContext<CallSessionStoreContext | null>(null);
@@ -647,6 +651,66 @@ export function CallSessionStoreProvider({ children }: { children: ReactNode }) 
     }
   }, [state.activeSessionId, state.sessions, updateSession]);
 
+  // CallKit native bridge: answer from CallKit UI
+  const markAnsweredFromNative = useCallback((callSessionId: string) => {
+    console.log(`[CallSessionStore] markAnsweredFromNative: ${callSessionId}`);
+    
+    // Use stateRef to avoid stale closure
+    const currentState = stateRef.current;
+    const session = currentState.sessions.get(callSessionId);
+    
+    if (!session) {
+      console.warn(`[CallSessionStore] markAnsweredFromNative: Session not found: ${callSessionId}`);
+      return;
+    }
+    
+    // Skip if already answered
+    if (session.hasAnswered) {
+      console.log(`[CallSessionStore] Session already answered, skipping: ${callSessionId}`);
+      return;
+    }
+    
+    // Claim session if not active
+    if (currentState.activeSessionId !== callSessionId) {
+      console.log(`[CallSessionStore] Claiming session from CallKit: ${callSessionId}`);
+      claimSession(callSessionId);
+    }
+    
+    // Update session with answer flag
+    // Note: state remains RINGING until WebRTC answer is sent (via handleAnswer)
+    updateSession(callSessionId, {
+      hasAnswered: true,
+      answeredAt: Date.now()
+    });
+    
+    console.log(`✅ [CallSessionStore] Session answered from CallKit: ${callSessionId}`);
+  }, [claimSession, updateSession]);
+
+  // CallKit native bridge: end from CallKit UI
+  const markEndedFromNative = useCallback((callSessionId: string) => {
+    console.log(`[CallSessionStore] markEndedFromNative: ${callSessionId}`);
+    
+    const currentState = stateRef.current;
+    const session = currentState.sessions.get(callSessionId);
+    
+    if (!session) {
+      console.warn(`[CallSessionStore] markEndedFromNative: Session not found: ${callSessionId}`);
+      return;
+    }
+    
+    // End the session state
+    changeSessionState(callSessionId, CallSessionState.ENDED);
+    
+    // Release the session to close CallModal and trigger cleanup
+    // CallModal's cleanup useEffect will handle WebRTC teardown
+    if (currentState.activeSessionId === callSessionId) {
+      console.log(`[CallSessionStore] Releasing active session from CallKit: ${callSessionId}`);
+      releaseSession(callSessionId);
+    }
+    
+    console.log(`✅ [CallSessionStore] Session ended from CallKit: ${callSessionId}`);
+  }, [changeSessionState, releaseSession]);
+
   // Service Worker call sync for cold-start pending sessions
   useServiceWorkerCallSync(createSession, claimSession);
 
@@ -671,7 +735,11 @@ export function CallSessionStoreProvider({ children }: { children: ReactNode }) 
     handleAnswer,
     handleReject,
     handleEnd,
-    handleIceCandidate
+    handleIceCandidate,
+    
+    // CallKit native bridge
+    markAnsweredFromNative,
+    markEndedFromNative
   };
 
   return (

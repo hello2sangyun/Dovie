@@ -6,6 +6,7 @@ import { useWebSocketContext } from '@/hooks/useWebSocketContext';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { CallSounds } from '@/utils/callSounds';
+import { useCallSessionStore } from '@/hooks/useCallSessionStore';
 
 interface CallModalProps {
   isOpen: boolean;
@@ -42,6 +43,7 @@ export function CallModal({
   const { user } = useAuth();
   const { sendMessage, subscribeToSignaling } = useWebSocketContext();
   const { toast } = useToast();
+  const { activeSession } = useCallSessionStore();
   
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
@@ -107,6 +109,20 @@ export function CallModal({
       }
     };
   }, [isOpen]);
+
+  // Sync hasAnswered from activeSession (CallKit native answer bridge)
+  useEffect(() => {
+    if (activeSession?.hasAnswered && !hasAnswered) {
+      console.log('✅ [CallModal] Session answered from CallKit native UI, starting WebRTC');
+      setHasAnswered(true);
+      setCallState('connecting');
+      
+      // Stop incoming ringtone
+      if (callSoundsRef.current) {
+        callSoundsRef.current.stopIncomingRingtone();
+      }
+    }
+  }, [activeSession?.hasAnswered, hasAnswered]);
 
   // Play incoming ringtone for receiver
   useEffect(() => {

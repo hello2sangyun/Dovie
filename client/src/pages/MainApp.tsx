@@ -81,7 +81,9 @@ export default function MainApp() {
     handleReject, 
     handleEnd,
     handleIceCandidate,
-    releaseActiveSession 
+    releaseActiveSession,
+    markAnsweredFromNative,
+    markEndedFromNative
   } = useCallSessionStore();
   
   // PWA badge functionality - always active, independent of push notifications
@@ -483,17 +485,14 @@ export default function MainApp() {
     
     CallKitServiceInstance.onCallAnswered((data) => {
       console.log('📞 [MainApp] CallKit call answered:', data.callId);
-      // User answered via CallKit native UI
-      // The actual WebRTC answer will be sent from CallModal
+      // Mark session as answered from native CallKit UI
+      markAnsweredFromNative(data.callId);
     });
     
     CallKitServiceInstance.onCallEnded((data) => {
       console.log('📞 [MainApp] CallKit call ended:', data.callId);
-      // User ended call via CallKit
-      // Notify server and cleanup
-      if (activeSession) {
-        handleEnd();
-      }
+      // Mark session as ended from native CallKit UI
+      markEndedFromNative(data.callId);
     });
     
     // Check if permissions have been requested before
@@ -510,7 +509,7 @@ export default function MainApp() {
     return () => {
       CallKitServiceInstance.cleanup();
     };
-  }, [user, activeSession, handleEnd]);
+  }, [user, handleIncomingOffer, markAnsweredFromNative, markEndedFromNative]);
 
 
 

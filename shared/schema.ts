@@ -1062,6 +1062,7 @@ export interface CallSession {
   offer?: RTCSessionDescriptionInit;
   answer?: RTCSessionDescriptionInit;
   iceCandidates?: RTCIceCandidateInit[];
+  hasAnswered?: boolean;  // CallKit bridge: true when answered from native UI
   startedAt?: number;
   answeredAt?: number;
   endedAt?: number;
