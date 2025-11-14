@@ -89,6 +89,7 @@ export class CallKitService {
   private userName: string | null = null;
   
   private nativeBridgeReady: boolean = false;
+  private nativeBridgeInitializing: boolean = false;
   private nativeListenersCleared: boolean = false;
   
   private nativeBridgeHandles: PluginListenerHandle[] = [];
@@ -105,62 +106,95 @@ export class CallKitService {
   }
   
   private async ensureNativeBridge(): Promise<void> {
+    // Return immediately if already ready
     if (this.nativeBridgeReady) {
       return;
     }
     
-    console.log('📞 [CallKitService] Bootstrapping native bridge...');
-    
-    await CallKitVoip.register();
-    
-    const tokenListener = await CallKitVoip.addListener('voipToken', async (data) => {
-      console.log('📞 [CallKitService] VoIP token received:', data.token.substring(0, 20) + '...');
-      this.voipToken = data.token;
+    // Wait if initialization is in progress (prevents race condition)
+    if (this.nativeBridgeInitializing) {
+      console.log('📞 [CallKitService] Waiting for in-flight bridge initialization...');
+      while (this.nativeBridgeInitializing && !this.nativeBridgeReady) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
       
-      if (this.userId) {
-        await this.registerVoipToken();
+      // After waiting, check if initialization succeeded
+      if (!this.nativeBridgeReady) {
+        throw new Error('CallKit native bridge initialization failed in concurrent caller');
       }
-    });
+      
+      return;
+    }
     
-    const incomingCallListener = await CallKitVoip.addListener('incomingCall', async (data) => {
-      console.log('📞 [CallKitService] Native incoming call event:', data);
-      if (this.jsHandlers.onIncomingCall) {
-        this.jsHandlers.onIncomingCall(data);
-      }
-    });
+    // Set in-flight flag before starting
+    this.nativeBridgeInitializing = true;
     
-    const answeredListener = await CallKitVoip.addListener('callAnswered', (data) => {
-      console.log('📞 [CallKitService] Native call answered event:', data);
-      if (this.jsHandlers.onCallAnswered) {
-        this.jsHandlers.onCallAnswered(data);
-      }
-    });
-    
-    const endedListener = await CallKitVoip.addListener('callEnded', (data) => {
-      console.log('📞 [CallKitService] Native call ended event:', data);
-      if (this.jsHandlers.onCallEnded) {
-        this.jsHandlers.onCallEnded(data);
-      }
-    });
-    
-    const startedListener = await CallKitVoip.addListener('callStarted', (data) => {
-      console.log('📞 [CallKitService] Native call started event:', data);
-      if (this.jsHandlers.onCallStarted) {
-        this.jsHandlers.onCallStarted(data);
-      }
-    });
-    
-    this.nativeBridgeHandles = [
-      await tokenListener,
-      await incomingCallListener,
-      await answeredListener,
-      await endedListener,
-      await startedListener
-    ];
-    
-    this.nativeBridgeReady = true;
-    this.nativeListenersCleared = false;
-    console.log('✅ [CallKitService] Native bridge ready');
+    try {
+      console.log('📞 [CallKitService] Bootstrapping native bridge...');
+      
+      await CallKitVoip.register();
+      
+      const tokenListener = await CallKitVoip.addListener('voipToken', async (data) => {
+        console.log('📞 [CallKitService] VoIP token received:', data.token.substring(0, 20) + '...');
+        this.voipToken = data.token;
+        
+        if (this.userId) {
+          await this.registerVoipToken();
+        }
+      });
+      
+      const incomingCallListener = await CallKitVoip.addListener('incomingCall', async (data) => {
+        console.log('📞 [CallKitService] Native incoming call event:', data);
+        if (this.jsHandlers.onIncomingCall) {
+          this.jsHandlers.onIncomingCall(data);
+        }
+      });
+      
+      const answeredListener = await CallKitVoip.addListener('callAnswered', (data) => {
+        console.log('📞 [CallKitService] Native call answered event:', data);
+        if (this.jsHandlers.onCallAnswered) {
+          this.jsHandlers.onCallAnswered(data);
+        }
+      });
+      
+      const endedListener = await CallKitVoip.addListener('callEnded', (data) => {
+        console.log('📞 [CallKitService] Native call ended event:', data);
+        if (this.jsHandlers.onCallEnded) {
+          this.jsHandlers.onCallEnded(data);
+        }
+      });
+      
+      const startedListener = await CallKitVoip.addListener('callStarted', (data) => {
+        console.log('📞 [CallKitService] Native call started event:', data);
+        if (this.jsHandlers.onCallStarted) {
+          this.jsHandlers.onCallStarted(data);
+        }
+      });
+      
+      // Populate handles array first, then mark ready (atomic operation)
+      this.nativeBridgeHandles = [
+        await tokenListener,
+        await incomingCallListener,
+        await answeredListener,
+        await endedListener,
+        await startedListener
+      ];
+      
+      this.nativeListenersCleared = false;
+      
+      // Mark ready AFTER handles are populated
+      this.nativeBridgeReady = true;
+      console.log('✅ [CallKitService] Native bridge ready');
+    } catch (error) {
+      console.error('❌ [CallKitService] Failed to bootstrap native bridge:', error);
+      // Reset flags to allow retry
+      this.nativeBridgeReady = false;
+      this.nativeListenersCleared = false;
+      throw error;
+    } finally {
+      // Always clear initializing flag
+      this.nativeBridgeInitializing = false;
+    }
   }
   
   async configureUser(userId: number, userName: string): Promise<void> {
@@ -242,6 +276,7 @@ export class CallKitService {
       this.nativeBridgeHandles = [];
       await CallKitVoip.removeAllListeners();
       this.nativeBridgeReady = false;
+      this.nativeBridgeInitializing = false;
       this.nativeListenersCleared = true;
     }
     
