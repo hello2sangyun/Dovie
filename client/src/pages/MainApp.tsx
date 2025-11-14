@@ -491,8 +491,23 @@ export default function MainApp() {
     
     CallKitServiceInstance.onCallEnded((data) => {
       console.log('📞 [MainApp] CallKit call ended:', data.callId);
+      
       // Mark session as ended from native CallKit UI
       markEndedFromNative(data.callId);
+      
+      // Send WebSocket signaling to trigger CallModal cleanup
+      // CallModal listens for 'call-end' and executes endCall()
+      if (activeSession && activeSession.callSessionId === data.callId) {
+        const targetUserId = activeSession.receiverId === user.id 
+          ? activeSession.callerId 
+          : activeSession.receiverId;
+        
+        sendMessage({
+          type: 'call-end',
+          targetUserId,
+          callSessionId: data.callId
+        });
+      }
     });
     
     // Check if permissions have been requested before
@@ -509,7 +524,7 @@ export default function MainApp() {
     return () => {
       CallKitServiceInstance.cleanup();
     };
-  }, [user, handleIncomingOffer, markAnsweredFromNative, markEndedFromNative]);
+  }, [user, activeSession, handleIncomingOffer, markAnsweredFromNative, markEndedFromNative, sendMessage]);
 
 
 

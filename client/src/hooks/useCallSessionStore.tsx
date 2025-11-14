@@ -699,17 +699,11 @@ export function CallSessionStoreProvider({ children }: { children: ReactNode }) 
     }
     
     // End the session state
+    // Note: MainApp will send WebSocket 'call-end' signaling to trigger CallModal cleanup
     changeSessionState(callSessionId, CallSessionState.ENDED);
     
-    // Release the session to close CallModal and trigger cleanup
-    // CallModal's cleanup useEffect will handle WebRTC teardown
-    if (currentState.activeSessionId === callSessionId) {
-      console.log(`[CallSessionStore] Releasing active session from CallKit: ${callSessionId}`);
-      releaseSession(callSessionId);
-    }
-    
     console.log(`✅ [CallSessionStore] Session ended from CallKit: ${callSessionId}`);
-  }, [changeSessionState, releaseSession]);
+  }, [changeSessionState]);
 
   // Service Worker call sync for cold-start pending sessions
   useServiceWorkerCallSync(createSession, claimSession);
