@@ -58,7 +58,6 @@ export interface CallKitVoipPlugin {
 
 const CallKitVoip = registerPlugin<CallKitVoipPlugin>('CallKitVoip', {
   web: () => {
-    // Web implementation (no-op for PWA)
     return {
       register: async () => ({ success: false }),
       reportIncomingCall: async () => ({ success: false }),
@@ -71,12 +70,30 @@ const CallKitVoip = registerPlugin<CallKitVoipPlugin>('CallKitVoip', {
   }
 });
 
+export interface CallKitHandlers {
+  onIncomingCall?: (data: {
+    callId: string;
+    callerName: string;
+    callerId: number;
+    chatRoomId: number;
+  }) => void;
+  onCallAnswered?: (data: { callId: string }) => void;
+  onCallEnded?: (data: { callId: string }) => void;
+  onCallStarted?: (data: { callId: string }) => void;
+}
+
 export class CallKitService {
   private static instance: CallKitService;
   private voipToken: string | null = null;
-  private listeners: PluginListenerHandle[] = [];
   private userId: number | null = null;
   private userName: string | null = null;
+  
+  private nativeBridgeReady: boolean = false;
+  private nativeListenersCleared: boolean = false;
+  
+  private nativeBridgeHandles: PluginListenerHandle[] = [];
+  
+  private jsHandlers: CallKitHandlers = {};
   
   private constructor() {}
   
@@ -87,59 +104,148 @@ export class CallKitService {
     return CallKitService.instance;
   }
   
-  static async initialize(userId: number, userName: string): Promise<void> {
-    const instance = CallKitService.getInstance();
-    instance.userId = userId;
-    instance.userName = userName;
-    await instance.initialize();
+  private async ensureNativeBridge(): Promise<void> {
+    if (this.nativeBridgeReady) {
+      return;
+    }
+    
+    console.log('📞 [CallKitService] Bootstrapping native bridge...');
+    
+    await CallKitVoip.register();
+    
+    const tokenListener = await CallKitVoip.addListener('voipToken', async (data) => {
+      console.log('📞 [CallKitService] VoIP token received:', data.token.substring(0, 20) + '...');
+      this.voipToken = data.token;
+      
+      if (this.userId) {
+        await this.registerVoipToken();
+      }
+    });
+    
+    const incomingCallListener = await CallKitVoip.addListener('incomingCall', async (data) => {
+      console.log('📞 [CallKitService] Native incoming call event:', data);
+      if (this.jsHandlers.onIncomingCall) {
+        this.jsHandlers.onIncomingCall(data);
+      }
+    });
+    
+    const answeredListener = await CallKitVoip.addListener('callAnswered', (data) => {
+      console.log('📞 [CallKitService] Native call answered event:', data);
+      if (this.jsHandlers.onCallAnswered) {
+        this.jsHandlers.onCallAnswered(data);
+      }
+    });
+    
+    const endedListener = await CallKitVoip.addListener('callEnded', (data) => {
+      console.log('📞 [CallKitService] Native call ended event:', data);
+      if (this.jsHandlers.onCallEnded) {
+        this.jsHandlers.onCallEnded(data);
+      }
+    });
+    
+    const startedListener = await CallKitVoip.addListener('callStarted', (data) => {
+      console.log('📞 [CallKitService] Native call started event:', data);
+      if (this.jsHandlers.onCallStarted) {
+        this.jsHandlers.onCallStarted(data);
+      }
+    });
+    
+    this.nativeBridgeHandles = [
+      await tokenListener,
+      await incomingCallListener,
+      await answeredListener,
+      await endedListener,
+      await startedListener
+    ];
+    
+    this.nativeBridgeReady = true;
+    this.nativeListenersCleared = false;
+    console.log('✅ [CallKitService] Native bridge ready');
   }
   
-  async initialize(): Promise<void> {
-    try {
-      console.log('📞 [CallKitService] Initializing...');
-      
-      // Register for VoIP notifications
-      await CallKitVoip.register();
-      
-      // Listen for VoIP token
-      const tokenListener = await CallKitVoip.addListener('voipToken', async (data) => {
-        console.log('📞 [CallKitService] VoIP token received:', data.token.substring(0, 20) + '...');
-        this.voipToken = data.token;
-        
-        // Send token to server
-        await this.registerVoipToken(data.token);
-      });
-      
-      this.listeners.push(tokenListener);
-      
-      console.log('✅ [CallKitService] Initialized');
-    } catch (error) {
-      console.error('❌ [CallKitService] Initialization failed:', error);
+  async configureUser(userId: number, userName: string): Promise<void> {
+    await this.ensureNativeBridge();
+    
+    const previousUserId = this.userId;
+    const userChanged = previousUserId !== userId;
+    
+    this.userId = userId;
+    this.userName = userName;
+    
+    console.log(`📞 [CallKitService] User configured: ${userId} (${userName}), userChanged: ${userChanged}`);
+    
+    // Register VoIP token when token is available
+    if (this.voipToken) {
+      await this.registerVoipToken();
     }
   }
   
-  private async registerVoipToken(token: string): Promise<void> {
+  private async registerVoipToken(): Promise<void> {
+    if (!this.voipToken || !this.userId) return;
+    
     try {
-      const response = await fetch('/api/voip-token', {
+      console.log('📞 [CallKitService] Registering VoIP token for user:', this.userId);
+      const response = await fetch('/api/push/register-voip', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-user-id': localStorage.getItem('userId') || ''
+          'x-user-id': this.userId.toString()
         },
-        body: JSON.stringify({ 
-          voipToken: token,
-          platform: 'ios'  // Always 'ios' for CallKit VoIP
+        body: JSON.stringify({
+          token: this.voipToken,
+          userId: this.userId
         })
       });
       
       if (response.ok) {
-        console.log('✅ [CallKitService] VoIP token registered on server (platform: ios)');
+        console.log('✅ [CallKitService] VoIP token registered successfully');
       } else {
         console.error('❌ [CallKitService] Failed to register VoIP token:', await response.text());
       }
     } catch (error) {
       console.error('❌ [CallKitService] Error registering VoIP token:', error);
     }
+  }
+  
+  bindHandlers(handlers: CallKitHandlers): () => void {
+    this.jsHandlers = { ...this.jsHandlers, ...handlers };
+    
+    console.log('📞 [CallKitService] JS handlers bound');
+    
+    return () => {
+      Object.keys(handlers).forEach(key => {
+        delete this.jsHandlers[key as keyof CallKitHandlers];
+      });
+      console.log('📞 [CallKitService] JS handlers unbound');
+    };
+  }
+  
+  resetHandlers(): void {
+    this.jsHandlers = {};
+    console.log('📞 [CallKitService] JS handlers reset');
+  }
+  
+  clearUserContext(): void {
+    this.userId = null;
+    this.userName = null;
+    // Keep voipToken for re-registration when user logs back in
+    console.log('📞 [CallKitService] User context cleared (voipToken preserved)');
+  }
+  
+  async teardown(options?: { hard?: boolean }): Promise<void> {
+    this.resetHandlers();
+    this.clearUserContext();
+    
+    if (options?.hard && !this.nativeListenersCleared) {
+      console.log('🧹 [CallKitService] Hard teardown: removing native listeners');
+      this.nativeBridgeHandles.forEach(handle => handle.remove());
+      this.nativeBridgeHandles = [];
+      await CallKitVoip.removeAllListeners();
+      this.nativeBridgeReady = false;
+      this.nativeListenersCleared = true;
+    }
+    
+    console.log('🧹 [CallKitService] Teardown complete');
   }
   
   async reportIncomingCall(callId: string, callerName: string): Promise<void> {
@@ -149,7 +255,7 @@ export class CallKitService {
         callerName,
         hasVideo: false
       });
-      console.log('✅ [CallKitService] Incoming call reported to CallKit');
+      console.log('📞 [CallKitService] Reported incoming call to CallKit');
     } catch (error) {
       console.error('❌ [CallKitService] Failed to report incoming call:', error);
     }
@@ -158,7 +264,7 @@ export class CallKitService {
   async startCall(callId: string, handle: string): Promise<void> {
     try {
       await CallKitVoip.startCall({ callId, handle });
-      console.log('✅ [CallKitService] Call started via CallKit');
+      console.log('📞 [CallKitService] Started outgoing call');
     } catch (error) {
       console.error('❌ [CallKitService] Failed to start call:', error);
     }
@@ -167,7 +273,7 @@ export class CallKitService {
   async endCall(callId: string): Promise<void> {
     try {
       await CallKitVoip.endCall({ callId });
-      console.log('✅ [CallKitService] Call ended via CallKit');
+      console.log('📞 [CallKitService] Ended call');
     } catch (error) {
       console.error('❌ [CallKitService] Failed to end call:', error);
     }
@@ -176,39 +282,10 @@ export class CallKitService {
   async answerCall(callId: string): Promise<void> {
     try {
       await CallKitVoip.answerCall({ callId });
-      console.log('✅ [CallKitService] Call answered via CallKit');
+      console.log('📞 [CallKitService] Answered call');
     } catch (error) {
       console.error('❌ [CallKitService] Failed to answer call:', error);
     }
-  }
-  
-  onIncomingCall(callback: (data: {
-    callId: string;
-    callerName: string;
-    callerId: number;
-    chatRoomId: number;
-  }) => void): void {
-    CallKitVoip.addListener('incomingCall', callback).then(listener => {
-      this.listeners.push(listener);
-    });
-  }
-  
-  onCallAnswered(callback: (data: { callId: string }) => void): void {
-    CallKitVoip.addListener('callAnswered', callback).then(listener => {
-      this.listeners.push(listener);
-    });
-  }
-  
-  onCallEnded(callback: (data: { callId: string }) => void): void {
-    CallKitVoip.addListener('callEnded', callback).then(listener => {
-      this.listeners.push(listener);
-    });
-  }
-  
-  cleanup(): void {
-    this.listeners.forEach(listener => listener.remove());
-    this.listeners = [];
-    console.log('🧹 [CallKitService] Cleaned up listeners');
   }
 }
 

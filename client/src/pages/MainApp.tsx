@@ -33,7 +33,7 @@ import { ConnectionStatusIndicator } from "@/components/ConnectionStatusIndicato
 
 import { TelegramStyleNotificationManager } from "@/components/TelegramStyleNotificationManager";
 import { useCapacitorPushNotifications } from "@/hooks/useCapacitorPushNotifications";
-import CallKitServiceInstance from "@/services/CallKitService";
+import CallKitServiceInstance, { CallKitService } from "@/services/CallKitService";
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
 
@@ -435,97 +435,104 @@ export default function MainApp() {
     }, 500);
   };
 
-  // Request permissions and register push notifications after login
+  // Configure CallKit user context when user logs in/out
+  useEffect(() => {
+    // Skip during initial loading
+    if (!initialized) return;
+    
+    if (!user) {
+      // Explicit logout cleanup (only after initialized)
+      console.log('📞 [MainApp] User logged out - clearing CallKit context');
+      CallKitServiceInstance.clearUserContext();
+      return;
+    }
+    
+    console.log('📞 [MainApp] Configuring CallKit for user:', user.id);
+    void CallKitServiceInstance.configureUser(user.id, user.displayName || user.username);
+  }, [initialized, user?.id, user?.displayName, user?.username]);
+
+  // Bind CallKit event handlers (separate effect for handler stability)
   useEffect(() => {
     if (!user) return;
     
-    console.log('MainApp rendering with user:', user.id);
+    console.log('📞 [MainApp] Binding CallKit event handlers');
     
-    // Initialize CallKit for iOS VoIP
-    CallKitServiceInstance.initialize(user.id, user.displayName);
-    
-    // Register CallKit event handlers
-    CallKitServiceInstance.onIncomingCall(async (data) => {
-      console.log('📞 [MainApp] CallKit incoming call:', data);
-      // CallKit UI is already showing, need to fetch call session and open CallModal
-      
-      try {
-        // Fetch call session from server (includes offer)
-        const response = await fetch(`/api/calls/${data.callId}`, {
-          headers: {
-            'x-user-id': user.id.toString()
-          }
-        });
+    const unbind = CallKitServiceInstance.bindHandlers({
+      onIncomingCall: async (data) => {
+        console.log('📞 [MainApp] CallKit incoming call:', data);
         
-        if (!response.ok) {
-          console.error('❌ Failed to fetch call session:', await response.text());
-          return;
+        try {
+          // Fetch call session from server (includes offer)
+          const response = await fetch(`/api/calls/${data.callId}`, {
+            headers: {
+              'x-user-id': user.id.toString()
+            }
+          });
+          
+          if (!response.ok) {
+            console.error('❌ Failed to fetch call session:', await response.text());
+            return;
+          }
+          
+          const session = await response.json();
+          console.log('📞 [MainApp] Fetched call session:', session);
+          
+          // Open CallModal via handleIncomingOffer
+          handleIncomingOffer(
+            session.callSessionId,
+            session.callerId,
+            session.chatRoomId,
+            session.offer,
+            {
+              receiverId: user.id,
+              receiverName: user.displayName || user.username,
+              receiverProfilePicture: user.profilePicture || undefined,
+              callerName: session.callerName,
+              callerProfilePicture: session.callerProfilePicture
+            }
+          );
+        } catch (error) {
+          console.error('❌ [MainApp] Error handling CallKit incoming call:', error);
         }
+      },
+      
+      onCallAnswered: (data) => {
+        console.log('📞 [MainApp] CallKit call answered:', data.callId);
+        markAnsweredFromNative(data.callId);
+      },
+      
+      onCallEnded: (data) => {
+        console.log('📞 [MainApp] CallKit call ended:', data.callId);
         
-        const session = await response.json();
-        console.log('📞 [MainApp] Fetched call session:', session);
+        markEndedFromNative(data.callId);
         
-        // Open CallModal via handleIncomingOffer
-        handleIncomingOffer(
-          session.callSessionId,
-          session.callerId,
-          session.chatRoomId,
-          session.offer,
-          {
-            receiverId: user.id,
-            receiverName: user.displayName || user.username,
-            receiverProfilePicture: user.profilePicture || undefined,
-            callerName: session.callerName,
-            callerProfilePicture: session.callerProfilePicture
-          }
-        );
-      } catch (error) {
-        console.error('❌ [MainApp] Error handling CallKit incoming call:', error);
+        // Send WebSocket signaling to trigger CallModal cleanup
+        const session = getSession(data.callId);
+        if (session) {
+          const targetUserId = session.receiverId === user.id 
+            ? session.callerId 
+            : session.receiverId;
+          
+          sendMessage({
+            type: 'call-end',
+            targetUserId,
+            callSessionId: data.callId
+          });
+        }
       }
     });
     
-    CallKitServiceInstance.onCallAnswered((data) => {
-      console.log('📞 [MainApp] CallKit call answered:', data.callId);
-      // Mark session as answered from native CallKit UI
-      markAnsweredFromNative(data.callId);
-    });
-    
-    CallKitServiceInstance.onCallEnded((data) => {
-      console.log('📞 [MainApp] CallKit call ended:', data.callId);
-      
-      // Mark session as ended from native CallKit UI
-      markEndedFromNative(data.callId);
-      
-      // Send WebSocket signaling to trigger CallModal cleanup
-      // Find session by ID regardless of activeSession state
-      const session = getSession(data.callId);
-      if (session) {
-        const targetUserId = session.receiverId === user.id 
-          ? session.callerId 
-          : session.receiverId;
-        
-        sendMessage({
-          type: 'call-end',
-          targetUserId,
-          callSessionId: data.callId
-        });
-      }
-    });
-    
-    // Check if permissions have been requested before
+    // Permissions check (browser only)
     const microphoneGranted = localStorage.getItem('microphonePermissionGranted');
     const notificationGranted = localStorage.getItem('notificationPermissionGranted');
     
-    // Show permission modal if either microphone or notification permission hasn't been handled yet
     if (!microphoneGranted || !notificationGranted) {
       setTimeout(() => {
         // 네이티브 앱에서는 시스템 권한 사용
-      }, 1000); // Show permissions modal shortly after login
+      }, 1000);
     }
     
-    return () => {
-      CallKitServiceInstance.cleanup();
-    };
+    return unbind;
   }, [user, handleIncomingOffer, markAnsweredFromNative, markEndedFromNative, getSession, sendMessage]);
 
 

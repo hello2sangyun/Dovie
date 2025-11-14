@@ -3452,6 +3452,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // VoIP 푸시 토큰 등록 API (CallKit용)
+  app.post('/api/push/register-voip', async (req, res) => {
+    const userId = Number(req.headers['x-user-id']);
+    const { token } = req.body;
+    
+    console.log('📞 [VoIP] VoIP 토큰 등록 요청:', {
+      userId,
+      token: token ? `${token.substring(0, 20)}...` : 'none'
+    });
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    
+    if (!token) {
+      return res.status(400).json({ message: "VoIP token is required" });
+    }
+
+    try {
+      // VoIP 토큰을 iOS device token으로 저장 (platform: 'voip')
+      await storage.saveIOSDeviceToken(userId, token, 'voip');
+      
+      console.log('✅ [VoIP] VoIP 토큰 데이터베이스 저장 성공');
+      
+      res.json({ 
+        success: true,
+        message: "VoIP token registered successfully",
+        userId,
+        tokenPreview: token.substring(0, 20) + '...'
+      });
+    } catch (error) {
+      console.error('❌ [VoIP] VoIP 토큰 저장 실패:', error);
+      res.status(500).json({ message: "Failed to register VoIP token" });
+    }
+  });
+
   // Notification Settings API
   app.get("/api/notification-settings", async (req, res) => {
     const userId = req.headers["x-user-id"];
