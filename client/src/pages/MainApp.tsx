@@ -83,7 +83,8 @@ export default function MainApp() {
     handleIceCandidate,
     releaseActiveSession,
     markAnsweredFromNative,
-    markEndedFromNative
+    markEndedFromNative,
+    getSession
   } = useCallSessionStore();
   
   // PWA badge functionality - always active, independent of push notifications
@@ -496,11 +497,12 @@ export default function MainApp() {
       markEndedFromNative(data.callId);
       
       // Send WebSocket signaling to trigger CallModal cleanup
-      // CallModal listens for 'call-end' and executes endCall()
-      if (activeSession && activeSession.callSessionId === data.callId) {
-        const targetUserId = activeSession.receiverId === user.id 
-          ? activeSession.callerId 
-          : activeSession.receiverId;
+      // Find session by ID regardless of activeSession state
+      const session = getSession(data.callId);
+      if (session) {
+        const targetUserId = session.receiverId === user.id 
+          ? session.callerId 
+          : session.receiverId;
         
         sendMessage({
           type: 'call-end',
@@ -524,7 +526,7 @@ export default function MainApp() {
     return () => {
       CallKitServiceInstance.cleanup();
     };
-  }, [user, activeSession, handleIncomingOffer, markAnsweredFromNative, markEndedFromNative, sendMessage]);
+  }, [user, handleIncomingOffer, markAnsweredFromNative, markEndedFromNative, getSession, sendMessage]);
 
 
 
