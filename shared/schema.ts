@@ -104,6 +104,7 @@ export const iosDeviceTokens = pgTable("ios_device_tokens", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
   deviceToken: text("device_token").notNull(),
+  voipToken: text("voip_token"), // CallKit VoIP push token
   platform: text("platform").default("ios").notNull(),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
