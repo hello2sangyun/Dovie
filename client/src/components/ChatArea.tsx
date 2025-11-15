@@ -2276,28 +2276,34 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       const uploadResults = await Promise.all(uploadPromises);
       console.log('✅ 모든 파일 업로드 완료:', uploadResults.length, '개');
       
-      // Send as ONE message with all attachments
-      const realMessage = await sendMessageMutation.mutateAsync({
-        messageType: "file",
-        content: messageContent,
-        attachments: uploadResults,
-        replyToMessageId: replyToMessage?.id
-      });
-      
-      console.log('✅ 묶음 메시지 전송 완료');
-      
-      // Replace temp message with real message
+      // Send individual messages for each file (backend doesn't support attachments array)
+      // Remove temp message first to avoid conflicts
       queryClient.setQueryData([`/api/chat-rooms`, chatRoomId, "messages"], (oldData: any) => {
         if (!oldData) return oldData;
         return {
           ...oldData,
-          messages: oldData.messages.map((msg: any) => 
-            msg.id === tempMessageId 
-              ? { ...realMessage, sender: tempMessage.sender }
-              : msg
-          )
+          messages: oldData.messages.filter((msg: any) => msg.id !== tempMessageId)
         };
       });
+      
+      // Send each file as a separate message
+      for (let i = 0; i < uploadResults.length; i++) {
+        const result = uploadResults[i];
+        const fileContent = description 
+          ? `📎 ${result.fileName}\n\n${description}`
+          : `📎 ${result.fileName}`;
+        
+        await sendMessageMutation.mutateAsync({
+          messageType: "file",
+          content: fileContent,
+          fileUrl: result.fileUrl,
+          fileName: result.fileName,
+          fileSize: result.fileSize,
+          replyToMessageId: i === 0 ? replyToMessage?.id : undefined
+        });
+        
+        console.log(`✅ 파일 메시지 ${i + 1}/${uploadResults.length} 전송 완료: ${result.fileName}`);
+      }
       
       // Clear reply state
       setReplyToMessage(null);
