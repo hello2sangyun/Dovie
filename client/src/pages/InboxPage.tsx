@@ -496,6 +496,17 @@ export default function InboxPage() {
               <DropdownMenuItem
                 onClick={(e) => {
                   e.stopPropagation();
+                  setPreviewNotice(notice);
+                }}
+                data-testid={`preview-notice-${notice.id}`}
+              >
+                <Info className="h-4 w-4 mr-2" />
+                자세히 보기
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
                   setQuickReplyNotice(notice);
                 }}
                 data-testid={`quick-reply-${notice.id}`}
@@ -503,6 +514,8 @@ export default function InboxPage() {
                 <Reply className="h-4 w-4 mr-2" />
                 빠른 답장
               </DropdownMenuItem>
+
+              <Separator className="my-1" />
 
               <DropdownMenuItem
                 onClick={(e) => {
