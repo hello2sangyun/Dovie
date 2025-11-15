@@ -2358,10 +2358,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 }
               }
 
+              // Sender profile picture for notification icon (left side)
+              const senderProfileIcon = sender.profilePicture || '/icons/dovie-logo.png';
+              
               await sendPushNotification(recipient.id, {
                 title: notificationTitle,
                 body: notificationBody,
-                icon: '/icons/dovie-logo.png',
+                icon: senderProfileIcon,  // Sender's profile picture on the left
                 badge: `/icons/icon-72x72.png`,
                 data: notificationData,
                 tag: notificationTag,

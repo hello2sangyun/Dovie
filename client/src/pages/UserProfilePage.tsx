@@ -241,8 +241,10 @@ export default function UserProfilePage() {
   };
 
   // Filter media by type using file extensions
+  // Exclude voice messages and general file uploads from media tab
   const mediaFiles = sharedMedia.filter(m => {
     if (!m.fileUrl) return false;
+    if (m.messageType === 'voice' || m.messageType === 'file') return false;
     return isImageFile(m.fileUrl) || isVideoFile(m.fileUrl);
   });
   
@@ -250,6 +252,8 @@ export default function UserProfilePage() {
     if (!m.fileUrl) return false;
     // Files that are not images or videos (includes both local uploads and external files)
     const isMedia = isImageFile(m.fileUrl) || isVideoFile(m.fileUrl);
+    // Exclude voice messages from document files as well
+    if (m.messageType === 'voice') return false;
     return !isMedia && m.messageType !== 'text';
   });
   

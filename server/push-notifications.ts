@@ -419,7 +419,8 @@ export async function sendMessageNotification(
   messageContent: string,
   chatRoomId: number,
   messageType: string = 'text',
-  mediaUrl?: string  // Optional: Image, video, or audio URL for rich notifications
+  mediaUrl?: string,  // Optional: Image, video, or audio URL for rich notifications
+  senderProfilePicture?: string  // Optional: Sender's profile picture for notification icon
 ): Promise<void> {
   try {
     // Get total unread count across all chat rooms AND AI notices for app badge
@@ -513,9 +514,15 @@ export async function sendMessageNotification(
       console.log(`📱 Using default Dovie logo for rich notification: ${notificationData.imageUrl}`);
     }
 
+    // Prepare sender profile picture icon (for notification left side icon)
+    const iconUrl = senderProfilePicture 
+      ? (senderProfilePicture.startsWith('http') ? senderProfilePicture : `${BASE_URL}${senderProfilePicture}`)
+      : `${BASE_URL}/dovie-icon.png`;
+
     await sendPushNotification(recipientUserId, {
       title: senderName,
       body: notificationBody,
+      icon: iconUrl,  // Sender's profile picture as notification icon
       data: notificationData,
       tag: `dovie-chat-${chatRoomId}`,
       requireInteraction: false,
