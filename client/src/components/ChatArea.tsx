@@ -5993,28 +5993,28 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
       {/* Chat Input - Fixed to absolute bottom */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-20">
-        {/* Reply Preview */}
+        {/* Reply Preview - Telegram Style */}
         {replyToMessage && (
-          <div className="px-2 py-1 border-b border-gray-200 bg-gray-50">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center space-x-2 mb-1">
-                  <Reply className="h-4 w-4 text-purple-600" />
-                  <span className="text-sm font-medium text-purple-600">
-                    {replyToMessage.sender.displayName}님에게 회신
+          <div className="px-3 py-2 border-b border-purple-200/40 bg-gradient-to-b from-purple-50/50 to-white/80 backdrop-blur-sm">
+            <div className="flex items-start gap-2 max-w-4xl mx-auto">
+              <div className="flex-1 min-w-0 bg-white rounded-xl px-3 py-2 border-l-4 border-purple-500 shadow-sm">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <Reply className="h-3.5 w-3.5 text-purple-600" />
+                  <span className="text-xs font-semibold text-purple-600">
+                    {replyToMessage.sender.displayName}
                   </span>
                 </div>
-                <p className="text-sm text-gray-600 truncate">
+                <p className="text-sm text-gray-600 truncate leading-tight">
                   {replyToMessage.content}
                 </p>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-gray-400 hover:text-gray-600 p-1"
+                className="text-gray-400 hover:text-purple-600 hover:bg-purple-50/80 p-1.5 h-7 w-7 rounded-full transition-all flex-shrink-0"
                 onClick={() => setReplyToMessage(null)}
               >
-                ✕
+                <X className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -6183,32 +6183,33 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         )}
 
         <div className={cn(
-          "px-4 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] chat-input-area flex items-center justify-center",
-          "bg-white border-t border-gray-200"
+          "px-3 py-2.5 pb-[calc(0.625rem+env(safe-area-inset-bottom))] chat-input-area",
+          "bg-gradient-to-b from-white/95 to-gray-50/95 backdrop-blur-sm border-t border-gray-200/50"
         )}>
-          <div className="flex items-center gap-3 w-full max-w-4xl mx-auto">
-          {/* Enhanced left buttons group */}
-          <div className="flex items-center gap-1">
-            {/* AI Assistant Button with sparkle animation */}
+          <div className="flex items-end gap-2 w-full max-w-4xl mx-auto">
+          {/* Left action buttons - Compact */}
+          <div className="flex items-center gap-1 mb-1">
+            {/* AI Assistant Button */}
             <InteractiveButton
               type="hover"
               intensity="moderate"
               accessibilityMode={accessibilitySettings.reducedMotion}
               hapticFeedback={accessibilitySettings.hapticEnabled}
-              className="text-purple-500 hover:text-purple-600 hover:bg-purple-50 p-2 h-9 w-9 rounded-lg transition-all duration-200 flex items-center justify-center"
+              className="text-purple-600 hover:text-purple-700 hover:bg-purple-50/80 p-2 h-9 w-9 rounded-full transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md"
               onClick={() => setShowAIAssistantModal(true)}
               aria-label="AI 어시스턴트"
               data-testid="button-ai-assistant"
             >
-              <Sparkles className="h-4 w-4" />
+              <Sparkles className="h-4.5 w-4.5" />
             </InteractiveButton>
             
+            {/* File Attach Button */}
             <InteractiveButton
               type="hover"
               intensity="moderate"
               accessibilityMode={accessibilitySettings.reducedMotion}
               hapticFeedback={accessibilitySettings.hapticEnabled}
-              className="text-gray-500 hover:text-purple-600 hover:bg-purple-50 p-2 h-9 w-9 rounded-lg transition-all duration-200 flex items-center justify-center"
+              className="text-gray-600 hover:text-purple-600 hover:bg-purple-50/80 p-2 h-9 w-9 rounded-full transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploadFileMutation.isPending}
               aria-label="파일 첨부"
@@ -6217,13 +6218,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               {uploadFileMutation.isPending ? (
                 <LoadingSpinner size="small" color="purple" />
               ) : (
-                <Paperclip className="h-4 w-4" />
+                <Paperclip className="h-4.5 w-4.5" />
               )}
             </InteractiveButton>
 
           </div>
           
-          <div className="flex-1 relative max-w-2xl mx-2">
+          {/* Input container with rounded design */}
+          <div className="flex-1 relative max-w-2xl bg-white rounded-3xl shadow-sm border border-gray-200/60 hover:border-purple-200 hover:shadow-md transition-all duration-200 overflow-hidden">
             {/* 멘션 자동완성 */}
             {showMentions && mentionSuggestions.length > 0 && (
               <div className="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto z-50">
@@ -6269,7 +6271,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             
             <Textarea
               ref={messageInputRef}
-              placeholder="메시지를 입력하세요..."
+              placeholder="메시지 입력..."
               value={message}
               onChange={(e) => {
                 const newValue = e.target.value;
@@ -6281,10 +6283,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                 const maxHeight = Math.min(window.innerHeight * 0.5, 200); // 화면 높이의 50% 또는 200px 중 작은 값
                 
                 // 높이 초기화 후 스크롤 높이 측정
-                textarea.style.height = '32px';
+                textarea.style.height = '36px';
                 const scrollHeight = textarea.scrollHeight;
                 
-                if (scrollHeight > 32) {
+                if (scrollHeight > 36) {
                   // 텍스트가 한 줄을 넘을 때만 높이 조절
                   if (scrollHeight <= maxHeight) {
                     // 최대 높이 이하일 때는 높이 자동 조절
@@ -6297,7 +6299,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   }
                 } else {
                   // 한 줄일 때는 기본 높이와 스크롤 숨김
-                  textarea.style.height = '32px';
+                  textarea.style.height = '36px';
                   textarea.style.overflow = 'hidden';
                 }
                 
@@ -6444,11 +6446,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   handleSendMessage();
                 }
               }}
-              className="resize-none min-h-[32px] py-1.5 px-3 text-base"
+              className="resize-none min-h-[36px] py-2 px-4 text-base border-0 focus:ring-0 focus:outline-none bg-transparent placeholder:text-gray-400"
               style={{ 
                 fontSize: '16px', 
-                lineHeight: '1.3',
-                height: '32px',
+                lineHeight: '1.4',
+                height: '36px',
                 overflow: 'hidden'
               }}
             />
