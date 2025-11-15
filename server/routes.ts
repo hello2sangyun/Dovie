@@ -2101,9 +2101,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         chatRoomId: Number(req.params.chatRoomId),
         senderId: Number(userId),
         ...req.body,
-      });
+      }) as InsertMessage;
 
       console.log("Message creation - Parsed data:", JSON.stringify(messageData, null, 2));
+      console.log("Message creation - fileUrl:", messageData.fileUrl);
       const message = await storage.createMessage(messageData);
       const messageWithSender = await storage.getMessageById(message.id);
 
