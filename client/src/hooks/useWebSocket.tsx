@@ -324,22 +324,6 @@ export function useWebSocket(userId?: number) {
               console.error("WebSocket server error:", data.message);
               break;
             
-            case "call-offer":
-            case "call-answer":
-            case "call-ice-candidate":
-            case "call-end":
-            case "call-reject":
-            case "call-error":
-              // Broadcast signaling messages to all subscribers
-              signalingSubscribers.current.forEach(handler => {
-                try {
-                  handler(data);
-                } catch (error) {
-                  console.error('Error in signaling message handler:', error);
-                }
-              });
-              break;
-            
             default:
               console.log("Unknown WebSocket message type:", data.type);
           }
