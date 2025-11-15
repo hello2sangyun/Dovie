@@ -205,6 +205,20 @@ export const messages = pgTable("messages", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// 메시지 첨부파일 테이블 - 파일 메타데이터를 명확하게 관리
+export const messageAttachments = pgTable("message_attachments", {
+  id: serial("id").primaryKey(),
+  messageId: integer("message_id").references(() => messages.id).notNull(),
+  fileUrl: text("file_url").notNull(),
+  fileName: text("file_name").notNull(),
+  mimeType: text("mime_type").notNull(), // image/jpeg, video/mp4, application/pdf, etc.
+  fileSize: integer("file_size").notNull(), // in bytes
+  width: integer("width"), // for images/videos
+  height: integer("height"), // for images/videos
+  duration: decimal("duration", { precision: 10, scale: 2 }), // for audio/video in seconds
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const messageReads = pgTable("message_reads", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
@@ -861,6 +875,11 @@ export const insertMessageReadSchema = createInsertSchema(messageReads).omit({
   lastReadAt: true,
 });
 
+export const insertMessageAttachmentSchema = createInsertSchema(messageAttachments).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertCommandSchema = createInsertSchema(commands).omit({
   id: true,
   createdAt: true,
@@ -948,6 +967,8 @@ export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type MessageRead = typeof messageReads.$inferSelect;
 export type InsertMessageRead = z.infer<typeof insertMessageReadSchema>;
+export type MessageAttachment = typeof messageAttachments.$inferSelect;
+export type InsertMessageAttachment = z.infer<typeof insertMessageAttachmentSchema>;
 export type Command = typeof commands.$inferSelect;
 export type InsertCommand = z.infer<typeof insertCommandSchema>;
 export type AiNotice = typeof aiNotices.$inferSelect;
