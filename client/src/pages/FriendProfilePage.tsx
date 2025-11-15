@@ -3,7 +3,7 @@ import { useLocation, useRoute } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
-import { ArrowLeft, Phone, Video, UserPlus, Search, MoreHorizontal, MapPin, Briefcase, Globe, Calendar, Heart, MessageCircle, Share, Building, MessageSquare } from "lucide-react";
+import { ArrowLeft, Phone, Video, UserPlus, Search, MoreHorizontal, MapPin, Briefcase, Globe, Calendar, Heart, MessageCircle, Share, Building, MessageSquare, Image as ImageIcon, FileText, Link as LinkIcon, FileImage, FileVideo, FileAudio, FileCode, File } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,6 +12,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import ScrollIndicator from "@/components/ScrollIndicator";
 import { CallModal } from "@/components/CallModal";
 import { useToast } from "@/hooks/use-toast";
+import { FilePreviewModal } from "@/components/FilePreviewModal";
+import { isImageFile, isVideoFile, getFileType, getFileName, type FileType } from "@/lib/fileUtils";
+import { cn } from "@/lib/utils";
 
 interface BusinessPost {
   id: number;
@@ -64,6 +67,13 @@ interface BusinessProfile {
   skills?: string[];
 }
 
+interface SharedMediaFile {
+  id: number;
+  fileUrl: string;
+  messageType: string;
+  createdAt: string;
+}
+
 export default function FriendProfilePage() {
   const [, setLocation] = useLocation();
   const [match, params] = useRoute("/friend/:userId");
@@ -75,6 +85,8 @@ export default function FriendProfilePage() {
   const [activeTab, setActiveTab] = useState("posts");
   const [isCallModalOpen, setIsCallModalOpen] = useState(false);
   const [callChatRoomId, setCallChatRoomId] = useState<number | null>(null);
+  const [selectedFile, setSelectedFile] = useState<{ url: string; name: string; size?: number } | null>(null);
+  const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
 
   // Fetch friend's business posts
   const { data: businessPosts = [], isLoading: postsLoading } = useQuery({
@@ -98,6 +110,21 @@ export default function FriendProfilePage() {
   const { data: userProfile, isLoading: userLoading } = useQuery({
     queryKey: [`/api/users/${userId}/profile`],
     enabled: !!userId,
+  });
+
+  // Fetch shared media/files
+  const { data: sharedMedia = [] } = useQuery<SharedMediaFile[]>({
+    queryKey: ['/api/shared-media', userId],
+    queryFn: async () => {
+      const response = await fetch(`/api/shared-media/${userId}`, {
+        headers: {
+          'x-user-id': user?.id?.toString() || '',
+        },
+      });
+      if (!response.ok) throw new Error('Failed to fetch shared media');
+      return response.json();
+    },
+    enabled: !!userId && !!user,
   });
 
   // Fetch existing chat rooms to check if a direct chat already exists
@@ -192,6 +219,49 @@ export default function FriendProfilePage() {
   const friendName = (businessCard as any)?.fullName || (businessProfile as any)?.company || (userProfile as any)?.displayName || "친구";
   const friendProfilePicture = (userProfile as any)?.profilePicture;
 
+  // Filter shared media into categories (exclude voice messages and regular files from media tab)
+  const mediaFiles = sharedMedia.filter(m => {
+    if (!m.fileUrl) return false;
+    if (m.messageType === 'voice' || m.messageType === 'file') return false;
+    return isImageFile(m.fileUrl) || isVideoFile(m.fileUrl);
+  });
+  
+  // Documents are files that are not media (excluding voice messages)
+  const documentFiles = sharedMedia.filter(m => {
+    if (!m.fileUrl) return false;
+    const isMedia = isImageFile(m.fileUrl) || isVideoFile(m.fileUrl);
+    // Exclude voice messages from document files as well
+    if (m.messageType === 'voice') return false;
+    return !isMedia && m.messageType !== 'text';
+  });
+  
+  // Links are text messages with URLs, excluding files already classified as media or documents
+  const linkFiles = sharedMedia.filter(m => {
+    if (!m.fileUrl) return false;
+    const isMedia = isImageFile(m.fileUrl) || isVideoFile(m.fileUrl);
+    const isDocument = !isMedia && m.messageType !== 'text';
+    // Only text messages with HTTP(S) URLs that aren't already classified as media or documents
+    return m.messageType === 'text' && m.fileUrl.startsWith('http') && !isMedia && !isDocument;
+  });
+
+  // Get file icon based on file type
+  const getFileIcon = (fileType: FileType, className: string = "h-8 w-8") => {
+    switch (fileType) {
+      case 'image':
+        return <FileImage className={cn(className, "text-purple-600")} />;
+      case 'video':
+        return <FileVideo className={cn(className, "text-purple-600")} />;
+      case 'audio':
+        return <FileAudio className={cn(className, "text-purple-600")} />;
+      case 'pdf':
+        return <FileText className={cn(className, "text-red-600")} />;
+      case 'code':
+        return <FileCode className={cn(className, "text-green-600")} />;
+      default:
+        return <File className={cn(className, "text-gray-600")} />;
+    }
+  };
+
   return (
     <div className="bg-gradient-to-br from-gray-50 to-white">
       <ScrollIndicator />
@@ -282,10 +352,22 @@ export default function FriendProfilePage() {
       {/* Content Tabs */}
       <div className="px-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-4 h-9">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 mb-4 h-9">
             <TabsTrigger value="posts" className="text-xs py-1.5">게시물</TabsTrigger>
             <TabsTrigger value="card" className="text-xs py-1.5">명함</TabsTrigger>
             <TabsTrigger value="profile" className="text-xs py-1.5">프로필</TabsTrigger>
+            <TabsTrigger value="media" className="text-xs py-1.5">
+              <ImageIcon className="h-3 w-3 mr-1 inline" />
+              미디어
+            </TabsTrigger>
+            <TabsTrigger value="files" className="text-xs py-1.5">
+              <FileText className="h-3 w-3 mr-1 inline" />
+              파일
+            </TabsTrigger>
+            <TabsTrigger value="links" className="text-xs py-1.5">
+              <LinkIcon className="h-3 w-3 mr-1 inline" />
+              링크
+            </TabsTrigger>
           </TabsList>
 
           {/* Business Posts Tab */}
@@ -582,12 +664,143 @@ export default function FriendProfilePage() {
               )}
             </div>
           </TabsContent>
+
+          {/* Media Tab */}
+          <TabsContent value="media" className="space-y-4">
+            {mediaFiles.length > 0 ? (
+              <div className="grid grid-cols-3 gap-2">
+                {mediaFiles
+                  .filter((file) => !failedImages.has(file.id))
+                  .map((file) => {
+                    const isImage = isImageFile(file.fileUrl);
+                    
+                    return (
+                      <div
+                        key={file.id}
+                        className="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                        onClick={() => {
+                          setSelectedFile({ 
+                            url: file.fileUrl, 
+                            name: getFileName(file.fileUrl)
+                          });
+                        }}
+                      >
+                        {isImage ? (
+                          <img
+                            src={file.fileUrl}
+                            alt="Shared media"
+                            className="w-full h-full object-cover"
+                            onError={() => {
+                              setFailedImages(prev => new Set(prev).add(file.id));
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-purple-50">
+                            <FileVideo className="h-12 w-12 text-purple-600" />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <ImageIcon className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                <p className="text-sm text-gray-500">공유된 미디어가 없습니다</p>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Files Tab */}
+          <TabsContent value="files" className="space-y-4">
+            {documentFiles.length > 0 ? (
+              <div className="space-y-2">
+                {documentFiles.map((file) => {
+                  const fileType = getFileType(file.fileUrl);
+                  const fileName = getFileName(file.fileUrl);
+                  const canPreview = ['pdf', 'document', 'spreadsheet', 'presentation', 'text', 'code'].includes(fileType);
+                  
+                  return (
+                    <div
+                      key={file.id}
+                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                      onClick={() => {
+                        if (canPreview) {
+                          setSelectedFile({ url: file.fileUrl, name: fileName });
+                        } else {
+                          window.open(file.fileUrl, '_blank');
+                        }
+                      }}
+                    >
+                      {getFileIcon(fileType)}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {fileName}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(file.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <FileText className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                <p className="text-sm text-gray-500">공유된 파일이 없습니다</p>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Links Tab */}
+          <TabsContent value="links" className="space-y-4">
+            {linkFiles.length > 0 ? (
+              <div className="space-y-2">
+                {linkFiles.map((file) => (
+                  <a
+                    key={file.id}
+                    href={file.fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <LinkIcon className="h-8 w-8 text-blue-600" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-blue-600 truncate">
+                        {file.fileUrl}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(file.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <LinkIcon className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                <p className="text-sm text-gray-500">공유된 링크가 없습니다</p>
+              </div>
+            )}
+          </TabsContent>
         </Tabs>
       </div>
       
       {/* Bottom spacing for mobile scrolling */}
       <div className="h-6"></div>
       </div>
+
+      {/* File Preview Modal */}
+      {selectedFile && (
+        <FilePreviewModal
+          isOpen={true}
+          onClose={() => setSelectedFile(null)}
+          fileUrl={selectedFile.url}
+          fileName={selectedFile.name}
+          fileSize={selectedFile.size}
+        />
+      )}
 
       {/* Call Modal */}
       {isCallModalOpen && callChatRoomId && (
