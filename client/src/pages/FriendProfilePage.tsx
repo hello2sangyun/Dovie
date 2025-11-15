@@ -113,18 +113,23 @@ export default function FriendProfilePage() {
   });
 
   // Fetch shared media/files
-  const { data: sharedMedia = [] } = useQuery<SharedMediaFile[]>({
+  const { data: sharedMedia = [], refetch: refetchMedia } = useQuery<SharedMediaFile[]>({
     queryKey: ['/api/shared-media', userId],
     queryFn: async () => {
+      console.log('🔄 Fetching shared media for userId:', userId, 'currentUserId:', user?.id);
       const response = await fetch(`/api/shared-media/${userId}`, {
         headers: {
           'x-user-id': user?.id?.toString() || '',
         },
       });
       if (!response.ok) throw new Error('Failed to fetch shared media');
-      return response.json();
+      const data = await response.json();
+      console.log('📁 Shared media API response:', data);
+      return data;
     },
     enabled: !!userId && !!user,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   // Fetch existing chat rooms to check if a direct chat already exists
@@ -226,6 +231,10 @@ export default function FriendProfilePage() {
     return isImageFile(m.fileUrl) || isVideoFile(m.fileUrl);
   });
   
+  console.log('🎨 Media files filtered:', mediaFiles.length, 'files');
+  console.log('📊 All shared media:', sharedMedia);
+  console.log('📷 Media files:', mediaFiles);
+  
   // Documents are files that are not media (excluding voice messages)
   const documentFiles = sharedMedia.filter(m => {
     if (!m.fileUrl) return false;
@@ -234,6 +243,8 @@ export default function FriendProfilePage() {
     if (m.messageType === 'voice') return false;
     return !isMedia && m.messageType !== 'text';
   });
+  
+  console.log('📄 Document files filtered:', documentFiles.length, 'files');
   
   // Links are text messages with URLs, excluding files already classified as media or documents
   const linkFiles = sharedMedia.filter(m => {
