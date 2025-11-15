@@ -11,7 +11,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { UserAvatar } from "@/components/UserAvatar";
 import InstantAvatar from "@/components/InstantAvatar";
 import MediaPreview from "@/components/MediaPreview";
-import { Paperclip, Hash, Send, Video, Phone, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause, MoreVertical, LogOut, Settings, Sparkles, Bell, Mic, Bookmark, ChevronDown } from "lucide-react";
+import { Paperclip, Hash, Send, Video, Info, Download, Upload, Reply, X, Search, FileText, FileImage, FileSpreadsheet, File, Languages, Calculator, Play, Pause, MoreVertical, LogOut, Settings, Sparkles, Bell, Mic, Bookmark, ChevronDown } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { cn, getInitials, getAvatarColor } from "@/lib/utils";
 import AddFriendConfirmModal from "./AddFriendConfirmModal";
@@ -38,7 +38,6 @@ import { AIChatAssistantModal } from "./AIChatAssistantModal";
 import AiNoticesModal from "./AiNoticesModal";
 import { ForwardMessageModal } from "./ForwardMessageModal";
 import { FilePreviewModal } from "./FilePreviewModal";
-import { CallModal } from "./CallModal";
 
 import TypingIndicator, { useTypingIndicator } from "./TypingIndicator";
 import { 
@@ -74,9 +73,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const [fileDescription, setFileDescription] = useState("");
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  // Call transcripts expansion state
-  const [expandedCallTranscripts, setExpandedCallTranscripts] = useState<Set<number>>(new Set());
   
   // 스와이프 진행 상태 관리
   const [swipeProgress, setSwipeProgress] = useState(0);
@@ -278,7 +274,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   const [showAIAssistantModal, setShowAIAssistantModal] = useState(false);
   const [showAiNoticesModal, setShowAiNoticesModal] = useState(false);
-  const [isCallModalOpen, setIsCallModalOpen] = useState(false);
 
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
 
@@ -700,19 +695,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const bookmarkedMessageIds = new Set(
     (bookmarksData as any)?.bookmarks?.map((b: any) => b.messageId) || []
   );
-
-  // Get call records for this chat room
-  const { data: callsData } = useQuery({
-    queryKey: [`/api/calls/${chatRoomId}`],
-    enabled: !!user && !!chatRoomId,
-    queryFn: async () => {
-      const response = await fetch(`/api/calls/${chatRoomId}`, {
-        headers: { "x-user-id": user!.id.toString() },
-      });
-      if (!response.ok) throw new Error("Failed to fetch calls");
-      return response.json();
-    },
-  });
 
   // Send message mutation with optimistic updates
   const sendMessageMutation = useMutation({
@@ -4591,18 +4573,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               <Search className="h-4 w-4" />
             </Button>
 
-            {!currentChatRoom?.isGroup && targetUserId && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-gray-400 hover:text-purple-600"
-                onClick={() => setIsCallModalOpen(true)}
-                data-testid="button-call"
-              >
-                <Phone className="h-4 w-4" />
-              </Button>
-            )}
-
             <Button variant="ghost" size="sm" className="text-gray-400 hover:text-purple-600">
               <Info className="h-4 w-4" />
             </Button>
@@ -5428,82 +5398,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                               </p>
                             </div>
                           )}
-                        </div>
-                      ) : msg.messageType === "call" ? (
-                        <div className="space-y-2">
-                          <div className="flex items-center space-x-3 py-2">
-                            <div className={cn(
-                              "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0",
-                              isMe ? "bg-white/20" : "bg-green-100"
-                            )}>
-                              <Phone className={cn(
-                                "h-5 w-5",
-                                isMe ? "text-white" : "text-green-600"
-                              )} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className={cn(
-                                "text-sm font-medium",
-                                isMe ? "text-white" : "text-gray-900"
-                              )}>
-                                {msg.content}
-                              </p>
-                              <p className={cn(
-                                "text-xs mt-0.5",
-                                isMe ? "text-white/70" : "text-gray-500"
-                              )}>
-                                음성 통화
-                              </p>
-                            </div>
-                          </div>
-                          {msg.callId && callsData && Array.isArray(callsData) && (() => {
-                            const callRecord = callsData.find((c: any) => c.id === msg.callId);
-                            if (callRecord?.transcript) {
-                              const isExpanded = expandedCallTranscripts.has(msg.id);
-                              return (
-                                <div className="mt-2">
-                                  <button
-                                    data-testid={`button-view-transcript-${msg.id}`}
-                                    onClick={() => {
-                                      setExpandedCallTranscripts(prev => {
-                                        const next = new Set(prev);
-                                        if (isExpanded) {
-                                          next.delete(msg.id);
-                                        } else {
-                                          next.add(msg.id);
-                                        }
-                                        return next;
-                                      });
-                                    }}
-                                    className={cn(
-                                      "text-xs font-medium flex items-center space-x-1",
-                                      isMe ? "text-white/80 hover:text-white" : "text-purple-600 hover:text-purple-700"
-                                    )}
-                                  >
-                                    <span>{isExpanded ? "통화 내용 숨기기" : "통화 내용 보기"}</span>
-                                    <ChevronDown className={cn(
-                                      "h-3 w-3 transition-transform",
-                                      isExpanded ? "rotate-180" : ""
-                                    )} />
-                                  </button>
-                                  {isExpanded && (
-                                    <div
-                                      data-testid={`text-transcript-${msg.id}`}
-                                      className={cn(
-                                        "mt-2 p-3 rounded-lg text-xs leading-relaxed",
-                                        isMe 
-                                          ? "bg-white/10 text-white/90" 
-                                          : "bg-gray-50 text-gray-700"
-                                      )}
-                                    >
-                                      {callRecord.transcript}
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            }
-                            return null;
-                          })()}
                         </div>
                       ) : msg.messageType === "poll" && msg.pollData ? (
                         <PollMessage
@@ -7248,18 +7142,6 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             setVoiceConfirmData(null);
             setIsProcessingVoice(false);
           }}
-        />
-      )}
-
-      {/* Call Modal */}
-      {isCallModalOpen && targetUserId && (
-        <CallModal
-          isOpen={isCallModalOpen}
-          onClose={() => setIsCallModalOpen(false)}
-          targetUserId={targetUserId}
-          targetName={targetName}
-          targetProfilePicture={targetProfilePicture}
-          chatRoomId={chatRoomId}
         />
       )}
 
