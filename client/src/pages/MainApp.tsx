@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWebSocketContext } from "@/hooks/useWebSocketContext";
-import { useCallSessionStore } from "@/hooks/useCallSessionStore";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useImagePreloader, preloadGlobalImage } from "@/hooks/useImagePreloader";
@@ -19,7 +18,6 @@ import CommandModal from "@/components/CommandModal";
 import CreateGroupChatModal from "@/components/CreateGroupChatModal";
 import ProfilePhotoModal from "@/components/ProfilePhotoModal";
 import ZeroDelayAvatar from "@/components/ZeroDelayAvatar";
-import { CallModal } from "@/components/CallModal";
 
 import { usePWABadge } from "@/hooks/usePWABadge";
 import { usePWABadgeManager } from "@/hooks/usePWABadgeManager";
@@ -71,20 +69,6 @@ export default function MainApp() {
   const [friendFilter, setFriendFilter] = useState<number | null>(null);
 
   const { sendMessage, connectionState, pendingMessageCount, subscribeToSignaling } = useWebSocketContext();
-  
-  // CallSessionStore for WebRTC call management
-  const { 
-    activeSession, 
-    handleIncomingOffer, 
-    handleAnswer, 
-    handleReject, 
-    handleEnd,
-    handleIceCandidate,
-    releaseActiveSession,
-    markAnsweredFromNative,
-    markEndedFromNative,
-    getSession
-  } = useCallSessionStore();
   
   // PWA badge functionality - always active, independent of push notifications
   const { updateBadge, clearBadge, unreadCount } = usePWABadge();
@@ -183,58 +167,6 @@ export default function MainApp() {
       window.removeEventListener('focus', handleFocus);
     };
   }, [user, queryClient, selectedChatRoom]);
-
-  // Handle incoming WebRTC signaling events
-  useEffect(() => {
-    if (!user || !subscribeToSignaling) return;
-
-    const handleSignaling = async (data: any) => {
-      console.log('📞 WebSocket signaling event:', data.type);
-      
-      switch (data.type) {
-        case 'call-offer':
-          // Server hydrates caller metadata + set receiver to current user
-          handleIncomingOffer(
-            data.callSessionId,
-            data.fromUserId,
-            data.chatRoomId,
-            data.offer,
-            {
-              receiverId: user.id,
-              receiverName: user.displayName || user.username,
-              receiverProfilePicture: user.profilePicture || undefined,
-              callerName: data.callerName,
-              callerProfilePicture: data.callerProfilePicture,
-              callType: data.callType || 'voice'
-            }
-          );
-          break;
-          
-        case 'call-answer':
-          handleAnswer(data.answer);
-          break;
-          
-        case 'call-reject':
-          handleReject();
-          break;
-          
-        case 'call-end':
-          handleEnd();
-          break;
-          
-        case 'call-ice-candidate':
-          handleIceCandidate(data.candidate);
-          break;
-          
-        default:
-          // Ignore unknown signaling types
-          break;
-      }
-    };
-
-    const unsubscribe = subscribeToSignaling(handleSignaling);
-    return () => unsubscribe();
-  }, [user, subscribeToSignaling, handleIncomingOffer, handleAnswer, handleReject, handleEnd, handleIceCandidate]);
 
   // 브라우저 뒤로가기 버튼 처리 - 앱 내 네비게이션 관리
   useEffect(() => {
@@ -1384,21 +1316,6 @@ export default function MainApp() {
         isOpen={modals.qrCode}
         onClose={() => setModals(prev => ({ ...prev, qrCode: false }))}
       />
-
-      {/* CallModal - Driven by CallSessionStore */}
-      {activeSession && user && (
-        <CallModal
-          isOpen={true}
-          onClose={releaseActiveSession}
-          targetUserId={activeSession.receiverId === user.id ? activeSession.callerId : activeSession.receiverId}
-          targetName={activeSession.receiverId === user.id ? activeSession.callerName : activeSession.receiverName!}
-          targetProfilePicture={activeSession.receiverId === user.id ? activeSession.callerProfilePicture : activeSession.receiverProfilePicture}
-          chatRoomId={activeSession.chatRoomId}
-          isIncoming={activeSession.receiverId === user.id}
-          callSessionId={activeSession.callSessionId}
-          offer={activeSession.offer}
-        />
-      )}
 
       {/* Telegram-style notification and PWA badge management */}
       <TelegramStyleNotificationManager />
