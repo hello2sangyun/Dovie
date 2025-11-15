@@ -307,18 +307,18 @@
     animation: pulsePurple 2s ease-in-out infinite;
   }
 
-  /* Chat room entry animation - slide from left to right */
-  @keyframes slideInFromLeft {
+  /* Chat room entry animation - slide from right to left */
+  @keyframes slideInFromRight {
     from { 
-      transform: translateX(-100%); 
+      transform: translateX(100%); 
     }
     to { 
       transform: translateX(0); 
     }
   }
 
-  .animate-slide-in-left {
-    animation: slideInFromLeft 0.3s ease-out;
+  .animate-slide-in-right {
+    animation: slideInFromRight 0.3s ease-out;
   }
 
   @keyframes pulsePurple {

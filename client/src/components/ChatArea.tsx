@@ -4311,7 +4311,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       ref={chatAreaRef}
       data-chat-area="true"
       className={cn(
-        "h-full flex flex-col relative mb-0 pb-0 animate-slide-in-left overflow-hidden",
+        "h-full flex flex-col relative mb-0 pb-0 animate-slide-in-right overflow-hidden",
         isDragOver ? 'bg-purple-50' : ''
       )}
       style={{
