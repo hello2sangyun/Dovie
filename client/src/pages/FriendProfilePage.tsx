@@ -219,10 +219,10 @@ export default function FriendProfilePage() {
   const friendName = (businessCard as any)?.fullName || (businessProfile as any)?.company || (userProfile as any)?.displayName || "친구";
   const friendProfilePicture = (userProfile as any)?.profilePicture;
 
-  // Filter shared media into categories (exclude voice messages and regular files from media tab)
+  // Filter shared media into categories (exclude voice messages from media tab)
   const mediaFiles = sharedMedia.filter(m => {
     if (!m.fileUrl) return false;
-    if (m.messageType === 'voice' || m.messageType === 'file') return false;
+    if (m.messageType === 'voice') return false;
     return isImageFile(m.fileUrl) || isVideoFile(m.fileUrl);
   });
   
