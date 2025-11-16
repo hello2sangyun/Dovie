@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -103,6 +104,9 @@ export default function InboxPage() {
   
   // Message preview dialog
   const [previewNotice, setPreviewNotice] = useState<AiNotice | null>(null);
+  
+  // Detail drawer for reminder
+  const [detailDrawerNotice, setDetailDrawerNotice] = useState<AiNotice | null>(null);
 
   // Swipe to delete states
   const [swipedNoticeId, setSwipedNoticeId] = useState<number | null>(null);
@@ -271,18 +275,26 @@ export default function InboxPage() {
     if (selectionMode) {
       toggleNoticeSelection(notice.id);
     } else {
-      // Mark as read
+      // Mark as read when opening drawer (preserves original behavior)
       if (!notice.isRead) {
         markAsReadMutation.mutate(notice.id);
       }
       
-      // Navigate to chat room with message highlight
-      if (notice.messageId) {
-        setLocation(`/chat-rooms/${notice.chatRoomId}?highlight=${notice.messageId}`);
-      } else {
-        // If no specific message, just navigate to chat room
-        setLocation(`/chat-rooms/${notice.chatRoomId}`);
-      }
+      // Open detail drawer for more information
+      setDetailDrawerNotice(notice);
+    }
+  };
+  
+  const handleGoToChat = (notice: AiNotice) => {
+    // Close drawer
+    setDetailDrawerNotice(null);
+    
+    // Navigate to chat room with message highlight
+    if (notice.messageId) {
+      setLocation(`/chat-rooms/${notice.chatRoomId}?highlight=${notice.messageId}`);
+    } else {
+      // If no specific message, just navigate to chat room
+      setLocation(`/chat-rooms/${notice.chatRoomId}`);
     }
   };
 
@@ -1116,6 +1128,169 @@ export default function InboxPage() {
           })()}
         </DialogContent>
       </Dialog>
+
+      {/* Reminder Detail Drawer */}
+      <Drawer open={!!detailDrawerNotice} onOpenChange={(open) => !open && setDetailDrawerNotice(null)}>
+        <DrawerContent className="max-h-[85vh]">
+          {detailDrawerNotice && (() => {
+            const config = NOTICE_TYPE_CONFIG[detailDrawerNotice.noticeType as keyof typeof NOTICE_TYPE_CONFIG] || {
+              icon: Bell,
+              color: "text-gray-600",
+              bg: "bg-gray-50",
+              label: "알림",
+            };
+            const Icon = config.icon;
+            
+            const senderDisplayName = detailDrawerNotice.senderName || 
+                                      detailDrawerNotice.senderUsername || 
+                                      "알 수 없음";
+
+            return (
+              <>
+                {/* Header */}
+                <DrawerHeader className="pb-2 pt-safe">
+                  <div className="flex items-center gap-3">
+                    <div className={cn("p-2.5 rounded-lg flex-shrink-0", config.bg)}>
+                      <Icon className={cn("h-5 w-5", config.color)} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <Badge variant="outline" className="text-xs mb-1">
+                        {config.label}
+                      </Badge>
+                      <DrawerTitle className="text-base font-semibold text-left line-clamp-2">
+                        {detailDrawerNotice.content.length > 50 
+                          ? detailDrawerNotice.content.substring(0, 50) + "..."
+                          : detailDrawerNotice.content}
+                      </DrawerTitle>
+                    </div>
+                    <DrawerClose asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-11 w-11 rounded-full flex-shrink-0"
+                        data-testid="button-close-drawer"
+                        aria-label="닫기"
+                      >
+                        <X className="h-5 w-5" />
+                      </Button>
+                    </DrawerClose>
+                  </div>
+                </DrawerHeader>
+
+                {/* Content */}
+                <ScrollArea className="flex-1 overflow-y-auto">
+                  <div className="space-y-4 px-4 pb-4" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top, 0px))' }}>
+                    {/* Reminder Content */}
+                    <div>
+                      <h4 className="text-xs font-medium text-muted-foreground mb-2">내용</h4>
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                        {detailDrawerNotice.content}
+                      </p>
+                    </div>
+
+                    <Separator />
+
+                    {/* Chat Room Info */}
+                    {detailDrawerNotice.chatRoom && (
+                      <div>
+                        <h4 className="text-xs font-medium text-muted-foreground mb-2">채팅방</h4>
+                        <div className="flex items-center gap-2">
+                          <div className="p-2 bg-purple-50 rounded-lg">
+                            <MessageCircle className="h-4 w-4 text-purple-600" />
+                          </div>
+                          <span className="text-sm font-medium">
+                            {detailDrawerNotice.chatRoom.name}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    <Separator />
+
+                    {/* Sender Info */}
+                    <div>
+                      <h4 className="text-xs font-medium text-muted-foreground mb-2">발신자</h4>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={detailDrawerNotice.senderProfilePicture || undefined} />
+                          <AvatarFallback className="bg-gradient-to-br from-purple-400 to-purple-600 text-white text-sm">
+                            {senderDisplayName.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="text-sm font-medium">{senderDisplayName}</p>
+                          {detailDrawerNotice.senderUsername && (
+                            <p className="text-xs text-muted-foreground">@{detailDrawerNotice.senderUsername}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Time Info */}
+                    <div>
+                      <h4 className="text-xs font-medium text-muted-foreground mb-2">생성 시간</h4>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <span>
+                          {format(new Date(detailDrawerNotice.createdAt), "yyyy년 M월 d일 HH:mm", { locale: ko })}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {formatDistanceToNow(new Date(detailDrawerNotice.createdAt), {
+                          addSuffix: true,
+                          locale: ko,
+                        })}
+                      </p>
+                    </div>
+
+                    {/* Original Message */}
+                    {detailDrawerNotice.originalMessage && (
+                      <>
+                        <Separator />
+                        <div>
+                          <h4 className="text-xs font-medium text-muted-foreground mb-2">원본 메시지</h4>
+                          <div className="bg-gray-50 rounded-lg p-3">
+                            <p className="text-sm whitespace-pre-wrap leading-relaxed text-gray-700">
+                              {detailDrawerNotice.originalMessage}
+                            </p>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </ScrollArea>
+
+                {/* Footer */}
+                <DrawerFooter className="pt-3 pb-safe">
+                  <Button
+                    className="w-full h-12 text-base font-medium"
+                    onClick={() => handleGoToChat(detailDrawerNotice)}
+                    data-testid="button-goto-chat-drawer"
+                  >
+                    <MessageCircle className="h-5 w-5 mr-2" />
+                    채팅방으로 이동
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="w-full h-11 text-red-600 hover:text-red-700 hover:bg-red-50 mt-2"
+                    onClick={() => {
+                      deleteMutation.mutate(detailDrawerNotice.id);
+                      setDetailDrawerNotice(null);
+                    }}
+                    data-testid="button-delete-drawer"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    알림 삭제
+                  </Button>
+                </DrawerFooter>
+              </>
+            );
+          })()}
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }
