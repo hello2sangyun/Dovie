@@ -120,6 +120,14 @@ export default function FriendProfilePage() {
     enabled: !!userId && !!user,
   });
 
+  // Debug logging
+  console.log('🔍 FriendProfilePage Debug:', {
+    match,
+    userId,
+    sharedMediaCount: sharedMedia.length,
+    sharedMediaSample: sharedMedia.slice(0, 2),
+  });
+
   // Fetch existing chat rooms to check if a direct chat already exists
   const { data: chatRoomsData } = useQuery({
     queryKey: ["/api/chat-rooms"],
@@ -219,6 +227,17 @@ export default function FriendProfilePage() {
     return isImageFile(m.fileUrl) || isVideoFile(m.fileUrl);
   });
   
+  console.log('🎨 Media files:', {
+    total: sharedMedia.length,
+    filtered: mediaFiles.length,
+    sample: mediaFiles.slice(0, 2).map(m => ({
+      fileUrl: m.fileUrl,
+      messageType: m.messageType,
+      isImage: isImageFile(m.fileUrl),
+      isVideo: isVideoFile(m.fileUrl),
+    })),
+  });
+  
   // Documents are files that are not media (excluding voice messages)
   const documentFiles = sharedMedia.filter(m => {
     if (!m.fileUrl) return false;
@@ -226,6 +245,11 @@ export default function FriendProfilePage() {
     // Exclude voice messages from document files as well
     if (m.messageType === 'voice') return false;
     return !isMedia && m.messageType !== 'text';
+  });
+  
+  console.log('📄 Document files:', {
+    filtered: documentFiles.length,
+    sample: documentFiles.slice(0, 2),
   });
   
   // Links are text messages with URLs, excluding files already classified as media or documents
