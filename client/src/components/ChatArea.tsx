@@ -456,6 +456,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   // Forward message modal state
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [forwardMessageId, setForwardMessageId] = useState<number | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteMessageId, setDeleteMessageId] = useState<number | null>(null);
   
   // File preview modal state
   const [filePreviewState, setFilePreviewState] = useState<{
@@ -964,6 +966,22 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       
       setEditingMessage(null);
       setEditContent("");
+    },
+    onError: () => {
+    },
+  });
+
+  // Delete message mutation
+  const deleteMessageMutation = useMutation({
+    mutationFn: async (messageId: number) => {
+      const response = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages/${messageId}`, "DELETE");
+      return response.json();
+    },
+    onSuccess: () => {
+      // 메시지 목록 다시 불러오기
+      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/messages`] });
+      // 채팅방 목록도 업데이트 (마지막 메시지가 삭제될 수 있음)
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
     },
     onError: () => {
     },
@@ -6811,6 +6829,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         y={contextMenu.y}
         visible={contextMenu.visible}
         canEdit={contextMenu.message?.senderId === user?.id}
+        canDelete={contextMenu.message?.senderId === user?.id}
         onClose={() => setContextMenu({ ...contextMenu, visible: false })}
         onReplyMessage={() => {
           handleReplyMessage();
@@ -6820,6 +6839,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           if (contextMenu.message) {
             setEditingMessage(contextMenu.message);
             setEditContent(contextMenu.message.content);
+            setContextMenu({ ...contextMenu, visible: false });
+          }
+        }}
+        onDeleteMessage={() => {
+          if (contextMenu.message) {
+            setDeleteMessageId(contextMenu.message.id);
+            setShowDeleteConfirm(true);
             setContextMenu({ ...contextMenu, visible: false });
           }
         }}
@@ -7149,6 +7175,52 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             setIsProcessingVoice(false);
           }}
         />
+      )}
+
+      {/* Delete Message Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-900 rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 mx-auto mb-4 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                <span className="text-3xl">🗑️</span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                메시지를 삭제하시겠어요?
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                삭제된 메시지는 복구할 수 없습니다.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setDeleteMessageId(null);
+                }}
+                className="flex-1"
+                data-testid="button-cancel-delete"
+              >
+                취소
+              </Button>
+              <Button
+                onClick={() => {
+                  if (deleteMessageId) {
+                    deleteMessageMutation.mutate(deleteMessageId);
+                  }
+                  setShowDeleteConfirm(false);
+                  setDeleteMessageId(null);
+                }}
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white"
+                disabled={deleteMessageMutation.isPending}
+                data-testid="button-confirm-delete"
+              >
+                {deleteMessageMutation.isPending ? "삭제 중..." : "삭제"}
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Hidden File Input */}

@@ -2518,6 +2518,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete message route
+  app.delete("/api/chat-rooms/:chatRoomId/messages/:messageId", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const messageId = Number(req.params.messageId);
+      const chatRoomId = Number(req.params.chatRoomId);
+
+      // Delete the message (authorization check is done in storage)
+      await storage.deleteMessage(messageId, Number(userId));
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Message delete error:", error);
+      if (error.message === "Not authorized to delete this message") {
+        return res.status(403).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Failed to delete message" });
+    }
+  });
+
   // Forward message route
   app.post("/api/messages/:messageId/forward", async (req, res) => {
     const userId = req.headers["x-user-id"];

@@ -70,6 +70,7 @@ export interface IStorage {
   createMessage(message: InsertMessage): Promise<Message>;
   getMessageById(messageId: number): Promise<(Message & { sender: User }) | undefined>;
   updateMessage(messageId: number, updates: Partial<InsertMessage>): Promise<Message | undefined>;
+  deleteMessage(messageId: number, userId: number): Promise<void>;
 
   // Command operations
   getCommands(userId: number, chatRoomId?: number): Promise<(Command & { originalSender?: User })[]>;
@@ -715,6 +716,15 @@ export class DatabaseStorage implements IStorage {
       .where(eq(messages.id, messageId))
       .returning();
     return message;
+  }
+
+  async deleteMessage(messageId: number, userId: number): Promise<void> {
+    const message = await this.getMessageById(messageId);
+    if (!message || message.senderId !== userId) {
+      throw new Error("Not authorized to delete this message");
+    }
+    
+    await db.delete(messages).where(eq(messages.id, messageId));
   }
 
   async getCommands(userId: number, chatRoomId?: number): Promise<(Command & { originalSender?: User, chatRoomName?: string, chatRoomParticipants?: string })[]> {
