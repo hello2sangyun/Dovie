@@ -98,7 +98,7 @@ export default function FriendProfilePage() {
 
     if (existingDM) {
       // Navigate to existing chat room
-      setLocation(`/chat/${existingDM.id}`);
+      setLocation(`/chat-rooms/${existingDM.id}`);
     } else {
       // Create new chat room and navigate to it
       try {
@@ -108,7 +108,7 @@ export default function FriendProfilePage() {
         if (chatRoomId) {
           // Invalidate chat rooms cache to keep it in sync
           queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
-          setLocation(`/chat/${chatRoomId}`);
+          setLocation(`/chat-rooms/${chatRoomId}`);
         } else {
           toast({
             title: "오류",
