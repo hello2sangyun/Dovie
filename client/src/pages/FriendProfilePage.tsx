@@ -3,6 +3,7 @@ import { useLocation, useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { ArrowLeft, UserPlus, Search, MoreHorizontal, MessageSquare, Image as ImageIcon, FileText, Link as LinkIcon, FileImage, FileVideo, FileAudio, FileCode, File } from "lucide-react";
+import { FixedSizeGrid as Grid, FixedSizeList as List } from 'react-window';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -208,16 +209,33 @@ export default function FriendProfilePage() {
           {/* Media Tab */}
           <TabsContent value="media" className="space-y-4">
             {mediaFiles.length > 0 ? (
-              <div className="grid grid-cols-3 gap-2">
-                {mediaFiles
-                  .filter((file) => !failedImages.has(file.id))
-                  .map((file) => {
-                    const isImage = isImageFile(file.fileUrl);
-                    
-                    return (
+              <Grid
+                columnCount={3}
+                columnWidth={120}
+                height={600}
+                rowCount={Math.ceil(mediaFiles.filter(f => !failedImages.has(f.id)).length / 3)}
+                rowHeight={120}
+                width={376}
+                className="mx-auto"
+              >
+                {({ columnIndex, rowIndex, style }) => {
+                  const index = rowIndex * 3 + columnIndex;
+                  const filteredFiles = mediaFiles.filter(f => !failedImages.has(f.id));
+                  const file = filteredFiles[index];
+                  
+                  if (!file) return null;
+                  
+                  const isImage = isImageFile(file.fileUrl);
+                  
+                  return (
+                    <div
+                      style={{
+                        ...style,
+                        padding: '4px',
+                      }}
+                    >
                       <div
-                        key={file.id}
-                        className="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                        className="w-full h-full bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
                         onClick={() => {
                           setSelectedFile({ 
                             url: file.fileUrl, 
@@ -230,6 +248,7 @@ export default function FriendProfilePage() {
                             src={file.fileUrl}
                             alt="Shared media"
                             className="w-full h-full object-cover"
+                            loading="lazy"
                             onError={() => {
                               setFailedImages(prev => new Set(prev).add(file.id));
                             }}
@@ -240,9 +259,10 @@ export default function FriendProfilePage() {
                           </div>
                         )}
                       </div>
-                    );
-                  })}
-              </div>
+                    </div>
+                  );
+                }}
+              </Grid>
             ) : (
               <div className="text-center py-12">
                 <ImageIcon className="h-12 w-12 text-gray-300 mx-auto mb-2" />
@@ -254,37 +274,44 @@ export default function FriendProfilePage() {
           {/* Files Tab */}
           <TabsContent value="files" className="space-y-4">
             {documentFiles.length > 0 ? (
-              <div className="space-y-2">
-                {documentFiles.map((file) => {
+              <List
+                height={600}
+                itemCount={documentFiles.length}
+                itemSize={68}
+                width="100%"
+              >
+                {({ index, style }) => {
+                  const file = documentFiles[index];
                   const fileType = getFileType(file.fileUrl);
                   const fileName = getFileName(file.fileUrl);
                   const canPreview = ['pdf', 'document', 'spreadsheet', 'presentation', 'text', 'code'].includes(fileType);
                   
                   return (
-                    <div
-                      key={file.id}
-                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-                      onClick={() => {
-                        if (canPreview) {
-                          setSelectedFile({ url: file.fileUrl, name: fileName });
-                        } else {
-                          window.open(file.fileUrl, '_blank');
-                        }
-                      }}
-                    >
-                      {getFileIcon(fileType)}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {fileName}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {new Date(file.createdAt).toLocaleDateString()}
-                        </p>
+                    <div style={style}>
+                      <div
+                        className="flex items-center gap-3 p-3 mx-4 mb-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                        onClick={() => {
+                          if (canPreview) {
+                            setSelectedFile({ url: file.fileUrl, name: fileName });
+                          } else {
+                            window.open(file.fileUrl, '_blank');
+                          }
+                        }}
+                      >
+                        {getFileIcon(fileType)}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {fileName}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {new Date(file.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   );
-                })}
-              </div>
+                }}
+              </List>
             ) : (
               <div className="text-center py-12">
                 <FileText className="h-12 w-12 text-gray-300 mx-auto mb-2" />
@@ -296,27 +323,37 @@ export default function FriendProfilePage() {
           {/* Links Tab */}
           <TabsContent value="links" className="space-y-4">
             {linkFiles.length > 0 ? (
-              <div className="space-y-2">
-                {linkFiles.map((file) => (
-                  <a
-                    key={file.id}
-                    href={file.fileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                  >
-                    <LinkIcon className="h-8 w-8 text-blue-600" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-blue-600 truncate">
-                        {file.fileUrl}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(file.createdAt).toLocaleDateString()}
-                      </p>
+              <List
+                height={600}
+                itemCount={linkFiles.length}
+                itemSize={68}
+                width="100%"
+              >
+                {({ index, style }) => {
+                  const file = linkFiles[index];
+                  
+                  return (
+                    <div style={style}>
+                      <a
+                        href={file.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-3 mx-4 mb-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      >
+                        <LinkIcon className="h-8 w-8 text-blue-600" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-blue-600 truncate">
+                            {file.fileUrl}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {new Date(file.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </a>
                     </div>
-                  </a>
-                ))}
-              </div>
+                  );
+                }}
+              </List>
             ) : (
               <div className="text-center py-12">
                 <LinkIcon className="h-12 w-12 text-gray-300 mx-auto mb-2" />
