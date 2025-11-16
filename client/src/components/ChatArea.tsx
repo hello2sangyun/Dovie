@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { UserAvatar } from "@/components/UserAvatar";
 import InstantAvatar from "@/components/InstantAvatar";
@@ -7178,50 +7178,53 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       )}
 
       {/* Delete Message Confirmation Dialog */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-900 rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 mx-auto mb-4 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
-                <span className="text-3xl">🗑️</span>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                메시지를 삭제하시겠어요?
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">
-                삭제된 메시지는 복구할 수 없습니다.
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setShowDeleteConfirm(false);
-                  setDeleteMessageId(null);
-                }}
-                className="flex-1"
-                data-testid="button-cancel-delete"
-              >
-                취소
-              </Button>
-              <Button
-                onClick={() => {
-                  if (deleteMessageId) {
-                    deleteMessageMutation.mutate(deleteMessageId);
-                  }
-                  setShowDeleteConfirm(false);
-                  setDeleteMessageId(null);
-                }}
-                className="flex-1 bg-red-500 hover:bg-red-600 text-white"
-                disabled={deleteMessageMutation.isPending}
-                data-testid="button-confirm-delete"
-              >
-                {deleteMessageMutation.isPending ? "삭제 중..." : "삭제"}
-              </Button>
+      <Dialog open={showDeleteConfirm} onOpenChange={(open) => {
+        setShowDeleteConfirm(open);
+        if (!open) {
+          setDeleteMessageId(null);
+        }
+      }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center">메시지 삭제</DialogTitle>
+            <DialogDescription className="text-center">
+              삭제된 메시지는 복구할 수 없습니다. 정말 삭제하시겠어요?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 mx-auto mb-4 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+              <span className="text-3xl">🗑️</span>
             </div>
           </div>
-        </div>
-      )}
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDeleteConfirm(false);
+                setDeleteMessageId(null);
+              }}
+              className="flex-1"
+              data-testid="button-cancel-delete"
+            >
+              취소
+            </Button>
+            <Button
+              onClick={() => {
+                if (deleteMessageId) {
+                  deleteMessageMutation.mutate(deleteMessageId);
+                }
+                setShowDeleteConfirm(false);
+                setDeleteMessageId(null);
+              }}
+              className="flex-1 bg-red-500 hover:bg-red-600 text-white"
+              disabled={deleteMessageMutation.isPending}
+              data-testid="button-confirm-delete"
+            >
+              {deleteMessageMutation.isPending ? "삭제 중..." : "삭제"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Hidden File Input */}
       <input
