@@ -91,32 +91,32 @@ export default function FriendProfilePage() {
   const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
 
   // Fetch friend's business posts
-  const { data: businessPosts = [], isLoading: postsLoading } = useQuery({
+  const { data: businessPosts = [], isLoading: postsLoading } = useQuery<BusinessPost[]>({
     queryKey: [`/api/business-posts/${userId}`],
     enabled: !!userId,
   });
 
   // Fetch friend's business card
-  const { data: businessCard, isLoading: cardLoading } = useQuery({
+  const { data: businessCard, isLoading: cardLoading } = useQuery<BusinessCard>({
     queryKey: [`/api/users/${userId}/business-card`],
     enabled: !!userId,
   });
 
   // Fetch friend's business profile
-  const { data: businessProfile, isLoading: profileLoading } = useQuery({
+  const { data: businessProfile, isLoading: profileLoading } = useQuery<BusinessProfile>({
     queryKey: [`/api/users/${userId}/business-profile`],
     enabled: !!userId,
   });
 
   // Fetch friend's user profile data
-  const { data: userProfile, isLoading: userLoading } = useQuery({
+  const { data: userProfile, isLoading: userLoading } = useQuery<any>({
     queryKey: [`/api/users/${userId}/profile`],
     enabled: !!userId,
   });
 
   // Fetch shared media/files
   const { data: sharedMedia = [] } = useQuery<SharedMediaFile[]>({
-    queryKey: ['/api/shared-media', userId],
+    queryKey: [`/api/shared-media/${userId}`],
     enabled: !!userId && !!user,
   });
 
