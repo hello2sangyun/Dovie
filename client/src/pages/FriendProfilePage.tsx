@@ -1,9 +1,9 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, CSSProperties } from "react";
 import { useLocation, useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { ArrowLeft, UserPlus, Search, MoreHorizontal, MessageSquare, Image as ImageIcon, FileText, Link as LinkIcon, FileImage, FileVideo, FileAudio, FileCode, File } from "lucide-react";
-import { FixedSizeGrid as Grid, FixedSizeList as List } from 'react-window';
+import { FixedSizeGrid, FixedSizeList } from 'react-window';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -66,6 +66,11 @@ export default function FriendProfilePage() {
       return isImageFile(m.fileUrl) || isVideoFile(m.fileUrl);
     });
   }, [sharedMedia]);
+  
+  // Memoize media files without failed images for virtualized grid
+  const validMediaFiles = useMemo(() => {
+    return mediaFiles.filter(f => !failedImages.has(f.id));
+  }, [mediaFiles, failedImages]);
   
   // Memoize document files
   const documentFiles = useMemo(() => {
@@ -209,19 +214,18 @@ export default function FriendProfilePage() {
           {/* Media Tab */}
           <TabsContent value="media" className="space-y-4">
             {mediaFiles.length > 0 ? (
-              <Grid
+              <FixedSizeGrid
                 columnCount={3}
                 columnWidth={120}
                 height={600}
-                rowCount={Math.ceil(mediaFiles.filter(f => !failedImages.has(f.id)).length / 3)}
+                rowCount={Math.ceil(validMediaFiles.length / 3)}
                 rowHeight={120}
                 width={376}
                 className="mx-auto"
               >
-                {({ columnIndex, rowIndex, style }) => {
+                {({ columnIndex, rowIndex, style }: { columnIndex: number; rowIndex: number; style: CSSProperties }) => {
                   const index = rowIndex * 3 + columnIndex;
-                  const filteredFiles = mediaFiles.filter(f => !failedImages.has(f.id));
-                  const file = filteredFiles[index];
+                  const file = validMediaFiles[index];
                   
                   if (!file) return null;
                   
@@ -262,7 +266,7 @@ export default function FriendProfilePage() {
                     </div>
                   );
                 }}
-              </Grid>
+              </FixedSizeGrid>
             ) : (
               <div className="text-center py-12">
                 <ImageIcon className="h-12 w-12 text-gray-300 mx-auto mb-2" />
@@ -274,13 +278,13 @@ export default function FriendProfilePage() {
           {/* Files Tab */}
           <TabsContent value="files" className="space-y-4">
             {documentFiles.length > 0 ? (
-              <List
+              <FixedSizeList
                 height={600}
                 itemCount={documentFiles.length}
                 itemSize={68}
                 width="100%"
               >
-                {({ index, style }) => {
+                {({ index, style }: { index: number; style: CSSProperties }) => {
                   const file = documentFiles[index];
                   const fileType = getFileType(file.fileUrl);
                   const fileName = getFileName(file.fileUrl);
@@ -311,7 +315,7 @@ export default function FriendProfilePage() {
                     </div>
                   );
                 }}
-              </List>
+              </FixedSizeList>
             ) : (
               <div className="text-center py-12">
                 <FileText className="h-12 w-12 text-gray-300 mx-auto mb-2" />
@@ -323,13 +327,13 @@ export default function FriendProfilePage() {
           {/* Links Tab */}
           <TabsContent value="links" className="space-y-4">
             {linkFiles.length > 0 ? (
-              <List
+              <FixedSizeList
                 height={600}
                 itemCount={linkFiles.length}
                 itemSize={68}
                 width="100%"
               >
-                {({ index, style }) => {
+                {({ index, style }: { index: number; style: CSSProperties }) => {
                   const file = linkFiles[index];
                   
                   return (
@@ -353,7 +357,7 @@ export default function FriendProfilePage() {
                     </div>
                   );
                 }}
-              </List>
+              </FixedSizeList>
             ) : (
               <div className="text-center py-12">
                 <LinkIcon className="h-12 w-12 text-gray-300 mx-auto mb-2" />
