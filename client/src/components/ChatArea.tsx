@@ -4922,7 +4922,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     id={`message-${msg.id}`}
                     ref={(el) => messageRefs.current[msg.id] = el}
                     className={cn(
-                      "flex items-end mb-2 transition-all duration-500 group max-w-[92%]",
+                      "flex items-end mb-1 transition-all duration-500 group max-w-[92%]",
                       isMe ? "gap-2 flex-row-reverse" : "gap-2",
                       highlightedMessageId === msg.id && "bg-yellow-100/50 rounded-xl p-2 -mx-2"
                     )}
