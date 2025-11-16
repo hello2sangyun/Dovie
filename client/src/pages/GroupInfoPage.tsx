@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   ArrowLeft, 
   Image as ImageIcon, 
@@ -46,21 +47,21 @@ export default function GroupInfoPage() {
   const [activeTab, setActiveTab] = useState("media");
 
   // Fetch chat room info
-  const { data: chatRoom } = useQuery({
+  const { data: chatRoom, isLoading: chatRoomLoading } = useQuery({
     queryKey: [`/api/chat-rooms/${chatRoomId}`],
     enabled: !!chatRoomId,
-  }) as { data?: ChatRoom };
+  }) as { data?: ChatRoom; isLoading: boolean };
 
   // Fetch participants
-  const { data: participantsData } = useQuery({
+  const { data: participantsData, isLoading: participantsLoading } = useQuery({
     queryKey: [`/api/chat-rooms/${chatRoomId}/participants`],
     enabled: !!chatRoomId,
-  }) as { data?: { participants: User[] } };
+  }) as { data?: { participants: User[] }; isLoading: boolean };
 
   const participants = participantsData?.participants || [];
 
   // Fetch messages for shared content
-  const { data: messagesData } = useQuery({
+  const { data: messagesData, isLoading: messagesLoading } = useQuery({
     queryKey: ["/api/chat-rooms", chatRoomId, "messages"],
     queryFn: async () => {
       const response = await apiRequest(`/api/chat-rooms/${chatRoomId}/messages?limit=30&offset=0`, "GET");
@@ -68,7 +69,7 @@ export default function GroupInfoPage() {
       return response.json();
     },
     enabled: !!chatRoomId,
-  }) as { data?: { messages: Message[] } };
+  }) as { data?: { messages: Message[] }; isLoading: boolean };
 
   const messages = messagesData?.messages || [];
 
@@ -97,6 +98,58 @@ export default function GroupInfoPage() {
   const mediaFiles = messages.filter(m => m.fileUrl && (isImageFile(m.fileUrl) || isVideoFile(m.fileUrl)));
   const documentFiles = messages.filter(m => m.fileUrl && !isImageFile(m.fileUrl) && !isVideoFile(m.fileUrl));
   const linkMessages = messages.filter(m => m.content && extractUrls(m.content).length > 0);
+
+  // Loading skeleton UI
+  const isLoading = chatRoomLoading || participantsLoading || messagesLoading;
+  
+  if (isLoading) {
+    return (
+      <div className="bg-gradient-to-br from-gray-50 to-white min-h-screen">
+        <div className="w-full pb-8">
+          {/* Header Skeleton */}
+          <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-4 pt-safe pb-3">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-10 w-10 rounded-full" />
+            </div>
+          </div>
+
+          {/* Profile Header Skeleton */}
+          <div className="px-4 py-5 bg-white">
+            <div className="text-center">
+              <Skeleton className="w-20 h-20 mx-auto mb-3 rounded-full" />
+              <Skeleton className="h-7 w-40 mx-auto mb-2" />
+              <Skeleton className="h-4 w-28 mx-auto mb-4" />
+              
+              {/* Action Buttons Skeleton */}
+              <div className="grid grid-cols-3 gap-2 px-2 mb-5">
+                <Skeleton className="h-[60px] rounded-lg" />
+                <Skeleton className="h-[60px] rounded-lg" />
+                <Skeleton className="h-[60px] rounded-lg" />
+              </div>
+            </div>
+          </div>
+
+          {/* Tabs Skeleton */}
+          <div className="px-4">
+            <div className="flex gap-2 mb-4">
+              <Skeleton className="h-9 flex-1" />
+              <Skeleton className="h-9 flex-1" />
+              <Skeleton className="h-9 flex-1" />
+            </div>
+            
+            {/* Content Grid Skeleton */}
+            <div className="grid grid-cols-3 gap-2">
+              {Array.from({ length: 9 }).map((_, i) => (
+                <Skeleton key={i} className="aspect-square rounded-lg" />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gradient-to-br from-gray-50 to-white">

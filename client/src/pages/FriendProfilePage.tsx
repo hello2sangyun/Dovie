@@ -7,6 +7,7 @@ import { FixedSizeGrid, FixedSizeList } from 'react-window';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import ScrollIndicator from "@/components/ScrollIndicator";
 import { FilePreviewModal } from "@/components/FilePreviewModal";
@@ -186,6 +187,56 @@ export default function FriendProfilePage() {
         return <File className={cn(className, "text-gray-600")} />;
     }
   }, []);
+
+  // Loading skeleton UI
+  if (userLoading) {
+    return (
+      <div className="bg-gradient-to-br from-gray-50 to-white min-h-screen">
+        <div className="w-full pb-8">
+          {/* Header Skeleton */}
+          <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-4 pt-safe pb-3">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <Skeleton className="h-6 w-24" />
+              <Skeleton className="h-10 w-10 rounded-full" />
+            </div>
+          </div>
+
+          {/* Profile Header Skeleton */}
+          <div className="px-4 py-5 bg-white">
+            <div className="text-center">
+              <Skeleton className="w-20 h-20 mx-auto mb-3 rounded-full" />
+              <Skeleton className="h-7 w-32 mx-auto mb-2" />
+              <Skeleton className="h-4 w-24 mx-auto mb-4" />
+              
+              {/* Action Buttons Skeleton */}
+              <div className="grid grid-cols-3 gap-2 px-2 mb-5">
+                <Skeleton className="h-[60px] rounded-lg" />
+                <Skeleton className="h-[60px] rounded-lg" />
+                <Skeleton className="h-[60px] rounded-lg" />
+              </div>
+            </div>
+          </div>
+
+          {/* Tabs Skeleton */}
+          <div className="px-4">
+            <div className="flex gap-2 mb-4">
+              <Skeleton className="h-9 flex-1" />
+              <Skeleton className="h-9 flex-1" />
+              <Skeleton className="h-9 flex-1" />
+            </div>
+            
+            {/* Content Grid Skeleton */}
+            <div className="grid grid-cols-3 gap-2">
+              {Array.from({ length: 9 }).map((_, i) => (
+                <Skeleton key={i} className="aspect-square rounded-lg" />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gradient-to-br from-gray-50 to-white">
