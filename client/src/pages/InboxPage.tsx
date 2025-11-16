@@ -431,6 +431,7 @@ export default function InboxPage() {
               boxShadow: "0 0 0 1px rgba(168, 85, 247, 0.1), 0 1px 3px rgba(168, 85, 247, 0.1)"
             })
           }}
+          onClick={() => handleNoticeClick(notice)}
           onTouchStart={(e) => handleTouchStart(e, notice.id)}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
@@ -451,7 +452,7 @@ export default function InboxPage() {
             <Icon className={cn("h-3.5 w-3.5", config.color)} />
           </div>
 
-          <div className="flex-1 min-w-0" onClick={() => handleNoticeClick(notice)}>
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 mb-0.5">
               <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">
                 {config.label}
