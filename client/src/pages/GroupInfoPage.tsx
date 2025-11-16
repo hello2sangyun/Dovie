@@ -158,7 +158,7 @@ export default function GroupInfoPage() {
               variant="outline" 
               size="sm" 
               className="flex flex-col items-center py-3 px-2 h-auto border-gray-200 hover:bg-gray-50 min-h-[60px]"
-              onClick={() => navigate(`/app?chat=${chatRoomId}`)}
+              onClick={() => navigate(`/chat-rooms/${chatRoomId}`)}
               data-testid="button-message"
             >
               <MessageSquare className="w-5 h-5 mb-1.5" />
