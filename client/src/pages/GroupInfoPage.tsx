@@ -14,6 +14,7 @@ import {
   MessageSquare
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { LazyImage } from "@/components/LazyImage";
 
 type ChatRoom = {
   id: number;
@@ -213,10 +214,10 @@ export default function GroupInfoPage() {
                     className="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
                     data-testid={`media-item-${file.id}`}
                   >
-                    <img
+                    <LazyImage
                       src={file.fileUrl || ''}
                       alt="Shared media"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover rounded-lg"
                     />
                   </div>
                 ))}

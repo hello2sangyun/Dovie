@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import ScrollIndicator from "@/components/ScrollIndicator";
 import { FilePreviewModal } from "@/components/FilePreviewModal";
+import { LazyImage } from "@/components/LazyImage";
 import { isImageFile, isVideoFile, getFileType, getFileName, type FileType } from "@/lib/fileUtils";
 import { cn } from "@/lib/utils";
 
@@ -248,11 +249,10 @@ export default function FriendProfilePage() {
                         }}
                       >
                         {isImage ? (
-                          <img
+                          <LazyImage
                             src={file.fileUrl}
                             alt="Shared media"
-                            className="w-full h-full object-cover"
-                            loading="lazy"
+                            className="w-full h-full object-cover rounded-lg"
                             onError={() => {
                               setFailedImages(prev => new Set(prev).add(file.id));
                             }}
