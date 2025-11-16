@@ -47,16 +47,16 @@ export default function GroupInfoPage() {
   const [activeTab, setActiveTab] = useState("media");
 
   // Fetch chat room info
-  const { data: chatRoom, isLoading: chatRoomLoading } = useQuery({
+  const { data: chatRoom, isLoading: chatRoomLoading, isError: chatRoomError, refetch: refetchChatRoom } = useQuery({
     queryKey: [`/api/chat-rooms/${chatRoomId}`],
     enabled: !!chatRoomId,
-  }) as { data?: ChatRoom; isLoading: boolean };
+  }) as { data?: ChatRoom; isLoading: boolean; isError: boolean; refetch: () => void };
 
   // Fetch participants
-  const { data: participantsData, isLoading: participantsLoading } = useQuery({
+  const { data: participantsData, isLoading: participantsLoading, isError: participantsError, refetch: refetchParticipants } = useQuery({
     queryKey: [`/api/chat-rooms/${chatRoomId}/participants`],
     enabled: !!chatRoomId,
-  }) as { data?: { participants: User[] }; isLoading: boolean };
+  }) as { data?: { participants: User[] }; isLoading: boolean; isError: boolean; refetch: () => void };
 
   const participants = participantsData?.participants || [];
 
@@ -99,8 +99,57 @@ export default function GroupInfoPage() {
   const documentFiles = messages.filter(m => m.fileUrl && !isImageFile(m.fileUrl) && !isVideoFile(m.fileUrl));
   const linkMessages = messages.filter(m => m.content && extractUrls(m.content).length > 0);
 
-  // Loading skeleton UI
+  // Error and loading state handling
+  const isError = chatRoomError || participantsError;
   const isLoading = chatRoomLoading || participantsLoading || messagesLoading;
+  
+  // Error state UI
+  if (isError) {
+    return (
+      <div className="bg-gradient-to-br from-gray-50 to-white min-h-screen">
+        <div className="w-full pb-8">
+          {/* Header */}
+          <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-4 pt-safe pb-3">
+            <div className="flex items-center justify-between">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => window.history.back()}
+                className="p-2 hover:bg-gray-100 rounded-full min-h-[44px] min-w-[44px] flex items-center justify-center"
+                aria-label="뒤로 가기"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              <h1 className="font-medium text-base text-gray-900">그룹 정보</h1>
+              <div className="w-10" />
+            </div>
+          </div>
+
+          {/* Error Message */}
+          <div className="flex flex-col items-center justify-center px-4 py-20">
+            <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
+              <svg className="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">정보를 불러올 수 없습니다</h2>
+            <p className="text-sm text-gray-600 text-center mb-6">
+              네트워크 연결을 확인하거나<br/>잠시 후 다시 시도해주세요
+            </p>
+            <Button 
+              onClick={() => {
+                if (chatRoomError) refetchChatRoom();
+                if (participantsError) refetchParticipants();
+              }}
+              className="min-h-[44px]"
+            >
+              다시 시도
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   if (isLoading) {
     return (
@@ -161,17 +210,19 @@ export default function GroupInfoPage() {
             size="sm"
             onClick={() => window.history.back()}
             className="p-2 hover:bg-gray-100 rounded-full min-h-[44px] min-w-[44px] flex items-center justify-center"
+            aria-label="뒤로 가기"
             data-testid="button-back"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
           
-          <h1 className="font-medium text-base text-gray-900">프로필</h1>
+          <h1 className="font-medium text-base text-gray-900">그룹 정보</h1>
           
           <Button
             variant="ghost"
             size="sm"
             className="p-2 hover:bg-gray-100 rounded-full min-h-[44px] min-w-[44px] flex items-center justify-center"
+            aria-label="더보기 옵션"
           >
             <MoreHorizontal className="w-5 h-5" />
           </Button>
@@ -242,16 +293,16 @@ export default function GroupInfoPage() {
       {/* Content Tabs */}
       <div className="px-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-4 h-9">
-            <TabsTrigger value="media" className="text-xs py-1.5" data-testid="tab-media">
+          <TabsList className="grid w-full grid-cols-3 mb-4 min-h-[44px]">
+            <TabsTrigger value="media" className="text-xs py-2" data-testid="tab-media">
               <ImageIcon className="h-3 w-3 mr-1 inline" />
               미디어
             </TabsTrigger>
-            <TabsTrigger value="files" className="text-xs py-1.5" data-testid="tab-files">
+            <TabsTrigger value="files" className="text-xs py-2" data-testid="tab-files">
               <FileText className="h-3 w-3 mr-1 inline" />
               파일
             </TabsTrigger>
-            <TabsTrigger value="links" className="text-xs py-1.5" data-testid="tab-links">
+            <TabsTrigger value="links" className="text-xs py-2" data-testid="tab-links">
               <LinkIcon className="h-3 w-3 mr-1 inline" />
               링크
             </TabsTrigger>
