@@ -109,6 +109,23 @@
   --safe-area-inset-right: env(safe-area-inset-right, 0px);
 }
 
+/* Safe area utility classes */
+.pt-safe {
+  padding-top: calc(var(--safe-area-inset-top) + 0.75rem);
+}
+
+.pb-safe {
+  padding-bottom: calc(var(--safe-area-inset-bottom) + 0.75rem);
+}
+
+.pl-safe {
+  padding-left: calc(var(--safe-area-inset-left) + 0.75rem);
+}
+
+.pr-safe {
+  padding-right: calc(var(--safe-area-inset-right) + 0.75rem);
+}
+
 /* Custom toast styles for smaller notifications */
 [data-sonner-toaster][data-theme='light'] {
   --normal-bg: hsl(0 0% 100%);

@@ -118,7 +118,7 @@ export default function FriendProfilePage() {
       <div className="w-full pb-8">
       {/* Header - iOS safe area optimized */}
       <div
-        className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-4 pt-3 pb-3"
+        className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-4 pt-safe pb-3"
       >
         <div className="flex items-center justify-between">
           <Button 

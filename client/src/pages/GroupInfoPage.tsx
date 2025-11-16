@@ -101,7 +101,7 @@ export default function GroupInfoPage() {
   return (
     <div className="bg-gradient-to-br from-gray-50 to-white">
       {/* Header - iOS safe area optimized */}
-      <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-4 pt-3 pb-3">
+      <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-4 pt-safe pb-3">
         <div className="flex items-center justify-between">
           <Button
             variant="ghost"
