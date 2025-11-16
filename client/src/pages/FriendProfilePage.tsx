@@ -76,8 +76,10 @@ interface SharedMediaFile {
 
 export default function FriendProfilePage() {
   const [, setLocation] = useLocation();
-  const [match, params] = useRoute("/friend/:userId");
-  const userId = params?.userId;
+  const [matchFriend, paramsFriend] = useRoute("/friend/:userId");
+  const [matchProfile, paramsProfile] = useRoute("/profile/:userId");
+  const match = matchFriend || matchProfile;
+  const userId = paramsFriend?.userId || paramsProfile?.userId;
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
