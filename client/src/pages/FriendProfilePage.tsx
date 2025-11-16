@@ -1,8 +1,8 @@
 import { useState, useMemo, useCallback, CSSProperties } from "react";
 import { useLocation, useRoute } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { ArrowLeft, UserPlus, Search, MoreHorizontal, MessageSquare, Image as ImageIcon, FileText, Link as LinkIcon, FileImage, FileVideo, FileAudio, FileCode, File } from "lucide-react";
+import { ArrowLeft, UserPlus, Search, MoreHorizontal, MessageSquare, Image as ImageIcon, FileText, Link as LinkIcon, FileImage, FileVideo, FileAudio, FileCode, File, Loader2 } from "lucide-react";
 import { FixedSizeGrid, FixedSizeList } from 'react-window';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,8 @@ import { FilePreviewModal } from "@/components/FilePreviewModal";
 import { LazyImage } from "@/components/LazyImage";
 import { isImageFile, isVideoFile, getFileType, getFileName, type FileType } from "@/lib/fileUtils";
 import { cn } from "@/lib/utils";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface SharedMediaFile {
   id: number;
@@ -28,6 +30,7 @@ export default function FriendProfilePage() {
   const match = matchFriend || matchProfile;
   const userId = paramsFriend?.userId || paramsProfile?.userId;
   const { user } = useAuth();
+  const { toast } = useToast();
 
   const [activeTab, setActiveTab] = useState("media");
   const [selectedFile, setSelectedFile] = useState<{ url: string; name: string; size?: number } | null>(null);
@@ -45,11 +48,84 @@ export default function FriendProfilePage() {
     enabled: !!userId && !!user,
   });
 
-  // Function to handle message button click
-  const handleMessageClick = useCallback(() => {
+  // Fetch all chat rooms to find existing DM
+  const { data: chatRoomsData, isLoading: chatRoomsLoading } = useQuery<{ chatRooms: any[] }>({
+    queryKey: ["/api/chat-rooms"],
+    enabled: !!user,
+  });
+
+  // Mutation to create a new chat room
+  const createChatRoomMutation = useMutation({
+    mutationFn: async (participantId: number) => {
+      const chatName = (userProfile as any)?.displayName || "친구";
+      const response = await apiRequest("/api/chat-rooms", "POST", {
+        name: chatName,
+        participantIds: [participantId],
+        isGroup: false,
+      });
+      if (!response.ok) throw new Error("Failed to create chat room");
+      return response.json();
+    },
+  });
+
+  // Function to find or create direct chat room and navigate to it
+  const handleMessageClick = useCallback(async () => {
     if (!userId || !user) return;
-    setLocation(`/app?friendFilter=${userId}`);
-  }, [userId, user, setLocation]);
+    
+    // Wait for chat rooms to load before proceeding
+    if (chatRoomsLoading || !chatRoomsData) return;
+    
+    // Prevent duplicate creation attempts
+    if (createChatRoomMutation.isPending) return;
+
+    const friendId = Number(userId);
+    const chatRooms = chatRoomsData.chatRooms || [];
+
+    // Find existing 1-on-1 chat room with this friend
+    const existingDM = chatRooms.find((room: any) => {
+      if (room.isGroup) return false;
+      
+      // Check if participants are exactly current user and friend
+      const participantIds = room.participants?.map((p: any) => p.userId).sort();
+      const expectedIds = [user.id, friendId].sort();
+      
+      return (
+        participantIds?.length === 2 &&
+        participantIds[0] === expectedIds[0] &&
+        participantIds[1] === expectedIds[1]
+      );
+    });
+
+    if (existingDM) {
+      // Navigate to existing chat room
+      setLocation(`/chat/${existingDM.id}`);
+    } else {
+      // Create new chat room and navigate to it
+      try {
+        const result = await createChatRoomMutation.mutateAsync(friendId);
+        const chatRoomId = result?.chatRoom?.id || result?.id;
+        
+        if (chatRoomId) {
+          // Invalidate chat rooms cache to keep it in sync
+          queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+          setLocation(`/chat/${chatRoomId}`);
+        } else {
+          toast({
+            title: "오류",
+            description: "대화방을 열 수 없습니다.",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error("Failed to create chat room:", error);
+        toast({
+          title: "오류",
+          description: "대화방 생성에 실패했습니다.",
+          variant: "destructive",
+        });
+      }
+    }
+  }, [userId, user, chatRoomsData, chatRoomsLoading, setLocation, createChatRoomMutation, toast]);
 
   if (!match || !userId) {
     setLocation("/");
@@ -167,10 +243,20 @@ export default function FriendProfilePage() {
               size="sm" 
               className="flex flex-col items-center py-3 px-2 h-auto border-gray-200 hover:bg-gray-50 min-h-[60px]"
               onClick={handleMessageClick}
+              disabled={chatRoomsLoading || createChatRoomMutation.isPending}
               data-testid="button-message"
             >
-              <MessageSquare className="w-5 h-5 mb-1.5" />
-              <span className="text-xs font-medium">메시지</span>
+              {chatRoomsLoading || createChatRoomMutation.isPending ? (
+                <>
+                  <Loader2 className="w-5 h-5 mb-1.5 animate-spin" />
+                  <span className="text-xs font-medium">로딩중...</span>
+                </>
+              ) : (
+                <>
+                  <MessageSquare className="w-5 h-5 mb-1.5" />
+                  <span className="text-xs font-medium">메시지</span>
+                </>
+              )}
             </Button>
             <Button 
               variant="outline" 
