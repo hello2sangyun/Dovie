@@ -1,32 +1,19 @@
 import { useParams, useLocation } from "wouter";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { useState, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   ArrowLeft, 
   Image as ImageIcon, 
   FileText, 
   Link as LinkIcon,
   Users,
-  UserPlus,
-  Bell,
-  BellOff,
-  Pin,
-  LogOut,
-  Camera,
-  Edit2,
-  Check,
-  X,
-  Search
+  MoreHorizontal,
+  MessageSquare
 } from "lucide-react";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import InstantAvatar from "@/components/InstantAvatar";
+import { apiRequest } from "@/lib/queryClient";
 
 type ChatRoom = {
   id: number;
@@ -52,21 +39,10 @@ type Message = {
   createdAt: string;
 };
 
-type ChatSettings = {
-  isMuted: boolean;
-  isPinned: boolean;
-};
-
 export default function GroupInfoPage() {
   const { chatRoomId } = useParams();
   const [, navigate] = useLocation();
-  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("media");
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [groupName, setGroupName] = useState("");
-  const [searchMember, setSearchMember] = useState("");
-  const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch chat room info
   const { data: chatRoom } = useQuery({
@@ -95,14 +71,6 @@ export default function GroupInfoPage() {
 
   const messages = messagesData?.messages || [];
 
-  // Fetch chat settings
-  const { data: settingsData } = useQuery({
-    queryKey: [`/api/chat-settings/${chatRoomId}`],
-    enabled: !!chatRoomId,
-  }) as { data?: { settings: ChatSettings } };
-
-  const settings = settingsData?.settings || { isMuted: false, isPinned: false };
-
   // Helper function to check if file is an image
   const isImageFile = (fileUrl: string) => {
     const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
@@ -129,555 +97,201 @@ export default function GroupInfoPage() {
   const documentFiles = messages.filter(m => m.fileUrl && !isImageFile(m.fileUrl) && !isVideoFile(m.fileUrl));
   const linkMessages = messages.filter(m => m.content && extractUrls(m.content).length > 0);
 
-  // Filtered participants
-  const filteredParticipants = participants.filter(p =>
-    p.displayName.toLowerCase().includes(searchMember.toLowerCase()) ||
-    p.username.toLowerCase().includes(searchMember.toLowerCase())
-  );
-
-  // Update group name mutation
-  const updateNameMutation = useMutation({
-    mutationFn: async (name: string) => {
-      const response = await apiRequest(`/api/chat-rooms/${chatRoomId}/name`, 'PUT', { name });
-      if (!response.ok) throw new Error('Failed to update group name');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}`] });
-      queryClient.invalidateQueries({ queryKey: ['/api/chat-rooms'] });
-      setIsEditingName(false);
-      toast({ title: "그룹명이 변경되었습니다" });
-    },
-    onError: () => {
-      toast({ title: "그룹명 변경 실패", variant: "destructive" });
-    }
-  });
-
-  // Update profile image mutation
-  const updateImageMutation = useMutation({
-    mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append('profileImage', file);
-      const response = await fetch(`/api/chat-rooms/${chatRoomId}/profile-image`, {
-        method: 'POST',
-        headers: {
-          'x-user-id': localStorage.getItem('userId') || '',
-        },
-        body: formData,
-      });
-      if (!response.ok) throw new Error('Failed to upload image');
-      return response.json();
-    },
-    onSuccess: (data) => {
-      // 채팅방 데이터 무효화
-      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}`] });
-      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
-      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}/participants`] });
-      
-      // InstantAvatar 캐시 무효화를 위한 커스텀 이벤트 발송
-      const event = new CustomEvent('profileImageUpdated', {
-        detail: {
-          newUrl: data.chatRoom?.profileImage || null,
-          chatRoomId: chatRoomId
-        }
-      });
-      window.dispatchEvent(event);
-      
-      toast({ title: "프로필 사진이 변경되었습니다" });
-    },
-    onError: () => {
-      toast({ title: "사진 변경 실패", variant: "destructive" });
-    }
-  });
-
-  // Mute toggle mutation
-  const muteMutation = useMutation({
-    mutationFn: async (isMuted: boolean) => {
-      const response = await apiRequest(`/api/chat-settings/${chatRoomId}/mute`, 'POST', { isMuted });
-      if (!response.ok) throw new Error('Failed to toggle mute');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/chat-settings/${chatRoomId}`] });
-      toast({ title: settings.isMuted ? "알림 켜짐" : "알림 꺼짐" });
-    },
-  });
-
-  // Pin toggle mutation
-  const pinMutation = useMutation({
-    mutationFn: async (isPinned: boolean) => {
-      const response = await apiRequest(`/api/chat-settings/${chatRoomId}/pin`, 'POST', { isPinned });
-      if (!response.ok) throw new Error('Failed to toggle pin');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/chat-settings/${chatRoomId}`] });
-      queryClient.invalidateQueries({ queryKey: ['/api/chat-rooms'] });
-      toast({ title: settings.isPinned ? "고정 해제됨" : "고정됨" });
-    },
-  });
-
-  // Leave group mutation
-  const leaveMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest(`/api/chat-rooms/${chatRoomId}/leave`, 'POST', { saveFiles: true });
-      if (!response.ok) throw new Error('Failed to leave group');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/chat-rooms'] });
-      toast({ title: "그룹을 나갔습니다" });
-      navigate('/');
-    },
-    onError: () => {
-      toast({ title: "나가기 실패", variant: "destructive" });
-    }
-  });
-
-  const handleSaveName = () => {
-    if (groupName.trim() && groupName !== chatRoom?.name) {
-      updateNameMutation.mutate(groupName.trim());
-    } else {
-      setIsEditingName(false);
-    }
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      updateImageMutation.mutate(file);
-    }
-  };
-
-  const handleLeaveGroup = () => {
-    leaveMutation.mutate();
-    setLeaveDialogOpen(false);
-  };
-
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
+    <div className="bg-gradient-to-br from-gray-50 to-white">
+      {/* Header - iOS safe area optimized */}
+      <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-4 pt-3 pb-3">
+        <div className="flex items-center justify-between">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => window.history.back()}
-            className="h-9 w-9 p-0"
+            className="p-2 hover:bg-gray-100 rounded-full min-h-[44px] min-w-[44px] flex items-center justify-center"
             data-testid="button-back"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-lg font-semibold text-gray-900">그룹 정보</h1>
+          
+          <h1 className="font-medium text-base text-gray-900">프로필</h1>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            className="p-2 hover:bg-gray-100 rounded-full min-h-[44px] min-w-[44px] flex items-center justify-center"
+          >
+            <MoreHorizontal className="w-5 h-5" />
+          </Button>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-2xl mx-auto pb-6">
-          {/* Group Profile Section */}
-          <div className="bg-white mt-4 mx-4 rounded-2xl shadow-sm p-6">
-            <div className="flex flex-col items-center">
-              {/* Profile Image */}
-              <div className="relative mb-4">
-                {chatRoom?.profileImage ? (
-                  <div className="relative w-32 h-32">
-                    <InstantAvatar
-                      key={chatRoom.profileImage}
-                      src={chatRoom.profileImage}
-                      fallbackText={chatRoom.name}
-                      size="xl"
-                      className="h-32 w-32"
-                    />
-                  </div>
-                ) : (
-                  <div className="relative w-32 h-32 flex items-center justify-center">
-                    {participants.slice(0, Math.min(5, participants.length)).map((participant, index) => {
-                      const totalAvatars = Math.min(5, participants.length);
-                      const isStackLayout = totalAvatars <= 3;
-                      
-                      if (isStackLayout) {
-                        // 3명 이하: 스택 레이아웃 (수평 겹침)
-                        return (
-                          <div
-                            key={participant.id}
-                            className="rounded-full border-3 border-white shadow-lg bg-slate-500 flex items-center justify-center"
-                            style={{
-                              width: '80px',
-                              height: '80px',
-                              position: index === 0 ? 'relative' : 'absolute',
-                              left: index === 0 ? '0' : `${index * 24}px`,
-                              zIndex: totalAvatars - index
-                            }}
-                          >
-                            <InstantAvatar 
-                              src={participant.profilePicture}
-                              fallbackText={participant.displayName}
-                              size="xl"
-                              className="w-full h-full"
-                            />
-                          </div>
-                        );
-                      } else {
-                        // 4명 이상: 그리드 레이아웃 (2x2 + 중앙)
-                        const positions = [
-                          'top-0 left-0',
-                          'top-0 right-0', 
-                          'bottom-0 left-0',
-                          'bottom-0 right-0',
-                          'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10'
-                        ];
-                        
-                        return (
-                          <div
-                            key={participant.id}
-                            className={`absolute rounded-full border-2 border-white shadow-md purple-gradient flex items-center justify-center ${positions[index]}`}
-                            style={{
-                              width: '60px',
-                              height: '60px'
-                            }}
-                          >
-                            <InstantAvatar 
-                              src={participant.profilePicture}
-                              fallbackText={participant.displayName}
-                              size="lg"
-                              className="w-full h-full"
-                            />
-                          </div>
-                        );
-                      }
-                    })}
-                  </div>
-                )}
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="absolute -bottom-2 -right-2 bg-purple-600 text-white rounded-full p-3 shadow-lg hover:bg-purple-700 transition-colors z-20"
-                  data-testid="button-change-profile-image"
-                >
-                  <Camera className="h-5 w-5" />
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleImageUpload}
-                  data-testid="input-profile-image"
-                />
-              </div>
-
-              {/* Group Name - 항상 표시 */}
-              <div className="w-full text-center mb-1">
-                {isEditingName ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <Input
-                      value={groupName}
-                      onChange={(e) => setGroupName(e.target.value)}
-                      className="text-center font-bold text-xl max-w-xs"
-                      autoFocus
-                      data-testid="input-group-name"
-                    />
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={handleSaveName}
-                      className="h-9 w-9 p-0 hover:bg-green-50 flex-shrink-0"
-                      data-testid="button-save-name"
-                    >
-                      <Check className="h-5 w-5 text-green-600" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setIsEditingName(false)}
-                      className="h-9 w-9 p-0 hover:bg-red-50 flex-shrink-0"
-                      data-testid="button-cancel-name"
-                    >
-                      <X className="h-5 w-5 text-red-600" />
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center gap-2">
-                    <h2 className="text-2xl font-bold text-gray-900" data-testid="text-group-name">
-                      {chatRoom?.name || "그룹 채팅"}
-                    </h2>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        setGroupName(chatRoom?.name || "");
-                        setIsEditingName(true);
-                      }}
-                      className="h-9 w-9 p-0 hover:bg-purple-50 flex-shrink-0"
-                      data-testid="button-edit-name"
-                    >
-                      <Edit2 className="h-5 w-5 text-purple-600" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-
-              <p className="text-sm text-gray-500">
-                {participants.length}명의 멤버
-              </p>
-            </div>
+      {/* Profile Header */}
+      <div className="px-4 py-5 bg-white">
+        <div className="text-center">
+          {/* Profile Image */}
+          <div className="relative w-20 h-20 mx-auto mb-3">
+            {chatRoom?.profileImage ? (
+              <Avatar className="w-20 h-20 shadow-md">
+                <AvatarImage src={chatRoom.profileImage} />
+                <AvatarFallback className="bg-blue-100 text-blue-600 text-xl font-bold">
+                  {chatRoom.name[0]}
+                </AvatarFallback>
+              </Avatar>
+            ) : (
+              <Avatar className="w-20 h-20 shadow-md">
+                <AvatarFallback className="bg-blue-100 text-blue-600 text-xl font-bold">
+                  <Users className="w-8 h-8" />
+                </AvatarFallback>
+              </Avatar>
+            )}
           </div>
-
-          {/* Shared Content Tabs */}
-          <div className="bg-white mt-4 mx-4 rounded-2xl shadow-sm overflow-hidden">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="w-full grid grid-cols-3 bg-gray-50 rounded-none border-b border-gray-200">
-                <TabsTrigger 
-                  value="media" 
-                  className="data-[state=active]:bg-white data-[state=active]:text-purple-600 data-[state=active]:border-b-2 data-[state=active]:border-purple-600"
-                  data-testid="tab-media"
-                >
-                  <ImageIcon className="h-4 w-4 mr-1" />
-                  미디어
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="files"
-                  className="data-[state=active]:bg-white data-[state=active]:text-purple-600 data-[state=active]:border-b-2 data-[state=active]:border-purple-600"
-                  data-testid="tab-files"
-                >
-                  <FileText className="h-4 w-4 mr-1" />
-                  파일
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="links"
-                  className="data-[state=active]:bg-white data-[state=active]:text-purple-600 data-[state=active]:border-b-2 data-[state=active]:border-purple-600"
-                  data-testid="tab-links"
-                >
-                  <LinkIcon className="h-4 w-4 mr-1" />
-                  링크
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="media" className="p-4">
-                {mediaFiles.length > 0 ? (
-                  <div className="grid grid-cols-3 gap-2">
-                    {mediaFiles.map((file) => (
-                      <div
-                        key={file.id}
-                        className="aspect-square bg-gray-100 rounded-lg overflow-hidden"
-                        data-testid={`media-item-${file.id}`}
-                      >
-                        <img
-                          src={file.fileUrl || ''}
-                          alt="Shared media"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <ImageIcon className="h-12 w-12 text-gray-300 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500">공유된 미디어가 없습니다</p>
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="files" className="p-4">
-                {documentFiles.length > 0 ? (
-                  <div className="space-y-2">
-                    {documentFiles.map((file) => (
-                      <a
-                        key={file.id}
-                        href={file.fileUrl || ''}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                        data-testid={`file-item-${file.id}`}
-                      >
-                        <FileText className="h-5 w-5 text-gray-400" />
-                        <span className="text-sm text-gray-700 flex-1 truncate">
-                          {file.fileUrl?.split('/').pop() || 'File'}
-                        </span>
-                      </a>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <FileText className="h-12 w-12 text-gray-300 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500">공유된 파일이 없습니다</p>
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="links" className="p-4">
-                {linkMessages.length > 0 ? (
-                  <div className="space-y-2">
-                    {linkMessages.map((msg) => {
-                      const urls = extractUrls(msg.content);
-                      return urls.map((url, idx) => (
-                        <a
-                          key={`${msg.id}-${idx}`}
-                          href={url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                          data-testid={`link-item-${msg.id}-${idx}`}
-                        >
-                          <LinkIcon className="h-5 w-5 text-gray-400" />
-                          <span className="text-sm text-blue-600 flex-1 truncate">
-                            {url}
-                          </span>
-                        </a>
-                      ));
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <LinkIcon className="h-12 w-12 text-gray-300 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500">공유된 링크가 없습니다</p>
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
+          
+          {/* Group Name */}
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 mb-1">{chatRoom?.name || "그룹 채팅"}</h2>
+            <p className="text-sm text-gray-600 mb-4">멤버 {participants.length}명 • 공유 파일</p>
           </div>
-
-          {/* Participants Section */}
-          <div className="bg-white mt-4 mx-4 rounded-2xl shadow-sm p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-gray-600" />
-                <h3 className="font-semibold text-gray-900">참여자 ({participants.length})</h3>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-purple-600"
-                onClick={() => navigate(`/app?tab=contacts&invite=${chatRoomId}`)}
-                data-testid="button-invite-members"
-              >
-                <UserPlus className="h-4 w-4 mr-1" />
-                초대
-              </Button>
-            </div>
-
-            {/* Search */}
-            <div className="relative mb-3">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                type="text"
-                placeholder="멤버 검색..."
-                value={searchMember}
-                onChange={(e) => setSearchMember(e.target.value)}
-                className="pl-10"
-                data-testid="input-search-member"
-              />
-            </div>
-
-            {/* Member List */}
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {filteredParticipants.map((participant) => (
-                <div
-                  key={participant.id}
-                  onClick={() => navigate(`/profile/${participant.id}`)}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                  data-testid={`participant-${participant.id}`}
-                >
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={participant.profilePicture} />
-                    <AvatarFallback className="bg-purple-100 text-purple-600">
-                      {participant.displayName[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {participant.displayName}
-                      {participant.id === chatRoom?.createdBy && (
-                        <span className="ml-2 text-xs text-purple-600 font-semibold">방장</span>
-                      )}
-                    </p>
-                    <p className="text-xs text-gray-500">@{participant.username}</p>
-                  </div>
-                  {participant.isOnline && (
-                    <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Settings Section */}
-          <div className="bg-white mt-4 mx-4 rounded-2xl shadow-sm p-4">
-            <h3 className="font-semibold text-gray-900 mb-3">설정</h3>
-            
-            <div className="space-y-3">
-              {/* Mute */}
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  {settings.isMuted ? (
-                    <BellOff className="h-5 w-5 text-gray-600" />
-                  ) : (
-                    <Bell className="h-5 w-5 text-gray-600" />
-                  )}
-                  <span className="text-sm font-medium text-gray-900">무음 모드</span>
-                </div>
-                <Switch
-                  checked={settings.isMuted}
-                  onCheckedChange={(checked) => muteMutation.mutate(checked)}
-                  data-testid="switch-mute"
-                />
-              </div>
-
-              {/* Pin */}
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Pin className="h-5 w-5 text-gray-600" />
-                  <span className="text-sm font-medium text-gray-900">채팅방 고정</span>
-                </div>
-                <Switch
-                  checked={settings.isPinned}
-                  onCheckedChange={(checked) => pinMutation.mutate(checked)}
-                  data-testid="switch-pin"
-                />
-              </div>
-
-              {/* Leave Group */}
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-                onClick={() => setLeaveDialogOpen(true)}
-                data-testid="button-leave-group"
-              >
-                <LogOut className="h-5 w-5 mr-3" />
-                그룹 나가기
-              </Button>
-            </div>
+          
+          {/* Action Buttons - Mobile Optimized */}
+          <div className="grid grid-cols-3 gap-2 px-2 mb-5">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex flex-col items-center py-3 px-2 h-auto border-gray-200 hover:bg-gray-50 min-h-[60px]"
+              onClick={() => navigate(`/app?chat=${chatRoomId}`)}
+              data-testid="button-message"
+            >
+              <MessageSquare className="w-5 h-5 mb-1.5" />
+              <span className="text-xs font-medium">메시지</span>
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex flex-col items-center py-3 px-2 h-auto border-gray-200 hover:bg-gray-50 min-h-[60px]"
+              data-testid="button-participants"
+            >
+              <Users className="w-5 h-5 mb-1.5" />
+              <span className="text-xs font-medium">참여자</span>
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex flex-col items-center py-3 px-2 h-auto border-gray-200 hover:bg-gray-50 min-h-[60px]"
+              data-testid="button-settings"
+            >
+              <MoreHorizontal className="w-5 h-5 mb-1.5" />
+              <span className="text-xs font-medium">설정</span>
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* Leave Confirmation Dialog */}
-      <Dialog open={leaveDialogOpen} onOpenChange={setLeaveDialogOpen}>
-        <DialogContent data-testid="dialog-leave-group">
-          <DialogHeader>
-            <DialogTitle>그룹을 나가시겠습니까?</DialogTitle>
-            <DialogDescription>
-              그룹을 나가면 더 이상 메시지를 받을 수 없습니다. 파일은 보관함에 자동으로 저장됩니다.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setLeaveDialogOpen(false)}
-              data-testid="button-cancel-leave"
-            >
-              취소
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleLeaveGroup}
-              data-testid="button-confirm-leave"
-            >
-              나가기
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Content Tabs */}
+      <div className="px-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3 mb-4 h-9">
+            <TabsTrigger value="media" className="text-xs py-1.5" data-testid="tab-media">
+              <ImageIcon className="h-3 w-3 mr-1 inline" />
+              미디어
+            </TabsTrigger>
+            <TabsTrigger value="files" className="text-xs py-1.5" data-testid="tab-files">
+              <FileText className="h-3 w-3 mr-1 inline" />
+              파일
+            </TabsTrigger>
+            <TabsTrigger value="links" className="text-xs py-1.5" data-testid="tab-links">
+              <LinkIcon className="h-3 w-3 mr-1 inline" />
+              링크
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Media Tab */}
+          <TabsContent value="media" className="space-y-4">
+            {mediaFiles.length > 0 ? (
+              <div className="grid grid-cols-3 gap-2">
+                {mediaFiles.map((file) => (
+                  <div
+                    key={file.id}
+                    className="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                    data-testid={`media-item-${file.id}`}
+                  >
+                    <img
+                      src={file.fileUrl || ''}
+                      alt="Shared media"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <ImageIcon className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                <p className="text-sm text-gray-500">공유된 미디어가 없습니다</p>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Files Tab */}
+          <TabsContent value="files" className="space-y-4">
+            {documentFiles.length > 0 ? (
+              <div className="space-y-2">
+                {documentFiles.map((file) => (
+                  <a
+                    key={file.id}
+                    href={file.fileUrl || ''}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    data-testid={`file-item-${file.id}`}
+                  >
+                    <FileText className="h-5 w-5 text-purple-600" />
+                    <span className="text-sm text-gray-700 flex-1 truncate">
+                      {file.fileUrl?.split('/').pop() || 'File'}
+                    </span>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <FileText className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                <p className="text-sm text-gray-500">공유된 파일이 없습니다</p>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Links Tab */}
+          <TabsContent value="links" className="space-y-4">
+            {linkMessages.length > 0 ? (
+              <div className="space-y-2">
+                {linkMessages.map((msg) => {
+                  const urls = extractUrls(msg.content);
+                  return urls.map((url, idx) => (
+                    <a
+                      key={`${msg.id}-${idx}`}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      data-testid={`link-item-${msg.id}-${idx}`}
+                    >
+                      <LinkIcon className="h-5 w-5 text-blue-600" />
+                      <span className="text-sm text-blue-600 flex-1 truncate">
+                        {url}
+                      </span>
+                    </a>
+                  ));
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <LinkIcon className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                <p className="text-sm text-gray-500">공유된 링크가 없습니다</p>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
+      
+      {/* Bottom spacing for mobile scrolling */}
+      <div className="h-6"></div>
     </div>
   );
 }

@@ -1,17 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useLocation, useRoute } from "wouter";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { apiRequest } from "@/lib/queryClient";
-import { ArrowLeft, Phone, Video, UserPlus, Search, MoreHorizontal, MessageSquare, Image as ImageIcon, FileText, Link as LinkIcon, FileImage, FileVideo, FileAudio, FileCode, File } from "lucide-react";
+import { ArrowLeft, UserPlus, Search, MoreHorizontal, MessageSquare, Image as ImageIcon, FileText, Link as LinkIcon, FileImage, FileVideo, FileAudio, FileCode, File } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
 
 import ScrollIndicator from "@/components/ScrollIndicator";
-import { CallModal } from "@/components/CallModal";
-import { useToast } from "@/hooks/use-toast";
 import { FilePreviewModal } from "@/components/FilePreviewModal";
 import { isImageFile, isVideoFile, getFileType, getFileName, type FileType } from "@/lib/fileUtils";
 import { cn } from "@/lib/utils";
@@ -30,12 +26,8 @@ export default function FriendProfilePage() {
   const match = matchFriend || matchProfile;
   const userId = paramsFriend?.userId || paramsProfile?.userId;
   const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   const [activeTab, setActiveTab] = useState("media");
-  const [isCallModalOpen, setIsCallModalOpen] = useState(false);
-  const [callChatRoomId, setCallChatRoomId] = useState<number | null>(null);
   const [selectedFile, setSelectedFile] = useState<{ url: string; name: string; size?: number } | null>(null);
   const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
 
@@ -59,88 +51,12 @@ export default function FriendProfilePage() {
     sharedMediaSample: sharedMedia.slice(0, 2),
   });
 
-  // Fetch existing chat rooms to check if a direct chat already exists
-  const { data: chatRoomsData } = useQuery({
-    queryKey: ["/api/chat-rooms"],
-    enabled: !!user,
-  });
-
-  // Mutation to create or find existing chat room (for messaging)
-  const createChatRoomMutation = useMutation({
-    mutationFn: async (friendUserId: string) => {
-      const response = await apiRequest("/api/chat-rooms", "POST", {
-        name: "",
-        isGroup: false,
-        participantIds: [parseInt(friendUserId)],
-      });
-      return response.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
-      // Navigate to the chat room
-      setLocation(`/app?chat=${data.chatRoom.id}`);
-    },
-    onError: () => {
-    },
-  });
-
-  // Mutation to create or find existing chat room (for calling - no navigation)
-  const getOrCreateChatRoomForCall = useMutation({
-    mutationFn: async (friendUserId: string) => {
-      const response = await apiRequest("/api/chat-rooms", "POST", {
-        name: "",
-        isGroup: false,
-        participantIds: [parseInt(friendUserId)],
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
-    },
-    onError: (error) => {
-      console.error('Failed to create chat room for call:', error);
-      toast({
-        title: "통화 연결 실패",
-        description: "채팅방을 생성하지 못했습니다. 다시 시도해주세요.",
-        variant: "destructive"
-      });
-    },
-  });
-
   // Function to handle message button click
   const handleMessageClick = () => {
     if (!userId || !user) return;
 
     // Navigate to chat list with filter for this friend
     setLocation(`/app?friendFilter=${userId}`);
-  };
-
-  // Function to handle call button click (get or create chat room)
-  const handleCallClick = async () => {
-    if (!userId || !user) return;
-
-    try {
-      // Check if a direct chat room already exists
-      const existingRoom = (chatRoomsData as any)?.chatRooms?.find((room: any) => 
-        !room.isGroup && 
-        room.participants?.some((p: any) => p.id === parseInt(userId)) &&
-        room.participants?.some((p: any) => p.id === user.id)
-      );
-
-      if (existingRoom) {
-        // Use existing chat room
-        setCallChatRoomId(existingRoom.id);
-        setIsCallModalOpen(true);
-      } else {
-        // Create new chat room (without navigation)
-        const data = await getOrCreateChatRoomForCall.mutateAsync(userId);
-        setCallChatRoomId(data.chatRoom.id);
-        setIsCallModalOpen(true);
-      }
-    } catch (error) {
-      // Error already handled by mutation onError
-      console.error('Failed to get/create chat room for call:', error);
-    }
   };
 
   if (!match || !userId) {
@@ -215,24 +131,29 @@ export default function FriendProfilePage() {
       <ScrollIndicator />
       
       <div className="w-full pb-8">
-      {/* Header */}
+      {/* Header - iOS safe area optimized */}
       <div
-        className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-3 py-2.5"
+        className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-4 pt-3 pb-3"
       >
         <div className="flex items-center justify-between">
           <Button 
             variant="ghost" 
             size="sm" 
             onClick={() => setLocation("/app")}
-            className="p-1.5 hover:bg-gray-100 rounded-full -ml-1"
+            className="p-2 hover:bg-gray-100 rounded-full min-h-[44px] min-w-[44px] flex items-center justify-center"
+            data-testid="button-back"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-5 h-5" />
           </Button>
           
           <h1 className="font-medium text-base text-gray-900">프로필</h1>
           
-          <Button variant="ghost" size="sm" className="p-1.5 hover:bg-gray-100 rounded-full -mr-1">
-            <MoreHorizontal className="w-4 h-4" />
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="p-2 hover:bg-gray-100 rounded-full min-h-[44px] min-w-[44px] flex items-center justify-center"
+          >
+            <MoreHorizontal className="w-5 h-5" />
           </Button>
         </div>
       </div>
@@ -255,39 +176,34 @@ export default function FriendProfilePage() {
           </div>
           
           {/* Action Buttons - Mobile Optimized */}
-          <div className="grid grid-cols-5 gap-1.5 px-2 mb-5">
+          <div className="grid grid-cols-3 gap-2 px-2 mb-5">
             <Button 
               variant="outline" 
               size="sm" 
-              className="flex flex-col items-center py-2.5 px-1 h-auto border-gray-200 hover:bg-gray-50"
-              onClick={handleCallClick}
-              disabled={getOrCreateChatRoomForCall.isPending}
-              data-testid="button-call"
-            >
-              <Phone className="w-4 h-4 mb-1" />
-              <span className="text-xs">{getOrCreateChatRoomForCall.isPending ? "연결중..." : "통화"}</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="flex flex-col items-center py-2.5 px-1 h-auto border-gray-200 hover:bg-gray-50"
+              className="flex flex-col items-center py-3 px-2 h-auto border-gray-200 hover:bg-gray-50 min-h-[60px]"
               onClick={handleMessageClick}
-              disabled={createChatRoomMutation.isPending}
+              data-testid="button-message"
             >
-              <MessageSquare className="w-4 h-4 mb-1" />
-              <span className="text-xs">메시지</span>
+              <MessageSquare className="w-5 h-5 mb-1.5" />
+              <span className="text-xs font-medium">메시지</span>
             </Button>
-            <Button variant="outline" size="sm" className="flex flex-col items-center py-2.5 px-1 h-auto border-gray-200 hover:bg-gray-50">
-              <Video className="w-4 h-4 mb-1" />
-              <span className="text-xs">영상</span>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex flex-col items-center py-3 px-2 h-auto border-gray-200 hover:bg-gray-50 min-h-[60px]"
+              data-testid="button-add-friend"
+            >
+              <UserPlus className="w-5 h-5 mb-1.5" />
+              <span className="text-xs font-medium">친구 추가</span>
             </Button>
-            <Button variant="outline" size="sm" className="flex flex-col items-center py-2.5 px-1 h-auto border-gray-200 hover:bg-gray-50">
-              <UserPlus className="w-4 h-4 mb-1" />
-              <span className="text-xs">친구 추가</span>
-            </Button>
-            <Button variant="outline" size="sm" className="flex flex-col items-center py-2.5 px-1 h-auto border-gray-200 hover:bg-gray-50">
-              <Search className="w-4 h-4 mb-1" />
-              <span className="text-xs">검색</span>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex flex-col items-center py-3 px-2 h-auto border-gray-200 hover:bg-gray-50 min-h-[60px]"
+              data-testid="button-search"
+            >
+              <Search className="w-5 h-5 mb-1.5" />
+              <span className="text-xs font-medium">검색</span>
             </Button>
           </div>
         </div>
@@ -445,21 +361,6 @@ export default function FriendProfilePage() {
           fileUrl={selectedFile.url}
           fileName={selectedFile.name}
           fileSize={selectedFile.size}
-        />
-      )}
-
-      {/* Call Modal */}
-      {isCallModalOpen && callChatRoomId && (
-        <CallModal
-          isOpen={isCallModalOpen}
-          onClose={() => {
-            setIsCallModalOpen(false);
-            setCallChatRoomId(null);
-          }}
-          targetUserId={parseInt(userId)}
-          targetName={friendName}
-          targetProfilePicture={friendProfilePicture}
-          chatRoomId={callChatRoomId}
         />
       )}
     </div>
