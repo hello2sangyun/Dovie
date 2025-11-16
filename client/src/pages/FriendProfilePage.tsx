@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useLocation, useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
@@ -43,21 +43,11 @@ export default function FriendProfilePage() {
     enabled: !!userId && !!user,
   });
 
-  // Debug logging
-  console.log('🔍 FriendProfilePage Debug:', {
-    match,
-    userId,
-    sharedMediaCount: sharedMedia.length,
-    sharedMediaSample: sharedMedia.slice(0, 2),
-  });
-
   // Function to handle message button click
-  const handleMessageClick = () => {
+  const handleMessageClick = useCallback(() => {
     if (!userId || !user) return;
-
-    // Navigate to chat list with filter for this friend
     setLocation(`/app?friendFilter=${userId}`);
-  };
+  }, [userId, user, setLocation]);
 
   if (!match || !userId) {
     setLocation("/");
@@ -67,49 +57,37 @@ export default function FriendProfilePage() {
   const friendName = (userProfile as any)?.displayName || "친구";
   const friendProfilePicture = (userProfile as any)?.profilePicture;
 
-  // Filter shared media into categories (exclude voice messages from media tab)
-  const mediaFiles = sharedMedia.filter(m => {
-    if (!m.fileUrl) return false;
-    if (m.messageType === 'voice') return false;
-    return isImageFile(m.fileUrl) || isVideoFile(m.fileUrl);
-  });
+  // Memoize filtered media files to prevent recalculation on every render
+  const mediaFiles = useMemo(() => {
+    return sharedMedia.filter(m => {
+      if (!m.fileUrl) return false;
+      if (m.messageType === 'voice') return false;
+      return isImageFile(m.fileUrl) || isVideoFile(m.fileUrl);
+    });
+  }, [sharedMedia]);
   
-  console.log('🎨 Media files:', {
-    total: sharedMedia.length,
-    filtered: mediaFiles.length,
-    sample: mediaFiles.slice(0, 2).map(m => ({
-      fileUrl: m.fileUrl,
-      messageType: m.messageType,
-      isImage: isImageFile(m.fileUrl),
-      isVideo: isVideoFile(m.fileUrl),
-    })),
-  });
+  // Memoize document files
+  const documentFiles = useMemo(() => {
+    return sharedMedia.filter(m => {
+      if (!m.fileUrl) return false;
+      const isMedia = isImageFile(m.fileUrl) || isVideoFile(m.fileUrl);
+      if (m.messageType === 'voice') return false;
+      return !isMedia && m.messageType !== 'text';
+    });
+  }, [sharedMedia]);
   
-  // Documents are files that are not media (excluding voice messages)
-  const documentFiles = sharedMedia.filter(m => {
-    if (!m.fileUrl) return false;
-    const isMedia = isImageFile(m.fileUrl) || isVideoFile(m.fileUrl);
-    // Exclude voice messages from document files as well
-    if (m.messageType === 'voice') return false;
-    return !isMedia && m.messageType !== 'text';
-  });
-  
-  console.log('📄 Document files:', {
-    filtered: documentFiles.length,
-    sample: documentFiles.slice(0, 2),
-  });
-  
-  // Links are text messages with URLs, excluding files already classified as media or documents
-  const linkFiles = sharedMedia.filter(m => {
-    if (!m.fileUrl) return false;
-    const isMedia = isImageFile(m.fileUrl) || isVideoFile(m.fileUrl);
-    const isDocument = !isMedia && m.messageType !== 'text';
-    // Only text messages with HTTP(S) URLs that aren't already classified as media or documents
-    return m.messageType === 'text' && m.fileUrl.startsWith('http') && !isMedia && !isDocument;
-  });
+  // Memoize link files
+  const linkFiles = useMemo(() => {
+    return sharedMedia.filter(m => {
+      if (!m.fileUrl) return false;
+      const isMedia = isImageFile(m.fileUrl) || isVideoFile(m.fileUrl);
+      const isDocument = !isMedia && m.messageType !== 'text';
+      return m.messageType === 'text' && m.fileUrl.startsWith('http') && !isMedia && !isDocument;
+    });
+  }, [sharedMedia]);
 
-  // Get file icon based on file type
-  const getFileIcon = (fileType: FileType, className: string = "h-8 w-8") => {
+  // Memoize file icon function
+  const getFileIcon = useCallback((fileType: FileType, className: string = "h-8 w-8") => {
     switch (fileType) {
       case 'image':
         return <FileImage className={cn(className, "text-purple-600")} />;
@@ -124,7 +102,7 @@ export default function FriendProfilePage() {
       default:
         return <File className={cn(className, "text-gray-600")} />;
     }
-  };
+  }, []);
 
   return (
     <div className="bg-gradient-to-br from-gray-50 to-white">
