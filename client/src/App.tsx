@@ -33,7 +33,6 @@ const ProfileSetupPage = lazy(() => import("@/pages/ProfileSetupPage"));
 const PhoneLogin = lazy(() => import("@/pages/PhoneLogin"));
 const AdminPage = lazy(() => import("@/pages/AdminPage"));
 const FriendProfilePage = lazy(() => import("@/pages/FriendProfilePage"));
-const UserProfilePage = lazy(() => import("@/pages/UserProfilePage"));
 const GroupInfoPage = lazy(() => import("@/pages/GroupInfoPage"));
 const ScreenshotDemo = lazy(() => import("@/pages/ScreenshotDemo"));
 
@@ -71,7 +70,7 @@ function Router() {
         <Route path="/group-info/:chatRoomId" component={GroupInfoPage} />
         <Route path="/admin" component={AdminPage} />
         <Route path="/friend/:userId" component={FriendProfilePage} />
-        <Route path="/profile/:userId" component={UserProfilePage} />
+        <Route path="/profile/:userId" component={FriendProfilePage} />
         <Route path="/screenshots/:id" component={ScreenshotDemo} />
         <Route component={NotFound} />
       </Switch>
