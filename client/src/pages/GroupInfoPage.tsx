@@ -241,6 +241,43 @@ export default function GroupInfoPage() {
                   {chatRoom.name[0]}
                 </AvatarFallback>
               </Avatar>
+            ) : participants.length > 0 ? (
+              <div className="relative w-20 h-20 flex items-center justify-center">
+                {participants.slice(0, 2).map((participant, index) => {
+                  const horizontalPositions = [
+                    { top: '50%', left: '0px', transform: 'translateY(-50%)' },
+                    { top: '50%', right: '0px', transform: 'translateY(-50%)' }
+                  ];
+                  
+                  const position = horizontalPositions[index];
+                  
+                  return (
+                    <div
+                      key={participant.id}
+                      className="absolute border-2 border-white rounded-full shadow-md"
+                      style={{
+                        ...position,
+                        zIndex: 2 - index
+                      }}
+                    >
+                      <Avatar className="w-10 h-10">
+                        <AvatarImage src={participant.profilePicture || undefined} />
+                        <AvatarFallback className="bg-gradient-to-br from-purple-400 to-blue-400 text-white text-sm font-bold">
+                          {participant.displayName[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                  );
+                })}
+                {participants.length > 2 && (
+                  <div 
+                    className="absolute bottom-0 right-0 bg-purple-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold shadow-md border-2 border-white"
+                    style={{ zIndex: 3 }}
+                  >
+                    +{participants.length - 2}
+                  </div>
+                )}
+              </div>
             ) : (
               <Avatar className="w-20 h-20 shadow-md">
                 <AvatarFallback className="bg-blue-100 text-blue-600 text-xl font-bold">
@@ -257,7 +294,7 @@ export default function GroupInfoPage() {
           </div>
           
           {/* Action Buttons - Mobile Optimized */}
-          <div className="grid grid-cols-3 gap-2 px-2 mb-5">
+          <div className="grid grid-cols-3 gap-2 px-2">
             <Button 
               variant="outline" 
               size="sm" 
@@ -272,6 +309,10 @@ export default function GroupInfoPage() {
               variant="outline" 
               size="sm" 
               className="flex flex-col items-center py-3 px-2 h-auto border-gray-200 hover:bg-gray-50 min-h-[60px]"
+              onClick={() => {
+                const participantsSection = document.getElementById('participants-section');
+                participantsSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
               data-testid="button-participants"
             >
               <Users className="w-5 h-5 mb-1.5" />
@@ -287,6 +328,48 @@ export default function GroupInfoPage() {
               <span className="text-xs font-medium">설정</span>
             </Button>
           </div>
+        </div>
+      </div>
+
+      {/* Participants Section */}
+      <div id="participants-section" className="px-4 py-4 bg-white mb-2">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center">
+          <Users className="w-4 h-4 mr-2 text-purple-600" />
+          참여자 {participants.length}명
+        </h3>
+        <div className="space-y-2">
+          {participants.map((participant) => (
+            <div
+              key={participant.id}
+              className="flex items-center justify-between py-2 px-3 hover:bg-gray-50 rounded-lg transition-colors"
+              data-testid={`participant-${participant.id}`}
+            >
+              <div className="flex items-center space-x-3 flex-1 min-w-0">
+                <div className="relative flex-shrink-0">
+                  <Avatar className="w-10 h-10">
+                    <AvatarImage src={participant.profilePicture || undefined} />
+                    <AvatarFallback className="bg-gradient-to-br from-purple-400 to-blue-400 text-white font-bold">
+                      {participant.displayName[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  {participant.isOnline && (
+                    <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900 truncate">{participant.displayName}</p>
+                  <p className="text-xs text-gray-500 truncate">@{participant.username}</p>
+                </div>
+              </div>
+              <div className="flex-shrink-0">
+                {participant.isOnline ? (
+                  <span className="text-xs text-green-600 font-medium">온라인</span>
+                ) : (
+                  <span className="text-xs text-gray-400">오프라인</span>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
