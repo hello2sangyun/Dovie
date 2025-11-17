@@ -455,7 +455,8 @@ export default function GroupInfoPage() {
           {participants.map((participant) => (
             <div
               key={participant.id}
-              className="flex items-center justify-between py-2 px-3 hover:bg-gray-50 rounded-lg transition-colors"
+              className="flex items-center justify-between py-2 px-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
+              onClick={() => navigate(`/profile/${participant.id}`)}
               data-testid={`participant-${participant.id}`}
             >
               <div className="flex items-center space-x-3 flex-1 min-w-0">
