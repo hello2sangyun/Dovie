@@ -4835,13 +4835,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       >
         {/* Security Notice - WhatsApp Style */}
         <div className="flex justify-center mb-2 px-2">
-          <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-lg px-2 py-1 max-w-sm mx-auto shadow-sm transition-all duration-200 backdrop-blur-sm">
+          <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-lg px-2 py-1 max-w-sm mx-auto shadow-sm backdrop-blur-sm">
             <div className="flex items-center justify-center space-x-2">
-              <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse shadow-sm"></div>
+              <div className="w-2 h-2 bg-yellow-400 rounded-full shadow-sm"></div>
               <p className="text-xs text-yellow-800 text-center font-semibold">
                 🔒 메시지와 파일이 종단간 암호화됩니다
               </p>
-              <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse shadow-sm"></div>
+              <div className="w-2 h-2 bg-yellow-400 rounded-full shadow-sm"></div>
             </div>
             <p className="text-xs text-yellow-700 text-center mt-1 opacity-90 font-medium">
               Dovie Messenger에서만 확인할 수 있습니다
@@ -4853,11 +4853,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           // 캐시된 메시지가 없을 때만 로딩 스켈레톤 표시
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-start space-x-3">
-                <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
+              <div key={i} className="flex items-start space-x-3 opacity-30">
+                <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-gray-200 rounded animate-pulse w-1/4"></div>
-                  <div className="h-16 bg-gray-200 rounded-lg animate-pulse w-3/4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                  <div className="h-16 bg-gray-200 rounded-lg w-3/4"></div>
                 </div>
               </div>
             ))}
