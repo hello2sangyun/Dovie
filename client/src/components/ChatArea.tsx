@@ -2492,7 +2492,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     } else {
       try {
         // 메시지 찾기 및 발신자 정보 확인
-        const message = messages?.find(m => m.id === messageId);
+        const message = messages?.find((m: any) => m.id === messageId);
         const messageSenderId = senderId || message?.senderId;
         
         // 자신의 음성 메시지는 항상 재생 가능
@@ -4736,7 +4736,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           {(voiceBookmarkRequestsData as any).requests
             .filter((request: any) => {
               // Filter requests for this chat room
-              const message = messages.find(m => m.id === request.messageId);
+              const message = messages.find((m: any) => m.id === request.messageId);
               return message && message.chatRoomId === chatRoomId;
             })
             .map((request: any) => {
@@ -5066,7 +5066,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                           {/* 원본 메시지 내용 - 타입별 렌더링 */}
                           {(() => {
                             // 원본 메시지 찾기
-                            const originalMessage = messages.find(m => m.id === msg.replyToMessageId);
+                            const originalMessage = messages.find((m: any) => m.id === msg.replyToMessageId);
                             const replyContent = msg.replyToContent || originalMessage?.content || "원본 메시지";
                             
                             // 음성 메시지인 경우 - 컴팩트한 디스플레이

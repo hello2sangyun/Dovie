@@ -1,10 +1,13 @@
 import { useParams, useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft, 
   Image as ImageIcon, 
@@ -12,7 +15,9 @@ import {
   Link as LinkIcon,
   Users,
   MoreHorizontal,
-  MessageSquare
+  MessageSquare,
+  Camera,
+  Edit2
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { LazyImage } from "@/components/LazyImage";
@@ -45,6 +50,13 @@ export default function GroupInfoPage() {
   const { chatRoomId } = useParams();
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState("media");
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
+  // Edit states
+  const [showNameEditDialog, setShowNameEditDialog] = useState(false);
+  const [newGroupName, setNewGroupName] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch chat room info
   const { data: chatRoom, isLoading: chatRoomLoading, isError: chatRoomError, refetch: refetchChatRoom } = useQuery({
@@ -72,6 +84,81 @@ export default function GroupInfoPage() {
   }) as { data?: { messages: Message[] }; isLoading: boolean };
 
   const messages = messagesData?.messages || [];
+
+  // Update group name mutation
+  const updateNameMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const response = await apiRequest(`/api/chat-rooms/${chatRoomId}/name`, "PUT", { name });
+      if (!response.ok) throw new Error('Failed to update group name');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      toast({
+        title: "그룹 이름 변경됨",
+        description: "그룹 이름이 성공적으로 변경되었습니다.",
+      });
+      setShowNameEditDialog(false);
+    },
+    onError: () => {
+      toast({
+        title: "오류",
+        description: "그룹 이름 변경에 실패했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update profile image mutation
+  const updateProfileImageMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('profileImage', file);
+      
+      const response = await fetch(`/api/chat-rooms/${chatRoomId}/profile-image`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) throw new Error('Failed to update profile image');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/chat-rooms/${chatRoomId}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms"] });
+      toast({
+        title: "프로필 사진 변경됨",
+        description: "프로필 사진이 성공적으로 변경되었습니다.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "오류",
+        description: "프로필 사진 변경에 실패했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handlers
+  const handleNameEdit = () => {
+    setNewGroupName(chatRoom?.name || "");
+    setShowNameEditDialog(true);
+  };
+
+  const handleNameSave = () => {
+    if (newGroupName.trim()) {
+      updateNameMutation.mutate(newGroupName.trim());
+    }
+  };
+
+  const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      updateProfileImageMutation.mutate(file);
+    }
+  };
 
   // Helper function to check if file is an image
   const isImageFile = (fileUrl: string) => {
@@ -229,11 +316,29 @@ export default function GroupInfoPage() {
         </div>
       </div>
 
+      {/* Hidden file input for profile image */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleProfileImageChange}
+      />
+
       {/* Profile Header */}
       <div className="px-4 py-5 bg-white">
         <div className="text-center">
           {/* Profile Image */}
-          <div className="relative w-20 h-20 mx-auto mb-3">
+          <div className="relative w-20 h-20 mx-auto mb-3 group">
+            {/* Camera overlay button */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 hover:bg-opacity-40 rounded-full transition-all duration-200 z-10 group"
+              disabled={updateProfileImageMutation.isPending}
+              data-testid="button-change-profile-image"
+            >
+              <Camera className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
             {chatRoom?.profileImage ? (
               <Avatar className="w-20 h-20 shadow-md">
                 <AvatarImage src={chatRoom.profileImage} />
@@ -288,8 +393,17 @@ export default function GroupInfoPage() {
           </div>
           
           {/* Group Name */}
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-1">{chatRoom?.name || "그룹 채팅"}</h2>
+          <div className="relative">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <h2 className="text-xl font-bold text-gray-900">{chatRoom?.name || "그룹 채팅"}</h2>
+              <button
+                onClick={handleNameEdit}
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                data-testid="button-edit-group-name"
+              >
+                <Edit2 className="w-4 h-4 text-gray-500" />
+              </button>
+            </div>
             <p className="text-sm text-gray-600 mb-4">멤버 {participants.length}명 • 공유 파일</p>
           </div>
           
@@ -480,6 +594,49 @@ export default function GroupInfoPage() {
       
       {/* Bottom spacing for mobile scrolling */}
       <div className="h-6"></div>
+
+      {/* Edit Group Name Dialog */}
+      <Dialog open={showNameEditDialog} onOpenChange={setShowNameEditDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>그룹 이름 변경</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <Input
+              value={newGroupName}
+              onChange={(e) => setNewGroupName(e.target.value)}
+              placeholder="새로운 그룹 이름을 입력하세요"
+              className="min-h-[44px]"
+              maxLength={50}
+              data-testid="input-group-name"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !updateNameMutation.isPending) {
+                  handleNameSave();
+                }
+              }}
+            />
+            <p className="text-xs text-gray-500">{newGroupName.length}/50 자</p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowNameEditDialog(false)}
+              className="min-h-[44px]"
+              data-testid="button-cancel-name-edit"
+            >
+              취소
+            </Button>
+            <Button
+              onClick={handleNameSave}
+              disabled={!newGroupName.trim() || updateNameMutation.isPending}
+              className="min-h-[44px]"
+              data-testid="button-save-name"
+            >
+              {updateNameMutation.isPending ? "저장 중..." : "저장"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
