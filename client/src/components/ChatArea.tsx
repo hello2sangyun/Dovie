@@ -1664,9 +1664,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           return false;
         };
 
-        // Retry logic (max 10 attempts)
+        // Retry logic (max 3 attempts)
         let retryCount = 0;
-        const maxRetries = 10;
+        const maxRetries = 3;
         const retryInterval = setInterval(() => {
           const success = attemptScroll();
           if (success || retryCount >= maxRetries) {
