@@ -4445,63 +4445,48 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               ) : (
                 <div className={cn(
                   "relative flex items-center justify-center flex-shrink-0",
-                  showMobileHeader ? "w-8 h-8" : "w-10 h-10"
+                  showMobileHeader ? "w-10 h-10" : "w-12 h-12"
                 )}>
-                  {currentChatRoom.participants.slice(0, Math.min(5, currentChatRoom.participants.length)).map((participant: any, index: number) => {
-                    const totalAvatars = Math.min(5, currentChatRoom.participants.length);
-                    const isStackLayout = totalAvatars <= 3;
-                    const avatarSize = showMobileHeader ? "w-6 h-6" : "w-7 h-7";
+                  {currentChatRoom.participants.slice(0, 2).map((participant: any, index: number) => {
+                    const horizontalPositions = [
+                      { top: '50%', left: '0px', transform: 'translateY(-50%)' },
+                      { top: '50%', right: '0px', transform: 'translateY(-50%)' }
+                    ];
                     
-                    if (isStackLayout) {
-                      return (
-                        <div
-                          key={participant.id}
+                    const position = horizontalPositions[index];
+                    
+                    return (
+                      <div
+                        key={participant.id}
+                        className="absolute border-2 border-white rounded-full shadow-md"
+                        style={{
+                          ...position,
+                          zIndex: 2 - index
+                        }}
+                      >
+                        <InstantAvatar 
+                          src={participant?.profilePicture}
+                          fallbackText={participant?.displayName || participant?.username}
+                          size="sm" 
                           className={cn(
-                            "rounded-full border-2 border-white shadow-sm bg-slate-500 flex items-center justify-center text-white font-medium",
-                            avatarSize,
-                            showMobileHeader ? "text-[10px]" : "text-xs",
-                            index > 0 ? "-ml-1" : ""
+                            "purple-gradient",
+                            showMobileHeader ? "w-5 h-5" : "w-6 h-6"
                           )}
-                          style={{ zIndex: totalAvatars - index }}
-                        >
-                          <InstantAvatar 
-                            src={participant.profilePicture}
-                            alt={participant.displayName}
-                            fallbackText={participant.displayName}
-                            size="sm"
-                            className="w-full h-full"
-                          />
-                        </div>
-                      );
-                    } else {
-                      const positions = [
-                        'top-0 left-0',
-                        'top-0 right-0', 
-                        'bottom-0 left-0',
-                        'bottom-0 right-0',
-                        'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10'
-                      ];
-                      
-                      return (
-                        <div
-                          key={participant.id}
-                          className={cn(
-                            "absolute rounded-full border border-white shadow-sm purple-gradient flex items-center justify-center text-white font-semibold text-[8px]",
-                            showMobileHeader ? "w-4 h-4" : "w-5 h-5",
-                            positions[index]
-                          )}
-                        >
-                          <InstantAvatar 
-                            src={participant.profilePicture}
-                            alt={participant.displayName}
-                            fallbackText={participant.displayName}
-                            size="sm"
-                            className="w-full h-full"
-                          />
-                        </div>
-                      );
-                    }
+                        />
+                      </div>
+                    );
                   })}
+                  {currentChatRoom.participants.length > 2 && (
+                    <div 
+                      className={cn(
+                        "absolute bottom-0 right-0 bg-purple-500 text-white rounded-full flex items-center justify-center font-bold shadow-md border-2 border-white",
+                        showMobileHeader ? "text-[8px] w-4 h-4" : "text-[9px] w-5 h-5"
+                      )}
+                      style={{ zIndex: 3 }}
+                    >
+                      +{currentChatRoom.participants.length - 2}
+                    </div>
+                  )}
                 </div>
               )
             ) : (
