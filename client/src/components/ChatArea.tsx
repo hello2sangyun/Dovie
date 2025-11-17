@@ -1580,19 +1580,19 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   }, [messages, lastMessageCount, isAtBottom]);
 
 
-  // 채팅방 변경 시 초기 스크롤 플래그 리셋 + 2초 타임아웃 설정
+  // 채팅방 변경 시 초기 스크롤 플래그 리셋 + 300ms 타임아웃 설정
   useEffect(() => {
     hasInitialScrolledRef.current = false;
     
-    // 2초 후에도 스크롤이 안 됐으면 강제로 완료 처리 (네트워크 지연 대응)
+    // 300ms 후에도 스크롤이 안 됐으면 강제로 완료 처리 (네트워크 지연 대응)
     const fallbackTimer = setTimeout(() => {
       if (!hasInitialScrolledRef.current) {
-        console.log('⏰ 2초 타임아웃: 로딩 오버레이 강제 제거');
+        console.log('⏰ 300ms 타임아웃: 로딩 오버레이 강제 제거');
         hasInitialScrolledRef.current = true;
         // 강제로 리렌더링하여 오버레이 제거
         forceRender({});
       }
-    }, 2000);
+    }, 300);
     
     return () => clearTimeout(fallbackTimer);
   }, [chatRoomId]);
