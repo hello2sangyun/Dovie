@@ -127,6 +127,54 @@ export default function MainApp() {
     }
   }, [user, setLocation]);
 
+  // Handle push notification clicks from Service Worker
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) {
+      console.log('🚫 Service Worker not supported');
+      return;
+    }
+
+    const handleServiceWorkerMessage = (event: MessageEvent) => {
+      console.log('📨 Message received from Service Worker:', event.data);
+      
+      const { type, chatRoomId, url } = event.data;
+
+      if (type === 'NOTIFICATION_CLICKED') {
+        console.log('🔔 Push notification clicked - navigating to chat:', chatRoomId);
+        
+        if (chatRoomId) {
+          // Open the specific chat room
+          setSelectedChatRoom(chatRoomId);
+          setShowMobileChat(true);
+          setActiveTab("chats");
+          setActiveMobileTab("chats");
+          
+          // Navigate to the chat URL
+          if (url) {
+            setLocation(url);
+          }
+          
+          // Refresh chat data immediately
+          queryClient.invalidateQueries({ queryKey: ['/api/chat-rooms'] });
+          queryClient.invalidateQueries({ queryKey: ["/api/chat-rooms", chatRoomId, "messages"] });
+          
+          console.log('✅ Navigated to chat room from push notification:', chatRoomId);
+        } else if (url) {
+          // Just navigate to the URL
+          setLocation(url);
+        }
+      }
+    };
+
+    navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
+    console.log('✅ Service Worker message listener registered');
+
+    return () => {
+      navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
+      console.log('🧹 Service Worker message listener removed');
+    };
+  }, [setLocation, queryClient]);
+
   // Immediate data synchronization when app becomes visible (like Telegram/WhatsApp)
   useEffect(() => {
     const handleVisibilityChange = () => {
