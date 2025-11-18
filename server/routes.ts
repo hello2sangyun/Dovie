@@ -2128,8 +2128,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const objectStorageService = new ObjectStorageService();
-      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
-      res.json({ uploadURL });
+      const url = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ 
+        uploadURL: {
+          method: "PUT",
+          url
+        }
+      });
     } catch (error) {
       console.error("Error getting upload URL:", error);
       res.status(500).json({ error: "Failed to get upload URL" });
@@ -6788,34 +6793,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Space 포스트 작성 API
-  app.post("/api/space/posts", async (req, res) => {
-    const userId = req.headers["x-user-id"];
-    
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    try {
-      const { content } = req.body;
-      
-      if (!content || !content.trim()) {
-        return res.status(400).json({ message: "포스트 내용이 필요합니다." });
-      }
-
-      const [newPost] = await db.insert(userPosts)
-        .values({
-          userId: parseInt(userId as string),
-          content: content.trim(),
-        })
-        .returning();
-
-      res.json({ post: newPost });
-    } catch (error) {
-      console.error("Error creating space post:", error);
-      res.status(500).json({ message: "포스트 작성 중 오류가 발생했습니다." });
-    }
-  });
 
   // Space 포스트 좋아요/좋아요 취소 API
   app.post("/api/space/posts/:postId/like", async (req, res) => {
