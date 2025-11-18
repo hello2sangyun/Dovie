@@ -2171,7 +2171,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ message: "Not authenticated" });
     }
 
-    const { objectURL, visibility } = req.body;
+    const { objectURL, aclPolicy, updateType } = req.body;
     if (!objectURL) {
       return res.status(400).json({ error: "objectURL is required" });
     }
@@ -2181,10 +2181,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
         objectURL,
         {
-          owner: String(userId),
-          visibility: visibility || "private",
+          owner: aclPolicy?.owner || String(userId),
+          visibility: aclPolicy?.visibility || "private",
         }
       );
+
+      // Handle specific update types
+      if (updateType === "profile-picture") {
+        await storage.updateUser(Number(userId), { profilePicture: objectPath });
+        return res.json({ profilePicture: objectPath });
+      }
+
       res.json({ objectPath });
     } catch (error) {
       console.error("Error setting ACL:", error);
