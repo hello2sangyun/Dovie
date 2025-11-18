@@ -263,6 +263,12 @@ export class ObjectStorageService {
     };
     await setObjectAclPolicy(file, aclPolicy);
 
+    // 실제 GCS 객체를 public으로 설정 (브라우저에서 직접 접근 가능하도록)
+    if (isPublic) {
+      await file.makePublic();
+      console.log(`✅ File made public: ${objectName}`);
+    }
+
     const filePath = `/${bucketName}/${objectName}`;
     
     if (isPublic) {
