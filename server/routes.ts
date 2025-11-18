@@ -282,7 +282,7 @@ const sanitizeFilename = (filename: string): string => {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
 
-  // SMS 인증 코드 전송
+  // SMS 인증 코드 전송 (Twilio Verify API 사용)
   app.post("/api/auth/send-sms", async (req, res) => {
     try {
       const { phoneNumber, countryCode } = req.body;
@@ -291,80 +291,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Phone number and country code are required" });
       }
 
-      // 6자리 인증 코드 생성
-      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      // 전화번호 정규화 (E.164 형식)
+      // 숫자만 추출
+      let cleanPhone = phoneNumber.replace(/\D/g, '');
       
-      // 만료 시간 설정 (5분)
-      const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
-
-      // 기존 미인증 코드 정리
-      await storage.cleanupExpiredVerifications();
-
-      // 전화번호 정규화 (국가코드 + 전화번호)
-      // Twilio expects +36703566630 format, not HU+36703566630
-      const fullPhoneNumber = countryCode.startsWith('+') ? `${countryCode}${phoneNumber}` : `+${countryCode}${phoneNumber}`;
-
-      // 새 인증 코드 저장 (정규화된 전화번호로)
-      const verification = await storage.createPhoneVerification({
-        phoneNumber: fullPhoneNumber,
-        countryCode,
-        verificationCode,
-        expiresAt,
-        isVerified: false,
-      });
+      // 한국 번호(+82)는 앞의 0 제거 (010 → 10)
+      const normalizedCountryCode = countryCode.replace(/\D/g, '');
+      if (normalizedCountryCode === '82' && cleanPhone.startsWith('0')) {
+        cleanPhone = cleanPhone.substring(1);
+      }
+      
+      // 국가 코드 처리
+      const countryPrefix = countryCode.startsWith('+') ? countryCode.replace(/\D/g, '') : normalizedCountryCode;
+      const fullPhoneNumber = `+${countryPrefix}${cleanPhone}`;
+      
+      console.log(`📱 전화번호 정규화: ${phoneNumber} → ${fullPhoneNumber}`);
 
       // Twilio 클라이언트 초기화
       const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
       try {
-        // 실제 SMS 전송 시도
-        const message = await client.messages.create({
-          body: `Dovie Messenger 인증 코드: ${verificationCode}`,
-          from: process.env.TWILIO_PHONE_NUMBER,
-          to: fullPhoneNumber
-        });
+        console.log(`📱 Twilio Verify로 SMS 전송 시작: ${fullPhoneNumber}`);
+        
+        // Twilio Verify API를 사용하여 인증 코드 전송
+        const verification = await client.verify.v2
+          .services(process.env.TWILIO_VERIFY_SERVICE_SID!)
+          .verifications
+          .create({
+            to: fullPhoneNumber,
+            channel: 'sms',
+            locale: 'ko'
+          });
 
-        console.log(`SMS 전송 성공: ${message.sid} (${fullPhoneNumber})`);
+        console.log(`✅ Twilio Verify SMS 전송 성공: ${verification.sid} (${fullPhoneNumber})`);
+        console.log(`   상태: ${verification.status}`);
+        console.log(`   유효 시간: ${verification.valid}`);
 
         res.json({ 
           success: true, 
           message: "인증 코드를 전송했습니다.",
-          messageSid: message.sid
+          verificationSid: verification.sid,
+          status: verification.status
         });
       } catch (smsError: any) {
-        console.error("Twilio SMS 전송 오류:", smsError);
-        console.error("오류 코드:", smsError.code);
-        console.error("오류 메시지:", smsError.message);
+        console.error("❌ Twilio Verify SMS 전송 오류:", smsError);
+        console.error("   오류 코드:", smsError.code);
+        console.error("   오류 메시지:", smsError.message);
+        console.error("   오류 상세:", smsError.moreInfo);
         
-        // SMS_PRODUCTION_MODE 환경 변수로 프로덕션 모드 명시적으로 제어
-        // 설정되어 있으면 실제 SMS 전송만 시도하고, 실패 시 명확한 에러 반환
-        const isSmsProductionMode = process.env.SMS_PRODUCTION_MODE === 'true';
-        
-        if (isSmsProductionMode) {
-          // 프로덕션 모드: 실제 Twilio 에러를 사용자에게 전달
-          console.error(`❌ SMS 프로덕션 모드: 실제 전송 실패`);
-          const errorMessage = smsError.message || 'SMS 전송에 실패했습니다';
-          const errorCode = smsError.code || 'UNKNOWN';
-          res.status(400).json({ 
-            message: `SMS 전송 실패: ${errorMessage} (코드: ${errorCode})`,
-            errorCode,
-            twilioError: errorMessage
-          });
-        } else if (process.env.NODE_ENV === 'development') {
-          // 개발 모드: Trial 계정 제한이나 기타 SMS 전송 실패 시 성공으로 처리
-          console.log(`🔧 개발 모드: SMS 전송 실패하였지만 테스트를 위해 성공으로 처리`);
-          console.log(`📱 인증 코드: ${verificationCode} (${fullPhoneNumber})`);
-          console.log(`💡 실제 운영환경에서는 Twilio 계정을 업그레이드하거나 번호를 검증해주세요.`);
+        // SMS 실패 시 음성 통화 fallback 시도
+        try {
+          console.log(`📞 SMS 실패 - 음성 통화로 재시도: ${fullPhoneNumber}`);
           
-          res.json({ 
-            success: true, 
-            message: "개발 모드: 인증 코드가 콘솔에 표시되었습니다.",
-            developmentMode: true,
-            verificationCode: verificationCode // 개발용으로만 포함
+          const callVerification = await client.verify.v2
+            .services(process.env.TWILIO_VERIFY_SERVICE_SID!)
+            .verifications
+            .create({
+              to: fullPhoneNumber,
+              channel: 'call',
+              locale: 'ko'
+            });
+
+          console.log(`✅ 음성 통화 인증 전송 성공: ${callVerification.sid}`);
+          
+          res.json({
+            success: true,
+            message: "SMS 전송이 실패하여 음성 통화로 인증 코드를 전송했습니다.",
+            verificationSid: callVerification.sid,
+            status: callVerification.status,
+            channel: 'call',
+            fallback: true
           });
-        } else {
-          // 기본값: 운영 환경에서는 실제 오류 반환
-          throw new Error("SMS 전송에 실패했습니다. Twilio 계정을 확인해주세요.");
+        } catch (callError: any) {
+          console.error("❌ 음성 통화도 실패:", callError);
+          
+          // 둘 다 실패한 경우
+          const errorMessage = smsError.message || '인증 코드 전송에 실패했습니다';
+          const errorCode = smsError.code || 'UNKNOWN';
+          
+          res.status(400).json({ 
+            message: `인증 코드 전송 실패: ${errorMessage}`,
+            errorCode,
+            twilioError: errorMessage,
+            moreInfo: smsError.moreInfo
+          });
         }
       }
     } catch (error) {
@@ -373,7 +383,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // SMS 인증 코드 확인
+  // SMS 인증 코드 확인 (Twilio Verify API 사용)
   app.post("/api/auth/verify-sms", async (req, res) => {
     try {
       const { phoneNumber, verificationCode, countryCode } = req.body;
@@ -382,52 +392,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Phone number, country code, and verification code are required" });
       }
 
-      // 전화번호 정규화 (저장된 형식과 동일하게)
-      const fullPhoneNumber = countryCode.startsWith('+') ? `${countryCode}${phoneNumber}` : `+${countryCode}${phoneNumber}`;
+      // 전화번호 정규화 (E.164 형식)
+      let cleanPhone = phoneNumber.replace(/\D/g, '');
+      const normalizedCountryCode = countryCode.replace(/\D/g, '');
       
-      console.log(`SMS 인증 확인 시도: ${fullPhoneNumber}, 코드: ${verificationCode}`);
-
-      // 인증 코드 확인 (아직 사용되지 않고 만료되지 않은 코드)
-      const verification = await storage.getPhoneVerification(fullPhoneNumber, verificationCode);
-      
-      if (!verification) {
-        return res.status(400).json({ message: "Invalid or expired verification code" });
+      // 한국 번호는 앞의 0 제거
+      if (normalizedCountryCode === '82' && cleanPhone.startsWith('0')) {
+        cleanPhone = cleanPhone.substring(1);
       }
-
-      // 사용자 찾기 또는 생성
-      let user = await storage.getUserByPhoneNumber(fullPhoneNumber);
       
-      if (!user) {
-        const hashedPassword = await bcrypt.hash("phone_auth_temp", 10);
-        const cleanPhoneNumber = phoneNumber.replace(/[^\d]/g, '');
-        const timestamp = Date.now();
-        const userData = insertUserSchema.parse({
-          username: `user_${cleanPhoneNumber}_${timestamp}`,
-          displayName: `사용자 ${phoneNumber.slice(-4)}`,
-          phoneNumber: fullPhoneNumber,
-          email: `${cleanPhoneNumber}@phone.local`,
-          password: hashedPassword,
-          isEmailVerified: true,
-          isProfileComplete: false,
+      const countryPrefix = countryCode.startsWith('+') ? countryCode.replace(/\D/g, '') : normalizedCountryCode;
+      const fullPhoneNumber = `+${countryPrefix}${cleanPhone}`;
+      
+      console.log(`📱 Twilio Verify로 SMS 인증 확인 시도: ${fullPhoneNumber}, 코드: ${verificationCode}`);
+
+      // Twilio 클라이언트 초기화
+      const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+
+      try {
+        // Twilio Verify API를 사용하여 인증 코드 확인
+        const verificationCheck = await client.verify.v2
+          .services(process.env.TWILIO_VERIFY_SERVICE_SID!)
+          .verificationChecks
+          .create({
+            to: fullPhoneNumber,
+            code: verificationCode
+          });
+
+        console.log(`✅ Twilio Verify 인증 확인 결과: ${verificationCheck.status}`);
+        console.log(`   SID: ${verificationCheck.sid}`);
+        console.log(`   유효: ${verificationCheck.valid}`);
+
+        if (verificationCheck.status !== 'approved') {
+          return res.status(400).json({ 
+            message: "인증 코드가 올바르지 않습니다.",
+            status: verificationCheck.status 
+          });
+        }
+
+        // 사용자 찾기 또는 생성
+        let user = await storage.getUserByPhoneNumber(fullPhoneNumber);
+        
+        if (!user) {
+          const hashedPassword = await bcrypt.hash("phone_auth_temp", 10);
+          const cleanPhoneNumber = phoneNumber.replace(/[^\d]/g, '');
+          const timestamp = Date.now();
+          const userData = insertUserSchema.parse({
+            username: `user_${cleanPhoneNumber}_${timestamp}`,
+            displayName: `사용자 ${phoneNumber.slice(-4)}`,
+            phoneNumber: fullPhoneNumber,
+            email: `${cleanPhoneNumber}@phone.local`,
+            password: hashedPassword,
+            isEmailVerified: true,
+            isProfileComplete: false,
+          });
+          user = await storage.createUser(userData);
+        }
+
+        // 사용자 온라인 상태 업데이트
+        const updatedUser = await storage.updateUser(user.id, { isOnline: true, phoneNumber: fullPhoneNumber });
+
+        res.json({ 
+          user: updatedUser || user,
+          verificationStatus: verificationCheck.status
         });
-        user = await storage.createUser(userData);
+      } catch (verifyError: any) {
+        console.error("❌ Twilio Verify 인증 확인 오류:", verifyError);
+        console.error("   오류 코드:", verifyError.code);
+        console.error("   오류 메시지:", verifyError.message);
+        
+        // Twilio Verify 오류 처리
+        if (verifyError.code === 20404) {
+          return res.status(400).json({ message: "인증 요청을 찾을 수 없습니다. 인증 코드를 다시 요청해주세요." });
+        } else if (verifyError.code === 60200) {
+          return res.status(400).json({ message: "최대 시도 횟수를 초과했습니다. 새로운 인증 코드를 요청해주세요." });
+        } else if (verifyError.code === 60202) {
+          return res.status(400).json({ message: "인증 코드가 만료되었습니다. 새로운 코드를 요청해주세요." });
+        }
+        
+        res.status(400).json({ 
+          message: "인증 코드 확인에 실패했습니다.",
+          errorCode: verifyError.code 
+        });
       }
-
-      // 사용자 온라인 상태 업데이트
-      const updatedUser = await storage.updateUser(user.id, { isOnline: true, phoneNumber: fullPhoneNumber });
-
-      // 성공적으로 로그인 완료된 후에만 인증 코드를 사용됨으로 표시
-      await storage.markPhoneVerificationAsUsed(verification.id);
-
-      // 업데이트된 사용자 정보가 있으면 사용하고, 없으면 원본 사용자 정보 사용
-      res.json({ user: updatedUser || user });
     } catch (error) {
       console.error("SMS verify error:", error);
       res.status(500).json({ message: "인증에 실패했습니다." });
     }
   });
 
-  // 새로운 전화번호 기반 회원가입 플로우
+  // 새로운 전화번호 기반 회원가입 플로우 (Twilio Verify API 사용)
   // Step 1: 인증 코드 발송
   app.post("/api/auth/send-verification-code", async (req, res) => {
     try {
@@ -437,70 +491,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "전화번호가 필요합니다." });
       }
 
-      // 6자리 인증 코드 생성
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      // 전화번호 정규화 (E.164 형식)
+      // 이미 국가 코드가 포함된 경우 처리
+      let normalizedPhone = phoneNumber;
+      if (!phoneNumber.startsWith('+')) {
+        // 한국 번호로 가정하고 +82 추가
+        let cleanPhone = phoneNumber.replace(/\D/g, '');
+        if (cleanPhone.startsWith('0')) {
+          cleanPhone = cleanPhone.substring(1);
+        }
+        normalizedPhone = `+82${cleanPhone}`;
+      } else {
+        // + 로 시작하는 경우 숫자만 정리
+        const parts = phoneNumber.substring(1).replace(/\D/g, '');
+        const countryCode = parts.substring(0, 2); // 처음 2자리를 국가 코드로 추출
+        let localNumber = parts.substring(2);
+        
+        // 한국 번호인 경우 0 제거
+        if (countryCode === '82' && localNumber.startsWith('0')) {
+          localNumber = localNumber.substring(1);
+        }
+        normalizedPhone = `+${countryCode}${localNumber}`;
+      }
       
-      // 만료 시간 설정 (5분)
-      const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
-
-      // 새 인증 코드 저장
-      await storage.createVerificationCode({
-        phoneNumber,
-        code,
-        expiresAt,
-        isUsed: false,
-      });
+      console.log(`📱 전화번호 정규화: ${phoneNumber} → ${normalizedPhone}`);
 
       // Twilio 클라이언트 초기화
       const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
       try {
-        // 실제 SMS 전송 시도
-        const message = await client.messages.create({
-          body: `Dovie Messenger 인증 코드: ${code}`,
-          from: process.env.TWILIO_PHONE_NUMBER,
-          to: phoneNumber
-        });
+        console.log(`📱 Twilio Verify로 인증 코드 전송 시작: ${normalizedPhone}`);
+        
+        // Twilio Verify API를 사용하여 인증 코드 전송
+        const verification = await client.verify.v2
+          .services(process.env.TWILIO_VERIFY_SERVICE_SID!)
+          .verifications
+          .create({
+            to: normalizedPhone,
+            channel: 'sms',
+            locale: 'ko'
+          });
 
-        console.log(`SMS 전송 성공: ${message.sid} (${phoneNumber})`);
+        console.log(`✅ Twilio Verify 인증 코드 전송 성공: ${verification.sid}`);
+        console.log(`   상태: ${verification.status}`);
 
         res.json({ 
           success: true, 
           message: "인증 코드를 전송했습니다.",
-          messageSid: message.sid
+          verificationSid: verification.sid,
+          status: verification.status
         });
       } catch (smsError: any) {
-        console.error("Twilio SMS 전송 오류:", smsError);
-        console.error("오류 코드:", smsError.code);
-        console.error("오류 메시지:", smsError.message);
+        console.error("❌ Twilio Verify 전송 오류:", smsError);
+        console.error("   오류 코드:", smsError.code);
+        console.error("   오류 메시지:", smsError.message);
         
-        // SMS_PRODUCTION_MODE 환경 변수로 프로덕션 모드 명시적으로 제어
-        // 설정되어 있으면 실제 SMS 전송만 시도하고, 실패 시 명확한 에러 반환
-        const isSmsProductionMode = process.env.SMS_PRODUCTION_MODE === 'true';
-        
-        if (isSmsProductionMode) {
-          // 프로덕션 모드: 실제 Twilio 에러를 사용자에게 전달
-          console.error(`❌ SMS 프로덕션 모드: 실제 전송 실패`);
+        // SMS 실패 시 음성 통화 fallback 시도
+        try {
+          console.log(`📞 SMS 실패 - 음성 통화로 재시도: ${normalizedPhone}`);
+          
+          const callVerification = await client.verify.v2
+            .services(process.env.TWILIO_VERIFY_SERVICE_SID!)
+            .verifications
+            .create({
+              to: normalizedPhone,
+              channel: 'call',
+              locale: 'ko'
+            });
+
+          console.log(`✅ 음성 통화 인증 전송 성공: ${callVerification.sid}`);
+          
+          res.json({
+            success: true,
+            message: "SMS 전송이 실패하여 음성 통화로 인증 코드를 전송했습니다.",
+            verificationSid: callVerification.sid,
+            status: callVerification.status,
+            channel: 'call',
+            fallback: true
+          });
+        } catch (callError: any) {
+          console.error("❌ 음성 통화도 실패:", callError);
+          
           const errorMessage = smsError.message || 'SMS 전송에 실패했습니다';
           const errorCode = smsError.code || 'UNKNOWN';
           res.status(400).json({ 
-            message: `SMS 전송 실패: ${errorMessage} (코드: ${errorCode})`,
+            message: `인증 코드 전송 실패: ${errorMessage}`,
             errorCode,
             twilioError: errorMessage
           });
-        } else if (process.env.NODE_ENV === 'development') {
-          // 개발 모드: Trial 계정 제한이나 기타 SMS 전송 실패 시 성공으로 처리
-          console.log(`🔧 개발 모드: SMS 전송 실패하였지만 테스트를 위해 성공으로 처리`);
-          console.log(`📱 인증 코드: ${code} (${phoneNumber})`);
-          
-          res.json({ 
-            success: true, 
-            message: "개발 모드: 인증 코드가 콘솔에 표시되었습니다.",
-            developmentMode: true,
-            verificationCode: code // 개발용으로만 포함
-          });
-        } else {
-          throw new Error("SMS 전송에 실패했습니다. Twilio 계정을 확인해주세요.");
         }
       }
     } catch (error) {
@@ -509,7 +587,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Step 2: 인증 코드 검증 (사용자 생성 안 함)
+  // Step 2: 인증 코드 검증 (Twilio Verify API 사용 - 사용자 생성 안 함)
   app.post("/api/auth/verify-phone-code", async (req, res) => {
     try {
       const { phoneNumber, code } = req.body;
@@ -518,18 +596,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "전화번호와 인증 코드가 필요합니다." });
       }
 
-      // 인증 코드 확인
-      const verification = await storage.getVerificationCode(phoneNumber, code);
-      
-      if (!verification) {
-        return res.status(400).json({ message: "잘못된 인증 코드이거나 만료되었습니다." });
+      // 전화번호 정규화 (E.164 형식)
+      let normalizedPhone = phoneNumber;
+      if (!phoneNumber.startsWith('+')) {
+        let cleanPhone = phoneNumber.replace(/\D/g, '');
+        if (cleanPhone.startsWith('0')) {
+          cleanPhone = cleanPhone.substring(1);
+        }
+        normalizedPhone = `+82${cleanPhone}`;
+      } else {
+        const parts = phoneNumber.substring(1).replace(/\D/g, '');
+        const countryCode = parts.substring(0, 2);
+        let localNumber = parts.substring(2);
+        
+        if (countryCode === '82' && localNumber.startsWith('0')) {
+          localNumber = localNumber.substring(1);
+        }
+        normalizedPhone = `+${countryCode}${localNumber}`;
       }
+      
+      console.log(`📱 Twilio Verify로 인증 코드 확인 시작: ${normalizedPhone}, 코드: ${code}`);
 
-      res.json({ 
-        success: true, 
-        message: "인증에 성공했습니다.",
-        verificationId: verification.id
-      });
+      // Twilio 클라이언트 초기화
+      const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+
+      try {
+        // Twilio Verify API를 사용하여 인증 코드 확인
+        const verificationCheck = await client.verify.v2
+          .services(process.env.TWILIO_VERIFY_SERVICE_SID!)
+          .verificationChecks
+          .create({
+            to: normalizedPhone,
+            code: code
+          });
+
+        console.log(`✅ Twilio Verify 인증 확인 결과: ${verificationCheck.status}`);
+        console.log(`   SID: ${verificationCheck.sid}`);
+        console.log(`   유효: ${verificationCheck.valid}`);
+
+        if (verificationCheck.status !== 'approved') {
+          return res.status(400).json({ 
+            message: "인증 코드가 올바르지 않습니다.",
+            status: verificationCheck.status 
+          });
+        }
+
+        res.json({ 
+          success: true, 
+          message: "인증에 성공했습니다.",
+          verificationSid: verificationCheck.sid,
+          status: verificationCheck.status
+        });
+      } catch (verifyError: any) {
+        console.error("❌ Twilio Verify 인증 확인 오류:", verifyError);
+        console.error("   오류 코드:", verifyError.code);
+        console.error("   오류 메시지:", verifyError.message);
+        
+        // Twilio Verify 오류 처리
+        if (verifyError.code === 20404) {
+          return res.status(400).json({ message: "인증 요청을 찾을 수 없습니다. 인증 코드를 다시 요청해주세요." });
+        } else if (verifyError.code === 60200) {
+          return res.status(400).json({ message: "최대 시도 횟수를 초과했습니다. 새로운 인증 코드를 요청해주세요." });
+        } else if (verifyError.code === 60202) {
+          return res.status(400).json({ message: "인증 코드가 만료되었습니다. 새로운 코드를 요청해주세요." });
+        }
+        
+        res.status(400).json({ 
+          message: "잘못된 인증 코드이거나 만료되었습니다.",
+          errorCode: verifyError.code 
+        });
+      }
     } catch (error) {
       console.error("Phone verification error:", error);
       res.status(500).json({ message: "인증에 실패했습니다." });
