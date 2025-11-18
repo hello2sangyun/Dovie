@@ -3273,17 +3273,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       } else {
-        // 일반 파일 처리 - Object Storage private 업로드
+        // 일반 파일 처리 - Object Storage public 업로드
         const timestamp = Date.now();
         const randomString = Math.random().toString(36).substring(2, 15);
         const fileName = `chat_${timestamp}_${randomString}_${req.file.originalname}`;
 
-        // Object Storage에 private으로 업로드
-        const { objectPath } = await objectStorageService.uploadFile({
+        // Object Storage에 public으로 업로드 (URL 추측 불가능)
+        const { publicUrl } = await objectStorageService.uploadFile({
           fileName,
           fileBuffer,
           contentType: req.file.mimetype,
-          isPublic: false
+          isPublic: true
         });
 
         // AI 파일 요약 생성
@@ -3296,7 +3296,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         res.json({
-          fileUrl: objectPath,
+          fileUrl: publicUrl,
           fileName: req.file.originalname,
           fileSize: req.file.size,
           summary: fileSummary,
@@ -5329,7 +5329,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get optional description and chatRoomId from request body
       const { description, chatRoomId } = req.body;
 
-      // Object Storage에 public으로 업로드
+      // Object Storage에 public으로 업로드 (URL 추측 불가능)
       const timestamp = Date.now();
       const randomString = Math.random().toString(36).substring(2, 15);
       const ext = path.extname(req.file.originalname);
