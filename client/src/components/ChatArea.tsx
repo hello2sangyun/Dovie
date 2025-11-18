@@ -6091,8 +6091,17 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           isOpen={showFilePreview}
           onClose={handleCancelFilePreview}
           onSend={async (description) => {
-            setFileDescription(description);
-            await handleSendFilesInline();
+            if (!selectedPendingFiles) return;
+            
+            // Close modal first
+            handleCancelFilePreview();
+            
+            // Start upload with description
+            try {
+              await handleFileUploadWithHashtags(selectedPendingFiles, '', description);
+            } catch (error) {
+              console.error('파일 전송 오류:', error);
+            }
           }}
           selectedFiles={selectedPendingFiles}
           previewUrls={previewUrls}
