@@ -92,19 +92,17 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
   const handleUpload = async () => {
     if (!selectedFiles) return;
 
-    setIsUploading(true);
-    
-    // 업로드 시작 즉시 모달 닫기
+    // 업로드 시작 즉시 모달 닫기 (백그라운드로 진행)
     handleClose();
     
+    // 백그라운드로 업로드 시작
     try {
       await onUpload(selectedFiles, caption, description.trim());
       
       // 업로드 완료 후 commands 캐시를 무효화하여 즉시 검색 가능하게 함
       await queryClient.invalidateQueries({ queryKey: ['/api/commands'] });
     } catch (error) {
-    } finally{
-      setIsUploading(false);
+      console.error('Background upload error:', error);
     }
   };
 

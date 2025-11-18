@@ -43,6 +43,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookUser, MessageCircle, Bookmark, Settings, Search, MessageSquare, Users, Building2, Shield, UserX, Camera, QrCode, Inbox } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { UploadProvider } from "@/contexts/UploadContext";
+import { UploadIndicator } from "@/components/UploadIndicator";
 
 export default function MainApp() {
   const { user, isLoading } = useAuth();
@@ -522,7 +524,8 @@ export default function MainApp() {
   }
 
   return (
-    <div className="fixed inset-0 bg-white dark:bg-gray-900">
+    <UploadProvider>
+      <div className="fixed inset-0 bg-white dark:bg-gray-900">
       {/* Desktop Layout */}
       <div className="hidden lg:flex h-full">
         {/* Sidebar */}
@@ -1323,6 +1326,9 @@ export default function MainApp() {
       {/* Mobile Banner Notifications - replaces bottom popup notifications */}
       <BannerNotificationContainer />
 
+      {/* Background Upload Indicator */}
+      <UploadIndicator />
+
       {/* Loading screen overlay */}
       {isLoading && (
         <div className="fixed inset-0 z-50 bg-white">
@@ -1330,5 +1336,6 @@ export default function MainApp() {
         </div>
       )}
     </div>
+    </UploadProvider>
   );
 }
