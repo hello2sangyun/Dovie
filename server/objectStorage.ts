@@ -373,32 +373,6 @@ export class ObjectStorageService {
       return null;
     }
   }
-
-  async findFileByName(fileName: string): Promise<File | null> {
-    try {
-      const dir = this.getPrivateObjectDir();
-      const { bucketName, objectName: dirName } = parseObjectPath(dir);
-      const bucket = objectStorageClient.bucket(bucketName);
-      
-      // Search for files ending with the given fileName
-      const [files] = await bucket.getFiles({ 
-        prefix: dirName,
-        delimiter: '/'
-      });
-      
-      for (const file of files) {
-        // Check if file name ends with the given fileName
-        if (file.name.endsWith(fileName) || file.name.includes(`/${fileName}`)) {
-          return file;
-        }
-      }
-      
-      return null;
-    } catch (error) {
-      console.error("Error finding file by name:", error);
-      return null;
-    }
-  }
 }
 
 function parseObjectPath(path: string): {

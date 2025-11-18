@@ -3307,8 +3307,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           chatRoomId: req.params.chatRoomId,
         });
 
-        // API URL 생성
-        const fileUrl = `/api/chat-files/${encodeURIComponent(fileName)}`;
+        // API URL 생성 (filePath 기반)
+        const fileUrl = `/api/chat-files?path=${encodeURIComponent(filePath)}`;
 
         console.log(`Audio file uploaded to Object Storage: ${filePath}`);
 
@@ -3326,7 +3326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           res.json({
             fileUrl,
-            filePath, // Object Storage 내부 경로도 반환 (DB 저장용)
+            filePath, // Object Storage 내부 경로 (클라이언트가 저장해야 함)
             fileName: req.file.originalname,
             fileSize: req.file.size,
             transcription: transcriptionResult.transcription || '음성 메시지',
@@ -3342,7 +3342,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // 텍스트 변환 실패해도 파일 업로드는 성공으로 처리
           res.json({
             fileUrl,
-            filePath, // Object Storage 내부 경로도 반환 (DB 저장용)
+            filePath, // Object Storage 내부 경로 (클라이언트가 저장해야 함)
             fileName: req.file.originalname,
             fileSize: req.file.size,
             transcription: '음성 메시지',
@@ -3366,8 +3366,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           chatRoomId: req.params.chatRoomId,
         });
 
-        // API URL 생성
-        const fileUrl = `/api/chat-files/${encodeURIComponent(fileName)}`;
+        // API URL 생성 (filePath 기반)
+        const fileUrl = `/api/chat-files?path=${encodeURIComponent(filePath)}`;
 
         console.log(`File uploaded to Object Storage: ${filePath}`);
 
@@ -3382,7 +3382,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         res.json({
           fileUrl,
-          filePath, // Object Storage 내부 경로도 반환 (DB 저장용)
+          filePath, // Object Storage 내부 경로 (클라이언트가 저장해야 함)
           fileName: req.file.originalname,
           fileSize: req.file.size,
           summary: fileSummary,
@@ -3424,8 +3424,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: userId as string,
       });
 
-      // API URL 생성
-      const fileUrl = `/api/chat-files/${encodeURIComponent(fileName)}`;
+      // API URL 생성 (filePath 기반)
+      const fileUrl = `/api/chat-files?path=${encodeURIComponent(filePath)}`;
 
       console.log(`Voice file uploaded to Object Storage: ${filePath}`);
 
@@ -3434,7 +3434,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({
         fileUrl,
-        filePath, // Object Storage 내부 경로도 반환 (DB 저장용)
+        filePath, // Object Storage 내부 경로 (클라이언트가 저장해야 함)
         fileName: req.file.originalname,
         fileSize: req.file.size,
       });
@@ -3657,17 +3657,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Chat files serving endpoint (Object Storage) - for all chat attachments
-  app.get("/api/chat-files/:fileName", async (req: Request, res: Response) => {
+  app.get("/api/chat-files", async (req: Request, res: Response) => {
     try {
-      const { fileName } = req.params;
-      const decodedFileName = decodeURIComponent(fileName);
-      
-      console.log(`📂 Fetching chat file: ${decodedFileName}`);
+      const filePath = req.query.path as string;
+      if (!filePath) {
+        return res.status(400).json({ message: "Missing path parameter" });
+      }
 
-      // Object Storage에서 파일 찾기
-      const file = await objectStorageService.findFileByName(decodedFileName);
+      const decodedFilePath = decodeURIComponent(filePath);
+      
+      console.log(`📂 Fetching chat file: ${decodedFilePath}`);
+
+      // Object Storage에서 파일 가져오기 (filePath 직접 사용)
+      const file = await objectStorageService.getFile(decodedFilePath);
       if (!file) {
-        console.error(`❌ Chat file not found: ${decodedFileName}`);
+        console.error(`❌ Chat file not found: ${decodedFilePath}`);
         return res.status(404).json({ message: "File not found" });
       }
 
@@ -3685,7 +3689,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'Cache-Control': 'private, max-age=86400',
       });
 
-      console.log(`✅ Chat file served: ${decodedFileName} (${fileBuffer.length} bytes)`);
+      console.log(`✅ Chat file served: ${decodedFilePath} (${fileBuffer.length} bytes)`);
       res.send(fileBuffer);
     } catch (error) {
       console.error("Chat file serving error:", error);
