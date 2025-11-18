@@ -5370,6 +5370,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin API endpoints
+  
+  // 관리자 권한 체크 미들웨어
+  const checkAdminAuth = async (req: any, res: any, next: any) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const user = await storage.getUser(Number(userId));
+      if (!user || user.email !== "master@master.com") {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      req.adminUser = user;
+      next();
+    } catch (error) {
+      return res.status(500).json({ message: "Authentication error" });
+    }
+  };
+
   app.get("/api/admin/stats", async (req, res) => {
     const userId = req.headers["x-user-id"];
     if (!userId) {
@@ -8217,6 +8237,167 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     const fileStream = fs.createReadStream(filePath);
     fileStream.pipe(res);
+  });
+
+  // 관리자 API - 사용자 목록 조회
+  app.get("/api/admin/users", checkAdminAuth, async (req, res) => {
+    try {
+      const users = await storage.getUsersWithActivity();
+      res.json({ users });
+    } catch (error) {
+      console.error("Get users error:", error);
+      res.status(500).json({ message: "Failed to get users" });
+    }
+  });
+
+  // 관리자 API - 사용자 차단
+  app.post("/api/admin/users/:id/ban", checkAdminAuth, async (req, res) => {
+    try {
+      const { reason } = req.body;
+      const user = await storage.banUser(Number(req.params.id), reason || '관리자에 의해 차단됨');
+      res.json({ user });
+    } catch (error) {
+      console.error("Ban user error:", error);
+      res.status(500).json({ message: "Failed to ban user" });
+    }
+  });
+
+  // 관리자 API - 사용자 차단 해제
+  app.post("/api/admin/users/:id/unban", checkAdminAuth, async (req, res) => {
+    try {
+      const user = await storage.unbanUser(Number(req.params.id));
+      res.json({ user });
+    } catch (error) {
+      console.error("Unban user error:", error);
+      res.status(500).json({ message: "Failed to unban user" });
+    }
+  });
+
+  // 관리자 API - 사용자 삭제
+  app.delete("/api/admin/users/:id", checkAdminAuth, async (req, res) => {
+    try {
+      await storage.deleteUser(Number(req.params.id));
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete user error:", error);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
+  // 관리자 API - DB 통계
+  app.get("/api/admin/database", checkAdminAuth, async (req, res) => {
+    try {
+      const stats = await storage.getDatabaseStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Database stats error:", error);
+      res.status(500).json({ message: "Failed to get database stats" });
+    }
+  });
+
+  // 관리자 API - 국가별 통계
+  app.get("/api/admin/countries", checkAdminAuth, async (req, res) => {
+    try {
+      const stats = await storage.getCountryStats();
+      res.json({ countries: stats });
+    } catch (error) {
+      console.error("Country stats error:", error);
+      res.status(500).json({ message: "Failed to get country stats" });
+    }
+  });
+
+  // 관리자 API - 시스템 통계 (동시 접속자 포함)
+  app.get("/api/admin/system", checkAdminAuth, async (req, res) => {
+    try {
+      // WebSocket 연결에서 동시 접속자 수 가져오기
+      const onlineUsers = Array.from(activeConnections.values()).filter(conn => conn.isAlive).length;
+      
+      // 시스템 리소스 정보 (Node.js process)
+      const used = process.memoryUsage();
+      const cpuUsage = process.cpuUsage();
+      
+      const systemInfo = {
+        onlineUsers,
+        totalConnections: activeConnections.size,
+        memoryUsage: {
+          rss: Math.round(used.rss / 1024 / 1024), // MB
+          heapUsed: Math.round(used.heapUsed / 1024 / 1024), // MB
+          heapTotal: Math.round(used.heapTotal / 1024 / 1024), // MB
+          external: Math.round(used.external / 1024 / 1024) // MB
+        },
+        cpuUsage: {
+          user: cpuUsage.user,
+          system: cpuUsage.system
+        },
+        uptime: Math.floor(process.uptime()), // seconds
+        nodeVersion: process.version,
+        platform: process.platform
+      };
+      
+      res.json(systemInfo);
+    } catch (error) {
+      console.error("System stats error:", error);
+      res.status(500).json({ message: "Failed to get system stats" });
+    }
+  });
+
+  // 관리자 API - 전체 푸시 알림 전송
+  app.post("/api/admin/broadcast", checkAdminAuth, async (req, res) => {
+    try {
+      const { title, message } = req.body;
+      
+      if (!title || !message) {
+        return res.status(400).json({ message: "Title and message are required" });
+      }
+
+      // 모든 사용자 가져오기
+      const allUsers = await storage.getAllUsers();
+      let sentCount = 0;
+      let failedCount = 0;
+
+      // 각 사용자에게 푸시 알림 전송
+      for (const user of allUsers) {
+        try {
+          // PWA 푸시 구독 가져오기
+          const subscriptions = await storage.getUserPushSubscriptions(user.id);
+          
+          for (const sub of subscriptions) {
+            try {
+              await sendWebPushNotification(
+                { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+                title,
+                message,
+                { badge: '/dovie-logo-badge.png', icon: '/dovie-logo-192.png' }
+              );
+              sentCount++;
+            } catch (pushError) {
+              console.error(`푸시 전송 실패 (사용자 ${user.id}):`, pushError);
+              failedCount++;
+            }
+          }
+
+          // iOS 푸시도 전송
+          try {
+            await sendIOSPushNotification(user.id, title, message, {});
+          } catch (iosError) {
+            // iOS 푸시는 선택사항
+          }
+        } catch (error) {
+          console.error(`사용자 ${user.id} 푸시 전송 오류:`, error);
+          failedCount++;
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        sentCount, 
+        failedCount,
+        totalUsers: allUsers.length 
+      });
+    } catch (error) {
+      console.error("Broadcast error:", error);
+      res.status(500).json({ message: "Failed to send broadcast" });
+    }
   });
 
   return httpServer;
