@@ -233,7 +233,15 @@ export class ObjectStorageService {
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(2, 15);
     const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9가-힣._-]/g, '_');
-    const uniqueFileName = `${timestamp}_${randomString}_${sanitizedFileName}`;
+    
+    // 프로필 사진인 경우: profile.ext → profile_${timestamp}_${randomString}.ext
+    let uniqueFileName: string;
+    if (sanitizedFileName.startsWith('profile')) {
+      const ext = sanitizedFileName.substring('profile'.length); // .jpg, .png 등
+      uniqueFileName = `profile_${timestamp}_${randomString}${ext}`;
+    } else {
+      uniqueFileName = `${timestamp}_${randomString}_${sanitizedFileName}`;
+    }
 
     const dir = isPublic ? this.getPublicObjectSearchPaths()[0] : this.getPrivateObjectDir();
     const fullPath = `${dir}/${uniqueFileName}`;

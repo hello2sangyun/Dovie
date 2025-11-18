@@ -3382,10 +3382,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Object Storage에 업로드 (public으로 설정)
-      const timestamp = Date.now();
-      const randomString = Math.random().toString(36).substring(2, 17); // 15자
-      const ext = path.extname(req.file.originalname);
-      const fileName = `${timestamp}_${randomString}${ext}`;
+      const ext = path.extname(req.file.originalname) || '.jpg';
+      const fileName = `profile${ext}`;
 
       const { publicUrl } = await objectStorageService.uploadFile({
         fileName,
@@ -3449,10 +3447,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Object Storage에 업로드 (public으로 설정)
-      const timestamp = Date.now();
-      const randomString = Math.random().toString(36).substring(2, 17); // 15자
-      const ext = path.extname(req.file.originalname);
-      const fileName = `${timestamp}_${randomString}${ext}`;
+      const ext = path.extname(req.file.originalname) || '.jpg';
+      const fileName = `profile${ext}`;
 
       const { publicUrl } = await objectStorageService.uploadFile({
         fileName,
