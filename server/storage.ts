@@ -187,13 +187,6 @@ export interface IStorage {
   getVerificationCode(phoneNumber: string, code: string): Promise<VerificationCode | undefined>;
   markVerificationCodeAsUsed(id: number): Promise<void>;
 
-  // Admin operations
-  getUsersWithActivity(): Promise<Array<User & { messageCount: number; chatRoomCount: number; lastActivity: Date | null }>>;
-  banUser(id: number, reason: string): Promise<User | undefined>;
-  unbanUser(id: number): Promise<User | undefined>;
-  getDatabaseStats(): Promise<{ tableStats: Array<{ table: string; rowCount: number; sizeInBytes: number }> }>;
-  getCountryStats(): Promise<Array<{ country: string; countryCode: string; userCount: number }>>;
-
   // Call operations
   createCall(call: InsertCall): Promise<Call>;
   updateCall(callSessionId: string, updates: Partial<InsertCall>): Promise<Call | undefined>;
@@ -437,33 +430,6 @@ export class DatabaseStorage implements IStorage {
       ...chatRoom,
       participants
     };
-  }
-
-  async findDirectChatRoomBetweenUsers(userId1: number, userId2: number): Promise<ChatRoom | undefined> {
-    // 완전히 최적화된 단일 쿼리: SQL로 직접 작성하여 N+1 문제 해결
-    const result = await db.execute<ChatRoom>(sql`
-      SELECT cr.*
-      FROM ${chatRooms} cr
-      WHERE cr.is_group = false
-        AND cr.id IN (
-          SELECT cp1.chat_room_id
-          FROM ${chatParticipants} cp1
-          INNER JOIN ${chatParticipants} cp2 
-            ON cp1.chat_room_id = cp2.chat_room_id
-          WHERE cp1.user_id = ${userId1}
-            AND cp2.user_id = ${userId2}
-          GROUP BY cp1.chat_room_id
-          HAVING COUNT(DISTINCT cp1.user_id) + COUNT(DISTINCT cp2.user_id) = 2
-        )
-        AND (
-          SELECT COUNT(*)
-          FROM ${chatParticipants} cp
-          WHERE cp.chat_room_id = cr.id
-        ) = 2
-      LIMIT 1
-    `);
-
-    return result.rows[0];
   }
 
   async createChatRoom(chatRoom: InsertChatRoom, participantIds: number[]): Promise<ChatRoom> {
@@ -2071,139 +2037,6 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('인증 코드 사용 처리 오류:', error);
       throw error;
-    }
-  }
-
-  // Admin operations implementation
-  async getUsersWithActivity(): Promise<Array<User & { messageCount: number; chatRoomCount: number; lastActivity: Date | null }>> {
-    const allUsers = await db.select().from(users).orderBy(desc(users.createdAt));
-    
-    const usersWithActivity = await Promise.all(
-      allUsers.map(async (user) => {
-        const messageCount = await db
-          .select({ count: sql<number>`count(*)` })
-          .from(messages)
-          .where(eq(messages.senderId, user.id))
-          .then(result => result[0]?.count || 0);
-
-        const chatRoomCount = await db
-          .select({ count: sql<number>`count(DISTINCT ${chatParticipants.chatRoomId})` })
-          .from(chatParticipants)
-          .where(eq(chatParticipants.userId, user.id))
-          .then(result => result[0]?.count || 0);
-
-        return {
-          ...user,
-          messageCount,
-          chatRoomCount,
-          lastActivity: user.lastSeen
-        };
-      })
-    );
-
-    return usersWithActivity;
-  }
-
-  async banUser(id: number, reason: string): Promise<User | undefined> {
-    const [user] = await db
-      .update(users)
-      .set({ 
-        isBanned: true, 
-        bannedAt: new Date(), 
-        bannedReason: reason 
-      })
-      .where(eq(users.id, id))
-      .returning();
-    return user;
-  }
-
-  async unbanUser(id: number): Promise<User | undefined> {
-    const [user] = await db
-      .update(users)
-      .set({ 
-        isBanned: false, 
-        bannedAt: null, 
-        bannedReason: null 
-      })
-      .where(eq(users.id, id))
-      .returning();
-    return user;
-  }
-
-  async getDatabaseStats(): Promise<{ tableStats: Array<{ table: string; rowCount: number; sizeInBytes: number }> }> {
-    try {
-      const result = await db.execute(sql`
-        SELECT 
-          schemaname,
-          tablename as table,
-          pg_total_relation_size(schemaname||'.'||tablename) as size_in_bytes,
-          n_tup_ins + n_tup_upd - n_tup_del as row_count
-        FROM pg_stat_user_tables
-        ORDER BY size_in_bytes DESC
-      `);
-
-      const tableStats = result.rows.map((row: any) => ({
-        table: row.table,
-        rowCount: parseInt(row.row_count) || 0,
-        sizeInBytes: parseInt(row.size_in_bytes) || 0
-      }));
-
-      return { tableStats };
-    } catch (error) {
-      console.error('DB 통계 조회 오류:', error);
-      return { tableStats: [] };
-    }
-  }
-
-  async getCountryStats(): Promise<Array<{ country: string; countryCode: string; userCount: number }>> {
-    try {
-      const allUsers = await db.select().from(users).where(sql`${users.phoneNumber} IS NOT NULL`);
-      
-      const countryMap: { [key: string]: { country: string; countryCode: string; userCount: number } } = {};
-      
-      allUsers.forEach(user => {
-        if (user.phoneNumber) {
-          let countryCode = '';
-          let country = '';
-          
-          if (user.phoneNumber.startsWith('+82')) {
-            countryCode = '+82';
-            country = '대한민국';
-          } else if (user.phoneNumber.startsWith('+1')) {
-            countryCode = '+1';
-            country = '미국/캐나다';
-          } else if (user.phoneNumber.startsWith('+81')) {
-            countryCode = '+81';
-            country = '일본';
-          } else if (user.phoneNumber.startsWith('+86')) {
-            countryCode = '+86';
-            country = '중국';
-          } else if (user.phoneNumber.startsWith('+44')) {
-            countryCode = '+44';
-            country = '영국';
-          } else if (user.phoneNumber.startsWith('+33')) {
-            countryCode = '+33';
-            country = '프랑스';
-          } else if (user.phoneNumber.startsWith('+49')) {
-            countryCode = '+49';
-            country = '독일';
-          } else {
-            const match = user.phoneNumber.match(/^\+(\d{1,3})/);
-            countryCode = match ? `+${match[1]}` : '기타';
-            country = '기타 국가';
-          }
-          
-          if (!countryMap[countryCode]) {
-            countryMap[countryCode] = { country, countryCode, userCount: 0 };
-          }
-          countryMap[countryCode].userCount++;
-        }
-      });
-      
-      return Object.values(countryMap).sort((a, b) => b.userCount - a.userCount);
-    } catch (error) {
-      console.error('국가별 통계 조회 오류:', error);
-      return [];
     }
   }
 

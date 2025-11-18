@@ -1069,41 +1069,31 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     },
   });
 
-  // Voice transcription mutation - Object Storage workflow
+  // Voice transcription mutation
   const transcribeVoiceMutation = useMutation({
     mutationFn: async (audioBlob: Blob) => {
-      console.log('📤 음성 메시지 업로드 시작...');
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'voice_message.webm');
       
-      // Step 1: Get presigned URL
-      const uploadUrlRes = await apiRequest("/api/objects/upload", "POST", {});
-      const { uploadURL } = await uploadUrlRes.json();
+      console.log('📤 통합 음성 처리 API 호출 중...');
       
-      console.log('✅ Presigned URL 획득');
-      
-      // Step 2: Upload audio directly to Object Storage
-      const uploadRes = await fetch(uploadURL.url, {
-        method: uploadURL.method,
+      // 통합된 음성 처리 (ContactsList, ChatsList와 동일한 방식)
+      const response = await fetch("/api/transcribe", {
+        method: "POST",
         headers: {
-          'Content-Type': 'audio/webm;codecs=opus',
+          "x-user-id": user?.id?.toString() || ""
         },
-        body: audioBlob,
+        body: formData
       });
       
-      if (!uploadRes.ok) {
-        throw new Error(`Upload failed: ${uploadRes.status}`);
+      console.log('📡 통합 처리 응답 상태:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`Transcription failed: ${response.status}`);
       }
       
-      console.log('✅ Object Storage 업로드 완료');
-      
-      // Step 3: Call transcribe API with objectURL
-      const response = await apiRequest("/api/transcribe", "POST", {
-        objectURL: uploadURL.url,
-        fileName: 'voice_message.webm',
-        fileSize: audioBlob.size
-      });
-      
       const result = await response.json();
-      console.log('✅ 음성 처리 완료:', result);
+      console.log('✅ 통합 음성 처리 성공:', result);
       
       return result;
     },

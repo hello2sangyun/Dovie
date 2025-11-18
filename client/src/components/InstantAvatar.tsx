@@ -77,10 +77,7 @@ export const InstantAvatar = memo(function InstantAvatar({
 
     // URL 형태에 따라 최적화된 경로로 변환
     let optimizedSrc = src;
-    if (src.startsWith('/objects/')) {
-      // Object Storage 경로는 그대로 유지
-      optimizedSrc = src;
-    } else if (src.startsWith('/uploads/')) {
+    if (src.startsWith('/uploads/')) {
       const filename = src.split('/').pop();
       if (filename) {
         optimizedSrc = `/api/profile-images/${filename}`;
@@ -120,10 +117,7 @@ export const InstantAvatar = memo(function InstantAvatar({
       const optimizeUrl = (url: string | null): string | null => {
         if (!url) return null;
         
-        if (url.startsWith('/objects/')) {
-          // Object Storage 경로는 그대로 유지
-          return url;
-        } else if (url.startsWith('/uploads/')) {
+        if (url.startsWith('/uploads/')) {
           const filename = url.split('/').pop();
           return filename ? `/api/profile-images/${filename}` : null;
         } else if (url.startsWith('profile_')) {

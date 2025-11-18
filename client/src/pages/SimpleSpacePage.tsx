@@ -101,8 +101,23 @@ export default function SimpleSpacePage() {
     posts: filteredPosts
   };
 
-  // Post creation state
-  const [isCreatingPost, setIsCreatingPost] = useState(false);
+  // Mutations
+  const createPostMutation = useMutation({
+    mutationFn: async (data: FormData) => {
+      return apiRequest("/api/space/posts", {
+        method: "POST",
+        body: data
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/space/my-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/space/feed"] });
+      setNewPostTitle("");
+      setNewPostContent("");
+      setSelectedFiles([]);
+      setVisibility("public");
+    }
+  });
 
   // File handling
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -116,74 +131,20 @@ export default function SimpleSpacePage() {
 
   // Create post
   const handleCreatePost = async () => {
-    if (!newPostContent.trim() || isCreatingPost) return;
+    if (!newPostContent.trim()) return;
 
-    setIsCreatingPost(true);
-    try {
-      const userId = localStorage.getItem("userId");
-      if (!userId) throw new Error("Not authenticated");
-
-      // Upload files to Object Storage
-      const attachmentPaths: string[] = [];
-      for (const file of selectedFiles) {
-        // Step 1: Get presigned URL
-        const uploadParamsRes = await apiRequest("/api/objects/upload", "POST", {
-          fileName: file.name,
-          fileType: file.type,
-          fileSize: file.size,
-        });
-        const uploadParams = await uploadParamsRes.json() as { uploadURL: { method: "PUT"; url: string } };
-        const uploadURL = uploadParams.uploadURL.url;
-
-        // Step 2: Upload to Object Storage
-        const uploadResponse = await fetch(uploadURL, {
-          method: "PUT",
-          body: file,
-          headers: { "Content-Type": file.type },
-        });
-
-        if (!uploadResponse.ok) throw new Error("Failed to upload file");
-
-        // Step 3: Set ACL
-        const aclRes = await apiRequest("/api/objects/set-acl", "PUT", {
-          objectURL: uploadURL,
-          fileName: file.name,
-          fileSize: file.size,
-          fileType: file.type,
-          aclPolicy: {
-            owner: userId,
-            visibility: visibility === "public" ? "public" : "private",
-          },
-        });
-        const aclData = await aclRes.json() as { objectPath: string };
-        attachmentPaths.push(aclData.objectPath);
-      }
-
-      // Create post with attachment paths
-      const postData: any = {
-        content: newPostContent,
-        visibility,
-        attachments: attachmentPaths.length > 0 ? attachmentPaths : undefined,
-      };
-      if (newPostTitle.trim()) {
-        postData.title = newPostTitle;
-      }
-
-      const postRes = await apiRequest("/api/space/posts", "POST", postData);
-      await postRes.json();
-
-      // Reset form
-      queryClient.invalidateQueries({ queryKey: ["/api/space/my-posts"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/space/feed"] });
-      setNewPostTitle("");
-      setNewPostContent("");
-      setSelectedFiles([]);
-      setVisibility("public");
-    } catch (error) {
-      console.error("Failed to create post:", error);
-    } finally {
-      setIsCreatingPost(false);
+    const formData = new FormData();
+    formData.append("content", newPostContent);
+    if (newPostTitle.trim()) {
+      formData.append("title", newPostTitle);
     }
+    formData.append("visibility", visibility);
+
+    selectedFiles.forEach((file) => {
+      formData.append("attachments", file);
+    });
+
+    createPostMutation.mutate(formData);
   };
 
   // Visibility helpers
@@ -405,11 +366,11 @@ export default function SimpleSpacePage() {
                           </div>
                           <Button
                             onClick={handleCreatePost}
-                            disabled={!newPostContent.trim() || isCreatingPost}
+                            disabled={!newPostContent.trim() || createPostMutation.isPending}
                             size="sm"
                             className="h-8 sm:h-9 px-4 sm:px-6 bg-blue-600 hover:bg-blue-700 text-white font-medium whitespace-nowrap"
                           >
-                            {isCreatingPost ? (
+                            {createPostMutation.isPending ? (
                               <>
                                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                                 <span className="hidden sm:inline">발행 중...</span>

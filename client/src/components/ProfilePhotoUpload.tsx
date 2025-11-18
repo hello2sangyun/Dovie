@@ -42,44 +42,24 @@ export default function ProfilePhotoUpload({ isOpen, onClose }: ProfilePhotoUplo
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
       const userId = localStorage.getItem("userId");
-      if (!userId) throw new Error("Not authenticated");
-
-      // Step 1: Get presigned URL
-      const uploadParamsRes = await apiRequest("/api/objects/upload", "POST", {
-        fileName: file.name,
-        fileType: file.type,
-        fileSize: file.size,
-      });
-      const uploadParams = await uploadParamsRes.json() as { method: "PUT"; url: string; uploadURL: { method: "PUT"; url: string } };
-      const uploadURL = uploadParams.uploadURL?.url || uploadParams.url;
-
-      // Step 2: Upload directly to Object Storage
-      const uploadResponse = await fetch(uploadURL, {
-        method: "PUT",
-        body: file,
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      const response = await fetch("/api/upload/profile-picture", {
+        method: "POST",
         headers: {
-          "Content-Type": file.type,
+          ...(userId ? { "x-user-id": userId } : {})
         },
+        body: formData,
+        credentials: "include",
       });
-
-      if (!uploadResponse.ok) {
-        throw new Error("Failed to upload to Object Storage");
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "업로드 실패");
       }
-
-      // Step 3: Set ACL and update profile
-      const resultRes = await apiRequest("/api/objects/set-acl", "PUT", {
-        objectURL: uploadURL,
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type,
-        aclPolicy: {
-          owner: userId,
-          visibility: "public",
-        },
-        updateType: "profile-picture",
-      });
-
-      return await resultRes.json() as { profilePicture: string };
+      
+      return response.json();
     },
     onSuccess: async (data) => {
       console.log("✅ Profile photo uploaded successfully:", data);
