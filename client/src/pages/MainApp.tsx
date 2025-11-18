@@ -44,7 +44,6 @@ import { BookUser, MessageCircle, Bookmark, Settings, Search, MessageSquare, Use
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { UploadProvider } from "@/contexts/UploadContext";
-import { UploadIndicator } from "@/components/UploadIndicator";
 
 export default function MainApp() {
   const { user, isLoading } = useAuth();
@@ -1325,9 +1324,6 @@ export default function MainApp() {
       
       {/* Mobile Banner Notifications - replaces bottom popup notifications */}
       <BannerNotificationContainer />
-
-      {/* Background Upload Indicator */}
-      <UploadIndicator />
 
       {/* Loading screen overlay */}
       {isLoading && (
