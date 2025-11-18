@@ -3273,13 +3273,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       } else {
-        // 일반 파일 처리 - Object Storage private 업로드 (암호화 제거)
+        // 일반 파일 처리 - Object Storage private 업로드
         const timestamp = Date.now();
         const randomString = Math.random().toString(36).substring(2, 15);
         const fileName = `chat_${timestamp}_${randomString}_${req.file.originalname}`;
 
         // Object Storage에 private으로 업로드
-        const { publicUrl } = await objectStorageService.uploadFile({
+        const { objectPath } = await objectStorageService.uploadFile({
           fileName,
           fileBuffer,
           contentType: req.file.mimetype,
@@ -3296,7 +3296,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         res.json({
-          fileUrl: publicUrl,
+          fileUrl: objectPath,
           fileName: req.file.originalname,
           fileSize: req.file.size,
           summary: fileSummary,
@@ -5329,7 +5329,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get optional description and chatRoomId from request body
       const { description, chatRoomId } = req.body;
 
-      // Object Storage에 업로드
+      // Object Storage에 public으로 업로드
       const timestamp = Date.now();
       const randomString = Math.random().toString(36).substring(2, 15);
       const ext = path.extname(req.file.originalname);
@@ -5341,7 +5341,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         fileName,
         fileBuffer,
         contentType: req.file.mimetype,
-        isPublic: false
+        isPublic: true
       });
       
       console.log(`File uploaded to Object Storage: ${publicUrl} (${req.file.size} bytes)`);
@@ -6398,7 +6398,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
             const fileName = `space_${timestamp}_${randomString}_${sanitizedName}`;
             
-            // Object Storage에 업로드
+            // Object Storage에 public으로 업로드
             if (fs.existsSync(file.path)) {
               const fileBuffer = await fs.promises.readFile(file.path);
               
@@ -6406,7 +6406,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 fileName,
                 fileBuffer,
                 contentType: file.mimetype,
-                isPublic: false
+                isPublic: true
               });
               
               attachments.push(publicUrl);
@@ -6888,14 +6888,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const ext = path.extname(file.originalname);
             const fileName = `post_${timestamp}_${randomString}${ext}`;
             
-            // Object Storage에 업로드
+            // Object Storage에 public으로 업로드
             const fileBuffer = await fs.promises.readFile(file.path);
             
             const { publicUrl } = await objectStorageService.uploadFile({
               fileName,
               fileBuffer,
               contentType: file.mimetype,
-              isPublic: false
+              isPublic: true
             });
             
             // 원본 임시 파일 삭제
