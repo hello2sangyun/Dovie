@@ -487,6 +487,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { phoneNumber } = req.body;
       
+      console.log(`📱 [SEND] 요청 받음 - 원본 전화번호: "${phoneNumber}"`);
+      
       if (!phoneNumber) {
         return res.status(400).json({ message: "전화번호가 필요합니다." });
       }
@@ -497,8 +499,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!phoneNumber.startsWith('+')) {
         // 한국 번호로 가정하고 +82 추가
         let cleanPhone = phoneNumber.replace(/\D/g, '');
+        console.log(`📱 [SEND] 숫자만 추출: "${cleanPhone}"`);
         if (cleanPhone.startsWith('0')) {
           cleanPhone = cleanPhone.substring(1);
+          console.log(`📱 [SEND] 앞의 0 제거: "${cleanPhone}"`);
         }
         normalizedPhone = `+82${cleanPhone}`;
       } else {
@@ -507,14 +511,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const countryCode = parts.substring(0, 2); // 처음 2자리를 국가 코드로 추출
         let localNumber = parts.substring(2);
         
+        console.log(`📱 [SEND] + 포함됨 - 국가코드: "${countryCode}", 지역번호: "${localNumber}"`);
+        
         // 한국 번호인 경우 0 제거
         if (countryCode === '82' && localNumber.startsWith('0')) {
           localNumber = localNumber.substring(1);
+          console.log(`📱 [SEND] 한국번호 앞의 0 제거: "${localNumber}"`);
         }
         normalizedPhone = `+${countryCode}${localNumber}`;
       }
       
-      console.log(`📱 전화번호 정규화: ${phoneNumber} → ${normalizedPhone}`);
+      console.log(`📱 [SEND] 최종 정규화된 전화번호: "${normalizedPhone}"`);
 
       // Twilio 클라이언트 초기화
       const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
@@ -592,6 +599,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { phoneNumber, code } = req.body;
       
+      console.log(`📱 [VERIFY] 요청 받음 - 원본 전화번호: "${phoneNumber}", 코드: "${code}"`);
+      
       if (!phoneNumber || !code) {
         return res.status(400).json({ message: "전화번호와 인증 코드가 필요합니다." });
       }
@@ -600,8 +609,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let normalizedPhone = phoneNumber;
       if (!phoneNumber.startsWith('+')) {
         let cleanPhone = phoneNumber.replace(/\D/g, '');
+        console.log(`📱 [VERIFY] 숫자만 추출: "${cleanPhone}"`);
         if (cleanPhone.startsWith('0')) {
           cleanPhone = cleanPhone.substring(1);
+          console.log(`📱 [VERIFY] 앞의 0 제거: "${cleanPhone}"`);
         }
         normalizedPhone = `+82${cleanPhone}`;
       } else {
@@ -609,13 +620,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const countryCode = parts.substring(0, 2);
         let localNumber = parts.substring(2);
         
+        console.log(`📱 [VERIFY] + 포함됨 - 국가코드: "${countryCode}", 지역번호: "${localNumber}"`);
+        
         if (countryCode === '82' && localNumber.startsWith('0')) {
           localNumber = localNumber.substring(1);
+          console.log(`📱 [VERIFY] 한국번호 앞의 0 제거: "${localNumber}"`);
         }
         normalizedPhone = `+${countryCode}${localNumber}`;
       }
       
-      console.log(`📱 Twilio Verify로 인증 코드 확인 시작: ${normalizedPhone}, 코드: ${code}`);
+      console.log(`📱 [VERIFY] 최종 정규화된 전화번호: "${normalizedPhone}"`);
+      console.log(`📱 [VERIFY] Twilio Verify로 인증 코드 확인 시작`);
 
       // Twilio 클라이언트 초기화
       const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
