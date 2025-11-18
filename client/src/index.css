@@ -67,6 +67,23 @@
   transform: translateY(-1px);
 }
 
+/* Chat background pattern - subtle dots */
+.chat-background-pattern {
+  background-color: #f9fafb;
+  background-image: 
+    radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.02) 1px, transparent 0);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+}
+
+.dark .chat-background-pattern {
+  background-color: #111827;
+  background-image: 
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.03) 1px, transparent 0);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+}
+
 .animation-delay-800 {
   animation-delay: 800ms;
 }
