@@ -3385,7 +3385,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const timestamp = Date.now();
       const randomString = Math.random().toString(36).substring(2, 17); // 15자
       const ext = path.extname(req.file.originalname);
-      const fileName = `profile_${timestamp}_${randomString}${ext}`;
+      const fileName = `${timestamp}_${randomString}${ext}`;
 
       const { publicUrl } = await objectStorageService.uploadFile({
         fileName,
@@ -3452,7 +3452,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const timestamp = Date.now();
       const randomString = Math.random().toString(36).substring(2, 17); // 15자
       const ext = path.extname(req.file.originalname);
-      const fileName = `profile_${timestamp}_${randomString}${ext}`;
+      const fileName = `${timestamp}_${randomString}${ext}`;
 
       const { publicUrl } = await objectStorageService.uploadFile({
         fileName,
