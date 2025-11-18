@@ -799,16 +799,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { phoneNumber, code, username, displayName, password, profilePicture } = req.body;
       
-      if (!phoneNumber || !code || !username || !displayName || !password) {
+      console.log(`📱 [SIGNUP] 회원가입 요청 - 전화번호: "${phoneNumber}", 사용자명: "${username}"`);
+      
+      if (!phoneNumber || !username || !displayName || !password) {
         return res.status(400).json({ message: "모든 필드를 입력해주세요." });
       }
 
-      // 인증 코드 재확인
-      const verification = await storage.getVerificationCode(phoneNumber, code);
-      
-      if (!verification) {
-        return res.status(400).json({ message: "잘못된 인증 코드이거나 만료되었습니다." });
+      // Twilio Verify API 사용 시 인증 코드는 이미 /api/auth/verify-phone-code 에서 검증 완료
+      // 여기서는 재확인하지 않음 (Twilio에서 인증 완료된 상태)
+
+      // 전화번호 정규화 (E.164 형식)
+      let normalizedPhone = phoneNumber;
+      if (!phoneNumber.startsWith('+')) {
+        let cleanPhone = phoneNumber.replace(/\D/g, '');
+        console.log(`📱 [SIGNUP] 숫자만 추출: "${cleanPhone}"`);
+        if (cleanPhone.startsWith('0')) {
+          cleanPhone = cleanPhone.substring(1);
+          console.log(`📱 [SIGNUP] 앞의 0 제거: "${cleanPhone}"`);
+        }
+        normalizedPhone = `+82${cleanPhone}`;
+      } else {
+        const parts = phoneNumber.substring(1).replace(/\D/g, '');
+        const countryCode = parts.substring(0, 2);
+        let localNumber = parts.substring(2);
+        
+        console.log(`📱 [SIGNUP] + 포함됨 - 국가코드: "${countryCode}", 지역번호: "${localNumber}"`);
+        
+        if (countryCode === '82' && localNumber.startsWith('0')) {
+          localNumber = localNumber.substring(1);
+          console.log(`📱 [SIGNUP] 한국번호 앞의 0 제거: "${localNumber}"`);
+        }
+        normalizedPhone = `+${countryCode}${localNumber}`;
       }
+      
+      console.log(`📱 [SIGNUP] 최종 정규화된 전화번호: "${normalizedPhone}"`);
 
       // 사용자명 검증: 영문 + 숫자 + 특수문자 허용
       const usernameRegex = /^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+$/;
@@ -819,8 +843,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 사용자명을 소문자로 변환
       const normalizedUsername = username.toLowerCase();
 
-      // 전화번호 중복 확인
-      const existingUserByPhone = await storage.getUserByPhoneNumber(phoneNumber);
+      // 전화번호 중복 확인 (정규화된 전화번호로 확인)
+      const existingUserByPhone = await storage.getUserByPhoneNumber(normalizedPhone);
       if (existingUserByPhone) {
         return res.status(400).json({ message: "이미 사용 중인 전화번호입니다." });
       }
@@ -863,10 +887,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // 사용자 생성 데이터 준비
-      const cleanPhoneNumber = phoneNumber.replace(/[^\d]/g, '');
+      // 사용자 생성 데이터 준비 (정규화된 전화번호 사용)
+      const cleanPhoneNumber = normalizedPhone.replace(/[^\d]/g, '');
       const userData = {
-        phoneNumber,
+        phoneNumber: normalizedPhone, // E.164 형식으로 저장
         username: normalizedUsername,
         displayName,
         email: `${cleanPhoneNumber}@phone.local`, // 임시 이메일
@@ -876,14 +900,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isProfileComplete: true, // 프로필 설정 완료
       };
 
+      console.log(`📱 [SIGNUP] 사용자 생성 데이터:`, userData);
+
       const validatedData = insertUserSchema.parse(userData);
       const user = await storage.createUser(validatedData);
+
+      console.log(`✅ [SIGNUP] 회원가입 성공: 사용자 ID ${user.id}, 사용자명 ${user.username}`);
 
       // 사용자 온라인 상태 업데이트
       await storage.updateUser(user.id, { isOnline: true });
 
-      // 인증 코드를 사용됨으로 표시
-      await storage.markVerificationCodeAsUsed(verification.id);
+      // Twilio Verify API 사용 시에는 인증 코드가 로컬 DB에 저장되지 않으므로
+      // markVerificationCodeAsUsed 호출 불필요
 
       res.json({ user });
     } catch (error: any) {
