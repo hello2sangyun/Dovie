@@ -54,10 +54,7 @@ export const FileDescriptionModal: React.FC<FileDescriptionModalProps> = ({
   const handleSend = async () => {
     if (!selectedFiles) return;
 
-    // 즉시 모달 닫기
-    onClose();
-    
-    // 백그라운드로 전송
+    // 백그라운드로 전송 (모달 닫기 전에!)
     try {
       await onSend(description.trim());
     } catch (error) {
