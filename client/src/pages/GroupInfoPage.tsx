@@ -116,9 +116,16 @@ export default function GroupInfoPage() {
       const formData = new FormData();
       formData.append('profileImage', file);
       
+      const userId = localStorage.getItem("userId");
+      const headers: Record<string, string> = {
+        ...(userId ? { "x-user-id": userId } : {})
+      };
+      
       const response = await fetch(`/api/chat-rooms/${chatRoomId}/profile-image`, {
         method: 'POST',
+        headers,
         body: formData,
+        credentials: "include",
       });
       
       if (!response.ok) throw new Error('Failed to update profile image');
