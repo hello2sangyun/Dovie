@@ -470,6 +470,8 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     fileSize?: number;
     fileType?: string;
     messageId?: number;
+    attachments?: Array<{ fileUrl: string; fileName: string; fileSize?: number; fileType?: string }>;
+    currentFileIndex?: number;
   } | null>(null);
   
   // Simplified auto-scroll state
@@ -3667,8 +3669,29 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   };
 
   // File preview handlers
-  const handlePreviewRequest = (fileUrl: string, fileName: string, fileSize?: number, fileType?: string, messageId?: number) => {
-    setFilePreviewState({ isOpen: true, fileUrl, fileName, fileSize, fileType, messageId });
+  const handlePreviewRequest = (
+    fileUrl: string, 
+    fileName: string, 
+    fileSize?: number, 
+    fileType?: string, 
+    messageId?: number,
+    attachments?: Array<{ fileUrl: string; fileName: string; fileSize?: number; fileType?: string }>,
+    currentFileIndex?: number
+  ) => {
+    // Only enable navigation for messages with 2+ attachments
+    const hasMultipleFiles = attachments && attachments.length > 1;
+    
+    setFilePreviewState({ 
+      isOpen: true, 
+      fileUrl, 
+      fileName, 
+      fileSize, 
+      fileType, 
+      messageId,
+      // Reset navigation state for single-file messages
+      attachments: hasMultipleFiles ? attachments : undefined,
+      currentFileIndex: hasMultipleFiles && currentFileIndex !== undefined ? currentFileIndex : undefined
+    });
   };
   
   const handlePreviewClose = () => {
@@ -3680,6 +3703,28 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       setForwardMessageId(filePreviewState.messageId);
       setShowForwardModal(true);
       setFilePreviewState(null);
+    }
+  };
+  
+  const handleNavigateFile = (direction: 'prev' | 'next') => {
+    if (!filePreviewState?.attachments || filePreviewState.currentFileIndex === undefined) return;
+    
+    const newIndex = direction === 'next' 
+      ? filePreviewState.currentFileIndex + 1 
+      : filePreviewState.currentFileIndex - 1;
+    
+    if (newIndex >= 0 && newIndex < filePreviewState.attachments.length) {
+      const newFile = filePreviewState.attachments[newIndex];
+      setFilePreviewState({
+        ...filePreviewState,
+        fileUrl: newFile.fileUrl,
+        fileName: newFile.fileName,
+        fileSize: newFile.fileSize,
+        fileType: newFile.fileType,
+        currentFileIndex: newIndex,
+        // Preserve messageId for forwarding and other actions
+        messageId: filePreviewState.messageId
+      });
     }
   };
 
@@ -5291,7 +5336,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                                       isMe={isMe}
                                       className="h-full"
                                       onPreviewRequest={(url, name, size, type) => 
-                                        handlePreviewRequest(url, name, size, type, msg.id)
+                                        handlePreviewRequest(
+                                          url, 
+                                          name, 
+                                          size, 
+                                          type, 
+                                          msg.id,
+                                          (msg as any).attachments,
+                                          index
+                                        )
                                       }
                                     />
                                   </div>
@@ -7006,6 +7059,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           fileType={filePreviewState.fileType}
           messageId={filePreviewState.messageId}
           onForward={handleForwardFromPreview}
+          onNavigate={filePreviewState.attachments && filePreviewState.attachments.length > 1 ? handleNavigateFile : undefined}
+          canNavigatePrev={filePreviewState.currentFileIndex !== undefined && filePreviewState.currentFileIndex > 0}
+          canNavigateNext={filePreviewState.currentFileIndex !== undefined && filePreviewState.attachments !== undefined && filePreviewState.currentFileIndex < filePreviewState.attachments.length - 1}
+          currentIndex={filePreviewState.currentFileIndex !== undefined ? filePreviewState.currentFileIndex + 1 : undefined}
+          totalFiles={filePreviewState.attachments?.length}
         />
       )}
 
