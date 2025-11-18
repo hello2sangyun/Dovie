@@ -2363,6 +2363,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Message creation - fileUrl:", messageData.fileUrl);
       const message = await storage.createMessage(messageData);
       const messageWithSender = await storage.getMessageById(message.id);
+      console.log("📤 Message with sender info:", JSON.stringify({
+        id: messageWithSender?.id,
+        senderId: messageWithSender?.senderId,
+        senderExists: !!messageWithSender?.sender,
+        senderUsername: messageWithSender?.sender?.username,
+        senderDisplayName: messageWithSender?.sender?.displayName,
+        hasProfilePicture: !!messageWithSender?.sender?.profilePicture
+      }, null, 2));
 
       // Auto-save file uploads to storage with description
       // Skip auto-save for YouTube messages and recommendation messages
