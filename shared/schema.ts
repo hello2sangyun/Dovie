@@ -863,6 +863,7 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
   }).optional(),
   attachments: z.array(z.object({
     fileUrl: z.string(),
+    filePath: z.string().optional(),
     fileName: z.string(),
     fileSize: z.number(),
     fileType: z.string().optional(),

@@ -25,7 +25,7 @@ The backend is built with Node.js and Express.js (TypeScript, ES modules), using
 - **YouTube Integration**: Search, preview, and sharing within chat.
 - **AI Inbox (Smart Inbox)**: Intelligent message filtering, notification management with badges, swipe-to-delete, message highlighting, and filter toggles.
 - **Settings**: Account management, AI settings, language selection, and support.
-- **File Uploads**: Increased per-file upload limit (100MB) with inline previews.
+- **File Uploads**: Increased per-file upload limit (100MB) with inline previews. Multiple file uploads (2+ files) are grouped into a single Telegram-style message with attachments grid, while single file uploads remain as individual messages.
 - **File Preview**: Fullscreen immersive modal with pinch-to-zoom, pan, double-tap reset, auto-hiding UI, and gesture-optimized controls for images, videos, and PDFs. Includes share/save/forward capabilities via Capacitor.
 
 ### System Design Choices

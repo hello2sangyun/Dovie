@@ -2266,16 +2266,49 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         // Complete upload in global state
         completeUpload(uploadId);
         
-        // Remove temp message
-        queryClient.setQueryData([`/api/chat-rooms`, chatRoomId, "messages"], (oldData: any) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            messages: oldData.messages.filter((msg: any) => msg.id !== tempMessage.id)
-          };
+        return uploadResult;
+      } catch (error) {
+        console.error(`❌ 파일 ${index + 1} 업로드 실패:`, error);
+        failUpload(uploadId, '업로드 실패');
+        throw error;
+      }
+    });
+    
+    try {
+      const uploadResults = await Promise.all(uploadPromises);
+      console.log('✅ 모든 파일 업로드 완료:', files.length, '개');
+      
+      // Remove all temp messages
+      queryClient.setQueryData([`/api/chat-rooms`, chatRoomId, "messages"], (oldData: any) => {
+        if (!oldData) return oldData;
+        const tempIds = tempMessages.map(msg => msg.id);
+        return {
+          ...oldData,
+          messages: oldData.messages.filter((msg: any) => !tempIds.includes(msg.id))
+        };
+      });
+      
+      // 여러 파일인 경우 하나의 그룹 메시지로 전송
+      if (filesArray.length > 1) {
+        const attachments = uploadResults.map(result => ({
+          fileUrl: result.fileUrl,
+          filePath: result.filePath,
+          fileName: result.fileName,
+          fileSize: result.fileSize,
+          description: description
+        }));
+        
+        await sendMessageMutation.mutateAsync({
+          messageType: "file",
+          content: description || `📎 ${filesArray.length}개의 파일`,
+          attachments: attachments,
+          replyToMessageId: replyToMessage?.id
         });
         
-        // Send actual message to chat with uploaded file
+        console.log(`✅ 그룹 파일 메시지 전송 완료: ${filesArray.length}개`);
+      } else {
+        // 단일 파일인 경우 개별 메시지로 전송
+        const uploadResult = uploadResults[0];
         const fileContent = description 
           ? `📎 ${uploadResult.fileName}\n\n${description}`
           : `📎 ${uploadResult.fileName}`;
@@ -2287,32 +2320,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           filePath: uploadResult.filePath,
           fileName: uploadResult.fileName,
           fileSize: uploadResult.fileSize,
-          replyToMessageId: index === 0 ? replyToMessage?.id : undefined
+          replyToMessageId: replyToMessage?.id
         });
         
-        console.log(`✅ 파일 메시지 ${index + 1}/${files.length} 전송 완료: ${uploadResult.fileName}`);
-        
-        return uploadResult;
-      } catch (error) {
-        console.error(`❌ 파일 ${index + 1} 업로드 실패:`, error);
-        failUpload(uploadId, '업로드 실패');
-        
-        // Remove temp message on error
-        queryClient.setQueryData([`/api/chat-rooms`, chatRoomId, "messages"], (oldData: any) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            messages: oldData.messages.filter((msg: any) => msg.id !== tempMessage.id)
-          };
-        });
-        
-        throw error;
+        console.log('✅ 파일 메시지 전송 완료:', uploadResult.fileName);
       }
-    });
-    
-    try {
-      await Promise.all(uploadPromises);
-      console.log('✅ 모든 파일 업로드 완료:', files.length, '개');
       
       // Clear reply state
       setReplyToMessage(null);
@@ -2325,6 +2337,16 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
       
     } catch (error) {
       console.error('❌ 파일 업로드 오류:', error);
+      
+      // Remove all temp messages on error
+      queryClient.setQueryData([`/api/chat-rooms`, chatRoomId, "messages"], (oldData: any) => {
+        if (!oldData) return oldData;
+        const tempIds = tempMessages.map(msg => msg.id);
+        return {
+          ...oldData,
+          messages: oldData.messages.filter((msg: any) => !tempIds.includes(msg.id))
+        };
+      });
     }
   };
 

@@ -2383,50 +2383,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Auto-save file uploads to storage with description
-      if (messageData.messageType === 'file' && messageData.fileUrl && messageData.fileName && !skipAutoSave) {
-        console.log(`Auto-saving file to storage: ${messageData.fileName}`);
-        
-        try {
-          // Use filename (without extension) as command name
-          const commandName = messageData.fileName.split('.')[0];
-          await storage.saveCommand({
-            userId: Number(userId),
-            chatRoomId: Number(req.params.chatRoomId),
-            commandName: commandName,
-            messageId: message.id,
-            savedText: messageData.content || null,
-            description: fileDescription || null, // Store description for AI learning
-            fileUrl: messageData.fileUrl,
-            fileName: messageData.fileName,
-            fileSize: messageData.fileSize || null,
-            originalSenderId: Number(userId),
-            originalTimestamp: new Date()
-          });
-          console.log(`✅ Successfully auto-saved file: ${commandName} with description: "${fileDescription}"`);
-
-          // Also save to file_uploads table for AI file search
-          const filePath = messageData.fileUrl.startsWith('/uploads/') 
-            ? messageData.fileUrl 
-            : `/uploads/${messageData.fileUrl}`;
-          const fileName = messageData.fileUrl.split('/').pop() || messageData.fileName;
+      // Handle both single file and attachments array
+      if (messageData.messageType === 'file' && !skipAutoSave) {
+        // Handle attachments array (multiple files)
+        if (messageData.attachments && Array.isArray(messageData.attachments) && messageData.attachments.length > 0) {
+          console.log(`Auto-saving ${messageData.attachments.length} files from attachments array`);
           
-          await storage.trackFileUploadWithMessage({
-            userId: Number(userId),
-            chatRoomId: Number(req.params.chatRoomId),
-            messageId: message.id,
-            fileName: fileName,
-            originalName: messageData.fileName,
-            fileSize: messageData.fileSize || 0,
-            fileType: messageData.fileUrl.endsWith('.jpg') || messageData.fileUrl.endsWith('.jpeg') ? 'image/jpeg' :
-                      messageData.fileUrl.endsWith('.png') ? 'image/png' :
-                      messageData.fileUrl.endsWith('.pdf') ? 'application/pdf' :
-                      messageData.fileUrl.endsWith('.mp4') ? 'video/mp4' : 'application/octet-stream',
-            filePath: filePath,
-            description: fileDescription || null
-          });
-          console.log(`✅ Successfully saved file to file_uploads table with description: "${fileDescription}"`);
-        } catch (error) {
-          console.log(`❌ Failed to auto-save file ${messageData.fileName}:`, error);
+          for (const attachment of messageData.attachments) {
+            if (attachment.fileUrl && attachment.fileName) {
+              try {
+                // Use filename (without extension) as command name
+                const commandName = attachment.fileName.split('.')[0];
+                await storage.saveCommand({
+                  userId: Number(userId),
+                  chatRoomId: Number(req.params.chatRoomId),
+                  commandName: commandName,
+                  messageId: message.id,
+                  savedText: attachment.description || messageData.content || null,
+                  description: attachment.description || fileDescription || null,
+                  fileUrl: attachment.fileUrl,
+                  fileName: attachment.fileName,
+                  fileSize: attachment.fileSize || null,
+                  originalSenderId: Number(userId),
+                  originalTimestamp: new Date()
+                });
+                console.log(`✅ Successfully auto-saved file: ${commandName}`);
+
+                // Also save to file_uploads table for AI file search
+                const filePath = attachment.filePath || attachment.fileUrl;
+                const fileName = attachment.fileUrl.split('/').pop() || attachment.fileName;
+                
+                await storage.trackFileUploadWithMessage({
+                  userId: Number(userId),
+                  chatRoomId: Number(req.params.chatRoomId),
+                  messageId: message.id,
+                  fileName: fileName,
+                  originalName: attachment.fileName,
+                  fileSize: attachment.fileSize || 0,
+                  fileType: attachment.fileType || 'application/octet-stream',
+                  filePath: filePath,
+                  description: attachment.description || fileDescription || null
+                });
+                console.log(`✅ Successfully saved file to file_uploads table: ${fileName}`);
+              } catch (error) {
+                console.log(`❌ Failed to auto-save file ${attachment.fileName}:`, error);
+              }
+            }
+          }
+        }
+        // Handle single file upload
+        else if (messageData.fileUrl && messageData.fileName) {
+          console.log(`Auto-saving file to storage: ${messageData.fileName}`);
+          
+          try {
+            // Use filename (without extension) as command name
+            const commandName = messageData.fileName.split('.')[0];
+            await storage.saveCommand({
+              userId: Number(userId),
+              chatRoomId: Number(req.params.chatRoomId),
+              commandName: commandName,
+              messageId: message.id,
+              savedText: messageData.content || null,
+              description: fileDescription || null, // Store description for AI learning
+              fileUrl: messageData.fileUrl,
+              fileName: messageData.fileName,
+              fileSize: messageData.fileSize || null,
+              originalSenderId: Number(userId),
+              originalTimestamp: new Date()
+            });
+            console.log(`✅ Successfully auto-saved file: ${commandName} with description: "${fileDescription}"`);
+
+            // Also save to file_uploads table for AI file search
+            const filePath = messageData.fileUrl.startsWith('/uploads/') 
+              ? messageData.fileUrl 
+              : `/uploads/${messageData.fileUrl}`;
+            const fileName = messageData.fileUrl.split('/').pop() || messageData.fileName;
+            
+            await storage.trackFileUploadWithMessage({
+              userId: Number(userId),
+              chatRoomId: Number(req.params.chatRoomId),
+              messageId: message.id,
+              fileName: fileName,
+              originalName: messageData.fileName,
+              fileSize: messageData.fileSize || 0,
+              fileType: messageData.fileUrl.endsWith('.jpg') || messageData.fileUrl.endsWith('.jpeg') ? 'image/jpeg' :
+                        messageData.fileUrl.endsWith('.png') ? 'image/png' :
+                        messageData.fileUrl.endsWith('.pdf') ? 'application/pdf' :
+                        messageData.fileUrl.endsWith('.mp4') ? 'video/mp4' : 'application/octet-stream',
+              filePath: filePath,
+              description: fileDescription || null
+            });
+            console.log(`✅ Successfully saved file to file_uploads table with description: "${fileDescription}"`);
+          } catch (error) {
+            console.log(`❌ Failed to auto-save file ${messageData.fileName}:`, error);
+          }
         }
       }
       
