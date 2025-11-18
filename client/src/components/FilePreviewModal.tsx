@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { X, Download, File, FileText, FileImage, FileVideo, FileAudio, FileCode, Share2, Send, ArrowLeft } from 'lucide-react';
+import { X, Download, File, FileText, FileImage, FileVideo, FileAudio, FileCode, Share2, Send, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
@@ -15,6 +15,11 @@ interface FilePreviewModalProps {
   fileType?: string;
   messageId?: number;
   onForward?: () => void;
+  onNavigate?: (direction: 'prev' | 'next') => void;
+  canNavigatePrev?: boolean;
+  canNavigateNext?: boolean;
+  currentIndex?: number;
+  totalFiles?: number;
 }
 
 export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
@@ -25,7 +30,12 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   fileSize,
   fileType,
   messageId,
-  onForward
+  onForward,
+  onNavigate,
+  canNavigatePrev = false,
+  canNavigateNext = false,
+  currentIndex,
+  totalFiles
 }) => {
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -220,8 +230,30 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   };
 
   // Toggle UI on tap (when not zoomed)
-  const handleImageClick = () => {
+  const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (scale === 1) {
+      // If navigation is enabled, divide the image into 3 zones
+      if (onNavigate && (canNavigatePrev || canNavigateNext)) {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const width = rect.width;
+        
+        // Left third - previous file
+        if (clickX < width / 3 && canNavigatePrev) {
+          onNavigate('prev');
+          return;
+        }
+        
+        // Right third - next file
+        if (clickX > (width * 2) / 3 && canNavigateNext) {
+          onNavigate('next');
+          return;
+        }
+        
+        // Middle third - toggle UI (fall through)
+      }
+      
+      // Toggle UI (default behavior for middle or when no navigation)
       setShowUI(prev => !prev);
       if (!showUI) {
         resetUITimeout();
@@ -403,6 +435,62 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
         </div>
       </div>
 
+      {/* Navigation buttons - Left and Right */}
+      {onNavigate && (isImage || isVideo) && (
+        <>
+          {/* Left navigation button */}
+          {canNavigatePrev && (
+            <div 
+              className={`absolute left-4 top-1/2 -translate-y-1/2 z-10 transition-opacity duration-300 ${
+                showUI ? 'opacity-100' : 'opacity-0 pointer-events-none'
+              }`}
+            >
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onNavigate('prev')}
+                className="text-white hover:bg-white/20 h-12 w-12 p-0 rounded-full bg-black/40 backdrop-blur-sm"
+                data-testid="button-prev-file"
+              >
+                <ChevronLeft className="h-8 w-8" />
+              </Button>
+            </div>
+          )}
+          
+          {/* Right navigation button */}
+          {canNavigateNext && (
+            <div 
+              className={`absolute right-4 top-1/2 -translate-y-1/2 z-10 transition-opacity duration-300 ${
+                showUI ? 'opacity-100' : 'opacity-0 pointer-events-none'
+              }`}
+            >
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onNavigate('next')}
+                className="text-white hover:bg-white/20 h-12 w-12 p-0 rounded-full bg-black/40 backdrop-blur-sm"
+                data-testid="button-next-file"
+              >
+                <ChevronRight className="h-8 w-8" />
+              </Button>
+            </div>
+          )}
+
+          {/* File counter */}
+          {currentIndex !== undefined && totalFiles && (
+            <div 
+              className={`absolute top-20 left-1/2 -translate-x-1/2 z-10 transition-opacity duration-300 ${
+                showUI ? 'opacity-100' : 'opacity-0 pointer-events-none'
+              }`}
+            >
+              <div className="bg-black/60 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm">
+                {currentIndex} / {totalFiles}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
       {/* Main content */}
       <div className="absolute inset-0 flex items-center justify-center">
         {isImage ? (
@@ -430,7 +518,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
         ) : isVideo ? (
           <div 
             className="relative w-full h-full flex items-center justify-center bg-black"
-            onClick={resetUITimeout}
+            onClick={handleImageClick}
           >
             <video
               src={fileUrl}

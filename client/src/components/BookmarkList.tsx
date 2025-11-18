@@ -65,7 +65,7 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [sortBy, setSortBy] = useState<SortBy>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
-  const [selectedFile, setSelectedFile] = useState<{ url: string; name: string; size?: number; type?: string } | null>(null);
+  const [selectedFileIndex, setSelectedFileIndex] = useState<number | null>(null);
 
   // Fetch all bookmarks
   const { data: bookmarksData, isLoading } = useQuery<{ bookmarks: BookmarkData[] }>({
@@ -196,6 +196,13 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
     }
   }, [filteredItems, sortBy, sortOrder, selectedFolderId]);
 
+  // Get file bookmarks only (for preview navigation)
+  const fileBookmarks = useMemo(() => {
+    if (!selectedFolderId) return [];
+    const bookmarks = sortedItems as BookmarkData[];
+    return bookmarks.filter(b => b.message?.fileUrl);
+  }, [sortedItems, selectedFolderId]);
+
   // Format date like Google Drive
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -246,12 +253,21 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
   // Handle file preview
   const handlePreview = (bookmark: BookmarkData) => {
     if (!bookmark.message?.fileUrl) return;
-    setSelectedFile({
-      url: bookmark.message.fileUrl,
-      name: bookmark.message.fileName || 'file',
-      size: bookmark.message.fileSize || undefined,
-      type: bookmark.message.fileType || undefined
-    });
+    const index = fileBookmarks.findIndex(b => b.id === bookmark.id);
+    if (index !== -1) {
+      setSelectedFileIndex(index);
+    }
+  };
+
+  // Navigate to next/previous file
+  const handleNavigateFile = (direction: 'prev' | 'next') => {
+    if (selectedFileIndex === null) return;
+    
+    if (direction === 'prev' && selectedFileIndex > 0) {
+      setSelectedFileIndex(selectedFileIndex - 1);
+    } else if (direction === 'next' && selectedFileIndex < fileBookmarks.length - 1) {
+      setSelectedFileIndex(selectedFileIndex + 1);
+    }
   };
 
   // Handle share using Web Share API
@@ -627,14 +643,19 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
       </div>
 
       {/* File Preview Modal */}
-      {selectedFile && (
+      {selectedFileIndex !== null && fileBookmarks[selectedFileIndex] && (
         <FilePreviewModal
           isOpen={true}
-          onClose={() => setSelectedFile(null)}
-          fileUrl={selectedFile.url}
-          fileName={selectedFile.name}
-          fileSize={selectedFile.size}
-          fileType={selectedFile.type}
+          onClose={() => setSelectedFileIndex(null)}
+          fileUrl={fileBookmarks[selectedFileIndex].message!.fileUrl!}
+          fileName={fileBookmarks[selectedFileIndex].message!.fileName || 'file'}
+          fileSize={fileBookmarks[selectedFileIndex].message!.fileSize || undefined}
+          fileType={fileBookmarks[selectedFileIndex].message!.fileType || undefined}
+          onNavigate={handleNavigateFile}
+          canNavigatePrev={selectedFileIndex > 0}
+          canNavigateNext={selectedFileIndex < fileBookmarks.length - 1}
+          currentIndex={selectedFileIndex + 1}
+          totalFiles={fileBookmarks.length}
         />
       )}
     </div>
