@@ -3304,7 +3304,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           fileBuffer,
           contentType: req.file.mimetype,
           isPublic: false,
-          chatRoomId: req.params.chatRoomId,
         });
 
         // API URL 생성 (filePath 기반)
@@ -3363,7 +3362,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           fileBuffer,
           contentType: req.file.mimetype,
           isPublic: false,
-          chatRoomId: req.params.chatRoomId,
         });
 
         // API URL 생성 (filePath 기반)
@@ -5556,7 +5554,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get optional description and chatRoomId from request body
       const { description, chatRoomId } = req.body;
 
-      // Object Storage에 public으로 업로드 (URL 추측 불가능)
+      // Object Storage에 private으로 업로드
       const timestamp = Date.now();
       const randomString = Math.random().toString(36).substring(2, 15);
       const ext = path.extname(req.file.originalname);
@@ -5564,14 +5562,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const fileBuffer = await fs.promises.readFile(req.file.path);
       
-      const { publicUrl } = await objectStorageService.uploadFile({
+      const { filePath } = await objectStorageService.uploadFile({
         fileName,
         fileBuffer,
         contentType: req.file.mimetype,
-        isPublic: true
+        isPublic: false,
+        userId: userId as string,
       });
       
-      console.log(`File uploaded to Object Storage: ${publicUrl} (${req.file.size} bytes)`);
+      // API URL 생성 (filePath 기반)
+      const fileUrl = `/api/chat-files?path=${encodeURIComponent(filePath)}`;
+      
+      console.log(`File uploaded to Object Storage: ${filePath} (${req.file.size} bytes)`);
 
       // Track file upload in database with description
       await storage.trackFileUpload({
@@ -5581,7 +5583,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         originalName: req.file.originalname,
         fileSize: req.file.size,
         fileType: req.file.mimetype,
-        filePath: publicUrl,
+        filePath: filePath,
         description: description || null
       });
 
@@ -5589,7 +5591,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await fs.promises.unlink(req.file.path);
 
       res.json({
-        fileUrl: publicUrl,
+        fileUrl: fileUrl,
+        filePath: filePath, // Object Storage 내부 경로 (클라이언트가 저장해야 함)
         fileName: req.file.originalname,
         fileSize: req.file.size,
         fileType: req.file.mimetype
