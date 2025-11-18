@@ -50,9 +50,13 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   const isDragging = useRef(false);
   const uiTimeoutRef = useRef<NodeJS.Timeout>();
   const lastTapRef = useRef<number>(0);
+  const swipeStartX = useRef<number>(0);
   const swipeStartY = useRef<number>(0);
+  const swipeCurrentX = useRef<number>(0);
   const swipeCurrentY = useRef<number>(0);
+  const swipeDirection = useRef<'horizontal' | 'vertical' | null>(null);
   const [swipeOffset, setSwipeOffset] = useState(0);
+  const [swipeOffsetX, setSwipeOffsetX] = useState(0);
 
   const isNative = Capacitor.isNativePlatform();
   const extension = fileName.split('.').pop()?.toLowerCase();
@@ -81,6 +85,8 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
       setPosition({ x: 0, y: 0 });
       setShowUI(true);
       setSwipeOffset(0);
+      setSwipeOffsetX(0);
+      swipeDirection.current = null;
       resetUITimeout();
     }
   }, [isOpen]);
@@ -132,7 +138,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (!isImage) return;
+    if (!isImage && !isVideo) return;
     
     const now = Date.now();
     const timeSinceLastTap = now - lastTapRef.current;
@@ -152,20 +158,23 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
       e.preventDefault();
       lastTouchDistance.current = getTouchDistance(e.touches);
     } else if (e.touches.length === 1) {
-      // Pan or swipe to dismiss
+      // Pan or swipe to dismiss/navigate
       const touch = e.touches[0];
       lastTouchPos.current = {
         x: touch.clientX,
         y: touch.clientY
       };
+      swipeStartX.current = touch.clientX;
       swipeStartY.current = touch.clientY;
+      swipeCurrentX.current = touch.clientX;
       swipeCurrentY.current = touch.clientY;
+      swipeDirection.current = null;
       isDragging.current = scale > 1;
     }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isImage) return;
+    if (!isImage && !isVideo) return;
 
     if (e.touches.length === 2) {
       // Pinch zoom
@@ -197,32 +206,76 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
         };
         resetUITimeout();
       } else if (scale === 1) {
-        // Swipe to dismiss (only when not zoomed)
+        // Determine swipe direction on first significant movement
+        swipeCurrentX.current = touch.clientX;
         swipeCurrentY.current = touch.clientY;
-        const swipeDelta = swipeCurrentY.current - swipeStartY.current;
+        const totalDeltaX = swipeCurrentX.current - swipeStartX.current;
+        const totalDeltaY = swipeCurrentY.current - swipeStartY.current;
         
-        // Only allow downward swipes
-        if (swipeDelta > 0) {
+        if (swipeDirection.current === null && (Math.abs(totalDeltaX) > 10 || Math.abs(totalDeltaY) > 10)) {
+          // Determine direction based on initial movement
+          if (Math.abs(totalDeltaX) > Math.abs(totalDeltaY)) {
+            swipeDirection.current = 'horizontal';
+          } else {
+            swipeDirection.current = 'vertical';
+          }
+        }
+        
+        // Handle horizontal swipe for navigation
+        if (swipeDirection.current === 'horizontal' && onNavigate && (canNavigatePrev || canNavigateNext)) {
           e.preventDefault();
-          setSwipeOffset(swipeDelta);
+          const swipeDeltaX = totalDeltaX;
+          
+          // Only allow swipes in available directions
+          if ((swipeDeltaX > 0 && canNavigatePrev) || (swipeDeltaX < 0 && canNavigateNext)) {
+            setSwipeOffsetX(swipeDeltaX);
+          }
           resetUITimeout();
+        } 
+        // Handle vertical swipe to dismiss
+        else if (swipeDirection.current === 'vertical') {
+          const swipeDeltaY = totalDeltaY;
+          
+          // Only allow downward swipes
+          if (swipeDeltaY > 0) {
+            e.preventDefault();
+            setSwipeOffset(swipeDeltaY);
+            resetUITimeout();
+          }
         }
       }
     }
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!isImage) return;
+    if (!isImage && !isVideo) return;
     
-    // Check if swipe down was far enough to close
-    const swipeDelta = swipeCurrentY.current - swipeStartY.current;
-    if (scale === 1 && swipeDelta > 150) {
+    // Check horizontal swipe for navigation
+    const swipeDeltaX = swipeCurrentX.current - swipeStartX.current;
+    const swipeDeltaY = swipeCurrentY.current - swipeStartY.current;
+    
+    if (scale === 1 && swipeDirection.current === 'horizontal' && onNavigate) {
+      // Navigate if swipe was far enough (threshold: 100px)
+      if (Math.abs(swipeDeltaX) > 100) {
+        if (swipeDeltaX > 0 && canNavigatePrev) {
+          onNavigate('prev');
+        } else if (swipeDeltaX < 0 && canNavigateNext) {
+          onNavigate('next');
+        }
+      }
+      // Reset horizontal offset
+      setSwipeOffsetX(0);
+    } 
+    // Check vertical swipe to close
+    else if (scale === 1 && swipeDirection.current === 'vertical' && swipeDeltaY > 150) {
       handleClose();
     } else {
-      // Reset swipe offset
+      // Reset all offsets
       setSwipeOffset(0);
+      setSwipeOffsetX(0);
     }
     
+    swipeDirection.current = null;
     isDragging.current = false;
     if (e.touches.length === 0) {
       lastTouchDistance.current = 0;
@@ -507,9 +560,9 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
               alt={fileName}
               className="max-w-full max-h-full object-contain select-none"
               style={{ 
-                transform: `scale(${scale}) translate(${position.x / scale}px, ${(position.y + swipeOffset) / scale}px)`,
+                transform: `scale(${scale}) translate(${(position.x + swipeOffsetX) / scale}px, ${(position.y + swipeOffset) / scale}px)`,
                 touchAction: 'none',
-                transition: swipeOffset === 0 ? 'transform 0.2s ease-out' : 'none'
+                transition: (swipeOffset === 0 && swipeOffsetX === 0) ? 'transform 0.2s ease-out' : 'none'
               }}
               draggable={false}
               data-testid="image-preview"
@@ -517,17 +570,27 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
           </div>
         ) : isVideo ? (
           <div 
-            className="relative w-full h-full flex items-center justify-center bg-black"
+            className="relative w-full h-full flex items-center justify-center bg-black overflow-hidden"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
             onClick={handleImageClick}
           >
-            <video
-              src={fileUrl}
-              className="max-w-full max-h-full object-contain"
-              controls
-              playsInline
-              autoPlay={false}
-              data-testid="video-preview"
-            />
+            <div
+              style={{
+                transform: `translate(${swipeOffsetX}px, ${swipeOffset}px)`,
+                transition: (swipeOffset === 0 && swipeOffsetX === 0) ? 'transform 0.2s ease-out' : 'none'
+              }}
+            >
+              <video
+                src={fileUrl}
+                className="max-w-full max-h-full object-contain"
+                controls
+                playsInline
+                autoPlay={false}
+                data-testid="video-preview"
+              />
+            </div>
           </div>
         ) : isPDF ? (
           <iframe
