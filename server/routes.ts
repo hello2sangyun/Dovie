@@ -1210,6 +1210,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastSeen: new Date()
       });
 
+      // profilePicture를 API URL로 변환 (Object Storage filePath → API endpoint)
+      if (user.profilePicture) {
+        user.profilePicture = `/api/profile-picture/${user.id}`;
+      }
+
       console.log(`✅ 자동 로그인 성공: 사용자 ${user.id} (${user.username})`);
       
       res.json({ user });
@@ -3385,25 +3390,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const ext = path.extname(req.file.originalname) || '.jpg';
       const fileName = `profile${ext}`;
 
-      const { publicUrl } = await objectStorageService.uploadFile({
+      const { filePath } = await objectStorageService.uploadFile({
         fileName,
         fileBuffer,
         contentType: req.file.mimetype,
-        isPublic: true,
+        isPublic: false, // private으로 저장
         userId: userId as string,
       });
 
       // 임시 파일 삭제
       await fs.promises.unlink(req.file.path).catch(() => {});
 
-      // 사용자 프로필 업데이트 (public URL 저장)
-      await storage.updateUserProfilePicture(Number(userId), publicUrl!);
+      // API를 통해 제공할 URL 생성
+      const profilePictureUrl = `/api/profile-picture/${userId}`;
 
-      console.log(`✅ Profile photo uploaded to Object Storage: ${publicUrl}`);
+      // 사용자 프로필 업데이트 (Object Storage filePath 저장)
+      await storage.updateUserProfilePicture(Number(userId), filePath);
+
+      console.log(`✅ Profile photo uploaded to Object Storage: ${filePath}`);
 
       res.json({
         success: true,
-        profilePicture: publicUrl,
+        profilePicture: profilePictureUrl,
       });
     } catch (error) {
       console.error("Profile photo upload error:", error);
@@ -3446,33 +3454,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Object Storage에 업로드 (public으로 설정)
+      // Object Storage에 업로드 (private으로 저장)
       const ext = path.extname(req.file.originalname) || '.jpg';
       const fileName = `profile${ext}`;
 
-      const { publicUrl } = await objectStorageService.uploadFile({
+      const { filePath } = await objectStorageService.uploadFile({
         fileName,
         fileBuffer,
         contentType: req.file.mimetype,
-        isPublic: true,
+        isPublic: false, // private으로 저장
         userId: userId as string,
       });
 
       // 임시 파일 삭제
       await fs.promises.unlink(req.file.path).catch(() => {});
 
-      // 사용자 프로필 업데이트 (public URL 저장)
-      await storage.updateUserProfilePicture(Number(userId), publicUrl!);
+      // API를 통해 제공할 URL 생성
+      const profilePictureUrl = `/api/profile-picture/${userId}`;
 
-      console.log(`✅ Profile picture uploaded to Object Storage: ${publicUrl}`);
+      // 사용자 프로필 업데이트 (Object Storage filePath 저장)
+      await storage.updateUserProfilePicture(Number(userId), filePath);
+
+      console.log(`✅ Profile picture uploaded to Object Storage: ${filePath}`);
 
       res.json({
         success: true,
-        profilePicture: publicUrl,
+        profilePicture: profilePictureUrl,
       });
     } catch (error) {
       console.error("Profile picture upload error:", error);
       res.status(500).json({ message: "Profile picture upload failed" });
+    }
+  });
+
+  // Profile picture serving endpoint (Object Storage)
+  app.get("/api/profile-picture/:userId", async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.params;
+      
+      // 사용자 정보 가져오기
+      const user = await storage.getUser(Number(userId));
+      if (!user || !user.profilePicture) {
+        return res.status(404).json({ message: "Profile picture not found" });
+      }
+
+      // Object Storage에서 파일 가져오기
+      const file = await objectStorageService.getFile(user.profilePicture);
+      if (!file) {
+        return res.status(404).json({ message: "Profile picture file not found" });
+      }
+
+      // 파일 다운로드
+      const [fileBuffer] = await file.download();
+
+      // MIME 타입 결정
+      const metadata = file.metadata;
+      const contentType = metadata?.contentType || 'image/jpeg';
+
+      // 캐시 헤더 설정 (1일)
+      res.set({
+        'Content-Type': contentType,
+        'Content-Length': fileBuffer.length.toString(),
+        'Cache-Control': 'public, max-age=86400',
+      });
+
+      res.send(fileBuffer);
+    } catch (error) {
+      console.error("Profile picture serving error:", error);
+      res.status(500).json({ message: "Failed to serve profile picture" });
     }
   });
 

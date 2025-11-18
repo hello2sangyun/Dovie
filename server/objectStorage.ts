@@ -264,19 +264,7 @@ export class ObjectStorageService {
     await setObjectAclPolicy(file, aclPolicy);
 
     const filePath = `/${bucketName}/${objectName}`;
-    
-    if (isPublic) {
-      // Signed URL 생성 (1년 유효)
-      const [signedUrl] = await file.getSignedUrl({
-        action: 'read',
-        expires: Date.now() + 365 * 24 * 60 * 60 * 1000, // 1년
-      });
-      console.log(`✅ File uploaded with signed URL: ${objectName}`);
-      return { 
-        filePath, 
-        publicUrl: signedUrl 
-      };
-    }
+    console.log(`✅ File uploaded: ${objectName}`);
     
     return { filePath };
   }
