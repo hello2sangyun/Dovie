@@ -2187,8 +2187,9 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     }
   };
 
-  const handleFileUploadWithHashtags = async (files: FileList, caption: string, description: string) => {
-    console.log('📤 백그라운드 파일 업로드 시작:', files.length, '개 파일');
+  const handleFileUploadWithHashtags = async (files: FileList | File[], caption: string, description: string) => {
+    const filesArray = Array.isArray(files) ? files : Array.from(files);
+    console.log('📤 백그라운드 파일 업로드 시작:', filesArray.length, '개 파일');
     console.log('📝 캡션:', caption);
     console.log('📄 설명:', description);
     
@@ -2196,7 +2197,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     const chatRoomName = currentChatRoom?.chatRoomName || `채팅방 ${chatRoomId}`;
     
     // Create optimistic temporary messages for each file
-    const tempMessages = Array.from(files).map((file, index) => ({
+    const tempMessages = filesArray.map((file, index) => ({
       id: Date.now() + index,
       chatRoomId: chatRoomId,
       senderId: user?.id || 0,
@@ -2225,7 +2226,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
     });
     
     // Process each file upload in background
-    const uploadPromises = Array.from(files).map(async (file, index) => {
+    const uploadPromises = filesArray.map(async (file, index) => {
       const tempMessage = tempMessages[index];
       
       // Add to global upload state
@@ -6101,9 +6102,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
             
             // Start upload with saved files array
             try {
-              const dt = new DataTransfer();
-              filesArray.forEach(file => dt.items.add(file));
-              await handleFileUploadWithHashtags(dt.files, '', description);
+              await handleFileUploadWithHashtags(filesArray, '', description);
             } catch (error) {
               console.error('파일 전송 오류:', error);
             }
