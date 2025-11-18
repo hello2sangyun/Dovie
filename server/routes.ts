@@ -19,6 +19,8 @@ import { getVapidPublicKey, sendPushNotification, sendVoIPPush } from "./push-no
 import twilio from "twilio";
 import { z } from "zod";
 import { verifyIdToken, initializeFirebaseAdmin } from "./firebase-admin";
+import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import { ObjectPermission } from "./objectAcl";
 
 // Zod validation schemas
 const updateUserNotificationsSchema = z.object({
