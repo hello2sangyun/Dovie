@@ -216,6 +216,123 @@ export class ObjectStorageService {
       requestedPermission: requestedPermission ?? ObjectPermission.READ,
     });
   }
+
+  async uploadFile({
+    fileName,
+    fileBuffer,
+    contentType,
+    isPublic = false,
+    userId,
+  }: {
+    fileName: string;
+    fileBuffer: Buffer;
+    contentType: string;
+    isPublic?: boolean;
+    userId?: string;
+  }): Promise<{ filePath: string; publicUrl?: string }> {
+    const timestamp = Date.now();
+    const randomString = Math.random().toString(36).substring(2, 15);
+    const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9가-힣._-]/g, '_');
+    const uniqueFileName = `${timestamp}_${randomString}_${sanitizedFileName}`;
+
+    const dir = isPublic ? this.getPublicObjectSearchPaths()[0] : this.getPrivateObjectDir();
+    const fullPath = `${dir}/${uniqueFileName}`;
+    const { bucketName, objectName } = parseObjectPath(fullPath);
+
+    const bucket = objectStorageClient.bucket(bucketName);
+    const file = bucket.file(objectName);
+
+    await file.save(fileBuffer, {
+      contentType,
+      metadata: {
+        contentType,
+      },
+    });
+
+    const aclPolicy: ObjectAclPolicy = {
+      owner: userId || "system",
+      visibility: isPublic ? "public" : "private",
+    };
+    await setObjectAclPolicy(file, aclPolicy);
+
+    const filePath = `/${bucketName}/${objectName}`;
+    
+    if (isPublic) {
+      return { 
+        filePath, 
+        publicUrl: filePath 
+      };
+    }
+    
+    return { filePath };
+  }
+
+  async getFile(filePath: string): Promise<File | null> {
+    try {
+      const { bucketName, objectName } = parseObjectPath(filePath);
+      const bucket = objectStorageClient.bucket(bucketName);
+      const file = bucket.file(objectName);
+
+      const [exists] = await file.exists();
+      if (!exists) {
+        return null;
+      }
+
+      return file;
+    } catch (error) {
+      console.error("Error getting file:", error);
+      return null;
+    }
+  }
+
+  async deleteFile(filePath: string): Promise<boolean> {
+    try {
+      const { bucketName, objectName } = parseObjectPath(filePath);
+      const bucket = objectStorageClient.bucket(bucketName);
+      const file = bucket.file(objectName);
+
+      const [exists] = await file.exists();
+      if (!exists) {
+        return false;
+      }
+
+      await file.delete();
+      return true;
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      return false;
+    }
+  }
+
+  async getSignedDownloadUrl(filePath: string, ttlSec: number = 3600): Promise<string | null> {
+    try {
+      const { bucketName, objectName } = parseObjectPath(filePath);
+      return await signObjectURL({
+        bucketName,
+        objectName,
+        method: "GET",
+        ttlSec,
+      });
+    } catch (error) {
+      console.error("Error generating signed URL:", error);
+      return null;
+    }
+  }
+
+  async getFileBuffer(filePath: string): Promise<Buffer | null> {
+    try {
+      const file = await this.getFile(filePath);
+      if (!file) {
+        return null;
+      }
+
+      const [buffer] = await file.download();
+      return buffer;
+    } catch (error) {
+      console.error("Error downloading file buffer:", error);
+      return null;
+    }
+  }
 }
 
 function parseObjectPath(path: string): {
