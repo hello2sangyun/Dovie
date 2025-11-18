@@ -295,7 +295,7 @@ export default function MessageContextMenu({
             <Button
               variant="ghost"
               size="sm"
-              className="w-full justify-start px-2 py-1.5 h-auto text-xs hover:bg-gray-100 dark:hover:bg-gray-800 rounded-none"
+              className="w-full justify-start px-2 py-1.5 h-auto text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-none"
               onClick={handleDeleteClick}
               data-testid="button-delete-message"
             >

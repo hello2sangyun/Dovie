@@ -4412,7 +4412,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                 variant="ghost"
                 size="sm"
                 onClick={onBackClick}
-                className="p-2 -ml-1 lg:hidden flex-shrink-0 hover:bg-gray-100 rounded-full transition-colors"
+                className="h-11 w-11 p-0 -ml-1 lg:hidden flex-shrink-0 hover:bg-gray-100 rounded-full transition-colors flex items-center justify-center"
               >
                 <svg 
                   width="20" 
@@ -4913,13 +4913,13 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                     )}
                   >
                   <div className="flex flex-col items-center flex-shrink-0">
-                    <div className="w-8 h-8 rounded-full shadow-lg ring-2 ring-white/50 group-hover:scale-105 transition-transform duration-200 overflow-hidden">
+                    <div className="w-10 h-10 rounded-full shadow-lg ring-2 ring-white/50 group-hover:scale-105 transition-transform duration-200 overflow-hidden">
                       <InstantAvatar 
                         src={isMe ? user?.profilePicture : msg.sender?.profilePicture}
                         alt={isMe ? (user?.displayName || "Me") : msg.sender.displayName}
                         fallbackText={isMe ? (user?.displayName || "Me") : msg.sender.displayName}
                         size="sm" 
-                        className={`w-full h-full bg-gradient-to-br ${getAvatarColor(isMe ? (user?.displayName || "Me") : msg.sender.displayName)} text-xs font-bold shadow-inner`}
+                        className={`w-full h-full bg-gradient-to-br ${getAvatarColor(isMe ? (user?.displayName || "Me") : msg.sender.displayName)} text-sm font-bold shadow-inner`}
                       />
                     </div>
                   </div>
@@ -6204,12 +6204,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               intensity="moderate"
               accessibilityMode={accessibilitySettings.reducedMotion}
               hapticFeedback={accessibilitySettings.hapticEnabled}
-              className="text-purple-500 hover:text-purple-600 hover:bg-purple-50 p-2 h-9 w-9 rounded-lg transition-all duration-200 flex items-center justify-center"
+              className="text-purple-500 hover:text-purple-600 hover:bg-purple-50 p-0 h-11 w-11 rounded-lg transition-all duration-200 flex items-center justify-center"
               onClick={() => setShowAIAssistantModal(true)}
               aria-label="AI 어시스턴트"
               data-testid="button-ai-assistant"
             >
-              <Sparkles className="h-4 w-4" />
+              <Sparkles className="h-5 w-5" />
             </InteractiveButton>
             
             <InteractiveButton
@@ -6217,7 +6217,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               intensity="moderate"
               accessibilityMode={accessibilitySettings.reducedMotion}
               hapticFeedback={accessibilitySettings.hapticEnabled}
-              className="text-gray-500 hover:text-purple-600 hover:bg-purple-50 p-2 h-9 w-9 rounded-lg transition-all duration-200 flex items-center justify-center"
+              className="text-gray-500 hover:text-purple-600 hover:bg-purple-50 p-0 h-11 w-11 rounded-lg transition-all duration-200 flex items-center justify-center"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploadFileMutation.isPending}
               aria-label="파일 첨부"
@@ -6226,7 +6226,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
               {uploadFileMutation.isPending ? (
                 <LoadingSpinner size="small" color="purple" />
               ) : (
-                <Paperclip className="h-4 w-4" />
+                <Paperclip className="h-5 w-5" />
               )}
             </InteractiveButton>
 
@@ -6290,10 +6290,10 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                 const maxHeight = Math.min(window.innerHeight * 0.5, 200); // 화면 높이의 50% 또는 200px 중 작은 값
                 
                 // 높이 초기화 후 스크롤 높이 측정
-                textarea.style.height = '32px';
+                textarea.style.height = '44px';
                 const scrollHeight = textarea.scrollHeight;
                 
-                if (scrollHeight > 32) {
+                if (scrollHeight > 44) {
                   // 텍스트가 한 줄을 넘을 때만 높이 조절
                   if (scrollHeight <= maxHeight) {
                     // 최대 높이 이하일 때는 높이 자동 조절
@@ -6306,7 +6306,7 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   }
                 } else {
                   // 한 줄일 때는 기본 높이와 스크롤 숨김
-                  textarea.style.height = '32px';
+                  textarea.style.height = '44px';
                   textarea.style.overflow = 'hidden';
                 }
                 
@@ -6453,11 +6453,11 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
                   handleSendMessage();
                 }
               }}
-              className="resize-none min-h-[32px] py-1.5 px-3 text-base"
+              className="resize-none min-h-[44px] py-2 px-3 text-base"
               style={{ 
                 fontSize: '16px', 
                 lineHeight: '1.3',
-                height: '32px',
+                height: '44px',
                 overflow: 'hidden'
               }}
             />

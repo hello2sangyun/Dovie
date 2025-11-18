@@ -745,28 +745,28 @@ export default function InboxPage() {
               variant={viewMode === "list" ? "default" : "ghost"}
               size="sm"
               onClick={() => setViewMode("list")}
-              className="h-8 w-8 p-0"
+              className="h-11 w-11 p-0"
               data-testid="tab-list"
             >
-              <InboxIcon className="h-4 w-4" />
+              <InboxIcon className="h-5 w-5" />
             </Button>
             <Button
               variant={viewMode === "stats" ? "default" : "ghost"}
               size="sm"
               onClick={() => setViewMode("stats")}
-              className="h-8 w-8 p-0"
+              className="h-11 w-11 p-0"
               data-testid="tab-stats"
             >
-              <BarChart3 className="h-4 w-4" />
+              <BarChart3 className="h-5 w-5" />
             </Button>
             <Button
               variant={viewMode === "calendar" ? "default" : "ghost"}
               size="sm"
               onClick={() => setViewMode("calendar")}
-              className="h-8 w-8 p-0"
+              className="h-11 w-11 p-0"
               data-testid="tab-calendar"
             >
-              <CalendarDays className="h-4 w-4" />
+              <CalendarDays className="h-5 w-5" />
             </Button>
             
             <Separator orientation="vertical" className="h-5 mx-1" />
@@ -780,10 +780,10 @@ export default function InboxPage() {
                 if (selectionMode) setSelectedNotices(new Set());
               }}
               disabled={filteredNotices.length === 0}
-              className="h-8 w-8 p-0"
+              className="h-11 w-11 p-0"
               data-testid="button-selection-mode"
             >
-              <CheckCircle2 className="h-4 w-4" />
+              <CheckCircle2 className="h-5 w-5" />
             </Button>
 
             {/* Bulk Delete - Only show in selection mode */}
@@ -793,12 +793,12 @@ export default function InboxPage() {
                 size="sm"
                 onClick={handleBulkDelete}
                 disabled={selectedNotices.size === 0}
-                className="h-8 px-2"
+                className="h-11 px-3"
                 data-testid="button-bulk-delete"
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-5 w-5" />
                 {selectedNotices.size > 0 && (
-                  <span className="ml-1 text-xs">{selectedNotices.size}</span>
+                  <span className="ml-1.5 text-xs">{selectedNotices.size}</span>
                 )}
               </Button>
             )}
@@ -810,10 +810,10 @@ export default function InboxPage() {
                 size="sm"
                 onClick={() => setClearAllDialog(true)}
                 disabled={activeNotices.length === 0}
-                className="h-8 w-8 p-0"
+                className="h-11 w-11 p-0"
                 data-testid="button-clear-all"
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-5 w-5" />
               </Button>
             )}
           </div>
@@ -837,16 +837,16 @@ export default function InboxPage() {
               variant={showSnoozed ? "default" : "outline"}
               size="sm"
               onClick={() => setShowSnoozed(!showSnoozed)}
-              className="h-8 w-8 p-0"
+              className="h-11 w-11 p-0"
               data-testid="button-show-snoozed"
             >
-              <Moon className="h-4 w-4" />
+              <Moon className="h-5 w-5" />
             </Button>
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 w-8 p-0" data-testid="filter-type">
-                  <Filter className="h-4 w-4" />
+                <Button variant="outline" size="sm" className="h-11 w-11 p-0" data-testid="filter-type">
+                  <Filter className="h-5 w-5" />
                   {typeFilter !== "all" && <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-xs" variant="destructive">1</Badge>}
                 </Button>
               </DropdownMenuTrigger>
@@ -868,10 +868,10 @@ export default function InboxPage() {
                   setTypeFilter("all");
                   setPriorityFilter("all");
                 }}
-                className="h-8 w-8 p-0"
+                className="h-11 w-11 p-0"
                 data-testid="button-clear-filters"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </Button>
             )}
           </div>
