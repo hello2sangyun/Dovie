@@ -4,24 +4,32 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FilePreviewModal } from "@/components/FilePreviewModal";
-import { FolderIcon, FileIcon, Grid3x3, List, ChevronLeft, Search, Download, Share2, Eye, ArrowUp, ArrowDown } from "lucide-react";
+import { FolderIcon, FileIcon, Grid3x3, List, ChevronLeft, Search, Download, Share2, Eye, ArrowUp, ArrowDown, MessageSquare } from "lucide-react";
 
-interface FileUploadData {
+interface BookmarkData {
   id: number;
   userId: number;
+  messageId: number;
   chatRoomId: number;
-  fileName: string;
-  originalName: string;
-  fileSize: number;
-  fileType: string;
-  filePath: string;
-  description: string | null;
-  uploadedAt: string;
-  uploader: {
+  bookmarkType: string;
+  note: string | null;
+  createdAt: string;
+  message: {
     id: number;
-    displayName: string;
-    profilePicture: string | null;
-  };
+    senderId: number;
+    chatRoomId: number;
+    content: string;
+    fileUrl: string | null;
+    fileType: string | null;
+    fileName: string | null;
+    fileSize: number | null;
+    createdAt: string;
+    sender: {
+      id: number;
+      displayName: string;
+      profilePicture: string | null;
+    };
+  } | null;
 }
 
 interface ChatRoomData {
@@ -59,9 +67,9 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [selectedFile, setSelectedFile] = useState<{ url: string; name: string; size?: number; type?: string } | null>(null);
 
-  // Fetch all file uploads
-  const { data: filesData, isLoading } = useQuery<{ files: FileUploadData[] }>({
-    queryKey: ["/api/files/all"],
+  // Fetch all bookmarks
+  const { data: bookmarksData, isLoading } = useQuery<{ bookmarks: BookmarkData[] }>({
+    queryKey: ["/api/bookmarks"],
     enabled: !!user,
   });
 
@@ -85,52 +93,53 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
     }
   };
 
-  // Group files by chat room (folders)
+  // Group bookmarks by chat room (folders)
   const folders = useMemo(() => {
-    if (!filesData?.files || !chatRoomsData?.chatRooms) return [];
+    if (!bookmarksData?.bookmarks || !chatRoomsData?.chatRooms) return [];
 
     const folderMap = new Map<number, FolderItem>();
 
-    filesData.files.forEach((file) => {
-      if (!folderMap.has(file.chatRoomId)) {
-        const chatRoomName = getChatRoomName(file.chatRoomId);
-        folderMap.set(file.chatRoomId, {
-          chatRoomId: file.chatRoomId,
+    bookmarksData.bookmarks.forEach((bookmark) => {
+      if (!folderMap.has(bookmark.chatRoomId)) {
+        const chatRoomName = getChatRoomName(bookmark.chatRoomId);
+        folderMap.set(bookmark.chatRoomId, {
+          chatRoomId: bookmark.chatRoomId,
           chatRoomName,
           fileCount: 1,
-          lastModified: file.uploadedAt,
+          lastModified: bookmark.createdAt,
         });
       } else {
-        const folder = folderMap.get(file.chatRoomId)!;
+        const folder = folderMap.get(bookmark.chatRoomId)!;
         folder.fileCount++;
-        // Update last modified if this file is newer
-        if (new Date(file.uploadedAt) > new Date(folder.lastModified)) {
-          folder.lastModified = file.uploadedAt;
+        // Update last modified if this bookmark is newer
+        if (new Date(bookmark.createdAt) > new Date(folder.lastModified)) {
+          folder.lastModified = bookmark.createdAt;
         }
       }
     });
 
     return Array.from(folderMap.values());
-  }, [filesData?.files, chatRoomsData?.chatRooms]);
+  }, [bookmarksData?.bookmarks, chatRoomsData?.chatRooms]);
 
-  // Get files for selected folder
-  const selectedFolderFiles = useMemo(() => {
-    if (!selectedFolderId || !filesData?.files) return [];
-    return filesData.files.filter((file) => file.chatRoomId === selectedFolderId);
-  }, [selectedFolderId, filesData?.files]);
+  // Get bookmarks for selected folder
+  const selectedFolderBookmarks = useMemo(() => {
+    if (!selectedFolderId || !bookmarksData?.bookmarks) return [];
+    return bookmarksData.bookmarks.filter((bookmark) => bookmark.chatRoomId === selectedFolderId);
+  }, [selectedFolderId, bookmarksData?.bookmarks]);
 
   // Apply search filter
   const filteredItems = useMemo(() => {
     if (selectedFolderId) {
-      // Filter files in selected folder
-      let filtered = selectedFolderFiles;
+      // Filter bookmarks in selected folder
+      let filtered = selectedFolderBookmarks;
       
       if (searchTerm.trim()) {
         const searchLower = searchTerm.toLowerCase();
-        filtered = filtered.filter((file) => {
-          const fileName = file.originalName?.toLowerCase() || "";
-          const description = file.description?.toLowerCase() || "";
-          return fileName.includes(searchLower) || description.includes(searchLower);
+        filtered = filtered.filter((bookmark) => {
+          const content = bookmark.message?.content?.toLowerCase() || "";
+          const fileName = bookmark.message?.fileName?.toLowerCase() || "";
+          const note = bookmark.note?.toLowerCase() || "";
+          return content.includes(searchLower) || fileName.includes(searchLower) || note.includes(searchLower);
         });
       }
 
@@ -144,28 +153,30 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
         folder.chatRoomName.toLowerCase().includes(searchLower)
       );
     }
-  }, [selectedFolderId, selectedFolderFiles, folders, searchTerm]);
+  }, [selectedFolderId, selectedFolderBookmarks, folders, searchTerm]);
 
-  // Sort folders or files
+  // Sort folders or bookmarks
   const sortedItems = useMemo(() => {
     const items = [...filteredItems];
 
     if (selectedFolderId) {
-      // Sort files
-      const files = items as FileUploadData[];
-      files.sort((a, b) => {
+      // Sort bookmarks
+      const bookmarks = items as BookmarkData[];
+      bookmarks.sort((a, b) => {
         let compareValue = 0;
 
         if (sortBy === 'name') {
-          compareValue = (a.originalName || '').localeCompare(b.originalName || '');
+          const aName = a.message?.fileName || a.message?.content || '';
+          const bName = b.message?.fileName || b.message?.content || '';
+          compareValue = aName.localeCompare(bName);
         } else if (sortBy === 'date') {
-          compareValue = new Date(a.uploadedAt).getTime() - new Date(b.uploadedAt).getTime();
+          compareValue = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
         }
 
         return sortOrder === 'asc' ? compareValue : -compareValue;
       });
 
-      return files;
+      return bookmarks;
     } else {
       // Sort folders
       const folders = items as FolderItem[];
@@ -222,31 +233,33 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
   };
 
   // Handle file download
-  const handleDownload = (file: FileUploadData) => {
+  const handleDownload = (bookmark: BookmarkData) => {
+    if (!bookmark.message?.fileUrl) return;
     const link = document.createElement('a');
-    link.href = file.filePath;
-    link.download = file.originalName || 'file';
+    link.href = bookmark.message.fileUrl;
+    link.download = bookmark.message.fileName || 'file';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
   // Handle file preview
-  const handlePreview = (file: FileUploadData) => {
+  const handlePreview = (bookmark: BookmarkData) => {
+    if (!bookmark.message?.fileUrl) return;
     setSelectedFile({
-      url: file.filePath,
-      name: file.originalName,
-      size: file.fileSize,
-      type: file.fileType
+      url: bookmark.message.fileUrl,
+      name: bookmark.message.fileName || 'file',
+      size: bookmark.message.fileSize || undefined,
+      type: bookmark.message.fileType || undefined
     });
   };
 
   // Handle share using Web Share API
-  const handleShare = async (file: FileUploadData) => {
+  const handleShare = async (bookmark: BookmarkData) => {
     const shareData = {
-      title: file.originalName,
-      text: file.description || file.originalName,
-      url: file.filePath,
+      title: bookmark.message?.fileName || 'Bookmark',
+      text: bookmark.message?.content || bookmark.note || '',
+      url: bookmark.message?.fileUrl || '',
     };
 
     try {
@@ -260,6 +273,13 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
       }
     } catch (error) {
       console.error('Share failed:', error);
+    }
+  };
+
+  // Navigate to the message in chat
+  const handleNavigateToBookmark = (bookmark: BookmarkData) => {
+    if (onNavigateToMessage) {
+      onNavigateToMessage(bookmark.chatRoomId, bookmark.messageId);
     }
   };
 
@@ -302,7 +322,7 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
               </h3>
             </div>
           ) : (
-            <h3 className="text-xl font-bold text-gray-900">내 파일</h3>
+            <h3 className="text-xl font-bold text-gray-900">내 북마크</h3>
           )}
           
           <div className="flex items-center gap-1">
@@ -331,7 +351,7 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
             type="text"
-            placeholder={selectedFolderId ? "파일명, 설명 검색..." : "폴더 검색..."}
+            placeholder={selectedFolderId ? "메시지, 노트 검색..." : "폴더 검색..."}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -367,22 +387,22 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
         {sortedItems.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-gray-500" data-testid="files-empty-state">
+          <div className="flex flex-col items-center justify-center h-full text-gray-500" data-testid="bookmarks-empty-state">
             {selectedFolderId ? (
               <>
                 <FileIcon className="h-16 w-16 mb-4 text-gray-300" />
                 <p className="text-lg font-medium">
-                  {searchTerm ? "검색 결과가 없습니다" : "파일이 없습니다"}
+                  {searchTerm ? "검색 결과가 없습니다" : "북마크가 없습니다"}
                 </p>
               </>
             ) : (
               <>
                 <FolderIcon className="h-16 w-16 mb-4 text-gray-300" />
                 <p className="text-lg font-medium">
-                  {searchTerm ? "검색 결과가 없습니다" : "폴더가 없습니다"}
+                  {searchTerm ? "검색 결과가 없습니다" : "북마크가 없습니다"}
                 </p>
                 <p className="text-sm text-gray-400 mt-1">
-                  파일을 업로드하면 자동으로 채팅방별 폴더가 생성됩니다
+                  메시지를 북마크하면 자동으로 채팅방별 폴더가 생성됩니다
                 </p>
               </>
             )}
@@ -435,132 +455,155 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
               </div>
             )}
 
-            {/* Files View (List) */}
+            {/* Bookmarks View (List) */}
             {selectedFolderId && viewMode === 'list' && (
               <div className="p-2">
-                {(sortedItems as FileUploadData[]).map((file) => (
+                {(sortedItems as BookmarkData[]).map((bookmark) => (
                   <div
-                    key={file.id}
-                    className="flex items-center gap-3 px-3 py-3 hover:bg-gray-50 rounded-lg transition-colors border-b border-gray-100 group"
-                    data-testid={`file-item-${file.id}`}
+                    key={bookmark.id}
+                    className="flex items-center gap-3 px-3 py-3 hover:bg-gray-50 rounded-lg transition-colors border-b border-gray-100 group cursor-pointer"
+                    onClick={() => handleNavigateToBookmark(bookmark)}
+                    data-testid={`bookmark-item-${bookmark.id}`}
                   >
-                    <span className="text-2xl flex-shrink-0">{getFileIcon(file.fileType)}</span>
+                    {bookmark.message?.fileUrl ? (
+                      <span className="text-2xl flex-shrink-0">{getFileIcon(bookmark.message.fileType || '')}</span>
+                    ) : (
+                      <MessageSquare className="h-5 w-5 text-purple-600 flex-shrink-0" />
+                    )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">
-                        {file.originalName}
+                        {bookmark.message?.fileName || bookmark.message?.content || '북마크된 메시지'}
                       </p>
-                      {file.description && (
+                      {bookmark.note && (
                         <p className="text-xs text-gray-500 truncate mt-0.5">
-                          {file.description}
+                          {bookmark.note}
                         </p>
                       )}
                       <p className="text-xs text-gray-400 mt-0.5">
-                        {file.uploader.displayName} • {formatFileSize(file.fileSize)}
+                        {bookmark.message?.sender?.displayName || '알 수 없음'}
+                        {bookmark.message?.fileSize && ` • ${formatFileSize(bookmark.message.fileSize)}`}
                       </p>
                     </div>
                     <div className="text-xs text-gray-500 flex-shrink-0">
-                      {formatDate(file.uploadedAt)}
+                      {formatDate(bookmark.createdAt)}
                     </div>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handlePreview(file)}
-                        className="h-7 w-7 p-0 hover:bg-blue-50"
-                        title="미리보기"
-                        data-testid={`button-preview-file-${file.id}`}
-                      >
-                        <Eye className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDownload(file)}
-                        className="h-7 w-7 p-0 hover:bg-green-50"
-                        title="다운로드"
-                        data-testid={`button-download-file-${file.id}`}
-                      >
-                        <Download className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleShare(file)}
-                        className="h-7 w-7 p-0 hover:bg-purple-50"
-                        title="공유"
-                        data-testid={`button-share-file-${file.id}`}
-                      >
-                        <Share2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
+                    {bookmark.message?.fileUrl && (
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePreview(bookmark);
+                          }}
+                          className="h-7 w-7 p-0 hover:bg-blue-50"
+                          title="미리보기"
+                          data-testid={`button-preview-bookmark-${bookmark.id}`}
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownload(bookmark);
+                          }}
+                          className="h-7 w-7 p-0 hover:bg-green-50"
+                          title="다운로드"
+                          data-testid={`button-download-bookmark-${bookmark.id}`}
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleShare(bookmark);
+                          }}
+                          className="h-7 w-7 p-0 hover:bg-purple-50"
+                          title="공유"
+                          data-testid={`button-share-bookmark-${bookmark.id}`}
+                        >
+                          <Share2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             )}
 
-            {/* Files View (Grid) */}
+            {/* Bookmarks View (Grid) */}
             {selectedFolderId && viewMode === 'grid' && (
               <div className="p-3 grid grid-cols-3 gap-2">
-                {(sortedItems as FileUploadData[]).map((file) => (
+                {(sortedItems as BookmarkData[]).map((bookmark) => (
                   <div
-                    key={file.id}
+                    key={bookmark.id}
                     className="flex flex-col border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow group"
-                    data-testid={`file-card-${file.id}`}
+                    data-testid={`bookmark-card-${bookmark.id}`}
                   >
-                    {/* File Preview */}
+                    {/* Bookmark Preview */}
                     <div 
                       className="aspect-square bg-gradient-to-br from-purple-50 to-indigo-50 flex items-center justify-center relative cursor-pointer"
-                      onClick={() => handlePreview(file)}
+                      onClick={() => bookmark.message?.fileUrl ? handlePreview(bookmark) : handleNavigateToBookmark(bookmark)}
                     >
-                      {file.fileType.startsWith('image/') ? (
+                      {bookmark.message?.fileUrl && bookmark.message.fileType?.startsWith('image/') ? (
                         <img 
-                          src={file.filePath} 
-                          alt={file.originalName}
+                          src={bookmark.message.fileUrl} 
+                          alt={bookmark.message.fileName || 'bookmark'}
                           className="w-full h-full object-cover"
                         />
+                      ) : bookmark.message?.fileUrl ? (
+                        <span className="text-3xl">{getFileIcon(bookmark.message.fileType || '')}</span>
                       ) : (
-                        <span className="text-3xl">{getFileIcon(file.fileType)}</span>
+                        <MessageSquare className="h-10 w-10 text-purple-400" />
                       )}
                       
                       {/* Action buttons on hover */}
-                      <div className="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDownload(file);
-                          }}
-                          className="h-6 w-6 p-0 bg-white/90 hover:bg-white shadow-sm"
-                          title="다운로드"
-                          data-testid={`button-download-grid-${file.id}`}
-                        >
-                          <Download className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleShare(file);
-                          }}
-                          className="h-6 w-6 p-0 bg-white/90 hover:bg-white shadow-sm"
-                          title="공유"
-                          data-testid={`button-share-grid-${file.id}`}
-                        >
-                          <Share2 className="h-3 w-3" />
-                        </Button>
-                      </div>
+                      {bookmark.message?.fileUrl && (
+                        <div className="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDownload(bookmark);
+                            }}
+                            className="h-6 w-6 p-0 bg-white/90 hover:bg-white shadow-sm"
+                            title="다운로드"
+                            data-testid={`button-download-grid-${bookmark.id}`}
+                          >
+                            <Download className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleShare(bookmark);
+                            }}
+                            className="h-6 w-6 p-0 bg-white/90 hover:bg-white shadow-sm"
+                            title="공유"
+                            data-testid={`button-share-grid-${bookmark.id}`}
+                          >
+                            <Share2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
 
-                    {/* File Info */}
+                    {/* Bookmark Info */}
                     <div className="p-1.5 bg-white">
-                      <p className="text-[10px] font-medium text-gray-900 truncate leading-tight" title={file.originalName}>
-                        {file.originalName}
+                      <p className="text-[10px] font-medium text-gray-900 truncate leading-tight" title={bookmark.message?.fileName || bookmark.message?.content}>
+                        {bookmark.message?.fileName || bookmark.message?.content || '북마크'}
                       </p>
-                      <p className="text-[9px] text-gray-400 mt-0.5">
-                        {formatFileSize(file.fileSize)}
-                      </p>
+                      {bookmark.message?.fileSize && (
+                        <p className="text-[9px] text-gray-400 mt-0.5">
+                          {formatFileSize(bookmark.message.fileSize)}
+                        </p>
+                      )}
                     </div>
                   </div>
                 ))}
