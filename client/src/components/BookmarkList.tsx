@@ -546,7 +546,7 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
                   >
                     {/* Bookmark Preview */}
                     <div 
-                      className="aspect-square bg-gradient-to-br from-purple-50 to-indigo-50 flex items-center justify-center relative cursor-pointer"
+                      className="aspect-square bg-gradient-to-br from-purple-50 to-indigo-50 flex items-center justify-center relative cursor-pointer overflow-hidden"
                       onClick={() => bookmark.message?.fileUrl ? handlePreview(bookmark) : handleNavigateToBookmark(bookmark)}
                     >
                       {bookmark.message?.fileUrl && bookmark.message.fileType?.startsWith('image/') ? (
@@ -555,6 +555,19 @@ export default function BookmarkList({ onNavigateToMessage }: BookmarkListProps)
                           alt={bookmark.message.fileName || 'bookmark'}
                           className="w-full h-full object-cover"
                         />
+                      ) : bookmark.message?.fileUrl && bookmark.message.fileType?.startsWith('video/') ? (
+                        <div className="relative w-full h-full">
+                          <video 
+                            src={bookmark.message.fileUrl} 
+                            className="w-full h-full object-cover"
+                            preload="metadata"
+                          />
+                          <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                            <div className="bg-white/90 rounded-full p-2">
+                              <span className="text-2xl">🎥</span>
+                            </div>
+                          </div>
+                        </div>
                       ) : bookmark.message?.fileUrl ? (
                         <span className="text-3xl">{getFileIcon(bookmark.message.fileType || '')}</span>
                       ) : (
