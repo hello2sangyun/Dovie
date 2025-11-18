@@ -75,6 +75,15 @@ export const InstantAvatar = memo(function InstantAvatar({
       return;
     }
 
+    // GCS URL은 직접 사용 (캐싱 우회)
+    if (src.startsWith('https://storage.googleapis.com/')) {
+      setDisplaySrc(src);
+      setShowFallback(false);
+      setIsLoading(true);
+      setIsImageLoaded(false);
+      return;
+    }
+
     // URL 형태에 따라 최적화된 경로로 변환
     let optimizedSrc = src;
     if (src.startsWith('/uploads/')) {
