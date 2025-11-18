@@ -19,6 +19,8 @@ import { getVapidPublicKey, sendPushNotification, sendVoIPPush } from "./push-no
 import twilio from "twilio";
 import { z } from "zod";
 import { verifyIdToken, initializeFirebaseAdmin } from "./firebase-admin";
+import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import { ObjectPermission } from "./objectAcl";
 
 // Zod validation schemas
 const updateUserNotificationsSchema = z.object({
@@ -2112,6 +2114,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Failed to update chat room name:", error);
       res.status(error.message?.includes("Unauthorized") ? 403 : 500).json({ message: error.message || "Failed to update chat room name" });
+    }
+  });
+
+  // Object Storage endpoints
+  
+  // Get presigned URL for file upload
+  app.post("/api/objects/upload", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ uploadURL });
+    } catch (error) {
+      console.error("Error getting upload URL:", error);
+      res.status(500).json({ error: "Failed to get upload URL" });
+    }
+  });
+
+  // Download file from Object Storage
+  app.get("/objects/:objectPath(*)", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const objectStorageService = new ObjectStorageService();
+    try {
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      const canAccess = await objectStorageService.canAccessObjectEntity({
+        objectFile,
+        userId: String(userId),
+        requestedPermission: ObjectPermission.READ,
+      });
+      if (!canAccess) {
+        return res.sendStatus(403);
+      }
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error accessing object:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
+  // Set ACL policy for uploaded file
+  app.put("/api/objects/set-acl", async (req, res) => {
+    const userId = req.headers["x-user-id"];
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const { objectURL, visibility } = req.body;
+    if (!objectURL) {
+      return res.status(400).json({ error: "objectURL is required" });
+    }
+
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
+        objectURL,
+        {
+          owner: String(userId),
+          visibility: visibility || "private",
+        }
+      );
+      res.json({ objectPath });
+    } catch (error) {
+      console.error("Error setting ACL:", error);
+      res.status(500).json({ error: "Failed to set ACL policy" });
     }
   });
 
