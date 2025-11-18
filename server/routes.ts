@@ -19,6 +19,7 @@ import { getVapidPublicKey, sendPushNotification, sendVoIPPush } from "./push-no
 import twilio from "twilio";
 import { z } from "zod";
 import { verifyIdToken, initializeFirebaseAdmin } from "./firebase-admin";
+import { ObjectStorageService } from "./objectStorage";
 
 // Zod validation schemas
 const updateUserNotificationsSchema = z.object({
@@ -50,6 +51,9 @@ const upload = multer({
     cb(null, true);
   }
 });
+
+// Object Storage Service
+const objectStorageService = new ObjectStorageService();
 
 // WebSocket connection management
 const connections = new Map<number, WebSocket>();
@@ -3317,7 +3321,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Profile photo upload route without encryption
+  // Profile photo upload route with Object Storage
   app.post("/api/upload-profile-photo", upload.single("file"), async (req, res) => {
     try {
       const userId = req.headers["x-user-id"];
@@ -3339,39 +3343,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "File size must be less than 5MB" });
       }
 
-      // 타임스탬프 기반 파일명 생성 (암호화 없음)
-      const timestamp = Date.now();
-      const fileExtension = path.extname(req.file.originalname);
-      const profileFileName = `profile_${timestamp}_${sanitizeFilename(req.file.originalname)}`;
-      const finalPath = path.join(uploadDir, profileFileName);
+      // 파일 버퍼 읽기
+      const fileBuffer = await fs.promises.readFile(req.file.path);
 
-      // 기존 프로필 사진 파일 삭제 (있는 경우)
+      // 기존 프로필 사진 삭제 (GCS URL / Object path / Legacy path 모두 처리)
       const existingUser = await storage.getUser(Number(userId));
       if (existingUser?.profilePicture) {
         try {
-          const existingFileName = existingUser.profilePicture.split('/').pop();
-          if (existingFileName) {
-            const existingFilePath = path.join(uploadDir, existingFileName);
-            if (fs.existsSync(existingFilePath)) {
-              fs.unlinkSync(existingFilePath);
-            }
-          }
+          await objectStorageService.deleteFile(existingUser.profilePicture);
         } catch (deleteError) {
           console.log("Could not delete existing profile photo:", deleteError);
         }
       }
 
-      // 파일을 직접 저장 (암호화 없음)
-      fs.renameSync(req.file.path, finalPath);
+      // Object Storage에 업로드 (public으로 설정)
+      const { publicUrl } = await objectStorageService.uploadFile({
+        fileName: `profile_${req.file.originalname}`,
+        fileBuffer,
+        contentType: req.file.mimetype,
+        isPublic: true,
+        userId: userId as string,
+      });
 
-      const fileUrl = `/uploads/${profileFileName}`;
+      // 임시 파일 삭제
+      await fs.promises.unlink(req.file.path).catch(() => {});
 
-      // 사용자 프로필 업데이트
-      await storage.updateUserProfilePicture(Number(userId), fileUrl);
+      // 사용자 프로필 업데이트 (public URL 저장)
+      await storage.updateUserProfilePicture(Number(userId), publicUrl!);
+
+      console.log(`✅ Profile photo uploaded to Object Storage: ${publicUrl}`);
 
       res.json({
         success: true,
-        profilePicture: fileUrl,
+        profilePicture: publicUrl,
       });
     } catch (error) {
       console.error("Profile photo upload error:", error);
@@ -3379,7 +3383,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Profile picture upload endpoint for new component
+  // Profile picture upload endpoint with Object Storage (for new component)
   app.post("/api/upload/profile-picture", upload.single("file"), async (req, res) => {
     try {
       const userId = req.headers["x-user-id"];
@@ -3401,40 +3405,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "File size must be less than 5MB" });
       }
 
-      // 프로필 이미지는 암호화하지 않고 원본 저장 (빠른 로딩을 위해)
-      const timestamp = Date.now();
-      const randomString = Math.random().toString(36).substring(2, 15);
-      const fileExtension = path.extname(req.file.originalname);
-      const profileFileName = `profile_${timestamp}_${randomString}${fileExtension}`;
-      const finalPath = path.join(uploadDir, profileFileName);
-      
-      // 파일을 최종 위치로 이동 (암호화 없음)
-      fs.renameSync(req.file.path, finalPath);
+      // 파일 버퍼 읽기
+      const fileBuffer = await fs.promises.readFile(req.file.path);
 
-      // 기존 프로필 사진 파일 삭제 (있는 경우)
+      // 기존 프로필 사진 삭제 (GCS URL / Object path / Legacy path 모두 처리)
       const existingUser = await storage.getUser(Number(userId));
       if (existingUser?.profilePicture) {
         try {
-          const existingFileName = existingUser.profilePicture.split('/').pop();
-          if (existingFileName && existingFileName.startsWith('profile_')) {
-            const existingFilePath = path.join(uploadDir, existingFileName);
-            if (fs.existsSync(existingFilePath)) {
-              fs.unlinkSync(existingFilePath);
-            }
-          }
+          await objectStorageService.deleteFile(existingUser.profilePicture);
         } catch (deleteError) {
           console.log("Could not delete existing profile photo:", deleteError);
         }
       }
 
-      const fileUrl = `/uploads/${profileFileName}`;
+      // Object Storage에 업로드 (public으로 설정)
+      const { publicUrl } = await objectStorageService.uploadFile({
+        fileName: `profile_${req.file.originalname}`,
+        fileBuffer,
+        contentType: req.file.mimetype,
+        isPublic: true,
+        userId: userId as string,
+      });
 
-      // 사용자 프로필 업데이트
-      await storage.updateUserProfilePicture(Number(userId), fileUrl);
+      // 임시 파일 삭제
+      await fs.promises.unlink(req.file.path).catch(() => {});
+
+      // 사용자 프로필 업데이트 (public URL 저장)
+      await storage.updateUserProfilePicture(Number(userId), publicUrl!);
+
+      console.log(`✅ Profile picture uploaded to Object Storage: ${publicUrl}`);
 
       res.json({
         success: true,
-        profilePicture: fileUrl,
+        profilePicture: publicUrl,
       });
     } catch (error) {
       console.error("Profile picture upload error:", error);

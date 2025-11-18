@@ -258,9 +258,10 @@ export class ObjectStorageService {
     const filePath = `/${bucketName}/${objectName}`;
     
     if (isPublic) {
+      const publicUrl = `https://storage.googleapis.com/${bucketName}/${objectName}`;
       return { 
         filePath, 
-        publicUrl: filePath 
+        publicUrl 
       };
     }
     
@@ -285,8 +286,46 @@ export class ObjectStorageService {
     }
   }
 
-  async deleteFile(filePath: string): Promise<boolean> {
+  parsePublicUrlToPath(publicUrl: string): string | null {
+    const match = publicUrl.match(/^https:\/\/storage\.googleapis\.com\/([^\/]+)\/(.+)$/);
+    if (!match) {
+      return null;
+    }
+    const [, bucketName, objectName] = match;
+    return `/${bucketName}/${objectName}`;
+  }
+
+  async deleteFile(filePathOrUrl: string): Promise<boolean> {
     try {
+      let filePath = filePathOrUrl;
+      
+      if (filePathOrUrl.startsWith('https://storage.googleapis.com/')) {
+        const convertedPath = this.parsePublicUrlToPath(filePathOrUrl);
+        if (!convertedPath) {
+          console.error("Could not parse public URL:", filePathOrUrl);
+          return false;
+        }
+        filePath = convertedPath;
+      } else if (filePathOrUrl.startsWith('/uploads/')) {
+        const fs = await import('fs');
+        const path = await import('path');
+        
+        const fileName = filePathOrUrl.split('/').pop();
+        if (!fileName) {
+          return false;
+        }
+        
+        const uploadDir = path.join(process.cwd(), "uploads");
+        const legacyPath = path.join(uploadDir, fileName);
+        
+        if (!fs.existsSync(legacyPath)) {
+          return false;
+        }
+        
+        await fs.promises.unlink(legacyPath);
+        return true;
+      }
+
       const { bucketName, objectName } = parseObjectPath(filePath);
       const bucket = objectStorageClient.bucket(bucketName);
       const file = bucket.file(objectName);
