@@ -3397,32 +3397,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Voice file upload route (Object Storage public)
+  // Voice file upload route (Object Storage private)
   app.post("/api/upload-voice", upload.single("file"), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
       }
 
-      // 음성 파일 Object Storage public 업로드
+      const userId = req.headers["x-user-id"];
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      // 음성 파일 Object Storage private 업로드
       const timestamp = Date.now();
       const randomString = Math.random().toString(36).substring(2, 15);
       const fileName = `voice_${timestamp}_${randomString}.webm`;
       
       const fileBuffer = await fs.promises.readFile(req.file.path);
       
-      const { publicUrl } = await objectStorageService.uploadFile({
+      const { filePath } = await objectStorageService.uploadFile({
         fileName,
         fileBuffer,
         contentType: req.file.mimetype,
-        isPublic: true
+        isPublic: false,
+        userId: userId as string,
       });
+
+      // API URL 생성
+      const fileUrl = `/api/chat-files/${encodeURIComponent(fileName)}`;
+
+      console.log(`Voice file uploaded to Object Storage: ${filePath}`);
 
       // 임시 파일 삭제
       await fs.promises.unlink(req.file.path);
 
       res.json({
-        fileUrl: publicUrl,
+        fileUrl,
+        filePath, // Object Storage 내부 경로도 반환 (DB 저장용)
         fileName: req.file.originalname,
         fileSize: req.file.size,
       });
@@ -3641,6 +3653,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Chat room profile image serving error:", error);
       res.status(500).json({ message: "Failed to serve chat room profile image" });
+    }
+  });
+
+  // Chat files serving endpoint (Object Storage) - for all chat attachments
+  app.get("/api/chat-files/:fileName", async (req: Request, res: Response) => {
+    try {
+      const { fileName } = req.params;
+      const decodedFileName = decodeURIComponent(fileName);
+      
+      console.log(`📂 Fetching chat file: ${decodedFileName}`);
+
+      // Object Storage에서 파일 찾기
+      const file = await objectStorageService.findFileByName(decodedFileName);
+      if (!file) {
+        console.error(`❌ Chat file not found: ${decodedFileName}`);
+        return res.status(404).json({ message: "File not found" });
+      }
+
+      // 파일 다운로드
+      const [fileBuffer] = await file.download();
+
+      // MIME 타입 결정
+      const metadata = file.metadata;
+      const contentType = metadata?.contentType || 'application/octet-stream';
+
+      // 캐시 헤더 설정 (1일)
+      res.set({
+        'Content-Type': contentType,
+        'Content-Length': fileBuffer.length.toString(),
+        'Cache-Control': 'private, max-age=86400',
+      });
+
+      console.log(`✅ Chat file served: ${decodedFileName} (${fileBuffer.length} bytes)`);
+      res.send(fileBuffer);
+    } catch (error) {
+      console.error("Chat file serving error:", error);
+      res.status(500).json({ message: "Failed to serve chat file" });
     }
   });
 
