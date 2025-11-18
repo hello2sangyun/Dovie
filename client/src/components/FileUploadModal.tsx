@@ -229,13 +229,20 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="이 파일에 대한 설명을 입력하세요 (AI가 학습합니다)"
+              onKeyDown={(e) => {
+                // Ctrl+Enter 또는 Cmd+Enter로 업로드
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && selectedFiles) {
+                  e.preventDefault();
+                  handleUpload();
+                }
+              }}
+              placeholder="이 파일에 대한 설명을 입력하세요 (Ctrl+Enter로 업로드)"
               className="w-full min-h-[100px] resize-none border-gray-300 focus:ring-purple-500 focus:border-purple-500"
               maxLength={500}
             />
             <div className="flex justify-between items-center">
               <p className="text-xs text-gray-500">
-                AI가 이 설명을 학습하여 나중에 파일을 쉽게 찾을 수 있습니다
+                Ctrl+Enter로 업로드 시작 (AI가 설명을 학습합니다)
               </p>
               <span className="text-xs text-gray-400">
                 {description.length}/500
