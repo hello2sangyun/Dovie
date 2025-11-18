@@ -19,8 +19,6 @@ import { getVapidPublicKey, sendPushNotification, sendVoIPPush } from "./push-no
 import twilio from "twilio";
 import { z } from "zod";
 import { verifyIdToken, initializeFirebaseAdmin } from "./firebase-admin";
-import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
-import { ObjectPermission } from "./objectAcl";
 
 // Zod validation schemas
 const updateUserNotificationsSchema = z.object({
@@ -3458,14 +3456,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const isGroupImage = /^[a-f0-9]{32}$/i.test(filename); // multer 기본 해시 (32자리, 확장자 없음)
       
       if (!isProfileFile && !isEncryptedFile && !isGroupImage) {
-        console.log('Access denied for file:', filename, 'isProfile:', isProfileFile, 'isEncrypted:', isEncryptedFile, 'isGroupImage:', isGroupImage);
+        console.log('❌ Access denied for file:', filename, 'isProfile:', isProfileFile, 'isEncrypted:', isEncryptedFile, 'isGroupImage:', isGroupImage);
         return res.status(403).json({ message: "Access denied" });
       }
       
       const filePath = path.join(uploadDir, filename);
       
       if (!fs.existsSync(filePath)) {
-        return res.status(404).json({ message: "Profile image not found" });
+        console.log('❌ Profile image not found:', filename, 'Full path:', filePath);
+        console.log('📁 Available profile files in uploads dir:', fs.readdirSync(uploadDir).filter(f => f.startsWith('profile_')).slice(0, 5));
+        return res.status(404).json({ message: "Profile image not found", filename, suggestion: "파일이 삭제되었거나 존재하지 않습니다" });
       }
       
       // 파일 정보 확인
