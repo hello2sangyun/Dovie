@@ -38,6 +38,7 @@ import { AIChatAssistantModal } from "./AIChatAssistantModal";
 import AiNoticesModal from "./AiNoticesModal";
 import { ForwardMessageModal } from "./ForwardMessageModal";
 import { FilePreviewModal } from "./FilePreviewModal";
+import { FileDescriptionModal } from "./FileDescriptionModal";
 
 import TypingIndicator, { useTypingIndicator } from "./TypingIndicator";
 import { 
@@ -6085,82 +6086,17 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           </div>
         )}
 
-        {/* Inline File Preview */}
-        {showFilePreview && selectedPendingFiles && (
-          <div className="px-4 py-3 bg-purple-50 border-t border-purple-200">
-            <div className="space-y-3">
-              {/* 파일 미리보기 */}
-              <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto">
-                {Array.from(selectedPendingFiles).map((file, index) => {
-                  const isImage = file.type.startsWith('image/');
-                  const icon = isImage ? (
-                    <FileImage className="h-5 w-5 text-blue-500" />
-                  ) : file.type.includes('pdf') ? (
-                    <FileText className="h-5 w-5 text-red-500" />
-                  ) : file.type.includes('spreadsheet') || file.type.includes('excel') ? (
-                    <FileSpreadsheet className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <File className="h-5 w-5 text-gray-500" />
-                  );
-
-                  return (
-                    <div key={index} className="flex items-center gap-2 bg-white rounded-lg p-2 border border-purple-200">
-                      {isImage && previewUrls[index] ? (
-                        <img 
-                          src={previewUrls[index]} 
-                          alt={file.name} 
-                          className="w-12 h-12 object-cover rounded"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 flex items-center justify-center bg-gray-100 rounded">
-                          {icon}
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate" title={file.name}>
-                          {file.name.length > 20 ? `${file.name.substring(0, 17)}...` : file.name}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {(file.size / 1024).toFixed(1)} KB
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* 파일 설명 입력란 */}
-              <Textarea
-                value={fileDescription}
-                onChange={(e) => setFileDescription(e.target.value)}
-                placeholder="이 파일에 대한 설명을 입력하세요..."
-                rows={1}
-                className="w-full resize-none border-purple-300 focus:ring-purple-500 focus:border-purple-500"
-                maxLength={500}
-              />
-
-              {/* 전송 및 취소 버튼 */}
-              <div className="flex gap-2 pb-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCancelFilePreview}
-                  className="flex-1"
-                >
-                  취소
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={handleSendFilesInline}
-                  className="flex-1 purple-gradient hover:purple-gradient-hover text-white"
-                  disabled={uploadFileMutation.isPending}
-                >
-                  {uploadFileMutation.isPending ? "전송 중..." : "전송"}
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* File Description Modal */}
+        <FileDescriptionModal
+          isOpen={showFilePreview}
+          onClose={handleCancelFilePreview}
+          onSend={async (description) => {
+            setFileDescription(description);
+            await handleSendFilesInline();
+          }}
+          selectedFiles={selectedPendingFiles}
+          previewUrls={previewUrls}
+        />
 
         {/* File Upload Progress Display */}
         {uploadProgress.length > 0 && (

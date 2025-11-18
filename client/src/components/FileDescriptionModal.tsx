@@ -1,22 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Image, Video, Music, FileText, File } from 'lucide-react';
-import { queryClient } from '@/lib/queryClient';
 
-interface FileUploadModalProps {
+interface FileDescriptionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onUpload: (files: FileList, caption: string, description: string) => Promise<void>;
+  onSend: (description: string) => Promise<void>;
   selectedFiles: FileList | null;
+  previewUrls: (string | null)[];
 }
 
-export const FileUploadModal: React.FC<FileUploadModalProps> = ({
+export const FileDescriptionModal: React.FC<FileDescriptionModalProps> = ({
   isOpen,
   onClose,
-  onUpload,
-  selectedFiles
+  onSend,
+  selectedFiles,
+  previewUrls
 }) => {
   const [description, setDescription] = useState<string>('');
 
@@ -26,18 +27,17 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
     }
   }, [isOpen]);
 
-  const getFileIcon = (fileName: string) => {
-    const extension = fileName.split('.').pop()?.toLowerCase();
-    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension || '')) {
+  const getFileIcon = (file: File) => {
+    if (file.type.startsWith('image/')) {
       return <Image className="h-6 w-6 text-blue-500" />;
     }
-    if (['mp4', 'avi', 'mov', 'webm'].includes(extension || '')) {
+    if (file.type.startsWith('video/')) {
       return <Video className="h-6 w-6 text-purple-500" />;
     }
-    if (['mp3', 'wav', 'ogg', 'webm'].includes(extension || '')) {
+    if (file.type.startsWith('audio/')) {
       return <Music className="h-6 w-6 text-green-500" />;
     }
-    if (['pdf', 'doc', 'docx', 'txt'].includes(extension || '')) {
+    if (file.type.includes('pdf') || file.type.includes('text')) {
       return <FileText className="h-6 w-6 text-red-500" />;
     }
     return <File className="h-6 w-6 text-gray-500" />;
@@ -51,26 +51,17 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const getFileThumbnail = (file: File) => {
-    const extension = file.name.split('.').pop()?.toLowerCase();
-    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension || '')) {
-      return URL.createObjectURL(file);
-    }
-    return null;
-  };
-
-  const handleUpload = async () => {
+  const handleSend = async () => {
     if (!selectedFiles) return;
 
     // 즉시 모달 닫기
     onClose();
     
-    // 백그라운드로 업로드 시작
+    // 백그라운드로 전송
     try {
-      await onUpload(selectedFiles, '', description.trim());
-      await queryClient.invalidateQueries({ queryKey: ['/api/commands'] });
+      await onSend(description.trim());
     } catch (error) {
-      console.error('Background upload error:', error);
+      console.error('Send error:', error);
     }
   };
 
@@ -82,7 +73,8 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
   if (!selectedFiles || selectedFiles.length === 0) return null;
 
   const firstFile = selectedFiles[0];
-  const thumbnail = getFileThumbnail(firstFile);
+  const isImage = firstFile.type.startsWith('image/');
+  const thumbnail = isImage && previewUrls[0] ? previewUrls[0] : null;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -101,7 +93,7 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
               />
             ) : (
               <div className="w-14 h-14 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                {getFileIcon(firstFile.name)}
+                {getFileIcon(firstFile)}
               </div>
             )}
             <div className="flex-1 min-w-0">
@@ -110,6 +102,7 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 {formatFileSize(firstFile.size)}
+                {selectedFiles.length > 1 && ` 외 ${selectedFiles.length - 1}개`}
               </p>
             </div>
           </div>
@@ -123,7 +116,7 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
             onKeyDown={(e) => {
               if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && selectedFiles) {
                 e.preventDefault();
-                handleUpload();
+                handleSend();
               }
             }}
             placeholder="이 파일에 대한 설명을 입력하세요..."
@@ -139,14 +132,16 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
             variant="ghost"
             onClick={handleClose}
             className="flex-1 h-14 rounded-none text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium"
+            data-testid="button-cancel-file-description"
           >
             취소
           </Button>
           <div className="w-px bg-gray-100 dark:bg-gray-800" />
           <Button
-            onClick={handleUpload}
+            onClick={handleSend}
             disabled={!selectedFiles}
             className="flex-1 h-14 rounded-none bg-transparent hover:bg-purple-50 dark:hover:bg-purple-900/20 text-purple-600 dark:text-purple-400 font-semibold"
+            data-testid="button-send-file"
           >
             전송
           </Button>
