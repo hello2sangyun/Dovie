@@ -18,7 +18,7 @@ The backend is built with Node.js and Express.js (TypeScript, ES modules), using
 - **Chat System**: Real-time group/direct chats, encrypted file sharing, emoji reactions with user profiles, replies, archiving, infinite scroll pagination, and per-file download loading states.
 - **Business Features**: Business profiles and professional networking.
 - **Location Features**: Location-based chat rooms, nearby user discovery, location sharing.
-- **Admin Panel**: Monitoring, user management, performance metrics.
+- **Admin Panel**: Comprehensive dashboard with 7 tabs (Overview, Users, APIs, System, Database, Performance, Analytics). Features user management (ban/unban/delete with activity tracking), country-based analytics, API health monitoring (OpenAI, Database), real-time system metrics (CPU, memory, uptime), database usage statistics (table sizes, row counts), broadcast push notifications to all users, and performance optimization recommendations. Restricted to master@master.com account only.
 - **Push Notifications**: Intelligent filtering, grouped notifications, iOS PWA/Native app support with sound, badges, Dovie logo icons, and background message preloading. Supports iOS Rich Notifications for media previews.
 - **Hashtag System**: Single hashtag per file, auto-extraction, enhanced search.
 - **Voice Messages**: Unified recording experience with a full-screen modal, real-time transcription, smart suggestions, silence detection, and reply support.
