@@ -263,19 +263,18 @@ export class ObjectStorageService {
     };
     await setObjectAclPolicy(file, aclPolicy);
 
-    // 실제 GCS 객체를 public으로 설정 (브라우저에서 직접 접근 가능하도록)
-    if (isPublic) {
-      await file.makePublic();
-      console.log(`✅ File made public: ${objectName}`);
-    }
-
     const filePath = `/${bucketName}/${objectName}`;
     
     if (isPublic) {
-      const publicUrl = `https://storage.googleapis.com/${bucketName}/${objectName}`;
+      // Signed URL 생성 (1년 유효)
+      const [signedUrl] = await file.getSignedUrl({
+        action: 'read',
+        expires: Date.now() + 365 * 24 * 60 * 60 * 1000, // 1년
+      });
+      console.log(`✅ File uploaded with signed URL: ${objectName}`);
       return { 
         filePath, 
-        publicUrl 
+        publicUrl: signedUrl 
       };
     }
     
