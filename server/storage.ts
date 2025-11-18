@@ -432,6 +432,33 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
+  async findDirectChatRoomBetweenUsers(userId1: number, userId2: number): Promise<ChatRoom | undefined> {
+    // 완전히 최적화된 단일 쿼리: SQL로 직접 작성하여 N+1 문제 해결
+    const result = await db.execute<ChatRoom>(sql`
+      SELECT cr.*
+      FROM ${chatRooms} cr
+      WHERE cr.is_group = false
+        AND cr.id IN (
+          SELECT cp1.chat_room_id
+          FROM ${chatParticipants} cp1
+          INNER JOIN ${chatParticipants} cp2 
+            ON cp1.chat_room_id = cp2.chat_room_id
+          WHERE cp1.user_id = ${userId1}
+            AND cp2.user_id = ${userId2}
+          GROUP BY cp1.chat_room_id
+          HAVING COUNT(DISTINCT cp1.user_id) + COUNT(DISTINCT cp2.user_id) = 2
+        )
+        AND (
+          SELECT COUNT(*)
+          FROM ${chatParticipants} cp
+          WHERE cp.chat_room_id = cr.id
+        ) = 2
+      LIMIT 1
+    `);
+
+    return result.rows[0];
+  }
+
   async createChatRoom(chatRoom: InsertChatRoom, participantIds: number[]): Promise<ChatRoom> {
     const [newChatRoom] = await db.insert(chatRooms).values(chatRoom).returning();
     

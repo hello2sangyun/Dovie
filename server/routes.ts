@@ -1973,6 +1973,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const { name, participantIds, isGroup } = req.body;
+      
+      // 1:1 채팅방인 경우 (isGroup이 false이고 참여자가 2명인 경우)
+      if (!isGroup && participantIds && participantIds.length === 1) {
+        const otherUserId = participantIds[0];
+        console.log(`🔍 1:1 채팅방 중복 확인: 사용자 ${userId}와 ${otherUserId}`);
+        
+        // 기존 1:1 채팅방이 있는지 확인
+        const existingChatRoom = await storage.findDirectChatRoomBetweenUsers(Number(userId), otherUserId);
+        
+        if (existingChatRoom) {
+          console.log(`✅ 기존 1:1 채팅방 발견: ${existingChatRoom.id}`);
+          return res.json({ chatRoom: existingChatRoom });
+        }
+        
+        console.log(`📝 새 1:1 채팅방 생성`);
+      }
+      
       const chatRoomData = insertChatRoomSchema.parse({
         name,
         isGroup: isGroup || false,
@@ -1983,6 +2000,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const chatRoom = await storage.createChatRoom(chatRoomData, allParticipants);
       res.json({ chatRoom });
     } catch (error) {
+      console.error("채팅방 생성 오류:", error);
       res.status(500).json({ message: "Failed to create chat room" });
     }
   });
