@@ -3293,20 +3293,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fileBuffer = await fs.promises.readFile(req.file.path);
 
       if (messageType === 'voice') {
-        // 음성 파일 처리 - Object Storage public 업로드
+        // 음성 파일 처리 - Object Storage private 업로드
         const timestamp = Date.now();
         const randomString = Math.random().toString(36).substring(2, 15);
         const fileName = `voice_${timestamp}_${randomString}.webm`;
 
-        // Object Storage에 public으로 업로드
-        const { publicUrl } = await objectStorageService.uploadFile({
+        // Object Storage에 private으로 업로드
+        const { filePath } = await objectStorageService.uploadFile({
           fileName,
           fileBuffer,
           contentType: req.file.mimetype,
-          isPublic: true
+          isPublic: false,
+          chatRoomId: req.params.chatRoomId,
         });
 
-        console.log(`Audio file uploaded to Object Storage: ${publicUrl}`);
+        // API URL 생성
+        const fileUrl = `/api/chat-files/${encodeURIComponent(fileName)}`;
+
+        console.log(`Audio file uploaded to Object Storage: ${filePath}`);
 
         // Transcription을 위한 임시 파일 생성
         const tempPath = path.join(uploadDir, `temp_${fileName}`);
@@ -3321,7 +3325,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await fs.promises.unlink(tempPath);
 
           res.json({
-            fileUrl: publicUrl,
+            fileUrl,
+            filePath, // Object Storage 내부 경로도 반환 (DB 저장용)
             fileName: req.file.originalname,
             fileSize: req.file.size,
             transcription: transcriptionResult.transcription || '음성 메시지',
@@ -3336,7 +3341,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // 텍스트 변환 실패해도 파일 업로드는 성공으로 처리
           res.json({
-            fileUrl: publicUrl,
+            fileUrl,
+            filePath, // Object Storage 내부 경로도 반환 (DB 저장용)
             fileName: req.file.originalname,
             fileSize: req.file.size,
             transcription: '음성 메시지',
@@ -3346,18 +3352,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       } else {
-        // 일반 파일 처리 - Object Storage public 업로드
+        // 일반 파일 처리 - Object Storage private 업로드
         const timestamp = Date.now();
         const randomString = Math.random().toString(36).substring(2, 15);
         const fileName = `chat_${timestamp}_${randomString}_${req.file.originalname}`;
 
-        // Object Storage에 public으로 업로드 (URL 추측 불가능)
-        const { publicUrl } = await objectStorageService.uploadFile({
+        // Object Storage에 private으로 업로드
+        const { filePath } = await objectStorageService.uploadFile({
           fileName,
           fileBuffer,
           contentType: req.file.mimetype,
-          isPublic: true
+          isPublic: false,
+          chatRoomId: req.params.chatRoomId,
         });
+
+        // API URL 생성
+        const fileUrl = `/api/chat-files/${encodeURIComponent(fileName)}`;
+
+        console.log(`File uploaded to Object Storage: ${filePath}`);
 
         // AI 파일 요약 생성
         let fileSummary = "파일";
@@ -3369,7 +3381,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         res.json({
-          fileUrl: publicUrl,
+          fileUrl,
+          filePath, // Object Storage 내부 경로도 반환 (DB 저장용)
           fileName: req.file.originalname,
           fileSize: req.file.size,
           summary: fileSummary,
