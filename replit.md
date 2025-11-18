@@ -11,7 +11,7 @@ Preferred communication style: Simple, everyday language.
 The frontend uses React, TypeScript, Vite, Tailwind CSS, and shadcn/ui, with state managed by TanStack Query and routing by Wouter. It features a premium purple theme with gradients, shadows, and rounded corners, optimized for mobile responsiveness. Key UI elements include instant image loading with global Blob-based caching, compact chat bubbles, top banner-style mobile notifications, and a comprehensive PWA badge system. iOS-like navigation includes swipe-back gestures and smooth slide transitions. Touch event handling is optimized for previews, long-press, and scroll. Multi-file uploads show unified progress. iOS zoom prevention is implemented to prevent automatic zoom when opening modals or focusing inputs.
 
 ### Technical Implementations
-The backend is built with Node.js and Express.js (TypeScript, ES modules), using PostgreSQL and Drizzle ORM. Authentication includes email/password/phone verification with bcrypt. File handling uses Multer and AES-256 encryption. A WebSocket server manages real-time communication with intelligent background/foreground handling. AI integration uses OpenAI for commands, translation, transcription, and suggestions. Voice messages feature real-time transcription, waveform visualization, and silence detection. WebRTC voice calling uses peer-to-peer connections with STUN/TURN for NAT traversal. Comprehensive PWA capabilities and native iOS conversion via Capacitor enhance features like intelligent browser history, persistent sessions, and message retry. Battery optimization includes WebSocket auto-disconnection and microphone teardown.
+The backend is built with Node.js and Express.js (TypeScript, ES modules), using PostgreSQL and Drizzle ORM. Authentication includes email/password/phone verification with bcrypt. File handling now uses **Replit Object Storage** (Google Cloud Storage) with presigned URLs for client-direct uploads, ACL-based access control, and public/private file visibility management. Legacy support for local `/uploads` directory maintained for backward compatibility. A WebSocket server manages real-time communication with intelligent background/foreground handling. AI integration uses OpenAI for commands, translation, transcription, and suggestions. Voice messages feature real-time transcription, waveform visualization, and silence detection. WebRTC voice calling uses peer-to-peer connections with STUN/TURN for NAT traversal. Comprehensive PWA capabilities and native iOS conversion via Capacitor enhance features like intelligent browser history, persistent sessions, and message retry. Battery optimization includes WebSocket auto-disconnection and microphone teardown.
 
 ### Feature Specifications
 - **Authentication**: Email/password, phone number verification (Twilio), profile setup, role-based access.
@@ -34,7 +34,9 @@ The application prioritizes mobile performance. iOS keyboard handling uses `resi
 ## External Dependencies
 - **Database**: `@neondatabase/serverless`, `drizzle-orm`.
 - **Authentication/Security**: `bcryptjs`, `crypto-js`, `jsonwebtoken`.
-- **File Uploads**: `multer`.
+- **File Storage**: Replit Object Storage (Google Cloud Storage), `@google-cloud/storage`.
+- **File Uploads (Legacy)**: `multer` (maintained for backward compatibility).
+- **File Upload UI**: Uppy (`@uppy/core`, `@uppy/aws-s3`, `@uppy/dashboard`, `@uppy/react`).
 - **Real-time**: `ws` (WebSocket).
 - **AI**: `openai`.
 - **Frontend State Management**: `@tanstack/react-query`.
