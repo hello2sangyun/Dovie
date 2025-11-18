@@ -3204,7 +3204,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Chat room upload endpoint for voice messages with transcription
+  // Chat room upload endpoint for voice messages with transcription (Object Storage)
   app.post("/api/chat-rooms/:chatRoomId/upload", upload.single("file"), async (req, res) => {
     const userId = req.headers["x-user-id"];
     if (!userId) {
@@ -3217,27 +3217,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const messageType = req.body.messageType || 'file';
+      const fileBuffer = await fs.promises.readFile(req.file.path);
 
       if (messageType === 'voice') {
-        // 음성 파일 처리 - 암호화하지 않고 원본 형태로 저장
+        // 음성 파일 처리 - Object Storage public 업로드
         const timestamp = Date.now();
         const randomString = Math.random().toString(36).substring(2, 15);
         const fileName = `voice_${timestamp}_${randomString}.webm`;
-        const finalPath = path.join(uploadDir, fileName);
-        
-        // 파일을 최종 위치로 이동
-        fs.renameSync(req.file.path, finalPath);
 
-        console.log(`Audio file saved: ${fileName} URL: /uploads/${fileName}`);
+        // Object Storage에 public으로 업로드
+        const { publicUrl } = await objectStorageService.uploadFile({
+          fileName,
+          fileBuffer,
+          contentType: req.file.mimetype,
+          isPublic: true
+        });
+
+        console.log(`Audio file uploaded to Object Storage: ${publicUrl}`);
+
+        // Transcription을 위한 임시 파일 생성
+        const tempPath = path.join(uploadDir, `temp_${fileName}`);
+        await fs.promises.writeFile(tempPath, fileBuffer);
 
         // OpenAI 음성 텍스트 변환
         try {
-          const transcriptionResult = await transcribeAudio(finalPath);
+          const transcriptionResult = await transcribeAudio(tempPath);
           console.log('Transcription result:', transcriptionResult);
 
-          const fileUrl = `/uploads/${fileName}`;
+          // 임시 파일 삭제
+          await fs.promises.unlink(tempPath);
+
           res.json({
-            fileUrl,
+            fileUrl: publicUrl,
             fileName: req.file.originalname,
             fileSize: req.file.size,
             transcription: transcriptionResult.transcription || '음성 메시지',
@@ -3247,10 +3258,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         } catch (transcriptionError) {
           console.error('Transcription failed:', transcriptionError);
+          // 임시 파일 삭제
+          try { await fs.promises.unlink(tempPath); } catch {}
+          
           // 텍스트 변환 실패해도 파일 업로드는 성공으로 처리
-          const fileUrl = `/uploads/${fileName}`;
           res.json({
-            fileUrl,
+            fileUrl: publicUrl,
             fileName: req.file.originalname,
             fileSize: req.file.size,
             transcription: '음성 메시지',
@@ -3260,15 +3273,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       } else {
-        // 일반 파일 처리 - 암호화
-        const fileBuffer = fs.readFileSync(req.file.path);
-        const encryptedData = encryptFileData(fileBuffer);
-        
-        const encryptedFileName = hashFileName(req.file.originalname);
-        const encryptedFilePath = path.join(uploadDir, encryptedFileName);
-        
-        fs.writeFileSync(encryptedFilePath, encryptedData, 'utf8');
-        fs.unlinkSync(req.file.path);
+        // 일반 파일 처리 - Object Storage private 업로드 (암호화 제거)
+        const timestamp = Date.now();
+        const randomString = Math.random().toString(36).substring(2, 15);
+        const fileName = `chat_${timestamp}_${randomString}_${req.file.originalname}`;
+
+        // Object Storage에 private으로 업로드
+        const { publicUrl } = await objectStorageService.uploadFile({
+          fileName,
+          fileBuffer,
+          contentType: req.file.mimetype,
+          isPublic: false
+        });
 
         // AI 파일 요약 생성
         let fileSummary = "파일";
@@ -3279,39 +3295,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log("File summary generation failed, using default");
         }
 
-        const fileUrl = `/uploads/${encryptedFileName}`;
         res.json({
-          fileUrl,
+          fileUrl: publicUrl,
           fileName: req.file.originalname,
           fileSize: req.file.size,
           summary: fileSummary,
         });
       }
+
+      // 업로드된 임시 파일 삭제
+      await fs.promises.unlink(req.file.path);
     } catch (error) {
       console.error("Chat room file upload error:", error);
       res.status(500).json({ message: "File upload failed" });
     }
   });
 
-  // Voice file upload route (unencrypted for direct browser playback)
+  // Voice file upload route (Object Storage public)
   app.post("/api/upload-voice", upload.single("file"), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
       }
 
-      // 음성 파일은 암호화하지 않고 원본 형태로 저장
+      // 음성 파일 Object Storage public 업로드
       const timestamp = Date.now();
       const randomString = Math.random().toString(36).substring(2, 15);
       const fileName = `voice_${timestamp}_${randomString}.webm`;
-      const finalPath = path.join(uploadDir, fileName);
       
-      // 파일을 최종 위치로 이동
-      fs.renameSync(req.file.path, finalPath);
+      const fileBuffer = await fs.promises.readFile(req.file.path);
+      
+      const { publicUrl } = await objectStorageService.uploadFile({
+        fileName,
+        fileBuffer,
+        contentType: req.file.mimetype,
+        isPublic: true
+      });
 
-      const fileUrl = `/uploads/${fileName}`;
+      // 임시 파일 삭제
+      await fs.promises.unlink(req.file.path);
+
       res.json({
-        fileUrl,
+        fileUrl: publicUrl,
         fileName: req.file.originalname,
         fileSize: req.file.size,
       });
@@ -5289,7 +5314,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // File upload route
+  // File upload route (Object Storage)
   app.post("/api/upload", upload.single("file"), async (req, res) => {
     const userId = req.headers["x-user-id"];
     if (!userId) {
@@ -5304,17 +5329,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get optional description and chatRoomId from request body
       const { description, chatRoomId } = req.body;
 
-      // 파일을 암호화하지 않고 원본으로 저장 (고유한 파일명 생성)
+      // Object Storage에 업로드
       const timestamp = Date.now();
       const randomString = Math.random().toString(36).substring(2, 15);
       const ext = path.extname(req.file.originalname);
       const fileName = `file_${timestamp}_${randomString}${ext}`;
-      const finalPath = path.join(uploadDir, fileName);
       
-      // 파일을 최종 위치로 이동
-      fs.renameSync(req.file.path, finalPath);
+      const fileBuffer = await fs.promises.readFile(req.file.path);
       
-      console.log(`File saved: ${fileName} (${req.file.size} bytes)`);
+      const { publicUrl } = await objectStorageService.uploadFile({
+        fileName,
+        fileBuffer,
+        contentType: req.file.mimetype,
+        isPublic: false
+      });
+      
+      console.log(`File uploaded to Object Storage: ${publicUrl} (${req.file.size} bytes)`);
 
       // Track file upload in database with description
       await storage.trackFileUpload({
@@ -5324,12 +5354,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         originalName: req.file.originalname,
         fileSize: req.file.size,
         fileType: req.file.mimetype,
-        filePath: `/uploads/${fileName}`,
+        filePath: publicUrl,
         description: description || null
       });
 
+      // 임시 파일 삭제
+      await fs.promises.unlink(req.file.path);
+
       res.json({
-        fileUrl: `/uploads/${fileName}`,
+        fileUrl: publicUrl,
         fileName: req.file.originalname,
         fileSize: req.file.size,
         fileType: req.file.mimetype
@@ -6355,7 +6388,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { title, content, postType, visibility } = req.body;
       
-      // Handle file uploads
+      // Handle file uploads (Object Storage)
       let attachments: string[] = [];
       if (req.files && Array.isArray(req.files)) {
         for (const file of req.files) {
@@ -6364,18 +6397,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const randomString = Math.random().toString(36).substring(2, 15);
             const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
             const fileName = `space_${timestamp}_${randomString}_${sanitizedName}`;
-            const finalPath = path.join(uploadDir, fileName);
             
-            // Ensure uploads directory exists
-            if (!fs.existsSync(uploadDir)) {
-              fs.mkdirSync(uploadDir, { recursive: true });
-            }
-            
-            // Move file to final location
+            // Object Storage에 업로드
             if (fs.existsSync(file.path)) {
-              fs.renameSync(file.path, finalPath);
-              attachments.push(`/uploads/${fileName}`);
-              console.log(`Successfully uploaded file: ${fileName}`);
+              const fileBuffer = await fs.promises.readFile(file.path);
+              
+              const { publicUrl } = await objectStorageService.uploadFile({
+                fileName,
+                fileBuffer,
+                contentType: file.mimetype,
+                isPublic: false
+              });
+              
+              attachments.push(publicUrl);
+              
+              // 임시 파일 삭제
+              await fs.promises.unlink(file.path);
+              
+              console.log(`Successfully uploaded file to Object Storage: ${publicUrl}`);
             } else {
               console.error(`Source file not found: ${file.path}`);
             }
@@ -6816,7 +6855,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 포스트 작성 API (이미지/동영상 포함)
+  // 포스트 작성 API (이미지/동영상 포함, Object Storage)
   app.post("/api/posts", upload.array('files', 5), async (req, res) => {
     const userId = req.headers["x-user-id"];
     
@@ -6835,7 +6874,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let attachments: string[] = [];
       
       if (files && files.length > 0) {
-        // 파일들을 암호화하여 저장
+        // 파일들을 Object Storage에 업로드
         for (const file of files) {
           try {
             // 파일이 실제로 존재하고 크기가 0보다 큰지 확인
@@ -6844,22 +6883,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
               continue;
             }
             
-            // 파일 내용을 암호화
-            const fileBuffer = fs.readFileSync(file.path);
-            const encryptedData = encryptFileData(fileBuffer);
+            const timestamp = Date.now();
+            const randomString = Math.random().toString(36).substring(2, 15);
+            const ext = path.extname(file.originalname);
+            const fileName = `post_${timestamp}_${randomString}${ext}`;
             
-            // 암호화된 파일명 생성
-            const encryptedFileName = hashFileName(file.originalname);
-            const encryptedFilePath = path.join(uploadDir, encryptedFileName);
+            // Object Storage에 업로드
+            const fileBuffer = await fs.promises.readFile(file.path);
             
-            // 암호화된 데이터를 파일로 저장
-            fs.writeFileSync(encryptedFilePath, encryptedData, 'utf8');
+            const { publicUrl } = await objectStorageService.uploadFile({
+              fileName,
+              fileBuffer,
+              contentType: file.mimetype,
+              isPublic: false
+            });
             
             // 원본 임시 파일 삭제
-            fs.unlinkSync(file.path);
+            await fs.promises.unlink(file.path);
             
-            attachments.push(`/uploads/${encryptedFileName}`);
-            console.log("Successfully processed file:", file.originalname, "->", encryptedFileName);
+            attachments.push(publicUrl);
+            console.log("Successfully uploaded file to Object Storage:", file.originalname, "->", publicUrl);
           } catch (fileError) {
             console.error("Error processing file:", file.originalname, fileError);
             // 파일 처리 실패시 건너뛰기
