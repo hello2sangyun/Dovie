@@ -6093,12 +6093,15 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
           onSend={async (description) => {
             if (!selectedPendingFiles) return;
             
-            // Close modal first
+            // Save files to local variable before closing modal
+            const filesToUpload = selectedPendingFiles;
+            
+            // Close modal
             handleCancelFilePreview();
             
-            // Start upload with description
+            // Start upload with saved files
             try {
-              await handleFileUploadWithHashtags(selectedPendingFiles, '', description);
+              await handleFileUploadWithHashtags(filesToUpload, '', description);
             } catch (error) {
               console.error('파일 전송 오류:', error);
             }
