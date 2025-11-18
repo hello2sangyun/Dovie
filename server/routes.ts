@@ -8309,16 +8309,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 관리자 API - 시스템 통계 (동시 접속자 포함)
   app.get("/api/admin/system", checkAdminAuth, async (req, res) => {
     try {
-      // WebSocket 연결에서 동시 접속자 수 가져오기
-      const onlineUsers = Array.from(activeConnections.values()).filter(conn => conn.isAlive).length;
-      
       // 시스템 리소스 정보 (Node.js process)
       const used = process.memoryUsage();
       const cpuUsage = process.cpuUsage();
       
+      // WebSocket 연결 정보는 별도 모듈에서 관리하므로 현재는 0으로 표시
+      // TODO: WebSocket manager 통합 후 실제 값 사용
+      const onlineUsers = 0;
+      const totalConnections = 0;
+      
       const systemInfo = {
         onlineUsers,
-        totalConnections: activeConnections.size,
+        totalConnections,
         memoryUsage: {
           rss: Math.round(used.rss / 1024 / 1024), // MB
           heapUsed: Math.round(used.heapUsed / 1024 / 1024), // MB
