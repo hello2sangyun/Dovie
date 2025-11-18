@@ -1944,7 +1944,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const chatRooms = await storage.getChatRooms(Number(userId));
-      res.json({ chatRooms });
+      
+      // profileImage를 API URL로 변환
+      const chatRoomsWithApiUrls = chatRooms.map(room => {
+        if (room.profileImage) {
+          return {
+            ...room,
+            profileImage: `/api/chat-room-profile/${room.id}`
+          };
+        }
+        return room;
+      });
+      
+      res.json({ chatRooms: chatRoomsWithApiUrls });
     } catch (error) {
       console.error("Chat rooms error:", error);
       res.status(500).json({ message: "Failed to get chat rooms" });
@@ -1964,9 +1976,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Chat room not found" });
       }
 
+      // profileImage를 API URL로 변환
+      const profileImageUrl = chatRoom.profileImage 
+        ? `/api/chat-room-profile/${chatRoom.id}` 
+        : null;
+
       res.json({
         ...chatRoom,
-        profileImage: chatRoom.profilePicture || null,
+        profileImage: profileImageUrl,
       });
     } catch (error) {
       console.error("Get chat room error:", error);
@@ -2117,11 +2134,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No file uploaded" });
       }
 
-      const profilePicture = `/uploads/${req.file.filename}`;
-      const chatRoom = await storage.updateChatRoomProfileImage(Number(req.params.chatRoomId), Number(userId), profilePicture);
+      const chatRoomId = Number(req.params.chatRoomId);
+
+      // 이미지 파일만 허용
+      if (!req.file.mimetype.startsWith('image/')) {
+        return res.status(400).json({ message: "Only image files are allowed" });
+      }
+
+      // 파일 크기 제한 (5MB)
+      if (req.file.size > 5 * 1024 * 1024) {
+        return res.status(400).json({ message: "File size must be less than 5MB" });
+      }
+
+      // 파일 버퍼 읽기
+      const fileBuffer = await fs.promises.readFile(req.file.path);
+
+      // 기존 프로필 이미지 삭제
+      const existingChatRoom = await storage.getChatRoomById(chatRoomId);
+      if (existingChatRoom?.profileImage) {
+        try {
+          // 기존 Object Storage 파일 삭제
+          await objectStorageService.deleteFile(existingChatRoom.profileImage);
+        } catch (deleteError) {
+          console.log("Could not delete existing chat room profile image:", deleteError);
+        }
+      }
+
+      // Object Storage에 업로드 (private으로 저장)
+      const ext = path.extname(req.file.originalname) || '.jpg';
+      const fileName = `chat_room_${chatRoomId}${ext}`;
+
+      const { filePath } = await objectStorageService.uploadFile({
+        fileName,
+        fileBuffer,
+        contentType: req.file.mimetype,
+        isPublic: false,
+        chatRoomId: chatRoomId.toString(),
+      });
+
+      // 임시 파일 삭제
+      await fs.promises.unlink(req.file.path).catch(() => {});
+
+      // API를 통해 제공할 URL 생성
+      const profileImageUrl = `/api/chat-room-profile/${chatRoomId}`;
+
+      // DB에 Object Storage filePath 저장
+      const chatRoom = await storage.updateChatRoomProfileImage(chatRoomId, Number(userId), filePath);
       
+      // 클라이언트에 반환할 때는 API URL로 변환
+      if (chatRoom) {
+        chatRoom.profileImage = profileImageUrl;
+      }
+
+      console.log(`✅ Chat room profile image uploaded to Object Storage: ${filePath}`);
+
       // WebSocket으로 알림
-      broadcastToRoom(Number(req.params.chatRoomId), {
+      broadcastToRoom(chatRoomId, {
         type: "chatRoomUpdated",
         chatRoom,
       });
@@ -3522,6 +3590,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Profile picture serving error:", error);
       res.status(500).json({ message: "Failed to serve profile picture" });
+    }
+  });
+
+  // Chat room profile image serving endpoint (Object Storage)
+  app.get("/api/chat-room-profile/:chatRoomId", async (req: Request, res: Response) => {
+    try {
+      const { chatRoomId } = req.params;
+      
+      // 챗방 정보 가져오기
+      const chatRoom = await storage.getChatRoomById(Number(chatRoomId));
+      if (!chatRoom || !chatRoom.profileImage) {
+        return res.status(404).json({ message: "Chat room profile image not found" });
+      }
+
+      // Object Storage에서 파일 가져오기
+      const file = await objectStorageService.getFile(chatRoom.profileImage);
+      if (!file) {
+        return res.status(404).json({ message: "Chat room profile image file not found" });
+      }
+
+      // 파일 다운로드
+      const [fileBuffer] = await file.download();
+
+      // MIME 타입 결정
+      const metadata = file.metadata;
+      const contentType = metadata?.contentType || 'image/jpeg';
+
+      // 캐시 헤더 설정 (1일)
+      res.set({
+        'Content-Type': contentType,
+        'Content-Length': fileBuffer.length.toString(),
+        'Cache-Control': 'public, max-age=86400',
+      });
+
+      res.send(fileBuffer);
+    } catch (error) {
+      console.error("Chat room profile image serving error:", error);
+      res.status(500).json({ message: "Failed to serve chat room profile image" });
     }
   });
 
