@@ -306,7 +306,8 @@ self.addEventListener('push', (event) => {
   console.log('[SW] Showing Telegram-style notification:', {
     title: notificationData.title,
     body: options.body,
-    tag: options.tag
+    tag: options.tag,
+    badgeCount: notificationData.data?.badgeCount
   });
   
   event.waitUntil(
@@ -318,10 +319,12 @@ self.addEventListener('push', (event) => {
       ).then(() => {
         console.log('[SW] Telegram-style notification displayed');
         
-        // Update badge only if unread count is provided (like Telegram)
-        if (notificationData.data?.unreadCount > 0) {
-          return setTelegramStyleBadge(notificationData.data.unreadCount);
-        }
+        // Update badge with accurate count from server (badgeCount takes priority)
+        const badgeCount = notificationData.data?.badgeCount ?? notificationData.data?.unreadCount ?? 0;
+        console.log('[SW] 📱 Updating badge from push notification:', badgeCount);
+        
+        // Always update badge, even if 0 (to clear it)
+        return setTelegramStyleBadge(badgeCount);
       }).catch((error) => {
         console.error('[SW] Notification failed:', error);
         
