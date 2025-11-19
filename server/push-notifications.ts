@@ -328,6 +328,9 @@ async function sendIOSPushNotifications(
       }
       
       // iOS APNS 페이로드 구성 (올바른 aps 래퍼 구조)
+      // 🔥 Sender profile picture: use icon first, then fall back to data.senderProfilePicture
+      const senderProfilePictureUrl = payload.icon || payload.data?.senderProfilePicture;
+      
       const customData = {
         type: payload.data?.type || 'message',
         chatRoomId: payload.data?.chatRoomId,
@@ -335,6 +338,8 @@ async function sendIOSPushNotifications(
         senderId: payload.data?.senderId,
         senderName: payload.data?.senderName,
         url: payload.data?.url || '/',
+        // 🔥 Sender profile picture URL for notification icon
+        ...(senderProfilePictureUrl && { senderProfilePicture: senderProfilePictureUrl }),
         // Image/media attachment URL for rich notifications
         ...(payload.data?.imageUrl && { imageUrl: payload.data.imageUrl }),
         ...(payload.data?.videoUrl && { videoUrl: payload.data.videoUrl }),

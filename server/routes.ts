@@ -2667,6 +2667,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 messageType: messageData.messageType || 'text',
                 senderId: Number(userId),
                 senderName: sender.displayName,
+                senderProfilePicture: sender.profilePicture || '/icons/dovie-logo.png',  // 🔥 For iOS Notification Service Extension
                 unreadCount: totalBadgeCount,
                 url: `/?chat=${req.params.chatRoomId}`
               };
