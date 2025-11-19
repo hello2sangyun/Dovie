@@ -1,5 +1,8 @@
-import { registerPlugin } from '@capacitor/core';
-import type { PluginListenerHandle } from '@capacitor/core';
+import { isNativePlatform } from '@/lib/nativeBridge';
+
+type PluginListenerHandle = {
+  remove: () => void;
+};
 
 export interface CallKitVoipPlugin {
   register(): Promise<{ success: boolean }>;
@@ -56,8 +59,10 @@ export interface CallKitVoipPlugin {
   removeAllListeners(): Promise<void>;
 }
 
-const CallKitVoip = registerPlugin<CallKitVoipPlugin>('CallKitVoip', {
-  web: () => {
+let CallKitVoip: CallKitVoipPlugin | null = null;
+
+async function getCallKitPlugin(): Promise<CallKitVoipPlugin> {
+  if (!isNativePlatform()) {
     return {
       register: async () => ({ success: false }),
       reportIncomingCall: async () => ({ success: false }),
@@ -68,7 +73,15 @@ const CallKitVoip = registerPlugin<CallKitVoipPlugin>('CallKitVoip', {
       removeAllListeners: async () => {}
     };
   }
-});
+
+  if (CallKitVoip) {
+    return CallKitVoip;
+  }
+
+  const { registerPlugin } = await import('@capacitor/core');
+  CallKitVoip = registerPlugin<CallKitVoipPlugin>('CallKitVoip');
+  return CallKitVoip;
+}
 
 export interface CallKitHandlers {
   onIncomingCall?: (data: {
@@ -106,6 +119,11 @@ export class CallKitService {
   }
   
   private async ensureNativeBridge(): Promise<void> {
+    if (!isNativePlatform()) {
+      console.log('📞 [CallKitService] Skipping native bridge - not on native platform');
+      return;
+    }
+
     // Return immediately if already ready
     if (this.nativeBridgeReady) {
       return;
@@ -132,9 +150,11 @@ export class CallKitService {
     try {
       console.log('📞 [CallKitService] Bootstrapping native bridge...');
       
-      await CallKitVoip.register();
+      const plugin = await getCallKitPlugin();
       
-      const tokenListener = await CallKitVoip.addListener('voipToken', async (data) => {
+      await plugin.register();
+      
+      const tokenListener = await plugin.addListener('voipToken', async (data) => {
         console.log('📞 [CallKitService] VoIP token received:', data.token.substring(0, 20) + '...');
         this.voipToken = data.token;
         
@@ -143,28 +163,28 @@ export class CallKitService {
         }
       });
       
-      const incomingCallListener = await CallKitVoip.addListener('incomingCall', async (data) => {
+      const incomingCallListener = await plugin.addListener('incomingCall', async (data) => {
         console.log('📞 [CallKitService] Native incoming call event:', data);
         if (this.jsHandlers.onIncomingCall) {
           this.jsHandlers.onIncomingCall(data);
         }
       });
       
-      const answeredListener = await CallKitVoip.addListener('callAnswered', (data) => {
+      const answeredListener = await plugin.addListener('callAnswered', (data) => {
         console.log('📞 [CallKitService] Native call answered event:', data);
         if (this.jsHandlers.onCallAnswered) {
           this.jsHandlers.onCallAnswered(data);
         }
       });
       
-      const endedListener = await CallKitVoip.addListener('callEnded', (data) => {
+      const endedListener = await plugin.addListener('callEnded', (data) => {
         console.log('📞 [CallKitService] Native call ended event:', data);
         if (this.jsHandlers.onCallEnded) {
           this.jsHandlers.onCallEnded(data);
         }
       });
       
-      const startedListener = await CallKitVoip.addListener('callStarted', (data) => {
+      const startedListener = await plugin.addListener('callStarted', (data) => {
         console.log('📞 [CallKitService] Native call started event:', data);
         if (this.jsHandlers.onCallStarted) {
           this.jsHandlers.onCallStarted(data);
@@ -173,11 +193,11 @@ export class CallKitService {
       
       // Populate handles array first, then mark ready (atomic operation)
       this.nativeBridgeHandles = [
-        await tokenListener,
-        await incomingCallListener,
-        await answeredListener,
-        await endedListener,
-        await startedListener
+        tokenListener,
+        incomingCallListener,
+        answeredListener,
+        endedListener,
+        startedListener
       ];
       
       this.nativeListenersCleared = false;
@@ -270,11 +290,12 @@ export class CallKitService {
     this.resetHandlers();
     this.clearUserContext();
     
-    if (options?.hard && !this.nativeListenersCleared) {
+    if (options?.hard && !this.nativeListenersCleared && isNativePlatform()) {
       console.log('🧹 [CallKitService] Hard teardown: removing native listeners');
       this.nativeBridgeHandles.forEach(handle => handle.remove());
       this.nativeBridgeHandles = [];
-      await CallKitVoip.removeAllListeners();
+      const plugin = await getCallKitPlugin();
+      await plugin.removeAllListeners();
       this.nativeBridgeReady = false;
       this.nativeBridgeInitializing = false;
       this.nativeListenersCleared = true;
@@ -284,8 +305,11 @@ export class CallKitService {
   }
   
   async reportIncomingCall(callId: string, callerName: string): Promise<void> {
+    if (!isNativePlatform()) return;
+    
     try {
-      await CallKitVoip.reportIncomingCall({
+      const plugin = await getCallKitPlugin();
+      await plugin.reportIncomingCall({
         callId,
         callerName,
         hasVideo: false
@@ -297,8 +321,11 @@ export class CallKitService {
   }
   
   async startCall(callId: string, handle: string): Promise<void> {
+    if (!isNativePlatform()) return;
+    
     try {
-      await CallKitVoip.startCall({ callId, handle });
+      const plugin = await getCallKitPlugin();
+      await plugin.startCall({ callId, handle });
       console.log('📞 [CallKitService] Started outgoing call');
     } catch (error) {
       console.error('❌ [CallKitService] Failed to start call:', error);
@@ -306,8 +333,11 @@ export class CallKitService {
   }
   
   async endCall(callId: string): Promise<void> {
+    if (!isNativePlatform()) return;
+    
     try {
-      await CallKitVoip.endCall({ callId });
+      const plugin = await getCallKitPlugin();
+      await plugin.endCall({ callId });
       console.log('📞 [CallKitService] Ended call');
     } catch (error) {
       console.error('❌ [CallKitService] Failed to end call:', error);
@@ -315,8 +345,11 @@ export class CallKitService {
   }
   
   async answerCall(callId: string): Promise<void> {
+    if (!isNativePlatform()) return;
+    
     try {
-      await CallKitVoip.answerCall({ callId });
+      const plugin = await getCallKitPlugin();
+      await plugin.answerCall({ callId });
       console.log('📞 [CallKitService] Answered call');
     } catch (error) {
       console.error('❌ [CallKitService] Failed to answer call:', error);
