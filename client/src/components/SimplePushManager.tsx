@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { getApiUrl } from '@/lib/api-config';
 
 export function SimplePushManager() {
   const { user } = useAuth();
@@ -43,7 +44,7 @@ export function SimplePushManager() {
       try {
         // Get VAPID key
         console.log('🔑 Fetching VAPID public key...');
-        const vapidResponse = await fetch('/api/vapid-public-key');
+        const vapidResponse = await fetch(getApiUrl('/api/vapid-public-key'));
         if (!vapidResponse.ok) {
           console.error('❌ Failed to fetch VAPID key:', vapidResponse.status);
           return;
@@ -70,7 +71,7 @@ export function SimplePushManager() {
             endpoint: existingSubscription.endpoint.substring(0, 50) + '...'
           });
           // Verify with server - fixed format
-          const response = await fetch('/api/push-subscription', {
+          const response = await fetch(getApiUrl('/api/push-subscription'), {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -105,7 +106,7 @@ export function SimplePushManager() {
 
         // Send to server - fix format
         console.log('📤 Sending new push subscription to server...');
-        const response = await fetch('/api/push-subscription', {
+        const response = await fetch(getApiUrl('/api/push-subscription'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

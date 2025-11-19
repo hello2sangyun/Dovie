@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Smartphone, Bell, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { getApiUrl } from '@/lib/api-config';
 
 interface PushNotificationTesterProps {
   className?: string;
@@ -51,7 +52,7 @@ export function PushNotificationTester({ className }: PushNotificationTesterProp
       const userId = localStorage.getItem('userId');
       if (userId) {
         try {
-          const response = await fetch('/api/push-subscription/status', {
+          const response = await fetch(getApiUrl('/api/push-subscription/status'), {
             headers: {
               'X-User-ID': userId
             }
@@ -92,7 +93,7 @@ export function PushNotificationTester({ className }: PushNotificationTesterProp
     }
 
     try {
-      const response = await fetch('/api/test-push', {
+      const response = await fetch(getApiUrl('/api/test-push'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

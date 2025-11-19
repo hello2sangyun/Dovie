@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { User } from "@shared/schema";
+import { getApiUrl } from '@/lib/api-config';
 
 interface AuthContextType {
   user: User | null;
@@ -34,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     staleTime: 5 * 60 * 1000, // 5분 동안 캐시 유지
     gcTime: 10 * 60 * 1000, // 10분 동안 메모리에 보관 (v5에서 cacheTime -> gcTime)
     queryFn: async () => {
-      const response = await fetch("/api/auth/me", {
+      const response = await fetch(getApiUrl("/api/auth/me"), {
         headers: {
           "x-user-id": storedUserId!,
         },
@@ -102,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Username login function
   const loginWithUsername = async (username: string, password: string) => {
-    const response = await fetch("/api/auth/username-login", {
+    const response = await fetch(getApiUrl("/api/auth/username-login"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -133,7 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Email login function
   const loginWithEmail = async (email: string, password: string) => {
-    const response = await fetch("/api/auth/login", {
+    const response = await fetch(getApiUrl("/api/auth/login"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -169,7 +170,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userId = localStorage.getItem("userId");
       
       // Call logout API endpoint with userId header
-      await fetch("/api/auth/logout", {
+      await fetch(getApiUrl("/api/auth/logout"), {
         method: "POST",
         credentials: "include",
         headers: {
@@ -244,7 +245,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 });
                 
                 // Send subscription to server
-                await fetch('/api/push-subscription', {
+                await fetch(getApiUrl('/api/push-subscription'), {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',

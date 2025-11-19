@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { getApiUrl } from "./api-config";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -18,7 +19,10 @@ export async function apiRequest(
     ...(userId ? { "x-user-id": userId } : {})
   };
 
-  const res = await fetch(url, {
+  // Convert relative URL to absolute URL if needed (for native apps)
+  const fullUrl = getApiUrl(url);
+
+  const res = await fetch(fullUrl, {
     method,
     headers,
     body: data ? JSON.stringify(data) : undefined,
@@ -40,7 +44,10 @@ export const getQueryFn: <T>(options: {
       ...(userId ? { "x-user-id": userId } : {})
     };
 
-    const res = await fetch(queryKey[0] as string, {
+    // Convert relative URL to absolute URL if needed (for native apps)
+    const fullUrl = getApiUrl(queryKey[0] as string);
+
+    const res = await fetch(fullUrl, {
       headers,
       credentials: "include",
     });

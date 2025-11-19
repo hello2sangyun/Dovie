@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { getApiUrl } from '@/lib/api-config';
 
 /**
  * 독립적 배지 시스템 - 앱 실행 없이도 배지 업데이트 가능
@@ -107,7 +108,7 @@ export function useIndependentBadge() {
   const setupAppFocusSync = () => {
     const syncBadgeOnFocus = () => {
       // 앱이 활성화될 때 서버에서 최신 배지 정보 가져오기
-      fetch('/api/unread-counts', {
+      fetch(getApiUrl('/api/unread-counts'), {
         headers: {
           'x-user-id': localStorage.getItem('userId') || '',
           'Content-Type': 'application/json'

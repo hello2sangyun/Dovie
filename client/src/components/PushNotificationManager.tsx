@@ -5,6 +5,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Bell, BellOff, Smartphone, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { getApiUrl } from '@/lib/api-config';
 
 interface PushNotificationManagerProps {
   className?: string;
@@ -71,7 +72,7 @@ export function PushNotificationManager({ className }: PushNotificationManagerPr
       const hasUserId = localStorage.getItem('userId');
       if (hasUserId && subscription) {
         try {
-          const response = await fetch('/api/push-subscription/status', {
+          const response = await fetch(getApiUrl('/api/push-subscription/status'), {
             headers: {
               'X-User-ID': hasUserId
             }
@@ -178,7 +179,7 @@ export function PushNotificationManager({ className }: PushNotificationManagerPr
       };
 
       // Get VAPID public key from server
-      const vapidResponse = await fetch('/api/vapid-public-key');
+      const vapidResponse = await fetch(getApiUrl('/api/vapid-public-key'));
       if (!vapidResponse.ok) {
         throw new Error('Failed to get VAPID public key');
       }
@@ -200,7 +201,7 @@ export function PushNotificationManager({ className }: PushNotificationManagerPr
         userId: userId
       });
 
-      const response = await fetch('/api/push-subscription', {
+      const response = await fetch(getApiUrl('/api/push-subscription'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -241,7 +242,7 @@ export function PushNotificationManager({ className }: PushNotificationManagerPr
         await subscription.unsubscribe();
 
         // Remove from server
-        await fetch('/api/push-subscription', {
+        await fetch(getApiUrl('/api/push-subscription'), {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
