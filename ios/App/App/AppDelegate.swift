@@ -1,7 +1,6 @@
 import UIKit
 import Capacitor
 import UserNotifications
-import WebKit
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
@@ -9,9 +8,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Clear WKWebView cache on app launch to ensure latest web assets are loaded
-        clearWebViewCache()
-        
         // Set UNUserNotificationCenter delegate for push notifications
         UNUserNotificationCenter.current().delegate = self
         
@@ -23,20 +19,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         }
         
         return true
-    }
-    
-    // WKWebView 캐시만 클리어 (쿠키, localStorage는 유지)
-    func clearWebViewCache() {
-        // 디스크/메모리 캐시만 정리하여 인증 정보는 보존
-        let cacheDataTypes = Set([
-            WKWebsiteDataTypeDiskCache,
-            WKWebsiteDataTypeMemoryCache
-        ])
-        
-        let date = Date(timeIntervalSince1970: 0)
-        WKWebsiteDataStore.default().removeData(ofTypes: cacheDataTypes, modifiedSince: date) {
-            print("🧹 [AppDelegate] WKWebView cache cleared (auth data preserved)")
-        }
     }
     
     // APNS: 푸시 토큰 등록 성공
