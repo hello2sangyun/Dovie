@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { getApiUrl } from '@/lib/api-config';
 
 // Telegram/WhatsApp-style notification management
 // Suppresses notifications when user is actively using the app
@@ -119,7 +118,7 @@ export function TelegramStyleNotificationManager({ className }: TelegramStyleNot
     if (!user?.id) return;
 
     try {
-      await fetch(getApiUrl('/api/user/heartbeat'), {
+      await fetch('/api/user/heartbeat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -140,7 +139,7 @@ export function TelegramStyleNotificationManager({ className }: TelegramStyleNot
     if (!user?.id) return;
 
     try {
-      await fetch(getApiUrl('/api/user/activity-status'), {
+      await fetch('/api/user/activity-status', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

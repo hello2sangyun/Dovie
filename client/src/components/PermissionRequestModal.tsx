@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Mic, Bell, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getApiUrl } from '@/lib/api-config';
 
 interface PermissionRequestModalProps {
   isOpen: boolean;
@@ -76,7 +75,7 @@ export function PermissionRequestModal({ isOpen, onComplete }: PermissionRequest
             };
 
             // Get VAPID public key from server
-            const vapidResponse = await fetch(getApiUrl('/api/vapid-public-key'));
+            const vapidResponse = await fetch('/api/vapid-public-key');
             if (!vapidResponse.ok) {
               throw new Error('Failed to get VAPID public key');
             }
@@ -88,7 +87,7 @@ export function PermissionRequestModal({ isOpen, onComplete }: PermissionRequest
             });
 
             // Send subscription to server with proper format
-            const response = await fetch(getApiUrl('/api/push-subscription'), {
+            const response = await fetch('/api/push-subscription', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -184,7 +183,7 @@ export function PermissionRequestModal({ isOpen, onComplete }: PermissionRequest
       };
 
       // Get VAPID public key from server
-      const vapidResponse = await fetch(getApiUrl('/api/vapid-public-key'));
+      const vapidResponse = await fetch('/api/vapid-public-key');
       if (!vapidResponse.ok) {
         throw new Error('Failed to get VAPID public key');
       }
@@ -197,7 +196,7 @@ export function PermissionRequestModal({ isOpen, onComplete }: PermissionRequest
 
       // Send subscription to server
       const userId = localStorage.getItem('userId');
-      const response = await fetch(getApiUrl('/api/push-subscription'), {
+      const response = await fetch('/api/push-subscription', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

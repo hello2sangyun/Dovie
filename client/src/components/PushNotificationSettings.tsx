@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bell, BellOff, Smartphone, Settings } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { getApiUrl } from '@/lib/api-config';
 
 export function PushNotificationSettings() {
   const { user } = useAuth();
@@ -58,7 +57,7 @@ export function PushNotificationSettings() {
     setIsLoading(true);
     try {
       // Get VAPID key
-      const vapidResponse = await fetch(getApiUrl('/api/vapid-public-key'));
+      const vapidResponse = await fetch('/api/vapid-public-key');
       const { publicKey } = await vapidResponse.json();
 
       // Get service worker registration
@@ -71,7 +70,7 @@ export function PushNotificationSettings() {
       });
 
       // Send subscription to server
-      await fetch(getApiUrl('/api/push-subscription'), {
+      await fetch('/api/push-subscription', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -106,7 +105,7 @@ export function PushNotificationSettings() {
         await subscription.unsubscribe();
         
         // Remove from server
-        await fetch(getApiUrl('/api/push-subscription'), {
+        await fetch('/api/push-subscription', {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -143,7 +142,7 @@ export function PushNotificationSettings() {
     if (!user || !isEnabled) return;
     
     try {
-      await fetch(getApiUrl('/api/test-push-notification'), {
+      await fetch('/api/test-push-notification', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Bell, Smartphone, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
-import { getApiUrl } from '@/lib/api-config';
 
 export function PushDebugPanel() {
   const { user } = useAuth();
@@ -54,7 +53,7 @@ export function PushDebugPanel() {
 
       // Check VAPID key
       try {
-        const vapidResponse = await fetch(getApiUrl('/api/vapid-public-key'));
+        const vapidResponse = await fetch('/api/vapid-public-key');
         if (vapidResponse.ok) {
           const vapidData = await vapidResponse.json();
           info.vapidKey = {
@@ -69,7 +68,7 @@ export function PushDebugPanel() {
       // Check server subscription status
       if (user) {
         try {
-          const statusResponse = await fetch(getApiUrl('/api/push-subscription/status'), {
+          const statusResponse = await fetch('/api/push-subscription/status', {
             headers: { 'X-User-ID': user.id.toString() }
           });
           if (statusResponse.ok) {
@@ -92,7 +91,7 @@ export function PushDebugPanel() {
     if (!user) return;
     
     try {
-      const response = await fetch(getApiUrl('/api/test-push-notification'), {
+      const response = await fetch('/api/test-push-notification', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -121,7 +120,7 @@ export function PushDebugPanel() {
       if (permission !== 'granted') return;
 
       // Get VAPID key
-      const vapidResponse = await fetch(getApiUrl('/api/vapid-public-key'));
+      const vapidResponse = await fetch('/api/vapid-public-key');
       const { publicKey } = await vapidResponse.json();
 
       // Get service worker
@@ -134,7 +133,7 @@ export function PushDebugPanel() {
       });
 
       // Send to server
-      const response = await fetch(getApiUrl('/api/push-subscription'), {
+      const response = await fetch('/api/push-subscription', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

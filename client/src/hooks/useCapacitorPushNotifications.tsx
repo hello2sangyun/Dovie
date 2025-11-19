@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { isNativePlatform, loadPushNotifications } from '@/lib/nativeBridge';
 import { navigationService } from '@/lib/navigation';
-import { getApiUrl } from '@/lib/api-config';
 
 export const useCapacitorPushNotifications = () => {
   const [isRegistered, setIsRegistered] = useState(false);
@@ -117,7 +116,7 @@ export const useCapacitorPushNotifications = () => {
 
       console.log(`📱 서버로 iOS 토큰 전송 시작: ${deviceToken.substring(0, 20)}...`);
 
-      const response = await fetch(getApiUrl('/api/push-subscription/ios'), {
+      const response = await fetch('/api/push-subscription/ios', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

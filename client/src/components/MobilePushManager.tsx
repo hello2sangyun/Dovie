@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Bell, BellOff } from 'lucide-react';
-import { getApiUrl } from '@/lib/api-config';
 
 export function MobilePushManager() {
   const { user } = useAuth();
@@ -64,7 +63,7 @@ export function MobilePushManager() {
       }
 
       // Get VAPID key
-      const vapidResponse = await fetch(getApiUrl('/api/vapid-public-key'));
+      const vapidResponse = await fetch('/api/vapid-public-key');
       const { publicKey } = await vapidResponse.json();
       console.log('Mobile: Got VAPID key');
 
@@ -81,7 +80,7 @@ export function MobilePushManager() {
       console.log('Mobile: Created push subscription');
 
       // Send subscription to server
-      const response = await fetch(getApiUrl('/api/push-subscription'), {
+      const response = await fetch('/api/push-subscription', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -103,7 +102,7 @@ export function MobilePushManager() {
         // Send test notification after successful registration
         setTimeout(async () => {
           try {
-            const testResponse = await fetch(getApiUrl('/api/test-push-notification'), {
+            const testResponse = await fetch('/api/test-push-notification', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
