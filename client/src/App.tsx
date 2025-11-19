@@ -10,7 +10,23 @@ import SplashScreen from "@/components/SplashScreen";
 import LandingPage from "@/pages/LandingPage";
 import NotFound from "@/pages/not-found";
 import { useEffect, useState, lazy, Suspense, ComponentType } from "react";
-import { Capacitor } from '@capacitor/core';
+
+// Capacitor helper to check if running in native app
+// Only import Capacitor if it's actually available (native platform)
+const isCapacitorAvailable = () => {
+  return typeof window !== 'undefined' && 
+         (window as any).Capacitor !== undefined;
+};
+
+const isNativePlatform = () => {
+  if (!isCapacitorAvailable()) return false;
+  try {
+    const Capacitor = (window as any).Capacitor;
+    return Capacitor.isNativePlatform();
+  } catch {
+    return false;
+  }
+};
 
 // lazyWithPreload: lazy loading with optional preload capability
 function lazyWithPreload<T extends ComponentType<any>>(
@@ -37,7 +53,7 @@ const GroupInfoPage = lazy(() => import("@/pages/GroupInfoPage"));
 const ScreenshotDemo = lazy(() => import("@/pages/ScreenshotDemo"));
 
 // 네이티브 앱에서는 초기 화면을 preload하여 키보드 렉 방지
-if (Capacitor.isNativePlatform()) {
+if (isNativePlatform()) {
   console.log('🚀 Native platform detected - preloading critical pages');
   (LoginPage as any).preload?.();
   (SignupPage as any).preload?.();
@@ -82,7 +98,7 @@ function App() {
   // Splash screen state - only show on native apps on first load
   const [showSplash, setShowSplash] = useState(() => {
     // Only show splash screen on native platforms
-    if (Capacitor.isNativePlatform()) {
+    if (isNativePlatform()) {
       // Check if we've already shown the splash on this session
       const hasShownSplash = sessionStorage.getItem('hasShownSplash');
       return !hasShownSplash;

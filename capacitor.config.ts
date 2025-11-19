@@ -4,11 +4,9 @@ const config: CapacitorConfig = {
   appId: 'com.dovie.messenger',
   appName: 'Dovie Messenger',
   webDir: 'client/dist',
-  server: {
-    url: 'https://dovie-hello2sangyun.replit.app',
-    cleartext: false,
-    androidScheme: 'https'
-  },
+  // Server URL removed - only use for local development testing
+  // Web/PWA should connect directly to dovie.online
+  // Native apps will use their bundled webDir
   plugins: {
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert']
