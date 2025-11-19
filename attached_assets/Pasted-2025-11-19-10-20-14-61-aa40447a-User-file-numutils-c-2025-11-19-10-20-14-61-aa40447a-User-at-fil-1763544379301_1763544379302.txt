@@ -1,0 +1,144 @@
+2025-11-19 10:20:14.61
+aa40447a
+User
+file: 'numutils.c',
+2025-11-19 10:20:14.61
+aa40447a
+User
+at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+2025-11-19 10:20:14.61
+aa40447a
+User
+Mark read error: error: invalid input syntax for type integer: "NaN"
+2025-11-19 10:20:14.61
+aa40447a
+User
+internalQuery: undefined,
+2025-11-19 10:20:14.61
+aa40447a
+User
+column: undefined,
+2025-11-19 10:20:14.61
+aa40447a
+User
+length: 146,
+2025-11-19 10:20:14.61
+aa40447a
+User
+}
+2025-11-19 10:20:14.61
+aa40447a
+User
+at async file:///home/runner/workspace/dist/index.js:7359:7 {
+2025-11-19 10:20:14.61
+aa40447a
+User
+severity: 'ERROR',
+2025-11-19 10:20:14.61
+aa40447a
+User
+constraint: undefined,
+2025-11-19 10:20:14.61
+aa40447a
+User
+code: '22P02',
+2025-11-19 10:20:14.61
+aa40447a
+User
+dataType: undefined,
+2025-11-19 10:20:14.61
+aa40447a
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-11-19 10:20:14.61
+aa40447a
+User
+at async DatabaseStorage.markMessagesAsRead (file:///home/runner/workspace/dist/index.js:2487:5)
+2025-11-19 10:20:14.62
+aa40447a
+User
+9:20:14 AM [express] POST /api/chat-rooms/1/mark-read 500 in 23ms :: {"message":"Failed to mark mess…
+2025-11-19 10:20:14.63
+aa40447a
+User
+file: 'numutils.c',
+2025-11-19 10:20:14.63
+aa40447a
+User
+position: undefined,
+2025-11-19 10:20:14.63
+aa40447a
+User
+detail: undefined,
+2025-11-19 10:20:14.63
+aa40447a
+User
+schema: undefined,
+2025-11-19 10:20:14.63
+aa40447a
+User
+code: '22P02',
+2025-11-19 10:20:14.63
+aa40447a
+User
+internalPosition: undefined,
+2025-11-19 10:20:14.63
+aa40447a
+User
+where: "unnamed portal parameter $3 = '...'",
+2025-11-19 10:20:14.63
+aa40447a
+User
+internalQuery: undefined,
+2025-11-19 10:20:14.63
+aa40447a
+User
+table: undefined,
+2025-11-19 10:20:14.63
+aa40447a
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-11-19 10:20:14.63
+aa40447a
+User
+routine: 'pg_strtoint32_safe'
+2025-11-19 10:20:14.63
+aa40447a
+User
+at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+2025-11-19 10:20:14.63
+aa40447a
+User
+Mark read error: error: invalid input syntax for type integer: "NaN"
+2025-11-19 10:20:14.63
+aa40447a
+User
+column: undefined,
+2025-11-19 10:20:14.63
+aa40447a
+User
+hint: undefined,
+2025-11-19 10:20:14.63
+aa40447a
+User
+length: 146,
+2025-11-19 10:20:14.63
+aa40447a
+User
+severity: 'ERROR',
+2025-11-19 10:20:14.63
+aa40447a
+User
+at async DatabaseStorage.markMessagesAsRead (file:///home/runner/workspace/dist/index.js:2487:5)
+2025-11-19 10:20:14.63
+aa40447a
+User
+at async file:///home/runner/workspace/dist/index.js:7359:7 {
+2025-11-19 10:20:14.63
+aa40447a
+User
+dataType: undefined,
+2025-11-19 10:20:18.32
+aa40447a
+User
+WebSocket connection closed for user: 108

@@ -1,0 +1,144 @@
+2025-11-19 09:30:36.38
+0eacf973
+User
+Message creation - Request body: {
+2025-11-19 09:30:36.38
+0eacf973
+User
+Message creation - User ID: 108
+2025-11-19 09:30:36.38
+0eacf973
+User
+Message creation - Parsed data: {
+2025-11-19 09:30:36.38
+0eacf973
+User
+Message creation - fileUrl: undefined
+2025-11-19 09:41:11.57
+0eacf973
+User
+Message creation - Request body: {
+2025-11-19 09:41:11.57
+0eacf973
+User
+Message creation - Parsed data: {
+2025-11-19 09:59:54.86
+c174e955
+User
+Message creation - Chat room ID: 1
+2025-11-19 09:59:54.86
+c174e955
+User
+Message creation - Request body: {
+2025-11-19 09:59:54.86
+c174e955
+User
+Message creation - User ID: 108
+2025-11-19 09:59:54.87
+c174e955
+User
+Message creation - fileUrl: /uploads/voice_1763542792987.webm
+2025-11-19 09:59:54.87
+c174e955
+User
+Message creation - Parsed data: {
+2025-11-19 10:01:32.41
+c174e955
+User
+Message creation - Chat room ID: 1
+2025-11-19 10:01:32.41
+c174e955
+User
+Message creation - Request body: {
+2025-11-19 10:01:32.41
+c174e955
+User
+Message creation - User ID: 108
+2025-11-19 10:01:32.41
+c174e955
+User
+Message creation - Parsed data: {
+2025-11-19 10:01:32.41
+c174e955
+User
+Message creation - fileUrl: undefined
+2025-11-19 10:04:45.35
+c174e955
+User
+Message creation - User ID: 108
+2025-11-19 10:04:45.35
+c174e955
+User
+Message creation - Chat room ID: 1
+2025-11-19 10:04:45.35
+c174e955
+User
+Message creation - Request body: {
+2025-11-19 10:04:45.35
+c174e955
+User
+Message creation - fileUrl: undefined
+2025-11-19 10:04:45.35
+c174e955
+User
+Message creation - Parsed data: {
+2025-11-19 10:14:37.09
+aa40447a
+User
+Message creation - Chat room ID: 1
+2025-11-19 10:14:37.09
+aa40447a
+User
+Message creation - User ID: 108
+2025-11-19 10:14:37.09
+aa40447a
+User
+Message creation - Request body: {
+2025-11-19 10:14:37.09
+aa40447a
+User
+Message creation - fileUrl: /uploads/voice_1763543675555.webm
+2025-11-19 10:14:37.09
+aa40447a
+User
+Message creation - Parsed data: {
+2025-11-19 10:17:24.75
+aa40447a
+User
+Message creation - Chat room ID: 1
+2025-11-19 10:17:24.75
+aa40447a
+User
+Message creation - fileUrl: /uploads/voice_1763543843568.webm
+2025-11-19 10:17:24.75
+aa40447a
+User
+Message creation - User ID: 108
+2025-11-19 10:17:24.75
+aa40447a
+User
+Message creation - Parsed data: {
+2025-11-19 10:17:24.75
+aa40447a
+User
+Message creation - Request body: {
+2025-11-19 10:20:14.58
+aa40447a
+User
+Message creation - Chat room ID: 1
+2025-11-19 10:20:14.58
+aa40447a
+User
+Message creation - Request body: {
+2025-11-19 10:20:14.58
+aa40447a
+User
+Message creation - User ID: 108
+2025-11-19 10:20:14.58
+aa40447a
+User
+Message creation - Parsed data: {
+2025-11-19 10:20:14.58
+aa40447a
+User
+Message creation - fileUrl: undefined
