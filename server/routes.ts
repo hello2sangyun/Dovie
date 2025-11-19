@@ -4463,6 +4463,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       await storage.markMessagesAsRead(Number(userId), Number(req.params.chatRoomId), Number(lastMessageId));
+      
+      // 🔥 iOS 배지 실시간 업데이트: Silent badge update push
+      try {
+        // 읽지 않은 메시지 수 다시 계산
+        const unreadCounts = await storage.getUnreadCounts(Number(userId));
+        const totalUnreadMessages = unreadCounts.reduce((sum, count) => sum + count.unreadCount, 0);
+        
+        // AI 알림 수 가져오기
+        const unreadAiNotices = await storage.getUnreadAiNoticesCount(Number(userId));
+        
+        // 총 배지 수 계산
+        const totalBadgeCount = totalUnreadMessages + unreadAiNotices;
+        
+        console.log(`📱 Sending silent badge update after mark-read: userId=${userId}, badge=${totalBadgeCount} (messages: ${totalUnreadMessages}, AI: ${unreadAiNotices})`);
+        
+        // Silent push로 iOS 배지만 업데이트 (알림 없음)
+        await sendPushNotification(Number(userId), {
+          title: '',
+          body: '',
+          silent: true,  // 조용한 푸시 (알림 표시 안 함)
+          badgeCount: totalBadgeCount,  // 배지만 업데이트
+          data: {
+            type: 'badge_update',
+            badgeCount: totalBadgeCount
+          }
+        });
+      } catch (badgeError) {
+        // 배지 업데이트 실패해도 mark-read는 성공으로 처리
+        console.error('Silent badge update failed (non-critical):', badgeError);
+      }
+      
       res.json({ success: true });
     } catch (error) {
       console.error("Mark read error:", error);
