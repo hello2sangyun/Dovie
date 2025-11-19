@@ -1107,16 +1107,16 @@ async function preloadChatMessages(chatRoomId) {
   }
 }
 
-// Periodic badge sync - fetch current unread count every 30 seconds
+// Periodic badge sync - fetch current unread count every 30 seconds (Messages + AI Inbox)
 setInterval(async () => {
   try {
-    console.log('[SW] Syncing badge count with server');
-    const response = await fetch('/api/unread-counts');
+    console.log('[SW] Syncing badge count with server (Messages + AI Inbox)');
+    const response = await fetch('/api/total-unread-badge');
     if (response.ok) {
       const data = await response.json();
-      const totalUnread = data.unreadCounts?.reduce((total, count) => total + count.unreadCount, 0) || 0;
-      console.log('[SW] Server badge sync - total unread:', totalUnread);
-      await updateAppBadge(totalUnread);
+      const totalBadgeCount = data.totalBadgeCount || 0;
+      console.log('[SW] Server badge sync - total badge:', totalBadgeCount, `(${data.unreadMessages || 0} messages + ${data.unreadAiNotices || 0} AI Inbox)`);
+      await updateAppBadge(totalBadgeCount);
     }
   } catch (error) {
     console.error('[SW] Badge sync failed:', error);

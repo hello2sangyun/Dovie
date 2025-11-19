@@ -26,25 +26,45 @@ export function TelegramBadgeManager() {
     retryDelay: 1000,
   });
 
-  // Apply Telegram-style badge logic
+  // Poll AI Inbox unread count
+  const { data: aiInboxData, isSuccess: aiInboxSuccess } = useQuery({
+    queryKey: ['/api/ai-notices/unread-count'],
+    enabled: !!user,
+    staleTime: 20000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    refetchInterval: 120000,
+    refetchOnReconnect: true,
+    retry: 3,
+    retryDelay: 1000,
+  });
+
+  // Apply Telegram-style badge logic (Messages + AI Inbox)
   useEffect(() => {
     if (!user || !isSuccess || error) return;
 
     const response = unreadData as { unreadCounts?: Array<{ chatRoomId: number; unreadCount: number }> };
     const unreadCounts = response?.unreadCounts || [];
 
-    // Calculate total like Telegram - simple sum of all room badges
-    const totalUnread = unreadCounts.reduce((total, room) => total + (room.unreadCount || 0), 0);
+    // Calculate total messages
+    const totalUnreadMessages = unreadCounts.reduce((total, room) => total + (room.unreadCount || 0), 0);
+
+    // Get AI Inbox count
+    const aiInboxResponse = aiInboxData as { count?: number };
+    const totalAiInbox = aiInboxResponse?.count || 0;
+
+    // Total badge = Messages + AI Inbox
+    const totalBadgeCount = totalUnreadMessages + totalAiInbox;
 
     // Only update if count changed (efficiency like Telegram)
-    if (lastBadgeCount.current !== totalUnread) {
-      lastBadgeCount.current = totalUnread;
-      console.log('📱 Badge Update (Telegram Style):', totalUnread, 'rooms:', unreadCounts.length);
+    if (lastBadgeCount.current !== totalBadgeCount) {
+      lastBadgeCount.current = totalBadgeCount;
+      console.log('📱 Badge Update (Telegram Style):', totalBadgeCount, `(${totalUnreadMessages} messages + ${totalAiInbox} AI Inbox)`, 'rooms:', unreadCounts.length);
       
       // Apply badge using multiple methods for maximum compatibility
-      applyTelegramBadge(totalUnread);
+      applyTelegramBadge(totalBadgeCount);
     }
-  }, [user, unreadData, isSuccess, error]);
+  }, [user, unreadData, aiInboxData, isSuccess, aiInboxSuccess, error]);
 
   // Initialize badge on mount
   useEffect(() => {
