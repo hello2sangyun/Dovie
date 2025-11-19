@@ -51,23 +51,6 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     
-    <!-- PWA: Prevent long-press context menu globally -->
-    <script>
-      // Prevent context menu (download/share/print) on long press
-      window.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-        return false;
-      }, { passive: false });
-      
-      // Prevent default touch actions that trigger context menu
-      document.addEventListener('touchstart', function(e) {
-        // Allow normal touch for input fields
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
-          return;
-        }
-      }, { passive: true });
-    </script>
-    
     <!-- PWA Service Worker 강제 등록 시스템 -->
     <script>
       if ('serviceWorker' in navigator) {
