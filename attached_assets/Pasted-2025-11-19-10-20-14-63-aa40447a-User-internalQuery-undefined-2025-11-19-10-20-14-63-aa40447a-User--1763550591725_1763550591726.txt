@@ -1,0 +1,145 @@
+2025-11-19 10:20:14.63
+aa40447a
+User
+internalQuery: undefined,
+2025-11-19 10:20:14.63
+aa40447a
+User
+table: undefined,
+2025-11-19 10:20:14.63
+aa40447a
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-11-19 10:20:14.63
+aa40447a
+User
+routine: 'pg_strtoint32_safe'
+2025-11-19 10:20:14.63
+aa40447a
+User
+at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+2025-11-19 10:20:14.63
+aa40447a
+User
+Mark read error: error: invalid input syntax for type integer: "NaN"
+2025-11-19 10:20:14.63
+aa40447a
+User
+column: undefined,
+2025-11-19 10:20:14.63
+aa40447a
+User
+hint: undefined,
+2025-11-19 10:20:14.63
+aa40447a
+User
+length: 146,
+2025-11-19 10:20:14.63
+aa40447a
+User
+severity: 'ERROR',
+2025-11-19 10:20:14.63
+aa40447a
+User
+at async DatabaseStorage.markMessagesAsRead (file:///home/runner/workspace/dist/index.js:2487:5)
+2025-11-19 10:20:14.63
+aa40447a
+User
+at async file:///home/runner/workspace/dist/index.js:7359:7 {
+2025-11-19 10:20:14.63
+aa40447a
+User
+dataType: undefined,
+2025-11-19 10:20:18.32
+aa40447a
+User
+WebSocket connection closed for user: 108
+2025-11-19 10:49:06.00
+aa40447a
+User
+deviceToken: '712CF845684E0FDC630A...',
+2025-11-19 10:49:06.00
+aa40447a
+User
+userId: 108,
+2025-11-19 10:49:06.00
+aa40447a
+User
+platform: 'ios'
+2025-11-19 10:49:06.00
+aa40447a
+User
+📱 iOS 네이티브 푸시 토큰 등록 요청: {
+2025-11-19 10:49:06.00
+aa40447a
+User
+}
+2025-11-19 10:49:06.00
+aa40447a
+User
+Mark read request: userId=108, chatRoomId=1, lastMessageId=161
+2025-11-19 10:49:06.01
+aa40447a
+User
+Mark read request: userId=108, chatRoomId=1, lastMessageId=161
+2025-11-19 10:49:06.11
+aa40447a
+User
+WebSocket connection attempt from: /ws
+2025-11-19 10:49:06.12
+aa40447a
+User
+✅ iOS 푸시 토큰 데이터베이스 저장 성공
+2025-11-19 10:49:06.12
+aa40447a
+User
+9:49:06 AM [express] POST /api/push-subscription/ios 200 in 118ms :: {"success":true,"message":"iOS …
+2025-11-19 10:49:06.12
+aa40447a
+User
+9:49:06 AM [express] POST /api/chat-rooms/1/mark-read 200 in 113ms :: {"success":true}
+2025-11-19 10:49:06.12
+aa40447a
+User
+📡 Activity status for user 108: online
+2025-11-19 10:49:06.12
+aa40447a
+User
+9:49:06 AM [express] POST /api/user/activity-status 200 in 117ms :: {"success":true}
+2025-11-19 10:49:06.12
+aa40447a
+User
+9:49:06 AM [express] POST /api/chat-rooms/1/mark-read 200 in 111ms :: {"success":true}
+2025-11-19 10:49:06.17
+aa40447a
+User
+9:49:06 AM [express] GET /api/profile-images/replit-objstore-07c53c38-e3fd-4bfd-9984-e96360e066b6/.p…
+2025-11-19 10:49:06.28
+aa40447a
+User
+WebSocket user authenticated: 108
+2025-11-19 10:49:06.28
+aa40447a
+User
+WebSocket message received: { type: 'auth', userId: 108 }
+2025-11-19 10:49:06.96
+aa40447a
+User
+9:49:06 AM [express] GET /api/voice-bookmark-requests 304 in 1ms
+2025-11-19 10:49:07.06
+aa40447a
+User
+9:49:07 AM [express] GET /api/unread-counts 304 in 111ms :: {"unreadCounts":[]}
+2025-11-19 10:49:09.19
+aa40447a
+User
+WebSocket connection closed for user: 108
+2025-11-19 10:49:10.08
+aa40447a
+User
+📡 Activity status for user 108: offline
+
+2025-11-19 10:49:10.08
+aa40447a
+User
+9:49:10 AM [express] POST /api/user/activity-status 200 in 25ms :: {"success":true}
