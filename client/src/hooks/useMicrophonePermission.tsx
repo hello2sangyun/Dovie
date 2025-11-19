@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { App } from '@capacitor/app';
+import { isNativePlatform, loadApp } from '@/lib/nativeBridge';
 
 interface MicrophonePermissionState {
   hasPermission: boolean;
@@ -47,11 +47,16 @@ export function useMicrophonePermission() {
 
   // Release microphone stream when app goes to background
   useEffect(() => {
+    if (!isNativePlatform()) return;
+
     let listener: any;
 
     const setupBackgroundListener = async () => {
       try {
-        listener = await App.addListener('appStateChange', ({ isActive }) => {
+        const App = await loadApp();
+        if (!App) return;
+
+        listener = await App.addListener('appStateChange', ({ isActive }: any) => {
           if (!isActive && state.stream) {
             console.log('📱 App backgrounded - releasing microphone stream to avoid iOS chime on resume');
             state.stream.getTracks().forEach(track => track.stop());

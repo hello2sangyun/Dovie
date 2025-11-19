@@ -1,9 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { X, Download, File, FileText, FileImage, FileVideo, FileAudio, FileCode, Share2, Send, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Share } from '@capacitor/share';
-import { Filesystem, Directory } from '@capacitor/filesystem';
-import { Capacitor } from '@capacitor/core';
+import { isNativePlatform, loadShare, loadFilesystem } from '@/lib/nativeBridge';
 import { useToast } from '@/hooks/use-toast';
 
 interface FilePreviewModalProps {
@@ -58,7 +56,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [swipeOffsetX, setSwipeOffsetX] = useState(0);
 
-  const isNative = Capacitor.isNativePlatform();
+  const isNative = isNativePlatform();
   const extension = fileName.split('.').pop()?.toLowerCase();
   const mimeType = fileType || getFileTypeFromExtension(extension);
   const isImage = mimeType.startsWith('image/') || ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension || '');

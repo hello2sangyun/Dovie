@@ -1,7 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Badge } from '@capawesome/capacitor-badge';
-import { Capacitor } from '@capacitor/core';
+import { isNativePlatform, loadBadge } from '@/lib/nativeBridge';
 import { useAuth } from './useAuth';
 import { useAppState } from './useAppState';
 
@@ -15,12 +14,22 @@ export function useNativeBadgeManager() {
   const { user } = useAuth();
   const appState = useAppState();
   const lastBadgeCountRef = useRef<number>(0);
-  const isNativePlatform = Capacitor.isNativePlatform();
+  const isNative = isNativePlatform();
+  const [Badge, setBadge] = useState<any>(null);
+
+  // Load Badge plugin on native platforms
+  useEffect(() => {
+    if (!isNative) return;
+    
+    loadBadge().then(badge => {
+      if (badge) setBadge(badge);
+    });
+  }, [isNative]);
 
   // Fetch total badge count (messages + AI notices) - only poll when app is active to save battery
   const { data: badgeData } = useQuery<TotalBadgeData>({
     queryKey: ['/api/total-unread-badge'],
-    enabled: !!user && isNativePlatform,
+    enabled: !!user && isNative,
     refetchInterval: appState === 'active' ? 5000 : false, // Only poll when active
     staleTime: 0, // Always fresh data
     gcTime: 0, // Don't cache old data
@@ -28,7 +37,7 @@ export function useNativeBadgeManager() {
 
   // Update native badge when badge count changes
   useEffect(() => {
-    if (!user || !badgeData || !isNativePlatform) return;
+    if (!user || !badgeData || !isNative || !Badge) return;
 
     const totalBadgeCount = badgeData.totalBadgeCount;
 
@@ -46,11 +55,11 @@ export function useNativeBadgeManager() {
           console.error('❌ Failed to set native badge count:', error);
         });
     }
-  }, [user, badgeData, isNativePlatform]);
+  }, [user, badgeData, isNative, Badge]);
 
   // Clear badge when user logs out
   useEffect(() => {
-    if (!user && lastBadgeCountRef.current > 0 && isNativePlatform) {
+    if (!user && lastBadgeCountRef.current > 0 && isNative && Badge) {
       console.log('📱 User logged out - clearing native badge');
       lastBadgeCountRef.current = 0;
       
@@ -59,11 +68,11 @@ export function useNativeBadgeManager() {
           console.error('❌ Failed to clear badge on logout:', error);
         });
     }
-  }, [user, isNativePlatform]);
+  }, [user, isNative, Badge]);
 
   // Update badge immediately when app comes to foreground
   useEffect(() => {
-    if (appState === 'active' && isNativePlatform && badgeData) {
+    if (appState === 'active' && isNative && badgeData && Badge) {
       const totalBadgeCount = badgeData.totalBadgeCount;
       
       if (totalBadgeCount !== lastBadgeCountRef.current) {
@@ -76,11 +85,11 @@ export function useNativeBadgeManager() {
           });
       }
     }
-  }, [appState, badgeData, isNativePlatform]);
+  }, [appState, badgeData, isNative, Badge]);
 
   // Real-time badge sync via custom event (triggered by message read, etc.)
   useEffect(() => {
-    if (!isNativePlatform) return;
+    if (!isNative || !Badge) return;
 
     const handleBadgeSync = (event: CustomEvent) => {
       const { totalUnread } = event.detail;
@@ -98,13 +107,13 @@ export function useNativeBadgeManager() {
     return () => {
       window.removeEventListener('native-badge-sync' as any, handleBadgeSync);
     };
-  }, [isNativePlatform]);
+  }, [isNative, Badge]);
 
   return {
     currentBadgeCount: lastBadgeCountRef.current,
     totalUnread: badgeData?.totalBadgeCount || 0,
     setBadgeCount: async (count: number) => {
-      if (!isNativePlatform) return;
+      if (!isNative || !Badge) return;
       
       try {
         await Badge.set({ count });
@@ -115,7 +124,7 @@ export function useNativeBadgeManager() {
       }
     },
     clearBadge: async () => {
-      if (!isNativePlatform) return;
+      if (!isNative || !Badge) return;
       
       try {
         await Badge.clear();

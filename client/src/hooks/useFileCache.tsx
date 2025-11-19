@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
-import { Capacitor } from '@capacitor/core';
+import { isNativePlatform, loadFilesystem } from '@/lib/nativeBridge';
 
 interface CacheEntry {
   uri: string;
