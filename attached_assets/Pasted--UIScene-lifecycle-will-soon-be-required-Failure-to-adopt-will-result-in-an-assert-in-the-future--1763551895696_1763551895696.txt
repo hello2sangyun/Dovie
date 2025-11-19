@@ -1,0 +1,131 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/78BA9390-BD53-49EC-91A7-FD49311E2E79/App.app'
+Updated list with error: DownloadFailed
+Updated list with error: DownloadFailed
+KeyboardPlugin: resize mode - native
+⚡️  Loading app at https://dovie-hello2sangyun.replit.app...
+Updated list with error: DownloadFailed
+📱 [AppDelegate] Registered for remote notifications
+Networking process (0x114060190) took 16.244601 seconds to launch
+GPU process (0x1141001e0) took 4.587373 seconds to launch
+WebContent process (0x1140d0100) took 16.010719 seconds to launch
+📱 [AppDelegate] APNS 토큰 등록 성공
+Updated list with error: DownloadFailed
+WebContent[88160] Unable to hide query parameters from script (missing data)
+⚡️  WebView loaded
+⚡️  [log] - 🚀 Native platform detected - preloading critical pages
+⚡️  [log] - [SW] Service Worker support check: {"supported":false,"navigatorSW":"undefined","isSecureContext":true}
+⚡️  [warn] - [SW] Service Workers not supported in this environment (WKWebView/Replit preview)
+⚡️  [warn] - [SW] To test SW features, open the app in a real browser: Chrome, Firefox, Safari
+Updated list with error: DownloadFailed
+Updated list with error: DownloadFailed
+⚡️  [log] - 🔄 Auth context updating user: 108 profilePicture: /api/profile-picture/108
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://dovie-hello2sangyun.replit.app/ws
+⚡️  [log] -    Protocol: wss:, Host: dovie-hello2sangyun.replit.app
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":108}
+⚡️  [log] - WebSocket authentication successful for user: 108
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+⚡️  [log] - [Badge] Service Worker not supported
+⚡️  [log] - ✅ Navigation service registered
+⚡️  [log] - ✅ Navigator registered with navigation service
+⚡️  [log] - 🚫 Service Worker not supported
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 0
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: []
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - ❌ Push notifications not supported on this device
+⚡️  [log] - [NotificationManager] User inactive - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: Test User
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  [error] - [FileCache] Initialization failed: {}
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+XPC connection interrupted
+Reporter disconnected. { function=sendMessage, reporterID=378609957076993 }
+Reporter disconnected. { function=sendMessage, reporterID=378609957076993 }
+Reporter disconnected. { function=sendMessage, reporterID=378609957076993 }
+Reporter disconnected. { function=sendMessage, reporterID=378609957076993 }
+Reporter disconnected. { function=sendMessage, reporterID=378609957076993 }
+Reporter disconnected. { function=sendMessage, reporterID=378609957076993 }
+Reporter disconnected. { function=sendMessage, reporterID=378609957076993 }
+Reporter disconnected. { function=sendMessage, reporterID=378609957076993 }
+Reporter disconnected. { function=sendMessage, reporterID=378609957076993 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = E4F58D76-8B4B-4C6D-A11B-D98DA1D98CDF
+<0x108e22940> Gesture: System gesture gate timed out.
+containerToPush is nil, will not push anything to candidate receiver for request token: D1E7BDDF
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = E4F58D76-8B4B-4C6D-A11B-D98DA1D98CDF
+⚡️  [log] - [NotificationManager] Window blurred
+Failed to create 0x0 image slot (alpha=1 wide=1) (client=0xf37881d8) [0x5 (os/kern) failure]
+Could not find cached accumulator for token=7CE8C399 type:0 in -[TUIKeyboardCandidateMultiplexer receiveExternalAutocorrectionUpdate:requestToken:]_block_invoke
+Could not find cached accumulator for token=9A4F069D type:0 in -[TUIKeyboardCandidateMultiplexer receiveExternalAutocorrectionUpdate:requestToken:]_block_invoke
+Could not find cached accumulator for token=6ACE34BC type:0 in -[TUIKeyboardCandidateMultiplexer receiveExternalAutocorrectionUpdate:requestToken:]_block_invoke
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  Can only perform input operation for an active session. sessionID = E4F58D76-8B4B-4C6D-A11B-D98DA1D98CDF
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+Failed to create 0x0 image slot (alpha=1 wide=1) (client=0xf37881d8) [0x5 (os/kern) failure]
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = E4F58D76-8B4B-4C6D-A11B-D98DA1D98CDF
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+⚡️  [log] - 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: Test User
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+⚡️  [log] - 🎤 Getting microphone stream for recording...
+⚡️  [log] - 🎤 Creating fresh microphone stream (iOS chime expected - user initiated)...
+<0x108e22940> Gesture: System gesture gate timed out.
+⚡️  [log] - ✅ Microphone stream created successfully (user is recording)
+⚡️  [log] - 🎤 Creating MediaRecorder with: {"mimeType":"audio/webm;codecs=opus","isIPhonePWA":false,"options":{"mimeType":"audio/webm;codecs=opus"}}
+⚡️  [log] - 🎤 Recording started with MediaRecorder state: recording
+WebContent[88160] AudioComponentPluginMgr.mm:590   reg server remote proxy error Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service named com.apple.audio.AudioComponentRegistrar was invalidated: Connection init failed at lookup with error 1 - Operation no
+WebContent[88160] AudioComponentPluginMgr.mm:590   reg server remote proxy error Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service named com.apple.audio.AudioComponentRegistrar was invalidated: Connection init failed at lookup with error 1 - Operation no
+WebContent[88160] AudioComponentPluginMgr.mm:590   reg server remote proxy error Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service named com.apple.audio.AudioComponentRegistrar was invalidated: Connection init failed at lookup with error 1 - Operation no
+WebContent[88160] AudioSampleBufferConverter getting kAudioCodecPropertyDelayMode failed with 1886547824
+⚡️  [log] - 📊 Audio data chunk received: 29482 bytes
+⚡️  [log] - 📊 Audio data chunk received: 28659 bytes
+⚡️  [log] - 🎤 손을 뗌 - 녹음 자동 전송
+⚡️  [log] - 📱 Modal closed - auto-sending voice recording
+⚡️  [log] - 📊 Audio data chunk received: 9144 bytes
+⚡️  [log] - 🎤 Recording stopped: {"audioBlobSize":67285,"duration":2,"chunksCount":3,"mimeType":"audio/webm;codecs=opus"}
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+⚡️  [log] - 🎤 Releasing microphone stream from VoiceRecordingModal
+⚡️  [log] - 📤 통합 음성 처리 API 호출 중...
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+⚡️  [log] - 🎤 Releasing microphone stream from VoiceRecordingModal
+⚡️  [log] - 📡 통합 처리 응답 상태: 200
+⚡️  [log] - ✅ 통합 음성 처리 성공: {"success":true,"transcription":"지금 테스트 보내고 있습니다.","duration":2.4600000381469727,"detectedLanguage":"korean","confidence":0.9,"audioUrl":"/uploads/voice_1763551762073.webm","smartSuggestions":[]}
+⚡️  [log] - WebSocket message received: {"type":"new_message","message":{"id":162,"chatRoomId":1,"senderId":108,"content":"지금 테스트 보내고 있습니다.","messageType":"voice","callId":null,"fileUrl":"/uploads/voice_1763551762073.webm","fileName":"voice_message.webm","fileSize":0,"attachments":null,"voiceDuration":"2.00","detectedLanguage":"korean","confidence":"0.90","isCommandRecall":false,"isTranslated":false,"isCalculated":false,"pollData":null,"originalMessageId":null,"replyToMessageId":null,"boomTimer":null,"expiresAt":null,"targetUserId":null,"spotlightMessageId":null,"spotlightDuration":null,"isEdited":false,"editedAt":null,"mentionedUserIds":null,"mentionAll":false,"youtubePreview":null,"isSystemMessage":false,"isStarred":false,"starredAt":null,"createdAt":"2025-11-19T11:29:23.542Z","sender":{"id":108,"username":"Dovie","displayName":"Dovie","email":"hello2sangyun@gmail.com","password":"$2b$10$d4bRgJE8UjwoGMbMCIW3ce4lWvmqX2TbOTjd5l2ziP7GH1EH95RWW","phoneNumber":"+36703566630","birthday":"1985-05-19","profilePicture":"/replit-objstore-07c53c38-e3fd-4bfd-9984-e96360e066b6/.private/profile_1763501042948_lkagywp7erj.jpg","qrCode":null,"qrToken":null,"qrTokenExpiry":null,"isOnline":true,"lastSeen":"2025-11-19T11:29:20.052Z","language":"ko","notificationsEnabled":true,"notificationSound":"default","isEmailVerified":true,"isProfileComplete":true,"userRole":"user","businessName":null,"businessAddress":null,"businessLatitude":null,"businessLongitude":null,"isBusinessVerified":false,"allowVoicePlayback":true,"autoPlayVoiceMessages":false,"allowVoiceBookmarks":true,"authProvider":null,"providerId":null,"providerEmail":null,"aiPreferences":null,"createdAt":"2025-11-18T11:05:41.595Z"},"clientRequestId":"msg-1763551763332-omdark6y3"}}
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = E4F58D76-8B4B-4C6D-A11B-D98DA1D98CDF
+Reporter disconnected or already stopped. { func=stop, reporterID=378609957076993 }
+⚡️  [log] - WebSocket message received: {"type":"new_message","message":{"id":163,"chatRoomId":1,"senderId":108,"content":"푸쉬","messageType":"text","callId":null,"fileUrl":null,"fileName":null,"fileSize":null,"attachments":null,"voiceDuration":null,"detectedLanguage":null,"confidence":null,"isCommandRecall":false,"isTranslated":false,"isCalculated":false,"pollData":null,"originalMessageId":null,"replyToMessageId":null,"boomTimer":null,"expiresAt":null,"targetUserId":null,"spotlightMessageId":null,"spotlightDuration":null,"isEdited":false,"editedAt":null,"mentionedUserIds":null,"mentionAll":false,"youtubePreview":null,"isSystemMessage":false,"isStarred":false,"starredAt":null,"createdAt":"2025-11-19T11:29:44.679Z","sender":{"id":108,"username":"Dovie","displayName":"Dovie","email":"hello2sangyun@gmail.com","password":"$2b$10$d4bRgJE8UjwoGMbMCIW3ce4lWvmqX2TbOTjd5l2ziP7GH1EH95RWW","phoneNumber":"+36703566630","birthday":"1985-05-19","profilePicture":"/replit-objstore-07c53c38-e3fd-4bfd-9984-e96360e066b6/.private/profile_1763501042948_lkagywp7erj.jpg","qrCode":null,"qrToken":null,"qrTokenExpiry":null,"isOnline":true,"lastSeen":"2025-11-19T11:29:35.053Z","language":"ko","notificationsEnabled":true,"notificationSound":"default","isEmailVerified":true,"isProfileComplete":true,"userRole":"user","businessName":null,"businessAddress":null,"businessLatitude":null,"businessLongitude":null,"isBusinessVerified":false,"allowVoicePlayback":true,"autoPlayVoiceMessages":false,"allowVoiceBookmarks":true,"authProvider":null,"providerId":null,"providerEmail":null,"aiPreferences":null,"createdAt":"2025-11-18T11:05:41.595Z"},"clientRequestId":"msg-1763551784383-v9tg8xziv"}}
+⚡️  [log] - [NotificationManager] User inactive - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = E4F58D76-8B4B-4C6D-A11B-D98DA1D98CDF
+Reporter disconnected. { function=sendMessage, reporterID=378609957076996 }
+Reporter disconnected. { function=sendMessage, reporterID=378609957076996 }
+Reporter disconnected. { function=sendMessage, reporterID=378609957076996 }
+Reporter disconnected. { function=sendMessage, reporterID=378609957076996 }
+Reporter disconnected. { function=sendMessage, reporterID=378609957076996 }
+Reporter disconnected. { function=sendMessage, reporterID=378609957076996 }
+Reporter disconnected. { function=sendMessage, reporterID=378609957076996 }
+Reporter disconnected. { function=sendMessage, reporterID=378609957076996 }
+Reporter disconnected. { function=sendMessage, reporterID=378609957076996 }
+Reporter disconnected or already stopped. { func=stop, reporterID=378609957076996 }
+⚡️  [log] - WebSocket message received: {"type":"new_message","message":{"id":164,"chatRoomId":1,"senderId":108,"content":"뭐지","messageType":"text","callId":null,"fileUrl":null,"fileName":null,"fileSize":null,"attachments":null,"voiceDuration":null,"detectedLanguage":null,"confidence":null,"isCommandRecall":false,"isTranslated":false,"isCalculated":false,"pollData":null,"originalMessageId":null,"replyToMessageId":null,"boomTimer":null,"expiresAt":null,"targetUserId":null,"spotlightMessageId":null,"spotlightDuration":null,"isEdited":false,"editedAt":null,"mentionedUserIds":null,"mentionAll":false,"youtubePreview":null,"isSystemMessage":false,"isStarred":false,"starredAt":null,"createdAt":"2025-11-19T11:30:30.095Z","sender":{"id":108,"username":"Dovie","displayName":"Dovie","email":"hello2sangyun@gmail.com","password":"$2b$10$d4bRgJE8UjwoGMbMCIW3ce4lWvmqX2TbOTjd5l2ziP7GH1EH95RWW","phoneNumber":"+36703566630","birthday":"1985-05-19","profilePicture":"/replit-objstore-07c53c38-e3fd-4bfd-9984-e96360e066b6/.private/profile_1763501042948_lkagywp7erj.jpg","qrCode":null,"qrToken":null,"qrTokenExpiry":null,"isOnline":false,"lastSeen":"2025-11-19T11:30:20.059Z","language":"ko","notificationsEnabled":true,"notificationSound":"default","isEmailVerified":true,"isProfileComplete":true,"userRole":"user","businessName":null,"businessAddress":null,"businessLatitude":null,"businessLongitude":null,"isBusinessVerified":false,"allowVoicePlayback":true,"autoPlayVoiceMessages":false,"allowVoiceBookmarks":true,"authProvider":null,"providerId":null,"providerEmail":null,"aiPreferences":null,"createdAt":"2025-11-18T11:05:41.595Z"},"clientRequestId":"msg-1763551829795-peneijtxu"}}
+⚡️  [log] - [NotificationManager] User inactive - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline

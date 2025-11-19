@@ -1,0 +1,144 @@
+2025-11-19 12:30:50.36
+3c59fa08
+User
+11:30:50 AM [express] POST /api/user/heartbeat 200 in 23ms :: {"success":true}
+2025-11-19 12:30:50.59
+3c59fa08
+User
+11:30:50 AM [express] GET /api/unread-counts 304 in 113ms :: {"unreadCounts":[]}
+2025-11-19 12:30:51.66
+3c59fa08
+User
+📱 Total badge count for user 109: 4 (messages: 4, AI notices: 0)
+2025-11-19 12:30:51.66
+3c59fa08
+User
+11:30:51 AM [express] GET /api/total-unread-badge 304 in 89ms :: {"totalBadgeCount":4,"unreadMessages…
+2025-11-19 12:30:51.79
+3c59fa08
+User
+11:30:51 AM [express] GET /api/voice-bookmark-requests 304 in 10ms
+2025-11-19 12:30:51.87
+3c59fa08
+User
+11:30:51 AM [express] GET /api/ai-notices/unread-count 304 in 25ms :: {"count":0}
+2025-11-19 12:30:53.07
+3c59fa08
+User
+11:30:53 AM [express] GET /api/voice-bookmark-requests 304 in 1ms
+2025-11-19 12:30:53.07
+3c59fa08
+User
+11:30:53 AM [express] GET /api/chat-rooms/1/messages 200 in 74ms :: {"messages":[{"id":135,"chatRoomI…
+2025-11-19 12:30:53.25
+3c59fa08
+User
+📡 Activity status for user 109: offline
+2025-11-19 12:30:53.25
+3c59fa08
+User
+11:30:53 AM [express] POST /api/user/activity-status 200 in 24ms :: {"success":true}
+2025-11-19 12:30:53.40
+3c59fa08
+User
+Mark read request: userId=108, chatRoomId=1, lastMessageId=164
+2025-11-19 12:30:53.40
+3c59fa08
+User
+Mark read request: userId=108, chatRoomId=1, lastMessageId=164
+2025-11-19 12:30:53.42
+3c59fa08
+User
+11:30:53 AM [express] POST /api/chat-rooms/1/mark-read 200 in 24ms :: {"success":true}
+2025-11-19 12:30:53.42
+3c59fa08
+User
+11:30:53 AM [express] POST /api/chat-rooms/1/mark-read 200 in 21ms :: {"success":true}
+2025-11-19 12:30:53.76
+3c59fa08
+User
+11:30:53 AM [express] GET /api/chat-rooms/1/messages 200 in 71ms :: {"messages":[{"id":135,"chatRoomI…
+2025-11-19 12:30:53.80
+3c59fa08
+User
+11:30:53 AM [express] GET /api/chat-rooms 200 in 102ms :: {"chatRooms":[{"id":1,"name":"Test User","i…
+2025-11-19 12:30:53.81
+3c59fa08
+User
+11:30:53 AM [express] GET /api/unread-counts 304 in 123ms :: {"unreadCounts":[]}
+2025-11-19 12:30:53.89
+3c59fa08
+User
+11:30:53 AM [express] GET /api/chat-rooms/1/messages 200 in 168ms :: {"messages":[{"id":135,"chatRoom…
+2025-11-19 12:30:53.89
+3c59fa08
+User
+11:30:53 AM [express] GET /api/chat-rooms 200 in 172ms :: {"chatRooms":[{"id":1,"name":"Test User","i…
+2025-11-19 12:30:53.90
+3c59fa08
+User
+11:30:53 AM [express] GET /api/unread-counts 304 in 196ms :: {"unreadCounts":[]}
+2025-11-19 12:30:53.93
+3c59fa08
+User
+11:30:53 AM [express] GET /api/unread-counts 304 in 213ms :: {"unreadCounts":[]}
+2025-11-19 12:30:53.96
+3c59fa08
+User
+11:30:53 AM [express] GET /api/unread-counts 304 in 213ms :: {"unreadCounts":[]}
+2025-11-19 12:30:54.20
+3c59fa08
+User
+Mark read request: userId=108, chatRoomId=1, lastMessageId=164
+2025-11-19 12:30:54.22
+3c59fa08
+User
+11:30:54 AM [express] POST /api/chat-rooms/1/mark-read 200 in 25ms :: {"success":true}
+2025-11-19 12:30:54.24
+3c59fa08
+User
+Mark read request: userId=108, chatRoomId=1, lastMessageId=164
+2025-11-19 12:30:54.26
+3c59fa08
+User
+11:30:54 AM [express] POST /api/chat-rooms/1/mark-read 200 in 25ms :: {"success":true}
+2025-11-19 12:30:54.30
+3c59fa08
+User
+11:30:54 AM [express] GET /api/chat-rooms/4/messages 200 in 69ms :: {"messages":[{"id":123,"chatRoomI…
+2025-11-19 12:30:54.50
+3c59fa08
+User
+11:30:54 AM [express] GET /api/chat-rooms 304 in 72ms :: {"chatRooms":[{"id":1,"name":"Test User","is…
+2025-11-19 12:30:54.60
+3c59fa08
+User
+11:30:54 AM [express] GET /api/chat-rooms 304 in 86ms :: {"chatRooms":[{"id":1,"name":"Test User","is…
+2025-11-19 12:30:54.60
+3c59fa08
+User
+11:30:54 AM [express] GET /api/chat-rooms/1/messages 304 in 95ms :: {"messages":[{"id":135,"chatRoomI…
+2025-11-19 12:30:54.60
+3c59fa08
+User
+11:30:54 AM [express] GET /api/chat-rooms/1/messages 304 in 83ms :: {"messages":[{"id":135,"chatRoomI…
+2025-11-19 12:30:54.63
+3c59fa08
+User
+11:30:54 AM [express] GET /api/unread-counts 304 in 128ms :: {"unreadCounts":[]}
+2025-11-19 12:30:54.65
+3c59fa08
+User
+11:30:54 AM [express] GET /api/unread-counts 304 in 134ms :: {"unreadCounts":[]}
+2025-11-19 12:30:54.65
+3c59fa08
+User
+11:30:54 AM [express] GET /api/unread-counts 304 in 129ms :: {"unreadCounts":[]}
+2025-11-19 12:30:54.65
+3c59fa08
+User
+11:30:54 AM [express] GET /api/unread-counts 304 in 123ms :: {"unreadCounts":[]}
+2025-11-19 12:30:54.65
+3c59fa08
+User
+11:30:54 AM [express] GET /api/unread-counts 304 in 123ms :: {"unreadCounts":[]}
