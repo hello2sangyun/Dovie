@@ -25,21 +25,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         return true
     }
     
-    // WKWebView 캐시 클리어 함수
+    // WKWebView 캐시만 클리어 (쿠키, localStorage는 유지)
     func clearWebViewCache() {
-        let websiteDataTypes = Set([
+        // 디스크/메모리 캐시만 정리하여 인증 정보는 보존
+        let cacheDataTypes = Set([
             WKWebsiteDataTypeDiskCache,
-            WKWebsiteDataTypeMemoryCache,
-            WKWebsiteDataTypeCookies,
-            WKWebsiteDataTypeSessionStorage,
-            WKWebsiteDataTypeLocalStorage,
-            WKWebsiteDataTypeWebSQLDatabases,
-            WKWebsiteDataTypeIndexedDBDatabases
+            WKWebsiteDataTypeMemoryCache
         ])
         
         let date = Date(timeIntervalSince1970: 0)
-        WKWebsiteDataStore.default().removeData(ofTypes: websiteDataTypes, modifiedSince: date) {
-            print("🧹 [AppDelegate] WKWebView cache cleared successfully")
+        WKWebsiteDataStore.default().removeData(ofTypes: cacheDataTypes, modifiedSince: date) {
+            print("🧹 [AppDelegate] WKWebView cache cleared (auth data preserved)")
         }
     }
     
