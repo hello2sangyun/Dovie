@@ -84,14 +84,23 @@ export function useLongPressTrigger({
   // Touch event handlers
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     lastTouchTimeRef.current = Date.now();
     handleStart();
   }, [handleStart]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     handleEnd();
   }, [handleEnd]);
+
+  // Prevent context menu on long press (PWA Android fix)
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  }, []);
 
   return {
     handlers: {
@@ -99,7 +108,8 @@ export function useLongPressTrigger({
       onMouseUp: handleMouseUp,
       onMouseLeave: handleMouseLeave,
       onTouchStart: handleTouchStart,
-      onTouchEnd: handleTouchEnd
+      onTouchEnd: handleTouchEnd,
+      onContextMenu: handleContextMenu
     },
     isLongPress: isLongPressRef.current
   };

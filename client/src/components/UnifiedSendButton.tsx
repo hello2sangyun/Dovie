@@ -82,6 +82,11 @@ export function UnifiedSendButton({
                 ? 'bg-blue-600 hover:bg-blue-700 text-white'
                 : 'bg-purple-500 hover:bg-purple-600 text-white'
             } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+            style={{
+              WebkitTouchCallout: 'none',
+              WebkitUserSelect: 'none',
+              touchAction: 'none'
+            }}
             aria-label={hasMessage ? '메시지 전송' : '길게 누르면 음성 녹음'}
           >
             {isPending ? (
