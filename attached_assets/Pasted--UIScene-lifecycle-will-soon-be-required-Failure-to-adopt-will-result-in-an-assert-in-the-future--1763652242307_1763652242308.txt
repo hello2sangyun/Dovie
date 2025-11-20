@@ -1,0 +1,135 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/8BE902FB-2DEF-4128-A697-A4D990FFCB8D/App.app'
+KeyboardPlugin: resize mode - native
+⚡️  Loading app at https://dovie-hello2sangyun.replit.app...
+Updated list with error: DownloadFailed
+Updated list with error: DownloadFailed
+Updated list with error: DownloadFailed
+📱 [AppDelegate] Registered for remote notifications
+XPC connection interrupted
+GPU process (0x1111241e0) took 2.066444 seconds to launch
+WebContent process (0x1110f0100) took 2.965401 seconds to launch
+Networking process (0x111054190) took 8.538713 seconds to launch
+📱 [AppDelegate] APNS 토큰 등록 성공
+0x1110f0100 - [PID=1150] WebProcessProxy::didBecomeUnresponsive:
+0x15a37c718 - [pageProxyID=7, webPageID=8, PID=1150] WebPageProxy::processDidBecomeUnresponsive:
+Updated list with error: DownloadFailed
+WebContent[1150] 0x1010d4b98 - [webPageID=8] WebPage::runJavaScriptInFrameInScriptWorld: Request to run JavaScript failed with error <private>
+⚡️  JS Eval error A JavaScript exception occurred
+WebContent[1150] Unable to hide query parameters from script (missing data)
+⚡️  [log] - 🚀 Native platform detected - preloading critical pages
+⚡️  [log] - [SW] Service Worker support check: {"supported":false,"navigatorSW":"undefined","isSecureContext":true}
+⚡️  [warn] - [SW] Service Workers not supported in this environment (WKWebView/Replit preview)
+⚡️  [warn] - [SW] To test SW features, open the app in a real browser: Chrome, Firefox, Safari
+⚡️  [log] - [Badge] Service Worker not supported - this is expected in Replit preview
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 새 인스턴스 생성 중...
+⚡️  [log] - 🌉 [NativeBridge] Platform: ios isNative: true
+⚡️  [log] - 🌉 [NativeBridge] 인스턴스 생성 완료
+⚡️  [log] - 🔄 Auth context updating user: 108 profilePicture: /api/profile-picture/108
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://dovie-hello2sangyun.replit.app/ws
+⚡️  [log] -    Protocol: wss:, Host: dovie-hello2sangyun.replit.app
+Updated list with error: DownloadFailed
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - Processing 0 pending messages
+Updated list with error: DownloadFailed
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":108}
+⚡️  [log] - WebSocket authentication successful for user: 108
+⚡️  WebView loaded
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - [Badge] Service Worker not supported
+⚡️  [log] - 🔧 ========================================
+⚡️  [log] - 🔧 useCapacitorPushNotifications 훅 시작
+⚡️  [log] - 🔧 ========================================
+⚡️  [log] - 🔧 isNativePlatform() 체크: true
+⚡️  [log] - ✅ 네이티브 플랫폼 확인됨 - 플러그인 초기화 시작
+⚡️  [log] - ✅ window.Capacitor 확인됨: {"DEBUG":true,"isLoggingEnabled":true,"Plugins":{"CapacitorHttp":{},"Console":{},"WebView":{},"CapacitorCookies":{},"Haptics":{},"Filesystem":{},"Share":{},"App":{},"PushNotifications":{},"Camera":{},"StatusBar":{},"Keyboard":{},"Toast":{},"Badge":{}},"PluginHeaders":[{"methods":[{"name":"addListener"},{"name":"removeListener"},{"rtype":"promise","name":"removeAllListeners"},{"rtype":"promise","name":"checkPermissions"},{"rtype":"promise","name":"requestPermissions"},{"rtype":"promise","name":"request"},{"rtype":"promise","name":"get"},{"rtype":"promise","name":"post"},{"rtype":"promise","name":"put"},{"rtype":"promise","name":"patch"},{"rtype":"promise","name":"delete"}],"name":"CapacitorHttp"},{"methods":[{"name":"addListener"},{"name":"removeListener"},{"rtype":"promise","name":"removeAllListeners"},{"rtype":"promise","name":"checkPermissions"},{"rtype":"promise","name":"requestPermissions"},{"name":"log"}],"name":"Console"},{"methods":[{"name":"addListener"},{"name":"removeListener"},{"rtype":"promise","name":"removeAllListeners"},{"rtype":"promise","name":"checkPermissions"},{"rtype":"promise","name":"requestPermissions"},{"rtype":"promise","name":"setServerAssetPath"},{"rtype":"promise","name":"setServerBasePath"},{"rtype":"promise","name":"getServerBasePath"},{"rtype":"promise","name":"persistServerBasePath"}],"name":"WebView"},{"name":"CapacitorCookies","methods":[{"name":"addListener"},{"name":"removeListener"},{"rtype":"promise","name":"removeAllListeners"},{"rtype":"promise","name":"checkPermissions"},{"rtype":"promise","name":"requestPermissions"},{"rtype":"promise","name":"getCookies"},{"rtype":"promise","name":"setCookie"},{"rtype":"promise","name":"deleteCookie"},{"rtype":"promise","name":"clearCookies"},{"rtype":"promise","name":"clearAllCookies"}]},{"methods":[{"name":"addListener"},{"name":"removeListener"},{"rtype":"promise","name":"removeAllListeners"},{"rtype":"promise","name":"checkPermissions"},{"rtype":"promise","name":"requestPermissions"},{"rtype":"promise","name":"impact"},{"rtype":"promise","name":"notification"},{"rtype":"promise","name":"selectionStart"},{"rtype":"promise","name":"selectionChanged"},{"rtype":"promise","name":"selectionEnd"},{"rtype":"promise","name":"vibrate"}],"name":"Haptics"},{"methods":[{"name":"addListener"},{"name":"removeListener"},{"rtype":"promise","name":"removeAllListeners"},{"rtype":"promise","name":"checkPermissions"},{"rtype":"promise","name":"requestPermissions"},{"rtype":"promise","name":"readFile"},{"rtype":"callback","name":"readFileInChunks"},{"rtype":"promise","name":"writeFile"},{"rtype":"promise","name":"appendFile"},{"rtype":"promise","name":"deleteFile"},{"rtype":"promise","name":"mkdir"},{"rtype":"promise","name":"rmdir"},{"rtype":"promise","name":"readdir"},{"rtype":"promise","name":"getUri"},{"rtype":"promise","name":"stat"},{"rtype":"promise","name":"rename"},{"rtype":"promise","name":"copy"},{"rtype":"promise","name":"checkPermissions"},{"rtype":"promise","name":"requestPermissions"},{"rtype":"promise","name":"downloadFile"}],"name":"Filesystem"},{"methods":[{"name":"addListener"},{"name":"removeListener"},{"name":"removeAllListeners","rtype":"promise"},{"name":"checkPermissions","rtype":"promise"},{"name":"requestPermissions","rtype":"promise"},{"name":"canShare","rtype":"promise"},{"name":"share","rtype":"promise"}],"name":"Share"},{"name":"App","methods":[{"name":"addListener"},{"name":"removeListener"},{"rtype":"promise","name":"removeAllListeners"},{"rtype":"promise","name":"checkPermissions"},{"rtype":"promise","name":"requestPermissions"},{"rtype":"promise","name":"exitApp"},{"rtype":"promise","name":"getInfo"},{"rtype":"promise","name":"getLaunchUrl"},{"rtype":"promise","name":"getState"},{"rtype":"promise","name":"minimizeApp"}]},{"name":"PushNotifications","methods":[{"name":"addListener"},{"name":"removeListener"},{"rtype":"promise","name":"removeAllListeners"},{"rtype":"promise","name":"checkPermissions"},{"rtype":"promise","name":"requestPermissions"},{"rtype":"promise","
+⚡️  [log] - ✅ Capacitor.Plugins: {"CapacitorHttp":{},"Console":{},"WebView":{},"CapacitorCookies":{},"Haptics":{},"Filesystem":{},"Share":{},"App":{},"PushNotifications":{},"Camera":{},"StatusBar":{},"Keyboard":{},"Toast":{},"Badge":{}}
+⚡️  [log] - ⚠️ 아직 초기화되지 않음 - 대기 중
+⚡️  [log] - ✅ Navigation service registered
+⚡️  [log] - ✅ Navigator registered with navigation service
+⚡️  [log] - 🚫 Service Worker not supported
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - ✅ 초기화 완료 - 푸시 알림 설정 시작
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  To Native ->  PushNotifications addListener 85369830
+⚡️  [log] - ✅ 플러그인 import 성공: {"PushNotifications":true,"Toast":true}
+⚡️  To Native ->  PushNotifications addListener 85369831
+⚡️  To Native ->  PushNotifications addListener 85369832
+⚡️  To Native ->  PushNotifications addListener 85369833
+⚡️  To Native ->  ⚡️  [log] - 📱 iOS 푸시 알림 권한 요청 중...
+PushNotifications requestPermissions 85369834
+⚡️  TO JS {"receive":"granted"}
+⚡️  [log] - 📱 권한 요청 결과: {"receive":"granted"}
+⚡️  To Native ->  PushNotifications register 85369835
+⚡️  [log] - ✅ 권한 허용됨 - APNS 등록 시작
+⚡️  TO JS undefined
+⚡️  TO JS {"value":"91FEC356C65D21694B580C2282E3C5611591F38BF040FF6D4F11FBFFABE8BF2B"}
+📱 [AppDelegate] APNS 토큰 등록 성공
+⚡️  [log] - 📱 iOS 네이티브 푸시 알림 등록 완료 (토큰 수신 대기 중)
+⚡️  [log] - 📱 ========================================
+⚡️  [log] - 📱 iOS APNS 푸시 토큰 획득 성공!
+⚡️  [log] - 📱 Token: 91FEC356C65D21694B580C2282E3C5611591F38BF040FF6D4F11FBFFABE8BF2B
+⚡️  [log] - 📱 Token Length: 64
+⚡️  [log] - 📱 ========================================
+⚡️  [log] - 📱 ========================================
+⚡️  [log] - 📱 서버로 iOS APNS 토큰 전송 시작
+⚡️  [log] - 📱 User ID: 108
+⚡️  [log] - 📱 Token Preview: 91FEC356C65D21694B58...
+⚡️  [log] - 📱 Endpoint: /api/push-subscription/ios
+⚡️  [log] - 📱 ========================================
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 2
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: [{"chatRoomId":1,"unreadCount":2}]
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 2
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 2
+⚡️  [log] - 📱 PWA Badge update: 0 → 2 (messages: 2, AI: 0)
+⚡️  [log] - ✅ ========================================
+⚡️  [log] - ✅ iOS 푸시 토큰이 서버에 저장되었습니다!
+⚡️  [log] - ✅ Response: {"success":true,"message":"iOS push token registered successfully","userId":108,"tokenPreview":"91FEC356C65D21694B58..."}
+⚡️  [log] - ✅ ========================================
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - [NotificationManager] App visible - suppressing notifications
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 📱 앱이 활성화됨 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app opened - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline

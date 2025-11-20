@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './useAuth';
+import { isNativePlatform } from '@/lib/nativeBridge';
 
 interface UnreadCountData {
   unreadCounts: Array<{ chatRoomId: number; unreadCount: number }>;
@@ -26,22 +27,43 @@ export function usePWABadge() {
   // 배지 업데이트 함수 - 순수하게 데이터베이스 읽지 않은 메시지 수만 반영
   const updateBadge = useCallback(async (count: number) => {
     try {
-      console.log('🔢 PWA 배지를 데이터베이스 카운트로 설정:', count);
+      console.log('🔢 배지를 데이터베이스 카운트로 설정:', count);
       
-      // iOS 16+ PWA 배지 API 사용 - 정확한 데이터베이스 카운트로 설정
-      if ('setAppBadge' in navigator) {
-        // 푸시 알림 영향을 완전히 제거하기 위해 clear 후 설정
-        await navigator.clearAppBadge();
-        
-        // 항상 정확한 데이터베이스 카운트 반영
-        if (count > 0) {
-          await navigator.setAppBadge(count);
-          console.log('✅ PWA 배지가 정확한 읽지 않은 메시지 수로 설정됨:', count);
-        } else {
-          console.log('✅ PWA 배지 클리어됨 (읽지 않은 메시지 없음)');
+      // 네이티브 플랫폼 체크
+      const isNative = isNativePlatform();
+      
+      if (isNative) {
+        // iOS/Android 네이티브 앱 - Capacitor Badge 플러그인 사용
+        console.log('📱 네이티브 플랫폼 - Capacitor Badge 사용');
+        try {
+          const { Badge } = await import('@capawesome/capacitor-badge');
+          
+          if (count > 0) {
+            await Badge.set({ count });
+            console.log('✅ 네이티브 배지 설정 완료:', count);
+          } else {
+            await Badge.clear();
+            console.log('✅ 네이티브 배지 클리어 완료');
+          }
+        } catch (error) {
+          console.error('❌ Capacitor Badge 로드 실패:', error);
         }
       } else {
-        console.log('⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수:', count);
+        // PWA - iOS 16+ setAppBadge API 사용
+        if ('setAppBadge' in navigator) {
+          // 푸시 알림 영향을 완전히 제거하기 위해 clear 후 설정
+          await navigator.clearAppBadge();
+          
+          // 항상 정확한 데이터베이스 카운트 반영
+          if (count > 0) {
+            await navigator.setAppBadge(count);
+            console.log('✅ PWA 배지가 정확한 읽지 않은 메시지 수로 설정됨:', count);
+          } else {
+            console.log('✅ PWA 배지 클리어됨 (읽지 않은 메시지 없음)');
+          }
+        } else {
+          console.log('⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수:', count);
+        }
       }
     } catch (error) {
       console.error('❌ 배지 업데이트 실패:', error);
