@@ -1057,6 +1057,11 @@ function ChatRoomItem({
             msUserSelect: 'none',
             WebkitTouchCallout: 'none'
           }}
+          onContextMenu={(e) => {
+            // 크롬 컨텍스트 메뉴 방지 (음성 녹음을 위해)
+            e.preventDefault();
+            e.stopPropagation();
+          }}
           onMouseDown={(e) => {
             if (!isMultiSelectMode && onLongPressStart) {
               onLongPressStart(chatRoom, e);
