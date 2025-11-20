@@ -48,11 +48,9 @@ export const useCapacitorPushNotifications = () => {
       try {
         // Capacitor 플러그인을 window에서 직접 가져오기
         const { PushNotifications } = await import('@capacitor/push-notifications');
-        const { Toast } = await import('@capacitor/toast');
         
         console.log('✅ 플러그인 import 성공:', {
-          PushNotifications: !!PushNotifications,
-          Toast: !!Toast
+          PushNotifications: !!PushNotifications
         });
         
         // 등록 성공 리스너 (register() 전에 설정)
@@ -79,13 +77,9 @@ export const useCapacitorPushNotifications = () => {
 
         // 푸시 알림 수신 리스너 (앱이 포그라운드에 있을 때)
         await PushNotifications.addListener('pushNotificationReceived', (notification: any) => {
-          console.log('📱 푸시 알림 수신:', notification);
-          
-          // 네이티브 토스트로 알림 표시
-          Toast.show({
-            text: `${notification.title}: ${notification.body}`,
-            duration: 'long'
-          });
+          console.log('📱 푸시 알림 수신 (foreground):', notification);
+          // 앱이 이미 열려있을 때는 토스트 알림을 표시하지 않음
+          // 사용자가 이미 채팅 화면을 보고 있을 가능성이 높기 때문
         });
 
         // 푸시 알림 클릭 리스너
