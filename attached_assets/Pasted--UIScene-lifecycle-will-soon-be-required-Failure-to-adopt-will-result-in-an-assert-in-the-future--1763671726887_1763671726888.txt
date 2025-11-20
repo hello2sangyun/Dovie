@@ -1,0 +1,333 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/6F9757DF-53C0-4F71-A0CD-A7221915E7DA/App.app'
+Updated list with error: DownloadFailed
+Updated list with error: DownloadFailed
+KeyboardPlugin: resize mode - native
+⚡️  Loading app at https://dovie-hello2sangyun.replit.app...
+Updated list with error: DownloadFailed
+📱 [AppDelegate] Registered for remote notifications
+Networking process (0x115054190) took 8.614661 seconds to launch
+WebContent process (0x1150e4100) took 4.080171 seconds to launch
+GPU process (0x1151141e0) took 2.303309 seconds to launch
+📱 [AppDelegate] APNS 토큰 등록 성공
+0x1150e4100 - [PID=4491] WebProcessProxy::didBecomeUnresponsive:
+0x10a354718 - [pageProxyID=7, webPageID=8, PID=4491] WebPageProxy::processDidBecomeUnresponsive:
+Updated list with error: DownloadFailed
+WebContent[4491] Unable to hide query parameters from script (missing data)
+⚡️  [log] - 🚀 Native platform detected - preloading critical pages
+⚡️  [log] - [SW] Service Worker support check: {"supported":false,"navigatorSW":"undefined","isSecureContext":true}
+⚡️  [warn] - [SW] Service Workers not supported in this environment (WKWebView/Replit preview)
+⚡️  [warn] - [SW] To test SW features, open the app in a real browser: Chrome, Firefox, Safari
+⚡️  [log] - [Badge] Service Worker not supported - this is expected in Replit preview
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 새 인스턴스 생성 중...
+⚡️  [log] - 🌉 [NativeBridge] Platform: ios isNative: true
+⚡️  [log] - 🌉 [NativeBridge] 인스턴스 생성 완료
+⚡️  [log] - 🔄 Auth context updating user: 108 profilePicture: /api/profile-picture/108
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://dovie-hello2sangyun.replit.app/ws
+⚡️  [log] -    Protocol: wss:, Host: dovie-hello2sangyun.replit.app
+⚡️  WebView loaded
+Updated list with error: DownloadFailed
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - [Badge] Service Worker not supported
+⚡️  [log] - 🔧 ========================================
+⚡️  [log] - 🔧 useCapacitorPushNotifications 훅 시작
+⚡️  [log] - 🔧 ========================================
+⚡️  [log] - 🔧 isNativePlatform() 체크: true
+⚡️  [log] - ✅ 네이티브 플랫폼 확인됨 - 플러그인 초기화 시작
+⚡️  [log] - ✅ window.Capacitor 확인됨: {"DEBUG":true,"isLoggingEnabled":true,"Plugins":{"CapacitorHttp":{},"Console":{},"WebView":{},"CapacitorCookies":{},"App":{},"Toast":{},"StatusBar":{},"Badge":{},"Haptics":{},"PushNotifications":{},"Filesystem":{},"Camera":{},"Keyboard":{},"Share":{}},"PluginHeaders":[{"name":"CapacitorHttp","methods":[{"name":"addListener"},{"name":"removeListener"},{"name":"removeAllListeners","rtype":"promise"},{"name":"checkPermissions","rtype":"promise"},{"name":"requestPermissions","rtype":"promise"},{"name":"request","rtype":"promise"},{"name":"get","rtype":"promise"},{"name":"post","rtype":"promise"},{"name":"put","rtype":"promise"},{"name":"patch","rtype":"promise"},{"name":"delete","rtype":"promise"}]},{"name":"Console","methods":[{"name":"addListener"},{"name":"removeListener"},{"name":"removeAllListeners","rtype":"promise"},{"name":"checkPermissions","rtype":"promise"},{"name":"requestPermissions","rtype":"promise"},{"name":"log"}]},{"name":"WebView","methods":[{"name":"addListener"},{"name":"removeListener"},{"name":"removeAllListeners","rtype":"promise"},{"name":"checkPermissions","rtype":"promise"},{"name":"requestPermissions","rtype":"promise"},{"name":"setServerAssetPath","rtype":"promise"},{"name":"setServerBasePath","rtype":"promise"},{"name":"getServerBasePath","rtype":"promise"},{"name":"persistServerBasePath","rtype":"promise"}]},{"name":"CapacitorCookies","methods":[{"name":"addListener"},{"name":"removeListener"},{"name":"removeAllListeners","rtype":"promise"},{"name":"checkPermissions","rtype":"promise"},{"name":"requestPermissions","rtype":"promise"},{"name":"getCookies","rtype":"promise"},{"name":"setCookie","rtype":"promise"},{"name":"deleteCookie","rtype":"promise"},{"name":"clearCookies","rtype":"promise"},{"name":"clearAllCookies","rtype":"promise"}]},{"name":"App","methods":[{"name":"addListener"},{"name":"removeListener"},{"name":"removeAllListeners","rtype":"promise"},{"name":"checkPermissions","rtype":"promise"},{"name":"requestPermissions","rtype":"promise"},{"name":"exitApp","rtype":"promise"},{"name":"getInfo","rtype":"promise"},{"name":"getLaunchUrl","rtype":"promise"},{"name":"getState","rtype":"promise"},{"name":"minimizeApp","rtype":"promise"}]},{"name":"Toast","methods":[{"name":"addListener"},{"name":"removeListener"},{"name":"removeAllListeners","rtype":"promise"},{"name":"checkPermissions","rtype":"promise"},{"name":"requestPermissions","rtype":"promise"},{"name":"show","rtype":"promise"}]},{"name":"StatusBar","methods":[{"name":"addListener"},{"name":"removeListener"},{"name":"removeAllListeners","rtype":"promise"},{"name":"checkPermissions","rtype":"promise"},{"name":"requestPermissions","rtype":"promise"},{"name":"setStyle","rtype":"promise"},{"name":"setBackgroundColor","rtype":"promise"},{"name":"show","rtype":"promise"},{"name":"hide","rtype":"promise"},{"name":"getInfo","rtype":"promise"},{"name":"setOverlaysWebView","rtype":"promise"}]},{"name":"Badge","methods":[{"name":"addListener"},{"name":"removeListener"},{"name":"removeAllListeners","rtype":"promise"},{"name":"checkPermissions","rtype":"promise"},{"name":"requestPermissions","rtype":"promise"},{"name":"requestPermissions","rtype":"promise"},{"name":"checkPermissions","rtype":"promise"},{"name":"get","rtype":"promise"},{"name":"set","rtype":"promise"},{"name":"increase","rtype":"promise"},{"name":"decrease","rtype":"promise"},{"name":"clear","rtype":"promise"},{"name":"isSupported","rtype":"promise"}]},{"name":"Haptics","methods":[{"name":"addListener"},{"name":"removeListener"},{"name":"removeAllListeners","rtype":"promise"},{"name":"checkPermissions","rtype":"promise"},{"name":"requestPermissions","rtype":"promise"},{"name":"impact","rtype":"promise"},{"name":"notification","rtype":"promise"},{"name":"selectionStart","rtype":"promise"},{"name":"selectionChanged","rtype":"promise"},{"name":"selectionEnd","rtype":"promise"},{"name":"vibrate","rtype":"promise"}]},{"name":"PushNotifications","methods":[{"name":"addListener"},{"name":"removeListener"},{"name":"removeAll
+⚡️  [log] - ✅ Capacitor.Plugins: {"CapacitorHttp":{},"Console":{},"WebView":{},"CapacitorCookies":{},"App":{},"Toast":{},"StatusBar":{},"Badge":{},"Haptics":{},"PushNotifications":{},"Filesystem":{},"Camera":{},"Keyboard":{},"Share":{}}
+⚡️  [log] - ⚠️ 아직 초기화되지 않음 - 대기 중
+⚡️  [log] - ✅ Navigation service registered
+⚡️  [log] - ✅ Navigator registered with navigation service
+⚡️  [log] - 🚫 Service Worker not supported
+⚡️  [log] - 🔢 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - 📱 네이티브 플랫폼 - Capacitor Badge 사용
+⚡️  [log] - ✅ 초기화 완료 - 푸시 알림 설정 시작
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - [NotificationManager] Activity status updated: online
+Updated list with error: DownloadFailed
+⚡️  [log] - ✅ 플러그인 import 성공: {"PushNotifications":true}
+⚡️  To Native ->  PushNotifications addListener 68774655
+⚡️  To Native ->  PushNotifications addListener 68774656
+⚡️  To Native ->  PushNotifications addListener 68774657
+⚡️  To Native ->  PushNotifications addListener 68774658
+⚡️  To Native ->  PushNotifications requestPermissions 68774659
+⚡️  [log] - 📱 iOS 푸시 알림 권한 요청 중...
+⚡️  To Native ->  Badge clear 68774660
+⚡️  TO JS {"receive":"granted"}
+⚡️  [log] - 📱 권한 요청 결과: {"receive":"granted"}
+⚡️  To Native ->  PushNotifications register 68774661
+⚡️  [log] - ✅ 권한 허용됨 - APNS 등록 시작
+⚡️  TO JS undefined
+⚡️  TO JS undefined
+⚡️  TO JS {"value":"91FEC356C65D21694B580C2282E3C5611591F38BF040FF6D4F11FBFFABE8BF2B"}
+📱 [AppDelegate] APNS 토큰 등록 성공
+⚡️  [log] - ✅ 네이티브 배지 클리어 완료
+⚡️  [log] - 📱 iOS 네이티브 푸시 알림 등록 완료 (토큰 수신 대기 중)
+⚡️  [log] - 📱 ========================================
+⚡️  [log] - 📱 iOS APNS 푸시 토큰 획득 성공!
+⚡️  [log] - 📱 Token: 91FEC356C65D21694B580C2282E3C5611591F38BF040FF6D4F11FBFFABE8BF2B
+⚡️  [log] - 📱 Token Length: 64
+⚡️  [log] - 📱 ========================================
+⚡️  [log] - 📱 ========================================
+⚡️  [log] - 📱 서버로 iOS APNS 토큰 전송 시작
+⚡️  [log] - 📱 User ID: 108
+⚡️  [log] - 📱 Token Preview: 91FEC356C65D21694B58...
+⚡️  [log] - 📱 Endpoint: /api/push-subscription/ios
+⚡️  [log] - 📱 ========================================
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":108}
+⚡️  [log] - WebSocket authentication successful for user: 108
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - ✅ ========================================
+⚡️  [log] - ✅ iOS 푸시 토큰이 서버에 저장되었습니다!
+⚡️  [log] - ✅ Response: {"success":true,"message":"iOS push token registered successfully","userId":108,"tokenPreview":"91FEC356C65D21694B58..."}
+⚡️  [log] - ✅ ========================================
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 0
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: []
+⚡️  [log] - 🔢 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - 📱 네이티브 플랫폼 - Capacitor Badge 사용
+⚡️  To Native ->  Badge clear 68774662
+⚡️  TO JS undefined
+⚡️  [log] - ✅ 네이티브 배지 클리어 완료
+⚡️  [log] - 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: Test User
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+⚡️  [log] - 🎤 Getting microphone stream for recording...
+⚡️  [log] - 🎤 Creating fresh microphone stream (iOS chime expected - user initiated)...
+⚡️  [log] - 🚫 스크롤 감지 - 음성 녹음 타이머 취소
+⚡️  [log] - 🎤 손을 뗌 - 녹음 자동 전송
+⚡️  [log] - 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: Test User
+⚡️  [log] - ✅ Microphone stream created successfully (user is recording)
+⚡️  [log] - 🎤 Creating MediaRecorder with: {"mimeType":"audio/webm;codecs=opus","isIPhonePWA":false,"options":{"mimeType":"audio/webm;codecs=opus"}}
+⚡️  [log] - 🎤 Recording started with MediaRecorder state: recording
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+⚡️  [log] - 🎤 Releasing microphone stream from VoiceRecordingModal
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - 📱 Modal closed - auto-sending voice recording
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+⚡️  [log] - 🎤 Releasing microphone stream from VoiceRecordingModal
+⚡️  [log] - 📊 Audio data chunk received: 5 bytes
+⚡️  [log] - 🎤 Recording stopped: {"audioBlobSize":5,"duration":0,"chunksCount":1,"mimeType":"audio/webm;codecs=opus"}
+⚡️  [log] - 🎤 채팅방 음성 녹음 완료: 1 파일 크기: 5 지속시간: 0
+⚡️  [log] - 🎤 채팅방 간편음성메세지 - 통합 처리 시작: Test User
+⚡️  [log] - 📤 통합 음성 처리 API 호출 중...
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+⚡️  [log] - 🎤 Releasing microphone stream from VoiceRecordingModal
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+⚡️  [log] - 🎤 Releasing microphone stream from VoiceRecordingModal
+⚡️  [log] - 📡 통합 처리 응답 상태: 200
+⚡️  [log] - ✅ 통합 음성 처리 성공: {"success":false,"error":"SILENT_RECORDING","message":"빈 음성 녹음이 감지되었습니다."}
+⚡️  [log] - 🔇 빈 음성 녹음 감지됨 (ChatsList), 메시지 전송 취소
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - 🎤 Requesting microphone permission (will create temporary stream)...
+⚡️  [log] - ✅ Microphone permission granted
+⚡️  [log] - 🎤 Getting microphone stream for recording...
+⚡️  [log] - 🎤 Creating fresh microphone stream (iOS chime expected - user initiated)...
+⚡️  [log] - ✅ Microphone stream created successfully (user is recording)
+⚡️  [log] - 🎤 Creating MediaRecorder with: {"mimeType":"audio/webm;codecs=opus","isIPhonePWA":false,"options":{"mimeType":"audio/webm;codecs=opus"}}
+⚡️  [log] - 🎤 Recording started with MediaRecorder state: recording
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+WebContent[4491] AudioComponentPluginMgr.mm:590   reg server remote proxy error Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service named com.apple.audio.AudioComponentRegistrar was invalidated: Connection init failed at lookup with error 1 - Operation no
+WebContent[4491] AudioComponentPluginMgr.mm:590   reg server remote proxy error Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service named com.apple.audio.AudioComponentRegistrar was invalidated: Connection init failed at lookup with error 1 - Operation no
+WebContent[4491] AudioComponentPluginMgr.mm:590   reg server remote proxy error Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service named com.apple.audio.AudioComponentRegistrar was invalidated: Connection init failed at lookup with error 1 - Operation no
+WebContent[4491] AudioSampleBufferConverter getting kAudioCodecPropertyDelayMode failed with 1886547824
+⚡️  [log] - 📊 Audio data chunk received: 28994 bytes
+⚡️  [log] - 📊 Audio data chunk received: 27619 bytes
+⚡️  [log] - 📊 Audio data chunk received: 28162 bytes
+⚡️  [log] - 📊 Audio data chunk received: 29009 bytes
+⚡️  [log] - 📊 Audio data chunk received: 24931 bytes
+⚡️  [log] - 📱 Modal closed - auto-sending voice recording
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+⚡️  [log] - 🎤 Releasing microphone stream from VoiceRecordingModal
+⚡️  [log] - 📊 Audio data chunk received: 16484 bytes
+⚡️  [log] - 🎤 Recording stopped: {"audioBlobSize":16484,"duration":6,"chunksCount":1,"mimeType":"audio/webm;codecs=opus"}
+⚡️  [log] - 🎤 채팅방 음성 녹음 완료: 1 파일 크기: 16484 지속시간: 6
+⚡️  [log] - 🎤 채팅방 간편음성메세지 - 통합 처리 시작: Test User
+⚡️  [log] - 📤 통합 음성 처리 API 호출 중...
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+⚡️  [log] - 🎤 Releasing microphone stream from VoiceRecordingModal
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+⚡️  [log] - 🎤 Releasing microphone stream from VoiceRecordingModal
+⚡️  [log] - 📡 통합 처리 응답 상태: 500
+⚡️  [error] - ❌ 채팅방 간편음성메세지 전체 프로세스 실패: {}
+⚡️  [error] - ❌ 오류 상세 정보: {"message":"Transcription failed: 500","stack":"@https://dovie-hello2sangyun.replit.app/assets/MainApp-jdOmUs2G.js:321:20954","name":"Error"}
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - 🎯 채팅방 간편음성메세지 - 길게 누르기 시작: Test User
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+⚡️  [log] - 🎤 Getting microphone stream for recording...
+⚡️  [log] - 🎤 Creating fresh microphone stream (iOS chime expected - user initiated)...
+⚡️  [log] - ✅ Microphone stream created successfully (user is recording)
+⚡️  [log] - 🎤 Creating MediaRecorder with: {"mimeType":"audio/webm;codecs=opus","isIPhonePWA":false,"options":{"mimeType":"audio/webm;codecs=opus"}}
+⚡️  [log] - 🎤 Recording started with MediaRecorder state: recording
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+WebContent[4491] AudioComponentPluginMgr.mm:590   reg server remote proxy error Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service named com.apple.audio.AudioComponentRegistrar was invalidated: Connection init failed at lookup with error 1 - Operation no
+WebContent[4491] AudioComponentPluginMgr.mm:590   reg server remote proxy error Error Domain=NSCocoaErrorDomain Code=4099 "The connection to service named com.apple.audio.AudioComponentRegistrar was invalidated: Connection init failed at lookup with error 1 - Operation no
+WebContent[4491] AudioSampleBufferConverter getting kAudioCodecPropertyDelayMode failed with 1886547824
+⚡️  [log] - 🚫 스크롤 감지 - 음성 녹음 타이머 취소
+⚡️  [log] - 📊 Audio data chunk received: 28547 bytes
+⚡️  [log] - 📊 Audio data chunk received: 28833 bytes
+⚡️  [log] - 🎤 손을 뗌 - 녹음 자동 전송
+⚡️  [log] - 📱 Modal closed - auto-sending voice recording
+⚡️  [log] - 📊 Audio data chunk received: 0 bytes
+⚡️  [log] - 🎤 Recording stopped: {"audioBlobSize":57380,"duration":2,"chunksCount":2,"mimeType":"audio/webm;codecs=opus"}
+⚡️  [log] - 🎤 채팅방 음성 녹음 완료: 1 파일 크기: 57380 지속시간: 2
+⚡️  [log] - 🎤 채팅방 간편음성메세지 - 통합 처리 시작: Test User
+⚡️  [log] - 📤 통합 음성 처리 API 호출 중...
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+⚡️  [log] - 🎤 Releasing microphone stream from VoiceRecordingModal
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+⚡️  [log] - 🎤 Releasing microphone stream from VoiceRecordingModal
+⚡️  [log] - 📡 통합 처리 응답 상태: 200
+⚡️  [log] - ✅ 통합 음성 처리 성공: {"success":true,"transcription":"지금 문자 보냅니다","duration":2.109999895095825,"detectedLanguage":"korean","confidence":0.9,"audioUrl":"/uploads/voice_1763671593008.webm","smartSuggestions":[]}
+⚡️  [log] - 📋 Voice Confirm Modal 표시
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - 📨 편집된 음성 메시지 전송: 지금 문자 보냅니다
+⚡️  [log] - ✅ 음성 메시지 전송 성공!
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [error] - [FileCache] Initialization failed: {}
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - 🌉 [NativeBridge] getNativeBridge 호출됨
+⚡️  [log] - 🌉 [NativeBridge] 기존 인스턴스 반환
+⚡️  [log] - WebSocket message received: {"type":"new_message","message":{"id":310,"chatRoomId":1,"senderId":108,"content":"지금 문자 보냅니다","messageType":"voice","callId":null,"fileUrl":"/uploads/voice_1763671593008.webm","fileName":"voice_message.webm","fileSize":0,"attachments":null,"voiceDuration":"2.00","detectedLanguage":"korean","confidence":"0.90","isCommandRecall":false,"isTranslated":false,"isCalculated":false,"pollData":null,"originalMessageId":null,"replyToMessageId":null,"boomTimer":null,"expiresAt":null,"targetUserId":null,"spotlightMessageId":null,"spotlightDuration":null,"isEdited":false,"editedAt":null,"mentionedUserIds":null,"mentionAll":false,"youtubePreview":null,"isSystemMessage":false,"isStarred":false,"starredAt":null,"createdAt":"2025-11-20T20:46:35.191Z","sender":{"id":108,"username":"Dovie","displayName":"Dovie","email":"hello2sangyun@gmail.com","password":"$2b$10$d4bRgJE8UjwoGMbMCIW3ce4lWvmqX2TbOTjd5l2ziP7GH1EH95RWW","phoneNumber":"+36703566630","birthday":"1985-05-19","profilePicture":"/replit-objstore-07c53c38-e3fd-4bfd-9984-e96360e066b6/.private/profile_1763553488814_zcnrqq3o3mg.jpg","qrCode":null,"qrToken":null,"qrTokenExpiry":null,"isOnline":true,"lastSeen":"2025-11-20T20:46:33.907Z","language":"ko","notificationsEnabled":true,"notificationSound":"default","isEmailVerified":true,"isProfileComplete":true,"userRole":"user","businessName":null,"businessAddress":null,"businessLatitude":null,"businessLongitude":null,"isBusinessVerified":false,"allowVoicePlayback":true,"autoPlayVoiceMessages":false,"allowVoiceBookmarks":true,"authProvider":null,"providerId":null,"providerEmail":null,"aiPreferences":null,"createdAt":"2025-11-18T11:05:41.595Z"},"clientRequestId":null}}
+⚡️  [log] - ⏰ 300ms 타임아웃: 로딩 오버레이 강제 제거
+⚡️  [log] - ⏰ 300ms 타임아웃: 로딩 오버레이 강제 제거
+⚡️  TO JS {"id":"EFF65520-ECE0-4A36-A1F8-68F3E5ADA37C","subtitle":"","body":"","badge":0,"title":"","data":{"type":"badge_update","aps":{"mutable-content":1,"category":"MESSAGE_CATEGORY","alert":{"body":"","title":""},"sound":"default","thread-id":"chat-default","ba
+⚡️  TO JS {"id":"2927B329-6514-48F8-8F3B-170011A89BF1","subtitle":"","body":"","badge":0,"title":"","data":{"aps":{"badge":0,"alert":{"body":"","title":""},"thread-id":"chat-default","category":"MESSAGE_CATEGORY","sound":"default","mutable-content":1,"content-availa
+⚡️  [log] - 📱 푸시 알림 수신 (foreground): {"id":"EFF65520-ECE0-4A36-A1F8-68F3E5ADA37C","subtitle":"","body":"","badge":0,"title":"","data":{"type":"badge_update","aps":{"mutable-content":1,"category":"MESSAGE_CATEGORY","alert":{"body":"","title":""},"sound":"default","thread-id":"chat-default","badge":0,"content-available":1},"url":"/"}}
+⚡️  TO JS {"id":"7F1AD4C5-959A-493D-B871-82528B8BAF0E","subtitle":"","body":"","badge":0,"title":"","data":{"type":"badge_update","aps":{"mutable-content":1,"category":"MESSAGE_CATEGORY","alert":{"body":"","title":""},"sound":"default","thread-id":"chat-default","ba
+⚡️  TO JS {"id":"4CE9B59A-A739-4211-9F01-5EB32F308801","subtitle":"","body":"","badge":0,"title":"","data":{"aps":{"badge":0,"alert":{"title":"","body":""},"thread-id":"chat-default","category":"MESSAGE_CATEGORY","sound":"default","mutable-content":1,"content-availa
+⚡️  TO JS {"id":"ED71B909-1305-48EC-8313-17694750844D","subtitle":"","body":"","badge":0,"title":"","data":{"type":"badge_update","aps":{"mutable-content":1,"category":"MESSAGE_CATEGORY","alert":{"body":"","title":""},"sound":"default","thread-id":"chat-default","ba
+⚡️  TO JS {"subtitle":"","data":{"type":"badge_update","aps":{"badge":0,"alert":{"body":"","title":""},"thread-id":"chat-default","category":"MESSAGE_CATEGORY","sound":"default","content-available":1,"mutable-content":1},"url":"\/"},"id":"81F524F8-0AB8-4206-AE31-F8C
+⚡️  [log] - 📱 푸시 알림 수신 (foreground): {"id":"2927B329-6514-48F8-8F3B-170011A89BF1","subtitle":"","body":"","badge":0,"title":"","data":{"aps":{"badge":0,"alert":{"body":"","title":""},"thread-id":"chat-default","category":"MESSAGE_CATEGORY","sound":"default","mutable-content":1,"content-available":1},"url":"/","type":"badge_update"}}
+⚡️  [log] - 📱 푸시 알림 수신 (foreground): {"id":"7F1AD4C5-959A-493D-B871-82528B8BAF0E","subtitle":"","body":"","badge":0,"title":"","data":{"type":"badge_update","aps":{"mutable-content":1,"category":"MESSAGE_CATEGORY","alert":{"body":"","title":""},"sound":"default","thread-id":"chat-default","badge":0,"content-available":1},"url":"/"}}
+⚡️  [log] - 📱 푸시 알림 수신 (foreground): {"id":"4CE9B59A-A739-4211-9F01-5EB32F308801","subtitle":"","body":"","badge":0,"title":"","data":{"aps":{"badge":0,"alert":{"title":"","body":""},"thread-id":"chat-default","category":"MESSAGE_CATEGORY","sound":"default","mutable-content":1,"content-available":1},"type":"badge_update","url":"/"}}
+⚡️  [log] - 📱 푸시 알림 수신 (foreground): {"id":"ED71B909-1305-48EC-8313-17694750844D","subtitle":"","body":"","badge":0,"title":"","data":{"type":"badge_update","aps":{"mutable-content":1,"category":"MESSAGE_CATEGORY","alert":{"body":"","title":""},"sound":"default","thread-id":"chat-default","badge":0,"content-available":1},"url":"/"}}
+⚡️  [log] - 📱 푸시 알림 수신 (foreground): {"subtitle":"","data":{"type":"badge_update","aps":{"badge":0,"alert":{"body":"","title":""},"thread-id":"chat-default","category":"MESSAGE_CATEGORY","sound":"default","content-available":1,"mutable-content":1},"url":"/"},"id":"81F524F8-0AB8-4206-AE31-F8CF6ACE9D6E","badge":0,"body":"","title":""}
+Reporter disconnected. { function=sendMessage, reporterID=19275813224451 }
+Reporter disconnected. { function=sendMessage, reporterID=19275813224451 }
+Reporter disconnected. { function=sendMessage, reporterID=19275813224451 }
+Reporter disconnected. { function=sendMessage, reporterID=19275813224451 }
+Reporter disconnected. { function=sendMessage, reporterID=19275813224451 }
+Reporter disconnected. { function=sendMessage, reporterID=19275813224451 }
+Reporter disconnected. { function=sendMessage, reporterID=19275813224451 }
+Reporter disconnected. { function=sendMessage, reporterID=19275813224451 }
+Reporter disconnected. { function=sendMessage, reporterID=19275813224451 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = C28533AD-34B3-4AAE-9742-87EC51BA46E4
+Reporter disconnected or already stopped. { func=stop, reporterID=19275813224451 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+Reporter disconnected. { function=sendMessage, reporterID=19275813224452 }
+Reporter disconnected. { function=sendMessage, reporterID=19275813224452 }
+Reporter disconnected. { function=sendMessage, reporterID=19275813224452 }
+Reporter disconnected. { function=sendMessage, reporterID=19275813224452 }
+Reporter disconnected. { function=sendMessage, reporterID=19275813224452 }
+Reporter disconnected. { function=sendMessage, reporterID=19275813224452 }
+Reporter disconnected. { function=sendMessage, reporterID=19275813224452 }
+Reporter disconnected. { function=sendMessage, reporterID=19275813224452 }
+Reporter disconnected. { function=sendMessage, reporterID=19275813224452 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = C28533AD-34B3-4AAE-9742-87EC51BA46E4
+⚡️  TO JS {"id":"5D897368-C03E-4E64-89CC-F9575EA28A42","body":"","data":{"url":"\/","aps":{"category":"MESSAGE_CATEGORY","mutable-content":1,"badge":0,"alert":{"title":"","body":""},"thread-id":"chat-default","sound":"default","content-available":1},"type":"badge_up
+⚡️  [log] - 📱 푸시 알림 수신 (foreground): {"id":"5D897368-C03E-4E64-89CC-F9575EA28A42","body":"","data":{"url":"/","aps":{"category":"MESSAGE_CATEGORY","mutable-content":1,"badge":0,"alert":{"title":"","body":""},"thread-id":"chat-default","sound":"default","content-available":1},"type":"badge_update"},"subtitle":"","badge":0,"title":""}
+⚡️  TO JS {"id":"ABDE07E3-8F34-4711-B1E4-97E921790F0D","body":"","data":{"type":"badge_update","aps":{"category":"MESSAGE_CATEGORY","mutable-content":1,"content-available":1,"sound":"default","badge":0,"alert":{"body":"","title":""},"thread-id":"chat-default"},"url"
+⚡️  [log] - 📱 푸시 알림 수신 (foreground): {"id":"ABDE07E3-8F34-4711-B1E4-97E921790F0D","body":"","data":{"type":"badge_update","aps":{"category":"MESSAGE_CATEGORY","mutable-content":1,"content-available":1,"sound":"default","badge":0,"alert":{"body":"","title":""},"thread-id":"chat-default"},"url":"/"},"subtitle":"","badge":0,"title":""}
+Reporter disconnected or already stopped. { func=stop, reporterID=19275813224452 }
+⚡️  [log] - WebSocket message received: {"type":"new_message","message":{"id":311,"chatRoomId":1,"senderId":108,"content":"나야","messageType":"text","callId":null,"fileUrl":null,"fileName":null,"fileSize":null,"attachments":null,"voiceDuration":null,"detectedLanguage":null,"confidence":null,"isCommandRecall":false,"isTranslated":false,"isCalculated":false,"pollData":null,"originalMessageId":null,"replyToMessageId":null,"boomTimer":null,"expiresAt":null,"targetUserId":null,"spotlightMessageId":null,"spotlightDuration":null,"isEdited":false,"editedAt":null,"mentionedUserIds":null,"mentionAll":false,"youtubePreview":null,"isSystemMessage":false,"isStarred":false,"starredAt":null,"createdAt":"2025-11-20T20:46:58.506Z","sender":{"id":108,"username":"Dovie","displayName":"Dovie","email":"hello2sangyun@gmail.com","password":"$2b$10$d4bRgJE8UjwoGMbMCIW3ce4lWvmqX2TbOTjd5l2ziP7GH1EH95RWW","phoneNumber":"+36703566630","birthday":"1985-05-19","profilePicture":"/replit-objstore-07c53c38-e3fd-4bfd-9984-e96360e066b6/.private/profile_1763553488814_zcnrqq3o3mg.jpg","qrCode":null,"qrToken":null,"qrTokenExpiry":null,"isOnline":true,"lastSeen":"2025-11-20T20:46:48.907Z","language":"ko","notificationsEnabled":true,"notificationSound":"default","isEmailVerified":true,"isProfileComplete":true,"userRole":"user","businessName":null,"businessAddress":null,"businessLatitude":null,"businessLongitude":null,"isBusinessVerified":false,"allowVoicePlayback":true,"autoPlayVoiceMessages":false,"allowVoiceBookmarks":true,"authProvider":null,"providerId":null,"providerEmail":null,"aiPreferences":null,"createdAt":"2025-11-18T11:05:41.595Z"},"clientRequestId":"msg-1763671618387-cbti6onzz"}}
+⚡️  TO JS {"badge":0,"body":"","data":{"aps":{"category":"MESSAGE_CATEGORY","badge":0,"alert":{"title":"","body":""},"sound":"default","mutable-content":1,"content-available":1,"thread-id":"chat-default"},"url":"\/","type":"badge_update"},"title":"","subtitle":"","i
+⚡️  [log] - 📱 푸시 알림 수신 (foreground): {"badge":0,"body":"","data":{"aps":{"category":"MESSAGE_CATEGORY","badge":0,"alert":{"title":"","body":""},"sound":"default","mutable-content":1,"content-available":1,"thread-id":"chat-default"},"url":"/","type":"badge_update"},"title":"","subtitle":"","id":"E84C682D-C2EB-46FE-B7C3-6A6EA23CCAC0"}
+⚡️  TO JS {"badge":0,"body":"","data":{"type":"badge_update","aps":{"alert":{"body":"","title":""},"category":"MESSAGE_CATEGORY","mutable-content":1,"badge":0,"content-available":1,"sound":"default","thread-id":"chat-default"},"url":"\/"},"title":"","subtitle":"","i
+⚡️  [log] - 📱 푸시 알림 수신 (foreground): {"badge":0,"body":"","data":{"type":"badge_update","aps":{"alert":{"body":"","title":""},"category":"MESSAGE_CATEGORY","mutable-content":1,"badge":0,"content-available":1,"sound":"default","thread-id":"chat-default"},"url":"/"},"title":"","subtitle":"","id":"39FD3AA1-0E13-4806-B126-1B919346A3AA"}
+⚡️  TO JS {"badge":0,"body":"","data":{"url":"\/","aps":{"category":"MESSAGE_CATEGORY","badge":0,"alert":{"body":"","title":""},"sound":"default","mutable-content":1,"content-available":1,"thread-id":"chat-default"},"type":"badge_update"},"title":"","subtitle":"","i
+⚡️  [log] - 📱 푸시 알림 수신 (foreground): {"badge":0,"body":"","data":{"url":"/","aps":{"category":"MESSAGE_CATEGORY","badge":0,"alert":{"body":"","title":""},"sound":"default","mutable-content":1,"content-available":1,"thread-id":"chat-default"},"type":"badge_update"},"title":"","subtitle":"","id":"3694C98E-B5A5-4DBC-8E25-DAF9970A629B"}
+⚡️  TO JS {"badge":0,"body":"","data":{"aps":{"alert":{"title":"","body":""},"category":"MESSAGE_CATEGORY","mutable-content":1,"badge":0,"content-available":1,"sound":"default","thread-id":"chat-default"},"type":"badge_update","url":"\/"},"title":"","subtitle":"","i
+⚡️  [log] - 📱 푸시 알림 수신 (foreground): {"badge":0,"body":"","data":{"aps":{"alert":{"title":"","body":""},"category":"MESSAGE_CATEGORY","mutable-content":1,"badge":0,"content-available":1,"sound":"default","thread-id":"chat-default"},"type":"badge_update","url":"/"},"title":"","subtitle":"","id":"0A298DB2-C1C4-4AD0-AB68-613630B3418A"}
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+Snapshotting a view (0x11b0e6800, UIKeyboardImpl) that is not in a visible window requires afterScreenUpdates:YES.
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  To Native ->  ⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+Badge clear 68774663
+⚡️  [log] - 🔢 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - 📱 네이티브 플랫폼 - Capacitor Badge 사용
+⚡️  To Native ->  Badge clear 68774664
+⚡️  To Native ->  Badge clear 68774665
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔢 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - 📱 네이티브 플랫폼 - Capacitor Badge 사용
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - [NotificationManager] App visible - suppressing notifications
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - 📱 앱이 활성화됨 - 배지 상태 새로고침
+⚡️  [log] - 🔢 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - 📱 네이티브 플랫폼 - Capacitor Badge 사용
+⚡️  [log] - 🔄 PWA app opened - syncing messages immediately
+⚡️  TO JS undefined
+⚡️  TO JS undefined
+⚡️  [log] - ✅ 네이티브 배지 클리어 완료
+⚡️  [log] - ✅ 네이티브 배지 클리어 완료
+⚡️  TO JS undefined
+⚡️  [log] - ✅ 네이티브 배지 클리어 완료
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  TO JS {"subtitle":"","badge":0,"title":"","data":{"type":"badge_update","url":"\/","aps":{"content-available":1,"mutable-content":1,"alert":{"title":"","body":""},"thread-id":"chat-default","category":"MESSAGE_CATEGORY","sound":"default","badge":0}},"id":"1BBDC7
+⚡️  [log] - 📱 푸시 알림 수신 (foreground): {"subtitle":"","badge":0,"title":"","data":{"type":"badge_update","url":"/","aps":{"content-available":1,"mutable-content":1,"alert":{"title":"","body":""},"thread-id":"chat-default","category":"MESSAGE_CATEGORY","sound":"default","badge":0}},"id":"1BBDC7EF-4883-4E87-825D-8EF80E71DD42","body":""}
+⚡️  TO JS {"subtitle":"","badge":0,"title":"","data":{"url":"\/","aps":{"content-available":1,"category":"MESSAGE_CATEGORY","thread-id":"chat-default","sound":"default","mutable-content":1,"badge":0,"alert":{"title":"","body":""}},"type":"badge_update"},"id":"AFDE48
+⚡️  [log] - 📱 푸시 알림 수신 (foreground): {"subtitle":"","badge":0,"title":"","data":{"url":"/","aps":{"content-available":1,"category":"MESSAGE_CATEGORY","thread-id":"chat-default","sound":"default","mutable-content":1,"badge":0,"alert":{"title":"","body":""}},"type":"badge_update"},"id":"AFDE48B9-45BA-4EDB-8B2C-F1333E48A12E","body":""}
+⚡️  TO JS {"subtitle":"","badge":0,"title":"","data":{"aps":{"content-available":1,"mutable-content":1,"alert":{"title":"","body":""},"thread-id":"chat-default","category":"MESSAGE_CATEGORY","sound":"default","badge":0},"type":"badge_update","url":"\/"},"id":"A1022A
+⚡️  [log] - 📱 푸시 알림 수신 (foreground): {"subtitle":"","badge":0,"title":"","data":{"aps":{"content-available":1,"mutable-content":1,"alert":{"title":"","body":""},"thread-id":"chat-default","category":"MESSAGE_CATEGORY","sound":"default","badge":0},"type":"badge_update","url":"/"},"id":"A1022A28-6C5B-44C2-ACDD-DF0BFA18ACD1","body":""}
+⚡️  TO JS {"subtitle":"","badge":0,"title":"","data":{"url":"\/","aps":{"content-available":1,"category":"MESSAGE_CATEGORY","thread-id":"chat-default","sound":"default","mutable-content":1,"badge":0,"alert":{"title":"","body":""}},"type":"badge_update"},"id":"11841E
+⚡️  [log] - 📱 푸시 알림 수신 (foreground): {"subtitle":"","badge":0,"title":"","data":{"url":"/","aps":{"content-available":1,"category":"MESSAGE_CATEGORY","thread-id":"chat-default","sound":"default","mutable-content":1,"badge":0,"alert":{"title":"","body":""}},"type":"badge_update"},"id":"11841E28-0950-4407-B908-BF82887BBC6E","body":""}
+⚡️  TO JS {"subtitle":"","badge":0,"title":"","data":{"type":"badge_update","url":"\/","aps":{"content-available":1,"mutable-content":1,"alert":{"title":"","body":""},"thread-id":"chat-default","category":"MESSAGE_CATEGORY","sound":"default","badge":0}},"id":"74586E
+⚡️  [log] - 📱 푸시 알림 수신 (foreground): {"subtitle":"","badge":0,"title":"","data":{"type":"badge_update","url":"/","aps":{"content-available":1,"mutable-content":1,"alert":{"title":"","body":""},"thread-id":"chat-default","category":"MESSAGE_CATEGORY","sound":"default","badge":0}},"id":"74586E94-0FD5-44F8-A636-2352327AE2E5","body":""}
+⚡️  TO JS {"subtitle":"","badge":0,"title":"","data":{"url":"\/","aps":{"content-available":1,"category":"MESSAGE_CATEGORY","thread-id":"chat-default","sound":"default","mutable-content":1,"badge":0,"alert":{"title":"","body":""}},"type":"badge_update"},"id":"3116F0
+⚡️  [log] - 📱 푸시 알림 수신 (foreground): {"subtitle":"","badge":0,"title":"","data":{"url":"/","aps":{"content-available":1,"category":"MESSAGE_CATEGORY","thread-id":"chat-default","sound":"default","mutable-content":1,"badge":0,"alert":{"title":"","body":""}},"type":"badge_update"},"id":"3116F0B8-F02E-44A7-A1CE-260A46615958","body":""}
