@@ -1,0 +1,163 @@
+stanlee@Stans-MacBook-Air Dovie % git stash           
+Saved working directory and index state WIP on main: f881dd48 Transitioned from Plan to Build mode
+stanlee@Stans-MacBook-Air Dovie % git pull origin main
+
+remote: Enumerating objects: 93, done.
+remote: Counting objects: 100% (93/93), done.
+remote: Compressing objects: 100% (16/16), done.
+remote: Total 76 (delta 61), reused 75 (delta 60), pack-reused 0 (from 0)
+Unpacking objects: 100% (76/76), 3.80 MiB | 1.78 MiB/s, done.
+From https://github.com/hello2sangyun/Dovie
+ * branch              main       -> FETCH_HEAD
+   f881dd48..f8c8fdcb  main       -> origin/main
+Updating f881dd48..f8c8fdcb
+Fast-forward
+ attached_assets/IMG_4736_1763630435559.png                       | Bin 0 -> 1041369 bytes
+ attached_assets/IMG_4737_1763630435559.png                       | Bin 0 -> 1215698 bytes
+ .../Screenshot_20251120_095012_Chrome_1763628638567.jpg          | Bin 0 -> 170401 bytes
+ .../Screenshot_20251120_102831_Chrome_1763630923257.jpg          | Bin 0 -> 533155 bytes
+ .../Screenshot_20251120_105728_Chrome_1763632676634.jpg          | Bin 0 -> 509598 bytes
+ .../Screenshot_20251120_105728_Chrome_1763632804130.jpg          | Bin 0 -> 509598 bytes
+ .../Screenshot_20251120_105739_Chrome_1763632671107.jpg          | Bin 0 -> 541186 bytes
+ .../Screenshot_20251120_105739_Chrome_1763632804100.jpg          | Bin 0 -> 541186 bytes
+ .../Screenshot_20251120_105739_Chrome_1763633193944.jpg          | Bin 0 -> 541186 bytes
+ .../Screenshot_20251120_105739_Chrome_1763633524754.jpg          | Bin 0 -> 541186 bytes
+ ...nshot_20251120_121447_Permission controller_1763637318977.jpg | Bin 0 -> 374948 bytes
+ capacitor.config.ts                                              |   7 +-
+ client/src/App.tsx                                               |   2 +
+ client/src/components/VoiceRecordingModal.tsx                    |  20 +-
+ client/src/hooks/useLongPressTrigger.ts                          |  10 +-
+ client/src/hooks/usePWABadge.tsx                                 |   6 +-
+ client/src/main.tsx                                              |   6 +
+ client/src/pages/PushDebugPage.tsx                               | 334 +++++++++++++++++++++++++++++
+ replit.md                                                        |  16 +-
+ server/routes.ts                                                 |  36 ++++
+ uploads/voice_1763622871855.webm                                 | Bin 0 -> 42094 bytes
+ uploads/voice_1763622883337.webm                                 | Bin 0 -> 49369 bytes
+ uploads/voice_1763622918591.webm                                 | Bin 0 -> 100512 bytes
+ uploads/voice_1763636552332.webm                                 | Bin 0 -> 55402 bytes
+ 24 files changed, 424 insertions(+), 13 deletions(-)
+ create mode 100644 attached_assets/IMG_4736_1763630435559.png
+ create mode 100644 attached_assets/IMG_4737_1763630435559.png
+ create mode 100644 attached_assets/Screenshot_20251120_095012_Chrome_1763628638567.jpg
+ create mode 100644 attached_assets/Screenshot_20251120_102831_Chrome_1763630923257.jpg
+ create mode 100644 attached_assets/Screenshot_20251120_105728_Chrome_1763632676634.jpg
+ create mode 100644 attached_assets/Screenshot_20251120_105728_Chrome_1763632804130.jpg
+ create mode 100644 attached_assets/Screenshot_20251120_105739_Chrome_1763632671107.jpg
+ create mode 100644 attached_assets/Screenshot_20251120_105739_Chrome_1763632804100.jpg
+ create mode 100644 attached_assets/Screenshot_20251120_105739_Chrome_1763633193944.jpg
+ create mode 100644 attached_assets/Screenshot_20251120_105739_Chrome_1763633524754.jpg
+ create mode 100644 attached_assets/Screenshot_20251120_121447_Permission controller_1763637318977.jpg
+ create mode 100644 client/src/pages/PushDebugPage.tsx
+ create mode 100644 uploads/voice_1763622871855.webm
+ create mode 100644 uploads/voice_1763622883337.webm
+ create mode 100644 uploads/voice_1763622918591.webm
+ create mode 100644 uploads/voice_1763636552332.webm
+stanlee@Stans-MacBook-Air Dovie % pod install         
+
+[!] No `Podfile' found in the project directory.
+stanlee@Stans-MacBook-Air Dovie % npm run build       
+
+
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+vite v5.4.14 building for production...
+transforming (2) ../vite/modulepreload-polyfill.jsBrowserslist: browsers data (caniuse-lite) is 13 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+✓ 3562 modules transformed.
+../dist/public/index.html                                    8.12 kB │ gzip:   3.38 kB
+../dist/public/assets/dovie_logo_transparent-DP75By51.png  266.37 kB
+../dist/public/assets/MainApp-D8Md-CES.css                   6.23 kB │ gzip:   1.30 kB
+../dist/public/assets/index-Bxhazg2s.css                   130.27 kB │ gzip:  20.57 kB
+../dist/public/assets/index-oNMTPj8h.js                      0.11 kB │ gzip:   0.11 kB
+../dist/public/assets/index-DhZ2KIsA.js                      0.14 kB │ gzip:   0.14 kB
+../dist/public/assets/index-BfSGTOOp.js                      0.23 kB │ gzip:   0.21 kB
+../dist/public/assets/web-L0Wsxg7y.js                        0.28 kB │ gzip:   0.23 kB
+../dist/public/assets/check-CnEWbrQI.js                      0.29 kB │ gzip:   0.24 kB
+../dist/public/assets/index-DqU3sYba.js                      0.30 kB │ gzip:   0.23 kB
+../dist/public/assets/arrow-left-BWTkHKXU.js                 0.33 kB │ gzip:   0.27 kB
+../dist/public/assets/index-YU1z82f4.js                      0.34 kB │ gzip:   0.24 kB
+../dist/public/assets/index-CbDqSZfX.js                      0.34 kB │ gzip:   0.24 kB
+../dist/public/assets/index-CJMakini.js                      0.34 kB │ gzip:   0.24 kB
+../dist/public/assets/index-DmHLfFja.js                      0.34 kB │ gzip:   0.24 kB
+../dist/public/assets/circle-check-CmhB_fS4.js               0.35 kB │ gzip:   0.27 kB
+../dist/public/assets/message-square-BCe9wSc5.js             0.35 kB │ gzip:   0.27 kB
+../dist/public/assets/web-CiLp-EQB.js                        0.36 kB │ gzip:   0.25 kB
+../dist/public/assets/user-CY0yE99K.js                       0.37 kB │ gzip:   0.29 kB
+../dist/public/assets/lock-CoIaAw_j.js                       0.38 kB │ gzip:   0.29 kB
+../dist/public/assets/camera-__3nQ4ZL.js                     0.42 kB │ gzip:   0.31 kB
+../dist/public/assets/calendar-DbDq8CKX.js                   0.43 kB │ gzip:   0.30 kB
+../dist/public/assets/mic-DDcy0MBO.js                        0.44 kB │ gzip:   0.32 kB
+../dist/public/assets/shield-BQ9CeuXH.js                     0.44 kB │ gzip:   0.33 kB
+../dist/public/assets/users-SGgNpKQH.js                      0.47 kB │ gzip:   0.33 kB
+../dist/public/assets/label-BAaFLsZd.js                      0.55 kB │ gzip:   0.38 kB
+../dist/public/assets/phone-H6cqj6qh.js                      0.56 kB │ gzip:   0.36 kB
+../dist/public/assets/input-b-_if9Eu.js                      0.58 kB │ gzip:   0.35 kB
+../dist/public/assets/web-CcwUTk7S.js                        0.67 kB │ gzip:   0.33 kB
+../dist/public/assets/refresh-cw-DRTAz0dp.js                 0.82 kB │ gzip:   0.40 kB
+../dist/public/assets/web-DR9gJnC0.js                        0.89 kB │ gzip:   0.42 kB
+../dist/public/assets/eye-HjEc_VWp.js                        0.97 kB │ gzip:   0.45 kB
+../dist/public/assets/skeleton-YymLsucm.js                   1.02 kB │ gzip:   0.51 kB
+../dist/public/assets/index-BaP-aTBn.js                      1.47 kB │ gzip:   0.75 kB
+../dist/public/assets/LazyImage-DEqpdH1Z.js                  1.71 kB │ gzip:   0.85 kB
+../dist/public/assets/avatar-xnNI8oMN.js                     2.16 kB │ gzip:   0.99 kB
+../dist/public/assets/useMutation-CsttTY_U.js                2.88 kB │ gzip:   1.21 kB
+../dist/public/assets/progress-B1ctl_n7.js                   2.93 kB │ gzip:   1.42 kB
+../dist/public/assets/LoginPage-CRYQkHm8.js                  4.44 kB │ gzip:   1.74 kB
+../dist/public/assets/ForgotPasswordPage-C2MJtTLD.js         5.84 kB │ gzip:   2.08 kB
+../dist/public/assets/PushDebugPage-BKAmoGUr.js              6.33 kB │ gzip:   2.63 kB
+../dist/public/assets/tabs-nFDvKJTM.js                       6.51 kB │ gzip:   2.58 kB
+../dist/public/assets/dialog-CeDlxpJ4.js                     7.34 kB │ gzip:   2.69 kB
+../dist/public/assets/index-D5mZt9S9.js                      7.81 kB │ gzip:   3.22 kB
+../dist/public/assets/PhoneLogin-DA3nMEAM.js                 8.32 kB │ gzip:   3.19 kB
+../dist/public/assets/ProfileSetupPage-BxlVCdiq.js           8.54 kB │ gzip:   3.16 kB
+../dist/public/assets/web-BrA9k69F.js                        8.80 kB │ gzip:   3.00 kB
+../dist/public/assets/SignupPage-CCdV0qqk.js                10.02 kB │ gzip:   3.46 kB
+../dist/public/assets/GroupInfoPage-B-AV3KMc.js             15.40 kB │ gzip:   4.76 kB
+../dist/public/assets/FilePreviewModal-BljMI1Gt.js          15.58 kB │ gzip:   4.79 kB
+../dist/public/assets/index-UoC1VjY2.js                     16.39 kB │ gzip:   6.18 kB
+../dist/public/assets/ScreenshotDemo-BPH9LGyG.js            18.08 kB │ gzip:   4.36 kB
+../dist/public/assets/FriendProfilePage-BZiqb8WF.js         32.97 kB │ gzip:   9.71 kB
+../dist/public/assets/qr-scanner-worker.min-D85Z9gVD.js     43.95 kB │ gzip:  10.46 kB
+../dist/public/assets/select-BMOPIwId.js                    48.81 kB │ gzip:  17.30 kB
+../dist/public/assets/index-CRdEpUcF.js                    271.26 kB │ gzip:  87.16 kB
+../dist/public/assets/AdminPage-BLdgE2BO.js                425.41 kB │ gzip: 114.01 kB
+../dist/public/assets/MainApp-C17YcKnN.js                  687.00 kB │ gzip: 189.84 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 3.06s
+▲ [WARNING] Using direct eval with a bundler is not recommended and may cause problems [direct-eval]
+
+    server/openai.ts:91:19:
+      91 │     const result = eval(sanitizedExpression);
+         ╵                    ~~~~
+
+  You can read more about direct eval and bundling here: https://esbuild.github.io/link/direct-eval
+
+1 warning
+
+  dist/index.js  506.9kb
+
+⚡ Done in 23ms
+stanlee@Stans-MacBook-Air Dovie % npx cap sync ios    
+[warn] Cannot copy web assets from dist to ios/App/App/public
+       Web asset directory specified by webDir does not exist. This is not an error because server.url
+       is set in config.
+✔ Creating capacitor.config.json in ios/App/App in 883.92μs
+✔ copy ios in 44.34ms
+✔ Updating iOS plugins in 6.55ms
+✖ Updating iOS native dependencies with pod install - failed!
+✖ update ios - failed!
+[error] xcode-select: error: tool 'xcodebuild' requires Xcode, but active developer directory
+        '/Library/Developer/CommandLineTools' is a command line tools instance
+        
+stanlee@Stans-MacBook-Air Dovie % npx cap open ios    
+
+
+✔ Opening the Xcode workspace... in 3.00s
+stanlee@Stans-MacBook-Air Dovie % 
