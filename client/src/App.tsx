@@ -51,6 +51,7 @@ const AdminPage = lazy(() => import("@/pages/AdminPage"));
 const FriendProfilePage = lazy(() => import("@/pages/FriendProfilePage"));
 const GroupInfoPage = lazy(() => import("@/pages/GroupInfoPage"));
 const ScreenshotDemo = lazy(() => import("@/pages/ScreenshotDemo"));
+const PushDebugPage = lazy(() => import("@/pages/PushDebugPage"));
 
 // 네이티브 앱에서는 초기 화면을 preload하여 키보드 렉 방지
 if (isNativePlatform()) {
@@ -88,6 +89,7 @@ function Router() {
         <Route path="/friend/:userId" component={FriendProfilePage} />
         <Route path="/profile/:userId" component={FriendProfilePage} />
         <Route path="/screenshots/:id" component={ScreenshotDemo} />
+        <Route path="/push-debug" component={PushDebugPage} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>

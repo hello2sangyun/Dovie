@@ -3952,6 +3952,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test push notification (디버그용)
+  app.post('/api/test-push', async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"];
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { title, body } = req.body;
+
+      console.log('🧪 테스트 푸시 알림 전송:', { userId, title, body });
+
+      // Send test push notification
+      await sendPushNotification(Number(userId), {
+        title: title || '테스트 알림',
+        body: body || 'PWA 푸시 알림이 정상 작동합니다! 🎉',
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/icon-72x72.png',
+        data: {
+          type: 'test',
+          url: '/app',
+          timestamp: Date.now()
+        },
+        badgeCount: 1
+      });
+
+      res.json({ 
+        success: true,
+        message: "테스트 푸시 알림이 전송되었습니다."
+      });
+    } catch (error) {
+      console.error("테스트 푸시 전송 실패:", error);
+      res.status(500).json({ message: "테스트 푸시 전송 중 오류가 발생했습니다." });
+    }
+  });
+
   // iOS 푸시 토큰 등록 API (네이티브 앱용)
   app.post('/api/push-subscription/ios', async (req, res) => {
     const userId = Number(req.headers['x-user-id']);
