@@ -213,7 +213,8 @@ export async function sendPushNotification(
         ...payload.data
       },
       // WhatsApp/Telegram-style notification settings
-      tag: payload.tag || `dovie-chat-${payload.data?.chatRoomId}`,
+      // CRITICAL: Use unique tag per message so notifications stack instead of replacing
+      tag: payload.tag || `dovie-msg-${payload.data?.messageId || Date.now()}`,
       requireInteraction: payload.requireInteraction || false,
       silent: payload.silent || false,
       vibrate: [200, 100, 200, 100, 200], // Telegram-style vibration pattern
@@ -290,6 +291,15 @@ export async function sendPushNotification(
 
     // iOS APNS 푸시 알림 발송
     if (iosTokens.length > 0) {
+      if (!apnsClient) {
+        console.error(`❌ APNS Client not initialized! iOS push notifications will NOT be sent.`);
+        console.error(`   Please check APNS environment variables: APNS_KEY_ID, APNS_TEAM_ID, APNS_PRIVATE_KEY`);
+        return;
+      }
+      
+      console.log(`📱 iOS APNS Client Status: READY`);
+      console.log(`📱 iOS Tokens to notify: ${iosTokens.length}`);
+      
       if (isSilentPush) {
         console.log(`📱 iOS APNS Silent Push 발송 시작: ${iosTokens.length}개 디바이스 (배지만 업데이트)`);
       } else {

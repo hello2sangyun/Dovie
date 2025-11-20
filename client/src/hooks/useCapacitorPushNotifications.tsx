@@ -35,7 +35,11 @@ export const useCapacitorPushNotifications = () => {
         
         // 등록 성공 리스너 (register() 전에 설정)
         PushNotifications.addListener('registration', (token: any) => {
-          console.log('📱 iOS 푸시 토큰 획득:', token.value);
+          console.log('📱 ========================================');
+          console.log('📱 iOS APNS 푸시 토큰 획득 성공!');
+          console.log('📱 Token:', token.value);
+          console.log('📱 Token Length:', token.value.length);
+          console.log('📱 ========================================');
           setToken(token.value);
           setIsRegistered(true);
           
@@ -45,7 +49,10 @@ export const useCapacitorPushNotifications = () => {
 
         // 등록 실패 리스너 (register() 전에 설정)
         PushNotifications.addListener('registrationError', (error: any) => {
-          console.error('❌ iOS 푸시 등록 실패:', error);
+          console.error('❌ ========================================');
+          console.error('❌ iOS 푸시 등록 실패!');
+          console.error('❌ Error:', error);
+          console.error('❌ ========================================');
         });
 
         // 푸시 알림 수신 리스너 (앱이 포그라운드에 있을 때)
@@ -82,14 +89,17 @@ export const useCapacitorPushNotifications = () => {
         });
 
         // 권한 요청
+        console.log('📱 iOS 푸시 알림 권한 요청 중...');
         const result = await PushNotifications.requestPermissions();
+        console.log('📱 권한 요청 결과:', result);
         
         if (result.receive === 'granted') {
           // 리스너 등록 후 푸시 알림 등록
+          console.log('✅ 권한 허용됨 - APNS 등록 시작');
           await PushNotifications.register();
-          console.log('📱 iOS 네이티브 푸시 알림 등록 성공 (리스너 대기 중)');
+          console.log('📱 iOS 네이티브 푸시 알림 등록 완료 (토큰 수신 대기 중)');
         } else {
-          console.log('❌ 푸시 알림 권한이 거부되었습니다');
+          console.error('❌ 푸시 알림 권한이 거부되었습니다:', result);
         }
       } catch (error) {
         console.error('❌ 푸시 알림 초기화 실패:', error);
@@ -110,11 +120,16 @@ export const useCapacitorPushNotifications = () => {
     try {
       const userId = localStorage.getItem('userId');
       if (!userId) {
-        console.log('❌ 사용자 인증 정보가 없습니다');
+        console.error('❌ 사용자 인증 정보가 없습니다 - iOS 토큰을 서버에 저장할 수 없습니다');
         return;
       }
 
-      console.log(`📱 서버로 iOS 토큰 전송 시작: ${deviceToken.substring(0, 20)}...`);
+      console.log('📱 ========================================');
+      console.log('📱 서버로 iOS APNS 토큰 전송 시작');
+      console.log('📱 User ID:', userId);
+      console.log('📱 Token Preview:', deviceToken.substring(0, 20) + '...');
+      console.log('📱 Endpoint:', '/api/push-subscription/ios');
+      console.log('📱 ========================================');
 
       const response = await fetch('/api/push-subscription/ios', {
         method: 'POST',
@@ -131,12 +146,22 @@ export const useCapacitorPushNotifications = () => {
       const result = await response.json();
       
       if (response.ok) {
-        console.log('✅ iOS 푸시 토큰이 서버에 저장되었습니다:', result);
+        console.log('✅ ========================================');
+        console.log('✅ iOS 푸시 토큰이 서버에 저장되었습니다!');
+        console.log('✅ Response:', result);
+        console.log('✅ ========================================');
       } else {
-        console.error('❌ iOS 푸시 토큰 저장 실패:', response.status, result);
+        console.error('❌ ========================================');
+        console.error('❌ iOS 푸시 토큰 저장 실패!');
+        console.error('❌ Status:', response.status);
+        console.error('❌ Response:', result);
+        console.error('❌ ========================================');
       }
     } catch (error) {
-      console.error('❌ 서버 통신 오류:', error);
+      console.error('❌ ========================================');
+      console.error('❌ 서버 통신 오류!');
+      console.error('❌ Error:', error);
+      console.error('❌ ========================================');
     }
   };
 
