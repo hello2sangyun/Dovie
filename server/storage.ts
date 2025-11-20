@@ -144,7 +144,7 @@ export interface IStorage {
   // Push notification operations
   upsertPushSubscription(userId: number, subscription: { endpoint: string; p256dh: string; auth: string; userAgent: string }): Promise<void>;
   deletePushSubscription(userId: number, endpoint: string): Promise<void>;
-  getUserPushSubscriptions(userId: number): Promise<{ endpoint: string, p256dh: string, auth: string, userAgent: string }[]>;
+  getUserPushSubscriptions(userId: number): Promise<{ endpoint: string, p256dh: string, auth: string, userAgent: string | null }[]>;
 
   // iOS Native Push Notification operations
   saveIOSDeviceToken(userId: number, deviceToken: string, platform: string): Promise<void>;
@@ -1501,6 +1501,26 @@ export class DatabaseStorage implements IStorage {
       .delete(pushSubscriptions)
       .where(and(eq(pushSubscriptions.userId, userId), eq(pushSubscriptions.endpoint, subscription.endpoint)));
 
+    // Check current subscription count for this user
+    const MAX_SUBSCRIPTIONS_PER_USER = 5;
+    const currentSubscriptions = await db
+      .select()
+      .from(pushSubscriptions)
+      .where(eq(pushSubscriptions.userId, userId))
+      .orderBy(pushSubscriptions.createdAt);
+
+    // If user has too many subscriptions, delete the oldest ones
+    if (currentSubscriptions.length >= MAX_SUBSCRIPTIONS_PER_USER) {
+      const subsToDelete = currentSubscriptions.slice(0, currentSubscriptions.length - MAX_SUBSCRIPTIONS_PER_USER + 1);
+      console.log(`🧹 User ${userId} has ${currentSubscriptions.length} subscriptions, removing ${subsToDelete.length} oldest ones`);
+      
+      for (const sub of subsToDelete) {
+        await db
+          .delete(pushSubscriptions)
+          .where(and(eq(pushSubscriptions.userId, userId), eq(pushSubscriptions.endpoint, sub.endpoint)));
+      }
+    }
+
     // Then insert the new subscription
     await db.insert(pushSubscriptions).values({
       userId,
@@ -1510,7 +1530,7 @@ export class DatabaseStorage implements IStorage {
       userAgent: subscription.userAgent
     });
 
-    console.log(`Push subscription upserted for user ${userId}, endpoint: ${subscription.endpoint.substring(0, 50)}...`);
+    console.log(`✅ Push subscription saved for user ${userId}, endpoint: ${subscription.endpoint.substring(0, 50)}...`);
   }
 
   async deletePushSubscription(userId: number, endpoint: string): Promise<void> {
