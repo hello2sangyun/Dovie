@@ -178,6 +178,13 @@ export function VoiceRecordingModal({
     onClose();
   };
 
+  // Prevent context menu (long press menu on mobile/PWA)
+  const handleContextMenu = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  }, []);
+
   const cleanup = () => {
     console.log('🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone');
     
@@ -216,17 +223,26 @@ export function VoiceRecordingModal({
       className="fixed inset-0 z-[9999] flex items-center justify-center"
       style={{ 
         animation: 'fadeIn 200ms ease-out',
-        paddingBottom: 'env(safe-area-inset-bottom)'
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        WebkitTouchCallout: 'none',
+        touchAction: 'none'
       }}
+      onContextMenu={handleContextMenu}
     >
       {/* Dimmed Background */}
       <div 
         className="absolute inset-0 bg-black/35 backdrop-blur-sm"
         onClick={handleBackgroundClick}
+        onContextMenu={handleContextMenu}
       />
       
       {/* Recording Content */}
-      <div className="relative z-10 flex flex-col items-center space-y-8 p-8">
+      <div 
+        className="relative z-10 flex flex-col items-center space-y-8 p-8"
+        onContextMenu={handleContextMenu}
+      >
         {/* Target Name */}
         {targetName && (
           <div className="text-white text-lg font-medium">
