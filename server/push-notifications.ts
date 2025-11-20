@@ -192,8 +192,9 @@ export async function sendPushNotification(
 
     // Telegram/WhatsApp-style notification payload
     const notificationPayload = JSON.stringify({
-      title: payload.title || "새 메시지",
-      body: payload.body || "새 메시지가 도착했습니다",
+      // Silent push는 빈 title/body 허용 (배지만 업데이트)
+      title: payload.silent ? (payload.title ?? '') : (payload.title || "새 메시지"),
+      body: payload.silent ? (payload.body ?? '') : (payload.body || "새 메시지가 도착했습니다"),
       icon: payload.icon || '/dovie-icon.png',
       badge: payload.badge || '/dovie-icon.png',
       data: {
@@ -387,8 +388,9 @@ async function sendIOSPushNotifications(
         // alert present → apns2 auto-sets pushType='alert' HTTP/2 header
         notification = new Notification(deviceToken, {
           alert: {
-            title: payload.title || "새 메시지",
-            body: payload.body || "새 메시지가 도착했습니다",
+            // Silent push는 빈 title/body 허용 (배지만 업데이트)
+            title: payload.silent ? (payload.title ?? '') : (payload.title || "새 메시지"),
+            body: payload.silent ? (payload.body ?? '') : (payload.body || "새 메시지가 도착했습니다"),
             // Optional subtitle for additional context
             ...(payload.data?.subtitle && { subtitle: payload.data.subtitle })
           },
