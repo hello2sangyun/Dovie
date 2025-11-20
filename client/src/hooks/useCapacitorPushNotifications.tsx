@@ -2,10 +2,6 @@ import { useState, useEffect } from 'react';
 import { isNativePlatform } from '@/lib/nativeBridge';
 import { navigationService } from '@/lib/navigation';
 
-// Static imports for iOS native app - dynamic imports fail in WKWebView
-import { PushNotifications as CapacitorPushNotifications } from '@capacitor/push-notifications';
-import { Toast as CapacitorToast } from '@capacitor/toast';
-
 export const useCapacitorPushNotifications = () => {
   const [isRegistered, setIsRegistered] = useState(false);
   const [token, setToken] = useState<string>('');
@@ -24,36 +20,43 @@ export const useCapacitorPushNotifications = () => {
       return;
     }
 
-    console.log('✅ 네이티브 플랫폼 확인됨 - Static import된 플러그인 사용');
-    console.log('✅ CapacitorPushNotifications:', !!CapacitorPushNotifications);
-    console.log('✅ CapacitorToast:', !!CapacitorToast);
+    console.log('✅ 네이티브 플랫폼 확인됨 - 플러그인 초기화 시작');
+    
+    // 네이티브 환경에서만 실행되므로 Capacitor 플러그인이 window에 있을 것
+    const capacitor = (window as any).Capacitor;
+    
+    if (!capacitor) {
+      console.error('❌ window.Capacitor가 없습니다!');
+      return;
+    }
+    
+    console.log('✅ window.Capacitor 확인됨:', capacitor);
+    console.log('✅ Capacitor.Plugins:', capacitor.Plugins);
     
     setIsInitialized(true);
   }, []);
 
   useEffect(() => {
-    console.log('🔧 두 번째 useEffect 실행:', {
-      isInitialized,
-      hasCapacitorPushNotifications: !!CapacitorPushNotifications,
-      hasCapacitorToast: !!CapacitorToast
-    });
-    
     if (!isInitialized) {
       console.log('⚠️ 아직 초기화되지 않음 - 대기 중');
       return;
     }
 
-    console.log('✅ Capacitor 플러그인 준비 완료 - 초기화 시작');
+    console.log('✅ 초기화 완료 - 푸시 알림 설정 시작');
 
-    // iOS 네이티브 푸시 알림 초기화
     const initializePushNotifications = async () => {
       try {
-        // CRITICAL: 리스너를 register() 호출 전에 먼저 등록해야 함
-        // Capacitor는 register() 호출 후 즉시 이벤트를 발생시키므로
-        // 리스너가 준비되어 있지 않으면 토큰을 놓치게 됨
+        // Capacitor 플러그인을 window에서 직접 가져오기
+        const { PushNotifications } = await import('@capacitor/push-notifications');
+        const { Toast } = await import('@capacitor/toast');
+        
+        console.log('✅ 플러그인 import 성공:', {
+          PushNotifications: !!PushNotifications,
+          Toast: !!Toast
+        });
         
         // 등록 성공 리스너 (register() 전에 설정)
-        CapacitorPushNotifications.addListener('registration', (token: any) => {
+        await PushNotifications.addListener('registration', (token: any) => {
           console.log('📱 ========================================');
           console.log('📱 iOS APNS 푸시 토큰 획득 성공!');
           console.log('📱 Token:', token.value);
@@ -67,7 +70,7 @@ export const useCapacitorPushNotifications = () => {
         });
 
         // 등록 실패 리스너 (register() 전에 설정)
-        CapacitorPushNotifications.addListener('registrationError', (error: any) => {
+        await PushNotifications.addListener('registrationError', (error: any) => {
           console.error('❌ ========================================');
           console.error('❌ iOS 푸시 등록 실패!');
           console.error('❌ Error:', error);
@@ -75,18 +78,18 @@ export const useCapacitorPushNotifications = () => {
         });
 
         // 푸시 알림 수신 리스너 (앱이 포그라운드에 있을 때)
-        CapacitorPushNotifications.addListener('pushNotificationReceived', (notification: any) => {
+        await PushNotifications.addListener('pushNotificationReceived', (notification: any) => {
           console.log('📱 푸시 알림 수신:', notification);
           
           // 네이티브 토스트로 알림 표시
-          CapacitorToast.show({
+          Toast.show({
             text: `${notification.title}: ${notification.body}`,
             duration: 'long'
           });
         });
 
         // 푸시 알림 클릭 리스너
-        CapacitorPushNotifications.addListener('pushNotificationActionPerformed', (notification: any) => {
+        await PushNotifications.addListener('pushNotificationActionPerformed', (notification: any) => {
           console.log('📱 푸시 알림 클릭:', notification);
           
           // 채팅방으로 이동하는 로직 구현
@@ -109,28 +112,27 @@ export const useCapacitorPushNotifications = () => {
 
         // 권한 요청
         console.log('📱 iOS 푸시 알림 권한 요청 중...');
-        const result = await CapacitorPushNotifications.requestPermissions();
+        const result = await PushNotifications.requestPermissions();
         console.log('📱 권한 요청 결과:', result);
         
         if (result.receive === 'granted') {
           // 리스너 등록 후 푸시 알림 등록
           console.log('✅ 권한 허용됨 - APNS 등록 시작');
-          await CapacitorPushNotifications.register();
+          await PushNotifications.register();
           console.log('📱 iOS 네이티브 푸시 알림 등록 완료 (토큰 수신 대기 중)');
         } else {
           console.error('❌ 푸시 알림 권한이 거부되었습니다:', result);
         }
       } catch (error) {
         console.error('❌ 푸시 알림 초기화 실패:', error);
+        console.error('❌ Error details:', {
+          message: error instanceof Error ? error.message : 'Unknown',
+          stack: error instanceof Error ? error.stack : undefined
+        });
       }
     };
 
     initializePushNotifications();
-
-    return () => {
-      // 리스너 정리
-      CapacitorPushNotifications.removeAllListeners();
-    };
   }, [isInitialized]);
 
   const sendTokenToServer = async (deviceToken: string) => {
@@ -184,14 +186,20 @@ export const useCapacitorPushNotifications = () => {
 
   const checkPermissions = async () => {
     if (!isInitialized) return false;
-    const result = await CapacitorPushNotifications.checkPermissions();
-    return result.receive === 'granted';
+    try {
+      const { PushNotifications } = await import('@capacitor/push-notifications');
+      const result = await PushNotifications.checkPermissions();
+      return result.receive === 'granted';
+    } catch {
+      return false;
+    }
   };
 
   const getBadgeCount = async () => {
     if (!isInitialized) return 0;
     try {
-      const result = await CapacitorPushNotifications.getDeliveredNotifications();
+      const { PushNotifications } = await import('@capacitor/push-notifications');
+      const result = await PushNotifications.getDeliveredNotifications();
       return result.notifications.length;
     } catch (error) {
       console.error('배지 카운트 조회 실패:', error);
@@ -202,7 +210,8 @@ export const useCapacitorPushNotifications = () => {
   const clearBadge = async () => {
     if (!isInitialized) return;
     try {
-      await CapacitorPushNotifications.removeAllDeliveredNotifications();
+      const { PushNotifications } = await import('@capacitor/push-notifications');
+      await PushNotifications.removeAllDeliveredNotifications();
       console.log('✅ iOS 앱 배지 클리어 완료');
     } catch (error) {
       console.error('❌ 배지 클리어 실패:', error);
