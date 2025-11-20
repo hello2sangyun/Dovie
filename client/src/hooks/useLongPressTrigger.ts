@@ -63,17 +63,23 @@ export function useLongPressTrigger({
   }, [clearTimer, onShortPress, onRelease]);
 
   // Mouse event handlers
-  const handleMouseDown = useCallback(() => {
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
     // Prevent duplicate events after touch (500ms grace period)
     const timeSinceLastTouch = Date.now() - lastTouchTimeRef.current;
     if (timeSinceLastTouch < 500) {
       return;
     }
 
+    // Prevent context menu on Chrome desktop (right-click hold)
+    e.preventDefault();
+    e.stopPropagation();
+    
     handleStart();
   }, [handleStart]);
 
-  const handleMouseUp = useCallback(() => {
+  const handleMouseUp = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     handleEnd();
   }, [handleEnd]);
 
