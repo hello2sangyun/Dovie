@@ -1,0 +1,52 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/23C09FA8-1C38-4F7F-8607-97F2964FF5D3/App.app'
+KeyboardPlugin: resize mode - native
+⚡️  Loading app at https://dovie.online...
+Updated list with error: DownloadFailed
+Updated list with error: DownloadFailed
+Updated list with error: DownloadFailed
+📱 [AppDelegate] Registered for remote notifications
+Networking process (0x116060190) took 10.885643 seconds to launch
+GPU process (0x11611c1e0) took 4.624608 seconds to launch
+WebContent process (0x1160e4100) took 5.508852 seconds to launch
+📱 [AppDelegate] APNS 토큰 등록 성공
+0x1160e4100 - [PID=99608] WebProcessProxy::didBecomeUnresponsive:
+0x11b820018 - [pageProxyID=7, webPageID=8, PID=99608] WebPageProxy::processDidBecomeUnresponsive:
+Updated list with error: DownloadFailed
+WebContent[99608] Unable to hide query parameters from script (missing data)
+⚡️  [log] - 🚀 Native platform detected - preloading critical pages
+⚡️  [log] - [SW] Service Worker support check: {"supported":false,"navigatorSW":"undefined","isSecureContext":true}
+⚡️  [warn] - [SW] Service Workers not supported in this environment (WKWebView/Replit preview)
+⚡️  [warn] - [SW] To test SW features, open the app in a real browser: Chrome, Firefox, Safari
+⚡️  [log] - [Badge] Service Worker not supported - this is expected in Replit preview
+⚡️  WebView loaded
+⚡️  [log] - [Badge] Service Worker not supported
+⚡️  [log] - ✅ Navigation service registered
+⚡️  [log] - ✅ Navigator registered with navigation service
+⚡️  [log] - 🚫 Service Worker not supported
+⚡️  [log] - 🔄 Auth context updating user: 108 profilePicture: /api/profile-picture/108
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+⚡️  [log] - ✅ Navigation service registered
+⚡️  [log] - ✅ Navigator registered with navigation service
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://dovie.online/ws
+⚡️  [log] -    Protocol: wss:, Host: dovie.online
+Updated list with error: DownloadFailed
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 0
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: []
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+Updated list with error: DownloadFailed
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  [log] - ✅ Microphone permission previously granted (no stream created)
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":108}
+⚡️  [log] - WebSocket authentication successful for user: 108
+⚡️  [log] - ❌ Push notifications not supported on this device
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline
