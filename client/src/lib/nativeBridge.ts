@@ -86,15 +86,30 @@ export async function getNativeBridge(): Promise<NativeBridge> {
     },
 
     loadPushNotifications: async () => {
+      console.log('🔌 [NativeBridge] loadPushNotifications 시작');
+      console.log('🔌 [NativeBridge] isNative:', isNative);
+      
       if (!isNative) {
         console.warn('[NativeBridge] PushNotifications not available on web');
         return null;
       }
+      
+      console.log('🔌 [NativeBridge] Importing @capacitor/push-notifications...');
+      
       try {
-        const { PushNotifications } = await import('@capacitor/push-notifications');
+        const module = await import('@capacitor/push-notifications');
+        console.log('🔌 [NativeBridge] Import successful, module:', module);
+        
+        const { PushNotifications } = module;
+        console.log('🔌 [NativeBridge] PushNotifications extracted:', !!PushNotifications);
+        
         return PushNotifications;
       } catch (err) {
-        console.error('[NativeBridge] Failed to load PushNotifications:', err);
+        console.error('❌ [NativeBridge] Failed to load PushNotifications:', err);
+        console.error('❌ [NativeBridge] Error details:', {
+          message: err instanceof Error ? err.message : 'Unknown error',
+          stack: err instanceof Error ? err.stack : undefined
+        });
         return null;
       }
     },
