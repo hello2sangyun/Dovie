@@ -9,22 +9,54 @@ export const useCapacitorPushNotifications = () => {
   const [Toast, setToast] = useState<any>(null);
 
   useEffect(() => {
-    if (!isNativePlatform()) return;
+    console.log('🔧 ========================================');
+    console.log('🔧 useCapacitorPushNotifications 훅 시작');
+    console.log('🔧 ========================================');
+    
+    const isPlatformNative = isNativePlatform();
+    console.log('🔧 isNativePlatform() 체크:', isPlatformNative);
+    
+    if (!isPlatformNative) {
+      console.log('⚠️ 네이티브 플랫폼이 아님 - Capacitor 푸시 훅 종료');
+      return;
+    }
 
+    console.log('✅ 네이티브 플랫폼 확인됨 - Capacitor 플러그인 로드 시작');
+    
     // Load Capacitor plugins dynamically
     Promise.all([
       loadPushNotifications(),
       import('@capacitor/toast').then(m => m.Toast)
     ]).then(([pushNotifs, toast]) => {
+      console.log('📦 Capacitor 플러그인 로드 완료:', {
+        pushNotifs: !!pushNotifs,
+        toast: !!toast
+      });
+      
       if (pushNotifs) {
         setPushNotifications(pushNotifs);
         setToast(toast);
+        console.log('✅ PushNotifications 플러그인 설정 완료');
+      } else {
+        console.error('❌ PushNotifications 플러그인 로드 실패');
       }
+    }).catch(error => {
+      console.error('❌ Capacitor 플러그인 로드 오류:', error);
     });
   }, []);
 
   useEffect(() => {
-    if (!PushNotifications || !Toast) return;
+    console.log('🔧 두 번째 useEffect 실행:', {
+      hasPushNotifications: !!PushNotifications,
+      hasToast: !!Toast
+    });
+    
+    if (!PushNotifications || !Toast) {
+      console.log('⚠️ PushNotifications 또는 Toast가 아직 로드되지 않음 - 대기 중');
+      return;
+    }
+
+    console.log('✅ PushNotifications와 Toast 준비 완료 - 초기화 시작');
 
     // iOS 네이티브 푸시 알림 초기화
     const initializePushNotifications = async () => {
