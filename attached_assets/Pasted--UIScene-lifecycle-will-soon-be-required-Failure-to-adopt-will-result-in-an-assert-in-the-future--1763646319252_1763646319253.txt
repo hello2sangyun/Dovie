@@ -1,0 +1,101 @@
+`UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+Could not create a sandbox extension for '/var/containers/Bundle/Application/63E112F8-0279-4BFE-9D4D-E914515B97C4/App.app'
+Updated list with error: DownloadFailed
+Updated list with error: DownloadFailed
+KeyboardPlugin: resize mode - native
+⚡️  Loading app at https://dovie-hello2sangyun.replit.app...
+Updated list with error: DownloadFailed
+📱 [AppDelegate] Registered for remote notifications
+GPU process (0x11510c1e0) took 4.433226 seconds to launch
+WebContent process (0x1150d8100) took 5.460442 seconds to launch
+Networking process (0x115060190) took 11.681726 seconds to launch
+📱 [AppDelegate] APNS 토큰 등록 성공
+0x1150d8100 - [PID=99647] WebProcessProxy::didBecomeUnresponsive:
+0x10a380718 - [pageProxyID=7, webPageID=8, PID=99647] WebPageProxy::processDidBecomeUnresponsive:
+Updated list with error: DownloadFailed
+WebContent[99647] Unable to hide query parameters from script (missing data)
+⚡️  WebView loaded
+⚡️  [log] - 🚀 Native platform detected - preloading critical pages
+⚡️  [log] - [SW] Service Worker support check: {"supported":false,"navigatorSW":"undefined","isSecureContext":true}
+⚡️  [warn] - [SW] Service Workers not supported in this environment (WKWebView/Replit preview)
+⚡️  [warn] - [SW] To test SW features, open the app in a real browser: Chrome, Firefox, Safari
+⚡️  [log] - [Badge] Service Worker not supported - this is expected in Replit preview
+⚡️  [log] - 📱 No stored user, initializing as logged out
+Updated list with error: DownloadFailed
+Updated list with error: DownloadFailed
+Reporter disconnected. { function=sendMessage, reporterID=427967721242625 }
+Reporter disconnected. { function=sendMessage, reporterID=427967721242625 }
+Reporter disconnected. { function=sendMessage, reporterID=427967721242625 }
+Reporter disconnected. { function=sendMessage, reporterID=427967721242625 }
+Reporter disconnected. { function=sendMessage, reporterID=427967721242625 }
+Reporter disconnected. { function=sendMessage, reporterID=427967721242625 }
+Reporter disconnected. { function=sendMessage, reporterID=427967721242625 }
+Reporter disconnected. { function=sendMessage, reporterID=427967721242625 }
+Reporter disconnected. { function=sendMessage, reporterID=427967721242625 }
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 9E4B60D3-B5F0-4374-8E85-D2E04C1BE4C6
+-[RTIInputSystemClient remoteTextInputSessionWithID:textSuggestionsChanged:]  Can only set suggestions for an active session. sessionID = 9E4B60D3-B5F0-4374-8E85-D2E04C1BE4C6
+Reporter disconnected or already stopped. { func=stop, reporterID=427967721242625 }
+⚡️  [log] - [Badge] Service Worker not supported
+⚡️  [log] - ✅ Navigation service registered
+⚡️  [log] - ✅ Navigator registered with navigation service
+⚡️  [log] - 🚫 Service Worker not supported
+⚡️  [log] - [NotificationManager] Initializing Telegram-style activity tracking
+⚡️  [log] - 🚀 PWA 배지 시스템 초기화 - 데이터베이스 기반
+⚡️  [log] - ✅ Navigation service registered
+⚡️  [log] - ✅ Navigator registered with navigation service
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🔌 Connecting to WebSocket: wss://dovie-hello2sangyun.replit.app/ws
+⚡️  [log] -    Protocol: wss:, Host: dovie-hello2sangyun.replit.app
+⚡️  [log] - WebSocket connected successfully
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - Processing 0 pending messages
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 0
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: []
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - WebSocket message received: {"type":"auth_success","userId":108}
+⚡️  [log] - WebSocket authentication successful for user: 108
+⚡️  [log] - ❌ Push notifications not supported on this device
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+⚡️  [log] - 🧹 VoiceRecordingModal cleanup - stopping recording and releasing microphone
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = dismissAutoFillPanel, customInfoType = UIUserInteractionRemoteInputOperations
+Snapshotting a view (0x11b0ee800, UIKeyboardImpl) that is not in a visible window requires afterScreenUpdates:YES.
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] Window focused
+⚡️  [log] - 🔍 윈도우 포커스 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app focused - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - WebSocket message received: {"type":"new_message","message":{"id":287,"chatRoomId":1,"senderId":109,"content":"여기서 바로 보내면 되는 건가?","messageType":"voice","callId":null,"fileUrl":"/uploads/voice_1763646264966.webm","fileName":"voice_message.webm","fileSize":0,"attachments":null,"voiceDuration":"4.00","detectedLanguage":"korean","confidence":"0.90","isCommandRecall":false,"isTranslated":false,"isCalculated":false,"pollData":null,"originalMessageId":null,"replyToMessageId":null,"boomTimer":null,"expiresAt":null,"targetUserId":null,"spotlightMessageId":null,"spotlightDuration":null,"isEdited":false,"editedAt":null,"mentionedUserIds":null,"mentionAll":false,"youtubePreview":null,"isSystemMessage":false,"isStarred":false,"starredAt":null,"createdAt":"2025-11-20T13:44:26.260Z","sender":{"id":109,"username":"test","displayName":"Test User","email":"test@test.com","password":"$2b$10$mUx1YbElcac9AA27o1rtful.VmwZB/xbMrCQldNSvVQlSlGlGfUo2","phoneNumber":null,"birthday":null,"profilePicture":"/replit-objstore-07c53c38-e3fd-4bfd-9984-e96360e066b6/.private/profile_1763484585942_ne6xosnyayk.jpg","qrCode":null,"qrToken":null,"qrTokenExpiry":null,"isOnline":true,"lastSeen":"2025-11-20T13:44:16.967Z","language":"ko","notificationsEnabled":true,"notificationSound":"default","isEmailVerified":true,"isProfileComplete":true,"userRole":"user","businessName":null,"businessAddress":null,"businessLatitude":null,"businessLongitude":null,"isBusinessVerified":false,"allowVoicePlayback":true,"autoPlayVoiceMessages":false,"allowVoiceBookmarks":true,"authProvider":null,"providerId":null,"providerEmail":null,"aiPreferences":null,"createdAt":"2025-11-18T11:32:06.143Z"},"clientRequestId":"msg-1763646266476-prasopiq6"}}
+⚡️  [log] - 🎯 앱 포커스됨 - Service Worker에 알림
+⚡️  [log] - [NotificationManager] App visible - suppressing notifications
+⚡️  [log] - 📱 앱이 활성화됨 - 배지 상태 새로고침
+⚡️  [log] - 🔄 PWA app opened - syncing messages immediately
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 0
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 0
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - [NotificationManager] Activity status updated: offline
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - [NotificationManager] Activity status updated: online
+⚡️  [log] - 📊 실제 읽지 않은 메시지 수: 1
+⚡️  [log] - 📊 각 채팅방별 읽지 않은 메시지: [{"chatRoomId":1,"unreadCount":1}]
+⚡️  [log] - 🔢 PWA 배지를 데이터베이스 카운트로 설정: 1
+⚡️  [log] - ⚠️ setAppBadge API 미지원, 읽지 않은 메시지 수: 1
+⚡️  [log] - 📱 PWA Badge update: 0 → 1 (messages: 1, AI: 0)
+Snapshotting a view (0x12d280000, UIKeyboardImpl) that has not been rendered at least once requires afterScreenUpdates:YES.
+⚡️  [log] - [NotificationManager] Window blurred
+⚡️  [log] - [NotificationManager] App hidden - enabling notifications
+⚡️  [log] - [NotificationManager] Activity status updated: offline
