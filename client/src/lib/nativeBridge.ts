@@ -42,10 +42,17 @@ export interface NativeBridge {
 let bridgeInstance: NativeBridge | null = null;
 
 export async function getNativeBridge(): Promise<NativeBridge> {
-  if (bridgeInstance) return bridgeInstance;
+  console.log('🌉 [NativeBridge] getNativeBridge 호출됨');
+  
+  if (bridgeInstance) {
+    console.log('🌉 [NativeBridge] 기존 인스턴스 반환');
+    return bridgeInstance;
+  }
 
+  console.log('🌉 [NativeBridge] 새 인스턴스 생성 중...');
   const isNative = isNativePlatform();
   const platform = getPlatform();
+  console.log('🌉 [NativeBridge] Platform:', platform, 'isNative:', isNative);
 
   bridgeInstance = {
     isNative,
@@ -157,6 +164,7 @@ export async function getNativeBridge(): Promise<NativeBridge> {
     },
   };
 
+  console.log('🌉 [NativeBridge] 인스턴스 생성 완료');
   return bridgeInstance;
 }
 
@@ -172,7 +180,9 @@ export async function loadShare() {
 }
 
 export async function loadPushNotifications() {
+  console.log('📡 [Helper] loadPushNotifications 호출됨');
   const bridge = await getNativeBridge();
+  console.log('📡 [Helper] getNativeBridge 완료, loadPushNotifications 실행 중...');
   return bridge.loadPushNotifications();
 }
 
