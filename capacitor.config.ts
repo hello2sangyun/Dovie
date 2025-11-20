@@ -4,9 +4,10 @@ const config: CapacitorConfig = {
   appId: 'com.dovie.messenger',
   appName: 'Dovie Messenger',
   webDir: 'client/dist',
-  // Server URL removed - only use for local development testing
-  // Web/PWA should connect directly to dovie.online
-  // Native apps will use their bundled webDir
+  server: {
+    url: 'https://dovie.online',
+    cleartext: true
+  },
   plugins: {
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert']
