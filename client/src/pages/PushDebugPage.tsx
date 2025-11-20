@@ -16,7 +16,7 @@ export default function PushDebugPage() {
       serviceWorkerSupported: 'serviceWorker' in navigator,
       pushManagerSupported: 'PushManager' in window,
       notificationSupported: 'Notification' in window,
-      permission: Notification.permission,
+      permission: ('Notification' in window) ? Notification.permission : 'unsupported',
       isPWA: window.matchMedia('(display-mode: standalone)').matches,
       isAndroid: /Android/i.test(navigator.userAgent),
       userAgent: navigator.userAgent
@@ -44,6 +44,10 @@ export default function PushDebugPage() {
   };
 
   const requestPermission = async () => {
+    if (!('Notification' in window)) {
+      alert('이 브라우저는 알림을 지원하지 않습니다.');
+      return;
+    }
     const permission = await Notification.requestPermission();
     alert(`알림 권한: ${permission}`);
     checkPushStatus();
