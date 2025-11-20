@@ -32,6 +32,7 @@ import { ConnectionStatusIndicator } from "@/components/ConnectionStatusIndicato
 import { TelegramStyleNotificationManager } from "@/components/TelegramStyleNotificationManager";
 import { useCapacitorPushNotifications } from "@/hooks/useCapacitorPushNotifications";
 import { SimplePushManager } from "@/components/SimplePushManager";
+import { isNativePlatform } from "@/lib/nativeBridge";
 
 import ModernSettingsPage from "@/components/ModernSettingsPage";
 
@@ -1371,8 +1372,8 @@ export default function MainApp() {
       {/* Telegram-style notification and PWA badge management */}
       <TelegramStyleNotificationManager />
       
-      {/* PWA Push Notification Manager - handles push subscription registration */}
-      <SimplePushManager />
+      {/* PWA Push Notification Manager - only for Android PWA/Browser (not iOS native) */}
+      {!isNativePlatform() && <SimplePushManager />}
       
       {/* Mobile Banner Notifications - replaces bottom popup notifications */}
       <BannerNotificationContainer />
