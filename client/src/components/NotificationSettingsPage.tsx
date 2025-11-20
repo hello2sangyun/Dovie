@@ -53,6 +53,7 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
     quietStart: "22:00",
     quietEnd: "08:00",
     muteAllNotifications: false,
+    alwaysNotify: true,
   });
 
   const { data: backendSettings, isLoading } = useQuery({
@@ -71,6 +72,7 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
         quietEnd: backendSettings.quietHoursEnd || "08:00",
         quietHours: !!(backendSettings.quietHoursStart && backendSettings.quietHoursEnd),
         muteAllNotifications: backendSettings.muteAllNotifications ?? false,
+        alwaysNotify: backendSettings.alwaysNotify ?? true,
       }));
       
       const savedLocalSettings = localStorage.getItem(LOCALSTORAGE_KEY);
@@ -98,6 +100,7 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
         quietHoursStart: data.quietHours ? data.quietStart : null,
         quietHoursEnd: data.quietHours ? data.quietEnd : null,
         muteAllNotifications: data.muteAllNotifications,
+        alwaysNotify: data.alwaysNotify,
       });
       
       const localSettings: LocalStorageSettings = {
@@ -211,6 +214,19 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
                 checked={settings.muteAllNotifications}
                 onCheckedChange={(checked) => handleToggle("muteAllNotifications", checked)}
                 data-testid="switch-mute-all-notifications"
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-sm font-medium">항상 알림받기</Label>
+                <p className="text-xs text-gray-500">앱 사용 중에도 알림 표시</p>
+              </div>
+              <Switch
+                checked={settings.alwaysNotify}
+                onCheckedChange={(checked) => handleToggle("alwaysNotify", checked)}
+                disabled={!settings.notificationsEnabled || settings.muteAllNotifications}
+                data-testid="switch-always-notify"
               />
             </div>
 

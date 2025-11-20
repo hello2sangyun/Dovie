@@ -151,15 +151,24 @@ export async function sendPushNotification(
     const userActivity = await storage.getUserActivity(userId);
     let isSilentPush = false;
     
-    // CRITICAL FIX: Only check WebSocket connection status, NOT lastSeen time
-    // Users in background should receive FULL notifications, not silent
-    if (userActivity?.isOnline) {
-      // isOnline means WebSocket is connected (app is open AND in foreground)
-      console.log(`🔕 User ${userId} currently active/online (WebSocket connected) - sending silent push (badge only)`);
-      isSilentPush = true;
-    } else {
-      console.log(`📱 User ${userId} offline/background - sending FULL notification with alert + sound + badge`);
+    // Check if user has "always notify" enabled
+    const alwaysNotify = notificationSettings?.alwaysNotify ?? true; // Default to true
+    
+    if (alwaysNotify) {
+      // User wants FULL notifications even when app is in foreground
+      console.log(`📣 User ${userId} has "항상 알림받기" enabled - sending FULL notification regardless of activity`);
       isSilentPush = false;
+    } else {
+      // CRITICAL FIX: Only check WebSocket connection status, NOT lastSeen time
+      // Users in background should receive FULL notifications, not silent
+      if (userActivity?.isOnline) {
+        // isOnline means WebSocket is connected (app is open AND in foreground)
+        console.log(`🔕 User ${userId} currently active/online (WebSocket connected) - sending silent push (badge only)`);
+        isSilentPush = true;
+      } else {
+        console.log(`📱 User ${userId} offline/background - sending FULL notification with alert + sound + badge`);
+        isSilentPush = false;
+      }
     }
 
     // Get user's push subscriptions (PWA)

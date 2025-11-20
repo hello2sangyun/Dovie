@@ -122,6 +122,7 @@ export const notificationSettings = pgTable("notification_settings", {
   quietHoursStart: varchar("quiet_hours_start", { length: 5 }),
   quietHoursEnd: varchar("quiet_hours_end", { length: 5 }),
   muteAllNotifications: boolean("mute_all_notifications").default(false),
+  alwaysNotify: boolean("always_notify").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
