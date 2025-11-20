@@ -2,13 +2,17 @@ import { useEffect, useCallback, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './useAuth';
 
+interface UnreadCountData {
+  unreadCounts: Array<{ chatRoomId: number; unreadCount: number }>;
+}
+
 export function usePWABadge() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const badgeInitialized = useRef(false);
 
   // 읽지 않은 메시지 수 조회 - purely database-driven, completely independent from push notifications
-  const { data: unreadCounts } = useQuery({
+  const { data: unreadCounts } = useQuery<UnreadCountData>({
     queryKey: ['/api/unread-counts'],
     enabled: !!user,
     staleTime: 0, // Always fetch fresh data for real-time accuracy

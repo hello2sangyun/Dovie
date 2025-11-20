@@ -11,26 +11,14 @@ console.log('[SW] Service Worker support check:', {
 
 if ('serviceWorker' in navigator) {
   const registerSW = () => {
-    // Detect iOS PWA (standalone mode)
-    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-    const isStandalone = (window.navigator as any).standalone === true || 
-                        window.matchMedia('(display-mode: standalone)').matches;
-    const isIOSPWA = isIOS && isStandalone;
+    // Standard Service Worker for Android PWA and web browsers
+    // iOS uses native app (not PWA)
+    console.log('[SW] Registering Service Worker for Android PWA/Web:', '/sw.js');
     
-    // Use enhanced iOS 16 Service Worker for iOS PWA (better badge support)
-    const swPath = isIOSPWA ? '/sw-ios16-enhanced.js' : '/sw.js';
-    
-    console.log('[SW] Registering Service Worker:', {
-      path: swPath,
-      isIOS,
-      isStandalone,
-      isIOSPWA
-    });
-    
-    navigator.serviceWorker.register(swPath)
+    navigator.serviceWorker.register('/sw.js')
       .then(registration => {
         console.log('[SW] Service Worker registered successfully:', registration.scope);
-        console.log('[Badge] Service Worker registered - setAppBadge should now be available');
+        console.log('[Badge] Service Worker registered - setAppBadge API available for Android PWA');
       })
       .catch(error => {
         console.error('[SW] Service Worker registration failed:', error);
@@ -46,7 +34,7 @@ if ('serviceWorker' in navigator) {
 } else {
   console.warn('[SW] Service Workers not supported in this environment (WKWebView/Replit preview)');
   console.warn('[SW] To test SW features, open the app in a real browser: Chrome, Firefox, Safari');
-  console.log('[Badge] Service Worker not supported');
+  console.log('[Badge] Service Worker not supported - this is expected in Replit preview');
 }
 
 createRoot(document.getElementById("root")!).render(<App />);
