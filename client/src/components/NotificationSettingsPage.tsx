@@ -39,6 +39,7 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
   useSwipeBack({ onBack });
   
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [pwaPermission, setPwaPermission] = useState<NotificationPermission>('default');
   const [settings, setSettings] = useState({
     notificationsEnabled: user?.notificationsEnabled ?? true,
     notificationSound: user?.notificationSound ?? "default",
@@ -55,6 +56,13 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
     muteAllNotifications: false,
     alwaysNotify: true,
   });
+
+  // PWA/웹 푸시 권한 상태 체크
+  useEffect(() => {
+    if ('Notification' in window) {
+      setPwaPermission(Notification.permission);
+    }
+  }, []);
 
   const { data: backendSettings, isLoading } = useQuery({
     queryKey: ["/api/notification-settings"],
@@ -143,6 +151,31 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
     setSettings(prev => ({ ...prev, [key]: value }));
   };
 
+  // PWA 푸시 권한 요청 핸들러
+  const handleRequestPWAPermission = async () => {
+    if (!('Notification' in window)) {
+      alert('이 브라우저는 푸시 알림을 지원하지 않습니다.');
+      return;
+    }
+
+    try {
+      const permission = await Notification.requestPermission();
+      setPwaPermission(permission);
+      
+      if (permission === 'granted') {
+        // 권한 허용 시 SimplePushManager가 visibilitychange로 재초기화
+        // 페이지 새로고침으로 즉시 초기화 트리거
+        console.log('✅ PWA 푸시 알림 권한이 허용되었습니다. 잠시 후 푸시 알림이 활성화됩니다.');
+        window.location.reload();
+      } else {
+        alert('푸시 알림 권한이 거부되었습니다. 브라우저 설정에서 권한을 허용해주세요.');
+      }
+    } catch (error) {
+      console.error('푸시 알림 권한 요청 실패:', error);
+      alert('푸시 알림 권한 요청에 실패했습니다.');
+    }
+  };
+
   if (!user) return null;
 
   return (
@@ -182,6 +215,59 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
               </>
             )}
           </div>
+        )}
+
+        {/* PWA 푸시 알림 권한 (웹/PWA 전용) */}
+        {'Notification' in window && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base font-semibold flex items-center">
+                <Smartphone className="h-5 w-5 mr-2 text-purple-600" />
+                PWA 푸시 알림 권한
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <Label className="text-sm font-medium">브라우저 알림 권한 상태</Label>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {pwaPermission === 'granted' && '✅ 허용됨 - 푸시 알림을 받을 수 있습니다.'}
+                    {pwaPermission === 'denied' && '❌ 거부됨 - 브라우저 설정에서 권한을 허용해주세요.'}
+                    {pwaPermission === 'default' && '⚠️ 미설정 - 푸시 알림을 받으려면 권한을 허용해주세요.'}
+                  </p>
+                </div>
+                <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  pwaPermission === 'granted' 
+                    ? 'bg-green-100 text-green-700' 
+                    : pwaPermission === 'denied'
+                    ? 'bg-red-100 text-red-700'
+                    : 'bg-yellow-100 text-yellow-700'
+                }`}>
+                  {pwaPermission === 'granted' ? '허용' : pwaPermission === 'denied' ? '거부' : '미설정'}
+                </div>
+              </div>
+
+              {pwaPermission !== 'granted' && (
+                <Button
+                  onClick={handleRequestPWAPermission}
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                  data-testid="button-request-pwa-permission"
+                >
+                  <Bell className="h-4 w-4 mr-2" />
+                  푸시 알림 권한 요청
+                </Button>
+              )}
+
+              {pwaPermission === 'denied' && (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-xs text-amber-800">
+                    <strong>권한이 차단되었습니다.</strong><br />
+                    브라우저 주소창의 자물쇠 아이콘을 클릭하여 알림 권한을 허용해주세요.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         )}
 
         {/* General Notifications */}

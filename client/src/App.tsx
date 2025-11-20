@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/useAuth";
 import { WebSocketProvider } from "@/hooks/useWebSocketContext";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { SimplePushManager } from "@/components/SimplePushManager";
 import SplashScreen from "@/components/SplashScreen";
 import LandingPage from "@/pages/LandingPage";
 import NotFound from "@/pages/not-found";
@@ -187,6 +188,8 @@ function App() {
         <WebSocketProvider>
           <Toaster />
           <PWAInstallPrompt />
+          {/* SimplePushManager: PWA/웹에서만 작동 (iOS 네이티브는 useCapacitorPushNotifications 사용) */}
+          {!isNativePlatform() && <SimplePushManager />}
           {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
           <Router />
         </WebSocketProvider>
