@@ -322,11 +322,14 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
       setIsLoading(true);
       
       if (isNative) {
-        await Share.share({
-          title: fileName,
-          url: fileUrl,
-          dialogTitle: '공유하기'
-        });
+        const Share = await loadShare();
+        if (Share) {
+          await Share.share({
+            title: fileName,
+            url: fileUrl,
+            dialogTitle: '공유하기'
+          });
+        }
       } else {
         if (navigator.share) {
           const response = await fetch(fileUrl);
@@ -364,36 +367,39 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
       setIsLoading(true);
 
       if (isNative) {
-        const response = await fetch(fileUrl);
-        const blob = await response.blob();
-        const reader = new FileReader();
-        
-        reader.onloadend = async () => {
-          const base64 = reader.result as string;
-          const base64Data = base64.split(',')[1];
+        const fs = await loadFilesystem();
+        if (fs) {
+          const response = await fetch(fileUrl);
+          const blob = await response.blob();
+          const reader = new FileReader();
           
-          try {
-            await Filesystem.writeFile({
-              path: fileName,
-              data: base64Data,
-              directory: Directory.Documents
-            });
+          reader.onloadend = async () => {
+            const base64 = reader.result as string;
+            const base64Data = base64.split(',')[1];
             
-            toast({
-              title: "저장 완료",
-              description: "파일이 Documents 폴더에 저장되었습니다."
-            });
-          } catch (fsError) {
-            console.error('Filesystem error:', fsError);
-            toast({
-              title: "저장 실패",
-              description: "파일 저장 중 오류가 발생했습니다.",
-              variant: "destructive"
-            });
-          }
-        };
-        
-        reader.readAsDataURL(blob);
+            try {
+              await fs.Filesystem.writeFile({
+                path: fileName,
+                data: base64Data,
+                directory: fs.Directory.Documents
+              });
+              
+              toast({
+                title: "저장 완료",
+                description: "파일이 Documents 폴더에 저장되었습니다."
+              });
+            } catch (fsError) {
+              console.error('Filesystem error:', fsError);
+              toast({
+                title: "저장 실패",
+                description: "파일 저장 중 오류가 발생했습니다.",
+                variant: "destructive"
+              });
+            }
+          };
+          
+          reader.readAsDataURL(blob);
+        }
       } else {
         const link = document.createElement('a');
         link.href = fileUrl;

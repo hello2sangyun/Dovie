@@ -37,7 +37,7 @@ The backend is built with Node.js and Express.js (TypeScript, ES modules), using
 - **File Preview**: Fullscreen immersive modal with pinch-to-zoom, pan, double-tap reset, auto-hiding UI, and gesture-optimized controls for images, videos, and PDFs. Includes share/save/forward capabilities via Capacitor.
 
 ### System Design Choices
-The application prioritizes mobile performance. iOS keyboard handling uses `resize: 'native'` in Capacitor with CSS for proper viewport behavior. Code splitting with React.lazy reduces bundle size. Main thread blocking operations are avoided. Standardized loading states and refined push notifications enhance UX. Message pagination uses infinite scroll with IntersectionObserver. File caching implements a per-URL subscriber pattern for efficient downloads. Emoji reactions use database joins to avoid N+1 queries.
+The application prioritizes mobile performance. iOS keyboard handling uses `resize: 'native'` in Capacitor with CSS for proper viewport behavior. Code splitting with React.lazy reduces bundle size. Main thread blocking operations are avoided. Skeleton loading states improve perceived performance for chat lists, AI inbox, and file previews with smooth fade-in transitions. Message pagination uses infinite scroll with IntersectionObserver. File caching implements a per-URL subscriber pattern for efficient downloads. Emoji reactions use database joins to avoid N+1 queries. Battery optimization includes 15-minute Service Worker background refresh intervals and WebSocket auto-disconnection.
 
 ## External Dependencies
 - **Database**: `@neondatabase/serverless`, `drizzle-orm`.
