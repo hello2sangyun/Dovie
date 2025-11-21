@@ -20,6 +20,7 @@ import { apiRequest } from "@/lib/queryClient";
 import VoiceMessageConfirmModal from "./VoiceMessageConfirmModal";
 import { VoiceRecordingModal } from "./VoiceRecordingModal";
 import LoadingScreen from "./LoadingScreen";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ChatsListProps {
   onSelectChat: (chatId: number) => void;
@@ -770,69 +771,90 @@ export default function ChatsList({ onSelectChat, selectedChatId, onCreateGroup,
       </div>
 
       <div ref={scrollContainerRef} className="flex-1 overflow-y-auto max-h-[calc(100vh-280px)] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 pb-20">
-        {pinnedChats.length > 0 && (
-          <>
-            <div className="p-3 bg-gray-50">
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                고정된 채팅
-              </p>
-            </div>
-            {pinnedChats.map((chatRoom: any) => (
-              <ChatRoomItem
-                key={chatRoom.id}
-                chatRoom={chatRoom}
-                displayName={getChatRoomDisplayName(chatRoom)}
-                isSelected={selectedChatId === chatRoom.id}
-                onClick={() => isMultiSelectMode ? toggleRoomSelection(chatRoom.id) : onSelectChat(chatRoom.id)}
-                isPinned
-                unreadCount={getUnreadCount(chatRoom.id)}
-                aiNoticeCount={getAiNoticeCount(chatRoom.id)}
-                hasDraft={hasDraftMessage(chatRoom.id)}
-                draftPreview={getDraftPreview(chatRoom.id)}
-                isMultiSelectMode={isMultiSelectMode}
-                isChecked={selectedRoomIds.includes(chatRoom.id)}
-                onLongPressStart={handleLongPressStart}
-                onLongPressEnd={handleLongPressEnd}
-                onTouchMove={handleTouchMove}
-                onTouchCancel={handleTouchCancel}
-              />
+        {isLoading ? (
+          // 로딩 중 스켈레톤 표시
+          <div className="space-y-1">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="flex items-center gap-3 p-4 hover:bg-gray-50">
+                <Skeleton className="h-12 w-12 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-[60%]" />
+                  <Skeleton className="h-3 w-[80%]" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-3 w-12" />
+                  <Skeleton className="h-5 w-5 rounded-full ml-auto" />
+                </div>
+              </div>
             ))}
-          </>
-        )}
-
-        {regularChats.length > 0 && (
-          <>
-            <div className="p-3 bg-gray-50">
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                모든 채팅
-              </p>
-            </div>
-            {regularChats.map((chatRoom: any) => (
-              <ChatRoomItem
-                key={chatRoom.id}
-                chatRoom={chatRoom}
-                displayName={getChatRoomDisplayName(chatRoom)}
-                isSelected={selectedChatId === chatRoom.id}
-                onClick={() => isMultiSelectMode ? toggleRoomSelection(chatRoom.id) : onSelectChat(chatRoom.id)}
-                unreadCount={getUnreadCount(chatRoom.id)}
-                aiNoticeCount={getAiNoticeCount(chatRoom.id)}
-                hasDraft={hasDraftMessage(chatRoom.id)}
-                draftPreview={getDraftPreview(chatRoom.id)}
-                isMultiSelectMode={isMultiSelectMode}
-                isChecked={selectedRoomIds.includes(chatRoom.id)}
-                onLongPressStart={handleLongPressStart}
-                onLongPressEnd={handleLongPressEnd}
-                onTouchMove={handleTouchMove}
-                onTouchCancel={handleTouchCancel}
-              />
-            ))}
-          </>
-        )}
-
-        {filteredChatRooms.length === 0 && (
-          <div className="p-4 text-center text-gray-500">
-            {searchTerm ? "검색 결과가 없습니다" : "채팅방이 없습니다"}
           </div>
+        ) : (
+          <>
+            {pinnedChats.length > 0 && (
+              <>
+                <div className="p-3 bg-gray-50">
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                    고정된 채팅
+                  </p>
+                </div>
+                {pinnedChats.map((chatRoom: any) => (
+                  <ChatRoomItem
+                    key={chatRoom.id}
+                    chatRoom={chatRoom}
+                    displayName={getChatRoomDisplayName(chatRoom)}
+                    isSelected={selectedChatId === chatRoom.id}
+                    onClick={() => isMultiSelectMode ? toggleRoomSelection(chatRoom.id) : onSelectChat(chatRoom.id)}
+                    isPinned
+                    unreadCount={getUnreadCount(chatRoom.id)}
+                    aiNoticeCount={getAiNoticeCount(chatRoom.id)}
+                    hasDraft={hasDraftMessage(chatRoom.id)}
+                    draftPreview={getDraftPreview(chatRoom.id)}
+                    isMultiSelectMode={isMultiSelectMode}
+                    isChecked={selectedRoomIds.includes(chatRoom.id)}
+                    onLongPressStart={handleLongPressStart}
+                    onLongPressEnd={handleLongPressEnd}
+                    onTouchMove={handleTouchMove}
+                    onTouchCancel={handleTouchCancel}
+                  />
+                ))}
+              </>
+            )}
+
+            {regularChats.length > 0 && (
+              <>
+                <div className="p-3 bg-gray-50">
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                    모든 채팅
+                  </p>
+                </div>
+                {regularChats.map((chatRoom: any) => (
+                  <ChatRoomItem
+                    key={chatRoom.id}
+                    chatRoom={chatRoom}
+                    displayName={getChatRoomDisplayName(chatRoom)}
+                    isSelected={selectedChatId === chatRoom.id}
+                    onClick={() => isMultiSelectMode ? toggleRoomSelection(chatRoom.id) : onSelectChat(chatRoom.id)}
+                    unreadCount={getUnreadCount(chatRoom.id)}
+                    aiNoticeCount={getAiNoticeCount(chatRoom.id)}
+                    hasDraft={hasDraftMessage(chatRoom.id)}
+                    draftPreview={getDraftPreview(chatRoom.id)}
+                    isMultiSelectMode={isMultiSelectMode}
+                    isChecked={selectedRoomIds.includes(chatRoom.id)}
+                    onLongPressStart={handleLongPressStart}
+                    onLongPressEnd={handleLongPressEnd}
+                    onTouchMove={handleTouchMove}
+                    onTouchCancel={handleTouchCancel}
+                  />
+                ))}
+              </>
+            )}
+
+            {filteredChatRooms.length === 0 && (
+              <div className="p-4 text-center text-gray-500">
+                {searchTerm ? "검색 결과가 없습니다" : "채팅방이 없습니다"}
+              </div>
+            )}
+          </>
         )}
       </div>
 

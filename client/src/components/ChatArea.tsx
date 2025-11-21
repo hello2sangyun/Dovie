@@ -1444,8 +1444,14 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
         }
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('❌ 파일 업로드 실패:', error);
+      const errorMessage = error?.message || '파일 업로드에 실패했습니다';
+      toast({
+        title: "업로드 실패",
+        description: errorMessage.includes('크기') ? errorMessage : `${errorMessage}. 파일 크기를 확인하고 다시 시도해주세요.`,
+        variant: "destructive",
+      });
     },
   });
 

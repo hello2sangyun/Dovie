@@ -1,5 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
@@ -93,8 +94,26 @@ export default function AiNoticesModal({ open, onOpenChange, chatRoomId, onNotic
 
         <div className="flex-1 overflow-y-auto space-y-3 pr-2">
           {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+            <div className="space-y-3">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="p-4 rounded-lg border border-gray-200">
+                  <div className="flex items-start space-x-3">
+                    <Skeleton className="h-5 w-5 rounded-full flex-shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Skeleton className="h-5 w-16 rounded-full" />
+                        <Skeleton className="h-2 w-2 rounded-full" />
+                      </div>
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-3/4" />
+                      <div className="flex items-center justify-between mt-2">
+                        <Skeleton className="h-3 w-20" />
+                        <Skeleton className="h-3 w-3 rounded-full" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : notices.length === 0 ? (
             <div className="text-center py-8 text-gray-500">

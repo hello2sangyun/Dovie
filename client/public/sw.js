@@ -471,7 +471,7 @@ async function scheduleBadgeRefresh() {
     // Also use setTimeout as fallback
     setTimeout(async () => {
       await refreshBadgeFromServer();
-    }, 300000); // 5 minutes
+    }, 900000); // 15 minutes (배터리 절약)
   } catch (error) {
     console.error('[SW] Badge refresh scheduling failed:', error);
   }
