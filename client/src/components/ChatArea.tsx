@@ -4156,36 +4156,12 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   };
 
   // Monitor new messages for notifications
+  // NOTE: Removed in-chat notification sounds to prevent duplicate/annoying notifications
+  // User is already viewing the chat, so sounds are not needed
+  // Push notifications and WebSocket listeners handle background notifications
   useEffect(() => {
     if (messages.length > 0 && user) {
       const currentCount = messages.length;
-      
-      if (lastMessageCount > 0 && currentCount > lastMessageCount) {
-        // New message detected
-        const newMessages = messages.slice(lastMessageCount);
-        
-        newMessages.forEach((message: any) => {
-          // Don't play sound for own messages
-          if (message.senderId !== user.id) {
-            // Check if message mentions the current user
-            const isMentioned = message.content?.includes(`@${user.username}`) || 
-                              message.content?.includes(`@${user.email}`);
-            
-            if (isMentioned) {
-              // Play siren sound for mentions
-              setTimeout(() => {
-                playSirenSound();
-              }, 100);
-            } else {
-              // Play normal notification for other messages
-              setTimeout(() => {
-                playNotificationSound();
-              }, 100);
-            }
-          }
-        });
-      }
-      
       setLastMessageCount(currentCount);
     }
   }, [messages, user, lastMessageCount]);
