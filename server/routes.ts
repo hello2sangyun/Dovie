@@ -7641,6 +7641,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all push subscriptions for a user (for debug page)
+  app.get("/api/push-subscriptions/:userId", async (req, res) => {
+    const userId = req.params.userId;
+    const requestingUserId = req.headers["x-user-id"];
+    
+    // Only allow users to see their own subscriptions
+    if (!requestingUserId || userId !== requestingUserId) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    try {
+      const subscriptions = await storage.getUserPushSubscriptions(Number(userId));
+      res.json({ subscriptions });
+    } catch (error) {
+      console.error("Get push subscriptions error:", error);
+      res.status(500).json({ message: "Failed to get push subscriptions" });
+    }
+  });
+
   // Test push notification endpoint for mobile testing
   app.post("/api/test-push-notification", async (req, res) => {
     try {

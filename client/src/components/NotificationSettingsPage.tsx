@@ -266,6 +266,16 @@ export default function NotificationSettingsPage({ onBack }: NotificationSetting
                   </p>
                 </div>
               )}
+
+              {/* PWA 진단 페이지 링크 */}
+              <Button
+                onClick={() => window.location.href = '/push-debug'}
+                variant="outline"
+                className="w-full"
+                data-testid="button-push-debug"
+              >
+                🔧 푸시 알림 진단 도구
+              </Button>
             </CardContent>
           </Card>
         )}

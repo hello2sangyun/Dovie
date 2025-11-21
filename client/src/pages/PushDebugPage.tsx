@@ -9,6 +9,7 @@ export default function PushDebugPage() {
   const [status, setStatus] = useState<any>({});
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
   const [loading, setLoading] = useState(false);
+  const [serverSubscriptions, setServerSubscriptions] = useState<any[]>([]);
 
   const checkPushStatus = async () => {
     setLoading(true);
@@ -19,7 +20,10 @@ export default function PushDebugPage() {
       permission: ('Notification' in window) ? Notification.permission : 'unsupported',
       isPWA: window.matchMedia('(display-mode: standalone)').matches,
       isAndroid: /Android/i.test(navigator.userAgent),
-      userAgent: navigator.userAgent
+      isIOS: /iPhone|iPad|iPod/i.test(navigator.userAgent),
+      userAgent: navigator.userAgent,
+      userId: user?.id,
+      username: user?.username
     };
 
     if (newStatus.serviceWorkerSupported) {
@@ -27,15 +31,38 @@ export default function PushDebugPage() {
         const registration = await navigator.serviceWorker.ready;
         newStatus.serviceWorkerActive = !!registration.active;
         newStatus.serviceWorkerScope = registration.scope;
+        newStatus.serviceWorkerState = registration.active?.state;
 
         if (registration.pushManager) {
           const sub = await registration.pushManager.getSubscription();
           setSubscription(sub);
           newStatus.pushSubscription = !!sub;
-          newStatus.endpoint = sub?.endpoint.substring(0, 60) + '...';
+          newStatus.endpoint = sub?.endpoint;
         }
       } catch (error: any) {
         newStatus.serviceWorkerError = error.message;
+      }
+    }
+
+    // Check server-side subscription count
+    if (user?.id) {
+      try {
+        const response = await fetch(`/api/push-subscriptions/${user.id}`, {
+          headers: {
+            'X-User-ID': user.id.toString()
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setServerSubscriptions(data.subscriptions || []);
+          newStatus.serverSubscriptionCount = data.subscriptions?.length || 0;
+        } else {
+          console.error('Failed to fetch subscriptions:', response.status);
+          newStatus.serverError = `Failed to fetch subscriptions: ${response.status}`;
+        }
+      } catch (error: any) {
+        console.error('Error fetching subscriptions:', error);
+        newStatus.serverError = error.message;
       }
     }
 
@@ -296,6 +323,25 @@ export default function PushDebugPage() {
           )}
         </Card>
 
+        {/* 서버 구독 목록 */}
+        {serverSubscriptions.length > 0 && (
+          <Card className="p-6">
+            <h2 className="text-lg font-semibold mb-4">서버 저장된 구독 ({serverSubscriptions.length}개)</h2>
+            <div className="space-y-3">
+              {serverSubscriptions.map((sub, index) => (
+                <div key={index} className="p-3 bg-gray-50 dark:bg-gray-800 rounded text-xs">
+                  <div className="font-semibold mb-1">구독 #{index + 1}</div>
+                  <div className="space-y-1 text-gray-600 dark:text-gray-400">
+                    <div><strong>Endpoint:</strong> {sub.endpoint?.substring(0, 50)}...</div>
+                    <div><strong>User Agent:</strong> {sub.userAgent || 'N/A'}</div>
+                    <div><strong>등록일:</strong> {new Date(sub.createdAt).toLocaleString('ko-KR')}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
         <Card className="p-4 bg-blue-50 dark:bg-blue-900/20">
           <h3 className="font-semibold text-sm mb-2">📱 Android PWA 테스트 방법</h3>
           <ol className="text-xs space-y-1 list-decimal list-inside text-gray-700 dark:text-gray-300">
@@ -305,6 +351,15 @@ export default function PushDebugPage() {
             <li>이 디버그 페이지에서 푸시 구독 등록</li>
             <li>"테스트 알림 전송" 버튼 클릭</li>
           </ol>
+        </Card>
+
+        <Card className="p-4">
+          <h3 className="font-semibold text-sm mb-3">🔧 사용자 정보</h3>
+          <div className="text-xs space-y-1 text-gray-700 dark:text-gray-300">
+            <div><strong>User ID:</strong> {status.userId || 'N/A'}</div>
+            <div><strong>Username:</strong> {status.username || 'N/A'}</div>
+            <div><strong>서버 구독 수:</strong> {status.serverSubscriptionCount || 0}개</div>
+          </div>
         </Card>
 
         <Card className="p-4 text-xs text-gray-600 dark:text-gray-400">
