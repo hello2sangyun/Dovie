@@ -151,23 +151,30 @@ export async function sendPushNotification(
     const userActivity = await storage.getUserActivity(userId);
     let isSilentPush = false;
     
-    // Check if user has "always notify" enabled
-    const alwaysNotify = notificationSettings?.alwaysNotify ?? true; // Default to true
-    
-    if (alwaysNotify) {
-      // User wants FULL notifications even when app is in foreground
-      console.log(`📣 User ${userId} has "항상 알림받기" enabled - sending FULL notification regardless of activity`);
-      isSilentPush = false;
+    // 🔥 CRITICAL: If payload.silent is explicitly true, force silent push
+    // This allows mark-read and other badge-only updates to bypass alwaysNotify setting
+    if (payload.silent === true) {
+      console.log(`🔕 Payload explicitly marked as silent - forcing silent push (badge only, no sound/vibration)`);
+      isSilentPush = true;
     } else {
-      // CRITICAL FIX: Only check WebSocket connection status, NOT lastSeen time
-      // Users in background should receive FULL notifications, not silent
-      if (userActivity?.isOnline) {
-        // isOnline means WebSocket is connected (app is open AND in foreground)
-        console.log(`🔕 User ${userId} currently active/online (WebSocket connected) - sending silent push (badge only)`);
-        isSilentPush = true;
-      } else {
-        console.log(`📱 User ${userId} offline/background - sending FULL notification with alert + sound + badge`);
+      // Check if user has "always notify" enabled
+      const alwaysNotify = notificationSettings?.alwaysNotify ?? true; // Default to true
+      
+      if (alwaysNotify) {
+        // User wants FULL notifications even when app is in foreground
+        console.log(`📣 User ${userId} has "항상 알림받기" enabled - sending FULL notification regardless of activity`);
         isSilentPush = false;
+      } else {
+        // CRITICAL FIX: Only check WebSocket connection status, NOT lastSeen time
+        // Users in background should receive FULL notifications, not silent
+        if (userActivity?.isOnline) {
+          // isOnline means WebSocket is connected (app is open AND in foreground)
+          console.log(`🔕 User ${userId} currently active/online (WebSocket connected) - sending silent push (badge only)`);
+          isSilentPush = true;
+        } else {
+          console.log(`📱 User ${userId} offline/background - sending FULL notification with alert + sound + badge`);
+          isSilentPush = false;
+        }
       }
     }
 
@@ -386,16 +393,14 @@ async function sendIOSPushNotifications(
       } else {
         // Normal notification: alert, badge, sound, rich media
         // alert present → apns2 auto-sets pushType='alert' HTTP/2 header
-        notification = new Notification(deviceToken, {
+        const notificationConfig: any = {
           alert: {
-            // Silent push는 빈 title/body 허용 (배지만 업데이트)
-            title: payload.silent ? (payload.title ?? '') : (payload.title || "새 메시지"),
-            body: payload.silent ? (payload.body ?? '') : (payload.body || "새 메시지가 도착했습니다"),
+            title: payload.title || "새 메시지",
+            body: payload.body || "새 메시지가 도착했습니다",
             // Optional subtitle for additional context
             ...(payload.data?.subtitle && { subtitle: payload.data.subtitle })
           },
           badge: payload.badgeCount ?? 0,
-          sound: payload.sound || "default",
           mutableContent: true, // Enable rich notifications (images, videos, audio)
           contentAvailable: true, // Enable background updates
           category: "MESSAGE_CATEGORY", // Action buttons (reply, mark read)
@@ -403,12 +408,22 @@ async function sendIOSPushNotifications(
           data: customData, // Use 'data' instead of 'payload'
           priority: 10, // Immediate delivery
           expiration: Math.floor(Date.now() / 1000) + 3600 // 1 hour expiry
-        });
+        };
+        
+        // 🔥 CRITICAL: Only add sound if not explicitly silenced
+        // If payload.sound is provided, use it; otherwise use "default"
+        // But if payload.silent is true, omit sound entirely (no vibration)
+        if (!payload.silent) {
+          notificationConfig.sound = payload.sound || "default";
+        }
+        
+        notification = new Notification(deviceToken, notificationConfig);
         
         console.log(`📱 iOS APNS 알림 발송: ${deviceToken.substring(0, 20)}...`);
         console.log(`   Title: ${payload.title}`);
         console.log(`   Body: ${payload.body}`);
         console.log(`   Badge: ${payload.badgeCount}`);
+        console.log(`   Sound: ${notificationConfig.sound || 'none (silent)'}`);
         console.log(`   Push Type: alert (auto-set by apns2)`);
       }
 
