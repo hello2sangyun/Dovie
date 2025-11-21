@@ -4184,17 +4184,48 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
 
   // Mark messages as read when viewing chat
   const lastMarkedMessageIdRef = useRef<number | null>(null);
+  const pendingMarkReadRef = useRef<{ messageId: number; roomId: number } | null>(null);
+  
+  // Reset refs when switching chat rooms to prevent cross-room contamination
+  useEffect(() => {
+    lastMarkedMessageIdRef.current = null;
+    pendingMarkReadRef.current = null;
+  }, [chatRoomId]);
   
   useEffect(() => {
     if (messages.length > 0) {
       const latestMessage = messages[messages.length - 1];
-      // Only mark as read if it's a new message (prevent duplicate API calls)
+      
+      // If mutation is pending, queue the latest ID with room ID to mark later
+      if (markAsReadMutation.isPending) {
+        pendingMarkReadRef.current = { messageId: latestMessage.id, roomId: chatRoomId };
+        return;
+      }
+      
+      // Only mark as read if it's a new message
       if (latestMessage.id !== lastMarkedMessageIdRef.current) {
         lastMarkedMessageIdRef.current = latestMessage.id;
+        pendingMarkReadRef.current = null;
         markAsReadMutation.mutate(latestMessage.id);
       }
     }
-  }, [messages, chatRoomId]);
+  }, [messages, chatRoomId, markAsReadMutation.isPending]);
+  
+  // Process queued mark-read after mutation completes
+  useEffect(() => {
+    if (!markAsReadMutation.isPending && pendingMarkReadRef.current !== null) {
+      const queued = pendingMarkReadRef.current;
+      // Only process if still in the same chat room
+      if (queued.roomId === chatRoomId && queued.messageId !== lastMarkedMessageIdRef.current) {
+        lastMarkedMessageIdRef.current = queued.messageId;
+        pendingMarkReadRef.current = null;
+        markAsReadMutation.mutate(queued.messageId);
+      } else {
+        // Discard queued entry if room has changed
+        pendingMarkReadRef.current = null;
+      }
+    }
+  }, [markAsReadMutation.isPending, chatRoomId]);
 
   // Close chat settings when clicking outside
   useEffect(() => {
