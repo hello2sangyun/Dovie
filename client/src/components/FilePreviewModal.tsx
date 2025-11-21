@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { X, Download, File, FileText, FileImage, FileVideo, FileAudio, FileCode, Share2, Send, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { isNativePlatform, loadShare, loadFilesystem } from '@/lib/nativeBridge';
 import { useToast } from '@/hooks/use-toast';
@@ -39,6 +40,8 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [showUI, setShowUI] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
   const { toast } = useToast();
   
   const imageRef = useRef<HTMLImageElement>(null);
@@ -84,10 +87,12 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
       setShowUI(true);
       setSwipeOffset(0);
       setSwipeOffsetX(0);
+      setImageLoaded(false);
+      setVideoLoaded(false);
       swipeDirection.current = null;
       resetUITimeout();
     }
-  }, [isOpen]);
+  }, [isOpen, fileUrl]);
 
   // Auto-hide UI after 3 seconds
   const resetUITimeout = () => {
@@ -552,6 +557,11 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
             onTouchEnd={handleTouchEnd}
             onClick={handleImageClick}
           >
+            {!imageLoaded && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Skeleton className="w-[80%] h-[60%]" />
+              </div>
+            )}
             <img
               ref={imageRef}
               src={fileUrl}
@@ -560,9 +570,14 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
               style={{ 
                 transform: `scale(${scale}) translate(${(position.x + swipeOffsetX) / scale}px, ${(position.y + swipeOffset) / scale}px)`,
                 touchAction: 'none',
-                transition: (swipeOffset === 0 && swipeOffsetX === 0) ? 'transform 0.2s ease-out' : 'none'
+                transition: (swipeOffset === 0 && swipeOffsetX === 0) 
+                  ? 'transform 0.2s ease-out, opacity 0.3s ease-in' 
+                  : 'opacity 0.3s ease-in',
+                opacity: imageLoaded ? 1 : 0
               }}
               draggable={false}
+              onLoad={() => setImageLoaded(true)}
+              onError={() => setImageLoaded(true)}
               data-testid="image-preview"
             />
           </div>
@@ -574,10 +589,18 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
             onTouchEnd={handleTouchEnd}
             onClick={handleImageClick}
           >
+            {!videoLoaded && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Skeleton className="w-[80%] h-[60%]" />
+              </div>
+            )}
             <div
               style={{
                 transform: `translate(${swipeOffsetX}px, ${swipeOffset}px)`,
-                transition: (swipeOffset === 0 && swipeOffsetX === 0) ? 'transform 0.2s ease-out' : 'none'
+                transition: (swipeOffset === 0 && swipeOffsetX === 0) 
+                  ? 'transform 0.2s ease-out, opacity 0.3s ease-in' 
+                  : 'opacity 0.3s ease-in',
+                opacity: videoLoaded ? 1 : 0
               }}
             >
               <video
@@ -586,6 +609,8 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                 controls
                 playsInline
                 autoPlay={false}
+                onLoadedData={() => setVideoLoaded(true)}
+                onError={() => setVideoLoaded(true)}
                 data-testid="video-preview"
               />
             </div>
