@@ -27,6 +27,7 @@ The backend is built with Node.js and Express.js (TypeScript, ES modules), using
   - **Android PWA**: Web Push API with Service Worker (`/sw.js`), setAppBadge API for badge counts
   - **iOS Native**: APNS (Apple Push Notification service) with native badge support
   - Features: Intelligent filtering, grouped notifications, sound, badges, Dovie logo icons, background message preloading, and Rich Notifications for media previews
+  - **Diagnostic Tools**: PWA Push Debug Page (`/push-debug`) provides real-time troubleshooting with Service Worker status, Push API support, notification permissions, subscription details, and server-side token verification
 - **Hashtag System**: Single hashtag per file, auto-extraction, enhanced search.
 - **Voice Messages**: Unified recording experience with a full-screen modal, real-time transcription, smart suggestions, silence detection, and reply support.
 - **YouTube Integration**: Search, preview, and sharing within chat.
