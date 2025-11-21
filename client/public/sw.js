@@ -258,6 +258,29 @@ self.addEventListener('push', (event) => {
     };
   }
   
+  // 🔥 CRITICAL: Check if this is a silent badge-only push (like iOS APNS silent push)
+  // Silent pushes should only update badge, not show notification
+  const isSilentPush = notificationData.silent === true || 
+                       notificationData.data?.type === 'badge_update';
+  
+  console.log('[SW] 🔍 DEBUG: isSilentPush =', isSilentPush, 
+              'payload.silent =', notificationData.silent,
+              'data.type =', notificationData.data?.type);
+  
+  if (isSilentPush) {
+    // Silent badge update: badge only, no notification display
+    console.log('[SW] 🔕 Silent push - updating badge only (no notification shown)');
+    
+    const badgeCount = notificationData.data?.badgeCount ?? notificationData.data?.unreadCount ?? 0;
+    console.log('[SW] 📱 Silent badge update:', badgeCount);
+    
+    event.waitUntil(
+      setTelegramStyleBadge(badgeCount)
+    );
+    return; // Exit early - do NOT show notification
+  }
+  
+  // Normal notification: show full notification with alert, sound, vibration
   // Telegram/WhatsApp-style notification options
   const options = {
     body: notificationData.body || '메시지를 확인하세요',
@@ -303,7 +326,7 @@ self.addEventListener('push', (event) => {
     })
   };
   
-  console.log('[SW] Showing Telegram-style notification:', {
+  console.log('[SW] 📱 Showing FULL Telegram-style notification:', {
     title: notificationData.title,
     body: options.body,
     tag: options.tag,
