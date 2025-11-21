@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 // import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import { WebSocketProvider } from "@/hooks/useWebSocketContext";
+import { ChatPresenceProvider } from "@/contexts/ChatPresenceContext";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { SimplePushManager } from "@/components/SimplePushManager";
 import SplashScreen from "@/components/SplashScreen";
@@ -185,14 +186,16 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <WebSocketProvider>
-          <Toaster />
-          <PWAInstallPrompt />
-          {/* SimplePushManager: PWA/웹에서만 작동 (iOS 네이티브는 useCapacitorPushNotifications 사용) */}
-          {!isNativePlatform() && <SimplePushManager />}
-          {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
-          <Router />
-        </WebSocketProvider>
+        <ChatPresenceProvider>
+          <WebSocketProvider>
+            <Toaster />
+            <PWAInstallPrompt />
+            {/* SimplePushManager: PWA/웹에서만 작동 (iOS 네이티브는 useCapacitorPushNotifications 사용) */}
+            {!isNativePlatform() && <SimplePushManager />}
+            {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
+            <Router />
+          </WebSocketProvider>
+        </ChatPresenceProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

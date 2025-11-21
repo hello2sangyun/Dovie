@@ -50,6 +50,7 @@ import { FileUploadProgress } from "./FileUploadProgress";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { useFileCache } from "@/hooks/useFileCache";
 import { useUpload } from "@/contexts/UploadContext";
+import { useChatPresence } from "@/contexts/ChatPresenceContext";
 
 interface ChatAreaProps {
   chatRoomId: number;
@@ -69,6 +70,21 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   const { user } = useAuth();
   const [location, navigate] = useLocation();
   const { addUpload, updateUploadProgress, completeUpload, failUpload } = useUpload();
+  const { setCurrentChatRoomId } = useChatPresence();
+  
+  // Set/unset current chat room for notification suppression
+  useEffect(() => {
+    console.log(`📍 Entering chat room: ${chatRoomId}`);
+    // Store in window global for WebSocket notification suppression
+    (window as any).__currentChatRoomId = chatRoomId;
+    setCurrentChatRoomId(chatRoomId);
+    
+    return () => {
+      console.log(`📍 Leaving chat room: ${chatRoomId}`);
+      (window as any).__currentChatRoomId = null;
+      setCurrentChatRoomId(null);
+    };
+  }, [chatRoomId, setCurrentChatRoomId]);
   
   // 인라인 파일 첨부 미리보기 상태 (최상단에 선언 - useCallback에서 사용)
   const [selectedPendingFiles, setSelectedPendingFiles] = useState<FileList | null>(null);

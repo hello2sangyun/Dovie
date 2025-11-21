@@ -33,6 +33,13 @@ export function useWebSocket(userId?: number) {
   const appState = useAppState();
   const shouldBeConnectedRef = useRef(true);
   
+  // Helper to check if user is viewing a specific chat room
+  const isInChatRoom = (chatRoomId: number): boolean => {
+    // Use window global to avoid Context dependency issues
+    const currentChatRoomId = (window as any).__currentChatRoomId;
+    return appState === 'active' && currentChatRoomId === chatRoomId;
+  };
+  
   const [connectionState, setConnectionState] = useState<ConnectionState>({
     isConnected: false,
     isReconnecting: false,
@@ -231,18 +238,26 @@ export function useWebSocket(userId?: number) {
                 });
                 
                 // Show notification if message is not from current user and notifications are enabled
+                // BUT suppress if user is actively viewing this chat room (Telegram/WhatsApp behavior)
                 if (data.message.senderId !== userId && user?.notificationsEnabled !== false) {
-                  const senderName = data.message.sender?.displayName || data.message.sender?.username || "알 수 없는 사용자";
-                  const messagePreview = data.message.content?.length > 50 
-                    ? data.message.content.substring(0, 50) + "..." 
-                    : data.message.content || "새 메시지";
+                  const isViewingThisChat = isInChatRoom(data.message.chatRoomId);
                   
-                  showNotification({
-                    title: senderName,
-                    description: messagePreview,
-                    variant: "default",
-                    duration: 4000
-                  });
+                  if (!isViewingThisChat) {
+                    const senderName = data.message.sender?.displayName || data.message.sender?.username || "알 수 없는 사용자";
+                    const messagePreview = data.message.content?.length > 50 
+                      ? data.message.content.substring(0, 50) + "..." 
+                      : data.message.content || "새 메시지";
+                    
+                    console.log(`🔔 Showing notification for message from chat ${data.message.chatRoomId} (not currently viewing)`);
+                    showNotification({
+                      title: senderName,
+                      description: messagePreview,
+                      variant: "default",
+                      duration: 4000
+                    });
+                  } else {
+                    console.log(`🔕 Suppressing notification - user is actively viewing chat ${data.message.chatRoomId}`);
+                  }
                 }
               }
               break;
