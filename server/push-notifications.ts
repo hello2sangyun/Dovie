@@ -375,6 +375,8 @@ async function sendIOSPushNotifications(
 
       let notification: Notification;
 
+      console.log(`🔍 DEBUG: isSilent=${isSilent}, payload.silent=${payload.silent}, payload.data.type=${payload.data?.type}`);
+      
       if (isSilent) {
         // Silent badge update: badge only, no alert/sound
         // contentAvailable: true → apns2 auto-sets pushType='background' HTTP/2 header
@@ -390,6 +392,7 @@ async function sendIOSPushNotifications(
         console.log(`🔕 iOS APNS Silent Push 발송 (배지만): ${deviceToken.substring(0, 20)}...`);
         console.log(`   Badge: ${payload.badgeCount}`);
         console.log(`   Push Type: background (auto-set by apns2)`);
+        console.log(`   ✅ NO SOUND FIELD - Silent notification`);
       } else {
         // Normal notification: alert, badge, sound, rich media
         // alert present → apns2 auto-sets pushType='alert' HTTP/2 header

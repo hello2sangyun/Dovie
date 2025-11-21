@@ -4183,10 +4183,16 @@ export default function ChatArea({ chatRoomId, onCreateCommand, showMobileHeader
   }, [messages, user, lastMessageCount]);
 
   // Mark messages as read when viewing chat
+  const lastMarkedMessageIdRef = useRef<number | null>(null);
+  
   useEffect(() => {
     if (messages.length > 0) {
       const latestMessage = messages[messages.length - 1];
-      markAsReadMutation.mutate(latestMessage.id);
+      // Only mark as read if it's a new message (prevent duplicate API calls)
+      if (latestMessage.id !== lastMarkedMessageIdRef.current) {
+        lastMarkedMessageIdRef.current = latestMessage.id;
+        markAsReadMutation.mutate(latestMessage.id);
+      }
     }
   }, [messages, chatRoomId]);
 
