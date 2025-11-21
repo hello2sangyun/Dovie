@@ -260,18 +260,23 @@ self.addEventListener('push', (event) => {
   
   // 🔥 CRITICAL: Check if this is a silent badge-only push (like iOS APNS silent push)
   // Silent pushes should only update badge, not show notification
+  // Check both root-level silent flag and nested data.type field (server may send either)
   const isSilentPush = notificationData.silent === true || 
-                       notificationData.data?.type === 'badge_update';
+                       (notificationData.data && notificationData.data.type === 'badge_update');
   
   console.log('[SW] 🔍 DEBUG: isSilentPush =', isSilentPush, 
               'payload.silent =', notificationData.silent,
-              'data.type =', notificationData.data?.type);
+              'data.type =', notificationData.data?.type,
+              'badgeCount =', notificationData.badgeCount ?? notificationData.data?.badgeCount);
   
   if (isSilentPush) {
     // Silent badge update: badge only, no notification display
     console.log('[SW] 🔕 Silent push - updating badge only (no notification shown)');
     
-    const badgeCount = notificationData.data?.badgeCount ?? notificationData.data?.unreadCount ?? 0;
+    // Badge count can be in root level (notificationData.badgeCount) or nested (data.badgeCount)
+    const badgeCount = notificationData.badgeCount ?? 
+                       notificationData.data?.badgeCount ?? 
+                       notificationData.data?.unreadCount ?? 0;
     console.log('[SW] 📱 Silent badge update:', badgeCount);
     
     event.waitUntil(
